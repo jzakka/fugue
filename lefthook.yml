@@ -1,0 +1,9 @@
+pre-commit:
+  commands:
+    go-fmt:
+      glob: "apps/api/**/*.go"
+      run: goimports -w {staged_files}
+    go-lint:
+      root: "apps/api/"
+      glob: "**/*.go"
+      run: golangci-lint run ./...

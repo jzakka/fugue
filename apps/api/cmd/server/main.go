@@ -1,11 +1,11 @@
 package main
 
 import (
-"fmt"
-"os"
+	"fmt"
+	"os"
 )
 
 func main() {
-fmt.Println("fugue api server")
-_ = os.Getenv("PORT")
+	fmt.Println("fugue api server")
+	_ = os.Getenv("PORT")
 }
