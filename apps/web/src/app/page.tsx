@@ -5,13 +5,16 @@ import FeedContainer from "@/components/feed/FeedContainer";
 import { fetchWorks } from "@/lib/api";
 import type { Work } from "@/lib/api";
 
-async function getInitialWorks(field?: string): Promise<{
+async function getInitialWorks(
+  field?: string,
+  offset?: number
+): Promise<{
   works: Work[];
   hasMore: boolean;
 }> {
   try {
     const data = await fetchWorks(
-      { field: field || undefined, limit: 20 },
+      { field: field || undefined, limit: 20, offset: offset || 0 },
       { serverSide: true }
     );
     return { works: data.works, hasMore: data.has_more };
@@ -25,10 +28,11 @@ export const dynamic = "force-dynamic";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ field?: string }>;
+  searchParams: Promise<{ field?: string; offset?: string }>;
 }) {
   const params = await searchParams;
-  const { works, hasMore } = await getInitialWorks(params.field);
+  const offset = params.offset ? parseInt(params.offset, 10) || 0 : 0;
+  const { works, hasMore } = await getInitialWorks(params.field, offset);
 
   return (
     <>

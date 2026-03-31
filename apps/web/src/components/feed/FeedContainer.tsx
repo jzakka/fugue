@@ -70,9 +70,15 @@ export default function FeedContainer({
     reloadField(field);
   }, [field, reloadField]);
 
-  // Infinite scroll — load next page
+  // Infinite scroll — load next page (also tracked by abortRef so field
+  // changes cancel in-flight loadMore requests and prevent stale appends)
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
 
@@ -82,13 +88,15 @@ export default function FeedContainer({
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
+      if (controller.signal.aborted) return;
       setWorks((prev) => [...prev, ...data.works]);
       setHasMore(data.has_more);
       offsetRef.current += data.works.length;
     } catch {
+      if (controller.signal.aborted) return;
       setError("추가 작품을 불러올 수 없습니다");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [field, loading, hasMore]);
 
