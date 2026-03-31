@@ -8,11 +8,30 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
+
+const countWorks = `-- name: CountWorks :one
+SELECT count(*) FROM works
+WHERE ($1::varchar = '' OR field = $1)
+  AND ($2::text[] IS NULL OR tags && $2::text[])
+`
+
+type CountWorksParams struct {
+	Column1 string
+	Column2 []string
+}
+
+func (q *Queries) CountWorks(ctx context.Context, arg CountWorksParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countWorks, arg.Column1, pq.Array(arg.Column2))
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createWork = `-- name: CreateWork :one
 INSERT INTO works (creator_id, url, title, description, field, tags, og_image, og_data)
@@ -136,6 +155,86 @@ func (q *Queries) ListWorks(ctx context.Context, arg ListWorksParams) ([]Work, e
 			&i.OgImage,
 			&i.OgData,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listWorksWithCreator = `-- name: ListWorksWithCreator :many
+SELECT
+    w.id, w.creator_id, w.url, w.title, w.description,
+    w.field, w.tags, w.og_image, w.og_data, w.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM works w
+JOIN creators c ON c.id = w.creator_id
+WHERE ($1::varchar = '' OR w.field = $1)
+  AND ($2::text[] IS NULL OR w.tags && $2::text[])
+ORDER BY w.created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type ListWorksWithCreatorParams struct {
+	Column1 string
+	Column2 []string
+	Limit   int32
+	Offset  int32
+}
+
+type ListWorksWithCreatorRow struct {
+	ID               uuid.UUID
+	CreatorID        uuid.UUID
+	Url              string
+	Title            string
+	Description      sql.NullString
+	Field            string
+	Tags             []string
+	OgImage          sql.NullString
+	OgData           pqtype.NullRawMessage
+	CreatedAt        time.Time
+	CreatorIDRef     uuid.UUID
+	CreatorNickname  string
+	CreatorAvatarUrl sql.NullString
+}
+
+func (q *Queries) ListWorksWithCreator(ctx context.Context, arg ListWorksWithCreatorParams) ([]ListWorksWithCreatorRow, error) {
+	rows, err := q.db.QueryContext(ctx, listWorksWithCreator,
+		arg.Column1,
+		pq.Array(arg.Column2),
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListWorksWithCreatorRow
+	for rows.Next() {
+		var i ListWorksWithCreatorRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.Field,
+			pq.Array(&i.Tags),
+			&i.OgImage,
+			&i.OgData,
+			&i.CreatedAt,
+			&i.CreatorIDRef,
+			&i.CreatorNickname,
+			&i.CreatorAvatarUrl,
 		); err != nil {
 			return nil, err
 		}

@@ -128,7 +128,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '판타지 배경 일러스트. 달빛 아래 정원.',
     '미술',
     '{"판타지","배경","일러스트","컨셉아트"}',
-    NULL
+    'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop'
 ),
 (
     '20000000-0000-0000-0000-000000000004',
@@ -138,7 +138,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '오리지널 캐릭터 루나의 풀바디 디자인.',
     '미술',
     '{"캐릭터디자인","오리지널","일러스트"}',
-    NULL
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop'
 ),
 (
     '20000000-0000-0000-0000-000000000005',
@@ -148,7 +148,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '하루의 Dreamscape 앨범 자켓 작업.',
     '미술',
     '{"앨범아트","커미션","일러스트"}',
-    NULL
+    'https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=350&fit=crop'
 );
 
 -- 영상편집 (제로)
@@ -161,7 +161,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '하루 × mochi 콜라보 뮤직비디오.',
     '영상편집',
     '{"뮤직비디오","모션그래픽","콜라보"}',
-    NULL
+    'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&h=225&fit=crop'
 ),
 (
     '20000000-0000-0000-0000-000000000007',
@@ -171,7 +171,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '키네틱 타이포그래피 쇼릴.',
     '영상편집',
     '{"타이포그래피","모션그래픽","쇼릴"}',
-    NULL
+    'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=225&fit=crop'
 );
 
 -- 프로그래밍 (codex)
@@ -184,7 +184,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '2D 로그라이크 게임. Unity 기반.',
     '프로그래밍',
     '{"게임개발","Unity","2D","로그라이크"}',
-    NULL
+    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop'
 ),
 (
     '20000000-0000-0000-0000-000000000009',
@@ -194,7 +194,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
     '음악 시각화 웹앱. Three.js 기반.',
     '프로그래밍',
     '{"웹개발","Three.js","시각화","인터랙티브"}',
-    NULL
+    'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop'
 );
 
 -- 시나리오 라이터 (소라)

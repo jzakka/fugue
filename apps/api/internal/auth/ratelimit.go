@@ -52,9 +52,9 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 }
 
 func extractIP(r *http.Request) string {
-	// For now, use RemoteAddr directly.
-	// TODO: In production behind a reverse proxy, parse X-Forwarded-For
-	// with trusted proxy configuration.
+	// Chi's middleware.RealIP sets RemoteAddr to the real client IP
+	// from X-Forwarded-For / X-Real-IP headers. Safe behind Next.js
+	// rewrite proxy and production ingress.
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr

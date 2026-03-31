@@ -1,11 +1,15 @@
 package auth
 
 import (
+	"database/sql"
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+
+	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
 type Handler struct {
@@ -172,6 +176,35 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	LogAuthEvent(r, "auth_logout", "", uuid.Nil, nil)
 	w.WriteHeader(http.StatusOK)
+}
+
+// Me returns the authenticated creator's profile.
+func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+	creatorID, ok := CreatorIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	q := db.New(h.service.db)
+	creator, err := q.GetCreator(r.Context(), creatorID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
+		LogAuthEvent(r, "auth_me_error", "", creatorID, err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"id":         creator.ID,
+		"nickname":   creator.Nickname,
+		"avatar_url": creator.AvatarUrl.String,
+		"email":      creator.Email.String,
+	})
 }
 
 func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {

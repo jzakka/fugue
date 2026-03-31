@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Fugue Design Tokens (from DESIGN.md)
+   Dark Gallery aesthetic — works shine against dark background
+   ============================================================ */
+
+:root {
+  --bg: #0C0C0C;
+  --surface: #161616;
+  --surface-elevated: #1E1E1E;
+  --surface-hover: #242424;
+  --text-primary: #E8E8E8;
+  --text-muted: #888888;
+  --text-dim: #555555;
+  --accent: #E85A2A;
+  --accent-hover: #FF6B3D;
+  --accent-subtle: rgba(232, 90, 42, 0.12);
+  --success: #34C759;
+  --warning: #FFB800;
+  --error: #FF3B30;
+  --info: #5AC8FA;
+  --border: #2A2A2A;
+}
+
+.light {
+  --bg: #F5F5F0;
+  --surface: #FFFFFF;
+  --surface-elevated: #FAFAFA;
+  --surface-hover: #F0F0F0;
+  --text-primary: #1A1A1A;
+  --text-muted: #777777;
+  --text-dim: #AAAAAA;
+  --accent-subtle: rgba(232, 90, 42, 0.08);
+  --border: #E0E0E0;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-border: var(--border);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Masonry grid gap override for react-masonry-css */
+.masonry-grid {
+  display: flex;
+  margin-left: -16px;
+  width: auto;
+}
+
+.masonry-grid_column {
+  padding-left: 16px;
+  background-clip: padding-box;
+}
+
+.masonry-grid_column > * {
+  margin-bottom: 16px;
+}

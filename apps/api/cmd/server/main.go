@@ -9,11 +9,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	"github.com/chungsanghwa/fugue/apps/api/internal/config"
+	"github.com/chungsanghwa/fugue/apps/api/internal/works"
 )
 
 func main() {
@@ -70,17 +72,30 @@ func main() {
 	callbackRL := auth.NewRateLimiter(rdb, 5, time.Minute)
 	refreshRL := auth.NewRateLimiter(rdb, 20, time.Minute)
 
+	// Works handler
+	worksHandler := works.NewHandler(db)
+	worksRL := auth.NewRateLimiter(rdb, 60, time.Minute)
+
 	// Router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{cfg.FrontendURL},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprintln(w, "ok")
 	})
+
+	// Public API routes (no JWT)
+	r.With(worksRL.Middleware).Get("/api/works", worksHandler.List)
 
 	// Auth routes (no JWT middleware)
 	r.Route("/api/auth", func(r chi.Router) {
@@ -93,6 +108,7 @@ func main() {
 	// Protected API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Use(auth.JWTMiddleware(jwtSvc))
+		r.Get("/auth/me", authHandler.Me)
 		// Future: creators, works, recommend, og endpoints
 	})
 
