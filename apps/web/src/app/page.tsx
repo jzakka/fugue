@@ -5,23 +5,30 @@ import FeedContainer from "@/components/feed/FeedContainer";
 import { fetchWorks } from "@/lib/api";
 import type { Work } from "@/lib/api";
 
-async function getInitialWorks(): Promise<{
+async function getInitialWorks(field?: string): Promise<{
   works: Work[];
   hasMore: boolean;
 }> {
   try {
-    const data = await fetchWorks({ limit: 20 }, { serverSide: true });
+    const data = await fetchWorks(
+      { field: field || undefined, limit: 20 },
+      { serverSide: true }
+    );
     return { works: data.works, hasMore: data.has_more };
   } catch {
-    // API is down — render empty, client will retry
     return { works: [], hasMore: false };
   }
 }
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const { works, hasMore } = await getInitialWorks();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ field?: string }>;
+}) {
+  const params = await searchParams;
+  const { works, hasMore } = await getInitialWorks(params.field);
 
   return (
     <>
@@ -31,7 +38,11 @@ export default async function HomePage() {
       </Suspense>
       <main className="flex-1 pb-12">
         <Suspense>
-          <FeedContainer initialWorks={works} initialHasMore={hasMore} />
+          <FeedContainer
+            initialWorks={works}
+            initialHasMore={hasMore}
+            initialField={params.field || ""}
+          />
         </Suspense>
       </main>
     </>

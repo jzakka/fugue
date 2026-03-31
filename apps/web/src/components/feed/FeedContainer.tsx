@@ -14,9 +14,11 @@ const PAGE_SIZE = 20;
 export default function FeedContainer({
   initialWorks,
   initialHasMore,
+  initialField,
 }: {
   initialWorks: Work[];
   initialHasMore: boolean;
+  initialField: string;
 }) {
   const searchParams = useSearchParams();
   const field = searchParams.get("field") || "";
@@ -25,36 +27,50 @@ export default function FeedContainer({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialLoad, setInitialLoad] = useState(false);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(initialWorks.length);
-  const fieldRef = useRef(field);
+  const fieldRef = useRef(initialField);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Reset when field changes
-  useEffect(() => {
-    if (field === fieldRef.current && !initialLoad) return;
-    fieldRef.current = field;
-    setInitialLoad(true);
-    setLoading(true);
-    setError(null);
-    offsetRef.current = 0;
+  // Reload the full first page for the current field
+  const reloadField = useCallback(
+    async (targetField: string) => {
+      // Abort any in-flight request
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-    fetchWorks({ field, limit: PAGE_SIZE, offset: 0 })
-      .then((data) => {
+      setLoading(true);
+      setError(null);
+      offsetRef.current = 0;
+
+      try {
+        const data = await fetchWorks({ field: targetField || undefined, limit: PAGE_SIZE, offset: 0 });
+        if (controller.signal.aborted) return;
         setWorks(data.works);
         setHasMore(data.has_more);
         offsetRef.current = data.works.length;
-      })
-      .catch(() => {
+      } catch {
+        if (controller.signal.aborted) return;
         setError("작품을 불러올 수 없습니다");
         setWorks([]);
         setHasMore(false);
-      })
-      .finally(() => setLoading(false));
-  }, [field, initialLoad]);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    },
+    []
+  );
 
-  // Infinite scroll
+  // Refetch when field changes (skip if SSR already seeded the right field)
+  useEffect(() => {
+    if (field === fieldRef.current) return;
+    fieldRef.current = field;
+    reloadField(field);
+  }, [field, reloadField]);
+
+  // Infinite scroll — load next page
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -62,7 +78,7 @@ export default function FeedContainer({
 
     try {
       const data = await fetchWorks({
-        field,
+        field: field || undefined,
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
@@ -118,10 +134,7 @@ export default function FeedContainer({
         <div className="mb-4 p-4 bg-surface rounded-md border-l-3 border-error text-sm">
           {error}
           <button
-            onClick={() => {
-              setError(null);
-              loadMore();
-            }}
+            onClick={() => reloadField(field)}
             className="ml-3 text-accent hover:underline cursor-pointer"
           >
             다시 시도

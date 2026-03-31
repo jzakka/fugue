@@ -58,35 +58,35 @@ describe("FeedContainer", () => {
 
   it("renders initial works", () => {
     const works = [makeWork("1"), makeWork("2")];
-    render(<FeedContainer initialWorks={works} initialHasMore={false} />);
+    render(<FeedContainer initialWorks={works} initialHasMore={false} initialField="" />);
 
     expect(screen.getByText("Work 1")).toBeInTheDocument();
     expect(screen.getByText("Work 2")).toBeInTheDocument();
   });
 
   it("shows empty state when no works and not loading", () => {
-    render(<FeedContainer initialWorks={[]} initialHasMore={false} />);
+    render(<FeedContainer initialWorks={[]} initialHasMore={false} initialField="" />);
 
     expect(screen.getByText("이 분야의 작품이 아직 없어요")).toBeInTheDocument();
     expect(screen.getByText("전체 보기")).toBeInTheDocument();
   });
 
   it("shows 🐡 icon in empty state", () => {
-    render(<FeedContainer initialWorks={[]} initialHasMore={false} />);
+    render(<FeedContainer initialWorks={[]} initialHasMore={false} initialField="" />);
 
     expect(screen.getByText("🐡")).toBeInTheDocument();
   });
 
   it("sets up IntersectionObserver when hasMore is true", () => {
     const works = [makeWork("1")];
-    render(<FeedContainer initialWorks={works} initialHasMore={true} />);
+    render(<FeedContainer initialWorks={works} initialHasMore={true} initialField="" />);
 
     expect(mockObserve).toHaveBeenCalled();
   });
 
   it("does not set up IntersectionObserver when hasMore is false", () => {
     const works = [makeWork("1")];
-    render(<FeedContainer initialWorks={works} initialHasMore={false} />);
+    render(<FeedContainer initialWorks={works} initialHasMore={false} initialField="" />);
 
     // Observer is created but sentinel div doesn't exist when hasMore=false
     // So observe may or may not be called depending on ref
@@ -95,7 +95,7 @@ describe("FeedContainer", () => {
   it("renders noscript Load More fallback", () => {
     const works = [makeWork("1")];
     const { container } = render(
-      <FeedContainer initialWorks={works} initialHasMore={true} />
+      <FeedContainer initialWorks={works} initialHasMore={true} initialField="" />
     );
 
     const noscript = container.querySelector("noscript");

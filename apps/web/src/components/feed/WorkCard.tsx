@@ -1,8 +1,20 @@
 import type { Work } from "@/lib/api";
 import { getCardType, getFieldLabel } from "@/lib/card-type";
 
-function AudioWaveform() {
-  const bars = Array.from({ length: 30 }, () => Math.random() * 32 + 8);
+// Deterministic waveform heights seeded from work ID to avoid hydration mismatch
+function seededBars(seed: string): number[] {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
+  }
+  return Array.from({ length: 30 }, (_, i) => {
+    h = ((h << 5) - h + i) | 0;
+    return (Math.abs(h) % 32) + 8;
+  });
+}
+
+function AudioWaveform({ seed }: { seed: string }) {
+  const bars = seededBars(seed);
   return (
     <div className="flex items-end gap-[2px] h-12 mb-4">
       {bars.map((h, i) => (
@@ -41,7 +53,7 @@ function AudioSection({ work }: { work: Work }) {
     <div className="p-5 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-accent/15 to-transparent" />
       <div className="relative">
-        <AudioWaveform />
+        <AudioWaveform seed={work.id} />
         <div className="flex items-center gap-3">
           <button className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0">
             ▶
