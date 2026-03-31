@@ -9,3 +9,7 @@
 - [Architecture](docs/architecture.md)
 - PRD: `docs/prd/feat-xxx.md`
   - [OAuth 소셜 로그인](docs/prd/feat-oauth-login.md)
+
+## 워크플로우 규칙
+
+- 커밋 전에 반드시 `/codex` review를 실행할 것
