@@ -17,7 +17,7 @@ import (
 const createCreator = `-- name: CreateCreator :one
 INSERT INTO creators (nickname, roles, contacts)
 VALUES ($1, $2, $3)
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at
+RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
 `
 
 type CreateCreatorParams struct {
@@ -38,12 +38,92 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Email,
+	)
+	return i, err
+}
+
+const createCreatorFromOAuth = `-- name: CreateCreatorFromOAuth :one
+INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
+`
+
+type CreateCreatorFromOAuthParams struct {
+	Nickname  string
+	Bio       sql.NullString
+	Roles     []string
+	Contacts  json.RawMessage
+	AvatarUrl sql.NullString
+	Email     sql.NullString
+}
+
+func (q *Queries) CreateCreatorFromOAuth(ctx context.Context, arg CreateCreatorFromOAuthParams) (Creator, error) {
+	row := q.db.QueryRowContext(ctx, createCreatorFromOAuth,
+		arg.Nickname,
+		arg.Bio,
+		pq.Array(arg.Roles),
+		arg.Contacts,
+		arg.AvatarUrl,
+		arg.Email,
+	)
+	var i Creator
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Bio,
+		pq.Array(&i.Roles),
+		&i.Contacts,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+	)
+	return i, err
+}
+
+const createCreatorFromOAuthOnConflict = `-- name: CreateCreatorFromOAuthOnConflict :one
+INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (email) DO NOTHING
+RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
+`
+
+type CreateCreatorFromOAuthOnConflictParams struct {
+	Nickname  string
+	Bio       sql.NullString
+	Roles     []string
+	Contacts  json.RawMessage
+	AvatarUrl sql.NullString
+	Email     sql.NullString
+}
+
+func (q *Queries) CreateCreatorFromOAuthOnConflict(ctx context.Context, arg CreateCreatorFromOAuthOnConflictParams) (Creator, error) {
+	row := q.db.QueryRowContext(ctx, createCreatorFromOAuthOnConflict,
+		arg.Nickname,
+		arg.Bio,
+		pq.Array(arg.Roles),
+		arg.Contacts,
+		arg.AvatarUrl,
+		arg.Email,
+	)
+	var i Creator
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Bio,
+		pq.Array(&i.Roles),
+		&i.Contacts,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
 	)
 	return i, err
 }
 
 const getCreator = `-- name: GetCreator :one
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at FROM creators
+SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
 WHERE id = $1
 `
 
@@ -59,12 +139,58 @@ func (q *Queries) GetCreator(ctx context.Context, id uuid.UUID) (Creator, error)
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Email,
+	)
+	return i, err
+}
+
+const getCreatorByEmail = `-- name: GetCreatorByEmail :one
+SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
+WHERE email = $1
+`
+
+func (q *Queries) GetCreatorByEmail(ctx context.Context, email sql.NullString) (Creator, error) {
+	row := q.db.QueryRowContext(ctx, getCreatorByEmail, email)
+	var i Creator
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Bio,
+		pq.Array(&i.Roles),
+		&i.Contacts,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+	)
+	return i, err
+}
+
+const getCreatorByEmailForUpdate = `-- name: GetCreatorByEmailForUpdate :one
+SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
+WHERE email = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetCreatorByEmailForUpdate(ctx context.Context, email sql.NullString) (Creator, error) {
+	row := q.db.QueryRowContext(ctx, getCreatorByEmailForUpdate, email)
+	var i Creator
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Bio,
+		pq.Array(&i.Roles),
+		&i.Contacts,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
 	)
 	return i, err
 }
 
 const listCreatorsByRoles = `-- name: ListCreatorsByRoles :many
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at FROM creators
+SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
 WHERE roles && $1::text[]
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -94,6 +220,7 @@ func (q *Queries) ListCreatorsByRoles(ctx context.Context, arg ListCreatorsByRol
 			&i.AvatarUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Email,
 		); err != nil {
 			return nil, err
 		}
@@ -117,7 +244,7 @@ SET nickname = $2,
     avatar_url = $6,
     updated_at = now()
 WHERE id = $1
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at
+RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
 `
 
 type UpdateCreatorParams struct {
@@ -148,6 +275,7 @@ func (q *Queries) UpdateCreator(ctx context.Context, arg UpdateCreatorParams) (C
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Email,
 	)
 	return i, err
 }

@@ -1,0 +1,3 @@
+ALTER TABLE creators ADD COLUMN email VARCHAR(255) UNIQUE;
+
+ALTER TABLE auth_accounts ADD COLUMN profile JSONB;

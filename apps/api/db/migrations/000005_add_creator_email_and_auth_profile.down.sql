@@ -1,0 +1,3 @@
+ALTER TABLE auth_accounts DROP COLUMN IF EXISTS profile;
+
+ALTER TABLE creators DROP COLUMN IF EXISTS email;

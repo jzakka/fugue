@@ -10,12 +10,13 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const createAuthAccount = `-- name: CreateAuthAccount :one
 INSERT INTO auth_accounts (creator_id, provider, provider_id, email)
 VALUES ($1, $2, $3, $4)
-RETURNING id, creator_id, provider, provider_id, email, created_at
+RETURNING id, creator_id, provider, provider_id, email, created_at, profile
 `
 
 type CreateAuthAccountParams struct {
@@ -40,12 +41,48 @@ func (q *Queries) CreateAuthAccount(ctx context.Context, arg CreateAuthAccountPa
 		&i.ProviderID,
 		&i.Email,
 		&i.CreatedAt,
+		&i.Profile,
+	)
+	return i, err
+}
+
+const createAuthAccountWithProfile = `-- name: CreateAuthAccountWithProfile :one
+INSERT INTO auth_accounts (creator_id, provider, provider_id, email, profile)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, creator_id, provider, provider_id, email, created_at, profile
+`
+
+type CreateAuthAccountWithProfileParams struct {
+	CreatorID  uuid.UUID
+	Provider   string
+	ProviderID string
+	Email      sql.NullString
+	Profile    pqtype.NullRawMessage
+}
+
+func (q *Queries) CreateAuthAccountWithProfile(ctx context.Context, arg CreateAuthAccountWithProfileParams) (AuthAccount, error) {
+	row := q.db.QueryRowContext(ctx, createAuthAccountWithProfile,
+		arg.CreatorID,
+		arg.Provider,
+		arg.ProviderID,
+		arg.Email,
+		arg.Profile,
+	)
+	var i AuthAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.Provider,
+		&i.ProviderID,
+		&i.Email,
+		&i.CreatedAt,
+		&i.Profile,
 	)
 	return i, err
 }
 
 const getAuthAccountByEmail = `-- name: GetAuthAccountByEmail :many
-SELECT id, creator_id, provider, provider_id, email, created_at FROM auth_accounts
+SELECT id, creator_id, provider, provider_id, email, created_at, profile FROM auth_accounts
 WHERE email = $1
 `
 
@@ -65,6 +102,44 @@ func (q *Queries) GetAuthAccountByEmail(ctx context.Context, email sql.NullStrin
 			&i.ProviderID,
 			&i.Email,
 			&i.CreatedAt,
+			&i.Profile,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuthAccountByEmailForUpdate = `-- name: GetAuthAccountByEmailForUpdate :many
+SELECT id, creator_id, provider, provider_id, email, created_at, profile FROM auth_accounts
+WHERE email = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetAuthAccountByEmailForUpdate(ctx context.Context, email sql.NullString) ([]AuthAccount, error) {
+	rows, err := q.db.QueryContext(ctx, getAuthAccountByEmailForUpdate, email)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthAccount
+	for rows.Next() {
+		var i AuthAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Provider,
+			&i.ProviderID,
+			&i.Email,
+			&i.CreatedAt,
+			&i.Profile,
 		); err != nil {
 			return nil, err
 		}
@@ -80,7 +155,7 @@ func (q *Queries) GetAuthAccountByEmail(ctx context.Context, email sql.NullStrin
 }
 
 const getAuthAccountByProvider = `-- name: GetAuthAccountByProvider :one
-SELECT id, creator_id, provider, provider_id, email, created_at FROM auth_accounts
+SELECT id, creator_id, provider, provider_id, email, created_at, profile FROM auth_accounts
 WHERE provider = $1 AND provider_id = $2
 `
 
@@ -99,6 +174,43 @@ func (q *Queries) GetAuthAccountByProvider(ctx context.Context, arg GetAuthAccou
 		&i.ProviderID,
 		&i.Email,
 		&i.CreatedAt,
+		&i.Profile,
 	)
 	return i, err
+}
+
+const listAuthAccountsByCreator = `-- name: ListAuthAccountsByCreator :many
+SELECT id, creator_id, provider, provider_id, email, created_at, profile FROM auth_accounts
+WHERE creator_id = $1
+`
+
+func (q *Queries) ListAuthAccountsByCreator(ctx context.Context, creatorID uuid.UUID) ([]AuthAccount, error) {
+	rows, err := q.db.QueryContext(ctx, listAuthAccountsByCreator, creatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthAccount
+	for rows.Next() {
+		var i AuthAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Provider,
+			&i.ProviderID,
+			&i.Email,
+			&i.CreatedAt,
+			&i.Profile,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

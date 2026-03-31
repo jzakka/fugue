@@ -20,6 +20,7 @@ type AuthAccount struct {
 	ProviderID string
 	Email      sql.NullString
 	CreatedAt  time.Time
+	Profile    pqtype.NullRawMessage
 }
 
 type Creator struct {
@@ -31,12 +32,7 @@ type Creator struct {
 	AvatarUrl sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-type ProjectType struct {
-	ID             string
-	Name           string
-	RequiredFields []string
+	Email     sql.NullString
 }
 
 type Work struct {

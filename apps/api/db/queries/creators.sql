@@ -3,9 +3,29 @@ INSERT INTO creators (nickname, roles, contacts)
 VALUES ($1, $2, $3)
 RETURNING *;
 
+-- name: CreateCreatorFromOAuth :one
+INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING *;
+
+-- name: CreateCreatorFromOAuthOnConflict :one
+INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (email) DO NOTHING
+RETURNING *;
+
 -- name: GetCreator :one
 SELECT * FROM creators
 WHERE id = $1;
+
+-- name: GetCreatorByEmail :one
+SELECT * FROM creators
+WHERE email = $1;
+
+-- name: GetCreatorByEmailForUpdate :one
+SELECT * FROM creators
+WHERE email = $1
+FOR UPDATE;
 
 -- name: UpdateCreator :one
 UPDATE creators
