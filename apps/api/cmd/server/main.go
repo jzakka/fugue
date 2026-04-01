@@ -58,11 +58,14 @@ func main() {
 			cfg.GoogleClientSecret,
 			cfg.OAuthCallbackBase+"/api/auth/google/callback",
 		),
-		"discord": auth.NewDiscordProvider(
+	}
+	// TODO: Discord를 다시 필수로 변경할 것 (OAuth 앱 등록 후)
+	if cfg.DiscordClientID != "" && cfg.DiscordClientSecret != "" {
+		providers["discord"] = auth.NewDiscordProvider(
 			cfg.DiscordClientID,
 			cfg.DiscordClientSecret,
 			cfg.OAuthCallbackBase+"/api/auth/discord/callback",
-		),
+		)
 	}
 
 	authHandler := auth.NewHandler(providers, stateManager, authService, jwtSvc, cfg.FrontendURL, cfg.IsDevMode())
@@ -96,8 +99,11 @@ func main() {
 	// the Next.js server IP and would exhaust a shared bucket under normal traffic)
 	r.Get("/api/works", worksHandler.List)
 
-	// Auth routes (no JWT middleware)
+	// Auth routes — /me must live here because Chi's Route("/api/auth")
+	// subrouter captures all /api/auth/* requests, making any /api/auth/me
+	// registered under Route("/api") unreachable (404).
 	r.Route("/api/auth", func(r chi.Router) {
+		r.Get("/providers", authHandler.Providers)
 		r.With(authRL.Middleware).Get("/{provider}/login", authHandler.Login)
 		r.With(callbackRL.Middleware).Get("/{provider}/callback", authHandler.Callback)
 		// No rate limit on refresh — the refresh token itself is the auth.
@@ -105,13 +111,14 @@ func main() {
 		// shared bucket under normal multi-user traffic.
 		r.Post("/refresh", authHandler.Refresh)
 		r.With(authRL.Middleware).Post("/logout", authHandler.Logout)
+
+		// Protected: requires valid JWT
+		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", authHandler.Me)
 	})
 
-	// Protected API routes
+	// Protected API routes (future: creators, works, recommend, og)
 	r.Route("/api", func(r chi.Router) {
 		r.Use(auth.JWTMiddleware(jwtSvc))
-		r.Get("/auth/me", authHandler.Me)
-		// Future: creators, works, recommend, og endpoints
 	})
 
 	addr := ":" + cfg.Port

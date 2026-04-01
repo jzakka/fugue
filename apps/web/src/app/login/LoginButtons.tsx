@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const PROVIDERS = [
+const ALL_PROVIDERS = [
   {
     id: "google",
     label: "Google로 로그인",
@@ -43,6 +43,18 @@ const PROVIDERS = [
 
 export default function LoginButtons({ redirectTo }: { redirectTo: string }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/auth/providers")
+      .then((res) => res.json())
+      .then((data: string[]) => setAvailableProviders(data))
+      .catch(() => setAvailableProviders(["google"]));
+  }, []);
+
+  const providers = ALL_PROVIDERS.filter((p) =>
+    availableProviders.includes(p.id),
+  );
 
   function handleClick(providerId: string) {
     setLoading(providerId);
@@ -52,7 +64,7 @@ export default function LoginButtons({ redirectTo }: { redirectTo: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {PROVIDERS.map((provider) => (
+      {providers.map((provider) => (
         <button
           key={provider.id}
           onClick={() => handleClick(provider.id)}

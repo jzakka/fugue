@@ -33,6 +33,16 @@ func NewHandler(providers map[string]Provider, state *StateManager, service *Ser
 	}
 }
 
+// Providers returns the list of registered OAuth provider names.
+func (h *Handler) Providers(w http.ResponseWriter, r *http.Request) {
+	names := make([]string, 0, len(h.providers))
+	for name := range h.providers {
+		names = append(names, name)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(names)
+}
+
 // Login initiates the OAuth flow by redirecting to the provider.
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	providerName := chi.URLParam(r, "provider")

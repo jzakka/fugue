@@ -46,11 +46,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required")
 	}
 
+	// TODO: Discord를 다시 필수로 변경할 것 (OAuth 앱 등록 후)
 	discordID := os.Getenv("DISCORD_CLIENT_ID")
 	discordSecret := os.Getenv("DISCORD_CLIENT_SECRET")
-	if discordID == "" || discordSecret == "" {
-		return nil, fmt.Errorf("DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET are required")
-	}
 
 	return &Config{
 		Port:                envOrDefault("PORT", "8080"),
