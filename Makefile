@@ -34,7 +34,12 @@ dev-infra:
 # ============================================================
 migrate:
 	@echo "📦 Running migrations..."
-	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up 2>&1 | grep -v "no change" || true
+	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up; \
+	EXIT=$$?; \
+	if [ $$EXIT -eq 0 ]; then true; \
+	elif migrate -path db/migrations -database "$(DB_URL)" version 2>&1 | grep -q "dirty"; then \
+		echo "❌ Migration failed (dirty state). Run: cd $(API_DIR) && make migrate-down && make migrate-up"; exit 1; \
+	else true; fi
 
 seed:
 	@echo "🌱 Seeding data..."

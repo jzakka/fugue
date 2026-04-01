@@ -169,7 +169,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "fugue_refresh",
 		Value:    "",
-		Path:     "/api/auth",
+		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
 	})
@@ -222,7 +222,7 @@ func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "fugue_refresh",
 		Value:    pair.RefreshToken,
-		Path:     "/api/auth",
+		Path:     "/",
 		MaxAge:   int((7 * 24 * time.Hour).Seconds()),
 		HttpOnly: true,
 		Secure:   secure,
