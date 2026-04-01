@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { CreatorPrivate } from "./api";
 
 export interface AuthUser {
   id: string;
@@ -36,4 +37,19 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// SSR fetch of the full creator profile (for mypage).
+// Throws on failure so the caller can redirect.
+export async function fetchMe(): Promise<CreatorPrivate> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("fugue_access")?.value;
+  if (!token) throw new Error("Unauthorized");
+
+  const res = await fetch(`${INTERNAL_API_URL}/api/creators/me`, {
+    headers: { Cookie: `fugue_access=${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
 }

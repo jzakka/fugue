@@ -10,15 +10,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	"github.com/chungsanghwa/fugue/apps/api/internal/config"
+	"github.com/chungsanghwa/fugue/apps/api/internal/creator"
 	"github.com/chungsanghwa/fugue/apps/api/internal/works"
 )
 
 func main() {
+	// Load .env file if present (ignored in production where env vars are set directly)
+	_ = godotenv.Load()
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("config: %v", err)
@@ -77,6 +82,9 @@ func main() {
 	// Works handler
 	worksHandler := works.NewHandler(db)
 
+	// Creator handler
+	creatorHandler := creator.NewHandler(db)
+
 	// Router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -99,6 +107,14 @@ func main() {
 	// the Next.js server IP and would exhaust a shared bucket under normal traffic)
 	r.Get("/api/works", worksHandler.List)
 
+	// Creator routes — /me (protected) must be registered before /{id}
+	// so Chi's trie matches the literal "me" before the param.
+	r.Route("/api/creators", func(r chi.Router) {
+		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", creatorHandler.GetMe)
+		r.With(auth.JWTMiddleware(jwtSvc)).Put("/me", creatorHandler.UpdateMe)
+		r.Get("/{id}", creatorHandler.GetByID)
+	})
+
 	// Auth routes — /me must live here because Chi's Route("/api/auth")
 	// subrouter captures all /api/auth/* requests, making any /api/auth/me
 	// registered under Route("/api") unreachable (404).
@@ -114,11 +130,6 @@ func main() {
 
 		// Protected: requires valid JWT
 		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", authHandler.Me)
-	})
-
-	// Protected API routes (future: creators, works, recommend, og)
-	r.Route("/api", func(r chi.Router) {
-		r.Use(auth.JWTMiddleware(jwtSvc))
 	})
 
 	addr := ":" + cfg.Port

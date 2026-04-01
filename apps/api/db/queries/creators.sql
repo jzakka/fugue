@@ -43,3 +43,7 @@ SELECT * FROM creators
 WHERE roles && $1::text[]
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: CountWorksByCreator :one
+SELECT count(*) FROM works
+WHERE creator_id = $1;

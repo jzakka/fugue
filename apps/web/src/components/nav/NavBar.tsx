@@ -41,18 +41,20 @@ export default async function NavBar() {
               </button>
               <ThemeToggle />
               <div className="flex items-center gap-3">
-                {user.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt={user.nickname}
-                    className="w-9 h-9 rounded-full border-2 border-border object-cover"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-orange-400 border-2 border-border" />
-                )}
-                <span className="text-sm text-text-primary hidden sm:block">
-                  {user.nickname}
-                </span>
+                <Link href="/mypage" className="flex items-center gap-2">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.nickname}
+                      className="w-9 h-9 rounded-full border-2 border-border object-cover"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-orange-400 border-2 border-border" />
+                  )}
+                  <span className="text-sm text-text-primary hidden sm:block">
+                    {user.nickname}
+                  </span>
+                </Link>
                 <LogoutButton />
               </div>
             </>

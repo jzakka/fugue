@@ -14,6 +14,18 @@ import (
 	"github.com/lib/pq"
 )
 
+const countWorksByCreator = `-- name: CountWorksByCreator :one
+SELECT count(*) FROM works
+WHERE creator_id = $1
+`
+
+func (q *Queries) CountWorksByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countWorksByCreator, creatorID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCreator = `-- name: CreateCreator :one
 INSERT INTO creators (nickname, roles, contacts)
 VALUES ($1, $2, $3)

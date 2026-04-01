@@ -18,12 +18,18 @@ import (
 
 // mockQuerier implements WorksQuerier for testing.
 type mockQuerier struct {
-	listRows   []db.ListWorksWithCreatorRow
-	listErr    error
-	countVal   int64
-	countErr   error
-	lastListP  db.ListWorksWithCreatorParams
-	lastCountP db.CountWorksParams
+	listRows             []db.ListWorksWithCreatorRow
+	listErr              error
+	countVal             int64
+	countErr             error
+	lastListP            db.ListWorksWithCreatorParams
+	lastCountP           db.CountWorksParams
+	creatorRows          []db.ListWorksByCreatorRow
+	creatorErr           error
+	lastCreatorP         db.ListWorksByCreatorParams
+	creatorCountVal      int64
+	creatorCountErr      error
+	lastCreatorCountP    db.CountWorksByCreatorFilteredParams
 }
 
 func (m *mockQuerier) ListWorksWithCreator(_ context.Context, arg db.ListWorksWithCreatorParams) ([]db.ListWorksWithCreatorRow, error) {
@@ -31,9 +37,19 @@ func (m *mockQuerier) ListWorksWithCreator(_ context.Context, arg db.ListWorksWi
 	return m.listRows, m.listErr
 }
 
+func (m *mockQuerier) ListWorksByCreator(_ context.Context, arg db.ListWorksByCreatorParams) ([]db.ListWorksByCreatorRow, error) {
+	m.lastCreatorP = arg
+	return m.creatorRows, m.creatorErr
+}
+
 func (m *mockQuerier) CountWorks(_ context.Context, arg db.CountWorksParams) (int64, error) {
 	m.lastCountP = arg
 	return m.countVal, m.countErr
+}
+
+func (m *mockQuerier) CountWorksByCreatorFiltered(_ context.Context, arg db.CountWorksByCreatorFilteredParams) (int64, error) {
+	m.lastCreatorCountP = arg
+	return m.creatorCountVal, m.creatorCountErr
 }
 
 func sampleRow() db.ListWorksWithCreatorRow {
@@ -349,5 +365,70 @@ func TestList_NilTagsReturnsEmptyArray(t *testing.T) {
 	// tags should be [] not null
 	if string(works[0]["tags"]) == "null" {
 		t.Error("expected tags to be [] not null")
+	}
+}
+
+func sampleCreatorRow() db.ListWorksByCreatorRow {
+	return db.ListWorksByCreatorRow{
+		ID:               uuid.MustParse("20000000-0000-0000-0000-000000000001"),
+		CreatorID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Url:              "https://soundcloud.com/haru/dreamscape",
+		Title:            "Dreamscape",
+		Description:      sql.NullString{String: "몽환적인 신스팝", Valid: true},
+		Field:            "음악",
+		Tags:             []string{"신스팝", "몽환"},
+		OgImage:          sql.NullString{},
+		OgData:           pqtype.NullRawMessage{},
+		CreatedAt:        time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:     uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		CreatorNickname:  "하루",
+		CreatorAvatarUrl: sql.NullString{},
+	}
+}
+
+func TestList_CreatorIDFilter(t *testing.T) {
+	creatorID := "00000000-0000-0000-0000-000000000001"
+	mock := &mockQuerier{
+		creatorRows:     []db.ListWorksByCreatorRow{sampleCreatorRow()},
+		creatorCountVal: 1,
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	rec := doRequest(t, h, "/api/works?creator_id="+creatorID)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	resp := decodeResponse(t, rec)
+	if len(resp.Works) != 1 {
+		t.Fatalf("expected 1 work, got %d", len(resp.Works))
+	}
+	if mock.lastCreatorP.CreatorID.String() != creatorID {
+		t.Errorf("expected creator_id %s, got %s", creatorID, mock.lastCreatorP.CreatorID)
+	}
+}
+
+func TestList_InvalidCreatorID(t *testing.T) {
+	mock := &mockQuerier{}
+	h := NewHandlerWithQuerier(mock)
+
+	rec := doRequest(t, h, "/api/works?creator_id=not-a-uuid")
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rec.Code)
+	}
+}
+
+func TestList_CreatorIDWithFieldFilter(t *testing.T) {
+	mock := &mockQuerier{
+		creatorRows: nil,
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	doRequest(t, h, "/api/works?creator_id=00000000-0000-0000-0000-000000000001&field=음악")
+
+	if mock.lastCreatorP.Column2 != "음악" {
+		t.Errorf("expected field '음악', got %q", mock.lastCreatorP.Column2)
 	}
 }

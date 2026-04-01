@@ -31,6 +31,51 @@ type ListWorksResponse struct {
 	HasMore bool           `json:"has_more"`
 }
 
+func toCreatorWorkResponse(row db.ListWorksByCreatorRow) WorkResponse {
+	var desc *string
+	if row.Description.Valid {
+		desc = &row.Description.String
+	}
+
+	var ogImage *string
+	if row.OgImage.Valid {
+		ogImage = &row.OgImage.String
+	}
+
+	var ogData *json.RawMessage
+	if row.OgData.Valid {
+		raw := json.RawMessage(row.OgData.RawMessage)
+		ogData = &raw
+	}
+
+	var avatarURL *string
+	if row.CreatorAvatarUrl.Valid {
+		avatarURL = &row.CreatorAvatarUrl.String
+	}
+
+	tags := row.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+
+	return WorkResponse{
+		ID:          row.ID.String(),
+		URL:         row.Url,
+		Title:       row.Title,
+		Description: desc,
+		Field:       row.Field,
+		Tags:        tags,
+		OgImage:     ogImage,
+		OgData:      ogData,
+		CreatedAt:   row.CreatedAt,
+		Creator: CreatorSummary{
+			ID:        row.CreatorIDRef.String(),
+			Nickname:  row.CreatorNickname,
+			AvatarURL: avatarURL,
+		},
+	}
+}
+
 func toWorkResponse(row db.ListWorksWithCreatorRow) WorkResponse {
 	var desc *string
 	if row.Description.Valid {

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
+
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
@@ -16,7 +18,9 @@ import (
 // Satisfied by *db.Queries in production, mocked in tests.
 type WorksQuerier interface {
 	ListWorksWithCreator(ctx context.Context, arg db.ListWorksWithCreatorParams) ([]db.ListWorksWithCreatorRow, error)
+	ListWorksByCreator(ctx context.Context, arg db.ListWorksByCreatorParams) ([]db.ListWorksByCreatorRow, error)
 	CountWorks(ctx context.Context, arg db.CountWorksParams) (int64, error)
+	CountWorksByCreatorFiltered(ctx context.Context, arg db.CountWorksByCreatorFilteredParams) (int64, error)
 }
 
 type Handler struct {
@@ -32,11 +36,12 @@ func NewHandlerWithQuerier(q WorksQuerier) *Handler {
 	return &Handler{q: q}
 }
 
-// List handles GET /api/works?field=&tags=&limit=&offset=
+// List handles GET /api/works?field=&tags=&limit=&offset=&creator_id=
 //
 // Data flow:
 //
 //	query params → validate/clamp → ListWorksWithCreator (JOIN) → CountWorks → JSON
+//	If creator_id is present → ListWorksByCreator instead.
 //
 // Error paths:
 //
@@ -64,6 +69,17 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		offset = o
 	}
 
+	// Branch: creator_id filter uses dedicated query
+	if creatorIDStr := r.URL.Query().Get("creator_id"); creatorIDStr != "" {
+		creatorID, err := uuid.Parse(creatorIDStr)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "유효하지 않은 크리에이터 ID입니다")
+			return
+		}
+		h.listByCreator(w, r, creatorID, field, tags, limit, offset)
+		return
+	}
+
 	rows, err := h.q.ListWorksWithCreator(r.Context(), db.ListWorksWithCreatorParams{
 		Column1: field,
 		Column2: tags,
@@ -89,6 +105,44 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	works := make([]WorkResponse, 0, len(rows))
 	for _, row := range rows {
 		works = append(works, toWorkResponse(row))
+	}
+
+	hasMore := (int64(offset) + int64(len(rows))) < count
+
+	writeJSON(w, http.StatusOK, ListWorksResponse{
+		Works:   works,
+		HasMore: hasMore,
+	})
+}
+
+func (h *Handler) listByCreator(w http.ResponseWriter, r *http.Request, creatorID uuid.UUID, field string, tags []string, limit, offset int) {
+	rows, err := h.q.ListWorksByCreator(r.Context(), db.ListWorksByCreatorParams{
+		CreatorID: creatorID,
+		Column2:   field,
+		Column3:   tags,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
+	})
+	if err != nil {
+		log.Printf("works.listByCreator: query error: %v (creator=%s)", err, creatorID)
+		writeError(w, http.StatusInternalServerError, "작품 목록을 불러올 수 없습니다")
+		return
+	}
+
+	count, err := h.q.CountWorksByCreatorFiltered(r.Context(), db.CountWorksByCreatorFilteredParams{
+		CreatorID: creatorID,
+		Column2:   field,
+		Column3:   tags,
+	})
+	if err != nil {
+		log.Printf("works.listByCreator: count error: %v (creator=%s)", err, creatorID)
+		writeError(w, http.StatusInternalServerError, "작품 수를 확인할 수 없습니다")
+		return
+	}
+
+	works := make([]WorkResponse, 0, len(rows))
+	for _, row := range rows {
+		works = append(works, toCreatorWorkResponse(row))
 	}
 
 	hasMore := (int64(offset) + int64(len(rows))) < count
