@@ -17,12 +17,11 @@ export default function FieldFilter() {
   const currentField = searchParams.get("field") || "";
 
   function handleClick(field: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
     if (field) {
       params.set("field", field);
-    } else {
-      params.delete("field");
     }
+    // Always reset offset when changing field — start from page 1
     router.push(`?${params.toString()}`, { scroll: false });
   }
 

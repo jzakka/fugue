@@ -46,6 +46,7 @@ export default async function HomePage({
             initialWorks={works}
             initialHasMore={hasMore}
             initialField={params.field || ""}
+            initialOffset={offset}
           />
         </Suspense>
       </main>

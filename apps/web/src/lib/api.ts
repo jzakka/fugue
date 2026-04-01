@@ -31,9 +31,11 @@ export async function fetchWorks(
   },
   options?: { serverSide?: boolean }
 ): Promise<ListWorksResponse> {
+  // SSR: use internal service URL (not exposed to browser)
+  // Client: use NEXT_PUBLIC_API_URL (must be set in production deployments)
   const baseUrl = options?.serverSide
     ? process.env.API_URL || "http://localhost:8080"
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    : process.env.NEXT_PUBLIC_API_URL || "";
 
   const searchParams = new URLSearchParams();
   if (params.field) searchParams.set("field", params.field);

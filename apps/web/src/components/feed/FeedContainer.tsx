@@ -15,10 +15,12 @@ export default function FeedContainer({
   initialWorks,
   initialHasMore,
   initialField,
+  initialOffset = 0,
 }: {
   initialWorks: Work[];
   initialHasMore: boolean;
   initialField: string;
+  initialOffset?: number;
 }) {
   const searchParams = useSearchParams();
   const field = searchParams.get("field") || "";
@@ -29,7 +31,7 @@ export default function FeedContainer({
   const [error, setError] = useState<string | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(initialWorks.length);
+  const offsetRef = useRef(initialOffset + initialWorks.length);
   const fieldRef = useRef(initialField);
   const abortRef = useRef<AbortController | null>(null);
 

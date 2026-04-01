@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAuthUser } from "@/lib/auth";
 import LoginButtons from "./LoginButtons";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -16,8 +16,10 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; redirect?: string }>;
 }) {
-  const cookieStore = await cookies();
-  if (cookieStore.get("fugue_access")) {
+  // Validate the token, not just cookie existence — a corrupted or expired
+  // cookie should not bounce users away from /login
+  const user = await getAuthUser();
+  if (user) {
     redirect("/");
   }
 
