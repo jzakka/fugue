@@ -74,7 +74,6 @@ func main() {
 
 	// Works handler
 	worksHandler := works.NewHandler(db)
-	worksRL := auth.NewRateLimiter(rdb, 60, time.Minute)
 
 	// Router
 	r := chi.NewRouter()
@@ -94,8 +93,9 @@ func main() {
 		_, _ = fmt.Fprintln(w, "ok")
 	})
 
-	// Public API routes (no JWT)
-	r.With(worksRL.Middleware).Get("/api/works", worksHandler.List)
+	// Public API routes (no JWT, no rate limit — SSR requests come from
+	// the Next.js server IP and would exhaust a shared bucket under normal traffic)
+	r.Get("/api/works", worksHandler.List)
 
 	// Auth routes (no JWT middleware)
 	r.Route("/api/auth", func(r chi.Router) {

@@ -167,15 +167,16 @@ export default function FeedContainer({
         </div>
       )}
 
-      {/* Load More fallback (noscript) */}
+      {/* Load More fallback (noscript) — navigates to next page of results.
+          Without JS, pagination is page-based (standard HTML behavior). */}
       <noscript>
         {hasMore && (
           <div className="flex justify-center py-8">
             <a
-              href={`?field=${field}&offset=${offsetRef.current}`}
+              href={`?${field ? `field=${field}&` : ""}offset=${offsetRef.current}`}
               className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors"
             >
-              더 보기
+              다음 페이지
             </a>
           </div>
         )}

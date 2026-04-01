@@ -14,10 +14,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.includes(".")
   ) {
-    // If authenticated user visits /login, redirect to /
-    if (pathname === "/login" && request.cookies.get("fugue_access")) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+    // Don't redirect /login users — even if they have a cookie, it might
+    // be invalid. Let the login page handle the redirect if auth is valid.
     return NextResponse.next();
   }
 
