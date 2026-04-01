@@ -60,7 +60,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	offset := 0
-	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 {
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 && o <= 100000 {
 		offset = o
 	}
 

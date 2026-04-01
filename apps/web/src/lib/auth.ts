@@ -9,9 +9,12 @@ export interface AuthUser {
 
 const INTERNAL_API_URL = process.env.API_URL || "http://localhost:8080";
 
-// SSR auth check — access token only. If expired, returns null.
-// Token refresh is handled client-side via /api/auth/refresh route,
-// avoiding SSR cookie forwarding problems.
+// SSR auth check — access token only. If expired, returns null and the
+// page renders the logged-out state. Token refresh is handled client-side
+// via /api/auth/refresh route (see apps/web/src/app/api/auth/refresh/route.ts),
+// which properly forwards Set-Cookie headers to the browser. This avoids
+// the SSR cookie forwarding problem where server-side refresh consumes
+// the new token without updating the browser's cookie jar.
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("fugue_access")?.value;
