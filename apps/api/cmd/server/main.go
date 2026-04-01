@@ -70,7 +70,6 @@ func main() {
 	// Rate limiters
 	authRL := auth.NewRateLimiter(rdb, 10, time.Minute)
 	callbackRL := auth.NewRateLimiter(rdb, 5, time.Minute)
-	refreshRL := auth.NewRateLimiter(rdb, 20, time.Minute)
 
 	// Works handler
 	worksHandler := works.NewHandler(db)
@@ -101,7 +100,10 @@ func main() {
 	r.Route("/api/auth", func(r chi.Router) {
 		r.With(authRL.Middleware).Get("/{provider}/login", authHandler.Login)
 		r.With(callbackRL.Middleware).Get("/{provider}/callback", authHandler.Callback)
-		r.With(refreshRL.Middleware).Post("/refresh", authHandler.Refresh)
+		// No rate limit on refresh — the refresh token itself is the auth.
+		// SSR calls this from the Next.js server IP, which would exhaust a
+		// shared bucket under normal multi-user traffic.
+		r.Post("/refresh", authHandler.Refresh)
 		r.With(authRL.Middleware).Post("/logout", authHandler.Logout)
 	})
 

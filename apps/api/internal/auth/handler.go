@@ -248,4 +248,12 @@ func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 	})
+	// Expire the legacy Path=/api/auth variant so browsers stop sending both
+	http.SetCookie(w, &http.Cookie{
+		Name:     "fugue_refresh",
+		Value:    "",
+		Path:     "/api/auth",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
 }
