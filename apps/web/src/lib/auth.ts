@@ -16,6 +16,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
   if (!token && !refreshToken) return null;
 
+  // Single AbortController guards ALL requests (access + refresh + follow-up)
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 3000);
 
@@ -30,21 +31,21 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       if (res.ok) return res.json();
     }
 
-    // Access token missing/expired — try refresh via Go API directly
-    // (SSR can forward the refresh cookie since we read it from the cookie store)
+    // Access token missing/expired — try refresh
     if (refreshToken) {
       const refreshRes = await fetch(`${INTERNAL_API_URL}/api/auth/refresh`, {
         method: "POST",
         headers: { Cookie: `fugue_refresh=${refreshToken}` },
+        signal: controller.signal,
         cache: "no-store",
       });
       if (refreshRes.ok) {
-        // Extract new access token from Set-Cookie
         const setCookie = refreshRes.headers.get("set-cookie") || "";
         const match = setCookie.match(/fugue_access=([^;]+)/);
         if (match) {
           const meRes = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
             headers: { Cookie: `fugue_access=${match[1]}` },
+            signal: controller.signal,
             cache: "no-store",
           });
           if (meRes.ok) return meRes.json();

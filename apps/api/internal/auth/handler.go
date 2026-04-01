@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -159,10 +160,12 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookies with matching Path attributes
+	domain := h.cookieDomain()
 	http.SetCookie(w, &http.Cookie{
 		Name:     "fugue_access",
 		Value:    "",
 		Path:     "/",
+		Domain:   domain,
 		MaxAge:   -1,
 		HttpOnly: true,
 	})
@@ -170,6 +173,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		Name:     "fugue_refresh",
 		Value:    "",
 		Path:     "/",
+		Domain:   domain,
 		MaxAge:   -1,
 		HttpOnly: true,
 	})
@@ -207,13 +211,28 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *Handler) cookieDomain() string {
+	// Extract domain from frontend URL for cross-origin cookie sharing.
+	// In dev mode (localhost), return empty string (browser uses host-only).
+	if h.devMode {
+		return ""
+	}
+	u, err := url.Parse(h.frontend)
+	if err != nil || u.Hostname() == "localhost" {
+		return ""
+	}
+	return u.Hostname()
+}
+
 func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {
 	secure := !h.devMode
+	domain := h.cookieDomain()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "fugue_access",
 		Value:    pair.AccessToken,
 		Path:     "/",
+		Domain:   domain,
 		MaxAge:   int((15 * time.Minute).Seconds()),
 		HttpOnly: true,
 		Secure:   secure,
@@ -223,6 +242,7 @@ func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {
 		Name:     "fugue_refresh",
 		Value:    pair.RefreshToken,
 		Path:     "/",
+		Domain:   domain,
 		MaxAge:   int((7 * 24 * time.Hour).Seconds()),
 		HttpOnly: true,
 		Secure:   secure,

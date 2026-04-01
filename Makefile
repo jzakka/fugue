@@ -34,12 +34,11 @@ dev-infra:
 # ============================================================
 migrate:
 	@echo "📦 Running migrations..."
-	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up; \
+	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up 2>&1; \
 	EXIT=$$?; \
-	if [ $$EXIT -eq 0 ]; then true; \
-	elif migrate -path db/migrations -database "$(DB_URL)" version 2>&1 | grep -q "dirty"; then \
-		echo "❌ Migration failed (dirty state). Run: cd $(API_DIR) && make migrate-down && make migrate-up"; exit 1; \
-	else true; fi
+	if [ $$EXIT -ne 0 ]; then \
+		echo "❌ Migration failed (exit $$EXIT). Check database connection and migration files."; exit 1; \
+	fi
 
 seed:
 	@echo "🌱 Seeding data..."
