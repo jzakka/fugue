@@ -9,51 +9,25 @@ export interface AuthUser {
 
 const INTERNAL_API_URL = process.env.API_URL || "http://localhost:8080";
 
+// SSR auth check — access token only. If expired, returns null.
+// Token refresh is handled client-side via /api/auth/refresh route,
+// avoiding SSR cookie forwarding problems.
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("fugue_access")?.value;
-  const refreshToken = cookieStore.get("fugue_refresh")?.value;
+  if (!token) return null;
 
-  if (!token && !refreshToken) return null;
-
-  // Single AbortController guards ALL requests (access + refresh + follow-up)
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 3000);
 
   try {
-    // Try with access token
-    if (token) {
-      const res = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
-        headers: { Cookie: `fugue_access=${token}` },
-        signal: controller.signal,
-        cache: "no-store",
-      });
-      if (res.ok) return res.json();
-    }
-
-    // Access token missing/expired — try refresh
-    if (refreshToken) {
-      const refreshRes = await fetch(`${INTERNAL_API_URL}/api/auth/refresh`, {
-        method: "POST",
-        headers: { Cookie: `fugue_refresh=${refreshToken}` },
-        signal: controller.signal,
-        cache: "no-store",
-      });
-      if (refreshRes.ok) {
-        const setCookie = refreshRes.headers.get("set-cookie") || "";
-        const match = setCookie.match(/fugue_access=([^;]+)/);
-        if (match) {
-          const meRes = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
-            headers: { Cookie: `fugue_access=${match[1]}` },
-            signal: controller.signal,
-            cache: "no-store",
-          });
-          if (meRes.ok) return meRes.json();
-        }
-      }
-    }
-
-    return null;
+    const res = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
+      headers: { Cookie: `fugue_access=${token}` },
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return res.json();
   } catch {
     return null;
   } finally {

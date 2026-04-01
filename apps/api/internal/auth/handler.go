@@ -212,7 +212,6 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) cookieDomain() string {
-	// Extract domain from frontend URL for cross-origin cookie sharing.
 	// In dev mode (localhost), return empty string (browser uses host-only).
 	if h.devMode {
 		return ""
@@ -221,7 +220,11 @@ func (h *Handler) cookieDomain() string {
 	if err != nil || u.Hostname() == "localhost" {
 		return ""
 	}
-	return u.Hostname()
+	// For split-host deployments (api.example.com + app.example.com),
+	// use empty domain so cookies are host-only on the API origin.
+	// Cross-origin cookie sharing requires a shared parent domain,
+	// but that should be configured explicitly, not guessed.
+	return ""
 }
 
 func (h *Handler) setAuthCookies(w http.ResponseWriter, pair *TokenPair) {

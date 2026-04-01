@@ -109,7 +109,7 @@ export default function FeedContainer({
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || error) return; // Don't observe when in error state
+    if (!sentinel || error || loading) return; // Don't observe during error or active loading
 
     const observer = new IntersectionObserver(
       (entries) => {
