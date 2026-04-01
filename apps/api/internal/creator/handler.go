@@ -96,11 +96,11 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateRequest struct {
-	Nickname *string          `json:"nickname"`
-	Bio      *string          `json:"bio"`
-	Roles    []string         `json:"roles"`
-	Contacts *json.RawMessage `json:"contacts"`
-	AvatarURL *string         `json:"avatar_url"`
+	Nickname  *string          `json:"nickname"`
+	Bio       *string          `json:"bio"`
+	Roles     []string         `json:"roles"`
+	Contacts  *json.RawMessage `json:"contacts"`
+	AvatarURL *string          `json:"avatar_url"`
 }
 
 // UpdateMe handles PUT /api/creators/me — update own profile.

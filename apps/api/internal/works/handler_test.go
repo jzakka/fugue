@@ -18,18 +18,18 @@ import (
 
 // mockQuerier implements WorksQuerier for testing.
 type mockQuerier struct {
-	listRows             []db.ListWorksWithCreatorRow
-	listErr              error
-	countVal             int64
-	countErr             error
-	lastListP            db.ListWorksWithCreatorParams
-	lastCountP           db.CountWorksParams
-	creatorRows          []db.ListWorksByCreatorRow
-	creatorErr           error
-	lastCreatorP         db.ListWorksByCreatorParams
-	creatorCountVal      int64
-	creatorCountErr      error
-	lastCreatorCountP    db.CountWorksByCreatorFilteredParams
+	listRows          []db.ListWorksWithCreatorRow
+	listErr           error
+	countVal          int64
+	countErr          error
+	lastListP         db.ListWorksWithCreatorParams
+	lastCountP        db.CountWorksParams
+	creatorRows       []db.ListWorksByCreatorRow
+	creatorErr        error
+	lastCreatorP      db.ListWorksByCreatorParams
+	creatorCountVal   int64
+	creatorCountErr   error
+	lastCreatorCountP db.CountWorksByCreatorFilteredParams
 }
 
 func (m *mockQuerier) ListWorksWithCreator(_ context.Context, arg db.ListWorksWithCreatorParams) ([]db.ListWorksWithCreatorRow, error) {

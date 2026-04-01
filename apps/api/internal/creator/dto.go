@@ -9,27 +9,27 @@ import (
 
 // CreatorPublicDTO is returned for public profile views (no email).
 type CreatorPublicDTO struct {
-	ID        string           `json:"id"`
-	Nickname  string           `json:"nickname"`
-	Bio       *string          `json:"bio"`
-	Roles     []string         `json:"roles"`
-	Contacts  json.RawMessage  `json:"contacts"`
-	AvatarURL *string          `json:"avatar_url"`
-	WorkCount int64            `json:"work_count"`
-	CreatedAt time.Time        `json:"created_at"`
+	ID        string          `json:"id"`
+	Nickname  string          `json:"nickname"`
+	Bio       *string         `json:"bio"`
+	Roles     []string        `json:"roles"`
+	Contacts  json.RawMessage `json:"contacts"`
+	AvatarURL *string         `json:"avatar_url"`
+	WorkCount int64           `json:"work_count"`
+	CreatedAt time.Time       `json:"created_at"`
 }
 
 // CreatorPrivateDTO is returned for the authenticated user's own profile.
 type CreatorPrivateDTO struct {
-	ID        string           `json:"id"`
-	Nickname  string           `json:"nickname"`
-	Bio       *string          `json:"bio"`
-	Roles     []string         `json:"roles"`
-	Contacts  json.RawMessage  `json:"contacts"`
-	AvatarURL *string          `json:"avatar_url"`
-	Email     *string          `json:"email"`
-	WorkCount int64            `json:"work_count"`
-	CreatedAt time.Time        `json:"created_at"`
+	ID        string          `json:"id"`
+	Nickname  string          `json:"nickname"`
+	Bio       *string         `json:"bio"`
+	Roles     []string        `json:"roles"`
+	Contacts  json.RawMessage `json:"contacts"`
+	AvatarURL *string         `json:"avatar_url"`
+	Email     *string         `json:"email"`
+	WorkCount int64           `json:"work_count"`
+	CreatedAt time.Time       `json:"created_at"`
 }
 
 func toPublicDTO(c db.Creator, workCount int64) CreatorPublicDTO {

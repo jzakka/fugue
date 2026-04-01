@@ -49,7 +49,7 @@ seed:
 # ============================================================
 dev-api:
 	@echo "🚀 Starting Go API on :8080..."
-	@cd $(API_DIR) && export $$(grep -v '^\#' .env.dev | xargs) && go run cmd/server/main.go &
+	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && go run cmd/server/main.go &
 	@sleep 2
 	@curl -sf http://localhost:8080/health > /dev/null && echo "✅ API ready" || echo "⏳ API starting..."
 
