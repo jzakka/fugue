@@ -149,7 +149,14 @@ export default function FeedContainer({
         <div className="mb-4 p-4 bg-surface rounded-md border-l-3 border-error text-sm">
           {error}
           <button
-            onClick={() => reloadField(field)}
+            onClick={() => {
+              setError(null);
+              setHasMore(true); // Re-enable infinite scroll
+              if (works.length === 0) {
+                reloadField(field); // Full reload if no data at all
+              }
+              // If we have data, IntersectionObserver will re-trigger loadMore
+            }}
             className="ml-3 text-accent hover:underline cursor-pointer"
           >
             다시 시도

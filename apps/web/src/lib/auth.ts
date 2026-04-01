@@ -12,24 +12,47 @@ const INTERNAL_API_URL = process.env.API_URL || "http://localhost:8080";
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("fugue_access")?.value;
+  const refreshToken = cookieStore.get("fugue_refresh")?.value;
 
-  // Note: fugue_refresh cookie has Path=/api/auth, so it is NOT available
-  // in SSR page requests. Token refresh must happen client-side (e.g., via
-  // an API route or middleware that forwards the refresh cookie).
-  // For now, if the access token is missing or expired, return null.
-  if (!token) return null;
+  if (!token && !refreshToken) return null;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 3000);
 
   try {
-    const res = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
-      headers: { Cookie: `fugue_access=${token}` },
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return res.json();
+    // Try with access token
+    if (token) {
+      const res = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
+        headers: { Cookie: `fugue_access=${token}` },
+        signal: controller.signal,
+        cache: "no-store",
+      });
+      if (res.ok) return res.json();
+    }
+
+    // Access token missing/expired — try refresh via Go API directly
+    // (SSR can forward the refresh cookie since we read it from the cookie store)
+    if (refreshToken) {
+      const refreshRes = await fetch(`${INTERNAL_API_URL}/api/auth/refresh`, {
+        method: "POST",
+        headers: { Cookie: `fugue_refresh=${refreshToken}` },
+        cache: "no-store",
+      });
+      if (refreshRes.ok) {
+        // Extract new access token from Set-Cookie
+        const setCookie = refreshRes.headers.get("set-cookie") || "";
+        const match = setCookie.match(/fugue_access=([^;]+)/);
+        if (match) {
+          const meRes = await fetch(`${INTERNAL_API_URL}/api/auth/me`, {
+            headers: { Cookie: `fugue_access=${match[1]}` },
+            cache: "no-store",
+          });
+          if (meRes.ok) return meRes.json();
+        }
+      }
+    }
+
+    return null;
   } catch {
     return null;
   } finally {
