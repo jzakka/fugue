@@ -16,11 +16,13 @@ export default function FeedContainer({
   initialHasMore,
   initialField,
   initialOffset = 0,
+  initialError = false,
 }: {
   initialWorks: Work[];
   initialHasMore: boolean;
   initialField: string;
   initialOffset?: number;
+  initialError?: boolean;
 }) {
   const searchParams = useSearchParams();
   const field = searchParams.get("field") || "";
@@ -28,7 +30,9 @@ export default function FeedContainer({
   const [works, setWorks] = useState<Work[]>(initialWorks);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    initialError ? "작품을 불러올 수 없습니다" : null
+  );
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(initialOffset + initialWorks.length);
@@ -97,6 +101,7 @@ export default function FeedContainer({
     } catch {
       if (controller.signal.aborted) return;
       setError("추가 작품을 불러올 수 없습니다");
+      setHasMore(false); // Stop auto-retry — user must click "다시 시도"
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -104,7 +109,7 @@ export default function FeedContainer({
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (!sentinel || error) return; // Don't observe when in error state
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -117,7 +122,7 @@ export default function FeedContainer({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [loadMore, error]);
 
   // Initial loading state
   if (loading && works.length === 0) {

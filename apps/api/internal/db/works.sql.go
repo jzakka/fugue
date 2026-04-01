@@ -180,7 +180,7 @@ FROM works w
 JOIN creators c ON c.id = w.creator_id
 WHERE ($1::varchar = '' OR w.field = $1)
   AND ($2::text[] IS NULL OR w.tags && $2::text[])
-ORDER BY w.created_at DESC
+ORDER BY w.created_at DESC, w.id DESC
 LIMIT $3 OFFSET $4
 `
 

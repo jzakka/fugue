@@ -11,15 +11,16 @@ async function getInitialWorks(
 ): Promise<{
   works: Work[];
   hasMore: boolean;
+  error: boolean;
 }> {
   try {
     const data = await fetchWorks(
       { field: field || undefined, limit: 20, offset: offset || 0 },
       { serverSide: true }
     );
-    return { works: data.works, hasMore: data.has_more };
+    return { works: data.works, hasMore: data.has_more, error: false };
   } catch {
-    return { works: [], hasMore: false };
+    return { works: [], hasMore: false, error: true };
   }
 }
 
@@ -32,7 +33,7 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const offset = params.offset ? parseInt(params.offset, 10) || 0 : 0;
-  const { works, hasMore } = await getInitialWorks(params.field, offset);
+  const { works, hasMore, error } = await getInitialWorks(params.field, offset);
 
   return (
     <>
@@ -47,6 +48,7 @@ export default async function HomePage({
             initialHasMore={hasMore}
             initialField={params.field || ""}
             initialOffset={offset}
+            initialError={error}
           />
         </Suspense>
       </main>

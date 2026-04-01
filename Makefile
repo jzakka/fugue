@@ -34,7 +34,7 @@ dev-infra:
 # ============================================================
 migrate:
 	@echo "📦 Running migrations..."
-	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up 2>/dev/null || true
+	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up 2>&1 | grep -v "no change" || true
 
 seed:
 	@echo "🌱 Seeding data..."
