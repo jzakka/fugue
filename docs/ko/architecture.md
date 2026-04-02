@@ -1,6 +1,7 @@
 # Architecture: Fugue
 
-**Date**: 2026-03-29
+**Date**: 2026-04-03
+**Product**: 크로스미디어 창작물 큐레이션 플랫폼
 
 ---
 
@@ -94,7 +95,7 @@
 | DB (dev) | CloudNativePG (K8s 위) | K8s Operator 패턴 학습 |
 | Cache (prod) | ElastiCache Redis | OG 메타데이터 캐시, 세션 |
 | Cache (dev) | Redis (K8s 위) | dev 환경 자체 완결 |
-| Auth | OAuth 2.0 (Twitter/Discord) | 타겟 유저의 주 SNS |
+| Auth | OAuth 2.0 (Google/Discord) | 타겟 유저의 주 SNS |
 
 ### Infrastructure (Terraform)
 
@@ -314,3 +315,66 @@ fugue/
 | Route 53 | ~$1 |
 | ECR / S3 / 데이터 전송 | ~$5 |
 | **합계** | **~$159/월** |
+
+---
+
+## 큐레이션 모델 인프라 임팩트
+
+### 새 컴포넌트와 기존 인프라 매핑
+
+| 컴포넌트 | 인프라 위치 | 변경 사항 |
+|----------|------------|----------|
+| OG fetch 서비스 | Go API Pod 내부 | 아웃바운드 트래픽 증가 (fck-nat 경유). 외부 URL fetch. |
+| interactions 테이블 | RDS (prod) / CNPG (dev) | 쓰기 많은 테이블. 모든 페이지뷰마다 INSERT. |
+| 추천 캐시 | ElastiCache Redis (prod) | 유저별 추천 결과 캐싱 (TTL 5분) |
+| boards/board_pins | RDS (prod) / CNPG (dev) | 일반적인 CRUD. 특별한 인프라 변경 없음 |
+
+### OG Fetch 아웃바운드 트래픽
+
+```
+Go API Pod → fck-nat (t4g.nano) → 외부 URL (SoundCloud, pixiv, YouTube 등)
+```
+
+- OG fetch는 핀 생성 시에만 발생 (읽기가 아님)
+- fck-nat 처리량: t4g.nano는 ~5Gbps. MVP 트래픽에서 병목 없음
+- SSRF 방지: Go 애플리케이션 레벨에서 처리 (커스텀 DialContext). 인프라 레벨 추가 방어 불필요 (Security Group이 Pod의 아웃바운드를 제한하지 않음)
+
+### interactions 테이블 스케일 고려
+
+```
+MVP: ~50 유저 × 일 평균 20 view = ~1,000 INSERT/day
+     RDS db.t3.micro로 충분
+
+성장: ~10,000 유저 × 일 평균 50 view = ~500,000 INSERT/day
+     → 파티셔닝 (created_at 기준 월별) 또는 시계열 확장 고려
+     → 이 시점에서 피처스토어 도입과 함께 데이터 파이프라인 설계
+```
+
+MVP 단계에서는 RDS 변경 없음. interactions는 일반 테이블로 시작. 인덱스: `(user_id, created_at DESC)`, `(work_id)`.
+
+### 추천 엔진 인프라 진화 로드맵
+
+```
+v1 (MVP)                    v2                         v3
+──────────────              ──────────────             ──────────────
+Go API 내부에서              CronJob (K8s)으로          ML 학습 파이프라인
+Redis 캐시 + 직접 쿼리      배치 추천 계산              (SageMaker 또는
+                                                       자체 학습 Pod)
+
+인프라 변경: 없음            인프라 변경: CronJob 추가   인프라 변경:
+                            Helm template 추가          새 Node Group 또는
+                                                       AWS 서비스 추가
+```
+
+**v1 (현재)**: Go API가 직접 쿼리 + Redis 캐싱. 추가 인프라 없음.
+**v2**: K8s CronJob으로 주기적 배치 계산. Helm template에 CronJob 추가만으로 가능.
+**v3**: ML 학습은 GPU가 필요할 수 있음. SageMaker (관리형) 또는 EKS에 GPU 노드 추가. 이 시점은 MVP 이후 한참 뒤.
+
+### 변경 없는 것
+
+- VPC / Subnet 구조: 변경 없음
+- EKS 클러스터 / Node Group: 변경 없음
+- CI/CD 파이프라인: 변경 없음 (동일한 Go API + Next.js 빌드)
+- Security Group: 변경 없음
+- 모니터링 스택: 변경 없음
+- 예상 비용: 변경 없음 (~$159/월)

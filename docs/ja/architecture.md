@@ -1,5 +1,8 @@
 # Architecture: Fugue
 
+**Date**: 2026-04-03
+**Product**: クロスメディア創作キュレーションプラットフォーム
+
 ---
 
 ## 1. システムアーキテクチャ概要
@@ -432,3 +435,26 @@ Fugueのアーキテクチャは、MVPとしてシンプルに始めつつ、将
 - **オブザーバビリティ**: Prometheus + Grafana + Loki + Tempo
 
 月額約$167のコストで、小規模な本番環境を運用可能。スポットインスタンスやリザーブドインスタンスの活用で更にコスト削減が見込める。
+
+---
+
+## キュレーションモデルのインフラ影響
+
+### 新コンポーネントと既存インフラのマッピング
+
+| コンポーネント | インフラ位置 | 変更事項 |
+|----------------|------------|----------|
+| OG fetchサービス | Go API Pod内部 | アウトバウンドトラフィック増加（fck-nat経由） |
+| interactionsテーブル | RDS (prod) / CNPG (dev) | 書き込みの多いテーブル。ページビューごとにINSERT |
+| 推薦キャッシュ | ElastiCache Redis (prod) | ユーザー別推薦結果キャッシング（TTL 5分） |
+| boards/board_pins | RDS (prod) / CNPG (dev) | 通常のCRUD。インフラ変更不要 |
+
+### 推薦エンジンのインフラ進化ロードマップ
+
+- **v1 (MVP)**: Go API内部でクエリ + Redisキャッシュ。インフラ追加不要
+- **v2**: K8s CronJobで定期バッチ計算。Helm templateにCronJob追加
+- **v3**: ML学習パイプライン。SageMakerまたはGPUノード追加
+
+### MVP段階の変更
+
+VPC、EKS、CI/CD、Security Group、モニタリング、コスト: **すべて変更なし**

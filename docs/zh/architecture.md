@@ -1,5 +1,8 @@
 # Architecture: Fugue
 
+**日期**: 2026-04-03
+**产品**: 跨媒体创作策展平台
+
 ---
 
 ## 架构总览
@@ -397,3 +400,26 @@ fugue/
 | 数据增长 | RDS存储扩展 | +$5~10/月 |
 | 高可用需求 | 多AZ RDS、NAT Gateway | +$50~100/月 |
 | AI推荐 (v3) | GPU实例或外部API | +$50~200/月 |
+
+---
+
+## 策展模型的基础设施影响
+
+### 新组件与现有基础设施映射
+
+| 组件 | 基础设施位置 | 变更事项 |
+|------|------------|----------|
+| OG fetch服务 | Go API Pod内部 | 出站流量增加（经fck-nat） |
+| interactions表 | RDS (prod) / CNPG (dev) | 高写入表。每次页面查看都INSERT |
+| 推荐缓存 | ElastiCache Redis (prod) | 按用户缓存推荐结果（TTL 5分钟） |
+| boards/board_pins | RDS (prod) / CNPG (dev) | 普通CRUD。无需基础设施变更 |
+
+### 推荐引擎基础设施演进路线
+
+- **v1 (MVP)**: Go API内部查询 + Redis缓存。无需额外基础设施
+- **v2**: K8s CronJob定期批量计算。在Helm template添加CronJob
+- **v3**: ML训练管道。SageMaker或GPU节点
+
+### MVP阶段的变更
+
+VPC、EKS、CI/CD、Security Group、监控、成本: **全部无变更**
