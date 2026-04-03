@@ -1,140 +1,139 @@
-# Discovery Plan: Fugue — Creation-Based Collaborative Matching Platform
+# Discovery Plan: Fugue — Cross-media Creative Curation Platform
 
-**Date**: 2026-03-29
-**Product Stage**: New (Toy Project)
-**Discovery Question**: What is the MVP that enables hobby creators to easily discover works in other fields needed for collaboration, based on their own creations?
+**Date**: 2026-04-03
+**Product Stage**: New (Side Project / Portfolio)
+**Discovery Question**: What is the MVP that enables discovery and curation of creative works across all media types in one place?
 
 ---
 
 ## Background
 
-- The idea originated from wanting to turn personal compositions into YouTube MVs, but lacking illustration/video editing skills
-- Reference: piapro (a platform for posting creations + sharing licenses)
-- Current market: Unstructured 1:1 matching via Twitter DM is the norm
+- Creative works are scattered across platforms: music on SoundCloud, illustrations on pixiv, videos on YouTube, code on GitHub
+- Each platform only handles its own medium, making cross-discipline discovery impossible
+- Finding "an illustration that fits this music" requires browsing multiple platforms
+- Existing curation services (Pinterest, Are.na) are image-focused. Music/code are second-class citizens
 
 ## Target Users
 
-**Hobby/indie creators who want collaboration opportunities over profit**
+**People who enjoy discovering and collecting creative works across multiple disciplines**
 
-- Indie composers, hobby illustrators, video editors, etc.
-- Users seeking profit are excluded from the initial target
-- License: "Free to use with credit" as default
+- Creators collecting inspiration, designers organizing references, taste curators
+- Any discipline: music, illustration, video, writing, code, 3D, games, sound
+- Initial niche: Creators interested in music MV production (clearest cross-discipline pattern)
 
 ## Market Research
 
 ### Positioning Map
 
 ```
-                  1:1 Commission          Team/Work Matching
-                       |                        |
-  Paid       VGen, Skeb, Coconala              (None)
-             Fiverr, Ko-fi
-                       |                        |
-  Free       Piapro (Post + Derivative)        > Fugue <
+              Images only        Cross-media
+                │                    │
+  With recs   Pinterest             ▶ Fugue ◀
+                │                    │
+  No recs     Are.na, Raindrop     (empty)
 ```
 
-### Competing Services
+### Reference Services
 
 | Service | Model | Difference from Fugue |
-|---------|-------|-----------------------|
-| Piapro | Work posting + licensed derivative creation | Limited to a specific ecosystem. Posting only, no matching/recommendations |
-| VGen | Paid art commissions (5%) | Commission-transaction focused. Not free collaboration |
-| Skeb | One-way paid commissions | Request model with no negotiation. Not collaboration |
-| Coconala | Skill marketplace (22%) | General freelancer transactions. Not specialized for creative collaboration |
-| Fiverr | General freelancer market (20%) | Transaction-focused. Does not target hobby creators |
-| Ko-fi | Patronage + commissions | Fan-to-creator patronage model |
-| ArtStation/Behance | Portfolio showcase | Showcase only, no collaborative matching |
-| BOOTH | Asset/merchandise sales | Sales-focused. pixiv ecosystem |
-| nizima | Live2D model market | VTuber-specialized asset trading |
+|---------|-------|----------------------|
+| Pinterest | Image curation (pin + board + recommendation) | Image-only. Cannot pin music/code |
+| Are.na | Research/archiving curation | No recommendation. Niche community |
+| Raindrop.io | Bookmark manager | Organization tool, not curation/recommendation |
+| Piapro | Creative posting + license sharing | Limited to Vocaloid ecosystem. No recommendation |
+| SoundCloud/pixiv/YouTube | Single-discipline platforms | Own discipline only. No cross-discovery |
 
-### Key Insights
+### Key Insight
 
-- **"Free + work-based collaborative matching" is something no one is doing**
-- Even Piapro is about posting + license sharing, not matching/recommendations
-- All existing services are centered on "transactions (commissions)"
-- Free collaboration among hobby creators still depends on Twitter DM
+- **Cross-media curation + recommendation is an empty space**
+- Extend Pinterest's proven model (pin + board + recommendation) to all creative media
+- The core value is discovering creative works across disciplines in one place
 
 ## Core Concept
 
-**Match "works," not people.**
+**Pinterest for all creative media.**
 
-Instead of "Looking for an illustrator," it's "I want to find illustrations that fit my music."
+Music, illustration, video, writing, and code coexist in a single feed. The more you click, the more it learns your taste and surfaces better works.
 
 ### Core Flow
 
 ```
-1. Post (30 seconds)
-   Paste a work link (SoundCloud/pixiv/YouTube/Twitter)
-   -> Auto-preview via OG metadata
-   -> Auto-detect field + select tags
+1. Pin (30 seconds)
+   Paste URL (SoundCloud/pixiv/YouTube/GitHub/anywhere)
+   → Auto-preview via OG metadata
+   → Auto-detect field + select tags
 
-2. "What do you want to create?"
-   Select project type (MV / Game / Album Art / Animation, etc.)
-   -> Select my work
+2. Board
+   Organize pins into themed collections
+   → "Dreamy indie music", "Cyberpunk illustrations", "Creative coding"
 
-3. Recommendation
-   Recommend works from other fields needed for the project type, based on tags
-   -> From work details, directly link to creator profile/SNS
+3. Discover
+   Explore new works in recommendation-based feed
+   → Click/pin behavior reflected as taste signals
+   → Related works shown on detail pages
 ```
 
 ## MVP Scope
 
 ### Included
 
-#### 1. Work Posting (External Link-Based)
-- Paste external link -> auto-generate embed/OG preview
-- Supported platforms: SoundCloud, pixiv, YouTube, Twitter, other URLs
-- Field tags: Music, Illustration, Video, 3D, Sound, etc.
-- Style/mood tags: Emotional, Night, Electronic, Fantasy, etc.
-- License: "Free to use with credit" as default
+#### 1. Pin
+- External URL curation. Not ownership claim, but curation.
+- OG auto-preview + domain-based field detection
+- Style tags (1-5 per pin)
+- Create, Read, Delete only (no Update)
 
-#### 2. Creator Profile
-- Role tags (multiple selection)
-- One-line bio
-- SNS contacts (Twitter/Discord/other)
-- Posted works automatically become a portfolio
+#### 2. Board
+- Organize pins into themed collections
+- Public/private visibility
+- One pin can belong to multiple boards
 
-#### 3. Recommendation (Work Matching)
-- "What do you want to create?" -> Select project type
-- Required-field templates per project type (MV -> Illustration + Video Editing)
-- Recommend works from other fields with matching tags
-- Work details -> Creator profile -> Direct link to SNS contacts
+#### 3. Recommendation Feed
+- Tag frequency heuristic (v1)
+- Cold start: latest-first when < 10 pins
+- Batch/Redis caching
 
-#### 4. Exploration
-- Filter by field, by tag
-- Search works / Search creators
+#### 4. Implicit Signals
+- Record view/pin/board_add events
+- Input data for recommendation engine
 
-### Excluded (To Be Added After Validation)
+#### 5. Related Works
+- Show tag-similar works on detail page
 
-| Feature | Reason for Exclusion | Alternative |
-|---------|---------------------|-------------|
-| Project Board/Hub | Posting + recommendation validation comes first | Recommendation -> Contact -> Collaborate externally |
-| AI-based Recommendations | Insufficient initial data | Tag matching + type-based templates |
-| Payment/Settlement | Free collaboration target | Removed |
-| Multimedia Storage | Infrastructure cost | Replaced with external link embeds |
-| DM/Chat | Over-engineering | Twitter DM/Discord |
+#### 6. Auth (Implemented)
+- Google OAuth, Discord OAuth
 
-### Recommendation Logic Roadmap
+### Excluded (Post-validation)
+
+| Feature | Reason | Alternative |
+|---------|--------|-------------|
+| Collaboration matching | Focus on curation | Happens organically outside platform |
+| ML-based recommendation | Insufficient initial data | Start with tag heuristic |
+| Embedded players | OG preview sufficient | External link navigation |
+| DM/Chat | Over-engineering | External SNS |
+| File hosting | Infrastructure cost | External link-based |
+
+### Recommendation Roadmap
 
 | Phase | Method | Timing |
 |-------|--------|--------|
-| v1 | Tag matching + project type templates | MVP |
-| v2 | Collaboration history/popularity weighting | After data accumulation |
-| v3 | Embedding-based cross-domain similarity | Long-term |
+| v1 | Tag frequency heuristic | MVP |
+| v2 | Feature store | After data accumulation |
+| v3 | ML model training | On feature store foundation |
 
 ## Cold Start Strategy
 
-1. **Minimize posting barriers** — Paste a link + select tags, done in 30 seconds
-2. **Gather one side (supply) first** — Posting works alone has value (portfolio + exposure opportunity)
-3. **Be the first user yourself** — Post your own compositions, then personally test the "Create MV" recommendation flow
-4. **Target niche communities** — Start with the music MV community
-5. **Maintain existing SNS activity** — External link-based, so zero switching cost
+1. **Minimize pin friction** — paste URL + tags, 30 seconds
+2. **Be the first user** — pin favorite works yourself to populate the feed
+3. **Niche community** — start with music MV creators
+4. **Zero switching cost** — external link-based, existing SNS activity stays
+5. **Board sharing** — share board links on SNS for inbound
 
 ## Key Risks
 
-| Risk | Description | Mitigation Strategy |
-|------|-------------|---------------------|
-| Lack of switching motivation | "Why should I post my link here?" | Collaboration opportunities via recommendations = unique value not found on existing SNS |
-| Cold Start | Recommendations won't work if there aren't enough works | Minimize posting barriers + gather one side first |
-| Tag matching quality | Can "fitting" works be found by tags alone? | Validate in v1, then enhance recommendations |
-| Recommendation-to-collaboration conversion | Will recommendations actually lead to contact? | Direct link to creator SNS from work details |
+| Risk | Description | Mitigation |
+|------|-------------|------------|
+| Motivation gap | "Why post links here?" | Board organization + recommendation = better than browser bookmarks |
+| Cold Start | Not enough works for recommendation | Minimize friction + be first user |
+| Tag matching quality | Can tags alone match taste? | Validate in v1, evolve to feature store/ML |
+| OG fetch limitations | Some platforms have poor OG metadata | Manual input fallback |
