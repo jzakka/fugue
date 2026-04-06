@@ -3,24 +3,30 @@
 ## 시스템 구성
 
 ```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
+┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
 │  Next.js    │────→│    Go API        │────→│  PostgreSQL  │
-│  (Frontend) │     │   (Chi + sqlc)   │     │             │
-│             │     │                  │────→│   Redis     │
-│  /pin/new   │     │  /api/pins       │     │  (cache,    │
-│  /feed      │     │  /api/boards     │     │   rate limit,│
-│  /boards    │     │  /api/feed       │     │   sessions)  │
-│  /profile   │     │  /api/og/fetch   │     │             │
-└─────────────┘     │  /api/interactions│     └─────────────┘
-      │             └────────┬─────────┘
-      │ proxy rewrite        │ HTTP fetch (OG)
-      │ /api/* → :8080       │
-      └──────────────────────┘     ┌─────────────────┐
-                                   │  External URLs   │
-                                   │  (SoundCloud,    │
-                                   │   pixiv, YouTube, │
-                                   │   GitHub, etc.)   │
-                                   └─────────────────┘
+│  (Frontend) │     │   (Chi + sqlc)   │     │              │
+│             │     │                  │────→│  Redis       │
+│  /pin/new   │     │  /api/pins       │     │  (cache,     │
+│  /feed      │     │  /api/boards     │     │   rate limit)│
+│  /boards    │     │  /api/feed       │     │              │
+│  /profile   │     │  /api/og/fetch   │     └──────────────┘
+└─────────────┘     │                  │
+      │             │  Event Worker ───│────→┌──────────────┐
+      │ proxy       │  (channel+flush) │     │  Kinesis     │
+      │ /api/*      └────────┬─────────┘     │  Firehose    │
+      │ → :8080              │               └──────┬───────┘
+      └──────────────────────┘                      │ Parquet
+                                             ┌──────▼───────┐
+                              ┌─────────┐    │     S3       │
+                              │ Athena  │←───│  (events)    │
+                              │ (query) │    └──────────────┘
+                              └─────────┘
+                                             ┌──────────────┐
+                                             │ External URLs│
+                                             │ (SoundCloud, │
+                                             │  pixiv, etc.)│
+                                             └──────────────┘
 ```
 
 ## 핵심 모듈
@@ -37,7 +43,7 @@ apps/api/
 │   ├── boards/                 # 보드 CRUD + 핀 관리
 │   ├── og/                     # OG 메타데이터 fetch (SSRF 방지)
 │   ├── feed/                   # 추천 피드
-│   ├── interaction/            # 행동 기록
+│   ├── event/                  # 이벤트 수집 (channel + Firehose worker)
 │   ├── config/                 # 환경 설정
 │   └── db/                     # sqlc 생성 코드
 └── db/
@@ -84,8 +90,32 @@ apps/web/src/
                                     │
                                     ▼
                            POST /api/pins → DB INSERT → 201
-                           POST /api/interactions { type: 'pin' }
+                           → event channel { type: 'pin' }
 ```
+
+### 이벤트 파이프라인
+
+```
+[유저 행동]
+    │
+    ▼
+[API Handler] ──→ [Go channel] ──→ [Event Worker]
+                   비동기            버퍼 500개 or 10초
+                   non-blocking      │
+                                     ▼
+                              [Firehose PutRecordBatch]
+                                     │
+                                     ▼
+                              [S3] Parquet, 날짜 파티셔닝
+                              s3://fugue-events/year=/month=/day=/hour=/
+                                     │
+                                     ▼
+                              [Athena] ad-hoc 분석
+```
+
+이벤트 스키마:
+- 고정 필드: event_id, user_id, pin_id, event_type, timestamp
+- 확장 필드: context (JSON) — source, session_id, field 등
 
 ### 추천 피드
 
@@ -121,9 +151,9 @@ v1 (MVP)          v2                    v3
 태그 빈도          피처스토어             ML 모델
 매칭              도입                  학습
 
-interactions ──→ feature_store ──→ model training
-테이블              (유저/핀            (collaborative
-(raw events)        피처 관리)          filtering 등)
+S3 events ────→ feature_store ────→ model training
+(raw data)       (유저/핀              (collaborative
+                  피처 관리)            filtering 등)
 ```
 
 ## 보안

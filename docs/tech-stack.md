@@ -24,6 +24,9 @@
 | DB (prod) | RDS PostgreSQL |
 | Cache (prod) | ElastiCache Redis |
 | DB (dev) | CloudNativePG (K8s) |
+| Event Ingestion | Kinesis Data Firehose |
+| Event Storage | S3 (Parquet, 날짜 파티셔닝) |
+| Event Query | Athena |
 | IAM↔K8s | IRSA |
 
 ## CI/CD

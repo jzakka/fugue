@@ -28,20 +28,13 @@
                           │ updated_at      │       │ PK: (board_id,  │
                           └─────────────────┘       │     pin_id)     │
                                                     │ created_at      │
-                          ┌─────────────────┐       └─────────────────┘
-                          │  interactions   │
-                          ├─────────────────┤
-                          │ id         (PK) │
-                          │ user_id    (FK) │  → creators.id
-                          │ pin_id     (FK) │  → pins.id (ON DELETE SET NULL)
-                          │ type            │  'view' | 'pin' | 'board_add'
-                          │ created_at      │
-                          └─────────────────┘
+                                                    └─────────────────┘
 ```
 
 > **용어**: pins 테이블의 creator_id는 "핀한 사람"을 가리킨다. 원작자가 아닌 큐레이터.
 > URL에 유니크 제약 없음 (여러 사람이 같은 URL을 핀할 수 있다).
 > creators 테이블은 단순 계정 역할. 포트폴리오 기능 없음.
+> 행동 이벤트(view, pin, board_add)는 RDB가 아닌 이벤트 파이프라인(S3)에 저장한다. 상세는 [architecture.md](architecture.md)의 "이벤트 파이프라인" 참조.
 
 ## 테이블
 
@@ -85,18 +78,29 @@
 | created_at | TIMESTAMPTZ | 보드에 추가된 시각 |
 | PK | (board_id, pin_id) | 중복 추가 방지 |
 
-### interactions
-유저 행동 기록. 추천 엔진의 입력 데이터. 추후 ML 학습 데이터로 활용.
+## 이벤트 데이터 (S3)
 
-| 컬럼 | 타입 | 설명 |
+행동 이벤트는 PostgreSQL이 아닌 S3에 Parquet 형식으로 저장한다.
+RDB에 쓰기 부하를 주지 않고, 대규모 배치 분석과 ML 학습에 적합한 구조.
+
+### 이벤트 스키마
+
+| 필드 | 타입 | 설명 |
 |------|------|------|
-| id | UUID PK | gen_random_uuid() |
-| user_id | UUID FK → creators | |
-| pin_id | UUID FK → pins | ON DELETE SET NULL (ML 데이터 보존) |
-| type | VARCHAR(20) NOT NULL | 'view', 'pin', 'board_add' |
-| created_at | TIMESTAMPTZ | |
+| event_id | STRING | UUID |
+| user_id | STRING | creators.id |
+| pin_id | STRING | pins.id |
+| event_type | STRING | 'view', 'pin', 'board_add' |
+| timestamp | TIMESTAMP | ISO 8601 |
+| context | JSON | 확장 가능한 컨텍스트 (source, session_id, field 등) |
 
-인덱스: `(user_id, created_at DESC)`, `(pin_id)`, `(type)`
+### S3 파티셔닝
+
+```
+s3://fugue-events/year=YYYY/month=MM/day=DD/hour=HH/events-NNN.parquet
+```
+
+상세 파이프라인은 [architecture.md](architecture.md)의 "이벤트 파이프라인" 참조.
 
 ## 설계 결정
 
@@ -107,7 +111,7 @@
 | 병합 로직 | 이메일 기반 자동 병합 | 같은 이메일이면 같은 creator에 auth_account 추가 |
 | 큐레이션 모델 | 소유권 없는 핀 | 외부 API로 소유권 검증 불가. 소유권 문제 자체를 제거 |
 | URL 유니크 | 제약 없음 | 큐레이션이므로 여러 사람이 같은 작품을 핀할 수 있음 |
-| interactions 보존 | pin 삭제 시 SET NULL | ML 학습 데이터 보존. 피드는 pin_id IS NULL 필터로 orphan 제외 |
+| 이벤트 저장 | S3 (Kinesis Firehose 경유) | RDB 부하 방지, 대규모 배치 분석/ML 학습에 적합, 내구성 11 9's |
 | board_pins PK | Composite (board_id, pin_id) | 같은 핀을 같은 보드에 중복 추가 방지 |
 | pin_count | denormalized 컬럼 | N+1 방지. INSERT/DELETE 시 같은 URL 기준 재계산 |
 | 마이그레이션 | golang-migrate | Go 생태계 표준, up/down 쌍 |

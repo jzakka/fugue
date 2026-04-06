@@ -38,7 +38,9 @@
 클릭/조회 행동을 기록하여 추천에 활용.
 
 - 이벤트 타입: view (작품 상세 조회), pin (핀 생성), board_add (보드에 핀 추가)
-- interactions 테이블에 기록
+- Go API에서 비동기(channel + worker)로 Kinesis Firehose → S3에 Parquet 형식으로 적재
+- 이벤트 스키마: event_id, user_id, pin_id, event_type, timestamp, context(JSON)
+- S3 날짜 파티셔닝 (year/month/day/hour), Athena로 ad-hoc 분석
 - v1에서는 추천 보조 시그널, 추후 ML 학습 데이터로 활용
 
 ## 5. 연관 핀
