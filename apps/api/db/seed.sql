@@ -3,51 +3,36 @@
 
 BEGIN;
 
--- 기존 데이터 정리 (FK 순서: works → auth_accounts → creators)
-TRUNCATE works, auth_accounts, creators CASCADE;
+-- 기존 데이터 정리 (FK 순서: pins → auth_accounts → creators)
+TRUNCATE pins, auth_accounts, creators CASCADE;
 
 -- ============================================================
 -- 크리에이터 5명
 -- ============================================================
-INSERT INTO creators (id, nickname, bio, roles, contacts, avatar_url) VALUES
+INSERT INTO creators (id, nickname, avatar_url) VALUES
 (
     '00000000-0000-0000-0000-000000000001',
     '하루',
-    '인디 작곡가. 몽환적인 신스팝을 만듭니다.',
-    '{"작곡","사운드디자인"}',
-    '{"twitter": "@haru_synth", "discord": "haru#1234"}',
     NULL
 ),
 (
     '00000000-0000-0000-0000-000000000002',
     'mochi',
-    '프리랜서 일러스트레이터 / 컨셉 아티스트',
-    '{"일러스트"}',
-    '{"twitter": "@mochi_draws"}',
     NULL
 ),
 (
     '00000000-0000-0000-0000-000000000003',
     '제로',
-    '모션그래픽 & 뮤직비디오 편집',
-    '{"영상편집"}',
-    '{"twitter": "@zero_motion", "discord": "zero#5678"}',
     NULL
 ),
 (
     '00000000-0000-0000-0000-000000000004',
     'codex',
-    '게임 개발자. Unity / Unreal 양쪽 다 합니다.',
-    '{"프로그래밍"}',
-    '{"discord": "codex#9999"}',
     NULL
 ),
 (
     '00000000-0000-0000-0000-000000000005',
     '소라',
-    '시나리오 작가. 보이스드라마, 비주얼노벨 스토리.',
-    '{"시나리오 라이터","작사"}',
-    '{"twitter": "@sora_writes"}',
     NULL
 );
 
@@ -92,11 +77,11 @@ INSERT INTO auth_accounts (id, creator_id, provider, provider_id, email) VALUES
 );
 
 -- ============================================================
--- 작품 12건 (5개 분야 모두 포함)
+-- 핀 12건 (5개 분야 모두 포함)
 -- ============================================================
 
 -- 음악 (하루)
-INSERT INTO works (id, creator_id, url, title, description, field, tags, og_image) VALUES
+INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
 (
     '20000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
@@ -119,7 +104,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
 );
 
 -- 미술 (mochi)
-INSERT INTO works (id, creator_id, url, title, description, field, tags, og_image) VALUES
+INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
 (
     '20000000-0000-0000-0000-000000000003',
     '00000000-0000-0000-0000-000000000002',
@@ -152,7 +137,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
 );
 
 -- 영상편집 (제로)
-INSERT INTO works (id, creator_id, url, title, description, field, tags, og_image) VALUES
+INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
 (
     '20000000-0000-0000-0000-000000000006',
     '00000000-0000-0000-0000-000000000003',
@@ -175,7 +160,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
 );
 
 -- 프로그래밍 (codex)
-INSERT INTO works (id, creator_id, url, title, description, field, tags, og_image) VALUES
+INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
 (
     '20000000-0000-0000-0000-000000000008',
     '00000000-0000-0000-0000-000000000004',
@@ -198,7 +183,7 @@ INSERT INTO works (id, creator_id, url, title, description, field, tags, og_imag
 );
 
 -- 시나리오 라이터 (소라)
-INSERT INTO works (id, creator_id, url, title, description, field, tags, og_image) VALUES
+INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
 (
     '20000000-0000-0000-0000-000000000010',
     '00000000-0000-0000-0000-000000000005',

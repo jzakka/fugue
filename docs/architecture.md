@@ -156,6 +156,65 @@ S3 events ────→ feature_store ────→ model training
                   피처 관리)            filtering 등)
 ```
 
+## Fuguebot (콘텐츠 크롤러)
+
+API 서버와 별도 바이너리. 외부 플랫폼을 크롤링하여 피드를 자동으로 채운다.
+
+```
+apps/api/
+├── cmd/bot/main.go             # fuguebot 엔트리포인트
+├── internal/
+│   ├── bot/
+│   │   ├── engine.go           # Colly 기반 크롤 엔진
+│   │   ├── source.go           # Source interface 정의
+│   │   ├── downloader.go       # 미디어 다운로드 + S3 업로드
+│   │   ├── dedup.go            # URL 중복 체크
+│   │   └── sources/
+│   │       ├── pixiv.go        # Pixiv 플러그인
+│   │       └── soundcloud.go   # SoundCloud 플러그인
+```
+
+### 크롤 파이프라인
+
+```
+[Scheduler/Cron]
+     │
+     ▼
+[Source.SeedURLs()] → 시드 URL 목록
+     │
+     ▼
+[Colly Crawl] → robots.txt 확인 → rate limit → HTML 파싱
+     │
+     ▼
+[Source.Extract()] → 미디어URL, 제목, 설명, 출처URL 추출
+     │
+     ▼
+[Dedup] → URL 이미 존재? → skip
+     │
+     ▼
+[Media Download] → 이미지/음원/비디오 다운로드 → 포맷/사이즈 검증
+     │
+     ▼
+[S3 Upload] → 미디어 버킷에 저장
+     │
+     ├──→ [Auto Tagger] → OG 텍스트에서 태그 자동 추출
+     │
+     ▼
+[Pin Create] → pins 테이블 INSERT (creator_id = fuguebot)
+     │
+     ▼
+[Stats Logger] → S3 이벤트 파이프라인으로 크롤 통계 전송
+```
+
+### 관리 API
+
+```
+GET  /api/admin/bot/status       — 마지막 크롤 시간, 플랫폼별 수집 건수, 실패율
+GET  /api/admin/bot/sources      — 등록된 소스 목록
+POST /api/admin/bot/sources      — 소스 추가
+DEL  /api/admin/bot/sources/:id  — 소스 제거
+```
+
 ## 보안
 
 ### OG Fetch SSRF 방지

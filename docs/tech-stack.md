@@ -10,6 +10,7 @@
 | DB | PostgreSQL 16 |
 | Cache | Redis |
 | Auth | OAuth 2.0 (Google, Discord, Twitter) |
+| Crawler | Colly (웹 크롤링 프레임워크) |
 
 ## Infrastructure
 
@@ -27,6 +28,7 @@
 | Event Ingestion | Kinesis Data Firehose |
 | Event Storage | S3 (Parquet, 날짜 파티셔닝) |
 | Event Query | Athena |
+| Media Storage | S3 (미디어 버킷, 이벤트 버킷과 별도) |
 | IAM↔K8s | IRSA |
 
 ## CI/CD

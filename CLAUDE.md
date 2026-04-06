@@ -66,3 +66,5 @@ Key routing rules:
 - Design system, brand → invoke design-consultation
 - Visual audit, design polish → invoke design-review
 - Architecture review → invoke plan-eng-review
+- OpenSpec 설계 리뷰 → invoke openspec-review
+- OpenSpec 구현 리뷰 → invoke openspec-impl-review
