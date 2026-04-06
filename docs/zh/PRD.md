@@ -89,8 +89,8 @@ Fugue是一个跨媒体创作策展平台。Pinterest仅限于图片，而Fugue�
 ### Feature 4: 隐式品味学习
 将view、pin、board_add事件记录到interactions表中。
 
-### Feature 5: 相关作品
-在作品详情页底部基于标签相似度展示相关作品。最多10件。
+### Feature 5: 相关钉子
+在钉子详情页底部基于标签相似度展示相关钉子。最多10件。
 
 ### Feature 6: 认证（已实现）
 Google OAuth、Discord OAuth。基于JWT的认证。
@@ -104,11 +104,11 @@ Google OAuth、Discord OAuth。基于JWT的认证。
 | 功能 | 优先级 | 状态 |
 |------|--------|------|
 | 社交登录 | P0 | 完成 |
-| 钉子 CRD + OG fetch | P0 | 未开始 |
-| 看板 CRUD | P0 | 未开始 |
-| 推荐信息流 (v1) | P0 | 未开始 |
-| 隐式品味学习 | P0 | 未开始 |
-| 相关作品 | P1 | 未开始 |
+| 钉子 CRD + OG fetch | P0 | 完成 |
+| 看板 CRUD | P0 | 完成 |
+| 推荐信息流 (v1) | P0 | 完成 |
+| 隐式品味学习 | P0 | 完成 |
+| 相关钉子 | P1 | 完成 |
 
 ### Post-MVP
 

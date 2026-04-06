@@ -1,4 +1,6 @@
-# Architecture: Fugue
+# Architecture: Fugue (旧版 — 策展转型前)
+
+> **已弃用**: 本文档描述旧架构。当前策展平台架构（Go + Next.js）请参阅 [docs/architecture.md](../architecture.md)。
 
 **日期**: 2026-04-03
 **产品**: 跨媒体创作策展平台

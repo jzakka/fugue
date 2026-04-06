@@ -4,7 +4,7 @@
 
 | 계층 | 기술 |
 |------|------|
-| Frontend | Next.js 15 (App Router) |
+| Frontend | Next.js 16 (App Router) |
 | Backend | Go + Chi router |
 | ORM | sqlc |
 | DB | PostgreSQL 16 |

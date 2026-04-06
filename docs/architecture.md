@@ -7,7 +7,7 @@
 │  Next.js    │────→│    Go API        │────→│  PostgreSQL  │
 │  (Frontend) │     │   (Chi + sqlc)   │     │             │
 │             │     │                  │────→│   Redis     │
-│  /pin/new   │     │  /api/works      │     │  (cache,    │
+│  /pin/new   │     │  /api/pins       │     │  (cache,    │
 │  /feed      │     │  /api/boards     │     │   rate limit,│
 │  /boards    │     │  /api/feed       │     │   sessions)  │
 │  /profile   │     │  /api/og/fetch   │     │             │
@@ -33,11 +33,11 @@ apps/api/
 ├── internal/
 │   ├── auth/                   # OAuth, JWT, 세션 관리
 │   ├── creator/                # 프로필 (간소화: 닉네임+아바타)
-│   ├── works/                  # 핀 CRD + 피드
-│   ├── boards/                 # 보드 CRUD + 핀 관리 (신규)
-│   ├── og/                     # OG 메타데이터 fetch (신규)
-│   ├── feed/                   # 추천 피드 (신규)
-│   ├── interaction/            # 행동 기록 (신규)
+│   ├── pin/                    # 핀 CRD + 연관 핀
+│   ├── boards/                 # 보드 CRUD + 핀 관리
+│   ├── og/                     # OG 메타데이터 fetch (SSRF 방지)
+│   ├── feed/                   # 추천 피드
+│   ├── interaction/            # 행동 기록
 │   ├── config/                 # 환경 설정
 │   └── db/                     # sqlc 생성 코드
 └── db/
@@ -51,16 +51,15 @@ apps/api/
 apps/web/src/
 ├── app/
 │   ├── page.tsx                # 피드 (추천 기반)
-│   ├── pin/new/                # 핀 등록 (신규)
-│   ├── works/[id]/             # 작품 상세 + 연관 작품 (신규)
-│   ├── boards/[id]/            # 보드 상세 (신규)
+│   ├── pin/new/                # 핀 등록
+│   ├── pins/[id]/              # 핀 상세 + 연관 핀
+│   ├── boards/[id]/            # 보드 상세
 │   ├── mypage/                 # 내 프로필 (간소화)
 │   ├── creators/[id]/          # 유저 프로필
 │   └── login/                  # 로그인
 ├── components/
-│   ├── feed/                   # 피드 관련 (WorkCard, FieldFilter 등)
-│   ├── board/                  # 보드 관련 (신규)
-│   ├── pin/                    # 핀 등록 관련 (신규)
+│   ├── feed/                   # 피드 관련 (PinCard, FieldFilter 등)
+│   ├── profile/                # 프로필 (ProfileHeader, PinsGrid 등)
 │   ├── nav/                    # 네비게이션
 │   └── auth/                   # 인증
 └── lib/
@@ -84,7 +83,7 @@ apps/web/src/
                             유저: 분야/태그 선택
                                     │
                                     ▼
-                           POST /api/works → DB INSERT → 201
+                           POST /api/pins → DB INSERT → 201
                            POST /api/interactions { type: 'pin' }
 ```
 
@@ -102,7 +101,7 @@ apps/web/src/
 [유저 핀의 태그 빈도 집계]
      │
      ▼
-[태그 가중 점수로 후보 작품 정렬]
+[태그 가중 점수로 후보 핀 정렬]
      │
      ▼
 [이미 핀한 작품 제외]
@@ -123,7 +122,7 @@ v1 (MVP)          v2                    v3
 매칭              도입                  학습
 
 interactions ──→ feature_store ──→ model training
-테이블              (유저/작품          (collaborative
+테이블              (유저/핀            (collaborative
 (raw events)        피처 관리)          filtering 등)
 ```
 
@@ -142,6 +141,10 @@ interactions ──→ feature_store ──→ model training
 - 핀 삭제: `WHERE id = $1 AND creator_id = $2` (본인만)
 - 보드 수정/삭제: 소유자 검증
 - 비공개 보드: 소유자만 접근
+
+### Rate Limit
+- 핀 생성: 30/분/유저
+- OG fetch: 20/분/IP
 
 ## 인프라
 

@@ -197,11 +197,11 @@ Fugue는 크로스미디어 창작물 큐레이션 플랫폼이다. Pinterest가
 유저의 클릭/조회 행동을 기록하여 추천에 활용.
 
 - 작품 상세 조회, 핀 생성, 보드 추가 시 이벤트 기록
-- `interactions` 테이블: (user_id, work_id, type, created_at)
+- `interactions` 테이블: (user_id, pin_id, type, created_at)
 - type: 'view', 'pin', 'board_add'
 - 이 데이터는 v1에서는 추천 보조 시그널, v2+에서는 ML 학습 데이터로 활용
 
-#### Feature 5: 연관 작품 (Related Works)
+#### Feature 5: 연관 핀 (Related Pins)
 
 작품 상세 페이지 하단에 유사 작품 표시.
 
@@ -233,12 +233,12 @@ Fugue는 크로스미디어 창작물 큐레이션 플랫폼이다. Pinterest가
 | 기능 | 우선순위 | 복잡도 |
 |------|---------|--------|
 | 소셜 로그인 (Google/Discord) | P0 | ✅ 완료 |
-| 핀 CRD + OG fetch | P0 | 중간 |
-| 보드 CRUD | P0 | 낮음 |
-| 추천 피드 (v1 태그 휴리스틱) | P0 | 중간 |
-| 암묵적 취향 학습 (interactions) | P0 | 낮음 |
-| 연관 작품 | P1 | 낮음 |
-| 프로필 간소화 (닉네임 + 아바타만) | P1 | 낮음 |
+| 핀 CRD + OG fetch | P0 | ✅ 완료 |
+| 보드 CRUD | P0 | ✅ 완료 |
+| 추천 피드 (v1 태그 휴리스틱) | P0 | ✅ 완료 |
+| 암묵적 취향 학습 (interactions) | P0 | ✅ 완료 |
+| 연관 핀 | P1 | ✅ 완료 |
+| 프로필 간소화 (닉네임 + 아바타만) | P1 | ✅ 완료 |
 
 ### 8.2 Post-MVP
 

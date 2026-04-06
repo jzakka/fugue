@@ -1,7 +1,9 @@
-# Architecture: Fugue — Creation-Based Collaborative Matching Platform
+# Architecture: Fugue (Legacy — Pre-Curation Pivot)
+
+> **DEPRECATED**: This document describes the old collaborative matching model architecture (NestJS-based). For the current curation platform architecture (Go + Next.js), see [docs/architecture.md](../architecture.md).
 
 **Date**: 2026-03-29
-**Product Stage**: New (Toy Project)
+**Product Stage**: Deprecated
 **Mascot**: A pufferfish (fugu) wearing headphones and holding a paintbrush — a wordplay on Fugue/Fugu
 
 ---

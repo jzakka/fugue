@@ -38,7 +38,7 @@
 | API 필드명 | `og_image`, `creator_id` | "OG 썸네일", "핀한 유저" |
 | 에러코드 | `400 BadRequest`, `SSRF_BLOCKED` | "유효하지 않은 URL 오류" |
 | DB/설정 | `board_pins.board_id`, `interactions.type` | "보드에 핀 소속", "행동 유형별 기록" |
-| 클래스/함수명 | `OGService.Fetch`, `WorksQuerier` | "OG 메타데이터 조회 서비스", "작품 쿼리 인터페이스" |
+| 클래스/함수명 | `OGService.Fetch`, `PinQuerier` | "OG 메타데이터 조회 서비스", "핀 쿼리 인터페이스" |
 | 레이아웃 | "2열 Masonry 그리드", "chip 입력" | "카드 그리드로 작품 표시", "태그 복수 입력" |
 
 ### 검증

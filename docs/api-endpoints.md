@@ -19,23 +19,23 @@ GET    /api/creators/me                [auth]      내 프로필
 PUT    /api/creators/me                [auth]      프로필 수정 (닉네임, 아바타만)
 ```
 
-## Pin (작품)
+## Pin (핀)
 
 ```
-POST   /api/works                      [auth]      핀 생성
+POST   /api/pins                       [auth, rate: 30/min/user]
        body: { url, title, description, field, tags, og_image, og_data }
 
-GET    /api/works/{id}                              핀 상세 (+ creator 정보)
+GET    /api/pins/{id}                              핀 상세 (+ creator 정보)
 
-DELETE /api/works/{id}                 [auth]      핀 삭제 (본인만)
+DELETE /api/pins/{id}                  [auth]      핀 삭제 (본인만)
 
-GET    /api/works                                   피드 (분야/태그 필터, 페이지네이션)
+GET    /api/pins                                   핀 목록 (분야/태그 필터, 페이지네이션)
        query: field, tags, limit, offset, creator_id
 
-GET    /api/works/{id}/related                      연관 작품 (태그 기반, 최대 10개)
+GET    /api/pins/{id}/related                      연관 핀 (태그 기반, 최대 10개)
 ```
 
-## Board
+## Board (보드)
 
 ```
 POST   /api/boards                     [auth]      보드 생성
@@ -52,24 +52,24 @@ GET    /api/boards                                  보드 목록
        query: creator_id (본인이면 전체, 타인이면 공개만)
 
 POST   /api/boards/{id}/pins          [auth]      보드에 핀 추가 (소유자만)
-       body: { work_id }
+       body: { pin_id }
 
-DELETE /api/boards/{id}/pins/{work_id} [auth]      보드에서 핀 제거 (소유자만)
+DELETE /api/boards/{id}/pins/{pin_id}  [auth]      보드에서 핀 제거 (소유자만)
 ```
 
 ## Feed (추천)
 
 ```
-GET    /api/feed                       [auth]      추천 기반 피드
+GET    /api/feed                                    추천 기반 피드
        query: limit, cursor
-       비인증 시: 최신순 fallback
+       인증 시: 개인화 추천, 비인증 시: 최신순 fallback
 ```
 
-## Interaction
+## Interaction (행동 기록)
 
 ```
 POST   /api/interactions               [auth]      행동 기록
-       body: { work_id, type }
+       body: { pin_id, type }
        type: 'view' | 'pin' | 'board_add'
 ```
 
@@ -84,4 +84,4 @@ POST   /api/og/fetch                   [rate: 20/min/IP]
 ## 범례
 
 - `[auth]` = JWT 인증 필요 (auth.JWTMiddleware)
-- `[rate: N/min/IP]` = Redis 기반 IP별 rate limit
+- `[rate: N/min/X]` = Redis 기반 rate limit

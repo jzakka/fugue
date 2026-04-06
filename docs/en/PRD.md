@@ -64,8 +64,8 @@ Personalized feed based on user's pin/click behavior. v1: tag frequency heuristi
 ### Feature 4: Implicit Signals
 Record view, pin, and board_add events in interactions table. Used for recommendation in v1, ML training data in future versions.
 
-### Feature 5: Related Works
-Show similar works on detail page based on tag overlap. Max 10 items.
+### Feature 5: Related Pins
+Show similar pins on detail page based on tag overlap. Max 10 items.
 
 ### Feature 6: Auth (Implemented)
 Google OAuth, Discord OAuth. JWT-based authentication.
@@ -76,11 +76,11 @@ Google OAuth, Discord OAuth. JWT-based authentication.
 | Feature | Priority | Status |
 |---------|----------|--------|
 | Social login | P0 | Done |
-| Pin CRD + OG fetch | P0 | Not started |
-| Board CRUD | P0 | Not started |
-| Recommendation feed (v1 heuristic) | P0 | Not started |
-| Implicit signals | P0 | Not started |
-| Related works | P1 | Not started |
+| Pin CRD + OG fetch | P0 | Done |
+| Board CRUD | P0 | Done |
+| Recommendation feed (v1 heuristic) | P0 | Done |
+| Implicit signals | P0 | Done |
+| Related pins | P1 | Done |
 
 ### Post-MVP
 - Feature store for recommendation

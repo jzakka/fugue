@@ -1,4 +1,6 @@
-# Architecture: Fugue
+# Architecture: Fugue (レガシー — キュレーションピボット前)
+
+> **非推奨**: このドキュメントは旧アーキテクチャ（NestJSベース）を記述しています。現行のキュレーションプラットフォームアーキテクチャ（Go + Next.js）は [docs/architecture.md](../architecture.md) を参照してください。
 
 **Date**: 2026-04-03
 **Product**: クロスメディア創作キュレーションプラットフォーム

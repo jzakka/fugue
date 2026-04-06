@@ -1,4 +1,6 @@
-# Architecture: Fugue
+# Architecture: Fugue (인프라)
+
+> **Note**: 앱 아키텍처는 [docs/architecture.md](../architecture.md) 참조. 이 문서는 인프라 구성만 다룸.
 
 **Date**: 2026-04-03
 **Product**: 크로스미디어 창작물 큐레이션 플랫폼
@@ -350,7 +352,7 @@ MVP: ~50 유저 × 일 평균 20 view = ~1,000 INSERT/day
      → 이 시점에서 피처스토어 도입과 함께 데이터 파이프라인 설계
 ```
 
-MVP 단계에서는 RDS 변경 없음. interactions는 일반 테이블로 시작. 인덱스: `(user_id, created_at DESC)`, `(work_id)`.
+MVP 단계에서는 RDS 변경 없음. interactions는 일반 테이블로 시작. 인덱스: `(user_id, created_at DESC)`, `(pin_id)`.
 
 ### 추천 엔진 인프라 진화 로드맵
 
