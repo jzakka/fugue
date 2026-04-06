@@ -2,25 +2,25 @@ import { Suspense } from "react";
 import NavBar from "@/components/nav/NavBar";
 import FieldFilter from "@/components/feed/FieldFilter";
 import FeedContainer from "@/components/feed/FeedContainer";
-import { fetchWorks } from "@/lib/api";
-import type { Work } from "@/lib/api";
+import { fetchPins } from "@/lib/api";
+import type { Pin } from "@/lib/api";
 
-async function getInitialWorks(
+async function getInitialPins(
   field?: string,
   offset?: number
 ): Promise<{
-  works: Work[];
+  pins: Pin[];
   hasMore: boolean;
   error: boolean;
 }> {
   try {
-    const data = await fetchWorks(
+    const data = await fetchPins(
       { field: field || undefined, limit: 20, offset: offset || 0 },
       { serverSide: true }
     );
-    return { works: data.works, hasMore: data.has_more, error: false };
+    return { pins: data.pins, hasMore: data.has_more, error: false };
   } catch {
-    return { works: [], hasMore: false, error: true };
+    return { pins: [], hasMore: false, error: true };
   }
 }
 
@@ -33,7 +33,7 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const offset = params.offset ? parseInt(params.offset, 10) || 0 : 0;
-  const { works, hasMore, error } = await getInitialWorks(params.field, offset);
+  const { pins, hasMore, error } = await getInitialPins(params.field, offset);
 
   return (
     <>
@@ -44,7 +44,7 @@ export default async function HomePage({
       <main className="flex-1 pb-12">
         <Suspense>
           <FeedContainer
-            initialWorks={works}
+            initialPins={pins}
             initialHasMore={hasMore}
             initialField={params.field || ""}
             initialOffset={offset}

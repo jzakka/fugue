@@ -8,84 +8,40 @@ package db
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
-const countWorksByCreator = `-- name: CountWorksByCreator :one
-SELECT count(*) FROM works
+const countPinsByCreator = `-- name: CountPinsByCreator :one
+SELECT count(*) FROM pins
 WHERE creator_id = $1
 `
 
-func (q *Queries) CountWorksByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countWorksByCreator, creatorID)
+func (q *Queries) CountPinsByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPinsByCreator, creatorID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
-const createCreator = `-- name: CreateCreator :one
-INSERT INTO creators (nickname, roles, contacts)
-VALUES ($1, $2, $3)
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
-`
-
-type CreateCreatorParams struct {
-	Nickname string
-	Roles    []string
-	Contacts json.RawMessage
-}
-
-func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (Creator, error) {
-	row := q.db.QueryRowContext(ctx, createCreator, arg.Nickname, pq.Array(arg.Roles), arg.Contacts)
-	var i Creator
-	err := row.Scan(
-		&i.ID,
-		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
-		&i.AvatarUrl,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Email,
-	)
-	return i, err
-}
-
 const createCreatorFromOAuth = `-- name: CreateCreatorFromOAuth :one
-INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
+INSERT INTO creators (nickname, avatar_url, email)
+VALUES ($1, $2, $3)
+RETURNING id, nickname, avatar_url, created_at, updated_at, email
 `
 
 type CreateCreatorFromOAuthParams struct {
 	Nickname  string
-	Bio       sql.NullString
-	Roles     []string
-	Contacts  json.RawMessage
 	AvatarUrl sql.NullString
 	Email     sql.NullString
 }
 
 func (q *Queries) CreateCreatorFromOAuth(ctx context.Context, arg CreateCreatorFromOAuthParams) (Creator, error) {
-	row := q.db.QueryRowContext(ctx, createCreatorFromOAuth,
-		arg.Nickname,
-		arg.Bio,
-		pq.Array(arg.Roles),
-		arg.Contacts,
-		arg.AvatarUrl,
-		arg.Email,
-	)
+	row := q.db.QueryRowContext(ctx, createCreatorFromOAuth, arg.Nickname, arg.AvatarUrl, arg.Email)
 	var i Creator
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -95,37 +51,24 @@ func (q *Queries) CreateCreatorFromOAuth(ctx context.Context, arg CreateCreatorF
 }
 
 const createCreatorFromOAuthOnConflict = `-- name: CreateCreatorFromOAuthOnConflict :one
-INSERT INTO creators (nickname, bio, roles, contacts, avatar_url, email)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO creators (nickname, avatar_url, email)
+VALUES ($1, $2, $3)
 ON CONFLICT (email) DO NOTHING
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
+RETURNING id, nickname, avatar_url, created_at, updated_at, email
 `
 
 type CreateCreatorFromOAuthOnConflictParams struct {
 	Nickname  string
-	Bio       sql.NullString
-	Roles     []string
-	Contacts  json.RawMessage
 	AvatarUrl sql.NullString
 	Email     sql.NullString
 }
 
 func (q *Queries) CreateCreatorFromOAuthOnConflict(ctx context.Context, arg CreateCreatorFromOAuthOnConflictParams) (Creator, error) {
-	row := q.db.QueryRowContext(ctx, createCreatorFromOAuthOnConflict,
-		arg.Nickname,
-		arg.Bio,
-		pq.Array(arg.Roles),
-		arg.Contacts,
-		arg.AvatarUrl,
-		arg.Email,
-	)
+	row := q.db.QueryRowContext(ctx, createCreatorFromOAuthOnConflict, arg.Nickname, arg.AvatarUrl, arg.Email)
 	var i Creator
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -135,7 +78,7 @@ func (q *Queries) CreateCreatorFromOAuthOnConflict(ctx context.Context, arg Crea
 }
 
 const getCreator = `-- name: GetCreator :one
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
+SELECT id, nickname, avatar_url, created_at, updated_at, email FROM creators
 WHERE id = $1
 `
 
@@ -145,9 +88,6 @@ func (q *Queries) GetCreator(ctx context.Context, id uuid.UUID) (Creator, error)
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -157,7 +97,7 @@ func (q *Queries) GetCreator(ctx context.Context, id uuid.UUID) (Creator, error)
 }
 
 const getCreatorByEmail = `-- name: GetCreatorByEmail :one
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
+SELECT id, nickname, avatar_url, created_at, updated_at, email FROM creators
 WHERE email = $1
 `
 
@@ -167,9 +107,6 @@ func (q *Queries) GetCreatorByEmail(ctx context.Context, email sql.NullString) (
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -179,7 +116,7 @@ func (q *Queries) GetCreatorByEmail(ctx context.Context, email sql.NullString) (
 }
 
 const getCreatorByEmailForUpdate = `-- name: GetCreatorByEmailForUpdate :one
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
+SELECT id, nickname, avatar_url, created_at, updated_at, email FROM creators
 WHERE email = $1
 FOR UPDATE
 `
@@ -190,9 +127,6 @@ func (q *Queries) GetCreatorByEmailForUpdate(ctx context.Context, email sql.Null
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -201,89 +135,27 @@ func (q *Queries) GetCreatorByEmailForUpdate(ctx context.Context, email sql.Null
 	return i, err
 }
 
-const listCreatorsByRoles = `-- name: ListCreatorsByRoles :many
-SELECT id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email FROM creators
-WHERE roles && $1::text[]
-ORDER BY created_at DESC
-LIMIT $2 OFFSET $3
-`
-
-type ListCreatorsByRolesParams struct {
-	Column1 []string
-	Limit   int32
-	Offset  int32
-}
-
-func (q *Queries) ListCreatorsByRoles(ctx context.Context, arg ListCreatorsByRolesParams) ([]Creator, error) {
-	rows, err := q.db.QueryContext(ctx, listCreatorsByRoles, pq.Array(arg.Column1), arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Creator
-	for rows.Next() {
-		var i Creator
-		if err := rows.Scan(
-			&i.ID,
-			&i.Nickname,
-			&i.Bio,
-			pq.Array(&i.Roles),
-			&i.Contacts,
-			&i.AvatarUrl,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.Email,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateCreator = `-- name: UpdateCreator :one
 UPDATE creators
 SET nickname = $2,
-    bio = $3,
-    roles = $4,
-    contacts = $5,
-    avatar_url = $6,
+    avatar_url = $3,
     updated_at = now()
 WHERE id = $1
-RETURNING id, nickname, bio, roles, contacts, avatar_url, created_at, updated_at, email
+RETURNING id, nickname, avatar_url, created_at, updated_at, email
 `
 
 type UpdateCreatorParams struct {
 	ID        uuid.UUID
 	Nickname  string
-	Bio       sql.NullString
-	Roles     []string
-	Contacts  json.RawMessage
 	AvatarUrl sql.NullString
 }
 
 func (q *Queries) UpdateCreator(ctx context.Context, arg UpdateCreatorParams) (Creator, error) {
-	row := q.db.QueryRowContext(ctx, updateCreator,
-		arg.ID,
-		arg.Nickname,
-		arg.Bio,
-		pq.Array(arg.Roles),
-		arg.Contacts,
-		arg.AvatarUrl,
-	)
+	row := q.db.QueryRowContext(ctx, updateCreator, arg.ID, arg.Nickname, arg.AvatarUrl)
 	var i Creator
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
-		&i.Bio,
-		pq.Array(&i.Roles),
-		&i.Contacts,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,

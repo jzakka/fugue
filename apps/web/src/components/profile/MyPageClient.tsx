@@ -1,25 +1,215 @@
 "use client";
 
-import { useState } from "react";
-import type { CreatorPrivate, Work } from "@/lib/api";
+import { useState, useEffect, useCallback } from "react";
+import type { CreatorPrivate, Pin, Board } from "@/lib/api";
+import { fetchBoards, createBoard } from "@/lib/api";
 import ProfileHeader from "./ProfileHeader";
 import ProfileEditForm from "./ProfileEditForm";
-import WorksGrid from "./WorksGrid";
+import PinsGrid from "./PinsGrid";
+import Link from "next/link";
+
+function BoardCover({ images }: { images: string[] }) {
+  if (images.length === 0) {
+    return (
+      <div className="w-full aspect-square bg-surface-elevated rounded-[10px] flex items-center justify-center">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-text-dim"
+        >
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+        </svg>
+      </div>
+    );
+  }
+
+  const slots = images.slice(0, 4);
+
+  return (
+    <div className="w-full aspect-square rounded-[10px] overflow-hidden grid grid-cols-2 grid-rows-2 gap-[2px]">
+      {slots.map((img, i) => (
+        <div key={i} className="overflow-hidden bg-surface-elevated">
+          <img
+            src={img}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      ))}
+      {Array.from({ length: Math.max(0, 4 - slots.length) }).map((_, i) => (
+        <div key={`empty-${i}`} className="bg-surface-elevated" />
+      ))}
+    </div>
+  );
+}
+
+function BoardSection({ creatorId }: { creatorId: string }) {
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [newBoardName, setNewBoardName] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadBoards = useCallback(async () => {
+    try {
+      const data = await fetchBoards(creatorId);
+      setBoards(data);
+    } catch {
+      // Silently fail
+    } finally {
+      setLoading(false);
+    }
+  }, [creatorId]);
+
+  useEffect(() => {
+    loadBoards();
+  }, [loadBoards]);
+
+  async function handleCreate() {
+    const trimmed = newBoardName.trim();
+    if (!trimmed) return;
+
+    setCreating(true);
+    setError(null);
+    try {
+      const board = await createBoard({ name: trimmed });
+      setBoards((prev) => [board, ...prev]);
+      setNewBoardName("");
+      setShowCreate(false);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "보드 생성에 실패했습니다"
+      );
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2
+          className="text-lg font-bold tracking-tight"
+          style={{ fontFamily: "'General Sans', sans-serif" }}
+        >
+          보드
+        </h2>
+        <button
+          onClick={() => setShowCreate((prev) => !prev)}
+          className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors cursor-pointer"
+        >
+          + 새 보드
+        </button>
+      </div>
+
+      {showCreate && (
+        <div className="mb-4 p-4 bg-surface border border-border rounded-[10px] space-y-3">
+          {error && (
+            <div className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error">
+              {error}
+            </div>
+          )}
+          <input
+            type="text"
+            value={newBoardName}
+            onChange={(e) => setNewBoardName(e.target.value)}
+            placeholder="보드 이름"
+            maxLength={100}
+            className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreate();
+              }
+            }}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleCreate}
+              disabled={creating}
+              className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {creating ? "생성 중..." : "생성"}
+            </button>
+            <button
+              onClick={() => {
+                setShowCreate(false);
+                setNewBoardName("");
+                setError(null);
+              }}
+              className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {boards.length === 0 ? (
+        <div className="text-center py-8 text-text-dim text-sm">
+          아직 생성된 보드가 없습니다
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {boards.map((board) => (
+            <Link
+              key={board.id}
+              href={`/boards/${board.id}`}
+              className="group"
+            >
+              <BoardCover images={board.cover_images} />
+              <div className="mt-2">
+                <div className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors truncate">
+                  {board.name}
+                </div>
+                <div
+                  className="text-xs text-text-dim"
+                  style={{ fontFamily: "'Geist Mono', monospace" }}
+                >
+                  {board.pin_count} pins
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MyPageClient({
   creator: initialCreator,
-  works,
+  pins,
   hasMore,
 }: {
   creator: CreatorPrivate;
-  works: Work[];
+  pins: Pin[];
   hasMore: boolean;
 }) {
   const [creator, setCreator] = useState(initialCreator);
   const [editing, setEditing] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {editing ? (
         <ProfileEditForm
           creator={creator}
@@ -37,9 +227,11 @@ export default function MyPageClient({
         />
       )}
 
-      <WorksGrid
+      <BoardSection creatorId={creator.id} />
+
+      <PinsGrid
         creatorId={creator.id}
-        initialWorks={works}
+        initialPins={pins}
         initialHasMore={hasMore}
       />
     </div>

@@ -6,7 +6,6 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,19 +22,40 @@ type AuthAccount struct {
 	Profile    pqtype.NullRawMessage
 }
 
+type Board struct {
+	ID          uuid.UUID
+	CreatorID   uuid.UUID
+	Name        string
+	Description sql.NullString
+	IsPublic    bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type BoardPin struct {
+	BoardID   uuid.UUID
+	PinID     uuid.UUID
+	CreatedAt time.Time
+}
+
 type Creator struct {
 	ID        uuid.UUID
 	Nickname  string
-	Bio       sql.NullString
-	Roles     []string
-	Contacts  json.RawMessage
 	AvatarUrl sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Email     sql.NullString
 }
 
-type Work struct {
+type Interaction struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	PinID     uuid.NullUUID
+	Type      string
+	CreatedAt time.Time
+}
+
+type Pin struct {
 	ID          uuid.UUID
 	CreatorID   uuid.UUID
 	Url         string
@@ -46,4 +66,5 @@ type Work struct {
 	OgImage     sql.NullString
 	OgData      pqtype.NullRawMessage
 	CreatedAt   time.Time
+	PinCount    int32
 }

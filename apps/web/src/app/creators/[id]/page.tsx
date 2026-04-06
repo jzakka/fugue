@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import NavBar from "@/components/nav/NavBar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
-import WorksGrid from "@/components/profile/WorksGrid";
-import { fetchCreator, fetchWorks } from "@/lib/api";
+import PinsGrid from "@/components/profile/PinsGrid";
+import { fetchCreator, fetchPins } from "@/lib/api";
 import type { Metadata } from "next";
 
 type Props = {
@@ -15,10 +15,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const creator = await fetchCreator(id, { serverSide: true });
     return {
       title: `${creator.nickname} — Fugue`,
-      description: creator.bio || `${creator.nickname}의 포트폴리오`,
+      description: `${creator.nickname}의 큐레이션`,
       openGraph: {
         title: `${creator.nickname} — Fugue`,
-        description: creator.bio || `${creator.nickname}의 포트폴리오`,
+        description: `${creator.nickname}의 큐레이션`,
       },
     };
   } catch {
@@ -45,17 +45,17 @@ export default async function CreatorProfilePage({ params }: Props) {
     notFound();
   }
 
-  let worksData = {
-    works: [] as Awaited<ReturnType<typeof fetchWorks>>["works"],
+  let pinsData = {
+    pins: [] as Awaited<ReturnType<typeof fetchPins>>["pins"],
     has_more: false,
   };
   try {
-    worksData = await fetchWorks(
+    pinsData = await fetchPins(
       { creator_id: id, limit: 20 },
       { serverSide: true }
     );
   } catch {
-    // Proceed with empty works
+    // Proceed with empty pins
   }
 
   return (
@@ -64,10 +64,10 @@ export default async function CreatorProfilePage({ params }: Props) {
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <div className="space-y-6">
           <ProfileHeader creator={creator} />
-          <WorksGrid
+          <PinsGrid
             creatorId={id}
-            initialWorks={worksData.works}
-            initialHasMore={worksData.has_more}
+            initialPins={pinsData.pins}
+            initialHasMore={pinsData.has_more}
           />
         </div>
       </main>

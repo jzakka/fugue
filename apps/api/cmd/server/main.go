@@ -15,13 +15,16 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
+	"github.com/chungsanghwa/fugue/apps/api/internal/boards"
 	"github.com/chungsanghwa/fugue/apps/api/internal/config"
 	"github.com/chungsanghwa/fugue/apps/api/internal/creator"
-	"github.com/chungsanghwa/fugue/apps/api/internal/works"
+	"github.com/chungsanghwa/fugue/apps/api/internal/feed"
+	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
+	"github.com/chungsanghwa/fugue/apps/api/internal/og"
+	"github.com/chungsanghwa/fugue/apps/api/internal/pin"
 )
 
 func main() {
-	// Load .env file if present (ignored in production where env vars are set directly)
 	_ = godotenv.Load()
 
 	cfg, err := config.Load()
@@ -64,7 +67,6 @@ func main() {
 			cfg.OAuthCallbackBase+"/api/auth/google/callback",
 		),
 	}
-	// TODO: Discord를 다시 필수로 변경할 것 (OAuth 앱 등록 후)
 	if cfg.DiscordClientID != "" && cfg.DiscordClientSecret != "" {
 		providers["discord"] = auth.NewDiscordProvider(
 			cfg.DiscordClientID,
@@ -78,12 +80,16 @@ func main() {
 	// Rate limiters
 	authRL := auth.NewRateLimiter(rdb, 10, time.Minute)
 	callbackRL := auth.NewRateLimiter(rdb, 5, time.Minute)
+	ogRL := auth.NewRateLimiter(rdb, 20, time.Minute)
+	pinRL := auth.NewRateLimiter(rdb, 30, time.Minute)
 
-	// Works handler
-	worksHandler := works.NewHandler(db)
-
-	// Creator handler
+	// Handlers
+	pinHandler := pin.NewHandler(db)
 	creatorHandler := creator.NewHandler(db)
+	ogHandler := og.NewHandler()
+	boardsHandler := boards.NewHandler(db)
+	interactionHandler := interaction.NewHandler(db)
+	feedHandler := feed.NewHandler(db, rdb)
 
 	// Router
 	r := chi.NewRouter()
@@ -103,32 +109,47 @@ func main() {
 		_, _ = fmt.Fprintln(w, "ok")
 	})
 
-	// Public API routes (no JWT, no rate limit — SSR requests come from
-	// the Next.js server IP and would exhaust a shared bucket under normal traffic)
-	r.Get("/api/works", worksHandler.List)
+	// Pin routes
+	r.Get("/api/pins", pinHandler.List)
+	r.With(auth.JWTMiddleware(jwtSvc), pinRL.Middleware).Post("/api/pins", pinHandler.Create)
+	r.Get("/api/pins/{id}", pinHandler.GetByID)
+	r.With(auth.JWTMiddleware(jwtSvc)).Delete("/api/pins/{id}", pinHandler.Delete)
+	r.Get("/api/pins/{id}/related", pinHandler.Related)
 
-	// Creator routes — /me (protected) must be registered before /{id}
-	// so Chi's trie matches the literal "me" before the param.
+	// OG fetch
+	r.With(ogRL.Middleware).Post("/api/og/fetch", ogHandler.Fetch)
+
+	// Creator routes
 	r.Route("/api/creators", func(r chi.Router) {
 		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", creatorHandler.GetMe)
 		r.With(auth.JWTMiddleware(jwtSvc)).Put("/me", creatorHandler.UpdateMe)
 		r.Get("/{id}", creatorHandler.GetByID)
 	})
 
-	// Auth routes — /me must live here because Chi's Route("/api/auth")
-	// subrouter captures all /api/auth/* requests, making any /api/auth/me
-	// registered under Route("/api") unreachable (404).
+	// Board routes
+	r.Route("/api/boards", func(r chi.Router) {
+		r.Get("/", boardsHandler.ListByCreator)
+		r.With(auth.JWTMiddleware(jwtSvc)).Post("/", boardsHandler.Create)
+		r.Get("/{id}", boardsHandler.GetByID)
+		r.With(auth.JWTMiddleware(jwtSvc)).Put("/{id}", boardsHandler.Update)
+		r.With(auth.JWTMiddleware(jwtSvc)).Delete("/{id}", boardsHandler.Delete)
+		r.With(auth.JWTMiddleware(jwtSvc)).Post("/{id}/pins", boardsHandler.AddPin)
+		r.With(auth.JWTMiddleware(jwtSvc)).Delete("/{id}/pins/{pin_id}", boardsHandler.RemovePin)
+	})
+
+	// Interactions
+	r.With(auth.JWTMiddleware(jwtSvc)).Post("/api/interactions", interactionHandler.Create)
+
+	// Feed (personalized)
+	r.Get("/api/feed", feedHandler.GetFeed)
+
+	// Auth routes
 	r.Route("/api/auth", func(r chi.Router) {
 		r.Get("/providers", authHandler.Providers)
 		r.With(authRL.Middleware).Get("/{provider}/login", authHandler.Login)
 		r.With(callbackRL.Middleware).Get("/{provider}/callback", authHandler.Callback)
-		// No rate limit on refresh — the refresh token itself is the auth.
-		// SSR calls this from the Next.js server IP, which would exhaust a
-		// shared bucket under normal multi-user traffic.
 		r.Post("/refresh", authHandler.Refresh)
 		r.With(authRL.Middleware).Post("/logout", authHandler.Logout)
-
-		// Protected: requires valid JWT
 		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", authHandler.Me)
 	})
 

@@ -2,23 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Work } from "@/lib/api";
-import { fetchWorks } from "@/lib/api";
+import type { Pin } from "@/lib/api";
+import { fetchPins } from "@/lib/api";
 import MasonryGrid from "./MasonryGrid";
-import WorkCard from "./WorkCard";
+import PinCard from "./PinCard";
 import CardSkeleton from "./CardSkeleton";
 import EmptyState from "./EmptyState";
 
 const PAGE_SIZE = 20;
 
 export default function FeedContainer({
-  initialWorks,
+  initialPins,
   initialHasMore,
   initialField,
   initialOffset = 0,
   initialError = false,
 }: {
-  initialWorks: Work[];
+  initialPins: Pin[];
   initialHasMore: boolean;
   initialField: string;
   initialOffset?: number;
@@ -27,7 +27,7 @@ export default function FeedContainer({
   const searchParams = useSearchParams();
   const field = searchParams.get("field") || "";
 
-  const [works, setWorks] = useState<Work[]>(initialWorks);
+  const [pins, setPins] = useState<Pin[]>(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -35,7 +35,7 @@ export default function FeedContainer({
   );
 
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(initialOffset + initialWorks.length);
+  const offsetRef = useRef(initialOffset + initialPins.length);
   const fieldRef = useRef(initialField);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -52,15 +52,15 @@ export default function FeedContainer({
       offsetRef.current = 0;
 
       try {
-        const data = await fetchWorks({ field: targetField || undefined, limit: PAGE_SIZE, offset: 0 });
+        const data = await fetchPins({ field: targetField || undefined, limit: PAGE_SIZE, offset: 0 });
         if (controller.signal.aborted) return;
-        setWorks(data.works);
+        setPins(data.pins);
         setHasMore(data.has_more);
-        offsetRef.current = data.works.length;
+        offsetRef.current = data.pins.length;
       } catch {
         if (controller.signal.aborted) return;
         setError("작품을 불러올 수 없습니다");
-        setWorks([]);
+        setPins([]);
         setHasMore(false);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -89,15 +89,15 @@ export default function FeedContainer({
     setError(null);
 
     try {
-      const data = await fetchWorks({
+      const data = await fetchPins({
         field: field || undefined,
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
       if (controller.signal.aborted) return;
-      setWorks((prev) => [...prev, ...data.works]);
+      setPins((prev) => [...prev, ...data.pins]);
       setHasMore(data.has_more);
-      offsetRef.current += data.works.length;
+      offsetRef.current += data.pins.length;
     } catch {
       if (controller.signal.aborted) return;
       setError("추가 작품을 불러올 수 없습니다");
@@ -125,7 +125,7 @@ export default function FeedContainer({
   }, [loadMore, error]);
 
   // Initial loading state
-  if (loading && works.length === 0) {
+  if (loading && pins.length === 0) {
     return (
       <div className="px-6">
         <MasonryGrid>
@@ -138,7 +138,7 @@ export default function FeedContainer({
   }
 
   // Empty state
-  if (!loading && works.length === 0 && !error) {
+  if (!loading && pins.length === 0 && !error) {
     return <EmptyState />;
   }
 
@@ -152,7 +152,7 @@ export default function FeedContainer({
             onClick={() => {
               setError(null);
               setHasMore(true); // Re-enable infinite scroll
-              if (works.length === 0) {
+              if (pins.length === 0) {
                 reloadField(field); // Full reload if no data at all
               }
               // If we have data, IntersectionObserver will re-trigger loadMore
@@ -166,8 +166,8 @@ export default function FeedContainer({
 
       {/* Masonry grid */}
       <MasonryGrid>
-        {works.map((work) => (
-          <WorkCard key={work.id} work={work} />
+        {pins.map((pin) => (
+          <PinCard key={pin.id} pin={pin} />
         ))}
       </MasonryGrid>
 
@@ -175,7 +175,7 @@ export default function FeedContainer({
       {hasMore && <div ref={sentinelRef} className="h-4" />}
 
       {/* Loading indicator for infinite scroll */}
-      {loading && works.length > 0 && (
+      {loading && pins.length > 0 && (
         <div className="flex justify-center py-8">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>

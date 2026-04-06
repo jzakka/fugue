@@ -1,0 +1,2 @@
+ALTER TABLE works DROP COLUMN IF EXISTS pin_count;
+DROP TABLE IF EXISTS interactions;

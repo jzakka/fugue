@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS board_pins;
+DROP TABLE IF EXISTS boards;

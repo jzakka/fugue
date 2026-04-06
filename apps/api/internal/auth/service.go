@@ -111,9 +111,6 @@ func (s *Service) findOrCreateWithEmail(ctx context.Context, profile *UserProfil
 	nickname := truncateNickname(profile.Nickname)
 	newCreator, err := q.CreateCreatorFromOAuthOnConflict(ctx, db.CreateCreatorFromOAuthOnConflictParams{
 		Nickname:  nickname,
-		Bio:       toNullString(profile.Bio),
-		Roles:     []string{},
-		Contacts:  json.RawMessage(`{}`),
 		AvatarUrl: toNullString(profile.AvatarURL),
 		Email:     toNullString(email),
 	})
@@ -149,9 +146,6 @@ func (s *Service) createNewCreator(ctx context.Context, profile *UserProfile, pr
 	q := db.New(s.db)
 	creator, err := q.CreateCreatorFromOAuth(ctx, db.CreateCreatorFromOAuthParams{
 		Nickname:  nickname,
-		Bio:       toNullString(profile.Bio),
-		Roles:     []string{},
-		Contacts:  json.RawMessage(`{}`),
 		AvatarUrl: toNullString(profile.AvatarURL),
 		Email:     toNullString(email),
 	})

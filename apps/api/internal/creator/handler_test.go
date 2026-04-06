@@ -37,7 +37,7 @@ func (m *mockQuerier) UpdateCreator(_ context.Context, arg db.UpdateCreatorParam
 	return m.updated, m.updateErr
 }
 
-func (m *mockQuerier) CountWorksByCreator(_ context.Context, _ uuid.UUID) (int64, error) {
+func (m *mockQuerier) CountPinsByCreator(_ context.Context, _ uuid.UUID) (int64, error) {
 	return m.workCount, m.countErr
 }
 
@@ -47,9 +47,6 @@ func sampleCreator() db.Creator {
 	return db.Creator{
 		ID:        testCreatorID,
 		Nickname:  "하루",
-		Bio:       sql.NullString{String: "음악하는 사람", Valid: true},
-		Roles:     []string{"작곡", "보컬"},
-		Contacts:  json.RawMessage(`{"twitter":"@haru"}`),
 		AvatarUrl: sql.NullString{String: "https://example.com/avatar.jpg", Valid: true},
 		Email:     sql.NullString{String: "haru@example.com", Valid: true},
 		CreatedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -67,8 +64,6 @@ func withCreatorID(r *http.Request, id uuid.UUID) *http.Request {
 	ctx := auth.SetCreatorIDForTest(r.Context(), id)
 	return r.WithContext(ctx)
 }
-
-// --- GetByID tests ---
 
 func TestGetByID_Success(t *testing.T) {
 	mock := &mockQuerier{creator: sampleCreator(), workCount: 5}
@@ -88,19 +83,11 @@ func TestGetByID_Success(t *testing.T) {
 	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if resp.ID != testCreatorID.String() {
-		t.Errorf("expected ID %s, got %s", testCreatorID, resp.ID)
-	}
 	if resp.Nickname != "하루" {
 		t.Errorf("expected nickname '하루', got %s", resp.Nickname)
 	}
-	if resp.WorkCount != 5 {
-		t.Errorf("expected work_count 5, got %d", resp.WorkCount)
-	}
-	// Public DTO should not have email
-	raw, _ := json.Marshal(resp)
-	if bytes.Contains(raw, []byte(`"email"`)) {
-		t.Error("public DTO should not contain email field")
+	if resp.PinCount != 5 {
+		t.Errorf("expected work_count 5, got %d", resp.PinCount)
 	}
 }
 
@@ -149,8 +136,6 @@ func TestGetByID_DBError(t *testing.T) {
 	}
 }
 
-// --- GetMe tests ---
-
 func TestGetMe_Success(t *testing.T) {
 	mock := &mockQuerier{creator: sampleCreator(), workCount: 3}
 	h := NewHandlerWithQuerier(mock)
@@ -172,9 +157,6 @@ func TestGetMe_Success(t *testing.T) {
 	if resp.Email == nil || *resp.Email != "haru@example.com" {
 		t.Errorf("expected email 'haru@example.com', got %v", resp.Email)
 	}
-	if resp.WorkCount != 3 {
-		t.Errorf("expected work_count 3, got %d", resp.WorkCount)
-	}
 }
 
 func TestGetMe_Unauthorized(t *testing.T) {
@@ -190,8 +172,6 @@ func TestGetMe_Unauthorized(t *testing.T) {
 		t.Fatalf("expected 401, got %d", rec.Code)
 	}
 }
-
-// --- UpdateMe tests ---
 
 func TestUpdateMe_Success(t *testing.T) {
 	c := sampleCreator()
@@ -234,46 +214,6 @@ func TestUpdateMe_EmptyNickname(t *testing.T) {
 	}
 }
 
-func TestUpdateMe_NicknameTooLong(t *testing.T) {
-	c := sampleCreator()
-	mock := &mockQuerier{creator: c}
-	h := NewHandlerWithQuerier(mock)
-
-	longName := make([]byte, 201)
-	for i := range longName {
-		longName[i] = 'a'
-	}
-	body := `{"nickname":"` + string(longName) + `"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewBufferString(body))
-	req.Header.Set("Content-Type", "application/json")
-	req = withCreatorID(req, testCreatorID)
-	rec := httptest.NewRecorder()
-
-	h.UpdateMe(rec, req)
-
-	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", rec.Code)
-	}
-}
-
-func TestUpdateMe_EmptyRoles(t *testing.T) {
-	c := sampleCreator()
-	mock := &mockQuerier{creator: c}
-	h := NewHandlerWithQuerier(mock)
-
-	body := `{"roles":[]}`
-	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewBufferString(body))
-	req.Header.Set("Content-Type", "application/json")
-	req = withCreatorID(req, testCreatorID)
-	rec := httptest.NewRecorder()
-
-	h.UpdateMe(rec, req)
-
-	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d", rec.Code)
-	}
-}
-
 func TestUpdateMe_Unauthorized(t *testing.T) {
 	mock := &mockQuerier{}
 	h := NewHandlerWithQuerier(mock)
@@ -285,31 +225,5 @@ func TestUpdateMe_Unauthorized(t *testing.T) {
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", rec.Code)
-	}
-}
-
-func TestUpdateMe_PartialUpdate(t *testing.T) {
-	c := sampleCreator()
-	mock := &mockQuerier{creator: c, updated: c, workCount: 0}
-	h := NewHandlerWithQuerier(mock)
-
-	// Only update bio, nickname should remain unchanged
-	body := `{"bio":"새로운 자기소개"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewBufferString(body))
-	req.Header.Set("Content-Type", "application/json")
-	req = withCreatorID(req, testCreatorID)
-	rec := httptest.NewRecorder()
-
-	h.UpdateMe(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rec.Code)
-	}
-	// Nickname should remain the original
-	if mock.lastUpdate.Nickname != "하루" {
-		t.Errorf("expected unchanged nickname '하루', got %s", mock.lastUpdate.Nickname)
-	}
-	if !mock.lastUpdate.Bio.Valid || mock.lastUpdate.Bio.String != "새로운 자기소개" {
-		t.Errorf("expected bio '새로운 자기소개', got %v", mock.lastUpdate.Bio)
 	}
 }

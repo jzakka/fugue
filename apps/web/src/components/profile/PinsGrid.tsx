@@ -1,28 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Work } from "@/lib/api";
-import { fetchWorks } from "@/lib/api";
-import WorkCard from "@/components/feed/WorkCard";
+import type { Pin } from "@/lib/api";
+import { fetchPins } from "@/lib/api";
+import PinCard from "@/components/feed/PinCard";
 import CardSkeleton from "@/components/feed/CardSkeleton";
 
 const PAGE_SIZE = 20;
 const FIELDS = ["전체", "음악", "일러스트", "영상", "글", "사진", "기타"];
 
-export default function WorksGrid({
+export default function PinsGrid({
   creatorId,
-  initialWorks,
+  initialPins,
   initialHasMore,
 }: {
   creatorId: string;
-  initialWorks: Work[];
+  initialPins: Pin[];
   initialHasMore: boolean;
 }) {
-  const [works, setWorks] = useState(initialWorks);
+  const [pins, setPins] = useState(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [activeField, setActiveField] = useState("전체");
-  const offsetRef = useRef(initialWorks.length);
+  const offsetRef = useRef(initialPins.length);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const reload = useCallback(
@@ -30,16 +30,16 @@ export default function WorksGrid({
       setLoading(true);
       offsetRef.current = 0;
       try {
-        const data = await fetchWorks({
+        const data = await fetchPins({
           creator_id: creatorId,
           field: field === "전체" ? undefined : field,
           limit: PAGE_SIZE,
         });
-        setWorks(data.works);
+        setPins(data.pins);
         setHasMore(data.has_more);
-        offsetRef.current = data.works.length;
+        offsetRef.current = data.pins.length;
       } catch {
-        setWorks([]);
+        setPins([]);
         setHasMore(false);
       } finally {
         setLoading(false);
@@ -57,15 +57,15 @@ export default function WorksGrid({
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const data = await fetchWorks({
+      const data = await fetchPins({
         creator_id: creatorId,
         field: activeField === "전체" ? undefined : activeField,
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
-      setWorks((prev) => [...prev, ...data.works]);
+      setPins((prev) => [...prev, ...data.pins]);
       setHasMore(data.has_more);
-      offsetRef.current += data.works.length;
+      offsetRef.current += data.pins.length;
     } catch {
       setHasMore(false);
     } finally {
@@ -107,26 +107,26 @@ export default function WorksGrid({
       </div>
 
       {/* Grid */}
-      {loading && works.length === 0 ? (
+      {loading && pins.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
-      ) : works.length === 0 ? (
+      ) : pins.length === 0 ? (
         <div className="text-center py-16 text-text-dim">
           <p className="text-lg">아직 등록된 작품이 없습니다</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {works.map((work) => (
-            <WorkCard key={work.id} work={work} />
+          {pins.map((pin) => (
+            <PinCard key={pin.id} pin={pin} />
           ))}
         </div>
       )}
 
       {hasMore && <div ref={sentinelRef} className="h-4" />}
-      {loading && works.length > 0 && (
+      {loading && pins.length > 0 && (
         <div className="flex justify-center py-8">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>

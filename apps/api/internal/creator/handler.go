@@ -16,11 +16,10 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
-// CreatorQuerier abstracts the DB queries the handler needs.
 type CreatorQuerier interface {
 	GetCreator(ctx context.Context, id uuid.UUID) (db.Creator, error)
 	UpdateCreator(ctx context.Context, arg db.UpdateCreatorParams) (db.Creator, error)
-	CountWorksByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error)
+	CountPinsByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error)
 }
 
 type Handler struct {
@@ -31,12 +30,10 @@ func NewHandler(database *sql.DB) *Handler {
 	return &Handler{q: db.New(database)}
 }
 
-// NewHandlerWithQuerier creates a handler with a custom querier (for testing).
 func NewHandlerWithQuerier(q CreatorQuerier) *Handler {
 	return &Handler{q: q}
 }
 
-// GetByID handles GET /api/creators/{id} — public profile.
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -56,7 +53,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workCount, err := h.q.CountWorksByCreator(r.Context(), id)
+	workCount, err := h.q.CountPinsByCreator(r.Context(), id)
 	if err != nil {
 		log.Printf("creator.GetByID: count error: %v (id=%s)", err, idStr)
 		writeError(w, http.StatusInternalServerError, "크리에이터 정보를 불러올 수 없습니다")
@@ -66,7 +63,6 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, toPublicDTO(creator, workCount))
 }
 
-// GetMe handles GET /api/creators/me — authenticated user's own profile.
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 	creatorID, ok := auth.CreatorIDFromContext(r.Context())
 	if !ok {
@@ -85,7 +81,7 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workCount, err := h.q.CountWorksByCreator(r.Context(), creatorID)
+	workCount, err := h.q.CountPinsByCreator(r.Context(), creatorID)
 	if err != nil {
 		log.Printf("creator.GetMe: count error: %v (id=%s)", err, creatorID)
 		writeError(w, http.StatusInternalServerError, "프로필을 불러올 수 없습니다")
@@ -96,14 +92,10 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateRequest struct {
-	Nickname  *string          `json:"nickname"`
-	Bio       *string          `json:"bio"`
-	Roles     []string         `json:"roles"`
-	Contacts  *json.RawMessage `json:"contacts"`
-	AvatarURL *string          `json:"avatar_url"`
+	Nickname  *string `json:"nickname"`
+	AvatarURL *string `json:"avatar_url"`
 }
 
-// UpdateMe handles PUT /api/creators/me — update own profile.
 func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	creatorID, ok := auth.CreatorIDFromContext(r.Context())
 	if !ok {
@@ -117,7 +109,6 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch current profile to merge partial updates
 	current, err := h.q.GetCreator(r.Context(), creatorID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -129,43 +120,18 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Build update params from current + request
 	nickname := current.Nickname
 	if req.Nickname != nil {
 		nickname = strings.TrimSpace(*req.Nickname)
 	}
 
-	// Validate nickname
 	if nickname == "" {
 		writeError(w, http.StatusBadRequest, "닉네임은 비어있을 수 없습니다")
 		return
 	}
-	if utf8.RuneCountInString(nickname) > 200 {
-		writeError(w, http.StatusBadRequest, "닉네임은 200자를 초과할 수 없습니다")
+	if utf8.RuneCountInString(nickname) > 50 {
+		writeError(w, http.StatusBadRequest, "닉네임은 50자를 초과할 수 없습니다")
 		return
-	}
-
-	bio := current.Bio
-	if req.Bio != nil {
-		if *req.Bio == "" {
-			bio = sql.NullString{}
-		} else {
-			bio = sql.NullString{String: *req.Bio, Valid: true}
-		}
-	}
-
-	roles := current.Roles
-	if req.Roles != nil {
-		if len(req.Roles) == 0 {
-			writeError(w, http.StatusBadRequest, "역할은 최소 하나 이상이어야 합니다")
-			return
-		}
-		roles = req.Roles
-	}
-
-	contacts := current.Contacts
-	if req.Contacts != nil {
-		contacts = *req.Contacts
 	}
 
 	avatarURL := current.AvatarUrl
@@ -180,9 +146,6 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	updated, err := h.q.UpdateCreator(r.Context(), db.UpdateCreatorParams{
 		ID:        creatorID,
 		Nickname:  nickname,
-		Bio:       bio,
-		Roles:     roles,
-		Contacts:  contacts,
 		AvatarUrl: avatarURL,
 	})
 	if err != nil {
@@ -191,7 +154,7 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workCount, err := h.q.CountWorksByCreator(r.Context(), creatorID)
+	workCount, err := h.q.CountPinsByCreator(r.Context(), creatorID)
 	if err != nil {
 		log.Printf("creator.UpdateMe: count error: %v (id=%s)", err, creatorID)
 		workCount = 0
