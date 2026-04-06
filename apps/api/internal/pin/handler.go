@@ -73,8 +73,8 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "분야는 필수입니다")
 		return
 	}
-	if len(req.Tags) < 1 || len(req.Tags) > 5 {
-		writeError(w, http.StatusBadRequest, "태그는 1~5개 필요합니다")
+	if len(req.Tags) > 5 {
+		writeError(w, http.StatusBadRequest, "태그는 최대 5개까지 가능합니다")
 		return
 	}
 	for _, tag := range req.Tags {

@@ -24,13 +24,14 @@ type fetchRequest struct {
 
 // fetchResponse is the JSON response for a successful OG fetch.
 type fetchResponse struct {
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	Image         string `json:"image"`
-	SiteName      string `json:"site_name"`
-	URL           string `json:"url"`
-	DetectedField string `json:"detected_field"`
-	Error         string `json:"error,omitempty"`
+	Title         string   `json:"title"`
+	Description   string   `json:"description"`
+	Image         string   `json:"image"`
+	SiteName      string   `json:"site_name"`
+	URL           string   `json:"url"`
+	DetectedField string   `json:"detected_field"`
+	SuggestedTags []string `json:"suggested_tags"`
+	Error         string   `json:"error,omitempty"`
 }
 
 // Fetch handles POST /api/og/fetch.
@@ -77,15 +78,16 @@ func (h *Handler) Fetch(w http.ResponseWriter, r *http.Request) {
 				SiteName:      result.SiteName,
 				URL:           result.URL,
 				DetectedField: result.DetectedField,
+				SuggestedTags: SuggestTags(result.Title, result.Description, 5),
 				Error:         err.Error(),
 			})
 			return
 		}
 
-		// No partial result — return a pure error with the URL and detected field.
 		writeJSON(w, http.StatusOK, fetchResponse{
 			URL:           req.URL,
 			DetectedField: detectField(parsed.Hostname()),
+			SuggestedTags: []string{},
 			Error:         err.Error(),
 		})
 		return
@@ -98,6 +100,7 @@ func (h *Handler) Fetch(w http.ResponseWriter, r *http.Request) {
 		SiteName:      result.SiteName,
 		URL:           result.URL,
 		DetectedField: result.DetectedField,
+		SuggestedTags: SuggestTags(result.Title, result.Description, 5),
 	})
 }
 

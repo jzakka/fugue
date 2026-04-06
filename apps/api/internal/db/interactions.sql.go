@@ -43,6 +43,48 @@ func (q *Queries) CreateInteraction(ctx context.Context, arg CreateInteractionPa
 	return err
 }
 
+const getUserFieldFrequency = `-- name: GetUserFieldFrequency :many
+SELECT p.field, COUNT(*) AS freq
+FROM pins p
+WHERE p.creator_id = $1
+GROUP BY p.field
+ORDER BY freq DESC
+LIMIT $2
+`
+
+type GetUserFieldFrequencyParams struct {
+	CreatorID uuid.UUID
+	Limit     int32
+}
+
+type GetUserFieldFrequencyRow struct {
+	Field string
+	Freq  int64
+}
+
+func (q *Queries) GetUserFieldFrequency(ctx context.Context, arg GetUserFieldFrequencyParams) ([]GetUserFieldFrequencyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserFieldFrequency, arg.CreatorID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserFieldFrequencyRow
+	for rows.Next() {
+		var i GetUserFieldFrequencyRow
+		if err := rows.Scan(&i.Field, &i.Freq); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserTagFrequency = `-- name: GetUserTagFrequency :many
 SELECT unnest(p.tags) AS tag, COUNT(*) AS freq
 FROM pins p
@@ -72,6 +114,82 @@ func (q *Queries) GetUserTagFrequency(ctx context.Context, arg GetUserTagFrequen
 	for rows.Next() {
 		var i GetUserTagFrequencyRow
 		if err := rows.Scan(&i.Tag, &i.Freq); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const recommendByFields = `-- name: RecommendByFields :many
+SELECT
+    p.id, p.creator_id, p.url, p.title, p.description,
+    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE p.field = ANY($1::text[])
+  AND p.creator_id != $2
+ORDER BY p.pin_count DESC, p.created_at DESC
+LIMIT $3
+`
+
+type RecommendByFieldsParams struct {
+	Column1   []string
+	CreatorID uuid.UUID
+	Limit     int32
+}
+
+type RecommendByFieldsRow struct {
+	ID               uuid.UUID
+	CreatorID        uuid.UUID
+	Url              string
+	Title            string
+	Description      sql.NullString
+	Field            string
+	Tags             []string
+	OgImage          sql.NullString
+	OgData           pqtype.NullRawMessage
+	PinCount         int32
+	CreatedAt        time.Time
+	CreatorIDRef     uuid.UUID
+	CreatorNickname  string
+	CreatorAvatarUrl sql.NullString
+}
+
+func (q *Queries) RecommendByFields(ctx context.Context, arg RecommendByFieldsParams) ([]RecommendByFieldsRow, error) {
+	rows, err := q.db.QueryContext(ctx, recommendByFields, pq.Array(arg.Column1), arg.CreatorID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RecommendByFieldsRow
+	for rows.Next() {
+		var i RecommendByFieldsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.Field,
+			pq.Array(&i.Tags),
+			&i.OgImage,
+			&i.OgData,
+			&i.PinCount,
+			&i.CreatedAt,
+			&i.CreatorIDRef,
+			&i.CreatorNickname,
+			&i.CreatorAvatarUrl,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

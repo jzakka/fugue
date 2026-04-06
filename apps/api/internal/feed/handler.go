@@ -149,18 +149,50 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 		}
 	}
 
-	if len(tags) == 0 {
-		return h.buildLatestFeed(ctx, q, limit, offset)
+	recLimit := (limit + 1) / 2
+	var recRows []db.RecommendByTagsRow
+
+	if len(tags) > 0 {
+		// Primary: tag-based recommendation
+		recRows, err = q.RecommendByTags(ctx, db.RecommendByTagsParams{
+			Column1:   tags,
+			CreatorID: creatorID,
+			Limit:     int32(recLimit),
+		})
+		if err != nil {
+			return FeedResponse{}, fmt.Errorf("RecommendByTags: %w", err)
+		}
 	}
 
-	recLimit := (limit + 1) / 2
-	recRows, err := q.RecommendByTags(ctx, db.RecommendByTagsParams{
-		Column1:   tags,
-		CreatorID: creatorID,
-		Limit:     int32(recLimit),
-	})
-	if err != nil {
-		return FeedResponse{}, fmt.Errorf("RecommendByTags: %w", err)
+	// Fallback: if tags produced insufficient results, try field-based
+	if len(recRows) < recLimit {
+		fieldRows, err := q.GetUserFieldFrequency(ctx, db.GetUserFieldFrequencyParams{
+			CreatorID: creatorID,
+			Limit:     3,
+		})
+		if err == nil && len(fieldRows) > 0 {
+			fields := make([]string, 0, len(fieldRows))
+			for _, fr := range fieldRows {
+				fields = append(fields, fr.Field)
+			}
+			deficit := int32(recLimit - len(recRows))
+			fieldRecs, err := q.RecommendByFields(ctx, db.RecommendByFieldsParams{
+				Column1:   fields,
+				CreatorID: creatorID,
+				Limit:     deficit,
+			})
+			if err == nil {
+				// Convert field recs to tag rec row type for uniform processing
+				for _, fr := range fieldRecs {
+					recRows = append(recRows, db.RecommendByTagsRow(fr))
+				}
+			}
+		}
+	}
+
+	// If still nothing, fall back to latest
+	if len(recRows) == 0 {
+		return h.buildLatestFeed(ctx, q, limit, offset)
 	}
 
 	latestLimit := limit / 2

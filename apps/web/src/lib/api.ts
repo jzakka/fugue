@@ -54,6 +54,7 @@ export interface OgPreview {
   site_name: string;
   url: string;
   detected_field: string;
+  suggested_tags: string[];
   error?: string;
 }
 

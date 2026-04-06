@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fugue Architecture</title>
+<style>
+  :root {
+    --bg: #0C0C0C;
+    --surface: #161616;
+    --surface-el: #1E1E1E;
+    --border: #2A2A2A;
+    --accent: #E85A2A;
+    --accent-hover: #FF6B3D;
+    --accent-subtle: rgba(232, 90, 42, 0.12);
+    --text: #E8E8E8;
+    --text-muted: #888888;
+    --text-dim: #555555;
+    --success: #34C759;
+    --warning: #FFB800;
+    --info: #5AC8FA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    line-height: 1.6;
+    padding: 48px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 48px 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+    color: var(--accent);
+  }
+  .subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 48px;
+  }
+  .mascot {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    border-radius: 12px;
+    text-align: center;
+    line-height: 48px;
+    font-size: 28px;
+    margin-right: 16px;
+    vertical-align: middle;
+  }
+
+  /* System Diagram */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+  .diagram svg { display: block; margin: 0 auto; }
+
+  /* Cards Grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-family: 'Geist Mono', monospace;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .card-endpoint {
+    font-size: 12px;
+    font-family: 'Geist Mono', monospace;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 2px 0;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:hover td { background: var(--surface); }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-family: 'Geist Mono', monospace;
+    margin: 2px;
+  }
+  .tag-accent { background: var(--accent-subtle); color: var(--accent); }
+  .tag-success { background: rgba(52,199,89,0.12); color: var(--success); }
+  .tag-warning { background: rgba(255,184,0,0.12); color: var(--warning); }
+  .tag-info { background: rgba(90,200,250,0.12); color: var(--info); }
+  .tag-dim { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+  /* Flow */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .flow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .flow-arrow { color: var(--accent); font-size: 18px; }
+
+  /* Schema */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .schema-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .schema-table-header {
+    background: var(--accent-subtle);
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .schema-table-header .count {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Geist Mono', monospace;
+  }
+  .schema-col {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-family: 'Geist Mono', monospace;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    justify-content: space-between;
+  }
+  .schema-col:last-child { border-bottom: none; }
+  .schema-col .type { color: var(--text-dim); }
+  .schema-col .pk { color: var(--accent); }
+  .schema-col .fk { color: var(--info); }
+
+  /* Security */
+  .sec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .sec-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .sec-item h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-item ul {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding-left: 18px;
+  }
+  .sec-item li { margin: 4px 0; }
+
+  /* Relation arrows for ERD */
+  .erd-relations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .erd-rel {
+    font-size: 12px;
+    font-family: 'Geist Mono', monospace;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .erd-rel span { color: var(--accent); }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 24px;
+    min-width: 140px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Geist Mono', monospace;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/style.css">
+</head>
+<body>
+
+<div style="display:flex;align-items:center;margin-bottom:8px">
+  <span class="mascot">🐡</span>
+  <h1>Fugue Architecture</h1>
+</div>
+<p class="subtitle">Cross-media Creative Curation Platform &mdash; System Overview</p>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-value" style="color:var(--accent)">7</div>
+    <div class="stat-label">API Domains</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" style="color:var(--success)">6</div>
+    <div class="stat-label">DB Tables</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" style="color:var(--info)">15</div>
+    <div class="stat-label">API Endpoints</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" style="color:var(--warning)">10</div>
+    <div class="stat-label">Migrations</div>
+  </div>
+</div>
+
+<!-- System Diagram -->
+<h2>System Topology</h2>
+<div class="diagram">
+  <svg width="900" height="380" viewBox="0 0 900 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Next.js Box -->
+    <rect x="20" y="40" width="200" height="200" rx="12" fill="#161616" stroke="#2A2A2A" stroke-width="1.5"/>
+    <text x="120" y="72" text-anchor="middle" fill="#E8E8E8" font-size="15" font-weight="600">Next.js 16</text>
+    <text x="120" y="92" text-anchor="middle" fill="#888" font-size="11" font-family="Geist Mono, monospace">:3000</text>
+    <text x="40" y="124" fill="#555" font-size="11" font-family="Geist Mono, monospace">/pin/new</text>
+    <text x="40" y="142" fill="#555" font-size="11" font-family="Geist Mono, monospace">/pins/[id]</text>
+    <text x="40" y="160" fill="#555" font-size="11" font-family="Geist Mono, monospace">/boards/[id]</text>
+    <text x="40" y="178" fill="#555" font-size="11" font-family="Geist Mono, monospace">/mypage</text>
+    <text x="40" y="196" fill="#555" font-size="11" font-family="Geist Mono, monospace">/creators/[id]</text>
+    <text x="40" y="218" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">SSR + CSR</text>
+
+    <!-- Arrow: Next.js -> Go API -->
+    <line x1="220" y1="140" x2="320" y2="140" stroke="#E85A2A" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="270" y="130" text-anchor="middle" fill="#888" font-size="10" font-family="Geist Mono, monospace">/api/*</text>
+    <text x="270" y="158" text-anchor="middle" fill="#555" font-size="9" font-family="Geist Mono, monospace">proxy rewrite</text>
+
+    <!-- Go API Box -->
+    <rect x="320" y="20" width="240" height="260" rx="12" fill="#161616" stroke="#E85A2A" stroke-width="1.5"/>
+    <text x="440" y="52" text-anchor="middle" fill="#E8E8E8" font-size="15" font-weight="600">Go API (Chi)</text>
+    <text x="440" y="72" text-anchor="middle" fill="#888" font-size="11" font-family="Geist Mono, monospace">:8080</text>
+
+    <!-- Domain boxes inside -->
+    <rect x="340" y="88" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="385" y="105" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">pin</text>
+
+    <rect x="450" y="88" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="495" y="105" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">boards</text>
+
+    <rect x="340" y="122" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="385" y="139" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">feed</text>
+
+    <rect x="450" y="122" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="495" y="139" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">og</text>
+
+    <rect x="340" y="156" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="385" y="173" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">interaction</text>
+
+    <rect x="450" y="156" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="495" y="173" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">auth</text>
+
+    <rect x="340" y="190" width="90" height="26" rx="6" fill="rgba(232,90,42,0.12)"/>
+    <text x="385" y="207" text-anchor="middle" fill="#E85A2A" font-size="10" font-family="Geist Mono, monospace">creator</text>
+
+    <rect x="450" y="190" width="200" height="26" rx="6" fill="rgba(255,255,255,0.04)"/>
+    <text x="550" y="207" text-anchor="middle" fill="#555" font-size="10" font-family="Geist Mono, monospace">sqlc generated (db/)</text>
+
+    <text x="440" y="254" text-anchor="middle" fill="#555" font-size="10" font-family="Geist Mono, monospace">JWT + Rate Limit + SSRF Guard</text>
+
+    <!-- Arrow: Go API -> PostgreSQL -->
+    <line x1="560" y1="100" x2="660" y2="100" stroke="#5AC8FA" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+    <!-- PostgreSQL Box -->
+    <rect x="660" y="40" width="200" height="120" rx="12" fill="#161616" stroke="#5AC8FA" stroke-width="1.5"/>
+    <text x="760" y="72" text-anchor="middle" fill="#E8E8E8" font-size="15" font-weight="600">PostgreSQL 16</text>
+    <text x="760" y="92" text-anchor="middle" fill="#888" font-size="11" font-family="Geist Mono, monospace">:5432</text>
+    <text x="760" y="116" text-anchor="middle" fill="#555" font-size="11" font-family="Geist Mono, monospace">6 tables</text>
+    <text x="760" y="134" text-anchor="middle" fill="#555" font-size="11" font-family="Geist Mono, monospace">10 migrations</text>
+
+    <!-- Arrow: Go API -> Redis -->
+    <line x1="560" y1="180" x2="660" y2="230" stroke="#34C759" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+    <!-- Redis Box -->
+    <rect x="660" y="200" width="200" height="120" rx="12" fill="#161616" stroke="#34C759" stroke-width="1.5"/>
+    <text x="760" y="232" text-anchor="middle" fill="#E8E8E8" font-size="15" font-weight="600">Redis 7</text>
+    <text x="760" y="252" text-anchor="middle" fill="#888" font-size="11" font-family="Geist Mono, monospace">:6379</text>
+    <text x="680" y="278" fill="#555" font-size="10" font-family="Geist Mono, monospace">sessions (refresh JWT)</text>
+    <text x="680" y="294" fill="#555" font-size="10" font-family="Geist Mono, monospace">rate limit counters</text>
+    <text x="680" y="310" fill="#555" font-size="10" font-family="Geist Mono, monospace">feed cache (TTL 5m)</text>
+
+    <!-- Arrow: Go API -> External -->
+    <line x1="440" y1="280" x2="440" y2="340" stroke="#FFB800" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow-yellow)"/>
+
+    <!-- External Box -->
+    <rect x="320" y="340" width="240" height="32" rx="8" fill="#161616" stroke="#FFB800" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="440" y="361" text-anchor="middle" fill="#FFB800" font-size="11" font-family="Geist Mono, monospace">External URLs (OG fetch, SSRF protected)</text>
+
+    <!-- Arrow markers -->
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8" fill="none" stroke="#E85A2A" stroke-width="1.5"/>
+      </marker>
+      <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8" fill="none" stroke="#5AC8FA" stroke-width="1.5"/>
+      </marker>
+      <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8" fill="none" stroke="#34C759" stroke-width="1.5"/>
+      </marker>
+      <marker id="arrow-yellow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8" fill="none" stroke="#FFB800" stroke-width="1.5"/>
+      </marker>
+    </defs>
+  </svg>
+</div>
+
+<!-- API Domains -->
+<h2>API Domains</h2>
+<div class="cards">
+  <div class="card">
+    <div class="card-title">
+      pin
+      <span class="badge tag-accent">CRD</span>
+    </div>
+    <div class="card-desc">핀 생성/조회/삭제 + 연관 핀. pin_count denormalized.</div>
+    <div class="card-endpoint">POST /api/pins</div>
+    <div class="card-endpoint">GET /api/pins/:id</div>
+    <div class="card-endpoint">DELETE /api/pins/:id</div>
+    <div class="card-endpoint">GET /api/pins/:id/related</div>
+    <div class="card-endpoint">GET /api/pins</div>
+    <div style="margin-top:8px">
+      <span class="tag tag-warning">30/min rate limit</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      boards
+      <span class="badge tag-accent">CRUD</span>
+    </div>
+    <div class="card-desc">보드 CRUD + 핀 추가/제거. 소유자 검증, 공개/비공개.</div>
+    <div class="card-endpoint">POST /api/boards</div>
+    <div class="card-endpoint">GET /api/boards/:id</div>
+    <div class="card-endpoint">PUT /api/boards/:id</div>
+    <div class="card-endpoint">DELETE /api/boards/:id</div>
+    <div class="card-endpoint">POST /api/boards/:id/pins</div>
+    <div class="card-endpoint">DELETE /api/boards/:id/pins/:pin_id</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      feed
+      <span class="badge tag-info">Personalized</span>
+    </div>
+    <div class="card-desc">태그 TF 기반 추천. 콜드 스타트 fallback. Redis 캐시 5분.</div>
+    <div class="card-endpoint">GET /api/feed</div>
+    <div style="margin-top:8px">
+      <span class="tag tag-dim">&lt;10 pins: latest</span>
+      <span class="tag tag-accent">&ge;10 pins: 50/50 mix</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      og
+      <span class="badge tag-warning">SSRF Guard</span>
+    </div>
+    <div class="card-desc">OG 메타데이터 fetch. Private IP 차단, redirect 검증.</div>
+    <div class="card-endpoint">POST /api/og/fetch</div>
+    <div style="margin-top:8px">
+      <span class="tag tag-warning">20/min/IP</span>
+      <span class="tag tag-dim">1MB limit</span>
+      <span class="tag tag-dim">5s timeout</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      interaction
+      <span class="badge tag-success">Fire &amp; Forget</span>
+    </div>
+    <div class="card-desc">유저 행동 기록. view, pin, board_add. ML 학습 데이터.</div>
+    <div class="card-endpoint">POST /api/interactions</div>
+    <div style="margin-top:8px">
+      <span class="tag tag-dim">view</span>
+      <span class="tag tag-dim">pin</span>
+      <span class="tag tag-dim">board_add</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      auth
+      <span class="badge tag-success">Done</span>
+    </div>
+    <div class="card-desc">Google/Discord OAuth. JWT access(15m) + refresh(7d) rotation.</div>
+    <div class="card-endpoint">GET /api/auth/:provider/login</div>
+    <div class="card-endpoint">POST /api/auth/refresh</div>
+    <div class="card-endpoint">GET /api/auth/me</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      creator
+      <span class="badge tag-dim">Simplified</span>
+    </div>
+    <div class="card-desc">닉네임 + 아바타만. 포트폴리오 기능 없음.</div>
+    <div class="card-endpoint">GET /api/creators/:id</div>
+    <div class="card-endpoint">GET /api/creators/me</div>
+    <div class="card-endpoint">PUT /api/creators/me</div>
+  </div>
+</div>
+
+<!-- DB Schema -->
+<h2>Database Schema</h2>
+
+<div class="erd-relations">
+  <div class="erd-rel">creators <span>1:N</span> pins</div>
+  <div class="erd-rel">creators <span>1:N</span> boards</div>
+  <div class="erd-rel">creators <span>1:N</span> auth_accounts</div>
+  <div class="erd-rel">creators <span>1:N</span> interactions</div>
+  <div class="erd-rel">pins <span>N:M</span> boards <span style="color:var(--text-dim)">(via board_pins)</span></div>
+  <div class="erd-rel">interactions.pin_id <span>SET NULL</span> on delete</div>
+</div>
+
+<div class="schema-grid">
+  <div class="schema-table">
+    <div class="schema-table-header">pins <span class="count">11 cols</span></div>
+    <div class="schema-col"><span class="pk">id</span> <span class="type">UUID PK</span></div>
+    <div class="schema-col"><span class="fk">creator_id</span> <span class="type">UUID FK</span></div>
+    <div class="schema-col"><span>url</span> <span class="type">VARCHAR(1000)</span></div>
+    <div class="schema-col"><span>title</span> <span class="type">VARCHAR(200)</span></div>
+    <div class="schema-col"><span>description</span> <span class="type">VARCHAR(500)?</span></div>
+    <div class="schema-col"><span>field</span> <span class="type">VARCHAR(50)</span></div>
+    <div class="schema-col"><span>tags</span> <span class="type">TEXT[]</span></div>
+    <div class="schema-col"><span>og_image</span> <span class="type">VARCHAR?</span></div>
+    <div class="schema-col"><span>og_data</span> <span class="type">JSONB?</span></div>
+    <div class="schema-col"><span style="color:var(--warning)">pin_count</span> <span class="type">INT (denorm)</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+
+  <div class="schema-table">
+    <div class="schema-table-header">boards <span class="count">7 cols</span></div>
+    <div class="schema-col"><span class="pk">id</span> <span class="type">UUID PK</span></div>
+    <div class="schema-col"><span class="fk">creator_id</span> <span class="type">UUID FK</span></div>
+    <div class="schema-col"><span>name</span> <span class="type">VARCHAR(100)</span></div>
+    <div class="schema-col"><span>description</span> <span class="type">VARCHAR(500)?</span></div>
+    <div class="schema-col"><span>is_public</span> <span class="type">BOOL</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+    <div class="schema-col"><span>updated_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+
+  <div class="schema-table">
+    <div class="schema-table-header">board_pins <span class="count">3 cols</span></div>
+    <div class="schema-col"><span class="fk">board_id</span> <span class="type">UUID FK PK</span></div>
+    <div class="schema-col"><span class="fk">pin_id</span> <span class="type">UUID FK PK</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+
+  <div class="schema-table">
+    <div class="schema-table-header">interactions <span class="count">5 cols</span></div>
+    <div class="schema-col"><span class="pk">id</span> <span class="type">UUID PK</span></div>
+    <div class="schema-col"><span class="fk">user_id</span> <span class="type">UUID FK</span></div>
+    <div class="schema-col"><span class="fk">pin_id</span> <span class="type">UUID FK?</span></div>
+    <div class="schema-col"><span>type</span> <span class="type">VARCHAR(20)</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+
+  <div class="schema-table">
+    <div class="schema-table-header">creators <span class="count">6 cols</span></div>
+    <div class="schema-col"><span class="pk">id</span> <span class="type">UUID PK</span></div>
+    <div class="schema-col"><span>nickname</span> <span class="type">VARCHAR(50)</span></div>
+    <div class="schema-col"><span>avatar_url</span> <span class="type">VARCHAR(500)?</span></div>
+    <div class="schema-col"><span>email</span> <span class="type">VARCHAR(255)?</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+    <div class="schema-col"><span>updated_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+
+  <div class="schema-table">
+    <div class="schema-table-header">auth_accounts <span class="count">7 cols</span></div>
+    <div class="schema-col"><span class="pk">id</span> <span class="type">UUID PK</span></div>
+    <div class="schema-col"><span class="fk">creator_id</span> <span class="type">UUID FK</span></div>
+    <div class="schema-col"><span>provider</span> <span class="type">VARCHAR</span></div>
+    <div class="schema-col"><span>provider_id</span> <span class="type">VARCHAR</span></div>
+    <div class="schema-col"><span>email</span> <span class="type">VARCHAR?</span></div>
+    <div class="schema-col"><span>profile</span> <span class="type">JSONB?</span></div>
+    <div class="schema-col"><span>created_at</span> <span class="type">TIMESTAMPTZ</span></div>
+  </div>
+</div>
+
+<!-- Data Flows -->
+<h2>Data Flows</h2>
+
+<h3>Pin Creation</h3>
+<div class="flow">
+  <div class="flow-step">URL 입력</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">debounce 500ms</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--warning)">POST /api/og/fetch<br><small style="color:var(--text-dim)">SSRF 검증 + OG 파싱</small></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">OG 프리뷰</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">분야/태그 선택</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--accent)">POST /api/pins<br><small style="color:var(--text-dim)">DB INSERT + pin_count 갱신</small></div>
+</div>
+
+<h3>Personalized Feed</h3>
+<div class="flow">
+  <div class="flow-step">GET /api/feed</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--success)">Redis 캐시?</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">태그 빈도 집계</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">추천 + 최신 fetch</div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--accent)">인터리브 병합<br><small style="color:var(--text-dim)">rec, new, rec, new...</small></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--success)">Redis 캐싱<br><small style="color:var(--text-dim)">TTL 5분</small></div>
+</div>
+
+<h3>Recommendation Evolution</h3>
+<div class="flow">
+  <div class="flow-step" style="border-color:var(--accent)">v1 (Now)<br><small style="color:var(--text-dim)">태그 TF 휴리스틱</small></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--text-dim)">v2<br><small style="color:var(--text-dim)">피처스토어</small></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step" style="border-color:var(--text-dim)">v3<br><small style="color:var(--text-dim)">ML collaborative filtering</small></div>
+</div>
+
+<!-- Security -->
+<h2>Security</h2>
+<div class="sec-grid">
+  <div class="sec-item">
+    <h4><span style="color:var(--warning)">&#9888;</span> SSRF Protection</h4>
+    <ul>
+      <li>http/https schemes only</li>
+      <li>Custom DialContext + DNS resolve</li>
+      <li>Private IP block (10.x, 172.16-31.x, 192.168.x, 127.x, ::1)</li>
+      <li>Max 5 redirect hops, re-verify each</li>
+      <li>1MB response limit, 5s timeout</li>
+    </ul>
+  </div>
+  <div class="sec-item">
+    <h4><span style="color:var(--accent)">&#128274;</span> Auth &amp; Authz</h4>
+    <ul>
+      <li>JWT HMAC-SHA256</li>
+      <li>Access: 15min, Refresh: 7d + rotation</li>
+      <li>Pin delete: WHERE creator_id = $2</li>
+      <li>Board: owner verification</li>
+      <li>Private boards: owner only</li>
+    </ul>
+  </div>
+  <div class="sec-item">
+    <h4><span style="color:var(--info)">&#9889;</span> Rate Limiting</h4>
+    <ul>
+      <li>Pin creation: 30/min/user</li>
+      <li>OG fetch: 20/min/IP</li>
+      <li>Auth login: 10/min/IP</li>
+      <li>Auth callback: 5/min/IP</li>
+      <li>Redis fixed-window, fail-open</li>
+    </ul>
+  </div>
+  <div class="sec-item">
+    <h4><span style="color:var(--success)">&#10003;</span> XSS Prevention</h4>
+    <ul>
+      <li>React auto-escaping only</li>
+      <li>No dangerouslySetInnerHTML</li>
+      <li>OG data rendered via JSX props</li>
+      <li>Security headers (X-Frame-Options, X-Content-Type-Options)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Infrastructure -->
+<h2>Infrastructure</h2>
+<table>
+  <thead>
+    <tr><th>Layer</th><th>Technology</th><th>Note</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Frontend</td><td>Next.js 16 (App Router)</td><td>SSR + CSR hybrid</td></tr>
+    <tr><td>Backend</td><td>Go + Chi router</td><td>Monolith, domain packages</td></tr>
+    <tr><td>DB Access</td><td>sqlc</td><td>SQL-first, no ORM</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 16</td><td>Local: Docker, Prod: RDS</td></tr>
+    <tr><td>Cache</td><td>Redis 7</td><td>Local: Docker, Prod: ElastiCache</td></tr>
+    <tr><td>IaC</td><td>Terraform</td><td>VPC + EKS + RDS + ElastiCache</td></tr>
+    <tr><td>Container</td><td>EKS (Spot)</td><td>Managed Node Group</td></tr>
+    <tr><td>CI</td><td>GitHub Actions</td><td>Build + test + push</td></tr>
+    <tr><td>CD</td><td>ArgoCD</td><td>GitOps, Helm manifests</td></tr>
+    <tr><td>DNS/TLS</td><td>Route 53 + ACM</td><td>Auto-renewal</td></tr>
+  </tbody>
+</table>
+
+<!-- What's Missing -->
+<h2>Not Yet Implemented</h2>
+<div class="cards" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))">
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-warning">P2</span> Observability</div>
+    <div class="card-desc">Structured logging, metrics, tracing</div>
+  </div>
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-warning">P2</span> Search</div>
+    <div class="card-desc">Full-text search (Meilisearch/ES)</div>
+  </div>
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-dim">P3</span> Embed Players</div>
+    <div class="card-desc">SoundCloud, YouTube inline playback</div>
+  </div>
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-dim">P3</span> Notifications</div>
+    <div class="card-desc">New pins, board updates</div>
+  </div>
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-dim">P2</span> CI Pipeline</div>
+    <div class="card-desc">GitHub Actions workflows</div>
+  </div>
+  <div class="card" style="border-color:var(--text-dim)">
+    <div class="card-title"><span class="tag tag-dim">P2</span> Mascot Assets</div>
+    <div class="card-desc">Empty state illustrations</div>
+  </div>
+</div>
+
+<div style="margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--text-dim)">
+  Fugue Architecture &mdash; Generated 2026-04-06 &mdash; 🐡
+</div>
+
+</body>
+</html>

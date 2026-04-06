@@ -78,6 +78,9 @@ export default function PinCreateForm() {
       if (data.detected_field) {
         setField(data.detected_field);
       }
+      if (data.suggested_tags?.length) {
+        setTags(data.suggested_tags.slice(0, TAG_MAX_COUNT));
+      }
     } catch (err) {
       if (controller.signal.aborted) return;
       setOgError(true);
@@ -162,11 +165,6 @@ export default function PinCreateForm() {
       setError("분야를 선택해주세요");
       return;
     }
-    if (tags.length < TAG_MIN_COUNT) {
-      setError(`태그를 최소 ${TAG_MIN_COUNT}개 추가해주세요`);
-      return;
-    }
-
     setSubmitting(true);
     try {
       await createPin({
