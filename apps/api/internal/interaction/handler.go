@@ -6,9 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
-	"github.com/google/uuid"
 )
 
 type Handler struct {

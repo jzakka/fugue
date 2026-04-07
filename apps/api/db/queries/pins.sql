@@ -100,6 +100,33 @@ ORDER BY
     p.created_at DESC
 LIMIT 10;
 
+-- name: FallbackRelatedByMediaType :many
+SELECT
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE p.media_type = $1
+  AND p.id != ALL($2::uuid[])
+ORDER BY p.created_at DESC
+LIMIT $3;
+
+-- name: FallbackRelatedLatest :many
+SELECT
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE p.id != ALL($1::uuid[])
+ORDER BY p.created_at DESC
+LIMIT $2;
+
 -- name: ListLatestPinsWithCreator :many
 SELECT
     p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,

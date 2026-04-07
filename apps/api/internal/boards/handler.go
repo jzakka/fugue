@@ -1,17 +1,20 @@
 package boards
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 	"unicode/utf8"
 
-	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
-	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
+	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
 // ---------------------------------------------------------------------------
@@ -28,6 +31,39 @@ type BoardResponse struct {
 	CoverImages []string  `json:"cover_images"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreatorSummary struct {
+	ID        string  `json:"id"`
+	Nickname  string  `json:"nickname"`
+	AvatarURL *string `json:"avatar_url"`
+}
+
+type TagResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Slug     string `json:"slug"`
+	Category string `json:"category"`
+}
+
+type PinResponse struct {
+	ID          string           `json:"id"`
+	URL         *string          `json:"url"`
+	Title       string           `json:"title"`
+	Description *string          `json:"description"`
+	MediaURL    string           `json:"media_url"`
+	MediaType   string           `json:"media_type"`
+	OgImage     *string          `json:"og_image"`
+	OgData      *json.RawMessage `json:"og_data"`
+	Tags        []TagResponse    `json:"tags"`
+	CreatedAt   time.Time        `json:"created_at"`
+	Creator     CreatorSummary   `json:"creator"`
+}
+
+type BoardDetailResponse struct {
+	Board   BoardResponse `json:"board"`
+	Pins    []PinResponse `json:"pins"`
+	HasMore bool          `json:"has_more"`
 }
 
 // ---------------------------------------------------------------------------
@@ -147,7 +183,47 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, toBoardResponse(board, pinCount, images))
+	// Parse pagination params for pins
+	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		if l > 0 && l <= 50 {
+			limit = l
+		} else if l > 50 {
+			limit = 50
+		}
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 {
+		offset = o
+	}
+
+	// Fetch pins belonging to this board
+	pinRows, err := q.ListBoardPins(r.Context(), db.ListBoardPinsParams{
+		BoardID: boardID,
+		Limit:   int32(limit),
+		Offset:  int32(offset),
+	})
+	if err != nil {
+		log.Printf("boards.GetByID: list pins error: %v", err)
+		writeError(w, http.StatusInternalServerError, "보드 핀 목록을 불러올 수 없습니다")
+		return
+	}
+
+	pins := make([]PinResponse, 0, len(pinRows))
+	for _, row := range pinRows {
+		pins = append(pins, toBoardPinResponse(row))
+	}
+
+	// Batch load tags for all pins
+	hydratePinTags(r.Context(), q, pins)
+
+	hasMore := (int64(offset) + int64(len(pinRows))) < pinCount
+
+	writeJSON(w, http.StatusOK, BoardDetailResponse{
+		Board:   toBoardResponse(board, pinCount, images),
+		Pins:    pins,
+		HasMore: hasMore,
+	})
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +405,47 @@ func (h *Handler) ListByCreator(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---------------------------------------------------------------------------
+// ListByPin – GET /api/pins/{id}/boards
+// ---------------------------------------------------------------------------
+
+type PinBoardResponse struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	CreatorID       string `json:"creator_id"`
+	CreatorNickname string `json:"creator_nickname"`
+}
+
+func (h *Handler) ListByPin(w http.ResponseWriter, r *http.Request) {
+	pinID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "유효하지 않은 핀 ID입니다")
+		return
+	}
+
+	q := db.New(h.database)
+	rows, err := q.ListPublicBoardsByPin(r.Context(), pinID)
+	if err != nil {
+		log.Printf("boards.ListByPin: DB error: %v", err)
+		writeError(w, http.StatusInternalServerError, "보드 목록을 불러올 수 없습니다")
+		return
+	}
+
+	boards := make([]PinBoardResponse, 0, len(rows))
+	for _, row := range rows {
+		boards = append(boards, PinBoardResponse{
+			ID:              row.ID.String(),
+			Name:            row.Name,
+			CreatorID:       row.CreatorID.String(),
+			CreatorNickname: row.CreatorNickname,
+		})
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"boards": boards,
+	})
+}
+
+// ---------------------------------------------------------------------------
 // AddPin – POST /api/boards/{id}/pins [auth]
 // ---------------------------------------------------------------------------
 
@@ -382,7 +499,7 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 	// ON CONFLICT DO NOTHING makes this idempotent
 	if err := q.AddPinToBoard(r.Context(), db.AddPinToBoardParams{
 		BoardID: boardID,
-		PinID:  workID,
+		PinID:   workID,
 	}); err != nil {
 		log.Printf("boards.AddPin: DB error: %v", err)
 		writeError(w, http.StatusInternalServerError, "핀을 추가할 수 없습니다")
@@ -435,7 +552,7 @@ func (h *Handler) RemovePin(w http.ResponseWriter, r *http.Request) {
 
 	rowsAffected, err := q.RemovePinFromBoard(r.Context(), db.RemovePinFromBoardParams{
 		BoardID: boardID,
-		PinID:  workID,
+		PinID:   workID,
 	})
 	if err != nil {
 		log.Printf("boards.RemovePin: DB error: %v", err)
@@ -454,6 +571,77 @@ func (h *Handler) RemovePin(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+func toBoardPinResponse(row db.ListBoardPinsRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
+	var desc *string
+	if row.Description.Valid {
+		desc = &row.Description.String
+	}
+	var ogImage *string
+	if row.OgImage.Valid {
+		ogImage = &row.OgImage.String
+	}
+	var ogData *json.RawMessage
+	if row.OgData.Valid {
+		raw := json.RawMessage(row.OgData.RawMessage)
+		ogData = &raw
+	}
+	var avatarURL *string
+	if row.CreatorAvatarUrl.Valid {
+		avatarURL = &row.CreatorAvatarUrl.String
+	}
+	return PinResponse{
+		ID:          row.ID.String(),
+		URL:         url,
+		Title:       row.Title,
+		Description: desc,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
+		OgImage:     ogImage,
+		OgData:      ogData,
+		Tags:        []TagResponse{},
+		CreatedAt:   row.CreatedAt,
+		Creator: CreatorSummary{
+			ID:        row.CreatorIDRef.String(),
+			Nickname:  row.CreatorNickname,
+			AvatarURL: avatarURL,
+		},
+	}
+}
+
+func hydratePinTags(ctx context.Context, q *db.Queries, pins []PinResponse) {
+	if len(pins) == 0 {
+		return
+	}
+	pinIDs := make([]uuid.UUID, len(pins))
+	for i, p := range pins {
+		pinIDs[i] = uuid.MustParse(p.ID)
+	}
+	rows, err := q.GetTagsForPins(ctx, pinIDs)
+	if err != nil {
+		log.Printf("boards.hydratePinTags: error: %v", err)
+		return
+	}
+	tagMap := make(map[string][]TagResponse)
+	for _, r := range rows {
+		pid := r.PinID.String()
+		tagMap[pid] = append(tagMap[pid], TagResponse{
+			ID:       r.ID.String(),
+			Name:     r.Name,
+			Slug:     r.Slug,
+			Category: r.Category,
+		})
+	}
+	for i := range pins {
+		if tags, ok := tagMap[pins[i].ID]; ok {
+			pins[i].Tags = tags
+		}
+	}
+}
 
 func toBoardResponse(b db.Board, pinCount int64, coverImages []string) BoardResponse {
 	var desc *string

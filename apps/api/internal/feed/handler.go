@@ -11,10 +11,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
-	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
+	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
 type Handler struct {

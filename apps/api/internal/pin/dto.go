@@ -152,6 +152,88 @@ func toRelatedPinResponse(row db.RelatedPinsRow) PinResponse {
 	}
 }
 
+func toFallbackMediaTypePinResponse(row db.FallbackRelatedByMediaTypeRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
+	var desc *string
+	if row.Description.Valid {
+		desc = &row.Description.String
+	}
+	var ogImage *string
+	if row.OgImage.Valid {
+		ogImage = &row.OgImage.String
+	}
+	var ogData *json.RawMessage
+	if row.OgData.Valid {
+		raw := json.RawMessage(row.OgData.RawMessage)
+		ogData = &raw
+	}
+	var avatarURL *string
+	if row.CreatorAvatarUrl.Valid {
+		avatarURL = &row.CreatorAvatarUrl.String
+	}
+	return PinResponse{
+		ID:          row.ID.String(),
+		URL:         url,
+		Title:       row.Title,
+		Description: desc,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
+		OgImage:     ogImage,
+		OgData:      ogData,
+		Tags:        []TagResponse{},
+		CreatedAt:   row.CreatedAt,
+		Creator: CreatorSummary{
+			ID:        row.CreatorIDRef.String(),
+			Nickname:  row.CreatorNickname,
+			AvatarURL: avatarURL,
+		},
+	}
+}
+
+func toFallbackLatestPinResponse(row db.FallbackRelatedLatestRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
+	var desc *string
+	if row.Description.Valid {
+		desc = &row.Description.String
+	}
+	var ogImage *string
+	if row.OgImage.Valid {
+		ogImage = &row.OgImage.String
+	}
+	var ogData *json.RawMessage
+	if row.OgData.Valid {
+		raw := json.RawMessage(row.OgData.RawMessage)
+		ogData = &raw
+	}
+	var avatarURL *string
+	if row.CreatorAvatarUrl.Valid {
+		avatarURL = &row.CreatorAvatarUrl.String
+	}
+	return PinResponse{
+		ID:          row.ID.String(),
+		URL:         url,
+		Title:       row.Title,
+		Description: desc,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
+		OgImage:     ogImage,
+		OgData:      ogData,
+		Tags:        []TagResponse{},
+		CreatedAt:   row.CreatedAt,
+		Creator: CreatorSummary{
+			ID:        row.CreatorIDRef.String(),
+			Nickname:  row.CreatorNickname,
+			AvatarURL: avatarURL,
+		},
+	}
+}
+
 func toCreatorPinResponse(row db.ListPinsByCreatorRow) PinResponse {
 	var url *string
 	if row.Url.Valid {

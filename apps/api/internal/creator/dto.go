@@ -10,7 +10,7 @@ type CreatorPublicDTO struct {
 	ID        string    `json:"id"`
 	Nickname  string    `json:"nickname"`
 	AvatarURL *string   `json:"avatar_url"`
-	PinCount int64     `json:"pin_count"`
+	PinCount  int64     `json:"pin_count"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -19,7 +19,7 @@ type CreatorPrivateDTO struct {
 	Nickname  string    `json:"nickname"`
 	AvatarURL *string   `json:"avatar_url"`
 	Email     *string   `json:"email"`
-	PinCount int64     `json:"pin_count"`
+	PinCount  int64     `json:"pin_count"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -32,7 +32,7 @@ func toPublicDTO(c db.Creator, pinCount int64) CreatorPublicDTO {
 		ID:        c.ID.String(),
 		Nickname:  c.Nickname,
 		AvatarURL: avatarURL,
-		PinCount: pinCount,
+		PinCount:  pinCount,
 		CreatedAt: c.CreatedAt,
 	}
 }
@@ -51,7 +51,7 @@ func toPrivateDTO(c db.Creator, pinCount int64) CreatorPrivateDTO {
 		Nickname:  c.Nickname,
 		AvatarURL: avatarURL,
 		Email:     email,
-		PinCount: pinCount,
+		PinCount:  pinCount,
 		CreatedAt: c.CreatedAt,
 	}
 }

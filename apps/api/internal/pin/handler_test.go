@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 
@@ -29,6 +30,21 @@ type mockQuerier struct {
 	creatorCountVal   int64
 	creatorCountErr   error
 	lastCreatorCountP db.CountPinsByCreatorFilteredParams
+
+	// Related pin fields
+	pinWithCreator    db.GetPinWithCreatorRow
+	pinWithCreatorErr error
+	pinTags           []db.GetPinTagsRow
+	relatedRows       []db.RelatedPinsRow
+	relatedErr        error
+	lastRelatedP      db.RelatedPinsParams
+	fbMediaRows       []db.FallbackRelatedByMediaTypeRow
+	fbMediaErr        error
+	lastFBMediaP      db.FallbackRelatedByMediaTypeParams
+	fbLatestRows      []db.FallbackRelatedLatestRow
+	fbLatestErr       error
+	lastFBLatestP     db.FallbackRelatedLatestParams
+	tagsForPins       []db.GetTagsForPinsRow
 }
 
 func (m *mockQuerier) ListPinsWithCreator(_ context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error) {
@@ -64,15 +80,26 @@ func (m *mockQuerier) DeletePin(_ context.Context, _ db.DeletePinParams) (int64,
 }
 
 func (m *mockQuerier) GetPinWithCreator(_ context.Context, _ uuid.UUID) (db.GetPinWithCreatorRow, error) {
-	return db.GetPinWithCreatorRow{}, sql.ErrNoRows
+	return m.pinWithCreator, m.pinWithCreatorErr
 }
 
 func (m *mockQuerier) GetPinTags(_ context.Context, _ uuid.UUID) ([]db.GetPinTagsRow, error) {
-	return nil, nil
+	return m.pinTags, nil
 }
 
-func (m *mockQuerier) RelatedPins(_ context.Context, _ db.RelatedPinsParams) ([]db.RelatedPinsRow, error) {
-	return nil, nil
+func (m *mockQuerier) RelatedPins(_ context.Context, arg db.RelatedPinsParams) ([]db.RelatedPinsRow, error) {
+	m.lastRelatedP = arg
+	return m.relatedRows, m.relatedErr
+}
+
+func (m *mockQuerier) FallbackRelatedByMediaType(_ context.Context, arg db.FallbackRelatedByMediaTypeParams) ([]db.FallbackRelatedByMediaTypeRow, error) {
+	m.lastFBMediaP = arg
+	return m.fbMediaRows, m.fbMediaErr
+}
+
+func (m *mockQuerier) FallbackRelatedLatest(_ context.Context, arg db.FallbackRelatedLatestParams) ([]db.FallbackRelatedLatestRow, error) {
+	m.lastFBLatestP = arg
+	return m.fbLatestRows, m.fbLatestErr
 }
 
 func (m *mockQuerier) GetTagsByIDs(_ context.Context, _ []uuid.UUID) ([]db.Tag, error) {
@@ -80,7 +107,7 @@ func (m *mockQuerier) GetTagsByIDs(_ context.Context, _ []uuid.UUID) ([]db.Tag, 
 }
 
 func (m *mockQuerier) GetTagsForPins(_ context.Context, _ []uuid.UUID) ([]db.GetTagsForPinsRow, error) {
-	return nil, nil
+	return m.tagsForPins, nil
 }
 
 func sampleRow() db.ListPinsWithCreatorRow {
@@ -216,5 +243,216 @@ func TestList_InvalidCreatorID(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d", rec.Code)
+	}
+}
+
+// --- Related handler tests ---
+
+var (
+	pinID    = uuid.MustParse("10000000-0000-0000-0000-000000000001")
+	tagID1   = uuid.MustParse("a0000000-0000-0000-0000-000000000001")
+	relPinID = uuid.MustParse("20000000-0000-0000-0000-000000000002")
+	fbPinID  = uuid.MustParse("20000000-0000-0000-0000-000000000003")
+	ltPinID  = uuid.MustParse("20000000-0000-0000-0000-000000000004")
+)
+
+func samplePinWithCreator() db.GetPinWithCreatorRow {
+	return db.GetPinWithCreatorRow{
+		ID:              pinID,
+		CreatorID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		MediaUrl:        "image/test.jpg",
+		MediaType:       "image",
+		Title:           "Test Pin",
+		CreatedAt:       time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		CreatorNickname: "하루",
+	}
+}
+
+func sampleRelatedRow(id uuid.UUID, title string) db.RelatedPinsRow {
+	return db.RelatedPinsRow{
+		ID:              id,
+		CreatorID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		MediaUrl:        "image/related.jpg",
+		MediaType:       "image",
+		Title:           title,
+		CreatedAt:       time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		CreatorNickname: "하루",
+	}
+}
+
+func sampleFBMediaRow(id uuid.UUID, title string) db.FallbackRelatedByMediaTypeRow {
+	return db.FallbackRelatedByMediaTypeRow{
+		ID:              id,
+		CreatorID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		MediaUrl:        "image/fb.jpg",
+		MediaType:       "image",
+		Title:           title,
+		CreatedAt:       time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		CreatorNickname: "하루",
+	}
+}
+
+func sampleFBLatestRow(id uuid.UUID, title string) db.FallbackRelatedLatestRow {
+	return db.FallbackRelatedLatestRow{
+		ID:              id,
+		CreatorID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		MediaUrl:        "audio/fb.mp3",
+		MediaType:       "audio",
+		Title:           title,
+		CreatedAt:       time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		CreatorNickname: "하루",
+	}
+}
+
+func doRelatedRequest(t *testing.T, h *Handler, id string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, "/api/pins/"+id+"/related", nil)
+	// Chi URL params
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", id)
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	rec := httptest.NewRecorder()
+	h.Related(rec, req)
+	return rec
+}
+
+type relatedResponse struct {
+	Pins []PinResponse `json:"pins"`
+}
+
+func decodeRelatedResponse(t *testing.T, rec *httptest.ResponseRecorder) relatedResponse {
+	t.Helper()
+	var resp relatedResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode related response: %v", err)
+	}
+	return resp
+}
+
+// 4.1 태그 있는 핀의 정상 연관 핀 반환
+func TestRelated_WithTags(t *testing.T) {
+	mock := &mockQuerier{
+		pinWithCreator: samplePinWithCreator(),
+		pinTags: []db.GetPinTagsRow{
+			{ID: tagID1, Name: "ambient", Slug: "ambient", Category: "genre"},
+		},
+		relatedRows: []db.RelatedPinsRow{
+			sampleRelatedRow(relPinID, "Related Pin"),
+		},
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	rec := doRelatedRequest(t, h, pinID.String())
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	resp := decodeRelatedResponse(t, rec)
+	if len(resp.Pins) != 1 {
+		t.Fatalf("expected 1 related pin, got %d", len(resp.Pins))
+	}
+	if resp.Pins[0].Title != "Related Pin" {
+		t.Errorf("unexpected title: %s", resp.Pins[0].Title)
+	}
+}
+
+// 4.2 태그 없는 핀의 fallback 연관 핀 반환
+func TestRelated_NoTags_FallbackToMediaType(t *testing.T) {
+	mock := &mockQuerier{
+		pinWithCreator: samplePinWithCreator(),
+		pinTags:        nil, // no tags
+		fbMediaRows: []db.FallbackRelatedByMediaTypeRow{
+			sampleFBMediaRow(fbPinID, "Fallback Media Pin"),
+		},
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	rec := doRelatedRequest(t, h, pinID.String())
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	resp := decodeRelatedResponse(t, rec)
+	if len(resp.Pins) == 0 {
+		t.Fatal("expected fallback pins, got 0")
+	}
+	if resp.Pins[0].Title != "Fallback Media Pin" {
+		t.Errorf("unexpected title: %s", resp.Pins[0].Title)
+	}
+}
+
+// 4.3 태그 매칭 부족 시 미디어 타입 fallback
+func TestRelated_PartialTags_MediaTypeFallback(t *testing.T) {
+	mock := &mockQuerier{
+		pinWithCreator: samplePinWithCreator(),
+		pinTags: []db.GetPinTagsRow{
+			{ID: tagID1, Name: "ambient", Slug: "ambient", Category: "genre"},
+		},
+		relatedRows: []db.RelatedPinsRow{
+			sampleRelatedRow(relPinID, "Tag Match"),
+		},
+		// 1 tag match + 1 media type fallback = 2 total
+		fbMediaRows: []db.FallbackRelatedByMediaTypeRow{
+			sampleFBMediaRow(fbPinID, "Media Fallback"),
+		},
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	rec := doRelatedRequest(t, h, pinID.String())
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	resp := decodeRelatedResponse(t, rec)
+	if len(resp.Pins) != 2 {
+		t.Fatalf("expected 2 pins, got %d", len(resp.Pins))
+	}
+	if resp.Pins[0].Title != "Tag Match" {
+		t.Errorf("first pin should be tag match, got: %s", resp.Pins[0].Title)
+	}
+	if resp.Pins[1].Title != "Media Fallback" {
+		t.Errorf("second pin should be media fallback, got: %s", resp.Pins[1].Title)
+	}
+}
+
+// 4.4 중복 핀 제외 확인
+func TestRelated_ExcludeIDs_PassedToFallback(t *testing.T) {
+	mock := &mockQuerier{
+		pinWithCreator: samplePinWithCreator(),
+		pinTags: []db.GetPinTagsRow{
+			{ID: tagID1, Name: "ambient", Slug: "ambient", Category: "genre"},
+		},
+		relatedRows: []db.RelatedPinsRow{
+			sampleRelatedRow(relPinID, "Tag Match"),
+		},
+		fbMediaRows: []db.FallbackRelatedByMediaTypeRow{
+			sampleFBMediaRow(fbPinID, "Media Fallback"),
+		},
+		fbLatestRows: []db.FallbackRelatedLatestRow{
+			sampleFBLatestRow(ltPinID, "Latest Fallback"),
+		},
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	doRelatedRequest(t, h, pinID.String())
+
+	// Verify media type fallback received exclude IDs: [self, tag-match result]
+	if len(mock.lastFBMediaP.Column2) != 2 {
+		t.Fatalf("expected 2 exclude IDs for media fallback, got %d", len(mock.lastFBMediaP.Column2))
+	}
+	if mock.lastFBMediaP.Column2[0] != pinID {
+		t.Errorf("first exclude ID should be self pin, got %s", mock.lastFBMediaP.Column2[0])
+	}
+	if mock.lastFBMediaP.Column2[1] != relPinID {
+		t.Errorf("second exclude ID should be tag match pin, got %s", mock.lastFBMediaP.Column2[1])
+	}
+
+	// Verify latest fallback received exclude IDs: [self, tag-match, media-fallback]
+	if len(mock.lastFBLatestP.Column1) != 3 {
+		t.Fatalf("expected 3 exclude IDs for latest fallback, got %d", len(mock.lastFBLatestP.Column1))
 	}
 }

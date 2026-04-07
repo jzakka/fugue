@@ -119,6 +119,152 @@ func (q *Queries) DeletePin(ctx context.Context, arg DeletePinParams) (int64, er
 	return result.RowsAffected()
 }
 
+const fallbackRelatedByMediaType = `-- name: FallbackRelatedByMediaType :many
+SELECT
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE p.media_type = $1
+  AND p.id != ALL($2::uuid[])
+ORDER BY p.created_at DESC
+LIMIT $3
+`
+
+type FallbackRelatedByMediaTypeParams struct {
+	MediaType string
+	Column2   []uuid.UUID
+	Limit     int32
+}
+
+type FallbackRelatedByMediaTypeRow struct {
+	ID               uuid.UUID
+	CreatorID        uuid.UUID
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
+	Title            string
+	Description      sql.NullString
+	OgImage          sql.NullString
+	OgData           pqtype.NullRawMessage
+	CreatedAt        time.Time
+	CreatorIDRef     uuid.UUID
+	CreatorNickname  string
+	CreatorAvatarUrl sql.NullString
+}
+
+func (q *Queries) FallbackRelatedByMediaType(ctx context.Context, arg FallbackRelatedByMediaTypeParams) ([]FallbackRelatedByMediaTypeRow, error) {
+	rows, err := q.db.QueryContext(ctx, fallbackRelatedByMediaType, arg.MediaType, pq.Array(arg.Column2), arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FallbackRelatedByMediaTypeRow
+	for rows.Next() {
+		var i FallbackRelatedByMediaTypeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.OgImage,
+			&i.OgData,
+			&i.CreatedAt,
+			&i.CreatorIDRef,
+			&i.CreatorNickname,
+			&i.CreatorAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fallbackRelatedLatest = `-- name: FallbackRelatedLatest :many
+SELECT
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE p.id != ALL($1::uuid[])
+ORDER BY p.created_at DESC
+LIMIT $2
+`
+
+type FallbackRelatedLatestParams struct {
+	Column1 []uuid.UUID
+	Limit   int32
+}
+
+type FallbackRelatedLatestRow struct {
+	ID               uuid.UUID
+	CreatorID        uuid.UUID
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
+	Title            string
+	Description      sql.NullString
+	OgImage          sql.NullString
+	OgData           pqtype.NullRawMessage
+	CreatedAt        time.Time
+	CreatorIDRef     uuid.UUID
+	CreatorNickname  string
+	CreatorAvatarUrl sql.NullString
+}
+
+func (q *Queries) FallbackRelatedLatest(ctx context.Context, arg FallbackRelatedLatestParams) ([]FallbackRelatedLatestRow, error) {
+	rows, err := q.db.QueryContext(ctx, fallbackRelatedLatest, pq.Array(arg.Column1), arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FallbackRelatedLatestRow
+	for rows.Next() {
+		var i FallbackRelatedLatestRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.OgImage,
+			&i.OgData,
+			&i.CreatedAt,
+			&i.CreatorIDRef,
+			&i.CreatorNickname,
+			&i.CreatorAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPin = `-- name: GetPin :one
 SELECT id, creator_id, url, title, description, og_image, og_data, created_at, media_url, media_type FROM pins
 WHERE id = $1

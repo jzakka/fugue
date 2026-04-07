@@ -29,6 +29,8 @@ type PinQuerier interface {
 	GetPinTags(ctx context.Context, pinID uuid.UUID) ([]db.GetPinTagsRow, error)
 	GetTagsForPins(ctx context.Context, pinIDs []uuid.UUID) ([]db.GetTagsForPinsRow, error)
 	RelatedPins(ctx context.Context, arg db.RelatedPinsParams) ([]db.RelatedPinsRow, error)
+	FallbackRelatedByMediaType(ctx context.Context, arg db.FallbackRelatedByMediaTypeParams) ([]db.FallbackRelatedByMediaTypeRow, error)
+	FallbackRelatedLatest(ctx context.Context, arg db.FallbackRelatedLatestParams) ([]db.FallbackRelatedLatestRow, error)
 	GetTagsByIDs(ctx context.Context, ids []uuid.UUID) ([]db.Tag, error)
 }
 
@@ -73,10 +75,6 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			tagIDStrs = strings.Split(csv, ",")
 		}
 	}
-	if len(tagIDStrs) == 0 {
-		writeError(w, http.StatusBadRequest, "태그는 1개 이상 선택해야 합니다")
-		return
-	}
 	if len(tagIDStrs) > 10 {
 		writeError(w, http.StatusBadRequest, "태그는 최대 10개까지 가능합니다")
 		return
@@ -110,7 +108,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "미디어 파일은 필수입니다")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	result, err := h.store.Upload(r.Context(), header.Filename, header.Header.Get("Content-Type"), header.Size, file)
 	if err != nil {
@@ -250,35 +248,68 @@ func (h *Handler) Related(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get this pin's tag IDs for similarity matching
+	const maxRelated = 10
+	pins := make([]PinResponse, 0, maxRelated)
+	excludeIDs := []uuid.UUID{id} // always exclude self
+
+	// Stage 1: tag-based matching (skip if no tags)
 	pinTags := h.loadPinTags(r.Context(), id)
-	if len(pinTags) == 0 {
-		writeJSON(w, http.StatusOK, map[string]any{"pins": []any{}})
-		return
+	if len(pinTags) > 0 {
+		tagIDs := make([]uuid.UUID, len(pinTags))
+		for i, t := range pinTags {
+			tagIDs[i] = uuid.MustParse(t.ID)
+		}
+		related, err := h.q.RelatedPins(r.Context(), db.RelatedPinsParams{
+			ID:        id,
+			Column2:   tagIDs,
+			MediaType: row.MediaType,
+		})
+		if err != nil {
+			log.Printf("pin.Related: tag query error: %v (id=%s)", err, idStr)
+			writeError(w, http.StatusInternalServerError, "연관 핀을 불러올 수 없습니다")
+			return
+		}
+		for _, r := range related {
+			pins = append(pins, toRelatedPinResponse(r))
+			excludeIDs = append(excludeIDs, r.ID)
+		}
 	}
 
-	tagIDs := make([]uuid.UUID, len(pinTags))
-	for i, t := range pinTags {
-		tagIDs[i] = uuid.MustParse(t.ID)
+	// Stage 2: same media type fallback
+	if len(pins) < maxRelated {
+		remaining := int32(maxRelated - len(pins))
+		fbRows, err := h.q.FallbackRelatedByMediaType(r.Context(), db.FallbackRelatedByMediaTypeParams{
+			MediaType: row.MediaType,
+			Column2:   excludeIDs,
+			Limit:     remaining,
+		})
+		if err != nil {
+			log.Printf("pin.Related: media type fallback error: %v (id=%s)", err, idStr)
+		} else {
+			for _, r := range fbRows {
+				pins = append(pins, toFallbackMediaTypePinResponse(r))
+				excludeIDs = append(excludeIDs, r.ID)
+			}
+		}
 	}
 
-	related, err := h.q.RelatedPins(r.Context(), db.RelatedPinsParams{
-		ID:        id,
-		Column2:   tagIDs,
-		MediaType: row.MediaType,
-	})
-	if err != nil {
-		log.Printf("pin.Related: query error: %v (id=%s)", err, idStr)
-		writeError(w, http.StatusInternalServerError, "연관 핀을 불러올 수 없습니다")
-		return
+	// Stage 3: latest pins fallback
+	if len(pins) < maxRelated {
+		remaining := int32(maxRelated - len(pins))
+		fbRows, err := h.q.FallbackRelatedLatest(r.Context(), db.FallbackRelatedLatestParams{
+			Column1: excludeIDs,
+			Limit:   remaining,
+		})
+		if err != nil {
+			log.Printf("pin.Related: latest fallback error: %v (id=%s)", err, idStr)
+		} else {
+			for _, r := range fbRows {
+				pins = append(pins, toFallbackLatestPinResponse(r))
+			}
+		}
 	}
 
-	pins := make([]PinResponse, 0, len(related))
-	for _, r := range related {
-		pins = append(pins, toRelatedPinResponse(r))
-	}
 	h.hydrateListTags(r.Context(), pins)
-
 	writeJSON(w, http.StatusOK, map[string]any{"pins": pins})
 }
 

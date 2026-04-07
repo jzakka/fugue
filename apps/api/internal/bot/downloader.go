@@ -62,7 +62,7 @@ func (d *Downloader) DownloadAndUpload(ctx context.Context, mediaURL string, exp
 	if err != nil {
 		return nil, fmt.Errorf("downloader: fetch %s: %w", mediaURL, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("downloader: fetch %s: HTTP %d", mediaURL, resp.StatusCode)

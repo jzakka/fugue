@@ -63,21 +63,21 @@ func NewClient(cfg Config) (*Client, error) {
 		cfg.Region = "us-east-1"
 	}
 
-	resolver := aws.EndpointResolverWithOptionsFunc(
-		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	resolver := aws.EndpointResolverWithOptionsFunc( //nolint:staticcheck // TODO: migrate to service-specific endpoint resolver
+		func(service, region string, options ...interface{}) (aws.Endpoint, error) { //nolint:staticcheck
 			if cfg.Endpoint != "" {
-				return aws.Endpoint{
+				return aws.Endpoint{ //nolint:staticcheck
 					URL:               cfg.Endpoint,
 					HostnameImmutable: true,
 				}, nil
 			}
-			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+			return aws.Endpoint{}, &aws.EndpointNotFoundError{} //nolint:staticcheck
 		},
 	)
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background(),
 		config.WithRegion(cfg.Region),
-		config.WithEndpointResolverWithOptions(resolver),
+		config.WithEndpointResolverWithOptions(resolver), //nolint:staticcheck
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			cfg.AccessKey, cfg.SecretKey, "",
 		)),

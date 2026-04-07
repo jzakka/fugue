@@ -215,4 +215,3 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 		log.Printf("admin: json encode error: %v", err)
 	}
 }
-
