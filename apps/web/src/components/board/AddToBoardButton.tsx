@@ -129,14 +129,13 @@ function BoardSelectModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Auto-close on success and refresh server data
+  // Auto-close on success
   useEffect(() => {
     if (feedback?.type === "success") {
-      router.refresh();
       const timer = setTimeout(onClose, 1500);
       return () => clearTimeout(timer);
     }
-  }, [feedback, onClose, router]);
+  }, [feedback, onClose]);
 
   function handleOverlayClick(e: React.MouseEvent) {
     if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -150,6 +149,7 @@ function BoardSelectModal({
     try {
       await addPinToBoard(boardId, pinId);
       recordInteraction(pinId, "board_add");
+      router.refresh();
       setFeedback({
         type: "success",
         message: `"${boardName}" 보드에 추가했습니다`,
