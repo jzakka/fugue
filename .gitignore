@@ -4,3 +4,7 @@
 node_modules/
 .next/
 .gstack/
+
+# Go build binaries
+apps/api/bot
+apps/api/server
