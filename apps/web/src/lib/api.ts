@@ -330,3 +330,77 @@ export async function recordInteraction(pinId: string, type: "view" | "pin" | "b
     body: JSON.stringify({ pin_id: pinId, type }),
   }).catch(() => {}); // fire-and-forget
 }
+
+// --- Search ---
+
+export interface SearchPinResult {
+  id: string;
+  title: string;
+  media_url: string;
+  media_type: "image" | "audio" | "video";
+  url: string | null;
+  description: string | null;
+  og_image: string | null;
+  creator_id: string;
+  creator_nickname: string;
+  creator_avatar_url: string | null;
+  created_at: string;
+}
+
+export interface SearchCreatorResult {
+  id: string;
+  nickname: string;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+export interface SearchBoardResult {
+  id: string;
+  name: string;
+  description: string | null;
+  creator_id: string;
+  creator_nickname: string;
+  created_at: string;
+}
+
+export interface SearchTopTag {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  count: number;
+}
+
+export interface SearchResult {
+  pins?: SearchPinResult[];
+  creators?: SearchCreatorResult[];
+  boards?: SearchBoardResult[];
+  top_tags?: SearchTopTag[];
+  has_more?: boolean;
+}
+
+export async function fetchSearch(
+  params: {
+    q: string;
+    type?: "all" | "pins" | "creators" | "boards";
+    tag_ids?: string[];
+    limit?: number;
+    offset?: number;
+  },
+  options?: { serverSide?: boolean }
+): Promise<SearchResult> {
+  const baseUrl = options?.serverSide
+    ? INTERNAL_API_URL
+    : process.env.NEXT_PUBLIC_API_URL || "";
+
+  const searchParams = new URLSearchParams();
+  searchParams.set("q", params.q);
+  if (params.type) searchParams.set("type", params.type);
+  if (params.tag_ids?.length) searchParams.set("tag_ids", params.tag_ids.join(","));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+  if (params.offset) searchParams.set("offset", String(params.offset));
+
+  const res = await fetch(`${baseUrl}/api/search?${searchParams.toString()}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}

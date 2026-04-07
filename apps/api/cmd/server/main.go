@@ -22,6 +22,7 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
 	"github.com/chungsanghwa/fugue/apps/api/internal/og"
 	"github.com/chungsanghwa/fugue/apps/api/internal/pin"
+	"github.com/chungsanghwa/fugue/apps/api/internal/search"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 	"github.com/chungsanghwa/fugue/apps/api/internal/tag"
 )
@@ -105,6 +106,7 @@ func main() {
 	boardsHandler := boards.NewHandler(db)
 	interactionHandler := interaction.NewHandler(db)
 	tagHandler := tag.NewHandler(db)
+	searchHandler := search.NewHandler(db)
 	feedHandler := feed.NewHandler(db, rdb)
 
 	// Router
@@ -124,6 +126,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprintln(w, "ok")
 	})
+
+	// Search
+	r.Get("/api/search", searchHandler.Search)
 
 	// Tag routes
 	r.Get("/api/tags/popular", tagHandler.PopularTags)

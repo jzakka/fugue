@@ -1,5 +1,6 @@
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import LogoutButton from "@/components/auth/LogoutButton";
+import SearchBar from "@/components/nav/SearchBar";
 import { getAuthUser } from "@/lib/auth";
 import Link from "next/link";
 
@@ -20,17 +21,7 @@ export default async function NavBar() {
         </Link>
 
         {/* Search */}
-        <div className="flex-1 max-w-md relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm opacity-40">
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="작품, 크리에이터, 태그 검색..."
-            className="w-full py-2.5 pl-10 pr-4 bg-surface border border-border rounded-full text-sm text-text-primary placeholder:text-text-dim outline-none focus:border-accent transition-colors"
-            disabled
-          />
-        </div>
+        <SearchBar />
 
         {/* Actions */}
         <div className="flex items-center gap-4 ml-auto shrink-0">
