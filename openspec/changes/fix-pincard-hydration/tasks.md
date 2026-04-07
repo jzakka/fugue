@@ -1,0 +1,3 @@
+- [ ] 1.1 PinCard.tsx의 ExternalLinkIcon을 `<button>` + `window.open()`으로 변경
+- [ ] 1.2 hydration 에러 해소 확인 (브라우저 콘솔)
+- [ ] 1.3 외부 링크 클릭 시 새 탭 열림 동작 유지 확인
