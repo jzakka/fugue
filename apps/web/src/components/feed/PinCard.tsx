@@ -92,12 +92,14 @@ function VideoSection({ pin }: { pin: Pin }) {
 
 function ExternalLinkIcon({ url }: { url: string }) {
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle transition-colors shrink-0"
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(url, "_blank", "noopener,noreferrer");
+      }}
+      className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle transition-colors shrink-0 cursor-pointer"
       title="원본 보기"
     >
       <svg
@@ -115,7 +117,7 @@ function ExternalLinkIcon({ url }: { url: string }) {
         <polyline points="15 3 21 3 21 9" />
         <line x1="10" y1="14" x2="21" y2="3" />
       </svg>
-    </a>
+    </button>
   );
 }
 

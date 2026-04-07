@@ -23,6 +23,7 @@ fmt:
 	goimports -w .
 
 seed:
+	docker exec -i $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -v ON_ERROR_STOP=1 < db/seed_tags.sql
 	docker exec -i $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -v ON_ERROR_STOP=1 < db/seed.sql
 
 setup:

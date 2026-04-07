@@ -46,17 +46,17 @@ INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description
 -- Image pins (mochi)
 INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
 ('20000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002',
- 'image/seed-night-garden.jpg', 'image',
+ 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop', 'image',
  'https://www.pixiv.net/artworks/12345678', '밤의 정원',
  '판타지 배경 일러스트. 달빛 아래 정원.',
  'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop'),
 ('20000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002',
- 'image/seed-luna-design.jpg', 'image',
+ 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop', 'image',
  'https://www.pixiv.net/artworks/87654321', '캐릭터 디자인 - 루나',
  '오리지널 캐릭터 루나의 풀바디 디자인.',
  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop'),
 ('20000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000002',
- 'image/seed-album-jacket.jpg', 'image',
+ 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=350&fit=crop', 'image',
  'https://www.pixiv.net/artworks/11111111', '앨범 자켓 - Dreamscape',
  '하루의 Dreamscape 앨범 자켓 작업.',
  'https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=350&fit=crop');
@@ -77,12 +77,12 @@ INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description
 -- Image pins (codex - game/code screenshots)
 INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
 ('20000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000004',
- 'image/seed-pixel-dungeon.png', 'image',
+ 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop', 'image',
  'https://github.com/codex/pixel-dungeon', 'Pixel Dungeon',
  '2D 로그라이크 게임. Unity 기반.',
  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop'),
 ('20000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000004',
- 'image/seed-sound-vis.png', 'image',
+ 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop', 'image',
  'https://github.com/codex/sound-vis', 'Sound Visualizer',
  '음악 시각화 웹앱. Three.js 기반.',
  'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop');
@@ -90,15 +90,15 @@ INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description
 -- Image pins (소라 - writing covers)
 INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
 ('20000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000005',
- 'image/seed-forgotten-season.jpg', 'image',
+ 'https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=400&h=500&fit=crop', 'image',
  'https://twitter.com/sora_writes/status/999', '잊혀진 계절 - 시나리오',
  '보이스드라마 시나리오. 전 4화 완결.', NULL),
 ('20000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000005',
- 'image/seed-cafe-lumiere.jpg', 'image',
+ 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=500&fit=crop', 'image',
  'https://twitter.com/sora_writes/status/888', '비주얼노벨 - 카페 루미에르',
  '비주얼노벨 메인 시나리오. 일상+미스터리.', NULL),
 ('20000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000005',
- 'image/seed-neon-rain-lyrics.jpg', 'image',
+ 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop', 'image',
  'https://twitter.com/sora_writes/status/777', 'Neon Rain 가사',
  '하루의 Neon Rain 작사 작업.', NULL);
 

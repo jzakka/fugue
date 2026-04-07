@@ -1,0 +1,4 @@
+- [x] 1.1 Makefile의 seed 타겟 확인 및 순서 보장 (seed_tags.sql → seed.sql)
+- [x] 1.2 seed.sql 상단 주석에 의존성 명시 강화
+- [x] 1.3 로컬에서 seed 재실행 후 pin_tags 데이터 확인
+- [x] 1.4 API에서 핀 조회 시 tags 배열이 비어있지 않은지 확인
