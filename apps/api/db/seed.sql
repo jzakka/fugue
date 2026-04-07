@@ -1,6 +1,6 @@
 -- WARNING: local dev seed data only. Never run in production!
--- Run: make seed (from apps/api/ directory)
--- Prerequisite: run seed_tags.sql first
+-- Run: make seed (from project root)
+-- seed_tags.sql is executed automatically before this file by Makefile
 
 BEGIN;
 

@@ -5,12 +5,12 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-infra dev-api dev-web dev-stop seed migrate test
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test
 
 # ============================================================
 # 한 방에 전부 띄우기
 # ============================================================
-dev: dev-infra migrate seed dev-api dev-web
+dev: dev-kill dev-infra migrate seed dev-api dev-web
 	@echo ""
 	@echo "🐡 Fugue is running!"
 	@echo "   Frontend: http://localhost:3000"
@@ -20,13 +20,27 @@ dev: dev-infra migrate seed dev-api dev-web
 	@open http://localhost:3000
 
 # ============================================================
+# 이전 프로세스 정리 (포트 충돌 방지)
+# ============================================================
+dev-kill:
+	@echo "🧹 Killing stale processes on :8080 / :3000..."
+	@-lsof -ti :8080 | xargs kill 2>/dev/null || true
+	@-lsof -ti :3000 | xargs kill 2>/dev/null || true
+	@-pkill -f "go run cmd/server/main.go" 2>/dev/null || true
+	@-pkill -f "next dev" 2>/dev/null || true
+	@echo "✅ Ports cleared"
+
+# ============================================================
 # 인프라 (PostgreSQL + Redis)
 # ============================================================
 dev-infra:
 	@echo "🐘 Starting PostgreSQL + Redis..."
 	@docker-compose up -d
-	@echo "⏳ Waiting for PostgreSQL..."
+	@echo "⏳ Waiting for PostgreSQL (container)..."
 	@until docker-compose exec -T postgres pg_isready -U fugue > /dev/null 2>&1; do sleep 0.5; done
+	@echo "⏳ Waiting for PostgreSQL (host port)..."
+	@until nc -z localhost 5432 2>/dev/null; do sleep 0.5; done
+	@sleep 1
 	@echo "✅ PostgreSQL ready"
 
 # ============================================================
@@ -41,6 +55,8 @@ migrate:
 	fi
 
 seed:
+	@echo "🌱 Seeding tags..."
+	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed_tags.sql > /dev/null
 	@echo "🌱 Seeding data..."
 	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed.sql > /dev/null
 
