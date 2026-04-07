@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import NavBar from "@/components/nav/NavBar";
-import { fetchPin, fetchRelatedPins } from "@/lib/api";
-import type { Pin } from "@/lib/api";
+import { fetchPin, fetchRelatedPins, fetchPinBoards } from "@/lib/api";
+import type { Pin, PinBoardInfo } from "@/lib/api";
 import { getMediaTypeLabel } from "@/lib/card-type";
 import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import PinDetailTracker from "./PinDetailTracker";
+import AddToBoardButton from "@/components/board/AddToBoardButton";
+import { getAuthUser } from "@/lib/auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -96,12 +98,21 @@ export default async function PinDetailPage({ params }: Props) {
     notFound();
   }
 
+  const user = await getAuthUser();
+
   let relatedPins: Pin[] = [];
   try {
     const related = await fetchRelatedPins(id, { serverSide: true });
     relatedPins = related.pins;
+  } catch (err) {
+    console.error("Failed to fetch related pins:", err);
+  }
+
+  let pinBoards: PinBoardInfo[] = [];
+  try {
+    pinBoards = await fetchPinBoards(id, { serverSide: true });
   } catch {
-    // Proceed without related pins
+    // Proceed without boards
   }
 
   return (
@@ -149,6 +160,37 @@ export default async function PinDetailPage({ params }: Props) {
                   >
                     {tag.name}
                   </span>
+                ))}
+              </div>
+            )}
+
+            {/* Boards this pin belongs to */}
+            {pinBoards.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {pinBoards.map((board) => (
+                  <Link
+                    key={board.id}
+                    href={`/boards/${board.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-accent hover:border-accent transition-colors"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                    <span>{board.name}</span>
+                    <span className="text-text-dim">{board.creator_nickname}</span>
+                  </Link>
                 ))}
               </div>
             )}
@@ -203,27 +245,7 @@ export default async function PinDetailPage({ params }: Props) {
                   원본 보기
                 </a>
               )}
-              <Link
-                href={`/login?redirect=/pins/${pin.id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="7" height="7" />
-                  <rect x="14" y="3" width="7" height="7" />
-                  <rect x="3" y="14" width="7" height="7" />
-                  <path d="M17.5 14v7M14 17.5h7" />
-                </svg>
-                보드에 추가
-              </Link>
+              <AddToBoardButton pinId={pin.id} userId={user?.id ?? null} />
             </div>
           </div>
         </article>
