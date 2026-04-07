@@ -1,12 +1,19 @@
+import { redirect } from "next/navigation";
 import NavBar from "@/components/nav/NavBar";
+import { getAuthUser } from "@/lib/auth";
 import PinCreateForm from "./PinCreateForm";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "작품 올리기 — Fugue",
+  title: "핀 생성 — Fugue",
 };
 
-export default function PinNewPage() {
+export default async function PinNewPage() {
+  const user = await getAuthUser();
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <>
       <NavBar />

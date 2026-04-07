@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATH_PREFIXES = ["/login", "/health", "/api"];
+const PUBLIC_PATH_PREFIXES = ["/login", "/health", "/api", "/pins", "/search", "/creators", "/boards"];
 const PUBLIC_EXACT_PATHS = ["/"];
 
 export function proxy(request: NextRequest) {
