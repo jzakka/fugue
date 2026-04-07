@@ -1,3 +1,5 @@
+"use client";
+
 import type { Pin } from "@/lib/api";
 import { getCardType } from "@/lib/card-type";
 import Link from "next/link";

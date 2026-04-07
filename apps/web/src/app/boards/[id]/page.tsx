@@ -4,6 +4,7 @@ import { fetchBoard } from "@/lib/api";
 import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import BoardActions from "./BoardActions";
+import LoadMorePins from "./LoadMorePins";
 import type { Metadata } from "next";
 
 type Props = {
@@ -41,7 +42,7 @@ export default async function BoardDetailPage({ params }: Props) {
     notFound();
   }
 
-  const { board, pins } = data;
+  const { board, pins, has_more } = data;
 
   return (
     <>
@@ -85,6 +86,9 @@ export default async function BoardDetailPage({ params }: Props) {
             {pins.map((pin) => (
               <PinCard key={pin.id} pin={pin} />
             ))}
+            {has_more && (
+              <LoadMorePins boardId={board.id} initialCount={pins.length} />
+            )}
           </MasonryGrid>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">

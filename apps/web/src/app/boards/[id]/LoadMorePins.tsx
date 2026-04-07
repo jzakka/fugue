@@ -1,0 +1,52 @@
+"use client";
+
+import { useState } from "react";
+import { fetchBoard } from "@/lib/api";
+import type { Pin } from "@/lib/api";
+import PinCard from "@/components/feed/PinCard";
+
+export default function LoadMorePins({
+  boardId,
+  initialCount,
+}: {
+  boardId: string;
+  initialCount: number;
+}) {
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(initialCount);
+
+  async function loadMore() {
+    setLoading(true);
+    try {
+      const data = await fetchBoard(boardId, { limit: 20, offset });
+      setPins((prev) => [...prev, ...data.pins]);
+      setOffset((prev) => prev + data.pins.length);
+      setHasMore(data.has_more);
+    } catch {
+      // Silently fail
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      {pins.map((pin) => (
+        <PinCard key={pin.id} pin={pin} />
+      ))}
+      {hasMore && (
+        <div className="col-span-full flex justify-center py-8">
+          <button
+            onClick={loadMore}
+            disabled={loading}
+            className="px-6 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            {loading ? "불러오는 중..." : "더보기"}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
