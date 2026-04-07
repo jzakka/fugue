@@ -126,6 +126,7 @@ func main() {
 	})
 
 	// Tag routes
+	r.Get("/api/tags/popular", tagHandler.PopularTags)
 	r.Get("/api/tags", tagHandler.List)
 
 	// Pin routes

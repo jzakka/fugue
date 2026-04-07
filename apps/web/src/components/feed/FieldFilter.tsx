@@ -15,10 +15,15 @@ export default function FieldFilter() {
   const current = searchParams.get("media_type") || "";
 
   function handleClick(mediaType: string) {
-    const params = new URLSearchParams();
+    // Preserve existing params (especially tags) — only change media_type
+    const params = new URLSearchParams(searchParams.toString());
     if (mediaType) {
       params.set("media_type", mediaType);
+    } else {
+      params.delete("media_type");
     }
+    // Reset pagination when filter changes
+    params.delete("offset");
     router.push(`?${params.toString()}`, { scroll: false });
   }
 

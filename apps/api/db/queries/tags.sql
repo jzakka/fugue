@@ -21,6 +21,14 @@ SELECT id, name, slug, category, display_order
 FROM tags
 WHERE id = ANY($1::uuid[]);
 
+-- name: GetPopularTags :many
+SELECT t.id, t.name, t.slug, t.category, COUNT(*) AS pin_count
+FROM pin_tags pt
+JOIN tags t ON t.id = pt.tag_id
+GROUP BY t.id, t.name, t.slug, t.category
+ORDER BY pin_count DESC
+LIMIT $1;
+
 -- name: GetTagsForPins :many
 SELECT pt.pin_id, t.id, t.name, t.slug, t.category
 FROM pin_tags pt

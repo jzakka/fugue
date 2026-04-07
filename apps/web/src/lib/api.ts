@@ -70,6 +70,14 @@ export interface FeedResponse {
   next_cursor: string | null;
 }
 
+export interface PopularTag {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  pin_count: number;
+}
+
 export interface TagListResponse {
   tags: TagInfo[];
 }
@@ -141,6 +149,22 @@ export async function fetchTags(
   if (params?.q) searchParams.set("q", params.q);
 
   const res = await fetch(`${baseUrl}/api/tags?${searchParams.toString()}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchPopularTags(
+  params?: { limit?: number },
+  options?: { serverSide?: boolean }
+): Promise<{ tags: PopularTag[] }> {
+  const baseUrl = options?.serverSide
+    ? INTERNAL_API_URL
+    : process.env.NEXT_PUBLIC_API_URL || "";
+
+  const searchParams = new URLSearchParams();
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetch(`${baseUrl}/api/tags/popular?${searchParams.toString()}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }

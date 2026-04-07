@@ -41,11 +41,19 @@ describe("FieldFilter (MediaType)", () => {
 
     screen.getByText("음악").click();
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("media_type="),
+      expect.stringContaining("media_type=audio"),
       { scroll: false }
     );
+  });
+
+  it("preserves tags param when changing media type", () => {
+    mockSearchParams.set("tags", "cyberpunk,fantasy");
+    render(<FieldFilter />);
+
+    screen.getByText("이미지").click();
     const calledUrl = mockPush.mock.calls[0][0] as string;
-    expect(decodeURIComponent(calledUrl)).toBe("?media_type=audio");
+    expect(calledUrl).toContain("tags=cyberpunk%2Cfantasy");
+    expect(calledUrl).toContain("media_type=image");
   });
 
   it("removes media_type param when 전체 is clicked", () => {
@@ -53,6 +61,7 @@ describe("FieldFilter (MediaType)", () => {
     render(<FieldFilter />);
 
     screen.getByText("전체").click();
-    expect(mockPush).toHaveBeenCalledWith("?", { scroll: false });
+    const calledUrl = mockPush.mock.calls[0][0] as string;
+    expect(calledUrl).not.toContain("media_type");
   });
 });

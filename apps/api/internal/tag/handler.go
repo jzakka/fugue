@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
@@ -60,6 +61,49 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 			Slug:         t.Slug,
 			Category:     t.Category,
 			DisplayOrder: order,
+		})
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"tags": result})
+}
+
+type PopularTagResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Slug     string `json:"slug"`
+	Category string `json:"category"`
+	PinCount int64  `json:"pin_count"`
+}
+
+// PopularTags handles GET /api/tags/popular?limit=
+func (h *Handler) PopularTags(w http.ResponseWriter, r *http.Request) {
+	limit := int32(20)
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		if l > 0 && l <= 50 {
+			limit = int32(l)
+		} else if l > 50 {
+			limit = 50
+		}
+	}
+
+	rows, err := h.q.GetPopularTags(r.Context(), limit)
+	if err != nil {
+		log.Printf("tag.PopularTags: query error: %v", err)
+		writeError(w, http.StatusInternalServerError, "인기 태그를 불러올 수 없습니다")
+		return
+	}
+
+	if rows == nil {
+		rows = []db.GetPopularTagsRow{}
+	}
+	result := make([]PopularTagResponse, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, PopularTagResponse{
+			ID:       row.ID.String(),
+			Name:     row.Name,
+			Slug:     row.Slug,
+			Category: row.Category,
+			PinCount: row.PinCount,
 		})
 	}
 

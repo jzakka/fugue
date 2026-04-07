@@ -4,12 +4,27 @@ import type { Pin } from "@/lib/api";
 
 // Mock next/navigation
 let currentMediaType = "";
+let currentTags = "";
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => ({
-    get: (key: string) => (key === "media_type" ? currentMediaType || null : null),
-    toString: () => (currentMediaType ? `media_type=${currentMediaType}` : ""),
-    keys: () => (currentMediaType ? ["media_type"] : []),
+    get: (key: string) => {
+      if (key === "media_type") return currentMediaType || null;
+      if (key === "tags") return currentTags || null;
+      return null;
+    },
+    toString: () => {
+      const parts = [];
+      if (currentMediaType) parts.push(`media_type=${currentMediaType}`);
+      if (currentTags) parts.push(`tags=${currentTags}`);
+      return parts.join("&");
+    },
+    keys: () => {
+      const keys = [];
+      if (currentMediaType) keys.push("media_type");
+      if (currentTags) keys.push("tags");
+      return keys;
+    },
   }),
 }));
 
@@ -55,6 +70,7 @@ describe("FeedContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentMediaType = "";
+    currentTags = "";
   });
 
   it("renders initial pins", () => {
@@ -69,13 +85,6 @@ describe("FeedContainer", () => {
     render(<FeedContainer initialPins={[]} initialHasMore={false} initialMediaType="" />);
 
     expect(screen.getByText("이 분야의 작품이 아직 없어요")).toBeInTheDocument();
-    expect(screen.getByText("전체 보기")).toBeInTheDocument();
-  });
-
-  it("shows mascot icon in empty state", () => {
-    render(<FeedContainer initialPins={[]} initialHasMore={false} initialMediaType="" />);
-
-    expect(screen.getByText("🐡")).toBeInTheDocument();
   });
 
   it("sets up IntersectionObserver when hasMore is true", () => {

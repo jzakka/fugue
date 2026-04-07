@@ -13,6 +13,52 @@ import (
 	"github.com/lib/pq"
 )
 
+const getPopularTags = `-- name: GetPopularTags :many
+SELECT t.id, t.name, t.slug, t.category, COUNT(*) AS pin_count
+FROM pin_tags pt
+JOIN tags t ON t.id = pt.tag_id
+GROUP BY t.id, t.name, t.slug, t.category
+ORDER BY pin_count DESC
+LIMIT $1
+`
+
+type GetPopularTagsRow struct {
+	ID       uuid.UUID
+	Name     string
+	Slug     string
+	Category string
+	PinCount int64
+}
+
+func (q *Queries) GetPopularTags(ctx context.Context, limit int32) ([]GetPopularTagsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPopularTags, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPopularTagsRow
+	for rows.Next() {
+		var i GetPopularTagsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.Category,
+			&i.PinCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTagsByIDs = `-- name: GetTagsByIDs :many
 SELECT id, name, slug, category, display_order
 FROM tags
