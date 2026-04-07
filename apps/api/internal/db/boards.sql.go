@@ -292,6 +292,51 @@ func (q *Queries) ListPublicBoardsByCreator(ctx context.Context, creatorID uuid.
 	return items, nil
 }
 
+const listPublicBoardsByPin = `-- name: ListPublicBoardsByPin :many
+SELECT b.id, b.name, b.creator_id, c.nickname AS creator_nickname
+FROM board_pins bp
+JOIN boards b ON b.id = bp.board_id
+JOIN creators c ON c.id = b.creator_id
+WHERE bp.pin_id = $1 AND b.is_public = true
+ORDER BY bp.created_at DESC
+LIMIT 10
+`
+
+type ListPublicBoardsByPinRow struct {
+	ID              uuid.UUID
+	Name            string
+	CreatorID       uuid.UUID
+	CreatorNickname string
+}
+
+func (q *Queries) ListPublicBoardsByPin(ctx context.Context, pinID uuid.UUID) ([]ListPublicBoardsByPinRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPublicBoardsByPin, pinID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPublicBoardsByPinRow
+	for rows.Next() {
+		var i ListPublicBoardsByPinRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatorID,
+			&i.CreatorNickname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removePinFromBoard = `-- name: RemovePinFromBoard :execrows
 DELETE FROM board_pins
 WHERE board_id = $1 AND pin_id = $2

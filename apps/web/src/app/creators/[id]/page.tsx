@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import NavBar from "@/components/nav/NavBar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import PinsGrid from "@/components/profile/PinsGrid";
-import { fetchCreator, fetchPins } from "@/lib/api";
+import BoardGrid from "@/components/board/BoardGrid";
+import { fetchCreator, fetchPins, fetchBoards } from "@/lib/api";
+import type { Board } from "@/lib/api";
 import type { Metadata } from "next";
 
 type Props = {
@@ -58,12 +60,20 @@ export default async function CreatorProfilePage({ params }: Props) {
     // Proceed with empty pins
   }
 
+  let boards: Board[] = [];
+  try {
+    boards = await fetchBoards(id, { serverSide: true });
+  } catch {
+    // Proceed with empty boards
+  }
+
   return (
     <>
       <NavBar />
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <div className="space-y-6">
           <ProfileHeader creator={creator} />
+          <BoardGrid boards={boards} />
           <PinsGrid
             creatorId={id}
             initialPins={pinsData.pins}

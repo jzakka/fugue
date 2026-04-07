@@ -53,6 +53,15 @@ WHERE bp.board_id = $1
 ORDER BY bp.created_at DESC
 LIMIT $2 OFFSET $3;
 
+-- name: ListPublicBoardsByPin :many
+SELECT b.id, b.name, b.creator_id, c.nickname AS creator_nickname
+FROM board_pins bp
+JOIN boards b ON b.id = bp.board_id
+JOIN creators c ON c.id = b.creator_id
+WHERE bp.pin_id = $1 AND b.is_public = true
+ORDER BY bp.created_at DESC
+LIMIT 10;
+
 -- name: CountBoardPins :one
 SELECT count(*) FROM board_pins
 WHERE board_id = $1;

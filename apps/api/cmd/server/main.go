@@ -142,6 +142,7 @@ func main() {
 	r.Get("/api/pins/{id}", pinHandler.GetByID)
 	r.With(auth.JWTMiddleware(jwtSvc)).Delete("/api/pins/{id}", pinHandler.Delete)
 	r.Get("/api/pins/{id}/related", pinHandler.Related)
+	r.Get("/api/pins/{id}/boards", boardsHandler.ListByPin)
 
 	// OG fetch
 	r.With(ogRL.Middleware).Post("/api/og/fetch", ogHandler.Fetch)

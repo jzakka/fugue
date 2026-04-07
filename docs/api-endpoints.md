@@ -35,6 +35,8 @@ GET    /api/pins                                   핀 목록 (미디어타입/�
        query: media_type, tag_ids, limit, offset, creator_id
 
 GET    /api/pins/{id}/related                      연관 핀 (태그 기반, 최대 10개)
+
+GET    /api/pins/{id}/boards                       핀 소속 공개 보드 목록 (최대 10개)
 ```
 
 ## Tag (태그)
@@ -51,6 +53,8 @@ POST   /api/boards                     [auth]      보드 생성
        body: { name, description?, is_public? }
 
 GET    /api/boards/{id}                             보드 조회 (공개 또는 본인)
+       query: limit, offset (핀 목록 페이지네이션)
+       response: { board, pins, has_more }
 
 PUT    /api/boards/{id}                [auth]      보드 수정 (소유자만)
        body: { name?, description?, is_public? }

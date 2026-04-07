@@ -263,13 +263,18 @@ export async function fetchBoards(
 
 export async function fetchBoard(
   id: string,
-  options?: { serverSide?: boolean }
+  options?: { serverSide?: boolean; limit?: number; offset?: number }
 ): Promise<{ board: Board; pins: Pin[]; has_more: boolean }> {
   const baseUrl = options?.serverSide
     ? INTERNAL_API_URL
     : process.env.NEXT_PUBLIC_API_URL || "";
 
-  const res = await fetch(`${baseUrl}/api/boards/${id}`);
+  const params = new URLSearchParams();
+  if (options?.limit) params.set("limit", String(options.limit));
+  if (options?.offset) params.set("offset", String(options.offset));
+  const qs = params.toString();
+
+  const res = await fetch(`${baseUrl}/api/boards/${id}${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
@@ -321,6 +326,27 @@ export async function addPinToBoard(boardId: string, pinId: string): Promise<voi
 export async function removePinFromBoard(boardId: string, pinId: string): Promise<void> {
   const res = await fetch(`/api/boards/${boardId}/pins/${pinId}`, { method: "DELETE" });
   if (!res.ok && res.status !== 204) throw new Error(`API error: ${res.status}`);
+}
+
+export interface PinBoardInfo {
+  id: string;
+  name: string;
+  creator_id: string;
+  creator_nickname: string;
+}
+
+export async function fetchPinBoards(
+  pinId: string,
+  options?: { serverSide?: boolean }
+): Promise<PinBoardInfo[]> {
+  const baseUrl = options?.serverSide
+    ? INTERNAL_API_URL
+    : process.env.NEXT_PUBLIC_API_URL || "";
+
+  const res = await fetch(`${baseUrl}/api/pins/${pinId}/boards`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  return data.boards;
 }
 
 export async function recordInteraction(pinId: string, type: "view" | "pin" | "board_add"): Promise<void> {
