@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { SearchResult } from "@/lib/api";
 import { fetchSearch } from "@/lib/api";
 import { getMediaTypeLabel } from "@/lib/card-type";
@@ -33,7 +33,8 @@ function removeRecentSearch(query: string) {
 
 export default function SearchBar() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
