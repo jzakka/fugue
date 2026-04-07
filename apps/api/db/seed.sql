@@ -8,9 +8,10 @@ BEGIN;
 TRUNCATE pin_tags, pins, auth_accounts, creators CASCADE;
 
 -- ============================================================
--- Creators (5)
+-- Creators (5 + fuguebot system account)
 -- ============================================================
 INSERT INTO creators (id, nickname, avatar_url) VALUES
+('00000000-0000-0000-0000-00000000f096', 'fuguebot', NULL),
 ('00000000-0000-0000-0000-000000000001', '하루', NULL),
 ('00000000-0000-0000-0000-000000000002', 'mochi', NULL),
 ('00000000-0000-0000-0000-000000000003', '제로', NULL),

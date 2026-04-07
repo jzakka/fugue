@@ -53,34 +53,25 @@
 
 ---
 
-### Requirement: Source 인터페이스로 플랫폼별 크롤링 로직을 정의한다
-각 플랫폼은 공통 Source 인터페이스를 구현하여 시드 URL, Colly 설정, 콘텐츠 추출 로직을 제공해야 한다(SHALL).
+### Requirement: Source 인터페이스로 플랫폼별 수집 로직을 정의한다
+각 플랫폼은 공통 Source 인터페이스를 구현하여 콘텐츠를 수집해야 한다(SHALL). HTML 크롤링, REST API 등 수집 방식은 구현에 위임한다.
 
 #### Scenario: 새 플랫폼 추가
-- **WHEN** 새 플랫폼 크롤러를 추가하려면
+- **WHEN** 새 플랫폼 수집기를 추가하려면
 - **THEN** Source 인터페이스를 구현한 struct 하나를 작성하면 된다
 
 ---
 
-### Requirement: Source는 시드 URL 목록을 제공한다
-각 Source는 크롤을 시작할 진입점 URL 목록을 반환해야 한다(SHALL).
+### Requirement: Source는 콘텐츠 항목을 수집한다
+각 Source는 대상 플랫폼에서 미디어 URL, 제목, 설명, 출처 URL을 수집해야 한다(SHALL).
 
-#### Scenario: 시드 URL 조회
-- **WHEN** 크롤 엔진이 Source에 시드 URL을 요청하면
-- **THEN** 해당 플랫폼의 공개 콘텐츠 목록/랭킹 페이지 URL을 반환한다
+#### Scenario: 콘텐츠 수집 성공
+- **WHEN** 크롤 엔진이 Source의 수집 메서드를 호출하면
+- **THEN** 미디어 URL, 제목, 설명, 출처 URL이 포함된 항목 목록을 반환한다
 
----
-
-### Requirement: Source는 HTML에서 콘텐츠 항목을 추출한다
-각 Source는 크롤한 HTML 페이지에서 미디어 URL, 제목, 설명, 출처 URL을 추출해야 한다(SHALL).
-
-#### Scenario: 콘텐츠 추출 성공
-- **WHEN** 크롤 엔진이 HTML 요소를 Source에 전달하면
-- **THEN** 미디어 URL, 제목, 설명, 출처 URL이 포함된 구조체를 반환한다
-
-#### Scenario: 추출할 콘텐츠가 없는 페이지
-- **WHEN** 페이지에 추출 가능한 콘텐츠가 없으면
-- **THEN** nil을 반환하고 다음 페이지로 진행한다
+#### Scenario: 수집할 콘텐츠가 없는 경우
+- **WHEN** 대상 플랫폼에 수집 가능한 콘텐츠가 없으면
+- **THEN** 빈 목록을 반환한다
 
 ---
 
@@ -89,7 +80,7 @@
 
 #### Scenario: 다른 구조의 플랫폼
 - **WHEN** MVP 플러그인이 2개 구현되면
-- **THEN** 각각 다른 HTML 구조를 가진 플랫폼(예: 이미지 중심 + 음악 중심)이다
+- **THEN** 각각 다른 수집 방식(예: REST API + HTML 크롤링)을 가진 플랫폼이다
 
 ---
 
@@ -175,9 +166,9 @@
 
 ---
 
-### Requirement: 크롤 통계를 이벤트 파이프라인으로 기록한다
-매 크롤 실행마다 통계 이벤트를 S3 이벤트 파이프라인(Kinesis Firehose)으로 전송해야 한다(SHALL).
+### Requirement: 크롤 통계를 기록한다
+매 크롤 실행마다 통계를 기록해야 한다(SHALL).
 
 #### Scenario: 크롤 완료 후 통계 기록
 - **WHEN** 크롤 실행이 완료되면
-- **THEN** 소스명, 방문 페이지 수, 수집 건수, skip 건수, 실패 건수, 소요 시간이 이벤트로 기록된다
+- **THEN** 소스별 마지막 크롤 시간, 수집 건수, skip 건수, 실패 건수가 기록된다

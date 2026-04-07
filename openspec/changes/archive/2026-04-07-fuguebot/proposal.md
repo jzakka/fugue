@@ -5,13 +5,13 @@
 ## What Changes
 
 - Colly 기반 웹 크롤러(fuguebot) 신규 개발. API 서버와 별도 바이너리 (`cmd/bot/`)
-- 플랫폼별 Source 플러그인 인터페이스 도입. 새 플랫폼 추가 = 인터페이스 구현 하나
-- MVP 플러그인 2개 (Pixiv, SoundCloud 또는 YouTube)
+- 플랫폼별 Source 인터페이스 도입 (HTML 크롤링 + REST API 모두 지원). 새 플랫폼 추가 = Crawl 메서드 구현 하나
+- MVP 플러그인 2개 (Unsplash 이미지 + Free Music Archive 음악)
 - 외부 미디어(이미지/음원/비디오) 다운로드 → S3 미디어 버킷 저장 → 핀 자동 생성
 - fuguebot 전용 시스템 계정 생성
 - URL 중복 체크 (이미 핀된 URL은 skip)
 - OG 텍스트에서 사전정의 태그 자동 추출 (기존 auto-suggest 로직 재사용)
-- 크롤 통계를 S3 이벤트 파이프라인(Kinesis Firehose)으로 로깅
+- 크롤 통계를 bot_sources 테이블에 기록
 - 크롤 상태 대시보드 API + 소스 설정 API (관리자용)
 
 ## Capabilities
@@ -28,6 +28,6 @@
 - 새 패키지: `internal/bot/` (engine, source, downloader, sources/)
 - DB: creators 테이블에 fuguebot 시스템 계정 시드
 - 인프라: S3 미디어 버킷 (사용자가 Terraform으로 직접 구축), K8s CronJob
-- 기존 코드 재사용: `internal/og/` (OG fetch), `internal/event/` (Firehose 로깅), auto-suggest 태깅 로직
+- 기존 코드 재사용: `internal/storage/` (S3 업로드/MIME 검증), `internal/og/` (OG fetch)
 - API 엔드포인트 추가: `/api/admin/bot/status`, `/api/admin/bot/sources`
 - 의존성 추가: `github.com/gocolly/colly/v2`

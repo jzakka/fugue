@@ -38,6 +38,18 @@ type BoardPin struct {
 	CreatedAt time.Time
 }
 
+type BotSource struct {
+	ID            uuid.UUID
+	Name          string
+	Platform      string
+	SeedUrls      []string
+	IntervalHours int32
+	Enabled       bool
+	LastCrawledAt sql.NullTime
+	Stats         pqtype.NullRawMessage
+	CreatedAt     time.Time
+}
+
 type Creator struct {
 	ID        uuid.UUID
 	Nickname  string

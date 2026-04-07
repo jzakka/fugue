@@ -14,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 
+	"github.com/chungsanghwa/fugue/apps/api/internal/admin"
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	"github.com/chungsanghwa/fugue/apps/api/internal/boards"
 	"github.com/chungsanghwa/fugue/apps/api/internal/config"
@@ -108,6 +109,7 @@ func main() {
 	tagHandler := tag.NewHandler(db)
 	searchHandler := search.NewHandler(db)
 	feedHandler := feed.NewHandler(db, rdb)
+	adminHandler := admin.NewHandler(db)
 
 	// Router
 	r := chi.NewRouter()
@@ -167,6 +169,16 @@ func main() {
 
 	// Feed (personalized)
 	r.Get("/api/feed", feedHandler.GetFeed)
+
+	// Admin routes (X-Admin-Key auth)
+	r.Route("/api/admin", func(r chi.Router) {
+		r.Use(admin.AdminKeyMiddleware)
+		r.Get("/bot/status", adminHandler.Status)
+		r.Get("/bot/sources", adminHandler.ListSources)
+		r.Post("/bot/sources", adminHandler.CreateSource)
+		r.Patch("/bot/sources/{id}", adminHandler.ToggleSource)
+		r.Delete("/bot/sources/{id}", adminHandler.DeleteSource)
+	})
 
 	// Auth routes
 	r.Route("/api/auth", func(r chi.Router) {
