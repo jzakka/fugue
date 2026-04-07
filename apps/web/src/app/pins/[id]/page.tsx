@@ -204,7 +204,7 @@ export default async function PinDetailPage({ params }: Props) {
                 </a>
               )}
               <Link
-                href={`/boards?add=${pin.id}`}
+                href={`/login?redirect=/pins/${pin.id}`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors"
               >
                 <svg
