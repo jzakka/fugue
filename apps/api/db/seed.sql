@@ -1,218 +1,120 @@
--- ⚠️  WARNING: 로컬 개발 전용 시드 데이터. 프로덕션에서 절대 실행하지 마세요!
--- 실행: make seed (apps/api/ 디렉터리에서)
+-- WARNING: local dev seed data only. Never run in production!
+-- Run: make seed (from apps/api/ directory)
+-- Prerequisite: run seed_tags.sql first
 
 BEGIN;
 
--- 기존 데이터 정리 (FK 순서: pins → auth_accounts → creators)
-TRUNCATE pins, auth_accounts, creators CASCADE;
+-- Clean existing data (FK order)
+TRUNCATE pin_tags, pins, auth_accounts, creators CASCADE;
 
 -- ============================================================
--- 크리에이터 5명
+-- Creators (5)
 -- ============================================================
 INSERT INTO creators (id, nickname, avatar_url) VALUES
-(
-    '00000000-0000-0000-0000-000000000001',
-    '하루',
-    NULL
-),
-(
-    '00000000-0000-0000-0000-000000000002',
-    'mochi',
-    NULL
-),
-(
-    '00000000-0000-0000-0000-000000000003',
-    '제로',
-    NULL
-),
-(
-    '00000000-0000-0000-0000-000000000004',
-    'codex',
-    NULL
-),
-(
-    '00000000-0000-0000-0000-000000000005',
-    '소라',
-    NULL
-);
+('00000000-0000-0000-0000-000000000001', '하루', NULL),
+('00000000-0000-0000-0000-000000000002', 'mochi', NULL),
+('00000000-0000-0000-0000-000000000003', '제로', NULL),
+('00000000-0000-0000-0000-000000000004', 'codex', NULL),
+('00000000-0000-0000-0000-000000000005', '소라', NULL);
 
 -- ============================================================
--- OAuth 계정 (크리에이터당 1건)
+-- OAuth accounts
 -- ============================================================
 INSERT INTO auth_accounts (id, creator_id, provider, provider_id, email) VALUES
-(
-    '10000000-0000-0000-0000-000000000001',
-    '00000000-0000-0000-0000-000000000001',
-    'google',
-    'google-uid-haru',
-    'haru@example.com'
-),
-(
-    '10000000-0000-0000-0000-000000000002',
-    '00000000-0000-0000-0000-000000000002',
-    'twitter',
-    'twitter-uid-mochi',
-    'mochi@example.com'
-),
-(
-    '10000000-0000-0000-0000-000000000003',
-    '00000000-0000-0000-0000-000000000003',
-    'discord',
-    'discord-uid-zero',
-    'zero@example.com'
-),
-(
-    '10000000-0000-0000-0000-000000000004',
-    '00000000-0000-0000-0000-000000000004',
-    'google',
-    'google-uid-codex',
-    'codex@example.com'
-),
-(
-    '10000000-0000-0000-0000-000000000005',
-    '00000000-0000-0000-0000-000000000005',
-    'twitter',
-    'twitter-uid-sora',
-    'sora@example.com'
-);
+('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'google', 'google-uid-haru', 'haru@example.com'),
+('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', 'twitter', 'twitter-uid-mochi', 'mochi@example.com'),
+('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', 'discord', 'discord-uid-zero', 'zero@example.com'),
+('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000004', 'google', 'google-uid-codex', 'codex@example.com'),
+('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000005', 'twitter', 'twitter-uid-sora', 'sora@example.com');
 
 -- ============================================================
--- 핀 12건 (5개 분야 모두 포함)
+-- Pins (12, new schema: media_url + media_type, no field/tags/pin_count)
 -- ============================================================
 
--- 음악 (하루)
-INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
-(
-    '20000000-0000-0000-0000-000000000001',
-    '00000000-0000-0000-0000-000000000001',
-    'https://soundcloud.com/haru/dreamscape',
-    'Dreamscape',
-    '몽환적인 신스팝 트랙. 새벽 감성.',
-    '음악',
-    '{"신스팝","몽환","인디","전자음악"}',
-    NULL
-),
-(
-    '20000000-0000-0000-0000-000000000002',
-    '00000000-0000-0000-0000-000000000001',
-    'https://soundcloud.com/haru/neon-rain',
-    'Neon Rain',
-    '사이버펑크 분위기의 비트.',
-    '음악',
-    '{"사이버펑크","비트","전자음악"}',
-    NULL
-);
+-- Audio pins (하루)
+INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
+('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+ 'audio/seed-dreamscape.mp3', 'audio',
+ 'https://soundcloud.com/haru/dreamscape', 'Dreamscape',
+ '몽환적인 신스팝 트랙. 새벽 감성.', NULL),
+('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001',
+ 'audio/seed-neon-rain.mp3', 'audio',
+ 'https://soundcloud.com/haru/neon-rain', 'Neon Rain',
+ '사이버펑크 분위기의 비트.', NULL);
 
--- 미술 (mochi)
-INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
-(
-    '20000000-0000-0000-0000-000000000003',
-    '00000000-0000-0000-0000-000000000002',
-    'https://www.pixiv.net/artworks/12345678',
-    '밤의 정원',
-    '판타지 배경 일러스트. 달빛 아래 정원.',
-    '미술',
-    '{"판타지","배경","일러스트","컨셉아트"}',
-    'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop'
-),
-(
-    '20000000-0000-0000-0000-000000000004',
-    '00000000-0000-0000-0000-000000000002',
-    'https://www.pixiv.net/artworks/87654321',
-    '캐릭터 디자인 - 루나',
-    '오리지널 캐릭터 루나의 풀바디 디자인.',
-    '미술',
-    '{"캐릭터디자인","오리지널","일러스트"}',
-    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop'
-),
-(
-    '20000000-0000-0000-0000-000000000005',
-    '00000000-0000-0000-0000-000000000002',
-    'https://www.pixiv.net/artworks/11111111',
-    '앨범 자켓 - Dreamscape',
-    '하루의 Dreamscape 앨범 자켓 작업.',
-    '미술',
-    '{"앨범아트","커미션","일러스트"}',
-    'https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=350&fit=crop'
-);
+-- Image pins (mochi)
+INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
+('20000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002',
+ 'image/seed-night-garden.jpg', 'image',
+ 'https://www.pixiv.net/artworks/12345678', '밤의 정원',
+ '판타지 배경 일러스트. 달빛 아래 정원.',
+ 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop'),
+('20000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002',
+ 'image/seed-luna-design.jpg', 'image',
+ 'https://www.pixiv.net/artworks/87654321', '캐릭터 디자인 - 루나',
+ '오리지널 캐릭터 루나의 풀바디 디자인.',
+ 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop'),
+('20000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000002',
+ 'image/seed-album-jacket.jpg', 'image',
+ 'https://www.pixiv.net/artworks/11111111', '앨범 자켓 - Dreamscape',
+ '하루의 Dreamscape 앨범 자켓 작업.',
+ 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=350&fit=crop');
 
--- 영상편집 (제로)
-INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
-(
-    '20000000-0000-0000-0000-000000000006',
-    '00000000-0000-0000-0000-000000000003',
-    'https://www.youtube.com/watch?v=abc123',
-    'Dreamscape MV',
-    '하루 × mochi 콜라보 뮤직비디오.',
-    '영상편집',
-    '{"뮤직비디오","모션그래픽","콜라보"}',
-    'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&h=225&fit=crop'
-),
-(
-    '20000000-0000-0000-0000-000000000007',
-    '00000000-0000-0000-0000-000000000003',
-    'https://www.youtube.com/watch?v=def456',
-    '타이포그래피 모션 릴',
-    '키네틱 타이포그래피 쇼릴.',
-    '영상편집',
-    '{"타이포그래피","모션그래픽","쇼릴"}',
-    'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=225&fit=crop'
-);
+-- Video pins (제로)
+INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
+('20000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000003',
+ 'video/seed-dreamscape-mv.mp4', 'video',
+ 'https://www.youtube.com/watch?v=abc123', 'Dreamscape MV',
+ '하루 x mochi 콜라보 뮤직비디오.',
+ 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&h=225&fit=crop'),
+('20000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000003',
+ 'video/seed-typo-reel.mp4', 'video',
+ 'https://www.youtube.com/watch?v=def456', '타이포그래피 모션 릴',
+ '키네틱 타이포그래피 쇼릴.',
+ 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=225&fit=crop');
 
--- 프로그래밍 (codex)
-INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
-(
-    '20000000-0000-0000-0000-000000000008',
-    '00000000-0000-0000-0000-000000000004',
-    'https://github.com/codex/pixel-dungeon',
-    'Pixel Dungeon',
-    '2D 로그라이크 게임. Unity 기반.',
-    '프로그래밍',
-    '{"게임개발","Unity","2D","로그라이크"}',
-    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop'
-),
-(
-    '20000000-0000-0000-0000-000000000009',
-    '00000000-0000-0000-0000-000000000004',
-    'https://github.com/codex/sound-vis',
-    'Sound Visualizer',
-    '음악 시각화 웹앱. Three.js 기반.',
-    '프로그래밍',
-    '{"웹개발","Three.js","시각화","인터랙티브"}',
-    'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop'
-);
+-- Image pins (codex - game/code screenshots)
+INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
+('20000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000004',
+ 'image/seed-pixel-dungeon.png', 'image',
+ 'https://github.com/codex/pixel-dungeon', 'Pixel Dungeon',
+ '2D 로그라이크 게임. Unity 기반.',
+ 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop'),
+('20000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000004',
+ 'image/seed-sound-vis.png', 'image',
+ 'https://github.com/codex/sound-vis', 'Sound Visualizer',
+ '음악 시각화 웹앱. Three.js 기반.',
+ 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop');
 
--- 시나리오 라이터 (소라)
-INSERT INTO pins (id, creator_id, url, title, description, field, tags, og_image) VALUES
-(
-    '20000000-0000-0000-0000-000000000010',
-    '00000000-0000-0000-0000-000000000005',
-    'https://twitter.com/sora_writes/status/999',
-    '잊혀진 계절 - 시나리오',
-    '보이스드라마 시나리오. 전 4화 완결.',
-    '시나리오 라이터',
-    '{"보이스드라마","시나리오","판타지","완결"}',
-    NULL
-),
-(
-    '20000000-0000-0000-0000-000000000011',
-    '00000000-0000-0000-0000-000000000005',
-    'https://twitter.com/sora_writes/status/888',
-    '비주얼노벨 - 카페 루미에르',
-    '비주얼노벨 메인 시나리오. 일상+미스터리.',
-    '시나리오 라이터',
-    '{"비주얼노벨","시나리오","미스터리","일상"}',
-    NULL
-),
-(
-    '20000000-0000-0000-0000-000000000012',
-    '00000000-0000-0000-0000-000000000005',
-    'https://twitter.com/sora_writes/status/777',
-    'Neon Rain 가사',
-    '하루의 Neon Rain 작사 작업.',
-    '시나리오 라이터',
-    '{"작사","콜라보","사이버펑크"}',
-    NULL
-);
+-- Image pins (소라 - writing covers)
+INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
+('20000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000005',
+ 'image/seed-forgotten-season.jpg', 'image',
+ 'https://twitter.com/sora_writes/status/999', '잊혀진 계절 - 시나리오',
+ '보이스드라마 시나리오. 전 4화 완결.', NULL),
+('20000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000005',
+ 'image/seed-cafe-lumiere.jpg', 'image',
+ 'https://twitter.com/sora_writes/status/888', '비주얼노벨 - 카페 루미에르',
+ '비주얼노벨 메인 시나리오. 일상+미스터리.', NULL),
+('20000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000005',
+ 'image/seed-neon-rain-lyrics.jpg', 'image',
+ 'https://twitter.com/sora_writes/status/777', 'Neon Rain 가사',
+ '하루의 Neon Rain 작사 작업.', NULL);
+
+-- ============================================================
+-- Pin-Tag associations (via tag slugs for readability)
+-- ============================================================
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000001', id FROM tags WHERE slug IN ('synthpop', 'dreamy', 'indie', 'electronic');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000002', id FROM tags WHERE slug IN ('cyberpunk', 'beatmaking', 'electronic');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000003', id FROM tags WHERE slug IN ('fantasy', 'background-art', 'illustration', 'concept-art');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000004', id FROM tags WHERE slug IN ('character-design', 'illustration', 'kawaii');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000005', id FROM tags WHERE slug IN ('album-art', 'commission', 'illustration');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000006', id FROM tags WHERE slug IN ('music-video', 'motion-graphics', 'collaboration');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000007', id FROM tags WHERE slug IN ('typography', 'motion-graphics', 'showreel');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000008', id FROM tags WHERE slug IN ('game', 'unity', 'pixel-art');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000009', id FROM tags WHERE slug IN ('web-app', 'threejs', 'interactive');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000010', id FROM tags WHERE slug IN ('voice-drama', 'scenario', 'fantasy');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000011', id FROM tags WHERE slug IN ('visual-novel', 'scenario', 'romance');
+INSERT INTO pin_tags (pin_id, tag_id) SELECT '20000000-0000-0000-0000-000000000012', id FROM tags WHERE slug IN ('collaboration', 'cyberpunk');
 
 COMMIT;

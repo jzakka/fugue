@@ -1,8 +1,9 @@
 import type { Pin } from "@/lib/api";
-import { getCardType, getFieldLabel } from "@/lib/card-type";
+import { getCardType } from "@/lib/card-type";
 import Link from "next/link";
 
-function getDomainFavicon(url: string): string | null {
+function getDomainFavicon(url: string | null): string | null {
+  if (!url) return null;
   try {
     const hostname = new URL(url).hostname;
     return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
@@ -39,21 +40,14 @@ function AudioWaveform({ seed }: { seed: string }) {
 }
 
 function ImageSection({ pin }: { pin: Pin }) {
-  if (pin.og_image) {
-    return (
-      <div className="overflow-hidden">
-        <img
-          src={pin.og_image}
-          alt={pin.title}
-          loading="lazy"
-          className="w-full block object-cover"
-        />
-      </div>
-    );
-  }
   return (
-    <div className="h-40 bg-surface-elevated flex items-center justify-center text-4xl text-text-dim">
-      🎨
+    <div className="overflow-hidden">
+      <img
+        src={pin.media_url}
+        alt={pin.title}
+        loading="lazy"
+        className="w-full block object-cover"
+      />
     </div>
   );
 }
@@ -78,56 +72,15 @@ function AudioSection({ pin }: { pin: Pin }) {
   );
 }
 
-function TextSection({ pin }: { pin: Pin }) {
-  const readTime = pin.description
-    ? `${Math.max(1, Math.ceil(pin.description.length / 200))} min read`
-    : "1 min read";
-
-  return (
-    <div className="p-5">
-      <div
-        className="text-[10px] text-accent uppercase tracking-[1.5px] mb-2"
-        style={{ fontFamily: "'Geist Mono', monospace" }}
-      >
-        {getFieldLabel(pin.field)}
-      </div>
-      <div className="text-lg font-bold leading-tight mb-2">{pin.title}</div>
-      {pin.description && (
-        <p className="text-sm text-text-muted leading-relaxed line-clamp-4">
-          {pin.description}
-        </p>
-      )}
-      <div
-        className="text-[11px] text-text-dim mt-4"
-        style={{ fontFamily: "'Geist Mono', monospace" }}
-      >
-        {readTime}
-      </div>
-    </div>
-  );
-}
-
 function VideoSection({ pin }: { pin: Pin }) {
-  if (pin.og_image) {
-    return (
-      <div className="overflow-hidden relative">
-        <img
-          src={pin.og_image}
-          alt={pin.title}
-          loading="lazy"
-          className="w-full block object-cover"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center text-white text-lg">
-            ▶
-          </div>
-        </div>
-      </div>
-    );
-  }
   return (
-    <div className="h-40 bg-surface-elevated flex items-center justify-center relative">
-      <span className="text-4xl text-text-dim">🎬</span>
+    <div className="overflow-hidden relative">
+      <img
+        src={pin.media_url}
+        alt={pin.title}
+        loading="lazy"
+        className="w-full block object-cover"
+      />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center text-white text-lg">
           ▶
@@ -167,7 +120,7 @@ function ExternalLinkIcon({ url }: { url: string }) {
 }
 
 export default function PinCard({ pin }: { pin: Pin }) {
-  const cardType = getCardType(pin.field);
+  const cardType = getCardType(pin.media_type);
   const favicon = getDomainFavicon(pin.url);
 
   return (
@@ -175,14 +128,13 @@ export default function PinCard({ pin }: { pin: Pin }) {
       href={`/pins/${pin.id}`}
       className="block bg-surface rounded-[10px] overflow-hidden cursor-pointer transition-all duration-200 border border-transparent hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-accent"
     >
-      {/* Media section by card type */}
+      {/* Media section by type */}
       {cardType === "audio" && <AudioSection pin={pin} />}
-      {cardType === "text" && <TextSection pin={pin} />}
       {cardType === "video" && <VideoSection pin={pin} />}
       {cardType === "image" && <ImageSection pin={pin} />}
 
-      {/* Info section (skip for audio/text — they have inline info) */}
-      {cardType !== "audio" && cardType !== "text" && (
+      {/* Info section (skip for audio — it has inline info) */}
+      {cardType !== "audio" && (
         <div className="px-3 pt-2 pb-3">
           <div className="text-sm font-semibold mb-1 line-clamp-2 leading-tight">
             {pin.title}
@@ -212,44 +164,24 @@ export default function PinCard({ pin }: { pin: Pin }) {
         </div>
       )}
 
-      {/* Footer: Tags + Pin count + External link */}
+      {/* Footer: Tags + External link */}
       <div className="px-3 pb-3 flex items-center gap-1 flex-wrap">
         <div className="flex gap-1 flex-wrap flex-1 min-w-0">
           {pin.tags.slice(0, 3).map((tag) => (
             <span
-              key={tag}
+              key={tag.id}
               className="text-[10px] text-text-dim bg-accent-subtle px-2 py-0.5 rounded-full"
               style={{ fontFamily: "'Geist Mono', monospace" }}
             >
-              {tag}
+              {tag.name}
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {pin.pin_count > 0 && (
-            <span
-              className="text-[10px] text-text-dim"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="inline-block mr-0.5 -mt-px"
-              >
-                <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              {pin.pin_count}
-            </span>
-          )}
-          <ExternalLinkIcon url={pin.url} />
-        </div>
+        {pin.url && (
+          <div className="shrink-0">
+            <ExternalLinkIcon url={pin.url} />
+          </div>
+        )}
       </div>
     </Link>
   );

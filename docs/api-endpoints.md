@@ -23,16 +23,25 @@ PUT    /api/creators/me                [auth]      프로필 수정 (닉네임, 
 
 ```
 POST   /api/pins                       [auth, rate: 30/min/user]
-       body: { url, title, description, field, tags, og_image, og_data }
+       content-type: multipart/form-data
+       fields: media (file, required), title, description, url (optional),
+               tag_ids (uuid[], required), og_image (optional)
 
 GET    /api/pins/{id}                              핀 상세 (+ creator 정보)
 
 DELETE /api/pins/{id}                  [auth]      핀 삭제 (본인만)
 
-GET    /api/pins                                   핀 목록 (분야/태그 필터, 페이지네이션)
-       query: field, tags, limit, offset, creator_id
+GET    /api/pins                                   핀 목록 (미디어타입/태그 필터, 페이지네이션)
+       query: media_type, tag_ids, limit, offset, creator_id
 
 GET    /api/pins/{id}/related                      연관 핀 (태그 기반, 최대 10개)
+```
+
+## Tag (태그)
+
+```
+GET    /api/tags                                   사전정의 태그 목록
+       query: category, q
 ```
 
 ## Board (보드)

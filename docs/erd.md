@@ -8,16 +8,16 @@
 ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
 │ id         (PK) │       │ id         (PK) │       │ id         (PK) │
 │ creator_id (FK) │──N:1─→│ nickname        │←─1:N──│ creator_id (FK) │
-│ provider        │       │ avatar_url      │       │ url             │
-│ provider_id     │       │ email           │       │ title           │
-│ email           │       │ created_at      │       │ description     │
-│ created_at      │       │ updated_at      │       │ field           │
-└─────────────────┘       └────────┬────────┘       │ tags       []   │
+│ provider        │       │ avatar_url      │       │ media_url       │
+│ provider_id     │       │ email           │       │ media_type      │
+│ email           │       │ created_at      │       │ url             │
+│ created_at      │       │ updated_at      │       │ title           │
+└─────────────────┘       └────────┬────────┘       │ description     │
                                    │                │ og_image        │
                               1:N  │                │ og_data    JSON │
-                                   │                │ pin_count       │
-                          ┌────────▼────────┐       │ created_at      │
-                          │     boards      │       └────────┬────────┘
+                                   │                │ created_at      │
+                          ┌────────▼────────┐       └────────┬────────┘
+                          │     boards      │                │
                           ├─────────────────┤                │
                           │ id         (PK) │                │
                           │ creator_id (FK) │       ┌────────▼────────┐
@@ -29,6 +29,16 @@
                           └─────────────────┘       │     pin_id)     │
                                                     │ created_at      │
                                                     └─────────────────┘
+
+┌─────────────────┐       ┌─────────────────┐
+│      tags       │       │    pin_tags     │
+├─────────────────┤       ├─────────────────┤
+│ id         (PK) │←─1:N──│ pin_id    (FK)  │
+│ name            │       │ tag_id    (FK)  │
+│ slug            │       │ PK: (pin_id,    │
+│ category        │       │     tag_id)     │
+│ display_order   │       └─────────────────┘
+└─────────────────┘
 ```
 
 > **용어**: pins 테이블의 creator_id는 "핀한 사람"을 가리킨다. 원작자가 아닌 큐레이터.
@@ -45,15 +55,34 @@
 |------|------|------|
 | id | UUID PK | gen_random_uuid() |
 | creator_id | UUID FK → creators | 핀한 유저 |
-| url | VARCHAR(1000) NOT NULL | 원본 URL |
+| media_url | VARCHAR(500) NOT NULL | S3 미디어 URL |
+| media_type | VARCHAR(10) NOT NULL | 미디어 유형 (CHECK: image/audio/video) |
+| url | VARCHAR(1000) | 원본 URL (선택) |
 | title | VARCHAR(200) NOT NULL | 제목 |
 | description | VARCHAR(500) | 설명 (선택) |
-| field | VARCHAR(50) NOT NULL | 분야 |
-| tags | TEXT[] NOT NULL | 스타일 태그 (1~5개) |
 | og_image | VARCHAR(1000) | OG 썸네일 URL |
 | og_data | JSONB | OG 메타데이터 전체 |
-| pin_count | INTEGER NOT NULL DEFAULT 0 | 같은 URL 핀 수 (denormalized) |
 | created_at | TIMESTAMPTZ | |
+
+### tags
+사전정의된 태그 목록.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | UUID PK | gen_random_uuid() |
+| name | VARCHAR(100) NOT NULL | 태그 표시명 |
+| slug | VARCHAR(100) NOT NULL UNIQUE | URL 친화적 식별자 |
+| category | VARCHAR(50) | 태그 분류 |
+| display_order | INTEGER NOT NULL DEFAULT 0 | 정렬 순서 |
+
+### pin_tags
+핀-태그 N:M 관계.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| pin_id | UUID FK → pins | ON DELETE CASCADE |
+| tag_id | UUID FK → tags | ON DELETE CASCADE |
+| PK | (pin_id, tag_id) | 중복 추가 방지 |
 
 ### boards
 보드 (핀 컬렉션). Pinterest 보드와 동일한 컨셉.
@@ -113,7 +142,8 @@ s3://fugue-events/year=YYYY/month=MM/day=DD/hour=HH/events-NNN.parquet
 | URL 유니크 | 제약 없음 | 큐레이션이므로 여러 사람이 같은 작품을 핀할 수 있음 |
 | 이벤트 저장 | S3 (Kinesis Firehose 경유) | RDB 부하 방지, 대규모 배치 분석/ML 학습에 적합, 내구성 11 9's |
 | board_pins PK | Composite (board_id, pin_id) | 같은 핀을 같은 보드에 중복 추가 방지 |
-| pin_count | denormalized 컬럼 | N+1 방지. INSERT/DELETE 시 같은 URL 기준 재계산 |
+| 태그 방식 | 사전정의 태그 (tags 테이블) | 자유 텍스트 대신 일관성 있는 분류 체계. pin_tags로 N:M 연결 |
+| media_type | CHECK 제약 (image/audio/video) | 미디어 유형 명시. field 컬럼 제거 |
 | 마이그레이션 | golang-migrate | Go 생태계 표준, up/down 쌍 |
 
 DDL 원본: `apps/api/db/migrations/`

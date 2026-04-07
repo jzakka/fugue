@@ -55,6 +55,10 @@ func (m *mockQuerier) CreatePin(_ context.Context, _ db.CreatePinParams) (db.Pin
 	return db.Pin{}, nil
 }
 
+func (m *mockQuerier) LinkPinTag(_ context.Context, _ db.LinkPinTagParams) error {
+	return nil
+}
+
 func (m *mockQuerier) DeletePin(_ context.Context, _ db.DeletePinParams) (int64, error) {
 	return 0, nil
 }
@@ -63,15 +67,19 @@ func (m *mockQuerier) GetPinWithCreator(_ context.Context, _ uuid.UUID) (db.GetP
 	return db.GetPinWithCreatorRow{}, sql.ErrNoRows
 }
 
-func (m *mockQuerier) GetPinURL(_ context.Context, _ uuid.UUID) (string, error) {
-	return "", sql.ErrNoRows
-}
-
-func (m *mockQuerier) UpdatePinCountByURL(_ context.Context, _ string) error {
-	return nil
+func (m *mockQuerier) GetPinTags(_ context.Context, _ uuid.UUID) ([]db.GetPinTagsRow, error) {
+	return nil, nil
 }
 
 func (m *mockQuerier) RelatedPins(_ context.Context, _ db.RelatedPinsParams) ([]db.RelatedPinsRow, error) {
+	return nil, nil
+}
+
+func (m *mockQuerier) GetTagsByIDs(_ context.Context, _ []uuid.UUID) ([]db.Tag, error) {
+	return nil, nil
+}
+
+func (m *mockQuerier) GetTagsForPins(_ context.Context, _ []uuid.UUID) ([]db.GetTagsForPinsRow, error) {
 	return nil, nil
 }
 
@@ -79,14 +87,13 @@ func sampleRow() db.ListPinsWithCreatorRow {
 	return db.ListPinsWithCreatorRow{
 		ID:               uuid.MustParse("20000000-0000-0000-0000-000000000001"),
 		CreatorID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
-		Url:              "https://soundcloud.com/haru/dreamscape",
+		MediaUrl:         "image/seed-test.jpg",
+		MediaType:        "image",
+		Url:              sql.NullString{String: "https://soundcloud.com/haru/dreamscape", Valid: true},
 		Title:            "Dreamscape",
 		Description:      sql.NullString{String: "몽환적인 신스팝", Valid: true},
-		Field:            "음악",
-		Tags:             []string{"신스팝", "몽환"},
 		OgImage:          sql.NullString{},
 		OgData:           pqtype.NullRawMessage{},
-		PinCount:         1,
 		CreatedAt:        time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
 		CreatorIDRef:     uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		CreatorNickname:  "하루",
@@ -125,14 +132,14 @@ func TestList_DefaultParams(t *testing.T) {
 	}
 }
 
-func TestList_FieldFilter(t *testing.T) {
+func TestList_MediaTypeFilter(t *testing.T) {
 	mock := &mockQuerier{listRows: nil, countVal: 0}
 	h := NewHandlerWithQuerier(mock)
 
-	doRequest(t, h, "/api/pins?field=음악")
+	doRequest(t, h, "/api/pins?media_type=audio")
 
-	if mock.lastListP.Column1 != "음악" {
-		t.Errorf("expected field '음악', got %q", mock.lastListP.Column1)
+	if mock.lastListP.Column1 != "audio" {
+		t.Errorf("expected media_type 'audio', got %q", mock.lastListP.Column1)
 	}
 }
 
@@ -140,7 +147,7 @@ func TestList_EmptyResult(t *testing.T) {
 	mock := &mockQuerier{listRows: nil, countVal: 0}
 	h := NewHandlerWithQuerier(mock)
 
-	rec := doRequest(t, h, "/api/pins?field=nonexistent")
+	rec := doRequest(t, h, "/api/pins?media_type=video")
 	resp := decodeResponse(t, rec)
 
 	if rec.Code != http.StatusOK {
@@ -190,8 +197,11 @@ func TestList_ResponseStructure(t *testing.T) {
 	if p.Title != "Dreamscape" {
 		t.Errorf("unexpected title: %s", p.Title)
 	}
-	if p.PinCount != 1 {
-		t.Errorf("expected pin_count 1, got %d", p.PinCount)
+	if p.MediaURL != "image/seed-test.jpg" {
+		t.Errorf("unexpected media_url: %s", p.MediaURL)
+	}
+	if p.MediaType != "image" {
+		t.Errorf("unexpected media_type: %s", p.MediaType)
 	}
 	if p.Creator.Nickname != "하루" {
 		t.Errorf("unexpected creator nickname: %s", p.Creator.Nickname)

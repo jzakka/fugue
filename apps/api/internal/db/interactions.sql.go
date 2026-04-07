@@ -43,35 +43,35 @@ func (q *Queries) CreateInteraction(ctx context.Context, arg CreateInteractionPa
 	return err
 }
 
-const getUserFieldFrequency = `-- name: GetUserFieldFrequency :many
-SELECT p.field, COUNT(*) AS freq
+const getUserMediaTypeFrequency = `-- name: GetUserMediaTypeFrequency :many
+SELECT p.media_type, COUNT(*) AS freq
 FROM pins p
 WHERE p.creator_id = $1
-GROUP BY p.field
+GROUP BY p.media_type
 ORDER BY freq DESC
 LIMIT $2
 `
 
-type GetUserFieldFrequencyParams struct {
+type GetUserMediaTypeFrequencyParams struct {
 	CreatorID uuid.UUID
 	Limit     int32
 }
 
-type GetUserFieldFrequencyRow struct {
-	Field string
-	Freq  int64
+type GetUserMediaTypeFrequencyRow struct {
+	MediaType string
+	Freq      int64
 }
 
-func (q *Queries) GetUserFieldFrequency(ctx context.Context, arg GetUserFieldFrequencyParams) ([]GetUserFieldFrequencyRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserFieldFrequency, arg.CreatorID, arg.Limit)
+func (q *Queries) GetUserMediaTypeFrequency(ctx context.Context, arg GetUserMediaTypeFrequencyParams) ([]GetUserMediaTypeFrequencyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserMediaTypeFrequency, arg.CreatorID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserFieldFrequencyRow
+	var items []GetUserMediaTypeFrequencyRow
 	for rows.Next() {
-		var i GetUserFieldFrequencyRow
-		if err := rows.Scan(&i.Field, &i.Freq); err != nil {
+		var i GetUserMediaTypeFrequencyRow
+		if err := rows.Scan(&i.MediaType, &i.Freq); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -86,10 +86,11 @@ func (q *Queries) GetUserFieldFrequency(ctx context.Context, arg GetUserFieldFre
 }
 
 const getUserTagFrequency = `-- name: GetUserTagFrequency :many
-SELECT unnest(p.tags) AS tag, COUNT(*) AS freq
+SELECT pt.tag_id AS tag_id, COUNT(*) AS freq
 FROM pins p
+JOIN pin_tags pt ON pt.pin_id = p.id
 WHERE p.creator_id = $1
-GROUP BY tag
+GROUP BY pt.tag_id
 ORDER BY freq DESC
 LIMIT $2
 `
@@ -100,8 +101,8 @@ type GetUserTagFrequencyParams struct {
 }
 
 type GetUserTagFrequencyRow struct {
-	Tag  interface{}
-	Freq int64
+	TagID uuid.UUID
+	Freq  int64
 }
 
 func (q *Queries) GetUserTagFrequency(ctx context.Context, arg GetUserTagFrequencyParams) ([]GetUserTagFrequencyRow, error) {
@@ -113,7 +114,7 @@ func (q *Queries) GetUserTagFrequency(ctx context.Context, arg GetUserTagFrequen
 	var items []GetUserTagFrequencyRow
 	for rows.Next() {
 		var i GetUserTagFrequencyRow
-		if err := rows.Scan(&i.Tag, &i.Freq); err != nil {
+		if err := rows.Scan(&i.TagID, &i.Freq); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -127,64 +128,62 @@ func (q *Queries) GetUserTagFrequency(ctx context.Context, arg GetUserTagFrequen
 	return items, nil
 }
 
-const recommendByFields = `-- name: RecommendByFields :many
+const recommendByMediaType = `-- name: RecommendByMediaType :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
-WHERE p.field = ANY($1::text[])
+WHERE p.media_type = ANY($1::text[])
   AND p.creator_id != $2
-ORDER BY p.pin_count DESC, p.created_at DESC
+ORDER BY p.created_at DESC
 LIMIT $3
 `
 
-type RecommendByFieldsParams struct {
+type RecommendByMediaTypeParams struct {
 	Column1   []string
 	CreatorID uuid.UUID
 	Limit     int32
 }
 
-type RecommendByFieldsRow struct {
+type RecommendByMediaTypeRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
 	CreatorAvatarUrl sql.NullString
 }
 
-func (q *Queries) RecommendByFields(ctx context.Context, arg RecommendByFieldsParams) ([]RecommendByFieldsRow, error) {
-	rows, err := q.db.QueryContext(ctx, recommendByFields, pq.Array(arg.Column1), arg.CreatorID, arg.Limit)
+func (q *Queries) RecommendByMediaType(ctx context.Context, arg RecommendByMediaTypeParams) ([]RecommendByMediaTypeRow, error) {
+	rows, err := q.db.QueryContext(ctx, recommendByMediaType, pq.Array(arg.Column1), arg.CreatorID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []RecommendByFieldsRow
+	var items []RecommendByMediaTypeRow
 	for rows.Next() {
-		var i RecommendByFieldsRow
+		var i RecommendByMediaTypeRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,
@@ -205,21 +204,25 @@ func (q *Queries) RecommendByFields(ctx context.Context, arg RecommendByFieldsPa
 
 const recommendByTags = `-- name: RecommendByTags :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
-WHERE p.tags && $1::text[]
+WHERE EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($1::uuid[])
+)
   AND p.creator_id != $2
-ORDER BY array_length(p.tags & $1::text[], 1) DESC NULLS LAST, p.created_at DESC
+ORDER BY
+    (SELECT count(*) FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($1::uuid[])) DESC,
+    p.created_at DESC
 LIMIT $3
 `
 
 type RecommendByTagsParams struct {
-	Column1   []string
+	Column1   []uuid.UUID
 	CreatorID uuid.UUID
 	Limit     int32
 }
@@ -227,14 +230,13 @@ type RecommendByTagsParams struct {
 type RecommendByTagsRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -253,14 +255,13 @@ func (q *Queries) RecommendByTags(ctx context.Context, arg RecommendByTagsParams
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,

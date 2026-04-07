@@ -41,8 +41,8 @@ WHERE board_id = $1 AND pin_id = $2;
 
 -- name: ListBoardPins :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
@@ -58,9 +58,8 @@ SELECT count(*) FROM board_pins
 WHERE board_id = $1;
 
 -- name: ListBoardPinImages :many
-SELECT p.og_image FROM board_pins bp
+SELECT p.media_url FROM board_pins bp
 JOIN pins p ON p.id = bp.pin_id
-WHERE bp.board_id = $1
-  AND p.og_image IS NOT NULL
+WHERE bp.board_id = $1 AND p.media_type = 'image'
 ORDER BY bp.created_at DESC
 LIMIT 4;

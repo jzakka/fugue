@@ -4,16 +4,23 @@ export interface CreatorSummary {
   avatar_url: string | null;
 }
 
+export interface TagInfo {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+}
+
 export interface Pin {
   id: string;
-  url: string;
+  url: string | null;
   title: string;
   description: string | null;
-  field: string;
-  tags: string[];
+  media_url: string;
+  media_type: "image" | "audio" | "video";
   og_image: string | null;
   og_data: Record<string, unknown> | null;
-  pin_count: number;
+  tags: TagInfo[];
   created_at: string;
   creator: CreatorSummary;
 }
@@ -63,12 +70,16 @@ export interface FeedResponse {
   next_cursor: string | null;
 }
 
+export interface TagListResponse {
+  tags: TagInfo[];
+}
+
 const INTERNAL_API_URL = process.env.API_URL || "http://localhost:8080";
 
 export async function fetchPins(
   params: {
-    field?: string;
-    tags?: string[];
+    media_type?: string;
+    tag_ids?: string[];
     limit?: number;
     offset?: number;
     creator_id?: string;
@@ -80,8 +91,8 @@ export async function fetchPins(
     : process.env.NEXT_PUBLIC_API_URL || "";
 
   const searchParams = new URLSearchParams();
-  if (params.field) searchParams.set("field", params.field);
-  if (params.tags?.length) searchParams.set("tags", params.tags.join(","));
+  if (params.media_type) searchParams.set("media_type", params.media_type);
+  if (params.tag_ids?.length) searchParams.set("tag_ids", params.tag_ids.join(","));
   if (params.limit) searchParams.set("limit", String(params.limit));
   if (params.offset) searchParams.set("offset", String(params.offset));
   if (params.creator_id) searchParams.set("creator_id", params.creator_id);
@@ -113,6 +124,23 @@ export async function fetchRelatedPins(
     : process.env.NEXT_PUBLIC_API_URL || "";
 
   const res = await fetch(`${baseUrl}/api/pins/${id}/related`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchTags(
+  params?: { category?: string; q?: string },
+  options?: { serverSide?: boolean }
+): Promise<TagListResponse> {
+  const baseUrl = options?.serverSide
+    ? INTERNAL_API_URL
+    : process.env.NEXT_PUBLIC_API_URL || "";
+
+  const searchParams = new URLSearchParams();
+  if (params?.category) searchParams.set("category", params.category);
+  if (params?.q) searchParams.set("q", params.q);
+
+  const res = await fetch(`${baseUrl}/api/tags?${searchParams.toString()}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
@@ -155,19 +183,10 @@ export async function fetchOgPreview(url: string): Promise<OgPreview> {
   return res.json();
 }
 
-export async function createPin(data: {
-  url: string;
-  title: string;
-  description?: string;
-  field: string;
-  tags: string[];
-  og_image?: string;
-  og_data?: Record<string, unknown>;
-}): Promise<{ id: string }> {
+export async function createPin(formData: FormData): Promise<{ id: string }> {
   const res = await fetch(`/api/pins`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: formData,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "요청 실패" }));

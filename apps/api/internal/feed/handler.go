@@ -33,14 +33,13 @@ type FeedResponse struct {
 
 type PinResponse struct {
 	ID          string           `json:"id"`
-	URL         string           `json:"url"`
+	URL         *string          `json:"url"`
 	Title       string           `json:"title"`
 	Description *string          `json:"description"`
-	Field       string           `json:"field"`
-	Tags        []string         `json:"tags"`
+	MediaURL    string           `json:"media_url"`
+	MediaType   string           `json:"media_type"`
 	OgImage     *string          `json:"og_image"`
 	OgData      *json.RawMessage `json:"og_data"`
-	PinCount    int32            `json:"pin_count"`
 	CreatedAt   time.Time        `json:"created_at"`
 	Creator     CreatorSummary   `json:"creator"`
 }
@@ -134,6 +133,7 @@ func (h *Handler) buildLatestFeed(ctx context.Context, q *db.Queries, limit, off
 }
 
 func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, creatorID uuid.UUID, limit, offset int) (FeedResponse, error) {
+	// Get user's top tag IDs
 	tagRows, err := q.GetUserTagFrequency(ctx, db.GetUserTagFrequencyParams{
 		CreatorID: creatorID,
 		Limit:     10,
@@ -142,20 +142,17 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 		return FeedResponse{}, fmt.Errorf("GetUserTagFrequency: %w", err)
 	}
 
-	tags := make([]string, 0, len(tagRows))
+	tagIDs := make([]uuid.UUID, 0, len(tagRows))
 	for _, row := range tagRows {
-		if tag, ok := row.Tag.(string); ok {
-			tags = append(tags, tag)
-		}
+		tagIDs = append(tagIDs, row.TagID)
 	}
 
 	recLimit := (limit + 1) / 2
 	var recRows []db.RecommendByTagsRow
 
-	if len(tags) > 0 {
-		// Primary: tag-based recommendation
+	if len(tagIDs) > 0 {
 		recRows, err = q.RecommendByTags(ctx, db.RecommendByTagsParams{
-			Column1:   tags,
+			Column1:   tagIDs,
 			CreatorID: creatorID,
 			Limit:     int32(recLimit),
 		})
@@ -164,27 +161,26 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 		}
 	}
 
-	// Fallback: if tags produced insufficient results, try field-based
+	// Fallback: if tags produced insufficient results, try media-type-based
 	if len(recRows) < recLimit {
-		fieldRows, err := q.GetUserFieldFrequency(ctx, db.GetUserFieldFrequencyParams{
+		mtRows, err := q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
 			CreatorID: creatorID,
 			Limit:     3,
 		})
-		if err == nil && len(fieldRows) > 0 {
-			fields := make([]string, 0, len(fieldRows))
-			for _, fr := range fieldRows {
-				fields = append(fields, fr.Field)
+		if err == nil && len(mtRows) > 0 {
+			types := make([]string, 0, len(mtRows))
+			for _, mr := range mtRows {
+				types = append(types, mr.MediaType)
 			}
 			deficit := int32(recLimit - len(recRows))
-			fieldRecs, err := q.RecommendByFields(ctx, db.RecommendByFieldsParams{
-				Column1:   fields,
+			mtRecs, err := q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
+				Column1:   types,
 				CreatorID: creatorID,
 				Limit:     deficit,
 			})
 			if err == nil {
-				// Convert field recs to tag rec row type for uniform processing
-				for _, fr := range fieldRecs {
-					recRows = append(recRows, db.RecommendByTagsRow(fr))
+				for _, mr := range mtRecs {
+					recRows = append(recRows, db.RecommendByTagsRow(mr))
 				}
 			}
 		}
@@ -299,6 +295,10 @@ func feedCacheKey(userID uuid.UUID, limit, offset int) string {
 }
 
 func listRowToPinResponse(row db.ListPinsWithCreatorRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -316,20 +316,15 @@ func listRowToPinResponse(row db.ListPinsWithCreatorRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),
@@ -340,6 +335,10 @@ func listRowToPinResponse(row db.ListPinsWithCreatorRow) PinResponse {
 }
 
 func recRowToPinResponse(row db.RecommendByTagsRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -357,20 +356,15 @@ func recRowToPinResponse(row db.RecommendByTagsRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),

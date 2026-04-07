@@ -65,7 +65,15 @@ Fugue는 음악/미술/영상/코드/글의 크로스미디어 플랫폼이므�
 
 초기 200~500개, 이후 운영하며 추가.
 
-### 5. 미디어 타입 감지: MIME 타입 기반
+### 5. 태그 개수 제한: 최대 10개
+
+기존 자유 입력 태그는 최대 5개였으나, 사전 정의 태그 시스템은 구조화된 카테고리별 태그이므로 표현력 확보를 위해 최대 10개로 확장. 최소 1개 필수는 유지 (태그 없는 핀은 추천/탐색 불가).
+
+### 6. 미디어 업로드 모듈: `internal/storage/` 패키지
+
+미디어 업로드 로직(S3 클라이언트, MIME 검증, 파일 크기 제한)은 `internal/storage/` 패키지로 분리. pin 핸들러에서 호출하되, 추후 fuguebot 등 다른 모듈에서도 재사용 가능.
+
+### 7. 미디어 타입 감지: MIME 타입 기반
 
 서버에서 업로드된 파일의 Content-Type을 검증:
 - `image/*` → image
@@ -77,7 +85,15 @@ Fugue는 음악/미술/영상/코드/글의 크로스미디어 플랫폼이므�
 - 오디오: MP3, WAV, OGG, FLAC
 - 비디오: MP4, WebM
 
-### 6. DB 스키마 변경
+### 8. `og_image`/`og_data` vs `media_url` 역할 분담
+
+`media_url`이 항상 존재하므로 PinCard 썸네일과 미디어 재생의 기본 소스는 `media_url`. `og_image`/`og_data`는 URL이 입력된 경우에만 존재하며, 핀 상세 페이지에서 원본 출처 정보(사이트명, 설명 등)를 보조 표시하는 용도로 유지.
+
+### 9. `pin_count` 필드 제거
+
+기존 `pin_count`는 "같은 URL을 핀한 유저 수"로, URL 기반 모델에서 의미가 있었다. 미디어 중심 모델에서는 URL이 선택이므로 이 지표의 의미가 사라진다. `pin_count` 컬럼과 `UpdatePinCountByURL` 쿼리를 제거한다. 추후 "좋아요" 등 별도 인터랙션 지표로 대체.
+
+### 10. DB 스키마 변경
 
 ```sql
 -- 새 테이블
@@ -94,6 +110,7 @@ CREATE TABLE pin_tags (
     tag_id UUID NOT NULL REFERENCES tags(id),
     PRIMARY KEY (pin_id, tag_id)
 );
+CREATE INDEX idx_pin_tags_tag ON pin_tags(tag_id);
 
 -- pins 테이블 변경
 ALTER TABLE pins ADD COLUMN media_url VARCHAR(500) NOT NULL;
@@ -101,6 +118,7 @@ ALTER TABLE pins ADD COLUMN media_type VARCHAR(10) NOT NULL CHECK (media_type IN
 ALTER TABLE pins ALTER COLUMN url DROP NOT NULL;  -- URL을 선택으로
 ALTER TABLE pins DROP COLUMN field;               -- 분야 제거
 ALTER TABLE pins DROP COLUMN tags;                -- TEXT[] 태그 제거 (pin_tags로 대체)
+ALTER TABLE pins DROP COLUMN pin_count;           -- URL 기반 핀 카운트 제거 (Decision 9)
 ```
 
 ## Risks / Trade-offs
@@ -109,3 +127,4 @@ ALTER TABLE pins DROP COLUMN tags;                -- TEXT[] 태그 제거 (pin_t
 - **태그 확장성**: 초기 시드 태그가 부족할 수 있음. → 운영 중 관리자 태그 추가 기능은 추후 구현. v1은 시드 데이터 + DB 직접 INSERT로 관리
 - **기존 데이터 호환**: 현재 핀 데이터는 URL 필수 + field 있음. → 시드 데이터를 새 스키마에 맞게 재생성. 프로덕션 데이터 없으므로 마이그레이션 불필요
 - **OG fetch 기능 위상 변화**: URL이 선택이 되면 OG fetch의 역할이 줄어듦. → URL 입력 시에만 OG 프리뷰 표시하는 보조 기능으로 유지
+- **S3 orphaned files**: 핀 삭제 시 S3 오브젝트는 즉시 삭제하지 않는다. v1에서는 orphaned file을 허용하고, S3 lifecycle policy(예: 90일 미참조 오브젝트 삭제)로 정리. 즉시 삭제는 삭제 실패 시 트랜잭션 롤백 복잡도가 높아 오버엔지니어링.

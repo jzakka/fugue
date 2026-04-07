@@ -40,7 +40,7 @@ export default async function NavBar() {
                 href="/pin/new"
                 className="px-4 py-2 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors"
               >
-                + 작품 올리기
+                + 핀 생성
               </Link>
               <ThemeToggle />
               <div className="flex items-center gap-3">

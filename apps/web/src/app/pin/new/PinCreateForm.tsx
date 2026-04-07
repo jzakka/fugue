@@ -2,189 +2,180 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchOgPreview, createPin } from "@/lib/api";
-import type { OgPreview } from "@/lib/api";
+import { fetchOgPreview, fetchTags, createPin } from "@/lib/api";
+import type { OgPreview, TagInfo } from "@/lib/api";
 
-const FIELD_OPTIONS = [
-  "미술",
-  "음악",
-  "영상편집",
-  "프로그래밍",
-  "글",
-  "기타",
-] as const;
-
-const TAG_MAX_LENGTH = 30;
-const TAG_MIN_COUNT = 1;
-const TAG_MAX_COUNT = 5;
+const TAG_MAX_COUNT = 10;
 
 export default function PinCreateForm() {
   const router = useRouter();
 
-  // URL + OG state
+  // Media file
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // URL + OG state (optional)
   const [url, setUrl] = useState("");
   const [ogLoading, setOgLoading] = useState(false);
   const [ogData, setOgData] = useState<OgPreview | null>(null);
-  const [ogError, setOgError] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Form fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [field, setField] = useState<string>("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
+
+  // Tag selection
+  const [allTags, setAllTags] = useState<TagInfo[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
+  const [tagSearch, setTagSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
 
   // Submit state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleOgFetch = useCallback(async (inputUrl: string) => {
-    // Cancel previous request
-    if (abortRef.current) {
-      abortRef.current.abort();
-    }
+  // Load tags on mount
+  useEffect(() => {
+    fetchTags().then((res) => setAllTags(res.tags)).catch(() => {});
+  }, []);
 
+  // File handling
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+
+    // Generate preview for images/video
+    if (f.type.startsWith("image/") || f.type.startsWith("video/")) {
+      const objectUrl = URL.createObjectURL(f);
+      setPreview(objectUrl);
+    } else {
+      setPreview(null);
+    }
+  }
+
+  function removeFile() {
+    setFile(null);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  // OG fetch (optional, triggered when URL changes)
+  const handleOgFetch = useCallback(async (inputUrl: string) => {
+    abortRef.current?.abort();
     const trimmed = inputUrl.trim();
     if (!trimmed) {
       setOgData(null);
-      setOgError(false);
       return;
     }
-
-    // Simple URL validation
     try {
       new URL(trimmed);
     } catch {
       return;
     }
-
     setOgLoading(true);
-    setOgError(false);
-
     const controller = new AbortController();
     abortRef.current = controller;
-
     try {
       const data = await fetchOgPreview(trimmed);
-
-      // Check if this request was aborted
       if (controller.signal.aborted) return;
-
       setOgData(data);
-      setTitle(data.title || "");
-      setDescription(data.description || "");
-      if (data.detected_field) {
-        setField(data.detected_field);
-      }
-      if (data.suggested_tags?.length) {
-        setTags(data.suggested_tags.slice(0, TAG_MAX_COUNT));
-      }
-    } catch (err) {
+      if (!title && data.title) setTitle(data.title);
+      if (!description && data.description) setDescription(data.description);
+    } catch {
       if (controller.signal.aborted) return;
-      setOgError(true);
       setOgData(null);
     } finally {
-      if (!controller.signal.aborted) {
-        setOgLoading(false);
-      }
+      if (!controller.signal.aborted) setOgLoading(false);
     }
-  }, []);
+  }, [title, description]);
 
   function handleUrlChange(value: string) {
     setUrl(value);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      handleOgFetch(value);
-    }, 500);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => handleOgFetch(value), 500);
   }
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (abortRef.current) abortRef.current.abort();
+      abortRef.current?.abort();
     };
   }, []);
 
-  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag();
-    }
-    if (e.key === "Backspace" && tagInput === "" && tags.length > 0) {
-      setTags((prev) => prev.slice(0, -1));
-    }
+  // Tag helpers
+  const categories = [...new Set(allTags.map((t) => t.category))];
+
+  const filteredTags = allTags.filter((t) => {
+    if (activeCategory && t.category !== activeCategory) return false;
+    if (tagSearch && !t.name.toLowerCase().includes(tagSearch.toLowerCase())) return false;
+    return true;
+  });
+
+  function toggleTag(id: string) {
+    setSelectedTagIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= TAG_MAX_COUNT) return prev;
+        next.add(id);
+      }
+      return next;
+    });
   }
 
-  function addTag() {
-    const trimmed = tagInput.trim().replace(/,/g, "");
-    if (!trimmed) return;
-    if (trimmed.length > TAG_MAX_LENGTH) {
-      setError(`태그는 ${TAG_MAX_LENGTH}자 이하여야 합니다`);
-      return;
-    }
-    if (tags.length >= TAG_MAX_COUNT) {
-      setError(`태그는 최대 ${TAG_MAX_COUNT}개까지 추가할 수 있습니다`);
-      return;
-    }
-    if (tags.includes(trimmed)) {
-      setTagInput("");
-      return;
-    }
-    setTags((prev) => [...prev, trimmed]);
-    setTagInput("");
-    setError(null);
-  }
-
-  function removeTag(index: number) {
-    setTags((prev) => prev.filter((_, i) => i !== index));
-  }
-
+  // Submit
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    const trimmedUrl = url.trim();
-    const trimmedTitle = title.trim();
-
-    if (!trimmedUrl) {
-      setError("URL을 입력해주세요");
+    if (!file) {
+      setError("미디어 파일을 선택해주세요");
       return;
     }
-    if (!trimmedTitle) {
+    if (!title.trim()) {
       setError("제목을 입력해주세요");
       return;
     }
-    if (!field) {
-      setError("분야를 선택해주세요");
+    if (selectedTagIds.size === 0) {
+      setError("태그를 1개 이상 선택해주세요");
       return;
     }
+
+    const formData = new FormData();
+    formData.append("media", file);
+    formData.append("title", title.trim());
+    if (description.trim()) formData.append("description", description.trim());
+    if (url.trim()) formData.append("url", url.trim());
+    if (ogData?.image) formData.append("og_image", ogData.image);
+    for (const tagId of selectedTagIds) {
+      formData.append("tag_ids", tagId);
+    }
+
     setSubmitting(true);
     try {
-      await createPin({
-        url: trimmedUrl,
-        title: trimmedTitle,
-        description: description.trim() || undefined,
-        field,
-        tags,
-        og_image: ogData?.image || undefined,
-        og_data: ogData ? { ...ogData } : undefined,
-      });
+      await createPin(formData);
       router.push("/mypage");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "작품 등록에 실패했습니다"
-      );
+      setError(err instanceof Error ? err.message : "핀 등록에 실패했습니다");
     } finally {
       setSubmitting(false);
     }
   }
+
+  const mediaType = file
+    ? file.type.startsWith("image/")
+      ? "이미지"
+      : file.type.startsWith("audio/")
+      ? "오디오"
+      : file.type.startsWith("video/")
+      ? "비디오"
+      : file.type
+    : null;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -192,7 +183,7 @@ export default function PinCreateForm() {
         className="text-2xl font-bold tracking-tight"
         style={{ fontFamily: "'General Sans', sans-serif" }}
       >
-        작품 올리기
+        핀 생성
       </h1>
 
       {error && (
@@ -201,64 +192,75 @@ export default function PinCreateForm() {
         </div>
       )}
 
-      {/* URL Input */}
+      {/* Media Upload */}
       <div>
-        <label className="block text-sm text-text-muted mb-2">URL</label>
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => handleUrlChange(e.target.value)}
-          placeholder="https://..."
-          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
-        />
-        {ogLoading && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-text-muted">
-            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-            미리보기를 불러오는 중...
-          </div>
-        )}
-      </div>
-
-      {/* OG Preview Card */}
-      {ogData && !ogLoading && (
-        <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
-          {ogData.image && (
-            <div className="overflow-hidden max-h-48">
-              <img
-                src={ogData.image}
-                alt={ogData.title || "미리보기"}
-                className="w-full object-cover"
-              />
+        <label className="block text-sm text-text-muted mb-2">
+          미디어 파일 <span className="text-error">*</span>
+        </label>
+        {!file ? (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
+          >
+            <div className="text-3xl mb-2">📁</div>
+            <div className="text-sm text-text-muted">
+              클릭하여 파일을 선택하세요
             </div>
-          )}
-          <div className="p-4">
             <div
-              className="text-xs text-text-dim mb-1"
+              className="text-xs text-text-dim mt-1"
               style={{ fontFamily: "'Geist Mono', monospace" }}
             >
-              {ogData.site_name || new URL(url).hostname}
+              이미지 (10MB) / 오디오 (50MB) / 비디오 (100MB)
             </div>
-            <div className="text-sm font-semibold text-text-primary">
-              {ogData.title}
-            </div>
-            {ogData.description && (
-              <p className="text-xs text-text-muted mt-1 line-clamp-2">
-                {ogData.description}
-              </p>
-            )}
           </div>
-        </div>
-      )}
-
-      {ogError && (
-        <div className="p-3 bg-warning/10 border border-warning/30 rounded-[6px] text-sm text-warning">
-          미리보기를 불러올 수 없습니다. 아래에서 직접 입력해주세요.
-        </div>
-      )}
+        ) : (
+          <div className="border border-border rounded-[10px] overflow-hidden">
+            {preview && file.type.startsWith("image/") && (
+              <img src={preview} alt="미리보기" className="w-full max-h-48 object-cover" />
+            )}
+            {preview && file.type.startsWith("video/") && (
+              <video src={preview} className="w-full max-h-48" controls preload="metadata" />
+            )}
+            {file.type.startsWith("audio/") && (
+              <div className="p-4 bg-surface-elevated flex items-center gap-3">
+                <span className="text-2xl">♪</span>
+                <span className="text-sm truncate flex-1">{file.name}</span>
+              </div>
+            )}
+            <div className="px-4 py-3 flex items-center justify-between bg-surface">
+              <div className="text-xs text-text-muted">
+                {file.name}{" "}
+                <span
+                  className="ml-2 px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
+                  style={{ fontFamily: "'Geist Mono', monospace" }}
+                >
+                  {mediaType}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={removeFile}
+                className="text-xs text-error hover:underline cursor-pointer"
+              >
+                제거
+              </button>
+            </div>
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg,audio/flac,video/mp4,video/webm"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
 
       {/* Title */}
       <div>
-        <label className="block text-sm text-text-muted mb-2">제목</label>
+        <label className="block text-sm text-text-muted mb-2">
+          제목 <span className="text-error">*</span>
+        </label>
         <input
           type="text"
           value={title}
@@ -275,69 +277,145 @@ export default function PinCreateForm() {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="작품에 대한 설명을 입력해주세요"
+          placeholder="작품에 대한 설명"
           rows={3}
           className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors resize-none"
         />
       </div>
 
-      {/* Field */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">분야</label>
-        <select
-          value={field}
-          onChange={(e) => setField(e.target.value)}
-          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors appearance-none cursor-pointer"
-        >
-          <option value="" disabled>
-            분야를 선택해주세요
-          </option>
-          {FIELD_OPTIONS.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Tags */}
+      {/* URL (optional) */}
       <div>
         <label className="block text-sm text-text-muted mb-2">
-          태그 ({tags.length}/{TAG_MAX_COUNT})
+          원본 URL <span className="text-text-dim">(선택)</span>
         </label>
-        <div className="flex flex-wrap items-center gap-2 p-2.5 bg-bg border border-border rounded-[6px] focus-within:border-accent transition-colors min-h-[44px]">
-          {tags.map((tag, i) => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 px-2.5 py-1 bg-accent-subtle text-accent rounded-full text-xs"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => removeTag(i)}
-                className="ml-0.5 text-accent hover:text-accent-hover cursor-pointer"
-              >
-                x
-              </button>
-            </span>
-          ))}
-          {tags.length < TAG_MAX_COUNT && (
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-              onBlur={addTag}
-              placeholder={tags.length === 0 ? "태그 입력 후 Enter" : ""}
-              maxLength={TAG_MAX_LENGTH}
-              className="flex-1 min-w-[120px] bg-transparent text-sm text-text-primary outline-none placeholder:text-text-dim"
-            />
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => handleUrlChange(e.target.value)}
+          placeholder="https://..."
+          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
+        />
+        {ogLoading && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-text-muted">
+            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            미리보기를 불러오는 중...
+          </div>
+        )}
+      </div>
+
+      {/* OG Preview */}
+      {ogData && !ogLoading && (
+        <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
+          {ogData.image && (
+            <div className="overflow-hidden max-h-32">
+              <img src={ogData.image} alt={ogData.title || "미리보기"} className="w-full object-cover" />
+            </div>
           )}
+          <div className="p-3">
+            <div className="text-xs text-text-dim" style={{ fontFamily: "'Geist Mono', monospace" }}>
+              {ogData.site_name || (url ? new URL(url).hostname : "")}
+            </div>
+            <div className="text-sm font-semibold text-text-primary">{ogData.title}</div>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-text-dim">
-          Enter 또는 쉼표로 태그 추가, 최대 {TAG_MAX_COUNT}개
-        </p>
+      )}
+
+      {/* Tag Selection */}
+      <div>
+        <label className="block text-sm text-text-muted mb-2">
+          태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
+          <span className="text-error">*</span>
+        </label>
+
+        {/* Selected tags */}
+        {selectedTagIds.size > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {[...selectedTagIds].map((id) => {
+              const tag = allTags.find((t) => t.id === id);
+              if (!tag) return null;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggleTag(id)}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer"
+                  style={{ fontFamily: "'Geist Mono', monospace" }}
+                >
+                  {tag.name}
+                  <span className="ml-0.5">×</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Search */}
+        <input
+          type="text"
+          value={tagSearch}
+          onChange={(e) => setTagSearch(e.target.value)}
+          placeholder="태그 검색..."
+          className="w-full px-4 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors mb-3"
+        />
+
+        {/* Category tabs */}
+        <div className="flex gap-1.5 overflow-x-auto mb-3 scrollbar-hide">
+          <button
+            type="button"
+            onClick={() => setActiveCategory("")}
+            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
+              activeCategory === ""
+                ? "bg-text-primary text-bg"
+                : "bg-surface border border-border text-text-muted"
+            }`}
+          >
+            전체
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
+                activeCategory === cat
+                  ? "bg-text-primary text-bg"
+                  : "bg-surface border border-border text-text-muted"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Tag grid */}
+        <div className="max-h-48 overflow-y-auto border border-border rounded-[6px] p-2">
+          <div className="flex flex-wrap gap-1.5">
+            {filteredTags.map((tag) => {
+              const selected = selectedTagIds.has(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  disabled={!selected && selectedTagIds.size >= TAG_MAX_COUNT}
+                  className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                    selected
+                      ? "bg-accent text-white"
+                      : "bg-accent-subtle text-text-muted hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  }`}
+                  style={{ fontFamily: "'Geist Mono', monospace" }}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+            {filteredTags.length === 0 && (
+              <div className="text-xs text-text-dim py-4 w-full text-center">
+                일치하는 태그가 없습니다
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Submit */}

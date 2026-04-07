@@ -1,25 +1,23 @@
 export type CardType = "image" | "audio" | "text" | "video";
 
-const FIELD_TO_CARD: Record<string, CardType> = {
-  "미술": "image",
-  "음악": "audio",
-  "시나리오 라이터": "text",
-  "영상편집": "video",
-  "프로그래밍": "image",
-};
-
-export function getCardType(field: string): CardType {
-  return FIELD_TO_CARD[field] ?? "image";
+export function getCardType(mediaType: string): CardType {
+  switch (mediaType) {
+    case "audio":
+      return "audio";
+    case "video":
+      return "video";
+    case "image":
+    default:
+      return "image";
+  }
 }
 
-const FIELD_LABELS: Record<string, string> = {
-  "미술": "Illustration",
-  "음악": "Music",
-  "시나리오 라이터": "Writing",
-  "영상편집": "Video",
-  "프로그래밍": "Code",
+const MEDIA_TYPE_LABELS: Record<string, string> = {
+  image: "Image",
+  audio: "Music",
+  video: "Video",
 };
 
-export function getFieldLabel(field: string): string {
-  return FIELD_LABELS[field] ?? field;
+export function getMediaTypeLabel(mediaType: string): string {
+  return MEDIA_TYPE_LABELS[mediaType] ?? mediaType;
 }

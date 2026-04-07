@@ -9,11 +9,14 @@ function makePin(overrides: Partial<Pin> = {}): Pin {
     url: "https://example.com",
     title: "Test Pin",
     description: "A test description",
-    field: "미술",
-    tags: ["tag1", "tag2"],
+    media_url: "image/test.jpg",
+    media_type: "image",
+    tags: [
+      { id: "t1", name: "tag1", slug: "tag1", category: "스타일" },
+      { id: "t2", name: "tag2", slug: "tag2", category: "장르" },
+    ],
     og_image: "https://images.unsplash.com/photo-1.jpg",
     og_data: null,
-    pin_count: 0,
     created_at: "2026-04-01T00:00:00Z",
     creator: {
       id: "creator-id",
@@ -25,27 +28,19 @@ function makePin(overrides: Partial<Pin> = {}): Pin {
 }
 
 describe("PinCard", () => {
-  it("renders image card with og_image", () => {
-    const pin = makePin({ field: "미술", og_image: "https://example.com/img.jpg" });
+  it("renders image card with media_url", () => {
+    const pin = makePin({ media_type: "image", media_url: "image/test.jpg" });
     render(<PinCard pin={pin} />);
 
     const img = screen.getByAltText("Test Pin");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("src", "https://example.com/img.jpg");
+    expect(img).toHaveAttribute("src", "image/test.jpg");
     expect(screen.getByText("Test Pin")).toBeInTheDocument();
     expect(screen.getByText("테스트유저")).toBeInTheDocument();
   });
 
-  it("renders image card placeholder when og_image is null", () => {
-    const pin = makePin({ field: "미술", og_image: null });
-    render(<PinCard pin={pin} />);
-
-    expect(screen.getByText("🎨")).toBeInTheDocument();
-    expect(screen.getByText("Test Pin")).toBeInTheDocument();
-  });
-
-  it("renders audio card for 음악 field", () => {
-    const pin = makePin({ field: "음악", title: "Dreamscape" });
+  it("renders audio card for audio media_type", () => {
+    const pin = makePin({ media_type: "audio", title: "Dreamscape" });
     render(<PinCard pin={pin} />);
 
     expect(screen.getByText("Dreamscape")).toBeInTheDocument();
@@ -53,24 +48,10 @@ describe("PinCard", () => {
     expect(screen.getByText("테스트유저")).toBeInTheDocument();
   });
 
-  it("renders text card for 시나리오 라이터 field", () => {
+  it("renders video card for video media_type", () => {
     const pin = makePin({
-      field: "시나리오 라이터",
-      title: "잊혀진 계절",
-      description: "보이스드라마 시나리오 전 4화 완결",
-    });
-    render(<PinCard pin={pin} />);
-
-    expect(screen.getByText("잊혀진 계절")).toBeInTheDocument();
-    expect(screen.getByText("Writing")).toBeInTheDocument();
-    expect(screen.getByText(/보이스드라마/)).toBeInTheDocument();
-    expect(screen.getByText(/min read/)).toBeInTheDocument();
-  });
-
-  it("renders video card for 영상편집 field", () => {
-    const pin = makePin({
-      field: "영상편집",
-      og_image: "https://example.com/video-thumb.jpg",
+      media_type: "video",
+      media_url: "video/test.mp4",
     });
     render(<PinCard pin={pin} />);
 
@@ -81,7 +62,13 @@ describe("PinCard", () => {
   });
 
   it("renders tags", () => {
-    const pin = makePin({ tags: ["신스팝", "몽환", "인디"] });
+    const pin = makePin({
+      tags: [
+        { id: "t1", name: "신스팝", slug: "synthpop", category: "장르" },
+        { id: "t2", name: "몽환", slug: "dreamy", category: "스타일" },
+        { id: "t3", name: "인디", slug: "indie", category: "장르" },
+      ],
+    });
     render(<PinCard pin={pin} />);
 
     expect(screen.getByText("신스팝")).toBeInTheDocument();
@@ -98,17 +85,18 @@ describe("PinCard", () => {
     expect(cardLink).toBeTruthy();
   });
 
-  it("shows pin count when > 0", () => {
-    const pin = makePin({ pin_count: 5 });
+  it("shows external link when url is present", () => {
+    const pin = makePin({ url: "https://example.com" });
     render(<PinCard pin={pin} />);
 
-    expect(screen.getByText("5")).toBeInTheDocument();
+    const extLink = screen.getByTitle("원본 보기");
+    expect(extLink).toBeInTheDocument();
   });
 
-  it("hides pin count when 0", () => {
-    const pin = makePin({ pin_count: 0 });
+  it("hides external link when url is null", () => {
+    const pin = makePin({ url: null });
     render(<PinCard pin={pin} />);
 
-    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("원본 보기")).not.toBeInTheDocument();
   });
 });

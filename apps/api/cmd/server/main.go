@@ -22,6 +22,8 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
 	"github.com/chungsanghwa/fugue/apps/api/internal/og"
 	"github.com/chungsanghwa/fugue/apps/api/internal/pin"
+	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
+	"github.com/chungsanghwa/fugue/apps/api/internal/tag"
 )
 
 func main() {
@@ -55,6 +57,19 @@ func main() {
 	rdb := redis.NewClient(opt)
 	defer func() { _ = rdb.Close() }()
 
+	// Storage (S3/MinIO)
+	store, err := storage.NewClient(storage.Config{
+		Endpoint:  cfg.S3Endpoint,
+		Region:    cfg.S3Region,
+		Bucket:    cfg.S3Bucket,
+		AccessKey: cfg.S3AccessKey,
+		SecretKey: cfg.S3SecretKey,
+		PublicURL: cfg.S3PublicURL,
+	})
+	if err != nil {
+		log.Fatalf("storage: %v", err)
+	}
+
 	// Auth setup
 	jwtSvc := auth.NewJWTService(cfg.JWTSecret)
 	stateManager := auth.NewStateManager(rdb)
@@ -84,11 +99,12 @@ func main() {
 	pinRL := auth.NewRateLimiter(rdb, 30, time.Minute)
 
 	// Handlers
-	pinHandler := pin.NewHandler(db)
+	pinHandler := pin.NewHandler(db, store)
 	creatorHandler := creator.NewHandler(db)
 	ogHandler := og.NewHandler()
 	boardsHandler := boards.NewHandler(db)
 	interactionHandler := interaction.NewHandler(db)
+	tagHandler := tag.NewHandler(db)
 	feedHandler := feed.NewHandler(db, rdb)
 
 	// Router
@@ -108,6 +124,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprintln(w, "ok")
 	})
+
+	// Tag routes
+	r.Get("/api/tags", tagHandler.List)
 
 	// Pin routes
 	r.Get("/api/pins", pinHandler.List)

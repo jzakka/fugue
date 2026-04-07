@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
 
@@ -115,27 +114,26 @@ func (q *Queries) GetBoard(ctx context.Context, id uuid.UUID) (Board, error) {
 }
 
 const listBoardPinImages = `-- name: ListBoardPinImages :many
-SELECT p.og_image FROM board_pins bp
+SELECT p.media_url FROM board_pins bp
 JOIN pins p ON p.id = bp.pin_id
-WHERE bp.board_id = $1
-  AND p.og_image IS NOT NULL
+WHERE bp.board_id = $1 AND p.media_type = 'image'
 ORDER BY bp.created_at DESC
 LIMIT 4
 `
 
-func (q *Queries) ListBoardPinImages(ctx context.Context, boardID uuid.UUID) ([]sql.NullString, error) {
+func (q *Queries) ListBoardPinImages(ctx context.Context, boardID uuid.UUID) ([]string, error) {
 	rows, err := q.db.QueryContext(ctx, listBoardPinImages, boardID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []sql.NullString
+	var items []string
 	for rows.Next() {
-		var og_image sql.NullString
-		if err := rows.Scan(&og_image); err != nil {
+		var media_url string
+		if err := rows.Scan(&media_url); err != nil {
 			return nil, err
 		}
-		items = append(items, og_image)
+		items = append(items, media_url)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -148,8 +146,8 @@ func (q *Queries) ListBoardPinImages(ctx context.Context, boardID uuid.UUID) ([]
 
 const listBoardPins = `-- name: ListBoardPins :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
@@ -170,14 +168,13 @@ type ListBoardPinsParams struct {
 type ListBoardPinsRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -196,14 +193,13 @@ func (q *Queries) ListBoardPins(ctx context.Context, arg ListBoardPinsParams) ([
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,

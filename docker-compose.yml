@@ -18,6 +18,31 @@ services:
     volumes:
       - redisdata:/data
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: fugue
+      MINIO_ROOT_PASSWORD: fuguedev123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 2;
+      mc alias set local http://minio:9000 fugue fuguedev123;
+      mc mb local/fugue-media --ignore-existing;
+      mc anonymous set download local/fugue-media;
+      "
+
 volumes:
   pgdata:
   redisdata:
+  miniodata:

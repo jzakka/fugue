@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import NavBar from "@/components/nav/NavBar";
 import { fetchPin, fetchRelatedPins } from "@/lib/api";
 import type { Pin } from "@/lib/api";
-import { getFieldLabel } from "@/lib/card-type";
+import { getMediaTypeLabel } from "@/lib/card-type";
 import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import PinDetailTracker from "./PinDetailTracker";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: `${pin.title} — Fugue`,
         description: pin.description || `${pin.title} by ${pin.creator.nickname}`,
-        images: pin.og_image ? [pin.og_image] : undefined,
+        images: pin.media_type === "image" ? [pin.media_url] : pin.og_image ? [pin.og_image] : undefined,
       },
     };
   } catch {
@@ -33,30 +33,51 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-const FIELD_FALLBACK_ICONS: Record<string, string> = {
-  "미술": "palette",
-  "음악": "music_note",
-  "영상편집": "movie",
-  "프로그래밍": "code",
-  "글": "description",
-  "기타": "auto_awesome",
-};
-
-function FieldFallback({ field }: { field: string }) {
-  const label = getFieldLabel(field);
-  return (
-    <div className="w-full h-64 bg-surface-elevated flex flex-col items-center justify-center gap-3">
-      <div className="w-16 h-16 rounded-full bg-accent-subtle flex items-center justify-center">
-        <span className="text-2xl text-accent">{label.charAt(0)}</span>
-      </div>
-      <span
-        className="text-xs text-text-dim uppercase tracking-wider"
-        style={{ fontFamily: "'Geist Mono', monospace" }}
-      >
-        {label}
-      </span>
-    </div>
-  );
+function MediaPlayer({ pin }: { pin: Pin }) {
+  switch (pin.media_type) {
+    case "image":
+      return (
+        <div className="overflow-hidden">
+          <img
+            src={pin.media_url}
+            alt={pin.title}
+            className="w-full object-cover max-h-[480px]"
+          />
+        </div>
+      );
+    case "audio":
+      return (
+        <div className="p-8 bg-surface-elevated">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-lg bg-accent-subtle flex items-center justify-center text-2xl text-accent">
+              ♪
+            </div>
+            <div>
+              <div className="text-lg font-semibold">{pin.title}</div>
+              <div className="text-sm text-text-muted">{pin.creator.nickname}</div>
+            </div>
+          </div>
+          <audio controls className="w-full" preload="metadata">
+            <source src={pin.media_url} />
+          </audio>
+        </div>
+      );
+    case "video":
+      return (
+        <div className="overflow-hidden bg-black">
+          <video
+            controls
+            className="w-full max-h-[480px]"
+            preload="metadata"
+            poster={pin.og_image || undefined}
+          >
+            <source src={pin.media_url} />
+          </video>
+        </div>
+      );
+    default:
+      return null;
+  }
 }
 
 export default async function PinDetailPage({ params }: Props) {
@@ -89,27 +110,17 @@ export default async function PinDetailPage({ params }: Props) {
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         {/* Pin Detail */}
         <article className="bg-surface rounded-[16px] border border-border overflow-hidden">
-          {/* OG Image or Fallback */}
-          {pin.og_image ? (
-            <div className="overflow-hidden">
-              <img
-                src={pin.og_image}
-                alt={pin.title}
-                className="w-full object-cover max-h-[480px]"
-              />
-            </div>
-          ) : (
-            <FieldFallback field={pin.field} />
-          )}
+          {/* Media Player */}
+          <MediaPlayer pin={pin} />
 
           {/* Content */}
           <div className="p-6 sm:p-8 space-y-5">
-            {/* Field Badge */}
+            {/* Media Type Badge */}
             <span
               className="inline-block px-3 py-1 bg-accent-subtle text-accent rounded-full text-xs font-medium"
               style={{ fontFamily: "'Geist Mono', monospace" }}
             >
-              {getFieldLabel(pin.field)}
+              {getMediaTypeLabel(pin.media_type)}
             </span>
 
             {/* Title */}
@@ -132,11 +143,11 @@ export default async function PinDetailPage({ params }: Props) {
               <div className="flex flex-wrap gap-2">
                 {pin.tags.map((tag) => (
                   <span
-                    key={tag}
+                    key={tag.id}
                     className="px-2.5 py-1 bg-accent-subtle text-text-muted rounded-full text-xs"
                     style={{ fontFamily: "'Geist Mono', monospace" }}
                   >
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
               </div>
@@ -145,9 +156,8 @@ export default async function PinDetailPage({ params }: Props) {
             {/* Divider */}
             <div className="border-t border-border" />
 
-            {/* Creator + Meta */}
+            {/* Creator */}
             <div className="flex items-center justify-between flex-wrap gap-4">
-              {/* Creator */}
               <Link
                 href={`/creators/${pin.creator.id}`}
                 className="flex items-center gap-3 group"
@@ -165,55 +175,34 @@ export default async function PinDetailPage({ params }: Props) {
                   {pin.creator.nickname}
                 </span>
               </Link>
-
-              {/* Pin count */}
-              <div className="flex items-center gap-1.5 text-text-muted">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" />
-                  <circle cx="12" cy="9" r="2.5" />
-                </svg>
-                <span
-                  className="text-xs"
-                  style={{ fontFamily: "'Geist Mono', monospace" }}
-                >
-                  {pin.pin_count}
-                </span>
-              </div>
             </div>
 
             {/* Action buttons */}
             <div className="flex gap-3 flex-wrap">
-              <a
-                href={pin.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              {pin.url && (
+                <a
+                  href={pin.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors"
                 >
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-                원본 보기
-              </a>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  원본 보기
+                </a>
+              )}
               <Link
                 href={`/boards?add=${pin.id}`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors"

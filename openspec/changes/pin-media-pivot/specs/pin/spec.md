@@ -34,7 +34,7 @@
 
 #### Scenario: MIME 타입 기반 자동 분류
 - **WHEN** 파일이 업로드되면
-- **THEN** Content-Type 헤더와 파일 매직바이트를 검증하여 미디어 타입을 결정한다
+- **THEN** 업로드된 파일의 실제 형식을 검증하여 미디어 타입(image/audio/video)을 결정한다
 
 #### Scenario: MIME 타입 위조 방지
 - **WHEN** Content-Type과 실제 파일 내용이 일치하지 않으면

@@ -147,9 +147,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	coverImages := toStringSlice(images)
-
-	writeJSON(w, http.StatusOK, toBoardResponse(board, pinCount, coverImages))
+	writeJSON(w, http.StatusOK, toBoardResponse(board, pinCount, images))
 }
 
 // ---------------------------------------------------------------------------
@@ -243,9 +241,8 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	pinCount, _ := q.CountBoardPins(r.Context(), boardID)
 	images, _ := q.ListBoardPinImages(r.Context(), boardID)
-	coverImages := toStringSlice(images)
 
-	writeJSON(w, http.StatusOK, toBoardResponse(updated, pinCount, coverImages))
+	writeJSON(w, http.StatusOK, toBoardResponse(updated, pinCount, images))
 }
 
 // ---------------------------------------------------------------------------
@@ -323,8 +320,7 @@ func (h *Handler) ListByCreator(w http.ResponseWriter, r *http.Request) {
 	for _, b := range boards {
 		pinCount, _ := q.CountBoardPins(r.Context(), b.ID)
 		images, _ := q.ListBoardPinImages(r.Context(), b.ID)
-		coverImages := toStringSlice(images)
-		results = append(results, toBoardResponse(b, pinCount, coverImages))
+		results = append(results, toBoardResponse(b, pinCount, images))
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -480,16 +476,6 @@ func toBoardResponse(b db.Board, pinCount int64, coverImages []string) BoardResp
 		CreatedAt:   b.CreatedAt,
 		UpdatedAt:   b.UpdatedAt,
 	}
-}
-
-func toStringSlice(nullStrings []sql.NullString) []string {
-	result := make([]string, 0, len(nullStrings))
-	for _, ns := range nullStrings {
-		if ns.Valid {
-			result = append(result, ns.String)
-		}
-	}
-	return result
 }
 
 func writeJSON(w http.ResponseWriter, status int, data any) {

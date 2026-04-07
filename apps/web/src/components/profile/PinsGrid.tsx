@@ -7,7 +7,12 @@ import PinCard from "@/components/feed/PinCard";
 import CardSkeleton from "@/components/feed/CardSkeleton";
 
 const PAGE_SIZE = 20;
-const FIELDS = ["전체", "음악", "일러스트", "영상", "글", "사진", "기타"];
+const MEDIA_TYPES = [
+  { value: "", label: "전체" },
+  { value: "image", label: "이미지" },
+  { value: "audio", label: "음악" },
+  { value: "video", label: "영상" },
+];
 
 export default function PinsGrid({
   creatorId,
@@ -21,18 +26,18 @@ export default function PinsGrid({
   const [pins, setPins] = useState(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
-  const [activeField, setActiveField] = useState("전체");
+  const [activeType, setActiveType] = useState("");
   const offsetRef = useRef(initialPins.length);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const reload = useCallback(
-    async (field: string) => {
+    async (mediaType: string) => {
       setLoading(true);
       offsetRef.current = 0;
       try {
         const data = await fetchPins({
           creator_id: creatorId,
-          field: field === "전체" ? undefined : field,
+          media_type: mediaType || undefined,
           limit: PAGE_SIZE,
         });
         setPins(data.pins);
@@ -48,9 +53,9 @@ export default function PinsGrid({
     [creatorId]
   );
 
-  function handleFieldChange(field: string) {
-    setActiveField(field);
-    reload(field);
+  function handleTypeChange(mediaType: string) {
+    setActiveType(mediaType);
+    reload(mediaType);
   }
 
   const loadMore = useCallback(async () => {
@@ -59,7 +64,7 @@ export default function PinsGrid({
     try {
       const data = await fetchPins({
         creator_id: creatorId,
-        field: activeField === "전체" ? undefined : activeField,
+        media_type: activeType || undefined,
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
@@ -71,7 +76,7 @@ export default function PinsGrid({
     } finally {
       setLoading(false);
     }
-  }, [creatorId, activeField, loading, hasMore]);
+  }, [creatorId, activeType, loading, hasMore]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -89,19 +94,19 @@ export default function PinsGrid({
 
   return (
     <div>
-      {/* Field filter tabs */}
+      {/* Media type filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {FIELDS.map((field) => (
+        {MEDIA_TYPES.map((mt) => (
           <button
-            key={field}
-            onClick={() => handleFieldChange(field)}
+            key={mt.value}
+            onClick={() => handleTypeChange(mt.value)}
             className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
-              activeField === field
+              activeType === mt.value
                 ? "bg-accent text-white"
                 : "bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent"
             }`}
           >
-            {field}
+            {mt.label}
           </button>
         ))}
       </div>

@@ -58,13 +58,25 @@ type Interaction struct {
 type Pin struct {
 	ID          uuid.UUID
 	CreatorID   uuid.UUID
-	Url         string
+	Url         sql.NullString
 	Title       string
 	Description sql.NullString
-	Field       string
-	Tags        []string
 	OgImage     sql.NullString
 	OgData      pqtype.NullRawMessage
 	CreatedAt   time.Time
-	PinCount    int32
+	MediaUrl    string
+	MediaType   string
+}
+
+type PinTag struct {
+	PinID uuid.UUID
+	TagID uuid.UUID
+}
+
+type Tag struct {
+	ID           uuid.UUID
+	Name         string
+	Slug         string
+	Category     string
+	DisplayOrder sql.NullInt32
 }

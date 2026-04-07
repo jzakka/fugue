@@ -6,7 +6,7 @@ import { fetchPins } from "@/lib/api";
 import type { Pin } from "@/lib/api";
 
 async function getInitialPins(
-  field?: string,
+  mediaType?: string,
   offset?: number
 ): Promise<{
   pins: Pin[];
@@ -15,7 +15,7 @@ async function getInitialPins(
 }> {
   try {
     const data = await fetchPins(
-      { field: field || undefined, limit: 20, offset: offset || 0 },
+      { media_type: mediaType || undefined, limit: 20, offset: offset || 0 },
       { serverSide: true }
     );
     return { pins: data.pins, hasMore: data.has_more, error: false };
@@ -29,11 +29,11 @@ export const dynamic = "force-dynamic";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ field?: string; offset?: string }>;
+  searchParams: Promise<{ media_type?: string; offset?: string }>;
 }) {
   const params = await searchParams;
   const offset = params.offset ? parseInt(params.offset, 10) || 0 : 0;
-  const { pins, hasMore, error } = await getInitialPins(params.field, offset);
+  const { pins, hasMore, error } = await getInitialPins(params.media_type, offset);
 
   return (
     <>
@@ -46,7 +46,7 @@ export default async function HomePage({
           <FeedContainer
             initialPins={pins}
             initialHasMore={hasMore}
-            initialField={params.field || ""}
+            initialMediaType={params.media_type || ""}
             initialOffset={offset}
             initialError={error}
           />

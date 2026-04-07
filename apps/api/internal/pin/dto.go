@@ -13,16 +13,23 @@ type CreatorSummary struct {
 	AvatarURL *string `json:"avatar_url"`
 }
 
+type TagResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Slug     string `json:"slug"`
+	Category string `json:"category"`
+}
+
 type PinResponse struct {
 	ID          string           `json:"id"`
-	URL         string           `json:"url"`
+	URL         *string          `json:"url"`
 	Title       string           `json:"title"`
 	Description *string          `json:"description"`
-	Field       string           `json:"field"`
-	Tags        []string         `json:"tags"`
+	MediaURL    string           `json:"media_url"`
+	MediaType   string           `json:"media_type"`
 	OgImage     *string          `json:"og_image"`
 	OgData      *json.RawMessage `json:"og_data"`
-	PinCount    int32            `json:"pin_count"`
+	Tags        []TagResponse    `json:"tags"`
 	CreatedAt   time.Time        `json:"created_at"`
 	Creator     CreatorSummary   `json:"creator"`
 }
@@ -33,40 +40,41 @@ type ListPinsResponse struct {
 }
 
 type CreatePinRequest struct {
-	URL         string           `json:"url"`
 	Title       string           `json:"title"`
 	Description *string          `json:"description"`
-	Field       string           `json:"field"`
-	Tags        []string         `json:"tags"`
 	OgImage     *string          `json:"og_image"`
 	OgData      *json.RawMessage `json:"og_data"`
 }
 
 type CreatedPinResponse struct {
 	ID        string    `json:"id"`
-	URL       string    `json:"url"`
+	URL       *string   `json:"url"`
 	Title     string    `json:"title"`
-	Field     string    `json:"field"`
-	Tags      []string  `json:"tags"`
+	MediaURL  string    `json:"media_url"`
+	MediaType string    `json:"media_type"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 func toCreatedResponse(p db.Pin) CreatedPinResponse {
-	tags := p.Tags
-	if tags == nil {
-		tags = []string{}
+	var url *string
+	if p.Url.Valid {
+		url = &p.Url.String
 	}
 	return CreatedPinResponse{
 		ID:        p.ID.String(),
-		URL:       p.Url,
+		URL:       url,
 		Title:     p.Title,
-		Field:     p.Field,
-		Tags:      tags,
+		MediaURL:  p.MediaUrl,
+		MediaType: p.MediaType,
 		CreatedAt: p.CreatedAt,
 	}
 }
 
 func toPinDetailResponse(row db.GetPinWithCreatorRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -84,20 +92,16 @@ func toPinDetailResponse(row db.GetPinWithCreatorRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
+		Tags:        []TagResponse{},
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),
@@ -108,6 +112,10 @@ func toPinDetailResponse(row db.GetPinWithCreatorRow) PinResponse {
 }
 
 func toRelatedPinResponse(row db.RelatedPinsRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -125,20 +133,16 @@ func toRelatedPinResponse(row db.RelatedPinsRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
+		Tags:        []TagResponse{},
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),
@@ -149,6 +153,10 @@ func toRelatedPinResponse(row db.RelatedPinsRow) PinResponse {
 }
 
 func toCreatorPinResponse(row db.ListPinsByCreatorRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -166,20 +174,16 @@ func toCreatorPinResponse(row db.ListPinsByCreatorRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
+		Tags:        []TagResponse{},
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),
@@ -190,6 +194,10 @@ func toCreatorPinResponse(row db.ListPinsByCreatorRow) PinResponse {
 }
 
 func toPinResponse(row db.ListPinsWithCreatorRow) PinResponse {
+	var url *string
+	if row.Url.Valid {
+		url = &row.Url.String
+	}
 	var desc *string
 	if row.Description.Valid {
 		desc = &row.Description.String
@@ -207,20 +215,16 @@ func toPinResponse(row db.ListPinsWithCreatorRow) PinResponse {
 	if row.CreatorAvatarUrl.Valid {
 		avatarURL = &row.CreatorAvatarUrl.String
 	}
-	tags := row.Tags
-	if tags == nil {
-		tags = []string{}
-	}
 	return PinResponse{
 		ID:          row.ID.String(),
-		URL:         row.Url,
+		URL:         url,
 		Title:       row.Title,
 		Description: desc,
-		Field:       row.Field,
-		Tags:        tags,
+		MediaURL:    row.MediaUrl,
+		MediaType:   row.MediaType,
 		OgImage:     ogImage,
 		OgData:      ogData,
-		PinCount:    row.PinCount,
+		Tags:        []TagResponse{},
 		CreatedAt:   row.CreatedAt,
 		Creator: CreatorSummary{
 			ID:        row.CreatorIDRef.String(),

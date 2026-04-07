@@ -20,6 +20,12 @@ type Config struct {
 	DiscordClientSecret string
 	TwitterClientID     string
 	TwitterClientSecret string
+	S3Endpoint          string
+	S3Region            string
+	S3Bucket            string
+	S3AccessKey         string
+	S3SecretKey         string
+	S3PublicURL         string
 }
 
 func Load() (*Config, error) {
@@ -63,6 +69,12 @@ func Load() (*Config, error) {
 		DiscordClientSecret: discordSecret,
 		TwitterClientID:     os.Getenv("TWITTER_CLIENT_ID"),
 		TwitterClientSecret: os.Getenv("TWITTER_CLIENT_SECRET"),
+		S3Endpoint:          envOrDefault("S3_ENDPOINT", "http://localhost:9000"),
+		S3Region:            envOrDefault("S3_REGION", "us-east-1"),
+		S3Bucket:            envOrDefault("S3_BUCKET", "fugue-media"),
+		S3AccessKey:         envOrDefault("S3_ACCESS_KEY", "fugue"),
+		S3SecretKey:         envOrDefault("S3_SECRET_KEY", "fuguedev123"),
+		S3PublicURL:         envOrDefault("S3_PUBLIC_URL", "http://localhost:9000/fugue-media"),
 	}, nil
 }
 

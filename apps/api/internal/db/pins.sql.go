@@ -16,14 +16,16 @@ import (
 )
 
 const countPins = `-- name: CountPins :one
-SELECT count(*) FROM pins
-WHERE ($1::varchar = '' OR field = $1)
-  AND ($2::text[] IS NULL OR tags && $2::text[])
+SELECT count(*) FROM pins p
+WHERE ($1::varchar = '' OR p.media_type = $1)
+  AND ($2::uuid[] IS NULL OR EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+  ))
 `
 
 type CountPinsParams struct {
 	Column1 string
-	Column2 []string
+	Column2 []uuid.UUID
 }
 
 func (q *Queries) CountPins(ctx context.Context, arg CountPinsParams) (int64, error) {
@@ -34,16 +36,18 @@ func (q *Queries) CountPins(ctx context.Context, arg CountPinsParams) (int64, er
 }
 
 const countPinsByCreatorFiltered = `-- name: CountPinsByCreatorFiltered :one
-SELECT count(*) FROM pins
-WHERE creator_id = $1
-  AND ($2::varchar = '' OR field = $2)
-  AND ($3::text[] IS NULL OR tags && $3::text[])
+SELECT count(*) FROM pins p
+WHERE p.creator_id = $1
+  AND ($2::varchar = '' OR p.media_type = $2)
+  AND ($3::uuid[] IS NULL OR EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($3::uuid[])
+  ))
 `
 
 type CountPinsByCreatorFilteredParams struct {
 	CreatorID uuid.UUID
 	Column2   string
-	Column3   []string
+	Column3   []uuid.UUID
 }
 
 func (q *Queries) CountPinsByCreatorFiltered(ctx context.Context, arg CountPinsByCreatorFilteredParams) (int64, error) {
@@ -54,18 +58,18 @@ func (q *Queries) CountPinsByCreatorFiltered(ctx context.Context, arg CountPinsB
 }
 
 const createPin = `-- name: CreatePin :one
-INSERT INTO pins (creator_id, url, title, description, field, tags, og_image, og_data)
+INSERT INTO pins (creator_id, media_url, media_type, url, title, description, og_image, og_data)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, creator_id, url, title, description, field, tags, og_image, og_data, created_at, pin_count
+RETURNING id, creator_id, url, title, description, og_image, og_data, created_at, media_url, media_type
 `
 
 type CreatePinParams struct {
 	CreatorID   uuid.UUID
-	Url         string
+	MediaUrl    string
+	MediaType   string
+	Url         sql.NullString
 	Title       string
 	Description sql.NullString
-	Field       string
-	Tags        []string
 	OgImage     sql.NullString
 	OgData      pqtype.NullRawMessage
 }
@@ -73,11 +77,11 @@ type CreatePinParams struct {
 func (q *Queries) CreatePin(ctx context.Context, arg CreatePinParams) (Pin, error) {
 	row := q.db.QueryRowContext(ctx, createPin,
 		arg.CreatorID,
+		arg.MediaUrl,
+		arg.MediaType,
 		arg.Url,
 		arg.Title,
 		arg.Description,
-		arg.Field,
-		pq.Array(arg.Tags),
 		arg.OgImage,
 		arg.OgData,
 	)
@@ -88,12 +92,11 @@ func (q *Queries) CreatePin(ctx context.Context, arg CreatePinParams) (Pin, erro
 		&i.Url,
 		&i.Title,
 		&i.Description,
-		&i.Field,
-		pq.Array(&i.Tags),
 		&i.OgImage,
 		&i.OgData,
 		&i.CreatedAt,
-		&i.PinCount,
+		&i.MediaUrl,
+		&i.MediaType,
 	)
 	return i, err
 }
@@ -117,7 +120,7 @@ func (q *Queries) DeletePin(ctx context.Context, arg DeletePinParams) (int64, er
 }
 
 const getPin = `-- name: GetPin :one
-SELECT id, creator_id, url, title, description, field, tags, og_image, og_data, created_at, pin_count FROM pins
+SELECT id, creator_id, url, title, description, og_image, og_data, created_at, media_url, media_type FROM pins
 WHERE id = $1
 `
 
@@ -130,31 +133,62 @@ func (q *Queries) GetPin(ctx context.Context, id uuid.UUID) (Pin, error) {
 		&i.Url,
 		&i.Title,
 		&i.Description,
-		&i.Field,
-		pq.Array(&i.Tags),
 		&i.OgImage,
 		&i.OgData,
 		&i.CreatedAt,
-		&i.PinCount,
+		&i.MediaUrl,
+		&i.MediaType,
 	)
 	return i, err
 }
 
-const getPinURL = `-- name: GetPinURL :one
-SELECT url FROM pins WHERE id = $1
+const getPinTags = `-- name: GetPinTags :many
+SELECT t.id, t.name, t.slug, t.category
+FROM pin_tags pt
+JOIN tags t ON t.id = pt.tag_id
+WHERE pt.pin_id = $1
+ORDER BY t.category, t.display_order
 `
 
-func (q *Queries) GetPinURL(ctx context.Context, id uuid.UUID) (string, error) {
-	row := q.db.QueryRowContext(ctx, getPinURL, id)
-	var url string
-	err := row.Scan(&url)
-	return url, err
+type GetPinTagsRow struct {
+	ID       uuid.UUID
+	Name     string
+	Slug     string
+	Category string
+}
+
+func (q *Queries) GetPinTags(ctx context.Context, pinID uuid.UUID) ([]GetPinTagsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPinTags, pinID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPinTagsRow
+	for rows.Next() {
+		var i GetPinTagsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPinWithCreator = `-- name: GetPinWithCreator :one
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
@@ -166,14 +200,13 @@ WHERE p.id = $1
 type GetPinWithCreatorRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -186,14 +219,13 @@ func (q *Queries) GetPinWithCreator(ctx context.Context, id uuid.UUID) (GetPinWi
 	err := row.Scan(
 		&i.ID,
 		&i.CreatorID,
+		&i.MediaUrl,
+		&i.MediaType,
 		&i.Url,
 		&i.Title,
 		&i.Description,
-		&i.Field,
-		pq.Array(&i.Tags),
 		&i.OgImage,
 		&i.OgData,
-		&i.PinCount,
 		&i.CreatedAt,
 		&i.CreatorIDRef,
 		&i.CreatorNickname,
@@ -202,17 +234,33 @@ func (q *Queries) GetPinWithCreator(ctx context.Context, id uuid.UUID) (GetPinWi
 	return i, err
 }
 
+const linkPinTag = `-- name: LinkPinTag :exec
+INSERT INTO pin_tags (pin_id, tag_id) VALUES ($1, $2)
+`
+
+type LinkPinTagParams struct {
+	PinID uuid.UUID
+	TagID uuid.UUID
+}
+
+func (q *Queries) LinkPinTag(ctx context.Context, arg LinkPinTagParams) error {
+	_, err := q.db.ExecContext(ctx, linkPinTag, arg.PinID, arg.TagID)
+	return err
+}
+
 const listLatestPinsWithCreator = `-- name: ListLatestPinsWithCreator :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
-WHERE ($1::varchar = '' OR p.field = $1)
-  AND ($2::text[] IS NULL OR p.tags && $2::text[])
+WHERE ($1::varchar = '' OR p.media_type = $1)
+  AND ($2::uuid[] IS NULL OR EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+  ))
   AND (p.created_at < $3::timestamptz OR (p.created_at = $3::timestamptz AND p.id < $4::uuid))
 ORDER BY p.created_at DESC, p.id DESC
 LIMIT $5
@@ -220,7 +268,7 @@ LIMIT $5
 
 type ListLatestPinsWithCreatorParams struct {
 	Column1 string
-	Column2 []string
+	Column2 []uuid.UUID
 	Column3 time.Time
 	Column4 uuid.UUID
 	Limit   int32
@@ -229,14 +277,13 @@ type ListLatestPinsWithCreatorParams struct {
 type ListLatestPinsWithCreatorRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -261,14 +308,13 @@ func (q *Queries) ListLatestPinsWithCreator(ctx context.Context, arg ListLatestP
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,
@@ -289,16 +335,18 @@ func (q *Queries) ListLatestPinsWithCreator(ctx context.Context, arg ListLatestP
 
 const listPinsByCreator = `-- name: ListPinsByCreator :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE p.creator_id = $1
-  AND ($2::varchar = '' OR p.field = $2)
-  AND ($3::text[] IS NULL OR p.tags && $3::text[])
+  AND ($2::varchar = '' OR p.media_type = $2)
+  AND ($3::uuid[] IS NULL OR EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($3::uuid[])
+  ))
 ORDER BY p.created_at DESC, p.id DESC
 LIMIT $4 OFFSET $5
 `
@@ -306,7 +354,7 @@ LIMIT $4 OFFSET $5
 type ListPinsByCreatorParams struct {
 	CreatorID uuid.UUID
 	Column2   string
-	Column3   []string
+	Column3   []uuid.UUID
 	Limit     int32
 	Offset    int32
 }
@@ -314,14 +362,13 @@ type ListPinsByCreatorParams struct {
 type ListPinsByCreatorRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -346,14 +393,13 @@ func (q *Queries) ListPinsByCreator(ctx context.Context, arg ListPinsByCreatorPa
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,
@@ -374,22 +420,24 @@ func (q *Queries) ListPinsByCreator(ctx context.Context, arg ListPinsByCreatorPa
 
 const listPinsWithCreator = `-- name: ListPinsWithCreator :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
-WHERE ($1::varchar = '' OR p.field = $1)
-  AND ($2::text[] IS NULL OR p.tags && $2::text[])
+WHERE ($1::varchar = '' OR p.media_type = $1)
+  AND ($2::uuid[] IS NULL OR EXISTS (
+    SELECT 1 FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+  ))
 ORDER BY p.created_at DESC, p.id DESC
 LIMIT $3 OFFSET $4
 `
 
 type ListPinsWithCreatorParams struct {
 	Column1 string
-	Column2 []string
+	Column2 []uuid.UUID
 	Limit   int32
 	Offset  int32
 }
@@ -397,14 +445,13 @@ type ListPinsWithCreatorParams struct {
 type ListPinsWithCreatorRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -428,14 +475,13 @@ func (q *Queries) ListPinsWithCreator(ctx context.Context, arg ListPinsWithCreat
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,
@@ -456,39 +502,41 @@ func (q *Queries) ListPinsWithCreator(ctx context.Context, arg ListPinsWithCreat
 
 const relatedPins = `-- name: RelatedPins :many
 SELECT
-    p.id, p.creator_id, p.url, p.title, p.description,
-    p.field, p.tags, p.og_image, p.og_data, p.pin_count, p.created_at,
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
     c.id AS creator_id_ref,
     c.nickname AS creator_nickname,
     c.avatar_url AS creator_avatar_url
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE p.id != $1
-  AND p.tags && $2::text[]
+  AND EXISTS (
+    SELECT 1 FROM pin_tags pt
+    WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+  )
 ORDER BY
-    CASE WHEN p.field = $3 THEN 0 ELSE 1 END,
-    array_length(p.tags & $2::text[], 1) DESC NULLS LAST,
+    CASE WHEN p.media_type = $3 THEN 0 ELSE 1 END,
+    (SELECT count(*) FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])) DESC,
     p.created_at DESC
 LIMIT 10
 `
 
 type RelatedPinsParams struct {
-	ID      uuid.UUID
-	Column2 []string
-	Field   string
+	ID        uuid.UUID
+	Column2   []uuid.UUID
+	MediaType string
 }
 
 type RelatedPinsRow struct {
 	ID               uuid.UUID
 	CreatorID        uuid.UUID
-	Url              string
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
 	Title            string
 	Description      sql.NullString
-	Field            string
-	Tags             []string
 	OgImage          sql.NullString
 	OgData           pqtype.NullRawMessage
-	PinCount         int32
 	CreatedAt        time.Time
 	CreatorIDRef     uuid.UUID
 	CreatorNickname  string
@@ -496,7 +544,7 @@ type RelatedPinsRow struct {
 }
 
 func (q *Queries) RelatedPins(ctx context.Context, arg RelatedPinsParams) ([]RelatedPinsRow, error) {
-	rows, err := q.db.QueryContext(ctx, relatedPins, arg.ID, pq.Array(arg.Column2), arg.Field)
+	rows, err := q.db.QueryContext(ctx, relatedPins, arg.ID, pq.Array(arg.Column2), arg.MediaType)
 	if err != nil {
 		return nil, err
 	}
@@ -507,14 +555,13 @@ func (q *Queries) RelatedPins(ctx context.Context, arg RelatedPinsParams) ([]Rel
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
 			&i.Url,
 			&i.Title,
 			&i.Description,
-			&i.Field,
-			pq.Array(&i.Tags),
 			&i.OgImage,
 			&i.OgData,
-			&i.PinCount,
 			&i.CreatedAt,
 			&i.CreatorIDRef,
 			&i.CreatorNickname,
@@ -531,15 +578,4 @@ func (q *Queries) RelatedPins(ctx context.Context, arg RelatedPinsParams) ([]Rel
 		return nil, err
 	}
 	return items, nil
-}
-
-const updatePinCountByURL = `-- name: UpdatePinCountByURL :exec
-UPDATE pins SET pin_count = (
-    SELECT COUNT(DISTINCT p2.creator_id) FROM pins p2 WHERE p2.url = pins.url
-) WHERE pins.url = $1
-`
-
-func (q *Queries) UpdatePinCountByURL(ctx context.Context, url string) error {
-	_, err := q.db.ExecContext(ctx, updatePinCountByURL, url)
-	return err
 }

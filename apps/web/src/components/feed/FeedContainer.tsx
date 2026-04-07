@@ -14,18 +14,18 @@ const PAGE_SIZE = 20;
 export default function FeedContainer({
   initialPins,
   initialHasMore,
-  initialField,
+  initialMediaType,
   initialOffset = 0,
   initialError = false,
 }: {
   initialPins: Pin[];
   initialHasMore: boolean;
-  initialField: string;
+  initialMediaType: string;
   initialOffset?: number;
   initialError?: boolean;
 }) {
   const searchParams = useSearchParams();
-  const field = searchParams.get("field") || "";
+  const mediaType = searchParams.get("media_type") || "";
 
   const [pins, setPins] = useState<Pin[]>(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -36,13 +36,11 @@ export default function FeedContainer({
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(initialOffset + initialPins.length);
-  const fieldRef = useRef(initialField);
+  const mediaTypeRef = useRef(initialMediaType);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Reload the full first page for the current field
-  const reloadField = useCallback(
-    async (targetField: string) => {
-      // Abort any in-flight request
+  const reloadMediaType = useCallback(
+    async (targetType: string) => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -52,7 +50,7 @@ export default function FeedContainer({
       offsetRef.current = 0;
 
       try {
-        const data = await fetchPins({ field: targetField || undefined, limit: PAGE_SIZE, offset: 0 });
+        const data = await fetchPins({ media_type: targetType || undefined, limit: PAGE_SIZE, offset: 0 });
         if (controller.signal.aborted) return;
         setPins(data.pins);
         setHasMore(data.has_more);
@@ -69,15 +67,12 @@ export default function FeedContainer({
     []
   );
 
-  // Refetch when field changes (skip if SSR already seeded the right field)
   useEffect(() => {
-    if (field === fieldRef.current) return;
-    fieldRef.current = field;
-    reloadField(field);
-  }, [field, reloadField]);
+    if (mediaType === mediaTypeRef.current) return;
+    mediaTypeRef.current = mediaType;
+    reloadMediaType(mediaType);
+  }, [mediaType, reloadMediaType]);
 
-  // Infinite scroll — load next page (also tracked by abortRef so field
-  // changes cancel in-flight loadMore requests and prevent stale appends)
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
 
@@ -90,7 +85,7 @@ export default function FeedContainer({
 
     try {
       const data = await fetchPins({
-        field: field || undefined,
+        media_type: mediaType || undefined,
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       });
@@ -101,15 +96,15 @@ export default function FeedContainer({
     } catch {
       if (controller.signal.aborted) return;
       setError("추가 작품을 불러올 수 없습니다");
-      setHasMore(false); // Stop auto-retry — user must click "다시 시도"
+      setHasMore(false);
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, [field, loading, hasMore]);
+  }, [mediaType, loading, hasMore]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || error || loading) return; // Don't observe during error or active loading
+    if (!sentinel || error || loading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -124,7 +119,6 @@ export default function FeedContainer({
     return () => observer.disconnect();
   }, [loadMore, error]);
 
-  // Initial loading state
   if (loading && pins.length === 0) {
     return (
       <div className="px-6">
@@ -137,25 +131,22 @@ export default function FeedContainer({
     );
   }
 
-  // Empty state
   if (!loading && pins.length === 0 && !error) {
     return <EmptyState />;
   }
 
   return (
     <div className="px-6">
-      {/* Error banner */}
       {error && (
         <div className="mb-4 p-4 bg-surface rounded-md border-l-3 border-error text-sm">
           {error}
           <button
             onClick={() => {
               setError(null);
-              setHasMore(true); // Re-enable infinite scroll
+              setHasMore(true);
               if (pins.length === 0) {
-                reloadField(field); // Full reload if no data at all
+                reloadMediaType(mediaType);
               }
-              // If we have data, IntersectionObserver will re-trigger loadMore
             }}
             className="ml-3 text-accent hover:underline cursor-pointer"
           >
@@ -164,30 +155,25 @@ export default function FeedContainer({
         </div>
       )}
 
-      {/* Masonry grid */}
       <MasonryGrid>
         {pins.map((pin) => (
           <PinCard key={pin.id} pin={pin} />
         ))}
       </MasonryGrid>
 
-      {/* Infinite scroll sentinel */}
       {hasMore && <div ref={sentinelRef} className="h-4" />}
 
-      {/* Loading indicator for infinite scroll */}
       {loading && pins.length > 0 && (
         <div className="flex justify-center py-8">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Load More fallback (noscript) — navigates to next page of results.
-          Without JS, pagination is page-based (standard HTML behavior). */}
       <noscript>
         {hasMore && (
           <div className="flex justify-center py-8">
             <a
-              href={`?${field ? `field=${field}&` : ""}offset=${offsetRef.current}`}
+              href={`?${mediaType ? `media_type=${mediaType}&` : ""}offset=${offsetRef.current}`}
               className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors"
             >
               다음 페이지
