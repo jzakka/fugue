@@ -76,7 +76,7 @@ function VideoSection({ pin }: { pin: Pin }) {
   return (
     <div className="overflow-hidden relative">
       <img
-        src={pin.media_url}
+        src={pin.og_image || pin.media_url}
         alt={pin.title}
         loading="lazy"
         className="w-full block object-cover"
