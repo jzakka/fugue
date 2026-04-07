@@ -67,7 +67,7 @@ INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description
  'video/seed-dreamscape-mv.mp4', 'video',
  'https://www.youtube.com/watch?v=abc123', 'Dreamscape MV',
  '하루 x mochi 콜라보 뮤직비디오.',
- 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&h=225&fit=crop'),
+ 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=225&fit=crop'),
 ('20000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000003',
  'video/seed-typo-reel.mp4', 'video',
  'https://www.youtube.com/watch?v=def456', '타이포그래피 모션 릴',
@@ -82,10 +82,10 @@ INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description
  '2D 로그라이크 게임. Unity 기반.',
  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop'),
 ('20000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000004',
- 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop', 'image',
+ 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop', 'image',
  'https://github.com/codex/sound-vis', 'Sound Visualizer',
  '음악 시각화 웹앱. Three.js 기반.',
- 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop');
+ 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop');
 
 -- Image pins (소라 - writing covers)
 INSERT INTO pins (id, creator_id, media_url, media_type, url, title, description, og_image) VALUES
