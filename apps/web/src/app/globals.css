@@ -29,10 +29,10 @@
   --surface-elevated: #FAFAFA;
   --surface-hover: #F0F0F0;
   --text-primary: #1A1A1A;
-  --text-muted: #777777;
-  --text-dim: #AAAAAA;
+  --text-muted: #666666;
+  --text-dim: #999999;
   --accent-subtle: rgba(232, 90, 42, 0.08);
-  --border: #E0E0E0;
+  --border: #D0D0D0;
 }
 
 @theme inline {
