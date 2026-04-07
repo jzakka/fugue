@@ -4,8 +4,19 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchOgPreview, fetchTags, createPin } from "@/lib/api";
 import type { OgPreview, TagInfo } from "@/lib/api";
+import {
+  validateAndOptimize,
+  type ProgressInfo,
+  type OptimizeResult,
+} from "@/lib/media";
 
 const TAG_MAX_COUNT = 10;
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
 
 export default function PinCreateForm() {
   const router = useRouter();
@@ -14,6 +25,13 @@ export default function PinCreateForm() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Optimization state
+  const [optimizing, setOptimizing] = useState(false);
+  const [optimizeProgress, setOptimizeProgress] =
+    useState<ProgressInfo | null>(null);
+  const [optimizeResult, setOptimizeResult] =
+    useState<OptimizeResult | null>(null);
 
   // URL + OG state (optional)
   const [url, setUrl] = useState("");
@@ -41,18 +59,41 @@ export default function PinCreateForm() {
     fetchTags().then((res) => setAllTags(res.tags)).catch(() => {});
   }, []);
 
-  // File handling
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // File handling with optimization pipeline
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    setFile(f);
 
-    // Generate preview for images/video
-    if (f.type.startsWith("image/") || f.type.startsWith("video/")) {
-      const objectUrl = URL.createObjectURL(f);
-      setPreview(objectUrl);
-    } else {
-      setPreview(null);
+    // Revoke previous preview URL
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setError(null);
+    setOptimizeResult(null);
+    setOptimizeProgress(null);
+    setOptimizing(true);
+
+    try {
+      const result = await validateAndOptimize(f, (info) => {
+        setOptimizeProgress(info);
+      });
+
+      setFile(result.file);
+      setOptimizeResult(result);
+
+      // Generate preview for optimized file
+      if (
+        result.file.type.startsWith("image/") ||
+        result.file.type.startsWith("video/")
+      ) {
+        setPreview(URL.createObjectURL(result.file));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "파일 처리에 실패했습니다");
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setOptimizing(false);
+      setOptimizeProgress(null);
     }
   }
 
@@ -60,38 +101,42 @@ export default function PinCreateForm() {
     setFile(null);
     if (preview) URL.revokeObjectURL(preview);
     setPreview(null);
+    setOptimizeResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   // OG fetch (optional, triggered when URL changes)
-  const handleOgFetch = useCallback(async (inputUrl: string) => {
-    abortRef.current?.abort();
-    const trimmed = inputUrl.trim();
-    if (!trimmed) {
-      setOgData(null);
-      return;
-    }
-    try {
-      new URL(trimmed);
-    } catch {
-      return;
-    }
-    setOgLoading(true);
-    const controller = new AbortController();
-    abortRef.current = controller;
-    try {
-      const data = await fetchOgPreview(trimmed);
-      if (controller.signal.aborted) return;
-      setOgData(data);
-      if (!title && data.title) setTitle(data.title);
-      if (!description && data.description) setDescription(data.description);
-    } catch {
-      if (controller.signal.aborted) return;
-      setOgData(null);
-    } finally {
-      if (!controller.signal.aborted) setOgLoading(false);
-    }
-  }, [title, description]);
+  const handleOgFetch = useCallback(
+    async (inputUrl: string) => {
+      abortRef.current?.abort();
+      const trimmed = inputUrl.trim();
+      if (!trimmed) {
+        setOgData(null);
+        return;
+      }
+      try {
+        new URL(trimmed);
+      } catch {
+        return;
+      }
+      setOgLoading(true);
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const data = await fetchOgPreview(trimmed);
+        if (controller.signal.aborted) return;
+        setOgData(data);
+        if (!title && data.title) setTitle(data.title);
+        if (!description && data.description) setDescription(data.description);
+      } catch {
+        if (controller.signal.aborted) return;
+        setOgData(null);
+      } finally {
+        if (!controller.signal.aborted) setOgLoading(false);
+      }
+    },
+    [title, description]
+  );
 
   function handleUrlChange(value: string) {
     setUrl(value);
@@ -103,7 +148,9 @@ export default function PinCreateForm() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       abortRef.current?.abort();
+      if (preview) URL.revokeObjectURL(preview);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tag helpers
@@ -111,7 +158,8 @@ export default function PinCreateForm() {
 
   const filteredTags = allTags.filter((t) => {
     if (activeCategory && t.category !== activeCategory) return false;
-    if (tagSearch && !t.name.toLowerCase().includes(tagSearch.toLowerCase())) return false;
+    if (tagSearch && !t.name.toLowerCase().includes(tagSearch.toLowerCase()))
+      return false;
     return true;
   });
 
@@ -141,11 +189,6 @@ export default function PinCreateForm() {
       setError("제목을 입력해주세요");
       return;
     }
-    if (selectedTagIds.size === 0) {
-      setError("태그를 1개 이상 선택해주세요");
-      return;
-    }
-
     const formData = new FormData();
     formData.append("media", file);
     formData.append("title", title.trim());
@@ -171,11 +214,13 @@ export default function PinCreateForm() {
     ? file.type.startsWith("image/")
       ? "이미지"
       : file.type.startsWith("audio/")
-      ? "오디오"
-      : file.type.startsWith("video/")
-      ? "비디오"
-      : file.type
+        ? "오디오"
+        : file.type.startsWith("video/")
+          ? "비디오"
+          : file.type
     : null;
+
+  const isDisabled = submitting || optimizing;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -197,7 +242,7 @@ export default function PinCreateForm() {
         <label className="block text-sm text-text-muted mb-2">
           미디어 파일 <span className="text-error">*</span>
         </label>
-        {!file ? (
+        {!file && !optimizing ? (
           <div
             onClick={() => fileInputRef.current?.click()}
             className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
@@ -210,32 +255,68 @@ export default function PinCreateForm() {
               className="text-xs text-text-dim mt-1"
               style={{ fontFamily: "'Geist Mono', monospace" }}
             >
-              이미지 (10MB) / 오디오 (50MB) / 비디오 (100MB)
+              이미지 / 오디오 / 비디오 — 자동 최적화 적용
             </div>
+          </div>
+        ) : optimizing ? (
+          <div className="border border-border rounded-[10px] p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-text-muted">
+                {optimizeProgress?.stage || "파일 처리 중..."}
+              </span>
+            </div>
+            {optimizeProgress && (
+              <div className="w-full bg-border rounded-full h-2">
+                <div
+                  className="bg-accent h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${optimizeProgress.progress}%` }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="border border-border rounded-[10px] overflow-hidden">
-            {preview && file.type.startsWith("image/") && (
-              <img src={preview} alt="미리보기" className="w-full max-h-48 object-cover" />
+            {preview && file!.type.startsWith("image/") && (
+              <img
+                src={preview}
+                alt="미리보기"
+                className="w-full max-h-48 object-cover"
+              />
             )}
-            {preview && file.type.startsWith("video/") && (
-              <video src={preview} className="w-full max-h-48" controls preload="metadata" />
+            {preview && file!.type.startsWith("video/") && (
+              <video
+                src={preview}
+                className="w-full max-h-48"
+                controls
+                preload="metadata"
+              />
             )}
-            {file.type.startsWith("audio/") && (
+            {file!.type.startsWith("audio/") && (
               <div className="p-4 bg-surface-elevated flex items-center gap-3">
                 <span className="text-2xl">♪</span>
-                <span className="text-sm truncate flex-1">{file.name}</span>
+                <span className="text-sm truncate flex-1">{file!.name}</span>
               </div>
             )}
             <div className="px-4 py-3 flex items-center justify-between bg-surface">
-              <div className="text-xs text-text-muted">
-                {file.name}{" "}
+              <div className="text-xs text-text-muted flex items-center gap-2">
+                {file!.name}
                 <span
-                  className="ml-2 px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
+                  className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
                   style={{ fontFamily: "'Geist Mono', monospace" }}
                 >
                   {mediaType}
                 </span>
+                {optimizeResult &&
+                  optimizeResult.originalSize !== optimizeResult.optimizedSize && (
+                    <span
+                      className="text-text-dim"
+                      style={{ fontFamily: "'Geist Mono', monospace" }}
+                    >
+                      {formatSize(optimizeResult.originalSize)} →{" "}
+                      {formatSize(optimizeResult.optimizedSize)}
+                    </span>
+                  )}
               </div>
               <button
                 type="button"
@@ -308,14 +389,23 @@ export default function PinCreateForm() {
         <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
           {ogData.image && (
             <div className="overflow-hidden max-h-32">
-              <img src={ogData.image} alt={ogData.title || "미리보기"} className="w-full object-cover" />
+              <img
+                src={ogData.image}
+                alt={ogData.title || "미리보기"}
+                className="w-full object-cover"
+              />
             </div>
           )}
           <div className="p-3">
-            <div className="text-xs text-text-dim" style={{ fontFamily: "'Geist Mono', monospace" }}>
+            <div
+              className="text-xs text-text-dim"
+              style={{ fontFamily: "'Geist Mono', monospace" }}
+            >
               {ogData.site_name || (url ? new URL(url).hostname : "")}
             </div>
-            <div className="text-sm font-semibold text-text-primary">{ogData.title}</div>
+            <div className="text-sm font-semibold text-text-primary">
+              {ogData.title}
+            </div>
           </div>
         </div>
       )}
@@ -324,7 +414,7 @@ export default function PinCreateForm() {
       <div>
         <label className="block text-sm text-text-muted mb-2">
           태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
-          <span className="text-error">*</span>
+          <span className="text-text-dim">(선택)</span>
         </label>
 
         {/* Selected tags */}
@@ -423,17 +513,17 @@ export default function PinCreateForm() {
         <button
           type="button"
           onClick={() => router.back()}
-          disabled={submitting}
+          disabled={isDisabled}
           className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
         >
           취소
         </button>
         <button
           type="submit"
-          disabled={submitting}
+          disabled={isDisabled}
           className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
         >
-          {submitting ? "등록 중..." : "등록하기"}
+          {submitting ? "등록 중..." : optimizing ? "최적화 중..." : "등록하기"}
         </button>
       </div>
     </form>

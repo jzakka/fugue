@@ -67,7 +67,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse tag IDs
+	// Parse tag IDs (optional, max 10)
 	tagIDStrs := r.Form["tag_ids"]
 	if len(tagIDStrs) == 0 {
 		// Also try comma-separated
@@ -80,7 +80,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tagIDs := make([]uuid.UUID, 0, len(tagIDStrs))
+	var tagIDs []uuid.UUID
 	for _, s := range tagIDStrs {
 		id, err := uuid.Parse(strings.TrimSpace(s))
 		if err != nil {
@@ -90,16 +90,18 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		tagIDs = append(tagIDs, id)
 	}
 
-	// Validate tag IDs exist
-	existingTags, err := h.q.GetTagsByIDs(r.Context(), tagIDs)
-	if err != nil {
-		log.Printf("pin.Create: GetTagsByIDs error: %v", err)
-		writeError(w, http.StatusInternalServerError, "태그를 확인할 수 없습니다")
-		return
-	}
-	if len(existingTags) != len(tagIDs) {
-		writeError(w, http.StatusBadRequest, "존재하지 않는 태그가 포함되어 있습니다")
-		return
+	// Validate tag IDs exist (skip if no tags provided)
+	if len(tagIDs) > 0 {
+		existingTags, err := h.q.GetTagsByIDs(r.Context(), tagIDs)
+		if err != nil {
+			log.Printf("pin.Create: GetTagsByIDs error: %v", err)
+			writeError(w, http.StatusInternalServerError, "태그를 확인할 수 없습니다")
+			return
+		}
+		if len(existingTags) != len(tagIDs) {
+			writeError(w, http.StatusBadRequest, "존재하지 않는 태그가 포함되어 있습니다")
+			return
+		}
 	}
 
 	// Media file (required)

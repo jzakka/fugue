@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -137,15 +138,20 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 	ext := extensionForMIME(mime)
 	key := fmt.Sprintf("%s/%s%s", mt, uuid.New().String(), ext)
 
-	// Reassemble reader: buffered header + remaining body
-	combined := io.MultiReader(strings.NewReader(string(buf[:n])), body)
+	// Read remaining body and combine with header bytes into a seekable reader.
+	// bytes.Reader implements io.ReadSeeker, which AWS SDK needs for checksum calculation.
+	rest, err := io.ReadAll(body)
+	if err != nil {
+		return nil, fmt.Errorf("storage: read body: %w", err)
+	}
+	full := append(buf[:n], rest...)
 
 	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(c.bucket),
 		Key:           aws.String(key),
-		Body:          combined,
+		Body:          bytes.NewReader(full),
 		ContentType:   aws.String(mime),
-		ContentLength: aws.Int64(size),
+		ContentLength: aws.Int64(int64(len(full))),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("storage: s3 put: %w", err)
