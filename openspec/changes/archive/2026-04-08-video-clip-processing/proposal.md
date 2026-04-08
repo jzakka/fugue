@@ -13,16 +13,11 @@ Fugue는 짧은 창작물 큐레이션 플랫폼이다. 현재 비디오 업로�
 
 ## Capabilities
 
-### New Capabilities
-- `video-clip-trimming`: 비디오 길이를 최대 15초로 트리밍하는 클라이언트/서버 파이프라인
-
 ### Modified Capabilities
-- `pin`: 비디오 업로드 requirement에 duration 제한 시나리오 추가, 서버 검증 강화
+- `pin`: 비디오 업로드 파이프라인에 duration 감지, 15초 자동 트리밍, 트리밍 안내 UI, 서버 사이드 duration 검증 추가
 
 ## Impact
 
-- **Frontend**: `apps/web/src/lib/media/video.ts` — FFmpeg.wasm 트리밍 로직 추가, duration 감지
-- **Frontend**: `apps/web/src/lib/media/validation.ts` — duration 검증 추가
+- **Frontend**: `apps/web/src/lib/media/video.ts` — 트리밍 로직 추가, duration 감지 및 검증
 - **Frontend**: `apps/web/src/app/pin/new/PinCreateForm.tsx` — 트리밍 안내 UI
-- **Backend**: `apps/api/internal/storage/storage.go` 또는 pin handler — 서버 사이드 duration 검증
-- **Backend**: `apps/api/internal/bot/downloader.go` — 봇 다운로드 시에도 duration 제한 적용 고려
+- **Backend**: `apps/api/internal/pin/handler.go` — 비디오 업로드 시 서버 사이드 duration 검증

@@ -18,6 +18,8 @@ export interface OptimizeResult {
   file: File;
   originalSize: number;
   optimizedSize: number;
+  originalDuration?: number;
+  trimmedDuration?: number;
 }
 
 export async function validateAndOptimize(
@@ -34,13 +36,18 @@ export async function validateAndOptimize(
 
   // Step 2: Optimize based on media type
   let optimized: File;
+  let originalDuration: number | undefined;
+  let trimmedDuration: number | undefined;
 
   if (file.type.startsWith("image/")) {
     optimized = await compressImage(file, onProgress);
   } else if (file.type.startsWith("audio/")) {
     optimized = await normalizeAudio(file, onProgress);
   } else if (file.type.startsWith("video/")) {
-    optimized = await compressVideo(file, onProgress);
+    const result = await compressVideo(file, onProgress);
+    optimized = result.file;
+    originalDuration = result.originalDuration;
+    trimmedDuration = result.trimmedDuration;
   } else {
     optimized = file;
   }
@@ -58,6 +65,8 @@ export async function validateAndOptimize(
     file: optimized,
     originalSize,
     optimizedSize: optimized.size,
+    originalDuration,
+    trimmedDuration,
   };
 }
 

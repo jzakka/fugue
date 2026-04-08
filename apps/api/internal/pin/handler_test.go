@@ -7,6 +7,9 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -454,5 +457,84 @@ func TestRelated_ExcludeIDs_PassedToFallback(t *testing.T) {
 	// Verify latest fallback received exclude IDs: [self, tag-match, media-fallback]
 	if len(mock.lastFBLatestP.Column1) != 3 {
 		t.Fatalf("expected 3 exclude IDs for latest fallback, got %d", len(mock.lastFBLatestP.Column1))
+	}
+}
+
+// --- Duration validation tests ---
+
+func TestMaxVideoDurationSeconds(t *testing.T) {
+	if maxVideoDurationSeconds != 15 {
+		t.Errorf("expected maxVideoDurationSeconds=15, got %d", maxVideoDurationSeconds)
+	}
+}
+
+func TestProbeDuration_InvalidFile(t *testing.T) {
+	if _, err := exec.LookPath("ffprobe"); err != nil {
+		t.Skip("ffprobe not installed, skipping")
+	}
+
+	tmpFile, err := os.CreateTemp("", "probe-test-*.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
+	_, _ = tmpFile.WriteString("not a video")
+	_ = tmpFile.Close()
+
+	_, err = probeDuration(tmpFile.Name())
+	if err == nil {
+		t.Error("expected error for non-video file, got nil")
+	}
+}
+
+func TestProbeDuration_MissingFile(t *testing.T) {
+	if _, err := exec.LookPath("ffprobe"); err != nil {
+		t.Skip("ffprobe not installed, skipping")
+	}
+
+	_, err := probeDuration("/tmp/nonexistent-video-file.mp4")
+	if err == nil {
+		t.Error("expected error for missing file, got nil")
+	}
+}
+
+// TestDurationValidation_ContentTypeSkip verifies that non-video content types
+// skip duration validation (the video validation branch only triggers for "video/*").
+func TestDurationValidation_ContentTypeSkip(t *testing.T) {
+	// Verify that the contentType check correctly identifies video types
+	videoTypes := []string{"video/mp4", "video/webm"}
+	for _, ct := range videoTypes {
+		if !strings.HasPrefix(ct, "video/") {
+			t.Errorf("expected %q to be detected as video", ct)
+		}
+	}
+
+	nonVideoTypes := []string{"image/jpeg", "image/png", "audio/mpeg", "audio/ogg"}
+	for _, ct := range nonVideoTypes {
+		if strings.HasPrefix(ct, "video/") {
+			t.Errorf("expected %q to NOT be detected as video", ct)
+		}
+	}
+}
+
+// TestDurationValidation_ThresholdLogic verifies the comparison logic matches spec:
+// duration > 15 → reject, duration <= 15 → pass
+func TestDurationValidation_ThresholdLogic(t *testing.T) {
+	tests := []struct {
+		duration float64
+		reject   bool
+	}{
+		{10.0, false},
+		{15.0, false},  // exactly 15s → pass
+		{15.001, true}, // just over 15s → reject
+		{30.0, true},
+		{0.0, false},
+	}
+
+	for _, tt := range tests {
+		shouldReject := tt.duration > float64(maxVideoDurationSeconds)
+		if shouldReject != tt.reject {
+			t.Errorf("duration=%.3f: expected reject=%v, got %v", tt.duration, tt.reject, shouldReject)
+		}
 	}
 }

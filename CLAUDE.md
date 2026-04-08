@@ -28,6 +28,12 @@ fugue/
 
 ## 개발 가이드
 
+### 의존성
+
+- **ffprobe/ffmpeg**: 비디오 업로드 시 서버 사이드 duration 검증에 필요
+  - macOS: `brew install ffmpeg`
+  - Docker: `apps/api/Dockerfile`에 포함됨
+
 ### 로컬 실행
 
 ```bash

@@ -317,6 +317,16 @@ export default function PinCreateForm() {
                       {formatSize(optimizeResult.optimizedSize)}
                     </span>
                   )}
+                {optimizeResult?.trimmedDuration != null &&
+                  optimizeResult.originalDuration != null && (
+                    <span
+                      className="text-text-dim"
+                      style={{ fontFamily: "'Geist Mono', monospace" }}
+                    >
+                      {Math.round(optimizeResult.originalDuration)}초 →{" "}
+                      {optimizeResult.trimmedDuration}초
+                    </span>
+                  )}
               </div>
               <button
                 type="button"

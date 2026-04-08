@@ -4,8 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -16,6 +19,8 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
+
+const maxVideoDurationSeconds = 15
 
 type PinQuerier interface {
 	ListPinsWithCreator(ctx context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error)
@@ -112,7 +117,48 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = file.Close() }()
 
-	result, err := h.store.Upload(r.Context(), header.Filename, header.Header.Get("Content-Type"), header.Size, file)
+	contentType := header.Header.Get("Content-Type")
+
+	// Server-side video duration validation via ffprobe
+	var uploadBody io.Reader = file
+	if strings.HasPrefix(contentType, "video/") {
+		tmpFile, err := os.CreateTemp("", "fugue-video-*.tmp")
+		if err != nil {
+			log.Printf("pin.Create: temp file error: %v", err)
+			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
+			return
+		}
+		defer func() { _ = os.Remove(tmpFile.Name()) }()
+
+		if _, err := io.Copy(tmpFile, file); err != nil {
+			_ = tmpFile.Close()
+			log.Printf("pin.Create: temp copy error: %v", err)
+			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
+			return
+		}
+		_ = tmpFile.Close()
+
+		// Check duration with ffprobe (graceful degradation on failure)
+		duration, probeErr := probeDuration(tmpFile.Name())
+		if probeErr != nil {
+			log.Printf("pin.Create: ffprobe warning (skipping duration check): %v", probeErr)
+		} else if duration > float64(maxVideoDurationSeconds) {
+			writeError(w, http.StatusBadRequest, "비디오는 최대 15초까지 업로드 가능합니다")
+			return
+		}
+
+		// Re-open temp file for storage upload
+		reopened, err := os.Open(tmpFile.Name())
+		if err != nil {
+			log.Printf("pin.Create: reopen temp file error: %v", err)
+			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
+			return
+		}
+		defer func() { _ = reopened.Close() }()
+		uploadBody = reopened
+	}
+
+	result, err := h.store.Upload(r.Context(), header.Filename, contentType, header.Size, uploadBody)
 	if err != nil {
 		if strings.Contains(err.Error(), "unsupported file type") {
 			writeError(w, http.StatusBadRequest, "지원하지 않는 파일 형식입니다")
@@ -490,4 +536,19 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
+// probeDuration runs ffprobe to extract video duration in seconds.
+func probeDuration(path string) (float64, error) {
+	out, err := exec.Command(
+		"ffprobe",
+		"-v", "error",
+		"-show_entries", "format=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1",
+		path,
+	).Output()
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
 }
