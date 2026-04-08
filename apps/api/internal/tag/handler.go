@@ -1,6 +1,7 @@
 package tag
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -44,6 +45,9 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		if r.Context().Err() == context.Canceled {
+			return // client disconnected, not a server error
+		}
 		log.Printf("tag.List: query error: %v", err)
 		writeError(w, http.StatusInternalServerError, "태그 목록을 불러올 수 없습니다")
 		return

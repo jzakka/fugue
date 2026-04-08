@@ -9,6 +9,9 @@ import {
   type ProgressInfo,
   type OptimizeResult,
 } from "@/lib/media";
+import { getVideoDuration, MAX_VIDEO_DURATION_SECONDS } from "@/lib/media/video";
+import VideoTrimModal from "@/components/pin/VideoTrimModal";
+import VideoThumbnailPicker from "@/components/pin/VideoThumbnailPicker";
 
 const TAG_MAX_COUNT = 10;
 
@@ -25,6 +28,14 @@ export default function PinCreateForm() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Video trim state
+  const [showTrimModal, setShowTrimModal] = useState(false);
+  const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [trimStart, setTrimStart] = useState<number | null>(null);
+  const [trimEnd, setTrimEnd] = useState<number | null>(null);
+  const [thumbnail, setThumbnail] = useState<Blob | null>(null);
 
   // Optimization state
   const [optimizing, setOptimizing] = useState(false);
@@ -56,10 +67,14 @@ export default function PinCreateForm() {
 
   // Load tags on mount
   useEffect(() => {
-    fetchTags().then((res) => setAllTags(res.tags)).catch(() => {});
+    const controller = new AbortController();
+    fetchTags(undefined, { signal: controller.signal })
+      .then((res) => setAllTags(res.tags))
+      .catch(() => {});
+    return () => controller.abort();
   }, []);
 
-  // File handling with optimization pipeline
+  // File handling
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -70,8 +85,39 @@ export default function PinCreateForm() {
     setError(null);
     setOptimizeResult(null);
     setOptimizeProgress(null);
-    setOptimizing(true);
+    setTrimStart(null);
+    setTrimEnd(null);
 
+    // Video: check duration and show trim modal if > 15s
+    if (f.type.startsWith("video/")) {
+      try {
+        const dur = await getVideoDuration(f);
+        if (!Number.isFinite(dur)) {
+          setError("지원하지 않는 비디오 형식입니다");
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          return;
+        }
+        setVideoDuration(dur);
+        if (dur > MAX_VIDEO_DURATION_SECONDS) {
+          // Show trim modal
+          setPendingVideoFile(f);
+          setShowTrimModal(true);
+          return;
+        }
+        // <= 15s: use as-is, no trim needed
+      } catch {
+        setError("비디오를 로드할 수 없습니다");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+    }
+
+    // Non-video or short video: run optimization pipeline
+    await processFile(f);
+  }
+
+  async function processFile(f: File) {
+    setOptimizing(true);
     try {
       const result = await validateAndOptimize(f, (info) => {
         setOptimizeProgress(info);
@@ -80,7 +126,6 @@ export default function PinCreateForm() {
       setFile(result.file);
       setOptimizeResult(result);
 
-      // Generate preview for optimized file
       if (
         result.file.type.startsWith("image/") ||
         result.file.type.startsWith("video/")
@@ -97,15 +142,35 @@ export default function PinCreateForm() {
     }
   }
 
+  function handleTrimConfirm(start: number, end: number) {
+    setShowTrimModal(false);
+    setTrimStart(start);
+    setTrimEnd(end);
+    if (pendingVideoFile) {
+      processFile(pendingVideoFile);
+    }
+    setPendingVideoFile(null);
+  }
+
+  function handleTrimCancel() {
+    setShowTrimModal(false);
+    setPendingVideoFile(null);
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   function removeFile() {
     setFile(null);
     if (preview) URL.revokeObjectURL(preview);
     setPreview(null);
     setOptimizeResult(null);
+    setTrimStart(null);
+    setTrimEnd(null);
+    setThumbnail(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  // OG fetch (optional, triggered when URL changes)
+  // OG fetch
   const handleOgFetch = useCallback(
     async (inputUrl: string) => {
       abortRef.current?.abort();
@@ -199,6 +264,17 @@ export default function PinCreateForm() {
       formData.append("tag_ids", tagId);
     }
 
+    // Include trim info for server-side processing
+    if (trimStart != null && trimEnd != null) {
+      formData.append("trim_start", String(trimStart));
+      formData.append("trim_end", String(trimEnd));
+    }
+
+    // Include video thumbnail
+    if (thumbnail) {
+      formData.append("thumbnail", thumbnail, "thumbnail.jpg");
+    }
+
     setSubmitting(true);
     try {
       await createPin(formData);
@@ -223,319 +299,335 @@ export default function PinCreateForm() {
   const isDisabled = submitting || optimizing;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h1
-        className="text-2xl font-bold tracking-tight"
-        style={{ fontFamily: "'General Sans', sans-serif" }}
-      >
-        핀 생성
-      </h1>
-
-      {error && (
-        <div className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
-          {error}
-        </div>
+    <>
+      {/* Video Trim Modal */}
+      {showTrimModal && pendingVideoFile && (
+        <VideoTrimModal
+          file={pendingVideoFile}
+          videoDuration={videoDuration}
+          onConfirm={handleTrimConfirm}
+          onCancel={handleTrimCancel}
+        />
       )}
 
-      {/* Media Upload */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">
-          미디어 파일 <span className="text-error">*</span>
-        </label>
-        {!file && !optimizing ? (
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
-          >
-            <div className="text-3xl mb-2">📁</div>
-            <div className="text-sm text-text-muted">
-              클릭하여 파일을 선택하세요
-            </div>
-            <div
-              className="text-xs text-text-dim mt-1"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
-              이미지 / 오디오 / 비디오 — 자동 최적화 적용
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <h1
+          className="text-2xl font-bold tracking-tight"
+          style={{ fontFamily: "'General Sans', sans-serif" }}
+        >
+          핀 생성
+        </h1>
+
+        {error && (
+          <div className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
+            {error}
           </div>
-        ) : optimizing ? (
-          <div className="border border-border rounded-[10px] p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-text-muted">
-                {optimizeProgress?.stage || "파일 처리 중..."}
-              </span>
+        )}
+
+        {/* Media Upload */}
+        <div>
+          <label className="block text-sm text-text-muted mb-2">
+            미디어 파일 <span className="text-error">*</span>
+          </label>
+          {!file && !optimizing ? (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
+            >
+              <div className="text-3xl mb-2">📁</div>
+              <div className="text-sm text-text-muted">
+                클릭하여 파일을 선택하세요
+              </div>
+              <div
+                className="text-xs text-text-dim mt-1"
+                style={{ fontFamily: "'Geist Mono', monospace" }}
+              >
+                이미지 / 오디오 / 비디오
+              </div>
             </div>
-            {optimizeProgress && (
-              <div className="w-full bg-border rounded-full h-2">
-                <div
-                  className="bg-accent h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${optimizeProgress.progress}%` }}
+          ) : optimizing ? (
+            <div className="border border-border rounded-[10px] p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-text-muted">
+                  {optimizeProgress?.stage || "파일 처리 중..."}
+                </span>
+              </div>
+              {optimizeProgress && (
+                <div className="w-full bg-border rounded-full h-2">
+                  <div
+                    className="bg-accent h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${optimizeProgress.progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="border border-border rounded-[10px] overflow-hidden">
+              {preview && file!.type.startsWith("image/") && (
+                <img
+                  src={preview}
+                  alt="미리보기"
+                  className="w-full max-h-48 object-cover"
+                />
+              )}
+              {preview && file!.type.startsWith("video/") && (
+                <video
+                  src={preview}
+                  className="w-full max-h-48"
+                  controls
+                  preload="metadata"
+                />
+              )}
+              {file!.type.startsWith("audio/") && (
+                <div className="p-4 bg-surface-elevated flex items-center gap-3">
+                  <span className="text-2xl">♪</span>
+                  <span className="text-sm truncate flex-1">{file!.name}</span>
+                </div>
+              )}
+              <div className="px-4 py-3 flex items-center justify-between bg-surface">
+                <div className="text-xs text-text-muted flex items-center gap-2">
+                  {file!.name}
+                  <span
+                    className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
+                    style={{ fontFamily: "'Geist Mono', monospace" }}
+                  >
+                    {mediaType}
+                  </span>
+                  {trimStart != null && trimEnd != null && (
+                    <span
+                      className="text-text-dim"
+                      style={{ fontFamily: "'Geist Mono', monospace" }}
+                    >
+                      {trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s ({(trimEnd - trimStart).toFixed(1)}초)
+                    </span>
+                  )}
+                  {optimizeResult &&
+                    optimizeResult.originalSize !== optimizeResult.optimizedSize && (
+                      <span
+                        className="text-text-dim"
+                        style={{ fontFamily: "'Geist Mono', monospace" }}
+                      >
+                        {formatSize(optimizeResult.originalSize)} →{" "}
+                        {formatSize(optimizeResult.optimizedSize)}
+                      </span>
+                    )}
+                </div>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  className="text-xs text-error hover:underline cursor-pointer"
+                >
+                  제거
+                </button>
+              </div>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg,audio/flac,video/mp4,video/webm"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
+
+        {/* Video Thumbnail Selection */}
+        {file && file.type.startsWith("video/") && (
+          <VideoThumbnailPicker
+            file={file}
+            trimStart={trimStart ?? 0}
+            trimEnd={trimEnd ?? videoDuration}
+            onSelect={setThumbnail}
+          />
+        )}
+
+        {/* Title */}
+        <div>
+          <label className="block text-sm text-text-muted mb-2">
+            제목 <span className="text-error">*</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="작품 제목"
+            maxLength={200}
+            className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm text-text-muted mb-2">설명</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="작품에 대한 설명"
+            rows={3}
+            className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors resize-none"
+          />
+        </div>
+
+        {/* URL (optional) */}
+        <div>
+          <label className="block text-sm text-text-muted mb-2">
+            원본 URL <span className="text-text-dim">(선택)</span>
+          </label>
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder="https://..."
+            className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
+          />
+          {ogLoading && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-text-muted">
+              <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+              미리보기를 불러오는 중...
+            </div>
+          )}
+        </div>
+
+        {/* OG Preview */}
+        {ogData && !ogLoading && (
+          <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
+            {ogData.image && (
+              <div className="overflow-hidden max-h-32">
+                <img
+                  src={ogData.image}
+                  alt={ogData.title || "미리보기"}
+                  className="w-full object-cover"
                 />
               </div>
             )}
-          </div>
-        ) : (
-          <div className="border border-border rounded-[10px] overflow-hidden">
-            {preview && file!.type.startsWith("image/") && (
-              <img
-                src={preview}
-                alt="미리보기"
-                className="w-full max-h-48 object-cover"
-              />
-            )}
-            {preview && file!.type.startsWith("video/") && (
-              <video
-                src={preview}
-                className="w-full max-h-48"
-                controls
-                preload="metadata"
-              />
-            )}
-            {file!.type.startsWith("audio/") && (
-              <div className="p-4 bg-surface-elevated flex items-center gap-3">
-                <span className="text-2xl">♪</span>
-                <span className="text-sm truncate flex-1">{file!.name}</span>
-              </div>
-            )}
-            <div className="px-4 py-3 flex items-center justify-between bg-surface">
-              <div className="text-xs text-text-muted flex items-center gap-2">
-                {file!.name}
-                <span
-                  className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
-                  style={{ fontFamily: "'Geist Mono', monospace" }}
-                >
-                  {mediaType}
-                </span>
-                {optimizeResult &&
-                  optimizeResult.originalSize !== optimizeResult.optimizedSize && (
-                    <span
-                      className="text-text-dim"
-                      style={{ fontFamily: "'Geist Mono', monospace" }}
-                    >
-                      {formatSize(optimizeResult.originalSize)} →{" "}
-                      {formatSize(optimizeResult.optimizedSize)}
-                    </span>
-                  )}
-                {optimizeResult?.trimmedDuration != null &&
-                  optimizeResult.originalDuration != null && (
-                    <span
-                      className="text-text-dim"
-                      style={{ fontFamily: "'Geist Mono', monospace" }}
-                    >
-                      {Math.round(optimizeResult.originalDuration)}초 →{" "}
-                      {optimizeResult.trimmedDuration}초
-                    </span>
-                  )}
-              </div>
-              <button
-                type="button"
-                onClick={removeFile}
-                className="text-xs text-error hover:underline cursor-pointer"
+            <div className="p-3">
+              <div
+                className="text-xs text-text-dim"
+                style={{ fontFamily: "'Geist Mono', monospace" }}
               >
-                제거
-              </button>
+                {ogData.site_name || (url ? new URL(url).hostname : "")}
+              </div>
+              <div className="text-sm font-semibold text-text-primary">
+                {ogData.title}
+              </div>
             </div>
           </div>
         )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg,audio/flac,video/mp4,video/webm"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
 
-      {/* Title */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">
-          제목 <span className="text-error">*</span>
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="작품 제목"
-          maxLength={200}
-          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
-        />
-      </div>
+        {/* Tag Selection */}
+        <div>
+          <label className="block text-sm text-text-muted mb-2">
+            태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
+            <span className="text-text-dim">(선택)</span>
+          </label>
 
-      {/* Description */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">설명</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="작품에 대한 설명"
-          rows={3}
-          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors resize-none"
-        />
-      </div>
-
-      {/* URL (optional) */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">
-          원본 URL <span className="text-text-dim">(선택)</span>
-        </label>
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => handleUrlChange(e.target.value)}
-          placeholder="https://..."
-          className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
-        />
-        {ogLoading && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-text-muted">
-            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-            미리보기를 불러오는 중...
-          </div>
-        )}
-      </div>
-
-      {/* OG Preview */}
-      {ogData && !ogLoading && (
-        <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
-          {ogData.image && (
-            <div className="overflow-hidden max-h-32">
-              <img
-                src={ogData.image}
-                alt={ogData.title || "미리보기"}
-                className="w-full object-cover"
-              />
+          {selectedTagIds.size > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[...selectedTagIds].map((id) => {
+                const tag = allTags.find((t) => t.id === id);
+                if (!tag) return null;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => toggleTag(id)}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer"
+                    style={{ fontFamily: "'Geist Mono', monospace" }}
+                  >
+                    {tag.name}
+                    <span className="ml-0.5">×</span>
+                  </button>
+                );
+              })}
             </div>
           )}
-          <div className="p-3">
-            <div
-              className="text-xs text-text-dim"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
-              {ogData.site_name || (url ? new URL(url).hostname : "")}
-            </div>
-            <div className="text-sm font-semibold text-text-primary">
-              {ogData.title}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Tag Selection */}
-      <div>
-        <label className="block text-sm text-text-muted mb-2">
-          태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
-          <span className="text-text-dim">(선택)</span>
-        </label>
+          <input
+            type="text"
+            value={tagSearch}
+            onChange={(e) => setTagSearch(e.target.value)}
+            placeholder="태그 검색..."
+            className="w-full px-4 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors mb-3"
+          />
 
-        {/* Selected tags */}
-        {selectedTagIds.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {[...selectedTagIds].map((id) => {
-              const tag = allTags.find((t) => t.id === id);
-              if (!tag) return null;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => toggleTag(id)}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer"
-                  style={{ fontFamily: "'Geist Mono', monospace" }}
-                >
-                  {tag.name}
-                  <span className="ml-0.5">×</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Search */}
-        <input
-          type="text"
-          value={tagSearch}
-          onChange={(e) => setTagSearch(e.target.value)}
-          placeholder="태그 검색..."
-          className="w-full px-4 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors mb-3"
-        />
-
-        {/* Category tabs */}
-        <div className="flex gap-1.5 overflow-x-auto mb-3 scrollbar-hide">
-          <button
-            type="button"
-            onClick={() => setActiveCategory("")}
-            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
-              activeCategory === ""
-                ? "bg-text-primary text-bg"
-                : "bg-surface border border-border text-text-muted"
-            }`}
-          >
-            전체
-          </button>
-          {categories.map((cat) => (
+          <div className="flex gap-1.5 overflow-x-auto mb-3 scrollbar-hide">
             <button
-              key={cat}
               type="button"
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => setActiveCategory("")}
               className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
-                activeCategory === cat
+                activeCategory === ""
                   ? "bg-text-primary text-bg"
                   : "bg-surface border border-border text-text-muted"
               }`}
             >
-              {cat}
+              전체
             </button>
-          ))}
-        </div>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
+                  activeCategory === cat
+                    ? "bg-text-primary text-bg"
+                    : "bg-surface border border-border text-text-muted"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-        {/* Tag grid */}
-        <div className="max-h-48 overflow-y-auto border border-border rounded-[6px] p-2">
-          <div className="flex flex-wrap gap-1.5">
-            {filteredTags.map((tag) => {
-              const selected = selectedTagIds.has(tag.id);
-              return (
-                <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => toggleTag(tag.id)}
-                  disabled={!selected && selectedTagIds.size >= TAG_MAX_COUNT}
-                  className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors ${
-                    selected
-                      ? "bg-accent text-white"
-                      : "bg-accent-subtle text-text-muted hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                  }`}
-                  style={{ fontFamily: "'Geist Mono', monospace" }}
-                >
-                  {tag.name}
-                </button>
-              );
-            })}
-            {filteredTags.length === 0 && (
-              <div className="text-xs text-text-dim py-4 w-full text-center">
-                일치하는 태그가 없습니다
-              </div>
-            )}
+          <div className="max-h-48 overflow-y-auto border border-border rounded-[6px] p-2">
+            <div className="flex flex-wrap gap-1.5">
+              {filteredTags.map((tag) => {
+                const selected = selectedTagIds.has(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    disabled={!selected && selectedTagIds.size >= TAG_MAX_COUNT}
+                    className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                      selected
+                        ? "bg-accent text-white"
+                        : "bg-accent-subtle text-text-muted hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                    }`}
+                    style={{ fontFamily: "'Geist Mono', monospace" }}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+              {filteredTags.length === 0 && (
+                <div className="text-xs text-text-dim py-4 w-full text-center">
+                  일치하는 태그가 없습니다
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Submit */}
-      <div className="flex gap-3 justify-end pt-2">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          disabled={isDisabled}
-          className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          disabled={isDisabled}
-          className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
-        >
-          {submitting ? "등록 중..." : optimizing ? "최적화 중..." : "등록하기"}
-        </button>
-      </div>
-    </form>
+        {/* Submit */}
+        <div className="flex gap-3 justify-end pt-2">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            disabled={isDisabled}
+            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            disabled={isDisabled}
+            className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            {submitting ? "등록 중..." : optimizing ? "처리 중..." : "등록하기"}
+          </button>
+        </div>
+      </form>
+    </>
   );
 }

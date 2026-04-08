@@ -138,7 +138,7 @@ export async function fetchRelatedPins(
 
 export async function fetchTags(
   params?: { category?: string; q?: string },
-  options?: { serverSide?: boolean }
+  options?: { serverSide?: boolean; signal?: AbortSignal }
 ): Promise<TagListResponse> {
   const baseUrl = options?.serverSide
     ? INTERNAL_API_URL
@@ -148,7 +148,9 @@ export async function fetchTags(
   if (params?.category) searchParams.set("category", params.category);
   if (params?.q) searchParams.set("q", params.q);
 
-  const res = await fetch(`${baseUrl}/api/tags?${searchParams.toString()}`);
+  const res = await fetch(`${baseUrl}/api/tags?${searchParams.toString()}`, {
+    signal: options?.signal,
+  });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 )
 
 const maxVideoDurationSeconds = 15
+const maxBytes int64 = 100 << 20 // 100MB server-side video size limit
 
 type PinQuerier interface {
 	ListPinsWithCreator(ctx context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error)
@@ -60,8 +62,8 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse multipart: max 110MB (video limit + overhead)
-	if err := r.ParseMultipartForm(110 << 20); err != nil {
+	// Parse multipart: max 500MB (video originals before server-side trim)
+	if err := r.ParseMultipartForm(500 << 20); err != nil {
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}
@@ -119,8 +121,9 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	contentType := header.Header.Get("Content-Type")
 
-	// Server-side video duration validation via ffprobe
+	// Server-side video processing: trim if requested, reject untrimmed > 15s
 	var uploadBody io.Reader = file
+	uploadSize := header.Size
 	if strings.HasPrefix(contentType, "video/") {
 		tmpFile, err := os.CreateTemp("", "fugue-video-*.tmp")
 		if err != nil {
@@ -128,7 +131,8 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
 			return
 		}
-		defer func() { _ = os.Remove(tmpFile.Name()) }()
+		origTmpPath := tmpFile.Name()
+		defer func() { _ = os.Remove(origTmpPath) }()
 
 		if _, err := io.Copy(tmpFile, file); err != nil {
 			_ = tmpFile.Close()
@@ -138,17 +142,92 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		_ = tmpFile.Close()
 
-		// Check duration with ffprobe (graceful degradation on failure)
-		duration, probeErr := probeDuration(tmpFile.Name())
-		if probeErr != nil {
-			log.Printf("pin.Create: ffprobe warning (skipping duration check): %v", probeErr)
-		} else if duration > float64(maxVideoDurationSeconds) {
-			writeError(w, http.StatusBadRequest, "비디오는 최대 15초까지 업로드 가능합니다")
-			return
+		uploadPath := origTmpPath
+
+		// Parse trim parameters from client
+		trimStartStr := strings.TrimSpace(r.FormValue("trim_start"))
+		trimEndStr := strings.TrimSpace(r.FormValue("trim_end"))
+
+		if trimStartStr != "" && trimEndStr != "" {
+			// Client specified trim range
+			trimStart, err1 := strconv.ParseFloat(trimStartStr, 64)
+			trimEnd, err2 := strconv.ParseFloat(trimEndStr, 64)
+			if err1 != nil || err2 != nil {
+				writeError(w, http.StatusBadRequest, "유효하지 않은 트리밍 값입니다")
+				return
+			}
+
+			// Validate trim values
+			duration, _ := probeDuration(origTmpPath)
+			trimDuration := trimEnd - trimStart
+			if trimStart < 0 || trimStart >= trimEnd || trimDuration > float64(maxVideoDurationSeconds)+0.5 {
+				writeError(w, http.StatusBadRequest, "유효하지 않은 트리밍 구간입니다")
+				return
+			}
+			if duration > 0 && trimEnd > duration+1.0 {
+				writeError(w, http.StatusBadRequest, "트리밍 구간이 비디오 길이를 초과합니다")
+				return
+			}
+
+			// Try -c copy first (fast), fall back to re-encode for non-MP4 (e.g. WebM)
+			trimCopyPath := origTmpPath + ".trimmed.mp4"
+			defer func() { _ = os.Remove(trimCopyPath) }()
+			trimmedPath := trimCopyPath
+
+			copyErr := trimVideoRange(origTmpPath, trimmedPath, trimStart, trimDuration)
+			needsReencode := copyErr != nil // -c copy failed (e.g. WebM → MP4 remux)
+			if copyErr != nil {
+				log.Printf("pin.Create: -c copy trim failed (will re-encode): %v", copyErr)
+			}
+
+			// Also check duration accuracy and size if copy succeeded
+			if !needsReencode {
+				resultDur, probeErr := probeDuration(trimmedPath)
+				fi, statErr := os.Stat(trimmedPath)
+				if probeErr == nil && (resultDur-trimDuration > 2.0 || resultDur-trimDuration < -2.0) {
+					needsReencode = true
+					log.Printf("pin.Create: trim duration mismatch: requested %.1fs, got %.1fs, re-encoding", trimDuration, resultDur)
+				}
+				if statErr == nil && fi.Size() > maxBytes {
+					needsReencode = true
+					log.Printf("pin.Create: trimmed file too large (%d bytes), re-encoding", fi.Size())
+				}
+			}
+
+			if needsReencode {
+				reencodedPath := origTmpPath + ".reencoded.mp4"
+				defer func() { _ = os.Remove(reencodedPath) }()
+				if err := reencodeVideoRange(origTmpPath, reencodedPath, trimStart, trimDuration); err != nil {
+					log.Printf("pin.Create: ffmpeg re-encode error: %v", err)
+					writeError(w, http.StatusInternalServerError, "비디오 처리에 실패했습니다")
+					return
+				}
+				trimmedPath = reencodedPath
+			}
+
+			uploadPath = trimmedPath
+			contentType = "video/mp4"
+
+			fi2, err := os.Stat(trimmedPath)
+			if err != nil {
+				log.Printf("pin.Create: stat trimmed file error: %v", err)
+				writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
+				return
+			}
+			uploadSize = fi2.Size()
+			log.Printf("pin.Create: trimmed video %.1fs-%.1fs, size %d -> %d bytes",
+				trimStart, trimEnd, header.Size, uploadSize)
+		} else {
+			// No trim params: reject if > 15s (server defense)
+			duration, probeErr := probeDuration(origTmpPath)
+			if probeErr == nil && duration > float64(maxVideoDurationSeconds) {
+				writeError(w, http.StatusBadRequest, "15초 초과 비디오는 트리밍이 필요합니다")
+				return
+			}
 		}
 
-		// Re-open temp file for storage upload
-		reopened, err := os.Open(tmpFile.Name())
+		// Re-open the (possibly trimmed) file for storage upload
+		reopened, err := os.Open(uploadPath)
 		if err != nil {
 			log.Printf("pin.Create: reopen temp file error: %v", err)
 			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
@@ -158,7 +237,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		uploadBody = reopened
 	}
 
-	result, err := h.store.Upload(r.Context(), header.Filename, contentType, header.Size, uploadBody)
+	result, err := h.store.Upload(r.Context(), header.Filename, contentType, uploadSize, uploadBody)
 	if err != nil {
 		if strings.Contains(err.Error(), "unsupported file type") {
 			writeError(w, http.StatusBadRequest, "지원하지 않는 파일 형식입니다")
@@ -187,6 +266,17 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	ogImage := sql.NullString{}
 	if o := strings.TrimSpace(r.FormValue("og_image")); o != "" {
 		ogImage = sql.NullString{String: o, Valid: true}
+	}
+
+	// Upload video thumbnail if provided
+	if thumbFile, thumbHeader, err := r.FormFile("thumbnail"); err == nil {
+		defer func() { _ = thumbFile.Close() }()
+		thumbResult, err := h.store.Upload(r.Context(), thumbHeader.Filename, thumbHeader.Header.Get("Content-Type"), thumbHeader.Size, thumbFile)
+		if err != nil {
+			log.Printf("pin.Create: thumbnail upload warning: %v", err)
+		} else {
+			ogImage = sql.NullString{String: thumbResult.URL, Valid: true}
+		}
 	}
 
 	p, err := h.q.CreatePin(r.Context(), db.CreatePinParams{
@@ -536,6 +626,46 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
+// trimVideoRange trims a video using stream copy (fast, keyframe boundary).
+func trimVideoRange(inputPath, outputPath string, start, duration float64) error {
+	cmd := exec.Command(
+		"ffmpeg",
+		"-ss", fmt.Sprintf("%.3f", start),
+		"-i", inputPath,
+		"-t", fmt.Sprintf("%.3f", duration),
+		"-c", "copy",
+		"-movflags", "+faststart",
+		"-y",
+		outputPath,
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("ffmpeg copy: %w: %s", err, string(out))
+	}
+	return nil
+}
+
+// reencodeVideoRange trims + re-encodes (frame-accurate, smaller output).
+func reencodeVideoRange(inputPath, outputPath string, start, duration float64) error {
+	cmd := exec.Command(
+		"ffmpeg",
+		"-i", inputPath,
+		"-ss", fmt.Sprintf("%.3f", start),
+		"-t", fmt.Sprintf("%.3f", duration),
+		"-c:v", "libx264",
+		"-crf", "23",
+		"-preset", "fast",
+		"-c:a", "aac",
+		"-b:a", "128k",
+		"-movflags", "+faststart",
+		"-y",
+		outputPath,
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("ffmpeg reencode: %w: %s", err, string(out))
+	}
+	return nil
 }
 
 // probeDuration runs ffprobe to extract video duration in seconds.
