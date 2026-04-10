@@ -83,7 +83,6 @@ type GraphEdge struct {
 	SiteID     uuid.UUID
 	FromNodeID uuid.UUID
 	ToNodeID   uuid.UUID
-	LinkText   *string
 	CreatedAt  time.Time
 }
 
@@ -106,46 +105,3 @@ type Script struct {
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }
-
-// PioneerRun represents a single execution of the Pioneer crawler
-type PioneerRun struct {
-	ID               uuid.UUID
-	SiteID           uuid.UUID
-	StartedAt        time.Time
-	CompletedAt      *time.Time
-	Status           RunStatus
-	NodesDiscovered  int
-	NodesUpdated     int
-	ScriptsGenerated int
-	ScriptsReused    int
-	AIAPICalls       int
-	AICostUSD        float64
-	ErrorMessage     *string
-	CreatedAt        time.Time
-}
-
-// HarvesterRun represents a single execution of the Harvester crawler
-type HarvesterRun struct {
-	ID                uuid.UUID
-	SiteID            uuid.UUID
-	StartedAt         time.Time
-	CompletedAt       *time.Time
-	Status            RunStatus
-	NodesVisited      int
-	NodesSucceeded    int
-	NodesFailed       int
-	ItemsExtracted    int
-	ItemsDeduplicated int
-	PinsCreated       int
-	ErrorMessage      *string
-	CreatedAt         time.Time
-}
-
-// RunStatus represents the execution status of a run
-type RunStatus string
-
-const (
-	RunStatusRunning   RunStatus = "running"
-	RunStatusCompleted RunStatus = "completed"
-	RunStatusFailed    RunStatus = "failed"
-)

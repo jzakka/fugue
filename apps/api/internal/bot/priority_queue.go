@@ -4,12 +4,10 @@ import "container/heap"
 
 // QueueItem represents an item in the BFS priority queue
 type QueueItem struct {
-	URL       string
-	URLHash   string
-	Depth     int
-	ParentURL *string
-	Priority  int
-	index     int // heap index
+	URL      string
+	URLHash  string
+	Priority int
+	index    int // heap index
 }
 
 // PriorityQueue implements a priority queue for BFS traversal

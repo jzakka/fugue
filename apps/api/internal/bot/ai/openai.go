@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -103,8 +104,13 @@ func (c *OpenAIClient) Call(ctx context.Context, prompt string) (string, error) 
 				Content: prompt,
 			},
 		},
-		Temperature: 0.2,  // Deterministic output for code generation
-		MaxTokens:   2000, // Reasonable limit for parsing scripts
+	}
+
+	// Only set Temperature/MaxTokens for non-reasoning models
+	// gpt-5* reasoning models reject these parameters
+	if !isReasoningModel(c.model) {
+		req.Temperature = 0.2 // Deterministic output for code generation
+		req.MaxTokens = 2000  // Reasonable limit for parsing scripts
 	}
 
 	// Make API call
@@ -119,4 +125,10 @@ func (c *OpenAIClient) Call(ctx context.Context, prompt string) (string, error) 
 	}
 
 	return resp.Choices[0].Message.Content, nil
+}
+
+// isReasoningModel returns true if the model uses reasoning and doesn't support Temperature/MaxTokens.
+func isReasoningModel(model string) bool {
+	// gpt-5* models are reasoning models
+	return strings.HasPrefix(model, "gpt-5")
 }

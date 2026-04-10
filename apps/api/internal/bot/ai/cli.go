@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
@@ -37,18 +38,23 @@ func NewCLIClient(cfg CLIConfig) *CLIClient {
 
 // Call sends a prompt to the chatgpt CLI and returns the response.
 func (c *CLIClient) Call(ctx context.Context, prompt string) (string, error) {
-	// Build command: chatgpt [args...] <prompt>
-	args := append(c.args, prompt)
-	cmd := exec.CommandContext(ctx, c.command, args...)
+	// Build command: chatgpt [args...]
+	// Pass prompt via stdin to avoid argv limits and process list leaks
+	cmd := exec.CommandContext(ctx, c.command, c.args...)
+	cmd.Stdin = strings.NewReader(prompt)
 
-	// Capture stdout and stderr
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("CLI command failed: %w (output: %s)", err, string(output))
+	// Separate stdout and stderr to avoid pollution
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	// Execute
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("CLI command failed: %w (stderr: %s)", err, stderr.String())
 	}
 
-	// Trim whitespace from response
-	response := strings.TrimSpace(string(output))
+	// Return only stdout (script), ignore stderr (warnings/progress)
+	response := strings.TrimSpace(stdout.String())
 	if response == "" {
 		return "", fmt.Errorf("CLI returned empty response")
 	}

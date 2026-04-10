@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -29,45 +30,39 @@ type statusResponse struct {
 
 // sourceResponse represents a single bot source.
 type sourceResponse struct {
-	ID            string      `json:"id"`
-	Name          string      `json:"name"`
-	Platform      string      `json:"platform"`
-	SeedURLs      []string    `json:"seed_urls"`
-	IntervalHours int32       `json:"interval_hours"`
-	Enabled       bool        `json:"enabled"`
-	LastCrawledAt *string     `json:"last_crawled_at"`
-	Stats         interface{} `json:"stats"`
-	CreatedAt     string      `json:"created_at"`
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	SeedURLs      []string `json:"seed_urls"`
+	IntervalHours int32    `json:"interval_hours"`
+	Enabled       bool     `json:"enabled"`
+	CreatedAt     string   `json:"created_at"`
 }
 
-func toSourceResponse(bs db.BotSource) sourceResponse {
-	resp := sourceResponse{
-		ID:            bs.ID.String(),
-		Name:          bs.Name,
-		Platform:      bs.Platform,
-		SeedURLs:      bs.SeedUrls,
-		IntervalHours: bs.IntervalHours,
-		Enabled:       bs.Enabled,
-		CreatedAt:     bs.CreatedAt.Format("2006-01-02T15:04:05Z"),
+func toSourceResponse(bs interface{}) sourceResponse {
+	var id uuid.UUID
+	var name string
+	var seedUrls []string
+	var intervalHours int32
+	var enabled bool
+	var createdAt time.Time
+
+	switch v := bs.(type) {
+	case db.BotSource:
+		id, name, seedUrls, intervalHours, enabled, createdAt = v.ID, v.Name, v.SeedUrls, v.IntervalHours, v.Enabled, v.CreatedAt
+	case db.ListActiveBotSourcesRow:
+		id, name, seedUrls, intervalHours, enabled, createdAt = v.ID, v.Name, v.SeedUrls, v.IntervalHours, v.Enabled, v.CreatedAt
+	case db.ListAllBotSourcesRow:
+		id, name, seedUrls, intervalHours, enabled, createdAt = v.ID, v.Name, v.SeedUrls, v.IntervalHours, v.Enabled, v.CreatedAt
 	}
 
-	if bs.LastCrawledAt.Valid {
-		t := bs.LastCrawledAt.Time.Format("2006-01-02T15:04:05Z")
-		resp.LastCrawledAt = &t
+	return sourceResponse{
+		ID:            id.String(),
+		Name:          name,
+		SeedURLs:      seedUrls,
+		IntervalHours: intervalHours,
+		Enabled:       enabled,
+		CreatedAt:     createdAt.Format("2006-01-02T15:04:05Z"),
 	}
-
-	if bs.Stats.Valid {
-		var stats interface{}
-		if err := json.Unmarshal(bs.Stats.RawMessage, &stats); err == nil {
-			resp.Stats = stats
-		} else {
-			resp.Stats = map[string]interface{}{}
-		}
-	} else {
-		resp.Stats = map[string]interface{}{}
-	}
-
-	return resp
 }
 
 // Status handles GET /api/admin/bot/status
@@ -109,7 +104,6 @@ func (h *Handler) ListSources(w http.ResponseWriter, r *http.Request) {
 // createSourceRequest is the JSON body for creating a new source.
 type createSourceRequest struct {
 	Name          string   `json:"name"`
-	Platform      string   `json:"platform"`
 	SeedURLs      []string `json:"seed_urls"`
 	IntervalHours int32    `json:"interval_hours"`
 	Enabled       bool     `json:"enabled"`
@@ -123,8 +117,8 @@ func (h *Handler) CreateSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" || req.Platform == "" || len(req.SeedURLs) == 0 {
-		writeError(w, http.StatusBadRequest, "name, platform, and seed_urls are required")
+	if req.Name == "" || len(req.SeedURLs) == 0 {
+		writeError(w, http.StatusBadRequest, "name and seed_urls are required")
 		return
 	}
 	if req.IntervalHours <= 0 {
@@ -133,7 +127,6 @@ func (h *Handler) CreateSource(w http.ResponseWriter, r *http.Request) {
 
 	source, err := h.q.CreateBotSource(r.Context(), db.CreateBotSourceParams{
 		Name:          req.Name,
-		Platform:      req.Platform,
 		SeedUrls:      req.SeedURLs,
 		IntervalHours: req.IntervalHours,
 		Enabled:       req.Enabled,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -17,7 +18,6 @@ import (
 
 // Pioneer config
 type PioneerConfig struct {
-	MaxDepth         int
 	MaxNodesPerSite  int
 	RateLimitMs      int
 	SuccessThreshold float64 // 0.7 = 70%
@@ -28,7 +28,6 @@ type Pioneer struct {
 	siteRepo   SiteRepository
 	graphRepo  GraphRepository
 	scriptRepo ScriptRepository
-	runRepo    RunRepository
 	aiClient   AIClient
 	executor   ScriptExecutor
 	config     PioneerConfig
@@ -39,7 +38,6 @@ func NewPioneer(
 	siteRepo SiteRepository,
 	graphRepo GraphRepository,
 	scriptRepo ScriptRepository,
-	runRepo RunRepository,
 	aiClient AIClient,
 	executor ScriptExecutor,
 	config PioneerConfig,
@@ -48,7 +46,6 @@ func NewPioneer(
 		siteRepo:   siteRepo,
 		graphRepo:  graphRepo,
 		scriptRepo: scriptRepo,
-		runRepo:    runRepo,
 		aiClient:   aiClient,
 		executor:   executor,
 		config:     config,
@@ -57,27 +54,6 @@ func NewPioneer(
 
 // Run executes a full pioneer crawl for a site
 func (p *Pioneer) Run(ctx context.Context, siteID uuid.UUID) error {
-	// Create run record
-	run, err := p.runRepo.CreatePioneerRun(ctx, db.CreatePioneerRunParams{
-		SiteID: siteID,
-		Status: string(RunStatusRunning),
-	})
-	if err != nil {
-		return fmt.Errorf("create pioneer run: %w", err)
-	}
-
-	// Update site status to in_progress
-	now := time.Now()
-	err = p.siteRepo.UpdatePioneerStatus(ctx, db.UpdatePioneerStatusParams{
-		ID:                 siteID,
-		PioneerStatus:      sql.NullString{String: string(SiteStatusInProgress), Valid: true},
-		PioneerStartedAt:   sql.NullTime{Time: now, Valid: true},
-		PioneerCompletedAt: sql.NullTime{Valid: false},
-	})
-	if err != nil {
-		return fmt.Errorf("update site status: %w", err)
-	}
-
 	// Get site details
 	site, err := p.siteRepo.Get(ctx, siteID)
 	if err != nil {
@@ -85,69 +61,16 @@ func (p *Pioneer) Run(ctx context.Context, siteID uuid.UUID) error {
 	}
 
 	// Execute crawl
-	stats, crawlErr := p.crawl(ctx, site)
-
-	// Update run statistics
-	completedAt := time.Now()
-	status := string(RunStatusCompleted)
-	var errorMsg *string
-	if crawlErr != nil {
-		status = string(RunStatusFailed)
-		msg := crawlErr.Error()
-		errorMsg = &msg
-	}
-
-	err = p.runRepo.UpdatePioneerRunStats(ctx, db.UpdatePioneerRunStatsParams{
-		ID:               run.ID,
-		CompletedAt:      sql.NullTime{Time: completedAt, Valid: true},
-		Status:           status,
-		NodesDiscovered:  sql.NullInt32{Int32: int32(stats.NodesDiscovered), Valid: true},
-		NodesUpdated:     sql.NullInt32{Int32: int32(stats.NodesUpdated), Valid: true},
-		ScriptsGenerated: sql.NullInt32{Int32: int32(stats.ScriptsGenerated), Valid: true},
-		ScriptsReused:    sql.NullInt32{Int32: int32(stats.ScriptsReused), Valid: true},
-		AiApiCalls:       sql.NullInt32{Int32: int32(stats.AIAPICalls), Valid: true},
-		AiCostUsd:        sql.NullString{String: fmt.Sprintf("%.6f", stats.AICostUSD), Valid: true},
-		ErrorMessage:     sql.NullString{String: stringOrEmpty(errorMsg), Valid: errorMsg != nil},
-	})
-	if err != nil {
-		return fmt.Errorf("update run stats: %w", err)
-	}
-
-	// Update site status
-	siteStatus := string(SiteStatusCompleted)
-	if crawlErr != nil {
-		siteStatus = string(SiteStatusFailed)
-	}
-	err = p.siteRepo.UpdatePioneerStatus(ctx, db.UpdatePioneerStatusParams{
-		ID:                 siteID,
-		PioneerStatus:      sql.NullString{String: siteStatus, Valid: true},
-		PioneerStartedAt:   sql.NullTime{Time: now, Valid: true},
-		PioneerCompletedAt: sql.NullTime{Time: completedAt, Valid: true},
-	})
-	if err != nil {
-		return fmt.Errorf("update final site status: %w", err)
-	}
-
-	return crawlErr
-}
-
-type crawlStats struct {
-	NodesDiscovered  int
-	NodesUpdated     int
-	ScriptsGenerated int
-	ScriptsReused    int
-	AIAPICalls       int
-	AICostUSD        float64
+	return p.crawl(ctx, site)
 }
 
 // crawl performs the BFS crawl and script generation
-func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) (*crawlStats, error) {
-	stats := &crawlStats{}
-
+// crawl performs the BFS crawl and script generation
+func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 	// Parse root domain
 	rootDomain, err := extractDomain(site.RootUrl)
 	if err != nil {
-		return stats, fmt.Errorf("parse root domain: %w", err)
+		return fmt.Errorf("parse root domain: %w", err)
 	}
 
 	// Initialize BFS queue with root URL
@@ -157,22 +80,17 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) (*crawlStats, erro
 	// Add root node
 	rootHash := hashURL(site.RootUrl)
 	queue.Push(&QueueItem{
-		URL:       site.RootUrl,
-		URLHash:   rootHash,
-		Depth:     0,
-		ParentURL: nil,
-		Priority:  100, // High priority for root
+		URL:      site.RootUrl,
+		URLHash:  rootHash,
+		Priority: 100, // High priority for root
 	})
 	visited[rootHash] = true
 
-	// BFS traversal
-	for !queue.IsEmpty() && stats.NodesDiscovered < p.config.MaxNodesPerSite {
-		item := queue.Pop()
+	nodesProcessed := 0
 
-		// Check depth limit
-		if item.Depth > p.config.MaxDepth {
-			continue
-		}
+	// BFS traversal
+	for !queue.IsEmpty() && nodesProcessed < p.config.MaxNodesPerSite {
+		item := queue.Pop()
 
 		// Rate limiting
 		time.Sleep(time.Duration(p.config.RateLimitMs) * time.Millisecond)
@@ -191,50 +109,57 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) (*crawlStats, erro
 		}
 
 		// Create or get existing node
-		node, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
+		_, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
 			SiteID:  site.ID,
 			UrlHash: item.URLHash,
 		})
 
-		nodeExists := err == nil
+		// Distinguish "not found" from DB errors
+		nodeExists := false
+		if err == nil {
+			nodeExists = true
+		} else if !errors.Is(err, sql.ErrNoRows) {
+			// Real DB error - fail loudly
+			return fmt.Errorf("failed to check node existence for %s: %w", item.URL, err)
+		}
+
 		if !nodeExists {
 			// Create new node
-			node, err = p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
-				SiteID:    site.ID,
-				Url:       item.URL,
-				UrlHash:   item.URLHash,
-				Depth:     int32(item.Depth),
-				NodeType:  sql.NullString{String: string(nodeType), Valid: true},
-				ParentUrl: sql.NullString{String: stringOrEmpty(item.ParentURL), Valid: item.ParentURL != nil},
-				ScriptID:  uuid.NullUUID{Valid: false},
+			_, err = p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
+				SiteID:   site.ID,
+				Url:      item.URL,
+				UrlHash:  item.URLHash,
+				NodeType: sql.NullString{String: string(nodeType), Valid: true},
+				ScriptID: uuid.NullUUID{Valid: false},
 			})
 			if err != nil {
-				continue // Skip if can't create node
+				// Check if it's a unique constraint violation (concurrent insert)
+				if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
+					continue // Another worker created it, skip
+				}
+				// Real error - fail
+				return fmt.Errorf("failed to create node for %s: %w", item.URL, err)
 			}
-			stats.NodesDiscovered++
-		} else {
-			stats.NodesUpdated++
 		}
 
-		// Handle script for this node
-		script, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, item.URL, stats)
-		if scriptErr == nil && script != nil {
-			// Link script to node (best effort)
-			_ = p.graphRepo.UpdateNodeScript(ctx, db.UpdateNodeScriptParams{
-				ID:       node.ID,
-				ScriptID: uuid.NullUUID{UUID: script.ID, Valid: true},
-			})
+		nodesProcessed++
+
+		// Handle script for this node type
+		_, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, item.URL)
+		if scriptErr != nil {
+			// Log error but continue
+			continue
 		}
 
-		// Extract links from HTML and add to queue
-		links := extractLinks(html, item.URL)
+		// Parse links and add to queue
+		links := parseLinks(html, item.URL)
 		for _, link := range links {
-			// Validate domain
+			// Domain validation
 			if !isSameDomain(link, rootDomain) {
 				continue
 			}
 
-			// Check file extensions
+			// File extension filtering
 			if hasExcludedExtension(link) {
 				continue
 			}
@@ -243,29 +168,23 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) (*crawlStats, erro
 			if visited[linkHash] {
 				continue
 			}
-
-			linkNodeType := classifyURL(link)
-			priority := NodeTypePriority(linkNodeType)
-
-			queue.Push(&QueueItem{
-				URL:       link,
-				URLHash:   linkHash,
-				Depth:     item.Depth + 1,
-				ParentURL: &item.URL,
-				Priority:  priority,
-			})
 			visited[linkHash] = true
 
-			// Note: Edges will be created when the target node is actually visited
-			// For now, we just track the relationship via ParentURL in the node
+			// Classify and calculate priority
+			linkType := classifyURL(link)
+			priority := NodeTypePriority(linkType)
+
+			queue.Push(&QueueItem{
+				URL:      link,
+				URLHash:  linkHash,
+				Priority: priority,
+			})
 		}
 	}
 
-	return stats, nil
+	return nil
 }
-
-// handleScript manages script generation and validation
-func (p *Pioneer) handleScript(ctx context.Context, siteID uuid.UUID, nodeType NodeType, html, url string, stats *crawlStats) (*db.BotScript, error) {
+func (p *Pioneer) handleScript(ctx context.Context, siteID uuid.UUID, nodeType NodeType, html, url string) (*db.BotScript, error) {
 	// Try to get existing script
 	script, err := p.scriptRepo.GetBySiteType(ctx, db.GetScriptBySiteTypeParams{
 		SiteID:   siteID,
@@ -277,12 +196,14 @@ func (p *Pioneer) handleScript(ctx context.Context, siteID uuid.UUID, nodeType N
 		valid, _ := p.validateScript(ctx, script.ScriptCode, html, url)
 		if valid {
 			// Reuse existing script
-			stats.ScriptsReused++
 			return &script, nil
 		}
+	} else if !errors.Is(err, sql.ErrNoRows) {
+		// Real DB error - don't fall through to regeneration
+		return nil, fmt.Errorf("failed to check script existence: %w", err)
 	}
 
-	// Generate new script
+	// Generate new script (only if not found or validation failed)
 	resp, err := p.aiClient.GenerateScript(ctx, ScriptRequest{
 		URL:      url,
 		HTML:     html,
@@ -292,24 +213,18 @@ func (p *Pioneer) handleScript(ctx context.Context, siteID uuid.UUID, nodeType N
 		return nil, fmt.Errorf("generate script: %w", err)
 	}
 
-	stats.AIAPICalls++
-	stats.AICostUSD += resp.CostUSD
-
 	// Save script
-	costStr := fmt.Sprintf("%.6f", resp.CostUSD)
 	script, err = p.scriptRepo.Create(ctx, db.CreateScriptParams{
-		SiteID:            siteID,
-		NodeType:          string(nodeType),
-		ScriptLang:        sql.NullString{String: "js", Valid: true},
-		ScriptCode:        resp.ScriptCode,
-		AiModel:           sql.NullString{String: resp.Model, Valid: true},
-		GenerationCostUsd: sql.NullString{String: costStr, Valid: true},
+		SiteID:     siteID,
+		NodeType:   string(nodeType),
+		ScriptLang: sql.NullString{String: "js", Valid: true},
+		ScriptCode: resp.ScriptCode,
+		AiModel:    sql.NullString{String: resp.Model, Valid: true},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("save script: %w", err)
 	}
 
-	stats.ScriptsGenerated++
 	return &script, nil
 }
 
@@ -457,48 +372,3 @@ func estimateItemCount(html string) int {
 }
 
 // Helper: extract links from HTML
-func extractLinks(html, baseURL string) []string {
-	// Simplified link extraction
-	// TODO: Implement proper HTML parsing
-	var links []string
-
-	// Basic regex for href attributes
-	re := regexp.MustCompile(`href="([^"]+)"`)
-	matches := re.FindAllStringSubmatch(html, -1)
-
-	for _, match := range matches {
-		if len(match) > 1 {
-			link := match[1]
-			// Convert relative to absolute
-			absoluteURL := makeAbsolute(link, baseURL)
-			links = append(links, absoluteURL)
-		}
-	}
-
-	return links
-}
-
-func makeAbsolute(link, baseURL string) string {
-	if strings.HasPrefix(link, "http://") || strings.HasPrefix(link, "https://") {
-		return link
-	}
-
-	base, err := url.Parse(baseURL)
-	if err != nil {
-		return link
-	}
-
-	rel, err := url.Parse(link)
-	if err != nil {
-		return link
-	}
-
-	return base.ResolveReference(rel).String()
-}
-
-func stringOrEmpty(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
