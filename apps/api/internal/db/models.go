@@ -38,6 +38,96 @@ type BoardPin struct {
 	CreatedAt time.Time
 }
 
+type BotGraphEdge struct {
+	ID         uuid.UUID
+	SiteID     uuid.UUID
+	FromNodeID uuid.UUID
+	ToNodeID   uuid.UUID
+	LinkText   sql.NullString
+	CreatedAt  time.Time
+}
+
+type BotGraphNode struct {
+	ID            uuid.UUID
+	SiteID        uuid.UUID
+	Url           string
+	UrlHash       string
+	Depth         int32
+	NodeType      sql.NullString
+	ParentUrl     sql.NullString
+	ScriptID      uuid.NullUUID
+	VisitCount    sql.NullInt32
+	SuccessCount  sql.NullInt32
+	FailCount     sql.NullInt32
+	LastVisitedAt sql.NullTime
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+type BotHarvestRun struct {
+	ID                uuid.UUID
+	SiteID            uuid.UUID
+	StartedAt         time.Time
+	CompletedAt       sql.NullTime
+	Status            string
+	NodesVisited      sql.NullInt32
+	NodesSucceeded    sql.NullInt32
+	NodesFailed       sql.NullInt32
+	ItemsExtracted    sql.NullInt32
+	ItemsDeduplicated sql.NullInt32
+	PinsCreated       sql.NullInt32
+	ErrorMessage      sql.NullString
+	CreatedAt         time.Time
+}
+
+type BotPioneerRun struct {
+	ID               uuid.UUID
+	SiteID           uuid.UUID
+	StartedAt        time.Time
+	CompletedAt      sql.NullTime
+	Status           string
+	NodesDiscovered  sql.NullInt32
+	NodesUpdated     sql.NullInt32
+	ScriptsGenerated sql.NullInt32
+	ScriptsReused    sql.NullInt32
+	AiApiCalls       sql.NullInt32
+	AiCostUsd        sql.NullString
+	ErrorMessage     sql.NullString
+	CreatedAt        time.Time
+}
+
+type BotScript struct {
+	ID                     uuid.UUID
+	SiteID                 uuid.UUID
+	NodeType               string
+	ScriptLang             sql.NullString
+	ScriptCode             string
+	AiModel                sql.NullString
+	GenerationCostUsd      sql.NullString
+	ValidationSuccessCount sql.NullInt32
+	ValidationFailCount    sql.NullInt32
+	LastValidatedAt        sql.NullTime
+	SuccessCount           sql.NullInt32
+	FailCount              sql.NullInt32
+	AvgExecutionMs         sql.NullInt32
+	AvgItemsExtracted      sql.NullFloat64
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+}
+
+type BotSite struct {
+	ID                 uuid.UUID
+	Domain             string
+	RootUrl            string
+	PioneerStatus      sql.NullString
+	PioneerStartedAt   sql.NullTime
+	PioneerCompletedAt sql.NullTime
+	LastHarvestAt      sql.NullTime
+	Active             sql.NullBool
+	Metadata           pqtype.NullRawMessage
+	CreatedAt          time.Time
+}
+
 type BotSource struct {
 	ID            uuid.UUID
 	Name          string

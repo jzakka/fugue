@@ -51,6 +51,226 @@ func (q *Queries) CreateBotSource(ctx context.Context, arg CreateBotSourceParams
 	return i, err
 }
 
+const createEdge = `-- name: CreateEdge :exec
+INSERT INTO bot_graph_edges (site_id, from_node_id, to_node_id, link_text)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (from_node_id, to_node_id) DO NOTHING
+`
+
+type CreateEdgeParams struct {
+	SiteID     uuid.UUID
+	FromNodeID uuid.UUID
+	ToNodeID   uuid.UUID
+	LinkText   sql.NullString
+}
+
+// Bot Graph Edges queries
+func (q *Queries) CreateEdge(ctx context.Context, arg CreateEdgeParams) error {
+	_, err := q.db.ExecContext(ctx, createEdge,
+		arg.SiteID,
+		arg.FromNodeID,
+		arg.ToNodeID,
+		arg.LinkText,
+	)
+	return err
+}
+
+const createHarvesterRun = `-- name: CreateHarvesterRun :one
+INSERT INTO bot_harvest_runs (site_id, status)
+VALUES ($1, $2)
+RETURNING id, site_id, started_at, completed_at, status, nodes_visited, nodes_succeeded, nodes_failed, items_extracted, items_deduplicated, pins_created, error_message, created_at
+`
+
+type CreateHarvesterRunParams struct {
+	SiteID uuid.UUID
+	Status string
+}
+
+// Bot Harvester Runs queries
+func (q *Queries) CreateHarvesterRun(ctx context.Context, arg CreateHarvesterRunParams) (BotHarvestRun, error) {
+	row := q.db.QueryRowContext(ctx, createHarvesterRun, arg.SiteID, arg.Status)
+	var i BotHarvestRun
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Status,
+		&i.NodesVisited,
+		&i.NodesSucceeded,
+		&i.NodesFailed,
+		&i.ItemsExtracted,
+		&i.ItemsDeduplicated,
+		&i.PinsCreated,
+		&i.ErrorMessage,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createNode = `-- name: CreateNode :one
+INSERT INTO bot_graph_nodes (site_id, url, url_hash, depth, node_type, parent_url, script_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, site_id, url, url_hash, depth, node_type, parent_url, script_id, visit_count, success_count, fail_count, last_visited_at, created_at, updated_at
+`
+
+type CreateNodeParams struct {
+	SiteID    uuid.UUID
+	Url       string
+	UrlHash   string
+	Depth     int32
+	NodeType  sql.NullString
+	ParentUrl sql.NullString
+	ScriptID  uuid.NullUUID
+}
+
+// Bot Graph Nodes queries
+func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (BotGraphNode, error) {
+	row := q.db.QueryRowContext(ctx, createNode,
+		arg.SiteID,
+		arg.Url,
+		arg.UrlHash,
+		arg.Depth,
+		arg.NodeType,
+		arg.ParentUrl,
+		arg.ScriptID,
+	)
+	var i BotGraphNode
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Url,
+		&i.UrlHash,
+		&i.Depth,
+		&i.NodeType,
+		&i.ParentUrl,
+		&i.ScriptID,
+		&i.VisitCount,
+		&i.SuccessCount,
+		&i.FailCount,
+		&i.LastVisitedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createPioneerRun = `-- name: CreatePioneerRun :one
+INSERT INTO bot_pioneer_runs (site_id, status)
+VALUES ($1, $2)
+RETURNING id, site_id, started_at, completed_at, status, nodes_discovered, nodes_updated, scripts_generated, scripts_reused, ai_api_calls, ai_cost_usd, error_message, created_at
+`
+
+type CreatePioneerRunParams struct {
+	SiteID uuid.UUID
+	Status string
+}
+
+// Bot Pioneer Runs queries
+func (q *Queries) CreatePioneerRun(ctx context.Context, arg CreatePioneerRunParams) (BotPioneerRun, error) {
+	row := q.db.QueryRowContext(ctx, createPioneerRun, arg.SiteID, arg.Status)
+	var i BotPioneerRun
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.Status,
+		&i.NodesDiscovered,
+		&i.NodesUpdated,
+		&i.ScriptsGenerated,
+		&i.ScriptsReused,
+		&i.AiApiCalls,
+		&i.AiCostUsd,
+		&i.ErrorMessage,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createScript = `-- name: CreateScript :one
+INSERT INTO bot_scripts (site_id, node_type, script_lang, script_code, ai_model, generation_cost_usd)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (site_id, node_type) DO UPDATE
+SET script_code = EXCLUDED.script_code,
+    ai_model = EXCLUDED.ai_model,
+    generation_cost_usd = EXCLUDED.generation_cost_usd,
+    updated_at = now()
+RETURNING id, site_id, node_type, script_lang, script_code, ai_model, generation_cost_usd, validation_success_count, validation_fail_count, last_validated_at, success_count, fail_count, avg_execution_ms, avg_items_extracted, created_at, updated_at
+`
+
+type CreateScriptParams struct {
+	SiteID            uuid.UUID
+	NodeType          string
+	ScriptLang        sql.NullString
+	ScriptCode        string
+	AiModel           sql.NullString
+	GenerationCostUsd sql.NullString
+}
+
+// Bot Scripts queries
+func (q *Queries) CreateScript(ctx context.Context, arg CreateScriptParams) (BotScript, error) {
+	row := q.db.QueryRowContext(ctx, createScript,
+		arg.SiteID,
+		arg.NodeType,
+		arg.ScriptLang,
+		arg.ScriptCode,
+		arg.AiModel,
+		arg.GenerationCostUsd,
+	)
+	var i BotScript
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.NodeType,
+		&i.ScriptLang,
+		&i.ScriptCode,
+		&i.AiModel,
+		&i.GenerationCostUsd,
+		&i.ValidationSuccessCount,
+		&i.ValidationFailCount,
+		&i.LastValidatedAt,
+		&i.SuccessCount,
+		&i.FailCount,
+		&i.AvgExecutionMs,
+		&i.AvgItemsExtracted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createSite = `-- name: CreateSite :one
+INSERT INTO bot_sites (domain, root_url, metadata)
+VALUES ($1, $2, $3)
+RETURNING id, domain, root_url, pioneer_status, pioneer_started_at, pioneer_completed_at, last_harvest_at, active, metadata, created_at
+`
+
+type CreateSiteParams struct {
+	Domain   string
+	RootUrl  string
+	Metadata pqtype.NullRawMessage
+}
+
+// Bot Sites queries
+func (q *Queries) CreateSite(ctx context.Context, arg CreateSiteParams) (BotSite, error) {
+	row := q.db.QueryRowContext(ctx, createSite, arg.Domain, arg.RootUrl, arg.Metadata)
+	var i BotSite
+	err := row.Scan(
+		&i.ID,
+		&i.Domain,
+		&i.RootUrl,
+		&i.PioneerStatus,
+		&i.PioneerStartedAt,
+		&i.PioneerCompletedAt,
+		&i.LastHarvestAt,
+		&i.Active,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteBotSource = `-- name: DeleteBotSource :execrows
 DELETE FROM bot_sources
 WHERE id = $1
@@ -87,6 +307,251 @@ func (q *Queries) GetBotSource(ctx context.Context, id uuid.UUID) (BotSource, er
 	return i, err
 }
 
+const getEdgesByNode = `-- name: GetEdgesByNode :many
+SELECT id, site_id, from_node_id, to_node_id, link_text, created_at FROM bot_graph_edges
+WHERE from_node_id = $1
+`
+
+func (q *Queries) GetEdgesByNode(ctx context.Context, fromNodeID uuid.UUID) ([]BotGraphEdge, error) {
+	rows, err := q.db.QueryContext(ctx, getEdgesByNode, fromNodeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotGraphEdge
+	for rows.Next() {
+		var i BotGraphEdge
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.FromNodeID,
+			&i.ToNodeID,
+			&i.LinkText,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getHarvesterRunsBySite = `-- name: GetHarvesterRunsBySite :many
+SELECT id, site_id, started_at, completed_at, status, nodes_visited, nodes_succeeded, nodes_failed, items_extracted, items_deduplicated, pins_created, error_message, created_at FROM bot_harvest_runs
+WHERE site_id = $1
+ORDER BY started_at DESC
+LIMIT $2
+`
+
+type GetHarvesterRunsBySiteParams struct {
+	SiteID uuid.UUID
+	Limit  int32
+}
+
+func (q *Queries) GetHarvesterRunsBySite(ctx context.Context, arg GetHarvesterRunsBySiteParams) ([]BotHarvestRun, error) {
+	rows, err := q.db.QueryContext(ctx, getHarvesterRunsBySite, arg.SiteID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotHarvestRun
+	for rows.Next() {
+		var i BotHarvestRun
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.Status,
+			&i.NodesVisited,
+			&i.NodesSucceeded,
+			&i.NodesFailed,
+			&i.ItemsExtracted,
+			&i.ItemsDeduplicated,
+			&i.PinsCreated,
+			&i.ErrorMessage,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNodeByHash = `-- name: GetNodeByHash :one
+SELECT id, site_id, url, url_hash, depth, node_type, parent_url, script_id, visit_count, success_count, fail_count, last_visited_at, created_at, updated_at FROM bot_graph_nodes
+WHERE site_id = $1 AND url_hash = $2
+`
+
+type GetNodeByHashParams struct {
+	SiteID  uuid.UUID
+	UrlHash string
+}
+
+func (q *Queries) GetNodeByHash(ctx context.Context, arg GetNodeByHashParams) (BotGraphNode, error) {
+	row := q.db.QueryRowContext(ctx, getNodeByHash, arg.SiteID, arg.UrlHash)
+	var i BotGraphNode
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Url,
+		&i.UrlHash,
+		&i.Depth,
+		&i.NodeType,
+		&i.ParentUrl,
+		&i.ScriptID,
+		&i.VisitCount,
+		&i.SuccessCount,
+		&i.FailCount,
+		&i.LastVisitedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getPioneerRunsBySite = `-- name: GetPioneerRunsBySite :many
+SELECT id, site_id, started_at, completed_at, status, nodes_discovered, nodes_updated, scripts_generated, scripts_reused, ai_api_calls, ai_cost_usd, error_message, created_at FROM bot_pioneer_runs
+WHERE site_id = $1
+ORDER BY started_at DESC
+LIMIT $2
+`
+
+type GetPioneerRunsBySiteParams struct {
+	SiteID uuid.UUID
+	Limit  int32
+}
+
+func (q *Queries) GetPioneerRunsBySite(ctx context.Context, arg GetPioneerRunsBySiteParams) ([]BotPioneerRun, error) {
+	rows, err := q.db.QueryContext(ctx, getPioneerRunsBySite, arg.SiteID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotPioneerRun
+	for rows.Next() {
+		var i BotPioneerRun
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.Status,
+			&i.NodesDiscovered,
+			&i.NodesUpdated,
+			&i.ScriptsGenerated,
+			&i.ScriptsReused,
+			&i.AiApiCalls,
+			&i.AiCostUsd,
+			&i.ErrorMessage,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getScriptBySiteType = `-- name: GetScriptBySiteType :one
+SELECT id, site_id, node_type, script_lang, script_code, ai_model, generation_cost_usd, validation_success_count, validation_fail_count, last_validated_at, success_count, fail_count, avg_execution_ms, avg_items_extracted, created_at, updated_at FROM bot_scripts
+WHERE site_id = $1 AND node_type = $2
+`
+
+type GetScriptBySiteTypeParams struct {
+	SiteID   uuid.UUID
+	NodeType string
+}
+
+func (q *Queries) GetScriptBySiteType(ctx context.Context, arg GetScriptBySiteTypeParams) (BotScript, error) {
+	row := q.db.QueryRowContext(ctx, getScriptBySiteType, arg.SiteID, arg.NodeType)
+	var i BotScript
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.NodeType,
+		&i.ScriptLang,
+		&i.ScriptCode,
+		&i.AiModel,
+		&i.GenerationCostUsd,
+		&i.ValidationSuccessCount,
+		&i.ValidationFailCount,
+		&i.LastValidatedAt,
+		&i.SuccessCount,
+		&i.FailCount,
+		&i.AvgExecutionMs,
+		&i.AvgItemsExtracted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getSite = `-- name: GetSite :one
+SELECT id, domain, root_url, pioneer_status, pioneer_started_at, pioneer_completed_at, last_harvest_at, active, metadata, created_at FROM bot_sites
+WHERE id = $1
+`
+
+func (q *Queries) GetSite(ctx context.Context, id uuid.UUID) (BotSite, error) {
+	row := q.db.QueryRowContext(ctx, getSite, id)
+	var i BotSite
+	err := row.Scan(
+		&i.ID,
+		&i.Domain,
+		&i.RootUrl,
+		&i.PioneerStatus,
+		&i.PioneerStartedAt,
+		&i.PioneerCompletedAt,
+		&i.LastHarvestAt,
+		&i.Active,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getSiteByDomain = `-- name: GetSiteByDomain :one
+SELECT id, domain, root_url, pioneer_status, pioneer_started_at, pioneer_completed_at, last_harvest_at, active, metadata, created_at FROM bot_sites
+WHERE domain = $1
+`
+
+func (q *Queries) GetSiteByDomain(ctx context.Context, domain string) (BotSite, error) {
+	row := q.db.QueryRowContext(ctx, getSiteByDomain, domain)
+	var i BotSite
+	err := row.Scan(
+		&i.ID,
+		&i.Domain,
+		&i.RootUrl,
+		&i.PioneerStatus,
+		&i.PioneerStartedAt,
+		&i.PioneerCompletedAt,
+		&i.LastHarvestAt,
+		&i.Active,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listActiveBotSources = `-- name: ListActiveBotSources :many
 SELECT id, name, platform, seed_urls, interval_hours, enabled, last_crawled_at, stats, created_at
 FROM bot_sources
@@ -112,6 +577,46 @@ func (q *Queries) ListActiveBotSources(ctx context.Context) ([]BotSource, error)
 			&i.Enabled,
 			&i.LastCrawledAt,
 			&i.Stats,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveSites = `-- name: ListActiveSites :many
+SELECT id, domain, root_url, pioneer_status, pioneer_started_at, pioneer_completed_at, last_harvest_at, active, metadata, created_at FROM bot_sites
+WHERE active = true
+ORDER BY created_at
+`
+
+func (q *Queries) ListActiveSites(ctx context.Context) ([]BotSite, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveSites)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotSite
+	for rows.Next() {
+		var i BotSite
+		if err := rows.Scan(
+			&i.ID,
+			&i.Domain,
+			&i.RootUrl,
+			&i.PioneerStatus,
+			&i.PioneerStartedAt,
+			&i.PioneerCompletedAt,
+			&i.LastHarvestAt,
+			&i.Active,
+			&i.Metadata,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -198,6 +703,99 @@ func (q *Queries) ListAllTags(ctx context.Context) ([]ListAllTagsRow, error) {
 	return items, nil
 }
 
+const listNodesBySite = `-- name: ListNodesBySite :many
+SELECT id, site_id, url, url_hash, depth, node_type, parent_url, script_id, visit_count, success_count, fail_count, last_visited_at, created_at, updated_at FROM bot_graph_nodes
+WHERE site_id = $1
+ORDER BY depth, node_type
+`
+
+func (q *Queries) ListNodesBySite(ctx context.Context, siteID uuid.UUID) ([]BotGraphNode, error) {
+	rows, err := q.db.QueryContext(ctx, listNodesBySite, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotGraphNode
+	for rows.Next() {
+		var i BotGraphNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.Url,
+			&i.UrlHash,
+			&i.Depth,
+			&i.NodeType,
+			&i.ParentUrl,
+			&i.ScriptID,
+			&i.VisitCount,
+			&i.SuccessCount,
+			&i.FailCount,
+			&i.LastVisitedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listNodesByType = `-- name: ListNodesByType :many
+SELECT id, site_id, url, url_hash, depth, node_type, parent_url, script_id, visit_count, success_count, fail_count, last_visited_at, created_at, updated_at FROM bot_graph_nodes
+WHERE site_id = $1 AND node_type = $2
+ORDER BY depth
+`
+
+type ListNodesByTypeParams struct {
+	SiteID   uuid.UUID
+	NodeType sql.NullString
+}
+
+func (q *Queries) ListNodesByType(ctx context.Context, arg ListNodesByTypeParams) ([]BotGraphNode, error) {
+	rows, err := q.db.QueryContext(ctx, listNodesByType, arg.SiteID, arg.NodeType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotGraphNode
+	for rows.Next() {
+		var i BotGraphNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.Url,
+			&i.UrlHash,
+			&i.Depth,
+			&i.NodeType,
+			&i.ParentUrl,
+			&i.ScriptID,
+			&i.VisitCount,
+			&i.SuccessCount,
+			&i.FailCount,
+			&i.LastVisitedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const pinURLExists = `-- name: PinURLExists :one
 SELECT EXISTS(SELECT 1 FROM pins WHERE url = $1) AS url_exists
 `
@@ -251,5 +849,226 @@ type UpdateBotSourceStatsParams struct {
 
 func (q *Queries) UpdateBotSourceStats(ctx context.Context, arg UpdateBotSourceStatsParams) error {
 	_, err := q.db.ExecContext(ctx, updateBotSourceStats, arg.ID, arg.Stats)
+	return err
+}
+
+const updateHarvesterRunStats = `-- name: UpdateHarvesterRunStats :exec
+UPDATE bot_harvest_runs
+SET completed_at = $2,
+    status = $3,
+    nodes_visited = $4,
+    nodes_succeeded = $5,
+    nodes_failed = $6,
+    items_extracted = $7,
+    items_deduplicated = $8,
+    pins_created = $9,
+    error_message = $10
+WHERE id = $1
+`
+
+type UpdateHarvesterRunStatsParams struct {
+	ID                uuid.UUID
+	CompletedAt       sql.NullTime
+	Status            string
+	NodesVisited      sql.NullInt32
+	NodesSucceeded    sql.NullInt32
+	NodesFailed       sql.NullInt32
+	ItemsExtracted    sql.NullInt32
+	ItemsDeduplicated sql.NullInt32
+	PinsCreated       sql.NullInt32
+	ErrorMessage      sql.NullString
+}
+
+func (q *Queries) UpdateHarvesterRunStats(ctx context.Context, arg UpdateHarvesterRunStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updateHarvesterRunStats,
+		arg.ID,
+		arg.CompletedAt,
+		arg.Status,
+		arg.NodesVisited,
+		arg.NodesSucceeded,
+		arg.NodesFailed,
+		arg.ItemsExtracted,
+		arg.ItemsDeduplicated,
+		arg.PinsCreated,
+		arg.ErrorMessage,
+	)
+	return err
+}
+
+const updateLastHarvest = `-- name: UpdateLastHarvest :exec
+UPDATE bot_sites
+SET last_harvest_at = $1
+WHERE id = $2
+`
+
+type UpdateLastHarvestParams struct {
+	LastHarvestAt sql.NullTime
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateLastHarvest(ctx context.Context, arg UpdateLastHarvestParams) error {
+	_, err := q.db.ExecContext(ctx, updateLastHarvest, arg.LastHarvestAt, arg.ID)
+	return err
+}
+
+const updateNodeScript = `-- name: UpdateNodeScript :exec
+UPDATE bot_graph_nodes
+SET script_id = $2, updated_at = now()
+WHERE id = $1
+`
+
+type UpdateNodeScriptParams struct {
+	ID       uuid.UUID
+	ScriptID uuid.NullUUID
+}
+
+func (q *Queries) UpdateNodeScript(ctx context.Context, arg UpdateNodeScriptParams) error {
+	_, err := q.db.ExecContext(ctx, updateNodeScript, arg.ID, arg.ScriptID)
+	return err
+}
+
+const updateNodeStats = `-- name: UpdateNodeStats :exec
+UPDATE bot_graph_nodes
+SET visit_count = $2, success_count = $3, fail_count = $4, last_visited_at = $5, updated_at = now()
+WHERE id = $1
+`
+
+type UpdateNodeStatsParams struct {
+	ID            uuid.UUID
+	VisitCount    sql.NullInt32
+	SuccessCount  sql.NullInt32
+	FailCount     sql.NullInt32
+	LastVisitedAt sql.NullTime
+}
+
+func (q *Queries) UpdateNodeStats(ctx context.Context, arg UpdateNodeStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updateNodeStats,
+		arg.ID,
+		arg.VisitCount,
+		arg.SuccessCount,
+		arg.FailCount,
+		arg.LastVisitedAt,
+	)
+	return err
+}
+
+const updatePioneerRunStats = `-- name: UpdatePioneerRunStats :exec
+UPDATE bot_pioneer_runs
+SET completed_at = $2,
+    status = $3,
+    nodes_discovered = $4,
+    nodes_updated = $5,
+    scripts_generated = $6,
+    scripts_reused = $7,
+    ai_api_calls = $8,
+    ai_cost_usd = $9,
+    error_message = $10
+WHERE id = $1
+`
+
+type UpdatePioneerRunStatsParams struct {
+	ID               uuid.UUID
+	CompletedAt      sql.NullTime
+	Status           string
+	NodesDiscovered  sql.NullInt32
+	NodesUpdated     sql.NullInt32
+	ScriptsGenerated sql.NullInt32
+	ScriptsReused    sql.NullInt32
+	AiApiCalls       sql.NullInt32
+	AiCostUsd        sql.NullString
+	ErrorMessage     sql.NullString
+}
+
+func (q *Queries) UpdatePioneerRunStats(ctx context.Context, arg UpdatePioneerRunStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updatePioneerRunStats,
+		arg.ID,
+		arg.CompletedAt,
+		arg.Status,
+		arg.NodesDiscovered,
+		arg.NodesUpdated,
+		arg.ScriptsGenerated,
+		arg.ScriptsReused,
+		arg.AiApiCalls,
+		arg.AiCostUsd,
+		arg.ErrorMessage,
+	)
+	return err
+}
+
+const updatePioneerStatus = `-- name: UpdatePioneerStatus :exec
+UPDATE bot_sites
+SET pioneer_status = $2, pioneer_started_at = $3, pioneer_completed_at = $4
+WHERE id = $1
+`
+
+type UpdatePioneerStatusParams struct {
+	ID                 uuid.UUID
+	PioneerStatus      sql.NullString
+	PioneerStartedAt   sql.NullTime
+	PioneerCompletedAt sql.NullTime
+}
+
+func (q *Queries) UpdatePioneerStatus(ctx context.Context, arg UpdatePioneerStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updatePioneerStatus,
+		arg.ID,
+		arg.PioneerStatus,
+		arg.PioneerStartedAt,
+		arg.PioneerCompletedAt,
+	)
+	return err
+}
+
+const updateScriptExecutionStats = `-- name: UpdateScriptExecutionStats :exec
+UPDATE bot_scripts
+SET success_count = $2,
+    fail_count = $3,
+    avg_execution_ms = $4,
+    avg_items_extracted = $5,
+    updated_at = now()
+WHERE id = $1
+`
+
+type UpdateScriptExecutionStatsParams struct {
+	ID                uuid.UUID
+	SuccessCount      sql.NullInt32
+	FailCount         sql.NullInt32
+	AvgExecutionMs    sql.NullInt32
+	AvgItemsExtracted sql.NullFloat64
+}
+
+func (q *Queries) UpdateScriptExecutionStats(ctx context.Context, arg UpdateScriptExecutionStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updateScriptExecutionStats,
+		arg.ID,
+		arg.SuccessCount,
+		arg.FailCount,
+		arg.AvgExecutionMs,
+		arg.AvgItemsExtracted,
+	)
+	return err
+}
+
+const updateScriptValidationStats = `-- name: UpdateScriptValidationStats :exec
+UPDATE bot_scripts
+SET validation_success_count = $2,
+    validation_fail_count = $3,
+    last_validated_at = $4,
+    updated_at = now()
+WHERE id = $1
+`
+
+type UpdateScriptValidationStatsParams struct {
+	ID                     uuid.UUID
+	ValidationSuccessCount sql.NullInt32
+	ValidationFailCount    sql.NullInt32
+	LastValidatedAt        sql.NullTime
+}
+
+func (q *Queries) UpdateScriptValidationStats(ctx context.Context, arg UpdateScriptValidationStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updateScriptValidationStats,
+		arg.ID,
+		arg.ValidationSuccessCount,
+		arg.ValidationFailCount,
+		arg.LastValidatedAt,
+	)
 	return err
 }

@@ -46,6 +46,26 @@
 
 ## 로컬 실행
 
+### 1. 환경 설정
+
+```bash
+cd apps/api
+cp .env.example .env
+```
+
+필수 환경변수:
+- `DATABASE_URL`: PostgreSQL 연결 URL
+- `REDIS_URL`: Redis 연결 URL
+- `JWT_SECRET`: JWT 토큰 서명 키
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: Google OAuth
+- `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`: Discord OAuth
+
+**Bot/Pioneer 사용 시 추가 필요**:
+- `AI_CLIENT_TYPE`: `cli` (기본, ChatGPT CLI 사용) 또는 `sdk` (OpenAI API)
+- SDK 모드 사용 시: `OPENAI_API_KEY`, `OPENAI_MODEL`
+
+### 2. 실행
+
 ```bash
 docker-compose up -d          # PostgreSQL + Redis
 cd apps/api && go run cmd/server/main.go

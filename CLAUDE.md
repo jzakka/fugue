@@ -16,6 +16,12 @@
 fugue/
 ├── apps/
 │   ├── api/          # Go Backend
+│   │   └── internal/
+│   │       ├── bot/       # Pioneer/Harvester 크롤러 (그래프 기반)
+│   │       ├── auth/      # 소셜 로그인
+│   │       ├── pin/       # 핀 생성/조회
+│   │       ├── board/     # 보드 관리
+│   │       └── feed/      # 추천 피드
 │   └── web/          # Next.js Frontend
 ├── docs/             # 설계 문서 (ERD, Architecture)
 ├── helm/
