@@ -282,12 +282,12 @@ func (p *Pioneer) handleScript(ctx context.Context, siteID uuid.UUID, nodeType N
 		}
 	}
 
-	// Generate new script
+	// Generate new script (with up to 3 retries)
 	resp, err := p.aiClient.GenerateScript(ctx, ScriptRequest{
 		URL:      url,
 		HTML:     html,
 		NodeType: nodeType,
-	})
+	}, 3)
 	if err != nil {
 		return nil, fmt.Errorf("generate script: %w", err)
 	}
