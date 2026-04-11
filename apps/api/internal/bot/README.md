@@ -16,6 +16,30 @@ Content Pipeline → Pins
 
 ## Components
 
+### Crawler Package (New)
+**Purpose:** Decoupled BFS traversal with testable page fetching
+
+**Key Features:**
+- Fetcher interface separates BFS logic from HTTP
+- FileFetcher for file-based testing
+- HTTPFetcher for production HTTP requests
+- Full BFS traversal with depth limits
+- Same-domain validation
+- URL normalization and deduplication
+
+**Usage:**
+```go
+// Testing with file fixtures
+fetcher := crawler.NewFileFetcher("testdata")
+c := crawler.NewBFSCrawler(fetcher)
+result, err := c.Crawl(ctx, "http://example.com/", 2)
+
+// Production with HTTP
+fetcher := crawler.NewHTTPFetcher(http.DefaultClient)
+c := crawler.NewBFSCrawler(fetcher)
+result, err := c.Crawl(ctx, "http://example.com/", 2)
+```
+
 ### Pioneer
 **Purpose:** Explore sites using BFS, generate parsing scripts with AI
 
@@ -47,11 +71,22 @@ err := pioneer.Run(ctx, siteID)
 **Purpose:** Execute scripts on stored graph, extract content
 
 **Key Features:**
-- Full graph traversal every run
-- Node sorting by type priority
-- Script execution via ScriptExecutor
-- Integration with existing Dedup → Download → Tag → Pin pipeline
-- Run statistics tracking
+- **BFS graph traversal**: Follows edges from root node, processes level by level
+- **Cycle detection**: Visited set prevents infinite loops in cyclic graphs
+- **Priority sorting within levels**: listing/gallery nodes before detail nodes at same depth
+- **Script execution** via ScriptExecutor
+- **Integration** with existing Dedup → Download → Tag → Pin pipeline
+- **Run statistics tracking**
+
+**Traversal Algorithm:**
+1. Find root URL node as starting point
+2. Initialize visited set and BFS queue
+3. For each level:
+   - Sort nodes by type priority (listing > gallery > category > detail)
+   - Process each node (fetch HTML, execute script, extract items)
+   - Fetch children via edges, filter out visited nodes
+   - Add unvisited children to next level
+4. Continue until queue is empty
 
 **Configuration:**
 ```go
