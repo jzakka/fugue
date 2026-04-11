@@ -5,7 +5,7 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -107,4 +107,19 @@ show-map:
 	@echo ""
 	@echo "   Tip: Use -format=png or -format=svg for image export (requires Graphviz)"
 	@echo "   Tip: Use -filter-site=<domain> to show only one site"
+
+# ============================================================
+# Bot Crawlers (Pioneer/Harvester)
+# ============================================================
+pioneer:
+	@if [ -z "$(SITE)" ]; then echo "Usage: make pioneer SITE=<site>"; exit 1; fi
+	@echo "🔍 Running Pioneer for $(SITE)..."
+	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
+		go run cmd/bot/main.go pioneer $(SITE)
+
+harvester:
+	@if [ -z "$(SITE)" ]; then echo "Usage: make harvester SITE=<site>"; exit 1; fi
+	@echo "🌾 Running Harvester for $(SITE)..."
+	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
+		go run cmd/bot/main.go harvester $(SITE)
 

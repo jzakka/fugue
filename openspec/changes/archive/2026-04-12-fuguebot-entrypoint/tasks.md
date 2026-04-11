@@ -30,8 +30,8 @@
 
 ## 5. Makefile Integration
 
-- [x] 5.1 Add pioneer target to apps/api/Makefile with SITE variable validation
-- [x] 5.2 Add harvester target to apps/api/Makefile with SITE variable validation
+- [x] 5.1 Add pioneer target to root Makefile with SITE variable validation
+- [x] 5.2 Add harvester target to root Makefile with SITE variable validation
 - [x] 5.3 Test make pioneer SITE=<test-site> command
 - [x] 5.4 Test make harvester SITE=<test-site> command
 
