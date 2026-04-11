@@ -5,7 +5,8 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester \
+	migrate-up migrate-down migrate-create lint fmt setup
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -122,4 +123,33 @@ harvester:
 	@echo "🌾 Running Harvester for $(SITE)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
 		go run cmd/bot/main.go harvester $(SITE)
+
+# ============================================================
+# DB 마이그레이션 (개별 제어)
+# ============================================================
+migrate-up:
+	@cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up
+
+migrate-down:
+	@cd $(API_DIR) && yes | migrate -path db/migrations -database "$(DB_URL)" down
+
+migrate-create:
+	@read -p "Migration name: " name; \
+	cd $(API_DIR) && migrate create -ext sql -dir db/migrations -seq $$name
+
+# ============================================================
+# Go 코드 품질
+# ============================================================
+lint:
+	@cd $(API_DIR) && golangci-lint run ./...
+
+fmt:
+	@cd $(API_DIR) && goimports -w .
+
+# ============================================================
+# 프로젝트 설정
+# ============================================================
+setup:
+	@lefthook install
+	@echo "✅ Git hooks installed"
 

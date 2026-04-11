@@ -65,6 +65,53 @@
 2. 독립된 엔티티 또는 바운디드 컨텍스트를 형성한다
 3. 최소 3개 이상의 독립 요구사항이 예상된다
 
+## Makefile 타겟
+
+모든 개발 명령어는 루트 `Makefile`에 정의되어 있다. `apps/api/Makefile`은 폐기됨.
+
+### 개발 환경
+
+```bash
+make dev           # 전체 스택 실행 (인프라 + 마이그레이션 + API + Web)
+make dev-stop      # 전체 종료
+make dev-infra     # PostgreSQL + Redis만 실행
+make dev-api       # API 서버만 실행
+make dev-web       # Next.js만 실행
+```
+
+### DB 마이그레이션
+
+```bash
+make migrate         # 마이그레이션 실행 (dev에 포함됨)
+make migrate-up      # 마이그레이션 up
+make migrate-down    # 마이그레이션 rollback
+make migrate-create  # 새 마이그레이션 생성 (대화형)
+make seed            # 시드 데이터 삽입
+```
+
+### 코드 품질
+
+```bash
+make lint          # golangci-lint 실행
+make fmt           # goimports 포맷팅
+make test          # Go + Frontend 테스트
+```
+
+### Bot 크롤러
+
+```bash
+make pioneer SITE=artstation      # Pioneer 크롤러 실행
+make harvester SITE=artstation    # Harvester 크롤러 실행
+make show-map                     # Bot 그래프 시각화 (graph.html 생성)
+```
+
+### 초기 설정
+
+```bash
+make setup         # Lefthook git hooks 설치
+```
+
 ## 워크플로우 규칙
 
 - 커밋 전에 반드시 `/codex` review를 실행할 것
+- Makefile 타겟은 루트에만 추가한다 (`apps/api/Makefile`에 추가하지 말 것)
