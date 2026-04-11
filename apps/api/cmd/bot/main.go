@@ -154,16 +154,8 @@ var pioneerCmd = &cobra.Command{
 		graphRepo := bot.NewGraphRepo(infra.DB)
 		scriptRepo := bot.NewScriptRepo(infra.DB)
 
-		// Initialize AI client
-		apiKey := os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			return fmt.Errorf("OPENAI_API_KEY environment variable is required")
-		}
-		rawAIClient, err := ai.NewOpenAIClient(ai.Config{
-			APIKey:  apiKey,
-			Model:   envOrDefault("OPENAI_MODEL", "gpt-4o"),
-			Timeout: 30 * time.Second,
-		})
+		// Initialize AI client (CLI mode by default, SDK mode with AI_CLIENT_TYPE=sdk)
+		rawAIClient, err := ai.NewFromEnv()
 		if err != nil {
 			return fmt.Errorf("failed to create AI client: %w", err)
 		}
