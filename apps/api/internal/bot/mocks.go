@@ -71,3 +71,30 @@ func (m *MockScriptExecutor) Execute(ctx context.Context, script string, html st
 	m.LastURL = url
 	return m.ExecuteFunc(ctx, script, html, url)
 }
+
+// MockPipeline is a mock implementation of Pipeline for testing
+type MockPipeline struct {
+	ProcessFunc  func(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, error error)
+	CallCount    int
+	LastItems    []RawItem
+	TotalPins    int
+	TotalDeduped int
+}
+
+func NewMockPipeline() *MockPipeline {
+	return &MockPipeline{
+		ProcessFunc: func(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, error error) {
+			// Default mock behavior: simulate successful processing
+			return len(items), 0, nil
+		},
+	}
+}
+
+func (m *MockPipeline) Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, error error) {
+	m.CallCount++
+	m.LastItems = items
+	pinsCreated, deduped, error = m.ProcessFunc(ctx, items)
+	m.TotalPins += pinsCreated
+	m.TotalDeduped += deduped
+	return pinsCreated, deduped, error
+}

@@ -107,3 +107,19 @@ RETURNING *;
 SELECT * FROM bot_scripts
 WHERE site_id = $1 AND node_type = $2;
 
+-- Graph Visualization queries
+-- name: ListAllSitesForGraph :many
+SELECT id, domain, root_url, active, created_at
+FROM bot_sites
+ORDER BY domain;
+
+-- name: ListAllNodesForGraph :many
+SELECT id, site_id, url, node_type, created_at
+FROM bot_graph_nodes
+ORDER BY site_id, created_at;
+
+-- name: ListAllEdgesForGraph :many
+SELECT id, from_node_id, to_node_id, created_at
+FROM bot_graph_edges
+ORDER BY created_at;
+

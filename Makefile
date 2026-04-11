@@ -5,7 +5,7 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -96,3 +96,15 @@ test:
 	@echo ""
 	@echo "🧪 Running Frontend tests..."
 	@cd $(WEB_DIR) && npm test
+
+# ============================================================
+# Bot Graph Visualization
+# ============================================================
+show-map:
+	@echo "🗺️  Generating bot graph visualization..."
+	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
+		go run cmd/bot-visualize/main.go -output=../../graph.html
+	@echo ""
+	@echo "   Tip: Use -format=png or -format=svg for image export (requires Graphviz)"
+	@echo "   Tip: Use -filter-site=<domain> to show only one site"
+

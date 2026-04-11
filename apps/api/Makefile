@@ -4,7 +4,7 @@ DB_USER ?= fugue
 DB_NAME ?= fugue
 MIGRATIONS_DIR = db/migrations
 
-.PHONY: migrate-up migrate-down migrate-create lint fmt setup seed
+.PHONY: migrate-up migrate-down migrate-create lint fmt setup seed pioneer harvester
 
 migrate-up:
 	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
@@ -28,3 +28,11 @@ seed:
 
 setup:
 	cd ../.. && lefthook install
+
+pioneer:
+	@if [ -z "$(SITE)" ]; then echo "Usage: make pioneer SITE=<site>"; exit 1; fi
+	go run cmd/bot/main.go pioneer $(SITE)
+
+harvester:
+	@if [ -z "$(SITE)" ]; then echo "Usage: make harvester SITE=<site>"; exit 1; fi
+	go run cmd/bot/main.go harvester $(SITE)

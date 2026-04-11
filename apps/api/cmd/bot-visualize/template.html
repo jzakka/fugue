@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fugue Bot Graph Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        
+        #graph-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #stats-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 250px;
+            z-index: 1000;
+        }
+        
+        #stats-panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .stat-label {
+            color: #999;
+        }
+        
+        .stat-value {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .coverage-bar {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .coverage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.3s ease;
+        }
+        
+        #legend {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 1000;
+        }
+        
+        #legend h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 12px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .legend-line {
+            width: 20px;
+            height: 2px;
+            margin-right: 8px;
+        }
+        
+        .covered {
+            fill: #10b981;
+            stroke: #059669;
+        }
+        
+        .uncovered {
+            fill: #6b7280;
+            stroke: #4b5563;
+        }
+        
+        .node {
+            cursor: pointer;
+            stroke-width: 2px;
+        }
+        
+        .link {
+            stroke: #404040;
+            stroke-opacity: 0.6;
+            stroke-width: 1.5px;
+            fill: none;
+        }
+        
+        .link-arrow {
+            fill: #404040;
+        }
+        
+        .node-label {
+            font-size: 10px;
+            fill: #999;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 2000;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .tooltip-url {
+            color: #60a5fa;
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+        
+        .tooltip-type {
+            color: #fbbf24;
+        }
+        
+        .tooltip-status {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #444;
+        }
+    </style>
+</head>
+<body>
+    <div id="graph-container"></div>
+    
+    <div id="stats-panel">
+        <h2>🐡 Graph Statistics</h2>
+        <div class="stat-row">
+            <span class="stat-label">Sites:</span>
+            <span class="stat-value" id="stat-sites">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Nodes:</span>
+            <span class="stat-value" id="stat-nodes">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Edges:</span>
+            <span class="stat-value" id="stat-edges">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Script Coverage:</span>
+            <span class="stat-value" id="stat-coverage">0%</span>
+        </div>
+        <div class="coverage-bar">
+            <div class="coverage-fill" id="coverage-fill" style="width: 0%"></div>
+        </div>
+        <div class="stat-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+            <span class="stat-label">Generated:</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-value" id="stat-timestamp" style="font-size: 11px; color: #666;">-</span>
+        </div>
+    </div>
+    
+    <div id="legend">
+        <h3>Legend</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #10b981; border: 2px solid #059669;"></div>
+            <span>Script implemented</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #6b7280; border: 2px solid #4b5563;"></div>
+            <span>Script missing</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line" style="background: #404040;"></div>
+            <span>Link</span>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+    
+    <script>
+        // Graph data will be injected here
+        const graphData = {{.GraphDataJSON}};
+        
+        if (!graphData || graphData.nodes.length === 0) {
+            document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; color: #666;">No nodes found in database</div>';
+        } else {
+            renderGraph(graphData);
+        }
+        
+        function renderGraph(data) {
+            // Update stats
+            document.getElementById('stat-sites').textContent = data.metadata.total_sites;
+            document.getElementById('stat-nodes').textContent = data.metadata.total_nodes;
+            document.getElementById('stat-edges').textContent = data.metadata.total_edges;
+            document.getElementById('stat-coverage').textContent = data.metadata.script_coverage.coverage_percent.toFixed(1) + '%';
+            document.getElementById('coverage-fill').style.width = data.metadata.script_coverage.coverage_percent + '%';
+            document.getElementById('stat-timestamp').textContent = new Date(data.metadata.generated_at).toLocaleString();
+            
+            // Create site color map
+            const siteColors = d3.scaleOrdinal(d3.schemeSet3);
+            const siteMap = {};
+            data.sites.forEach(site => {
+                siteMap[site.id] = site;
+            });
+            
+            // Setup SVG
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select('#graph-container')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Add zoom behavior
+            const g = svg.append('g');
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+            svg.call(zoom);
+            
+            // Create links
+            const link = g.append('g')
+                .selectAll('path')
+                .data(data.edges)
+                .join('path')
+                .attr('class', 'link')
+                .attr('marker-end', 'url(#arrow)');
+            
+            // Create arrow marker
+            svg.append('defs').append('marker')
+                .attr('id', 'arrow')
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 20)
+                .attr('refY', 0)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('class', 'link-arrow');
+            
+            // Create nodes
+            const node = g.append('g')
+                .selectAll('circle')
+                .data(data.nodes)
+                .join('circle')
+                .attr('class', d => d.has_script ? 'node covered' : 'node uncovered')
+                .attr('r', 8)
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // Add labels
+            const labels = g.append('g')
+                .selectAll('text')
+                .data(data.nodes)
+                .join('text')
+                .attr('class', 'node-label')
+                .attr('dx', 12)
+                .attr('dy', 4)
+                .text(d => d.node_type || 'unknown');
+            
+            // Tooltip
+            const tooltip = d3.select('#tooltip');
+            
+            node.on('mouseover', (event, d) => {
+                const site = siteMap[d.site_id];
+                tooltip.style('display', 'block')
+                    .html(`
+                        <div class="tooltip-url">${d.url}</div>
+                        <div class="tooltip-type">Type: ${d.node_type || 'unknown'}</div>
+                        <div>Site: ${site ? site.domain : 'unknown'}</div>
+                        <div class="tooltip-status">Script: ${d.has_script ? '✅ Implemented' : '❌ Missing'}</div>
+                    `);
+            })
+            .on('mousemove', (event) => {
+                tooltip.style('left', (event.pageX + 15) + 'px')
+                    .style('top', (event.pageY + 15) + 'px');
+            })
+            .on('mouseout', () => {
+                tooltip.style('display', 'none');
+            });
+            
+            // Force simulation
+            const simulation = d3.forceSimulation(data.nodes)
+                .force('link', d3.forceLink(data.edges)
+                    .id(d => d.id)
+                    .distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(15))
+                .force('x', d3.forceX(d => {
+                    const site = siteMap[d.site_id];
+                    const siteIndex = data.sites.findIndex(s => s.id === d.site_id);
+                    return width / (data.sites.length + 1) * (siteIndex + 1);
+                }).strength(0.3))
+                .on('tick', ticked);
+            
+            function ticked() {
+                link.attr('d', d => {
+                    const source = data.nodes.find(n => n.id === d.from_node_id);
+                    const target = data.nodes.find(n => n.id === d.to_node_id);
+                    if (!source || !target) return '';
+                    return `M${source.x},${source.y} L${target.x},${target.y}`;
+                });
+                
+                node.attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                labels.attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            }
+            
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+    </script>
+</body>
+</html>

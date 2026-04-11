@@ -488,6 +488,127 @@ func (q *Queries) ListAllBotSources(ctx context.Context) ([]ListAllBotSourcesRow
 	return items, nil
 }
 
+const listAllEdgesForGraph = `-- name: ListAllEdgesForGraph :many
+SELECT id, from_node_id, to_node_id, created_at
+FROM bot_graph_edges
+ORDER BY created_at
+`
+
+func (q *Queries) ListAllEdgesForGraph(ctx context.Context) ([]BotGraphEdge, error) {
+	rows, err := q.db.QueryContext(ctx, listAllEdgesForGraph)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotGraphEdge
+	for rows.Next() {
+		var i BotGraphEdge
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromNodeID,
+			&i.ToNodeID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllNodesForGraph = `-- name: ListAllNodesForGraph :many
+SELECT id, site_id, url, node_type, created_at
+FROM bot_graph_nodes
+ORDER BY site_id, created_at
+`
+
+type ListAllNodesForGraphRow struct {
+	ID        uuid.UUID
+	SiteID    uuid.UUID
+	Url       string
+	NodeType  sql.NullString
+	CreatedAt time.Time
+}
+
+func (q *Queries) ListAllNodesForGraph(ctx context.Context) ([]ListAllNodesForGraphRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAllNodesForGraph)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllNodesForGraphRow
+	for rows.Next() {
+		var i ListAllNodesForGraphRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.Url,
+			&i.NodeType,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllSitesForGraph = `-- name: ListAllSitesForGraph :many
+SELECT id, domain, root_url, active, created_at
+FROM bot_sites
+ORDER BY domain
+`
+
+type ListAllSitesForGraphRow struct {
+	ID        uuid.UUID
+	Domain    string
+	RootUrl   string
+	Active    bool
+	CreatedAt time.Time
+}
+
+// Graph Visualization queries
+func (q *Queries) ListAllSitesForGraph(ctx context.Context) ([]ListAllSitesForGraphRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAllSitesForGraph)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllSitesForGraphRow
+	for rows.Next() {
+		var i ListAllSitesForGraphRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Domain,
+			&i.RootUrl,
+			&i.Active,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAllTags = `-- name: ListAllTags :many
 SELECT id, name FROM tags
 `

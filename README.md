@@ -29,6 +29,7 @@
 - [x] OAuth 소셜 로그인 (Google, Discord)
 - [x] 유저 프로필 (닉네임, 아바타)
 - [x] 작품 피드 (분야/태그 필터, 페이지네이션)
+- [x] Bot CLI (Pioneer/Harvester 크롤러)
 - [ ] 핀 생성/삭제 + OG fetch
 - [ ] 보드 CRUD
 - [ ] 추천 피드
@@ -70,4 +71,69 @@ cp .env.example .env
 docker-compose up -d          # PostgreSQL + Redis
 cd apps/api && go run cmd/server/main.go
 cd apps/web && npm run dev
+```
+
+### 3. Bot CLI (Pioneer/Harvester)
+
+Fuguebot은 Pioneer(탐색)와 Harvester(수확) 크롤러를 제공합니다.
+
+#### 사용법
+
+```bash
+# Make를 통한 실행 (apps/api 디렉토리에서)
+make pioneer SITE=unsplash      # Pioneer 크롤러 실행
+make harvester SITE=fma         # Harvester 크롤러 실행
+
+# 직접 실행
+go run cmd/bot/main.go pioneer unsplash
+go run cmd/bot/main.go harvester freemusicarchive.org
+
+# 도움말
+go run cmd/bot/main.go --help
+go run cmd/bot/main.go pioneer --help
+```
+
+#### 지원 사이트
+
+- `unsplash`: unsplash.com
+- `fma`: freemusicarchive.org
+
+도메인 전체를 입력해도 동작합니다 (예: `unsplash.com`).
+
+#### 환경변수
+
+Pioneer 실행 시 필수:
+- `OPENAI_API_KEY`: OpenAI API 키
+- `OPENAI_MODEL` (선택): 사용할 모델 (기본: gpt-4o)
+
+Harvester 실행 시:
+- Storage 및 DB 설정 필요 (`.env` 참조)
+
+
+## 개발 도구
+
+### Bot Graph Visualization
+
+Pioneer가 발견한 노드 그래프를 시각화:
+
+```bash
+make show-map
+```
+
+생성된 `graph.html`을 브라우저에서 열면 인터랙티브 그래프를 볼 수 있습니다.
+
+**옵션**:
+- PNG/SVG export: `make show-map` 후 `-format=png` 또는 `-format=svg` 사용 (Graphviz 필요)
+- 특정 사이트만: `-filter-site=<domain>`
+- 출력 경로 지정: `-output=<path>`
+
+```bash
+# 예시
+cd apps/api
+go run internal/bot/cmd/visualize/main.go -format=png -output=graph.png
+```
+
+**Graphviz 설치** (PNG/SVG export용, 선택사항):
+```bash
+brew install graphviz
 ```

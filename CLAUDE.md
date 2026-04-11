@@ -39,6 +39,8 @@ fugue/
 - **ffprobe/ffmpeg**: 비디오 업로드 시 서버 사이드 duration 검증에 필요
   - macOS: `brew install ffmpeg`
   - Docker: `apps/api/Dockerfile`에 포함됨
+- **Graphviz** (선택): Bot graph PNG/SVG export 시 필요
+  - macOS: `brew install graphviz`
 
 ### 로컬 실행
 
@@ -47,6 +49,18 @@ docker-compose up -d     # PostgreSQL + Redis
 cd apps/api && go run cmd/server/main.go
 cd apps/web && npm run dev
 ```
+
+### Bot Graph Visualization
+
+Pioneer가 크롤한 노드 그래프를 시각화:
+
+```bash
+make show-map  # 인터랙티브 HTML 생성
+```
+
+Harvester script 경로 규칙:
+- `apps/api/internal/bot/sources/<domain>/<node_type>.go`
+- 존재하면 초록색(구현됨), 없으면 회색(미구현)으로 표시
 
 ### 코드 컨벤션
 
