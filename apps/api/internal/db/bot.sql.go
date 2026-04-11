@@ -271,6 +271,32 @@ func (q *Queries) GetNodeByHash(ctx context.Context, arg GetNodeByHashParams) (B
 	return i, err
 }
 
+const getNodeByURL = `-- name: GetNodeByURL :one
+SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at FROM bot_graph_nodes
+WHERE site_id = $1 AND url = $2
+`
+
+type GetNodeByURLParams struct {
+	SiteID uuid.UUID
+	Url    string
+}
+
+func (q *Queries) GetNodeByURL(ctx context.Context, arg GetNodeByURLParams) (BotGraphNode, error) {
+	row := q.db.QueryRowContext(ctx, getNodeByURL, arg.SiteID, arg.Url)
+	var i BotGraphNode
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Url,
+		&i.UrlHash,
+		&i.NodeType,
+		&i.ScriptID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getScriptBySiteType = `-- name: GetScriptBySiteType :one
 SELECT id, site_id, node_type, script_lang, script_code, ai_model, created_at, updated_at FROM bot_scripts
 WHERE site_id = $1 AND node_type = $2

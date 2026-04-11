@@ -64,6 +64,10 @@ RETURNING *;
 SELECT * FROM bot_graph_nodes
 WHERE site_id = $1 AND url_hash = $2;
 
+-- name: GetNodeByURL :one
+SELECT * FROM bot_graph_nodes
+WHERE site_id = $1 AND url = $2;
+
 -- name: UpdateNodeScript :exec
 UPDATE bot_graph_nodes
 SET script_id = $2, updated_at = now()

@@ -51,6 +51,10 @@ func (r *GraphRepo) GetNodeByHash(ctx context.Context, arg db.GetNodeByHashParam
 	return r.q.GetNodeByHash(ctx, arg)
 }
 
+func (r *GraphRepo) GetNodeByURL(ctx context.Context, arg db.GetNodeByURLParams) (db.BotGraphNode, error) {
+	return r.q.GetNodeByURL(ctx, arg)
+}
+
 func (r *GraphRepo) UpdateNodeScript(ctx context.Context, arg db.UpdateNodeScriptParams) error {
 	return r.q.UpdateNodeScript(ctx, arg)
 }

@@ -20,6 +20,9 @@ type SiteRepository interface {
 type GraphRepository interface {
 	CreateNode(ctx context.Context, arg db.CreateNodeParams) (db.BotGraphNode, error)
 	GetNodeByHash(ctx context.Context, arg db.GetNodeByHashParams) (db.BotGraphNode, error)
+	// GetNodeByURL retrieves a node by site ID and exact URL match
+	// Used by Harvester to find the root node for BFS traversal
+	GetNodeByURL(ctx context.Context, arg db.GetNodeByURLParams) (db.BotGraphNode, error)
 	UpdateNodeScript(ctx context.Context, arg db.UpdateNodeScriptParams) error
 	ListNodesBySite(ctx context.Context, siteID uuid.UUID) ([]db.BotGraphNode, error)
 	ListNodesByType(ctx context.Context, arg db.ListNodesByTypeParams) ([]db.BotGraphNode, error)
