@@ -13,8 +13,8 @@ func TestNewCLIClient(t *testing.T) {
 		t.Fatal("Expected client to be initialized")
 	}
 
-	if client.command != "chatgpt" {
-		t.Errorf("Expected default command 'chatgpt', got: %s", client.command)
+	if client.command != "codex" {
+		t.Errorf("Expected default command 'codex', got: %s", client.command)
 	}
 }
 
@@ -66,9 +66,10 @@ func TestCLIClient_Call_ContextCancellation(t *testing.T) {
 
 func TestNewFromEnv_CLIMode(t *testing.T) {
 	// Clear all AI env vars
-	_ = os.Unsetenv("AI_CLIENT_TYPE")
+	_ = os.Unsetenv("ENV")
 	_ = os.Unsetenv("OPENAI_API_KEY")
 	_ = os.Unsetenv("OPENAI_MODEL")
+	_ = os.Unsetenv("AI_CLI_COMMAND")
 
 	client, err := NewFromEnv()
 	if err != nil {
@@ -86,8 +87,8 @@ func TestNewFromEnv_CLIMode(t *testing.T) {
 }
 
 func TestNewFromEnv_CLIModeExplicit(t *testing.T) {
-	_ = os.Setenv("AI_CLIENT_TYPE", "cli")
-	defer func() { _ = os.Unsetenv("AI_CLIENT_TYPE") }()
+	_ = os.Setenv("ENV", "local")
+	defer func() { _ = os.Unsetenv("ENV") }()
 
 	client, err := NewFromEnv()
 	if err != nil {
@@ -99,14 +100,28 @@ func TestNewFromEnv_CLIModeExplicit(t *testing.T) {
 	}
 }
 
-func TestNewFromEnv_SDKMode_MissingKey(t *testing.T) {
-	_ = os.Setenv("AI_CLIENT_TYPE", "sdk")
+func TestNewFromEnv_DevMode(t *testing.T) {
+	_ = os.Setenv("ENV", "dev")
+	defer func() { _ = os.Unsetenv("ENV") }()
+
+	client, err := NewFromEnv()
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if _, ok := client.(*CLIClient); !ok {
+		t.Errorf("Expected CLIClient in dev mode, got: %T", client)
+	}
+}
+
+func TestNewFromEnv_ProductionMode_MissingKey(t *testing.T) {
+	_ = os.Setenv("ENV", "production")
 	_ = os.Unsetenv("OPENAI_API_KEY")
-	defer func() { _ = os.Unsetenv("AI_CLIENT_TYPE") }()
+	defer func() { _ = os.Unsetenv("ENV") }()
 
 	client, err := NewFromEnv()
 	if err == nil {
-		t.Fatal("Expected error for SDK mode without API key, got nil")
+		t.Fatal("Expected error for production mode without API key, got nil")
 	}
 
 	if client != nil {
@@ -114,11 +129,11 @@ func TestNewFromEnv_SDKMode_MissingKey(t *testing.T) {
 	}
 }
 
-func TestNewFromEnv_SDKMode_WithKey(t *testing.T) {
-	_ = os.Setenv("AI_CLIENT_TYPE", "sdk")
+func TestNewFromEnv_ProductionMode_WithKey(t *testing.T) {
+	_ = os.Setenv("ENV", "production")
 	_ = os.Setenv("OPENAI_API_KEY", "test-key")
 	defer func() {
-		_ = os.Unsetenv("AI_CLIENT_TYPE")
+		_ = os.Unsetenv("ENV")
 		_ = os.Unsetenv("OPENAI_API_KEY")
 	}()
 
@@ -128,20 +143,29 @@ func TestNewFromEnv_SDKMode_WithKey(t *testing.T) {
 	}
 
 	if _, ok := client.(*OpenAIClient); !ok {
-		t.Errorf("Expected OpenAIClient in SDK mode, got: %T", client)
+		t.Errorf("Expected OpenAIClient in production mode, got: %T", client)
 	}
 }
 
-func TestNewFromEnv_InvalidType(t *testing.T) {
-	_ = os.Setenv("AI_CLIENT_TYPE", "invalid-type")
-	defer func() { _ = os.Unsetenv("AI_CLIENT_TYPE") }()
+func TestNewFromEnv_CustomCLICommand(t *testing.T) {
+	_ = os.Setenv("ENV", "local")
+	_ = os.Setenv("AI_CLI_COMMAND", "custom-codex")
+	defer func() {
+		_ = os.Unsetenv("ENV")
+		_ = os.Unsetenv("AI_CLI_COMMAND")
+	}()
 
 	client, err := NewFromEnv()
-	if err == nil {
-		t.Fatal("Expected error for invalid client type, got nil")
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
 	}
 
-	if client != nil {
-		t.Fatal("Expected client to be nil")
+	cliClient, ok := client.(*CLIClient)
+	if !ok {
+		t.Fatalf("Expected CLIClient, got: %T", client)
+	}
+
+	if cliClient.command != "custom-codex" {
+		t.Errorf("Expected custom command 'custom-codex', got: %s", cliClient.command)
 	}
 }

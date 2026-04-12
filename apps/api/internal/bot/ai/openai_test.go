@@ -85,34 +85,34 @@ func TestNewOpenAIClient_CustomTimeout(t *testing.T) {
 }
 
 func TestNewFromEnv_MissingAPIKey(t *testing.T) {
-	// Set SDK mode but no API key
-	_ = os.Setenv("AI_CLIENT_TYPE", "sdk")
+	// Set production mode but no API key
+	_ = os.Setenv("ENV", "production")
 	_ = os.Unsetenv("OPENAI_API_KEY")
 	_ = os.Unsetenv("OPENAI_MODEL")
-	defer func() { _ = os.Unsetenv("AI_CLIENT_TYPE") }()
+	defer func() { _ = os.Unsetenv("ENV") }()
 
 	client, err := NewFromEnv()
 	if err == nil {
-		t.Fatal("Expected error for SDK mode without API key, got nil")
+		t.Fatal("Expected error for production mode without API key, got nil")
 	}
 
 	if client != nil {
 		t.Fatal("Expected client to be nil when API key is missing")
 	}
 
-	expectedMsg := "OPENAI_API_KEY environment variable is not set (required for SDK mode)"
+	expectedMsg := "OPENAI_API_KEY required for ENV=production"
 	if err.Error() != expectedMsg {
 		t.Errorf("Expected error message '%s', got: %s", expectedMsg, err.Error())
 	}
 }
 
 func TestNewFromEnv_WithEnvVars(t *testing.T) {
-	// Set environment variables for SDK mode
-	_ = os.Setenv("AI_CLIENT_TYPE", "sdk")
+	// Set environment variables for production mode
+	_ = os.Setenv("ENV", "production")
 	_ = os.Setenv("OPENAI_API_KEY", "test-env-key")
 	_ = os.Setenv("OPENAI_MODEL", "gpt-4")
 	defer func() {
-		_ = os.Unsetenv("AI_CLIENT_TYPE")
+		_ = os.Unsetenv("ENV")
 		_ = os.Unsetenv("OPENAI_API_KEY")
 		_ = os.Unsetenv("OPENAI_MODEL")
 	}()
@@ -134,11 +134,11 @@ func TestNewFromEnv_WithEnvVars(t *testing.T) {
 }
 
 func TestNewFromEnv_DefaultModel(t *testing.T) {
-	// Set only API key for SDK mode, not model
-	_ = os.Setenv("AI_CLIENT_TYPE", "sdk")
+	// Set only API key for production mode, not model
+	_ = os.Setenv("ENV", "production")
 	_ = os.Setenv("OPENAI_API_KEY", "test-env-key")
 	defer func() {
-		_ = os.Unsetenv("AI_CLIENT_TYPE")
+		_ = os.Unsetenv("ENV")
 		_ = os.Unsetenv("OPENAI_API_KEY")
 	}()
 

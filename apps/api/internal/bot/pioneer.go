@@ -69,7 +69,7 @@ func (p *Pioneer) Run(ctx context.Context, siteID uuid.UUID) error {
 // crawl performs the BFS crawl and script generation
 func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 	fmt.Printf("🚀 Starting crawl for %s (root: %s)\n", site.Domain, site.RootUrl)
-	
+
 	// Parse root domain
 	rootDomain, err := extractDomain(site.RootUrl)
 	if err != nil {
@@ -167,7 +167,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		// Parse links and add to queue (even if script failed)
 		links := parseLinks(html, item.URL)
 		fmt.Printf("📊 Found %d links from %s\n", len(links), item.URL)
-		
+
 		addedCount := 0
 		for _, link := range links {
 			// Domain validation
