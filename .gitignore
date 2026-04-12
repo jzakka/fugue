@@ -8,3 +8,4 @@ node_modules/
 # Go build binaries
 apps/api/bot
 apps/api/server
+graph.html

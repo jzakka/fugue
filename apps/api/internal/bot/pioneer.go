@@ -67,13 +67,15 @@ func (p *Pioneer) Run(ctx context.Context, siteID uuid.UUID) error {
 }
 
 // crawl performs the BFS crawl and script generation
-// crawl performs the BFS crawl and script generation
 func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
+	fmt.Printf("🚀 Starting crawl for %s (root: %s)\n", site.Domain, site.RootUrl)
+	
 	// Parse root domain
 	rootDomain, err := extractDomain(site.RootUrl)
 	if err != nil {
 		return fmt.Errorf("parse root domain: %w", err)
 	}
+	fmt.Printf("📍 Root domain: %s\n", rootDomain)
 
 	// Initialize BFS queue with root URL
 	queue := NewPriorityQueue()
@@ -87,12 +89,15 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		Priority: 100, // High priority for root
 	})
 	visited[rootHash] = true
+	fmt.Printf("🌱 Added root node to queue\n")
 
 	nodesProcessed := 0
 
 	// BFS traversal
+	fmt.Printf("🔄 Starting BFS traversal (max nodes: %d)...\n", p.config.MaxNodesPerSite)
 	for !queue.IsEmpty() && nodesProcessed < p.config.MaxNodesPerSite {
 		item := queue.Pop()
+		fmt.Printf("\n📥 Processing: %s\n", item.URL)
 
 		// Rate limiting
 		time.Sleep(time.Duration(p.config.RateLimitMs) * time.Millisecond)
@@ -104,10 +109,13 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			fmt.Printf("Error fetching %s: %v\n", item.URL, fetchErr)
 			continue
 		}
+		fmt.Printf("✅ Fetched %d bytes\n", len(html))
 
 		// Classify node type
 		nodeType := classifyURL(item.URL)
+		fmt.Printf("🏷️  Node type: %s\n", nodeType)
 		if nodeType == NodeTypeSkip {
+			fmt.Printf("⏭️  Skipping node\n")
 			continue
 		}
 
@@ -146,16 +154,21 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		}
 
 		nodesProcessed++
+		fmt.Printf("📊 Nodes processed: %d/%d\n", nodesProcessed, p.config.MaxNodesPerSite)
 
 		// Handle script for this node type
 		_, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, item.URL)
 		if scriptErr != nil {
-			// Log error but continue
-			continue
+			// Log error but continue to parse links
+			fmt.Printf("⚠️  Script error (will continue): %v\n", scriptErr)
+			// Don't return or continue - keep going to parse links
 		}
 
-		// Parse links and add to queue
+		// Parse links and add to queue (even if script failed)
 		links := parseLinks(html, item.URL)
+		fmt.Printf("📊 Found %d links from %s\n", len(links), item.URL)
+		
+		addedCount := 0
 		for _, link := range links {
 			// Domain validation
 			if !isSameDomain(link, rootDomain) {
@@ -182,7 +195,9 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 				URLHash:  linkHash,
 				Priority: priority,
 			})
+			addedCount++
 		}
+		fmt.Printf("✅ Added %d links to queue (queue size: %d)\n", addedCount, queue.Len())
 	}
 
 	return nil

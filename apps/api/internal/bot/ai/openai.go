@@ -55,38 +55,39 @@ func NewOpenAIClient(cfg Config) (*OpenAIClient, error) {
 }
 
 // NewFromEnv creates a new AI client from environment variables.
-// Supports two modes:
-// - CLI mode (default): Uses local chatgpt command (AI_CLIENT_TYPE=cli or unset)
-// - SDK mode: Uses OpenAI API (AI_CLIENT_TYPE=sdk, requires OPENAI_API_KEY)
+// Automatically selects implementation based on ENV:
+// - ENV=local (or unset): Uses codex CLI subprocess (default for local development)
+// - ENV=production/staging: Uses OpenAI SDK (requires OPENAI_API_KEY)
 func NewFromEnv() (Client, error) {
-	clientType := os.Getenv("AI_CLIENT_TYPE")
-	if clientType == "" {
-		clientType = "cli" // Default to CLI mode
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "local" // Default to local
 	}
 
-	switch clientType {
-	case "cli":
-		return NewCLIClient(CLIConfig{}), nil
-
-	case "sdk":
-		apiKey := os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			return nil, errors.New("OPENAI_API_KEY environment variable is not set (required for SDK mode)")
+	// Local development: use codex subprocess
+	if env == "local" || env == "development" || env == "dev" {
+		command := os.Getenv("AI_CLI_COMMAND")
+		if command == "" {
+			command = "codex" // Default codex for local dev
 		}
-
-		model := os.Getenv("OPENAI_MODEL")
-		if model == "" {
-			model = "gpt-4o" // Updated default model
-		}
-
-		return NewOpenAIClient(Config{
-			APIKey: apiKey,
-			Model:  model,
-		})
-
-	default:
-		return nil, fmt.Errorf("invalid AI_CLIENT_TYPE: %s (must be 'cli' or 'sdk')", clientType)
+		return NewCLIClient(CLIConfig{Command: command}), nil
 	}
+
+	// Production/staging: use OpenAI SDK
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, fmt.Errorf("OPENAI_API_KEY required for ENV=%s", env)
+	}
+
+	model := os.Getenv("OPENAI_MODEL")
+	if model == "" {
+		model = "gpt-4o"
+	}
+
+	return NewOpenAIClient(Config{
+		APIKey: apiKey,
+		Model:  model,
+	})
 }
 
 // Call sends a prompt to the AI model and returns the response.

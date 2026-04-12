@@ -8,16 +8,16 @@ import (
 	"strings"
 )
 
-// CLIClient implements the Client interface by calling a local chatgpt CLI command.
-// This is useful when you have ChatGPT Plus subscription but no API key.
+// CLIClient implements the Client interface by calling a local CLI command.
+// By default uses "codex" CLI for local development.
 type CLIClient struct {
-	command string   // CLI command to execute (default: "chatgpt")
+	command string   // CLI command to execute (default: "codex")
 	args    []string // Additional arguments to pass
 }
 
 // CLIConfig holds configuration for the CLI client.
 type CLIConfig struct {
-	// Command is the CLI executable name (default: "chatgpt")
+	// Command is the CLI executable name (default: "codex")
 	Command string
 
 	// Args are additional arguments to pass to the command
@@ -27,7 +27,7 @@ type CLIConfig struct {
 // NewCLIClient creates a new CLI-based AI client.
 func NewCLIClient(cfg CLIConfig) *CLIClient {
 	if cfg.Command == "" {
-		cfg.Command = "chatgpt"
+		cfg.Command = "codex" // Default to codex, not chatgpt
 	}
 
 	return &CLIClient{
@@ -36,9 +36,9 @@ func NewCLIClient(cfg CLIConfig) *CLIClient {
 	}
 }
 
-// Call sends a prompt to the chatgpt CLI and returns the response.
+// Call sends a prompt to the CLI and returns the response.
 func (c *CLIClient) Call(ctx context.Context, prompt string) (string, error) {
-	// Build command: chatgpt [args...]
+	// Build command: codex [args...]
 	// Pass prompt via stdin to avoid argv limits and process list leaks
 	cmd := exec.CommandContext(ctx, c.command, c.args...)
 	cmd.Stdin = strings.NewReader(prompt)

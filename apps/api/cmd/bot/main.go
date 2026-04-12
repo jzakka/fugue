@@ -23,6 +23,7 @@ import (
 var sourceRegistry = map[string]string{
 	"unsplash": "unsplash.com",
 	"fma":      "freemusicarchive.org",
+	"pixiv":    "pixiv.net",
 }
 
 // resolveDomain resolves a source name to a domain
