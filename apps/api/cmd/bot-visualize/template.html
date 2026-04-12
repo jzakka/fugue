@@ -110,30 +110,20 @@
             margin-right: 8px;
         }
         
-        .covered {
-            fill: #10b981;
-            stroke: #059669;
-        }
-        
-        .uncovered {
-            fill: #6b7280;
-            stroke: #4b5563;
-        }
-        
         .node {
             cursor: pointer;
             stroke-width: 2px;
         }
-        
+
         .link {
-            stroke: #404040;
+            stroke: #555;
             stroke-opacity: 0.6;
             stroke-width: 1.5px;
             fill: none;
         }
-        
+
         .link-arrow {
-            fill: #404040;
+            fill: #555;
         }
         
         .node-label {
@@ -206,18 +196,39 @@
     </div>
     
     <div id="legend">
-        <h3>Legend</h3>
+        <h3>Legend — Node Type</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #3b82f6; border: 2px solid #2563eb;"></div>
+            <span>Listing</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #8b5cf6; border: 2px solid #7c3aed;"></div>
+            <span>Gallery</span>
+        </div>
         <div class="legend-item">
             <div class="legend-color" style="background: #10b981; border: 2px solid #059669;"></div>
-            <span>Script implemented</span>
+            <span>Detail</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #f59e0b; border: 2px solid #d97706;"></div>
+            <span>Category</span>
         </div>
         <div class="legend-item">
             <div class="legend-color" style="background: #6b7280; border: 2px solid #4b5563;"></div>
-            <span>Script missing</span>
+            <span>Unknown</span>
+        </div>
+        <h3 style="margin-top: 10px;">Script Status</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #3b82f6; border: 2px solid #fff;"></div>
+            <span>Implemented (bright stroke)</span>
         </div>
         <div class="legend-item">
-            <div class="legend-line" style="background: #404040;"></div>
-            <span>Link</span>
+            <div class="legend-color" style="background: #3b82f6; border: 2px solid #333;"></div>
+            <span>Missing (dark stroke)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line" style="background: #555;"></div>
+            <span>Edge (link)</span>
         </div>
     </div>
     
@@ -288,13 +299,24 @@
                 .attr('d', 'M0,-5L10,0L0,5')
                 .attr('class', 'link-arrow');
             
+            // Node type color map
+            const typeColors = {
+                listing:  '#3b82f6',
+                gallery:  '#8b5cf6',
+                detail:   '#10b981',
+                category: '#f59e0b',
+            };
+            const defaultColor = '#6b7280';
+
             // Create nodes
             const node = g.append('g')
                 .selectAll('circle')
                 .data(data.nodes)
                 .join('circle')
-                .attr('class', d => d.has_script ? 'node covered' : 'node uncovered')
+                .attr('class', 'node')
                 .attr('r', 8)
+                .attr('fill', d => typeColors[d.node_type] || defaultColor)
+                .attr('stroke', d => d.has_script ? '#fff' : '#333')
                 .call(d3.drag()
                     .on('start', dragstarted)
                     .on('drag', dragged)
@@ -331,7 +353,7 @@
                 tooltip.style('display', 'none');
             });
             
-            // Force simulation
+            // Force simulation — edges use source/target fields from server
             const simulation = d3.forceSimulation(data.nodes)
                 .force('link', d3.forceLink(data.edges)
                     .id(d => d.id)
@@ -340,23 +362,21 @@
                 .force('center', d3.forceCenter(width / 2, height / 2))
                 .force('collision', d3.forceCollide().radius(15))
                 .force('x', d3.forceX(d => {
-                    const site = siteMap[d.site_id];
                     const siteIndex = data.sites.findIndex(s => s.id === d.site_id);
                     return width / (data.sites.length + 1) * (siteIndex + 1);
                 }).strength(0.3))
                 .on('tick', ticked);
-            
+
             function ticked() {
+                // D3 forceLink auto-resolves source/target to node objects
                 link.attr('d', d => {
-                    const source = data.nodes.find(n => n.id === d.from_node_id);
-                    const target = data.nodes.find(n => n.id === d.to_node_id);
-                    if (!source || !target) return '';
-                    return `M${source.x},${source.y} L${target.x},${target.y}`;
+                    if (!d.source || !d.target) return '';
+                    return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
                 });
-                
+
                 node.attr('cx', d => d.x)
                     .attr('cy', d => d.y);
-                
+
                 labels.attr('x', d => d.x)
                     .attr('y', d => d.y);
             }

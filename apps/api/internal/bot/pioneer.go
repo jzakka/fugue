@@ -79,7 +79,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 
 	// Initialize BFS queue with root URL
 	queue := NewPriorityQueue()
-	visited := make(map[string]bool)
+	visited := make(map[string]uuid.UUID) // hash → node ID
 
 	// Add root node
 	rootHash := hashURL(site.RootUrl)
@@ -88,7 +88,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		URLHash:  rootHash,
 		Priority: 100, // High priority for root
 	})
-	visited[rootHash] = true
+	visited[rootHash] = uuid.Nil // ID will be set when processed
 	fmt.Printf("🌱 Added root node to queue\n")
 
 	nodesProcessed := 0
@@ -119,39 +119,40 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			continue
 		}
 
-		// Create or get existing node
-		_, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
+		// Create or get existing node — capture ID for edge creation
+		var currentNodeID uuid.UUID
+		existingNode, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
 			SiteID:  site.ID,
 			UrlHash: item.URLHash,
 		})
 
-		// Distinguish "not found" from DB errors
-		nodeExists := false
 		if err == nil {
-			nodeExists = true
+			currentNodeID = existingNode.ID
 		} else if !errors.Is(err, sql.ErrNoRows) {
 			// Real DB error - fail loudly
 			return fmt.Errorf("failed to check node existence for %s: %w", item.URL, err)
-		}
-
-		if !nodeExists {
+		} else {
 			// Create new node
-			_, err = p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
+			newNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
 				SiteID:   site.ID,
 				Url:      item.URL,
 				UrlHash:  item.URLHash,
 				NodeType: sql.NullString{String: string(nodeType), Valid: true},
 				ScriptID: uuid.NullUUID{Valid: false},
 			})
-			if err != nil {
+			if createErr != nil {
 				// Check if it's a unique constraint violation (concurrent insert)
-				if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
+				if strings.Contains(createErr.Error(), "duplicate key") || strings.Contains(createErr.Error(), "unique constraint") {
 					continue // Another worker created it, skip
 				}
 				// Real error - fail
-				return fmt.Errorf("failed to create node for %s: %w", item.URL, err)
+				return fmt.Errorf("failed to create node for %s: %w", item.URL, createErr)
 			}
+			currentNodeID = newNode.ID
 		}
+
+		// Update visited map with actual node ID
+		visited[item.URLHash] = currentNodeID
 
 		nodesProcessed++
 		fmt.Printf("📊 Nodes processed: %d/%d\n", nodesProcessed, p.config.MaxNodesPerSite)
@@ -181,15 +182,69 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			}
 
 			linkHash := hashURL(link)
-			if visited[linkHash] {
+
+			if childNodeID, alreadyVisited := visited[linkHash]; alreadyVisited {
+				// Already visited — still create edge (parent→child) if we have a valid child ID
+				if childNodeID != uuid.Nil {
+					edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
+						FromNodeID: currentNodeID,
+						ToNodeID:   childNodeID,
+					})
+					if edgeErr != nil {
+						fmt.Printf("⚠️  Edge error (visited, will continue): %v\n", edgeErr)
+					}
+				}
 				continue
 			}
-			visited[linkHash] = true
 
-			// Classify and calculate priority
+			// New link — create child node, edge, then push to queue
 			linkType := classifyURL(link)
-			priority := NodeTypePriority(linkType)
+			if linkType == NodeTypeSkip {
+				continue
+			}
 
+			childNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
+				SiteID:   site.ID,
+				Url:      link,
+				UrlHash:  linkHash,
+				NodeType: sql.NullString{String: string(linkType), Valid: true},
+				ScriptID: uuid.NullUUID{Valid: false},
+			})
+			if createErr != nil {
+				if strings.Contains(createErr.Error(), "duplicate key") || strings.Contains(createErr.Error(), "unique constraint") {
+					// Node already exists (concurrent insert) — try to get it for edge
+					existingChild, getErr := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
+						SiteID:  site.ID,
+						UrlHash: linkHash,
+					})
+					if getErr == nil {
+						visited[linkHash] = existingChild.ID
+						edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
+							FromNodeID: currentNodeID,
+							ToNodeID:   existingChild.ID,
+						})
+						if edgeErr != nil {
+							fmt.Printf("⚠️  Edge error (will continue): %v\n", edgeErr)
+						}
+					}
+					continue
+				}
+				fmt.Printf("⚠️  Node creation error (will continue): %v\n", createErr)
+				continue
+			}
+
+			visited[linkHash] = childNode.ID
+
+			// Create edge: parent → child
+			edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
+				FromNodeID: currentNodeID,
+				ToNodeID:   childNode.ID,
+			})
+			if edgeErr != nil {
+				fmt.Printf("⚠️  Edge error (will continue): %v\n", edgeErr)
+			}
+
+			priority := NodeTypePriority(linkType)
 			queue.Push(&QueueItem{
 				URL:      link,
 				URLHash:  linkHash,
@@ -317,45 +372,75 @@ func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, error) 
 	return string(body), nil
 }
 
-// URL Classification (Task 6.2)
-func classifyURL(urlStr string) NodeType {
-	lower := strings.ToLower(urlStr)
+// urlPathContains checks if a URL path contains the given segment as a whole path component.
+// Uses boundary-aware matching: /photos/ matches but "hot" inside "photos" does not match "hot".
+func urlPathContains(urlPath string, segment string) bool {
+	// Check as path segment: /segment/ or /segment? or /segment at end
+	return strings.Contains(urlPath, "/"+segment+"/") ||
+		strings.HasSuffix(urlPath, "/"+segment)
+}
 
-	// Skip patterns
+// URL Classification
+func classifyURL(urlStr string) NodeType {
+	u, parseErr := url.Parse(strings.ToLower(urlStr))
+	if parseErr != nil {
+		return NodeTypeListing
+	}
+	path := u.Path
+
+	// Skip patterns (path segment match)
 	skipPatterns := []string{"ad", "popup", "login", "signup", "cart", "checkout"}
 	for _, pattern := range skipPatterns {
-		if strings.Contains(lower, pattern) {
+		if urlPathContains(path, pattern) {
 			return NodeTypeSkip
 		}
 	}
 
-	// Listing patterns (priority 100)
+	// Detail page: content singular path segments (check BEFORE listing to avoid "hot" in "photos")
+	detailPathPatterns := []string{"artworks", "photos", "works", "illust", "artwork", "photo"}
+	for _, pattern := range detailPathPatterns {
+		if urlPathContains(path, pattern) {
+			return NodeTypeDetail
+		}
+	}
+
+	// Detail page: query parameter with explicit ID keys
+	q := u.Query()
+	idKeys := []string{"id", "illust_id", "artwork_id", "photo_id"}
+	for _, key := range idKeys {
+		if val := q.Get(key); val != "" {
+			if regexp.MustCompile(`^\d+$`).MatchString(val) {
+				return NodeTypeDetail
+			}
+		}
+	}
+
+	// Listing patterns (path segment match)
 	listingPatterns := []string{"trending", "popular", "hot", "featured", "recent", "explore"}
 	for _, pattern := range listingPatterns {
-		if strings.Contains(lower, pattern) {
+		if urlPathContains(path, pattern) {
 			return NodeTypeListing
 		}
 	}
 
-	// Gallery patterns (priority 80)
-	galleryPatterns := []string{"gallery", "collection", "album", "showcase"}
+	// Gallery patterns
+	galleryPatterns := []string{"gallery", "galleries", "collection", "collections", "album", "albums", "showcase"}
 	for _, pattern := range galleryPatterns {
-		if strings.Contains(lower, pattern) {
+		if urlPathContains(path, pattern) {
 			return NodeTypeGallery
 		}
 	}
 
-	// Category patterns (priority 60)
-	categoryPatterns := []string{"category", "tag", "genre", "style"}
+	// Category patterns
+	categoryPatterns := []string{"category", "categories", "tag", "tags", "genre", "genres", "style", "styles", "contest", "contests", "event", "events"}
 	for _, pattern := range categoryPatterns {
-		if strings.Contains(lower, pattern) {
+		if urlPathContains(path, pattern) {
 			return NodeTypeCategory
 		}
 	}
 
-	// Detail page: has numeric ID pattern (check AFTER keyword patterns to avoid false positives)
-	// "shots/12345" should be detail, but "shots/recent" is listing
-	if regexp.MustCompile(`/\d{4,}(?:/|$)`).MatchString(urlStr) {
+	// Detail page: has numeric ID pattern in path
+	if regexp.MustCompile(`/\d{4,}(?:/|$)`).MatchString(path) {
 		return NodeTypeDetail
 	}
 

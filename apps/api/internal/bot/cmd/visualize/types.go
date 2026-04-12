@@ -1,6 +1,7 @@
 package visualize
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,6 +40,26 @@ type Edge struct {
 	FromNodeID uuid.UUID `json:"from_node_id"`
 	ToNodeID   uuid.UUID `json:"to_node_id"`
 	CreatedAt  time.Time `json:"created_at"`
+}
+
+// MarshalJSON adds source/target fields for D3 forceLink compatibility
+func (e Edge) MarshalJSON() ([]byte, error) {
+	type edgeJSON struct {
+		ID         uuid.UUID `json:"id"`
+		FromNodeID uuid.UUID `json:"from_node_id"`
+		ToNodeID   uuid.UUID `json:"to_node_id"`
+		Source     uuid.UUID `json:"source"`
+		Target     uuid.UUID `json:"target"`
+		CreatedAt  time.Time `json:"created_at"`
+	}
+	return json.Marshal(edgeJSON{
+		ID:         e.ID,
+		FromNodeID: e.FromNodeID,
+		ToNodeID:   e.ToNodeID,
+		Source:     e.FromNodeID,
+		Target:     e.ToNodeID,
+		CreatedAt:  e.CreatedAt,
+	})
 }
 
 // Metadata contains summary statistics

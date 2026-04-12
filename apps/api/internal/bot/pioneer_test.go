@@ -1,7 +1,15 @@
 package bot
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/google/uuid"
+
+	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
 // Test URL classification
@@ -22,16 +30,32 @@ func TestClassifyURL(t *testing.T) {
 		// Category pages
 		{"https://example.com/category/design", NodeTypeCategory},
 		{"https://example.com/tags/illustration", NodeTypeCategory},
+		{"https://example.com/contest/magicalparty", NodeTypeCategory},
+		{"https://example.com/event/summer2026", NodeTypeCategory},
 
-		// Detail pages (numeric ID) - should not match if keyword present
+		// Detail pages (numeric ID in path)
 		{"https://example.com/item/12345", NodeTypeDetail},
 		{"https://example.com/post/987654321", NodeTypeDetail},
+
+		// Detail pages (query parameter ID)
+		{"https://www.pixiv.net/member.php?id=30988235", NodeTypeDetail},
+		{"https://www.pixiv.net/artworks/12345678", NodeTypeDetail},
+		{"https://www.pixiv.net/en/artworks/99999", NodeTypeDetail},
+		{"https://example.com/view?illust_id=456789", NodeTypeDetail},
+
+		// Detail pages (content singular path)
+		{"https://unsplash.com/photos/abc123", NodeTypeDetail},
+		{"https://example.com/works/my-piece", NodeTypeDetail},
+
+		// Pagination is NOT detail (?p= should remain listing)
+		{"https://example.com/page", NodeTypeListing},
 
 		// Skip pages
 		{"https://example.com/login", NodeTypeSkip},
 		{"https://example.com/signup", NodeTypeSkip},
 		{"https://example.com/ad/banner", NodeTypeSkip},
 		{"https://example.com/cart", NodeTypeSkip},
+		{"https://example.com/checkout/step1", NodeTypeSkip},
 	}
 
 	for _, tt := range tests {
@@ -142,6 +166,83 @@ func TestEstimateItemCount(t *testing.T) {
 				t.Errorf("estimateItemCount() = %v, want %v", result, tt.expected)
 			}
 		})
+	}
+}
+
+// Test that Pioneer creates edges during crawl
+func TestPioneerCreatesEdges(t *testing.T) {
+	// Create test HTTP server with pages that link to each other
+	mux := http.NewServeMux()
+	var serverURL string
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/trending">trending</a><a href="%s/popular">popular</a></body></html>`, serverURL, serverURL)
+	})
+	mux.HandleFunc("/trending", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/item/12345">detail</a></body></html>`, serverURL)
+	})
+	mux.HandleFunc("/popular", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/trending">trending again</a></body></html>`, serverURL)
+	})
+	mux.HandleFunc("/item/12345", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprint(w, `<html><body>detail page</body></html>`)
+	})
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	serverURL = ts.URL
+
+	// Setup mocks
+	siteID := uuid.New()
+	siteRepo := NewMockSiteRepository()
+	siteRepo.Sites[siteID] = db.BotSite{
+		ID:      siteID,
+		Domain:  "127.0.0.1",
+		RootUrl: serverURL + "/",
+		Active:  true,
+	}
+
+	graphRepo := NewMockGraphRepository()
+	scriptRepo := NewMockScriptRepository()
+	aiClient := NewMockAIClient()
+	executor := NewMockScriptExecutor()
+
+	pioneer := NewPioneer(siteRepo, graphRepo, scriptRepo, aiClient, executor, PioneerConfig{
+		MaxNodesPerSite:  10,
+		RateLimitMs:      0,
+		SuccessThreshold: 0.7,
+	})
+
+	err := pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("Pioneer.Run() error: %v", err)
+	}
+
+	// Verify nodes were created
+	if len(graphRepo.Nodes) == 0 {
+		t.Fatal("Expected nodes to be created, got 0")
+	}
+
+	// Verify edges were created
+	if len(graphRepo.Edges) == 0 {
+		t.Fatal("Expected edges to be created, got 0")
+	}
+
+	// Verify at least one edge exists (root → child)
+	t.Logf("Created %d nodes and %d edges", len(graphRepo.Nodes), len(graphRepo.Edges))
+
+	// Verify no duplicate edges
+	edgeSet := make(map[string]bool)
+	for _, e := range graphRepo.Edges {
+		key := e.FromNodeID.String() + "->" + e.ToNodeID.String()
+		if edgeSet[key] {
+			t.Errorf("Duplicate edge found: %s", key)
+		}
+		edgeSet[key] = true
 	}
 }
 
