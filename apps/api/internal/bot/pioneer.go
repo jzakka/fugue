@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -99,6 +101,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		html, fetchErr := p.fetchHTML(ctx, item.URL)
 		if fetchErr != nil {
 			// Log error but continue
+			fmt.Printf("Error fetching %s: %v\n", item.URL, fetchErr)
 			continue
 		}
 
@@ -249,9 +252,54 @@ func (p *Pioneer) validateScript(ctx context.Context, scriptCode, html, url stri
 
 // fetchHTML fetches HTML content with timeout
 func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, error) {
-	// TODO: Implement actual HTTP fetching with timeout
-	// For now, return empty to allow compilation
-	return "", fmt.Errorf("not implemented")
+	// Create HTTP client with custom transport
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 5 {
+				return fmt.Errorf("stopped after 5 redirects")
+			}
+			return nil
+		},
+	}
+
+	// Create GET request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set User-Agent header
+	req.Header.Set("User-Agent", "FugueBot/1.0 (+https://fugue.app)")
+
+	// Execute request
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch URL: %w", err)
+	}
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	// Check HTTP status code
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
+	}
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Validate response is not empty
+	if len(body) == 0 {
+		return "", fmt.Errorf("empty response body")
+	}
+
+	return string(body), nil
 }
 
 // URL Classification (Task 6.2)
