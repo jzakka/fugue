@@ -103,45 +103,45 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		time.Sleep(time.Duration(p.config.RateLimitMs) * time.Millisecond)
 
 		// Fetch HTML (with timeout)
-		html, fetchErr := p.fetchHTML(ctx, item.URL)
+		html, finalURL, fetchErr := p.fetchHTML(ctx, item.URL)
 		if fetchErr != nil {
 			// Log error but continue
 			fmt.Printf("Error fetching %s: %v\n", item.URL, fetchErr)
 			continue
 		}
-		fmt.Printf("✅ Fetched %d bytes\n", len(html))
+		fmt.Printf("✅ Fetched %d bytes (final: %s)\n", len(html), finalURL)
 
-		// Classify node type
-		nodeType := classifyURL(item.URL)
+		// Classify node type using the final URL after redirects
+		nodeType := classifyURL(finalURL)
 		fmt.Printf("🏷️  Node type: %s\n", nodeType)
 		if nodeType == NodeTypeSkip {
 			fmt.Printf("⏭️  Skipping node\n")
 			continue
 		}
 
-		// Create or get existing node — capture ID for edge creation
-		// url field stores the template path, sample_url stores the original URL
-		canonical := templatePath(item.URL)
+		// Recompute hash from finalURL to handle redirects correctly
+		canonical := templatePath(finalURL)
+		finalHash := hashURL(finalURL)
 		var currentNodeID uuid.UUID
 		existingNode, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
 			SiteID:  site.ID,
-			UrlHash: item.URLHash,
+			UrlHash: finalHash,
 		})
 
 		if err == nil {
 			currentNodeID = existingNode.ID
 		} else if !errors.Is(err, sql.ErrNoRows) {
 			// Real DB error - fail loudly
-			return fmt.Errorf("failed to check node existence for %s: %w", item.URL, err)
+			return fmt.Errorf("failed to check node existence for %s: %w", finalURL, err)
 		} else {
 			// Create new node
 			newNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
 				SiteID:    site.ID,
 				Url:       canonical,
-				UrlHash:   item.URLHash,
+				UrlHash:   finalHash,
 				NodeType:  sql.NullString{String: string(nodeType), Valid: true},
 				ScriptID:  uuid.NullUUID{Valid: false},
-				SampleUrl: sql.NullString{String: item.URL, Valid: true},
+				SampleUrl: sql.NullString{String: finalURL, Valid: true},
 			})
 			if createErr != nil {
 				// Check if it's a unique constraint violation (concurrent insert)
@@ -149,19 +149,20 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 					continue // Another worker created it, skip
 				}
 				// Real error - fail
-				return fmt.Errorf("failed to create node for %s: %w", item.URL, createErr)
+				return fmt.Errorf("failed to create node for %s: %w", finalURL, createErr)
 			}
 			currentNodeID = newNode.ID
 		}
 
-		// Update visited map with actual node ID
+		// Mark both original and final URL hashes as visited
 		visited[item.URLHash] = currentNodeID
+		visited[finalHash] = currentNodeID
 
 		nodesProcessed++
 		fmt.Printf("📊 Nodes processed: %d/%d\n", nodesProcessed, p.config.MaxNodesPerSite)
 
 		// Handle script for this node type
-		_, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, item.URL)
+		_, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, finalURL)
 		if scriptErr != nil {
 			// Log error but continue to parse links
 			fmt.Printf("⚠️  Script error (will continue): %v\n", scriptErr)
@@ -169,8 +170,8 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		}
 
 		// Parse links and add to queue (even if script failed)
-		links := parseLinks(html, item.URL)
-		fmt.Printf("📊 Found %d links from %s\n", len(links), item.URL)
+		links := parseLinks(html, finalURL)
+		fmt.Printf("📊 Found %d links from %s\n", len(links), finalURL)
 
 		addedCount := 0
 		for _, link := range links {
@@ -325,9 +326,9 @@ func (p *Pioneer) validateScript(ctx context.Context, scriptCode, html, url stri
 	return successRate >= p.config.SuccessThreshold, nil
 }
 
-// fetchHTML fetches HTML content with timeout
-func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, error) {
-	// Create HTTP client with custom transport
+// fetchHTML fetches HTML content with timeout.
+// Returns (html, finalURL, error) where finalURL is the URL after any redirects.
+func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, string, error) {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -338,19 +339,16 @@ func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, error) 
 		},
 	}
 
-	// Create GET request with context
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Set User-Agent header
 	req.Header.Set("User-Agent", "FugueBot/1.0 (+https://fugue.app)")
 
-	// Execute request
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch URL: %w", err)
+		return "", "", fmt.Errorf("failed to fetch URL: %w", err)
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
@@ -358,23 +356,25 @@ func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, error) 
 		}
 	}()
 
-	// Check HTTP status code
+	// Preserve the final URL after redirects
+	finalURL := resp.Request.URL.String()
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
+		return "", "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
 	}
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
+	// Limit response body to 5MB to prevent memory spikes
+	const maxBodySize = 5 * 1024 * 1024
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
+		return "", "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Validate response is not empty
 	if len(body) == 0 {
-		return "", fmt.Errorf("empty response body")
+		return "", "", fmt.Errorf("empty response body")
 	}
 
-	return string(body), nil
+	return string(body), finalURL, nil
 }
 
 // urlPathContains checks if a URL path contains the given segment as a whole path component.
