@@ -54,6 +54,7 @@ type BotGraphNode struct {
 	ScriptID  uuid.NullUUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	SampleUrl sql.NullString
 }
 
 type BotScript struct {

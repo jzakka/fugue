@@ -12,6 +12,88 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
+// Test template path normalization for node deduplication
+func TestTemplatePath(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "strip query params",
+			input:    "https://www.pixiv.net/info.php?id=13404",
+			expected: "https://www.pixiv.net/info.php",
+		},
+		{
+			name:     "strip different query params",
+			input:    "https://www.pixiv.net/info.php?id=13533",
+			expected: "https://www.pixiv.net/info.php",
+		},
+		{
+			name:     "numeric ID replacement",
+			input:    "https://www.pixiv.net/artworks/12345678",
+			expected: "https://www.pixiv.net/artworks/%7Bid%7D",
+		},
+		{
+			name:     "different numeric ID same template",
+			input:    "https://www.pixiv.net/artworks/99999999",
+			expected: "https://www.pixiv.net/artworks/%7Bid%7D",
+		},
+		{
+			name:     "slug preserved",
+			input:    "https://example.com/contest/magicalparty",
+			expected: "https://example.com/contest/magicalparty",
+		},
+		{
+			name:     "mixed alphanumeric preserved",
+			input:    "https://example.com/item/abc123",
+			expected: "https://example.com/item/abc123",
+		},
+		{
+			name:     "multiple numeric segments",
+			input:    "https://example.com/user/123/post/456",
+			expected: "https://example.com/user/%7Bid%7D/post/%7Bid%7D",
+		},
+		{
+			name:     "root URL preserved",
+			input:    "https://www.pixiv.net/",
+			expected: "https://www.pixiv.net/",
+		},
+		{
+			name:     "strip fragment",
+			input:    "https://example.com/page#section",
+			expected: "https://example.com/page",
+		},
+		{
+			name:     "strip query and fragment",
+			input:    "https://example.com/page?a=1#top",
+			expected: "https://example.com/page",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := templatePath(tt.input)
+			if result != tt.expected {
+				t.Errorf("templatePath(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+
+	// Verify same-pattern URLs produce the same hash
+	hash1 := hashURL("https://www.pixiv.net/artworks/12345678")
+	hash2 := hashURL("https://www.pixiv.net/artworks/99999999")
+	if hash1 != hash2 {
+		t.Errorf("Same-pattern URLs should have same hash: %s vs %s", hash1, hash2)
+	}
+
+	hash3 := hashURL("https://www.pixiv.net/info.php?id=13404")
+	hash4 := hashURL("https://www.pixiv.net/info.php?id=13533")
+	if hash3 != hash4 {
+		t.Errorf("Same-path different-query URLs should have same hash: %s vs %s", hash3, hash4)
+	}
+}
+
 // Test URL classification
 func TestClassifyURL(t *testing.T) {
 	tests := []struct {

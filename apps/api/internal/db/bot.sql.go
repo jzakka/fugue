@@ -67,17 +67,18 @@ func (q *Queries) CreateEdge(ctx context.Context, arg CreateEdgeParams) error {
 }
 
 const createNode = `-- name: CreateNode :one
-INSERT INTO bot_graph_nodes (site_id, url, url_hash, node_type, script_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, site_id, url, url_hash, node_type, script_id, created_at, updated_at
+INSERT INTO bot_graph_nodes (site_id, url, url_hash, node_type, script_id, sample_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url
 `
 
 type CreateNodeParams struct {
-	SiteID   uuid.UUID
-	Url      string
-	UrlHash  string
-	NodeType sql.NullString
-	ScriptID uuid.NullUUID
+	SiteID    uuid.UUID
+	Url       string
+	UrlHash   string
+	NodeType  sql.NullString
+	ScriptID  uuid.NullUUID
+	SampleUrl sql.NullString
 }
 
 // Bot Graph Nodes queries
@@ -88,6 +89,7 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (BotGrap
 		arg.UrlHash,
 		arg.NodeType,
 		arg.ScriptID,
+		arg.SampleUrl,
 	)
 	var i BotGraphNode
 	err := row.Scan(
@@ -99,6 +101,7 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (BotGrap
 		&i.ScriptID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SampleUrl,
 	)
 	return i, err
 }
@@ -246,7 +249,7 @@ func (q *Queries) GetEdgesByNode(ctx context.Context, fromNodeID uuid.UUID) ([]B
 }
 
 const getNodeByHash = `-- name: GetNodeByHash :one
-SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at FROM bot_graph_nodes
+SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url FROM bot_graph_nodes
 WHERE site_id = $1 AND url_hash = $2
 `
 
@@ -267,12 +270,13 @@ func (q *Queries) GetNodeByHash(ctx context.Context, arg GetNodeByHashParams) (B
 		&i.ScriptID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SampleUrl,
 	)
 	return i, err
 }
 
 const getNodeByURL = `-- name: GetNodeByURL :one
-SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at FROM bot_graph_nodes
+SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url FROM bot_graph_nodes
 WHERE site_id = $1 AND url = $2
 `
 
@@ -293,6 +297,7 @@ func (q *Queries) GetNodeByURL(ctx context.Context, arg GetNodeByURLParams) (Bot
 		&i.ScriptID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SampleUrl,
 	)
 	return i, err
 }
@@ -523,7 +528,7 @@ func (q *Queries) ListAllEdgesForGraph(ctx context.Context) ([]BotGraphEdge, err
 }
 
 const listAllNodesForGraph = `-- name: ListAllNodesForGraph :many
-SELECT id, site_id, url, node_type, created_at
+SELECT id, site_id, url, node_type, sample_url, created_at
 FROM bot_graph_nodes
 ORDER BY site_id, created_at
 `
@@ -533,6 +538,7 @@ type ListAllNodesForGraphRow struct {
 	SiteID    uuid.UUID
 	Url       string
 	NodeType  sql.NullString
+	SampleUrl sql.NullString
 	CreatedAt time.Time
 }
 
@@ -550,6 +556,7 @@ func (q *Queries) ListAllNodesForGraph(ctx context.Context) ([]ListAllNodesForGr
 			&i.SiteID,
 			&i.Url,
 			&i.NodeType,
+			&i.SampleUrl,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -642,7 +649,7 @@ func (q *Queries) ListAllTags(ctx context.Context) ([]ListAllTagsRow, error) {
 }
 
 const listNodesBySite = `-- name: ListNodesBySite :many
-SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at FROM bot_graph_nodes
+SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url FROM bot_graph_nodes
 WHERE site_id = $1
 ORDER BY created_at
 `
@@ -665,6 +672,7 @@ func (q *Queries) ListNodesBySite(ctx context.Context, siteID uuid.UUID) ([]BotG
 			&i.ScriptID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SampleUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -680,7 +688,7 @@ func (q *Queries) ListNodesBySite(ctx context.Context, siteID uuid.UUID) ([]BotG
 }
 
 const listNodesByType = `-- name: ListNodesByType :many
-SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at FROM bot_graph_nodes
+SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url FROM bot_graph_nodes
 WHERE site_id = $1 AND node_type = $2
 ORDER BY created_at
 `
@@ -708,6 +716,7 @@ func (q *Queries) ListNodesByType(ctx context.Context, arg ListNodesByTypeParams
 			&i.ScriptID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SampleUrl,
 		); err != nil {
 			return nil, err
 		}

@@ -127,6 +127,7 @@ func (m *MockGraphRepository) CreateNode(_ context.Context, arg db.CreateNodePar
 		UrlHash:   arg.UrlHash,
 		NodeType:  arg.NodeType,
 		ScriptID:  arg.ScriptID,
+		SampleUrl: arg.SampleUrl,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

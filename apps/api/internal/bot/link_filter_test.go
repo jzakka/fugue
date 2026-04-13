@@ -1,0 +1,269 @@
+package bot
+
+import (
+	"testing"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/google/uuid"
+)
+
+// makeLink is a test helper to create a crawler.Link with optional selectors.
+func makeLink(url string, selectors ...crawler.Selector) crawler.Link {
+	return crawler.Link{URL: url, Selectors: selectors}
+}
+
+func sel(tag string) crawler.Selector {
+	return crawler.Selector{TagName: tag}
+}
+
+// --- 6.2 TestCanonicalURL ---
+
+func TestCanonicalURL(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{
+			name: "remove utm_source, keep other params",
+			in:   "https://example.com/page?utm_source=twitter&id=123",
+			want: "https://example.com/page?id=123",
+		},
+		{
+			name: "remove all tracking params",
+			in:   "https://example.com/page?utm_source=a&utm_medium=b&utm_campaign=c&fbclid=d&gclid=e",
+			want: "https://example.com/page",
+		},
+		{
+			name: "remove www prefix",
+			in:   "https://www.example.com/page",
+			want: "https://example.com/page",
+		},
+		{
+			name: "remove trailing slash",
+			in:   "https://example.com/page/",
+			want: "https://example.com/page",
+		},
+		{
+			name: "keep root slash",
+			in:   "https://example.com/",
+			want: "https://example.com/",
+		},
+		{
+			name: "combined: www + tracking + trailing slash",
+			in:   "https://www.example.com/gallery/?utm_source=ig&ref=home",
+			want: "https://example.com/gallery",
+		},
+		{
+			name: "no changes needed",
+			in:   "https://example.com/page?id=42",
+			want: "https://example.com/page?id=42",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := canonicalURL(tt.in)
+			if got != tt.want {
+				t.Errorf("canonicalURL(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+// --- 6.3 TestSemanticPriorityModifier ---
+
+func TestSemanticPriorityModifier(t *testing.T) {
+	tests := []struct {
+		name string
+		link crawler.Link
+		want int
+	}{
+		{"footer link", makeLink("https://x.com", sel("body"), sel("footer"), sel("a")), -50},
+		{"aside link", makeLink("https://x.com", sel("aside")), -50},
+		{"nav link", makeLink("https://x.com", sel("nav"), sel("a")), -20},
+		{"header link", makeLink("https://x.com", sel("header"), sel("a")), -20},
+		{"main content", makeLink("https://x.com", sel("main"), sel("article"), sel("a")), 0},
+		{"no selectors", makeLink("https://x.com"), 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := semanticPriorityModifier(tt.link)
+			if got != tt.want {
+				t.Errorf("semanticPriorityModifier() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+// --- 6.4 TestDomainFilter ---
+
+func TestDomainFilter(t *testing.T) {
+	f := &DomainFilter{RootDomain: "example.com"}
+	links := []crawler.Link{
+		makeLink("https://example.com/page1"),
+		makeLink("https://other.com/page2"),
+		makeLink("https://www.example.com/page3"),
+		makeLink("https://sub.other.com/page4"),
+	}
+	got := f.Filter(links)
+	if len(got) != 2 {
+		t.Fatalf("expected 2 links, got %d", len(got))
+	}
+	if got[0].URL != "https://example.com/page1" {
+		t.Errorf("expected first link to be example.com/page1, got %s", got[0].URL)
+	}
+	if got[1].URL != "https://www.example.com/page3" {
+		t.Errorf("expected second link to be www.example.com/page3, got %s", got[1].URL)
+	}
+}
+
+// --- 6.5 TestExtensionFilter ---
+
+func TestExtensionFilter(t *testing.T) {
+	f := &ExtensionFilter{}
+	links := []crawler.Link{
+		makeLink("https://example.com/photo.jpg"),
+		makeLink("https://example.com/style.css"),
+		makeLink("https://example.com/gallery/artwork-123"),
+		makeLink("https://example.com/page.html"),
+	}
+	got := f.Filter(links)
+	if len(got) != 2 {
+		t.Fatalf("expected 2 links, got %d", len(got))
+	}
+	if got[0].URL != "https://example.com/gallery/artwork-123" {
+		t.Errorf("unexpected link: %s", got[0].URL)
+	}
+}
+
+// --- 6.6 TestPathPatternFilter ---
+
+func TestPathPatternFilter(t *testing.T) {
+	f := &PathPatternFilter{} // uses defaultExcludePatterns
+
+	t.Run("excludes ad and popup segments", func(t *testing.T) {
+		links := []crawler.Link{
+			makeLink("https://example.com/ad/banner"),
+			makeLink("https://example.com/popup/subscribe"),
+			makeLink("https://example.com/gallery/popular"),
+		}
+		got := f.Filter(links)
+		if len(got) != 1 {
+			t.Fatalf("expected 1 link, got %d", len(got))
+		}
+		if got[0].URL != "https://example.com/gallery/popular" {
+			t.Errorf("unexpected link: %s", got[0].URL)
+		}
+	})
+
+	t.Run("boundary-aware: loading does not match login", func(t *testing.T) {
+		links := []crawler.Link{
+			makeLink("https://example.com/loading/page"),
+			makeLink("https://example.com/login/page"),
+		}
+		got := f.Filter(links)
+		if len(got) != 1 {
+			t.Fatalf("expected 1 link, got %d", len(got))
+		}
+		if got[0].URL != "https://example.com/loading/page" {
+			t.Errorf("expected loading to pass, got %s", got[0].URL)
+		}
+	})
+
+	t.Run("custom patterns", func(t *testing.T) {
+		custom := &PathPatternFilter{ExcludePatterns: []string{"private"}}
+		links := []crawler.Link{
+			makeLink("https://example.com/private/page"),
+			makeLink("https://example.com/public/page"),
+			makeLink("https://example.com/login/page"), // not excluded with custom patterns
+		}
+		got := custom.Filter(links)
+		if len(got) != 2 {
+			t.Fatalf("expected 2 links, got %d", len(got))
+		}
+	})
+}
+
+// --- 6.7 TestCanonicalDedupFilter ---
+
+func TestCanonicalDedupFilter(t *testing.T) {
+	existingNodeID := uuid.New()
+	visited := map[string]uuid.UUID{
+		hashURL("https://example.com/visited"): existingNodeID,
+	}
+	f := NewCanonicalDedupFilter(visited)
+
+	links := []crawler.Link{
+		makeLink("https://example.com/page1"),
+		makeLink("https://example.com/page1"),                         // exact duplicate
+		makeLink("https://example.com/page2?utm_source=twitter"),      // canonical dup of next
+		makeLink("https://www.example.com/page2"),                     // canonical dup of previous
+		makeLink("https://example.com/visited"),                       // already visited
+		makeLink("https://example.com/page3"),                         // unique
+	}
+
+	got := f.Filter(links)
+
+	// Should keep: page1 (first), page2?utm_source=twitter (first canonical), page3
+	if len(got) != 3 {
+		t.Fatalf("expected 3 links, got %d: %v", len(got), got)
+	}
+	if got[0].URL != "https://example.com/page1" {
+		t.Errorf("first link should be page1, got %s", got[0].URL)
+	}
+	if got[1].URL != "https://example.com/page2?utm_source=twitter" {
+		t.Errorf("second link should be page2 with utm, got %s", got[1].URL)
+	}
+	if got[2].URL != "https://example.com/page3" {
+		t.Errorf("third link should be page3, got %s", got[2].URL)
+	}
+
+	// LastVisited should record the visited URL
+	if len(f.LastVisited) != 1 {
+		t.Fatalf("expected 1 LastVisited, got %d", len(f.LastVisited))
+	}
+	if f.LastVisited[0].NodeID != existingNodeID {
+		t.Errorf("LastVisited NodeID = %v, want %v", f.LastVisited[0].NodeID, existingNodeID)
+	}
+}
+
+// --- 6.8 TestFilterChain ---
+
+func TestFilterChain(t *testing.T) {
+	t.Run("chain applies filters in order", func(t *testing.T) {
+		chain := NewFilterChain(
+			&DomainFilter{RootDomain: "example.com"},
+			&ExtensionFilter{},
+			&PathPatternFilter{},
+		)
+		links := []crawler.Link{
+			makeLink("https://example.com/gallery/art"),
+			makeLink("https://other.com/page"),           // removed by DomainFilter
+			makeLink("https://example.com/photo.jpg"),     // removed by ExtensionFilter
+			makeLink("https://example.com/login/form"),    // removed by PathPatternFilter
+		}
+		got := chain.Apply(links)
+		if len(got) != 1 {
+			t.Fatalf("expected 1 link, got %d", len(got))
+		}
+		if got[0].URL != "https://example.com/gallery/art" {
+			t.Errorf("expected gallery/art, got %s", got[0].URL)
+		}
+	})
+
+	t.Run("empty list", func(t *testing.T) {
+		chain := NewFilterChain(&DomainFilter{RootDomain: "x.com"})
+		got := chain.Apply([]crawler.Link{})
+		if len(got) != 0 {
+			t.Errorf("expected empty, got %d", len(got))
+		}
+	})
+
+	t.Run("nil list", func(t *testing.T) {
+		chain := NewFilterChain(&DomainFilter{RootDomain: "x.com"})
+		got := chain.Apply(nil)
+		if got != nil {
+			t.Errorf("expected nil, got %v", got)
+		}
+	})
+}

@@ -120,6 +120,8 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		}
 
 		// Create or get existing node — capture ID for edge creation
+		// url field stores the template path, sample_url stores the original URL
+		canonical := templatePath(item.URL)
 		var currentNodeID uuid.UUID
 		existingNode, err := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
 			SiteID:  site.ID,
@@ -134,11 +136,12 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		} else {
 			// Create new node
 			newNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
-				SiteID:   site.ID,
-				Url:      item.URL,
-				UrlHash:  item.URLHash,
-				NodeType: sql.NullString{String: string(nodeType), Valid: true},
-				ScriptID: uuid.NullUUID{Valid: false},
+				SiteID:    site.ID,
+				Url:       canonical,
+				UrlHash:   item.URLHash,
+				NodeType:  sql.NullString{String: string(nodeType), Valid: true},
+				ScriptID:  uuid.NullUUID{Valid: false},
+				SampleUrl: sql.NullString{String: item.URL, Valid: true},
 			})
 			if createErr != nil {
 				// Check if it's a unique constraint violation (concurrent insert)
@@ -203,12 +206,14 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 				continue
 			}
 
+			linkCanonical := templatePath(link)
 			childNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
-				SiteID:   site.ID,
-				Url:      link,
-				UrlHash:  linkHash,
-				NodeType: sql.NullString{String: string(linkType), Valid: true},
-				ScriptID: uuid.NullUUID{Valid: false},
+				SiteID:    site.ID,
+				Url:       linkCanonical,
+				UrlHash:   linkHash,
+				NodeType:  sql.NullString{String: string(linkType), Valid: true},
+				ScriptID:  uuid.NullUUID{Valid: false},
+				SampleUrl: sql.NullString{String: link, Valid: true},
 			})
 			if createErr != nil {
 				if strings.Contains(createErr.Error(), "duplicate key") || strings.Contains(createErr.Error(), "unique constraint") {
@@ -495,9 +500,40 @@ func hasExcludedExtension(urlStr string) bool {
 	return false
 }
 
-// Helper: hash URL for deduplication
+// templatePath normalizes a URL to a page template pattern for node deduplication.
+// 1. Strips query parameters and fragment
+// 2. Replaces pure-numeric path segments with {id}
+func templatePath(urlStr string) string {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return urlStr
+	}
+	// Keep scheme + host + path only
+	segments := strings.Split(u.Path, "/")
+	for i, seg := range segments {
+		if seg != "" && isNumeric(seg) {
+			segments[i] = "{id}"
+		}
+	}
+	u.Path = strings.Join(segments, "/")
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String()
+}
+
+// isNumeric returns true if s consists entirely of digits.
+func isNumeric(s string) bool {
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return len(s) > 0
+}
+
+// Helper: hash URL for deduplication (uses template path for node pattern matching)
 func hashURL(urlStr string) string {
-	h := md5.Sum([]byte(urlStr))
+	h := md5.Sum([]byte(templatePath(urlStr)))
 	return fmt.Sprintf("%x", h)
 }
 

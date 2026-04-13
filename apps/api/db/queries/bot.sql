@@ -56,8 +56,8 @@ ORDER BY created_at;
 
 -- Bot Graph Nodes queries
 -- name: CreateNode :one
-INSERT INTO bot_graph_nodes (site_id, url, url_hash, node_type, script_id)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO bot_graph_nodes (site_id, url, url_hash, node_type, script_id, sample_url)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetNodeByHash :one
@@ -114,7 +114,7 @@ FROM bot_sites
 ORDER BY domain;
 
 -- name: ListAllNodesForGraph :many
-SELECT id, site_id, url, node_type, created_at
+SELECT id, site_id, url, node_type, sample_url, created_at
 FROM bot_graph_nodes
 ORDER BY site_id, created_at;
 
