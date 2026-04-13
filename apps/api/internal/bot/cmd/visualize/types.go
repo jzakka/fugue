@@ -29,6 +29,7 @@ type Node struct {
 	ID        uuid.UUID `json:"id"`
 	SiteID    uuid.UUID `json:"site_id"`
 	URL       string    `json:"url"`
+	SampleURL string    `json:"sample_url,omitempty"`
 	NodeType  string    `json:"node_type"`
 	HasScript bool      `json:"has_script"`
 	CreatedAt time.Time `json:"created_at"`

@@ -71,10 +71,16 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 			coveredCount++
 		}
 
+		sampleURL := ""
+		if row.SampleUrl.Valid {
+			sampleURL = row.SampleUrl.String
+		}
+
 		nodes[i] = Node{
 			ID:        row.ID,
 			SiteID:    row.SiteID,
 			URL:       row.Url,
+			SampleURL: sampleURL,
 			NodeType:  nodeType,
 			HasScript: hasScript,
 			CreatedAt: row.CreatedAt,

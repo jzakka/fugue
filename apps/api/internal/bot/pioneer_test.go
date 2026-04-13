@@ -328,6 +328,87 @@ func TestPioneerCreatesEdges(t *testing.T) {
 	}
 }
 
+// Test Pioneer deduplicates URLs with same template pattern
+func TestPioneerPathDedup(t *testing.T) {
+	mux := http.NewServeMux()
+	var serverURL string
+
+	// Root page links to multiple detail pages with different numeric IDs
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprintf(w, `<html><body>
+			<a href="%s/artworks/111">art1</a>
+			<a href="%s/artworks/222">art2</a>
+			<a href="%s/artworks/333">art3</a>
+			<a href="%s/page?id=1">q1</a>
+			<a href="%s/page?id=2">q2</a>
+		</body></html>`, serverURL, serverURL, serverURL, serverURL, serverURL)
+	})
+	mux.HandleFunc("/artworks/111", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprint(w, `<html><body>detail 1</body></html>`)
+	})
+	mux.HandleFunc("/artworks/222", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprint(w, `<html><body>detail 2</body></html>`)
+	})
+	mux.HandleFunc("/artworks/333", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprint(w, `<html><body>detail 3</body></html>`)
+	})
+	mux.HandleFunc("/page", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = fmt.Fprint(w, `<html><body>page with query</body></html>`)
+	})
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	serverURL = ts.URL
+
+	siteID := uuid.New()
+	siteRepo := NewMockSiteRepository()
+	siteRepo.Sites[siteID] = db.BotSite{
+		ID:      siteID,
+		Domain:  "127.0.0.1",
+		RootUrl: serverURL + "/",
+		Active:  true,
+	}
+
+	graphRepo := NewMockGraphRepository()
+	scriptRepo := NewMockScriptRepository()
+	aiClient := NewMockAIClient()
+	executor := NewMockScriptExecutor()
+
+	pioneer := NewPioneer(siteRepo, graphRepo, scriptRepo, aiClient, executor, PioneerConfig{
+		MaxNodesPerSite:  20,
+		RateLimitMs:      0,
+		SuccessThreshold: 0.7,
+	})
+
+	err := pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("Pioneer.Run() error: %v", err)
+	}
+
+	// /artworks/111, /artworks/222, /artworks/333 should all map to the same node
+	// /page?id=1 and /page?id=2 should also map to the same node
+	// Expected unique nodes: root (/), artworks/{id}, page = 3 nodes
+	nodeCount := len(graphRepo.Nodes)
+	if nodeCount != 3 {
+		t.Errorf("Expected 3 unique nodes (root, artworks/{id}, page), got %d", nodeCount)
+		for hash, node := range graphRepo.Nodes {
+			t.Logf("  Node: url=%q hash=%s sampleUrl=%q", node.Url, hash, node.SampleUrl.String)
+		}
+	}
+
+	// Verify sample_url is set and is a real URL (not a template)
+	for _, node := range graphRepo.Nodes {
+		if !node.SampleUrl.Valid || node.SampleUrl.String == "" {
+			t.Errorf("Node %q should have a sample_url set", node.Url)
+		}
+	}
+}
+
 // Test NodeType priority
 func TestNodeTypePriority(t *testing.T) {
 	tests := []struct {

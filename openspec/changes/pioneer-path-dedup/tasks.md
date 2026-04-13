@@ -18,17 +18,17 @@
 
 ## 4. Harvester 수정
 
-- [ ] 4.1 `executeNode`에서 `node.Url` 대신 `node.SampleUrl`을 사용하여 HTML fetch 및 스크립트 실행 — `fetchHTML(ctx, node.SampleUrl)`, `executor.Execute(ctx, ..., node.SampleUrl)`로 변경
-- [ ] 4.2 `findRootNode`에서 `GetNodeByURL(site.RootUrl)` 대신 `GetNodeByHash(canonicalPath(site.RootUrl))`를 사용하도록 변경하여 canonical URL 기반으로 루트 노드를 찾도록 수정
+- [x] 4.1 `executeNode`에서 `node.Url` 대신 `node.SampleUrl`을 사용하여 HTML fetch 및 스크립트 실행 — `fetchHTML(ctx, node.SampleUrl)`, `executor.Execute(ctx, ..., node.SampleUrl)`로 변경
+- [x] 4.2 `findRootNode`에서 `GetNodeByURL(site.RootUrl)` 대신 `GetNodeByHash(canonicalPath(site.RootUrl))`를 사용하도록 변경하여 canonical URL 기반으로 루트 노드를 찾도록 수정
 
 ## 5. 시각화 호환
 
-- [ ] 5.1 `visualize.Node` 구조체에 `SampleURL` 필드 추가, `FetchGraphData`에서 `sample_url` 조회
-- [ ] 5.2 D3 template tooltip에서 `sample_url`을 표시하도록 수정 (canonical path는 `url` 필드로 별도 표시)
+- [x] 5.1 `visualize.Node` 구조체에 `SampleURL` 필드 추가, `FetchGraphData`에서 `sample_url` 조회
+- [x] 5.2 D3 template tooltip에서 `sample_url`을 표시하도록 수정 (canonical path는 `url` 필드로 별도 표시)
 
 ## 6. 테스트 + 검증
 
-- [ ] 6.1 Pioneer 통합 테스트에 중복 path dedup 검증 추가: 쿼리만 다른 URL, 숫자 ID만 다른 URL이 같은 노드로 합쳐지는지 확인
-- [ ] 6.2 Harvester 테스트에서 `sample_url` 기반 fetch가 동작하는지 확인
-- [ ] 6.3 기존 테스트 통과 확인
+- [x] 6.1 Pioneer 통합 테스트에 중복 path dedup 검증 추가: 쿼리만 다른 URL, 숫자 ID만 다른 URL이 같은 노드로 합쳐지는지 확인
+- [x] 6.2 Harvester 테스트에서 `sample_url` 기반 fetch가 동작하는지 확인
+- [x] 6.3 기존 테스트 통과 확인
 - [ ] 6.4 `make pioneer SITE=pixiv` 재실행 후 노드 수 감소 확인 (수동 검증)

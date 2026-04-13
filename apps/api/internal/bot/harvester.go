@@ -156,14 +156,15 @@ func (h *Harvester) harvestBFS(ctx context.Context, siteID uuid.UUID) error {
 	return nil
 }
 
-// findRootNode locates the root URL node for the site
+// findRootNode locates the root URL node for the site using canonical hash lookup
 func (h *Harvester) findRootNode(ctx context.Context, site db.BotSite) (db.BotGraphNode, error) {
-	node, err := h.graphRepo.GetNodeByURL(ctx, db.GetNodeByURLParams{
-		SiteID: site.ID,
-		Url:    site.RootUrl,
+	rootHash := hashURL(site.RootUrl)
+	node, err := h.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
+		SiteID:  site.ID,
+		UrlHash: rootHash,
 	})
 	if err != nil {
-		return db.BotGraphNode{}, fmt.Errorf("root node not found for URL %s: %w (suggest running Pioneer first)", site.RootUrl, err)
+		return db.BotGraphNode{}, fmt.Errorf("root node not found for URL %s (hash: %s): %w (suggest running Pioneer first)", site.RootUrl, rootHash, err)
 	}
 	return node, nil
 }
@@ -209,14 +210,20 @@ func (h *Harvester) executeNode(ctx context.Context, node db.BotGraphNode) ([]Ra
 		return nil, fmt.Errorf("node type not set")
 	}
 
+	// Use sample_url (original URL) for fetching; fall back to url (template path) if absent
+	fetchURL := node.Url
+	if node.SampleUrl.Valid && node.SampleUrl.String != "" {
+		fetchURL = node.SampleUrl.String
+	}
+
 	// Fetch HTML
-	html, err := h.fetchHTML(ctx, node.Url)
+	html, err := h.fetchHTML(ctx, fetchURL)
 	if err != nil {
 		return nil, fmt.Errorf("fetch HTML: %w", err)
 	}
 
 	// Execute script
-	items, err := h.executor.Execute(ctx, script.ScriptCode, html, node.Url)
+	items, err := h.executor.Execute(ctx, script.ScriptCode, html, fetchURL)
 	if err != nil {
 		return nil, fmt.Errorf("execute script: %w", err)
 	}

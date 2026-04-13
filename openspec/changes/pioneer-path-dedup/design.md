@@ -18,9 +18,11 @@ Pioneer가 만드는 그래프는 "사이트의 페이지 타입 구조"를 표�
 
 ## Decisions
 
-### 1. Canonical path 정규화 함수
+### 1. Template path 정규화 함수
 
-**결정**: `canonicalPath(urlStr string) string` 함수를 도입합니다. 두 단계로 정규화합니다:
+**결정**: `templatePath(urlStr string) string` 함수를 도입합니다. 두 단계로 정규화합니다:
+
+> **명명 참고**: 기존 `link_filter.go`에 `canonicalURL()` (트래킹 파라미터 제거 + www 정규화)이 이미 존재하므로, 역할 구분을 위해 `templatePath`로 명명. `templatePath`는 **노드 패턴 매칭 전용** (쿼리 전체 제거 + 숫자 ID 치환).
 
 1. **쿼리 파라미터 + fragment 제거**: `url.Parse` → scheme + host + path만 유지
 2. **숫자 ID 치환**: path 내 순수 숫자로만 구성된 세그먼트를 `{id}`로 치환
@@ -37,17 +39,17 @@ Pioneer가 만드는 그래프는 "사이트의 페이지 타입 구조"를 표�
 
 ### 2. hashURL 변경
 
-**결정**: 기존 `hashURL(urlStr)` → `hashURL(canonicalPath(urlStr))`로 변경합니다. `url_hash` 컬럼에는 canonical path의 MD5가 저장됩니다.
+**결정**: 기존 `hashURL(urlStr)` → `hashURL` 내부에서 `templatePath(urlStr)`를 호출하도록 변경합니다. `url_hash` 컬럼에는 template path의 MD5가 저장됩니다.
 
 **영향**: 기존 데이터의 url_hash와 새 해시가 다르므로, 재크롤 시 기존 노드와 매칭되지 않고 새 노드가 생성됩니다. 이는 수용합니다 (기존 데이터는 재크롤로 자연 교체).
 
 ### 3. sample_url 컬럼
 
-**결정**: `bot_graph_nodes` 테이블에 `sample_url TEXT` 컬럼을 추가합니다. `url` 필드에는 canonical path를, `sample_url`에는 최초 발견된 원본 URL을 저장합니다.
+**결정**: `bot_graph_nodes` 테이블에 `sample_url TEXT` 컬럼을 추가합니다. `url` 필드에는 template path를, `sample_url`에는 최초 발견된 원본 URL을 저장합니다.
 
 **용도**:
 - Harvester `executeNode`에서 `node.Url` 대신 `node.SampleUrl`로 실제 HTTP fetch
-- Harvester `findRootNode`에서 `canonicalPath(site.RootUrl)`로 조회하도록 변경
+- Harvester `findRootNode`에서 `hashURL(site.RootUrl)` (내부적으로 `templatePath` 적용)로 조회하도록 변경
 - 시각화 tooltip에서 실제 URL 표시
 
 **영향받는 sqlc 쿼리**: `sample_url`을 SELECT에 포함해야 하는 쿼리:
@@ -62,7 +64,7 @@ Pioneer가 만드는 그래프는 "사이트의 페이지 타입 구조"를 표�
 URL 발견: https://www.pixiv.net/artworks/12345678
 
   ┌────────────────────────────────────────────┐
-  │ canonicalPath()                            │
+  │ templatePath()                             │
   │ → https://www.pixiv.net/artworks/{id}      │
   └──────────────────┬─────────────────────────┘
                      │
@@ -80,7 +82,7 @@ URL 발견: https://www.pixiv.net/artworks/12345678
   └────────────────────────────────────────────┘
 
 ※ classifyURL()과 fetchHTML()은 원본 URL을 사용한다.
-  canonicalPath는 노드 식별(해시/저장)에만 적용된다.
+  templatePath는 노드 식별(해시/저장)에만 적용된다.
 ```
 
 ## Risks / Trade-offs

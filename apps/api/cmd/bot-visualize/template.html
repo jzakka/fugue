@@ -337,9 +337,11 @@
             
             node.on('mouseover', (event, d) => {
                 const site = siteMap[d.site_id];
+                const sampleLine = d.sample_url ? `<div class="tooltip-url" style="color:#86efac;">Sample: ${d.sample_url}</div>` : '';
                 tooltip.style('display', 'block')
                     .html(`
-                        <div class="tooltip-url">${d.url}</div>
+                        <div class="tooltip-url">Pattern: ${d.url}</div>
+                        ${sampleLine}
                         <div class="tooltip-type">Type: ${d.node_type || 'unknown'}</div>
                         <div>Site: ${site ? site.domain : 'unknown'}</div>
                         <div class="tooltip-status">Script: ${d.has_script ? '✅ Implemented' : '❌ Missing'}</div>

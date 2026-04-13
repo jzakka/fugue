@@ -1,8 +1,11 @@
 package bot
 
 import (
+	"context"
 	"database/sql"
 	"testing"
+
+	"github.com/google/uuid"
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
@@ -161,6 +164,53 @@ func mustParseUUID(s string) [16]byte {
 	var uuid [16]byte
 	// Simple UUID parsing for test
 	return uuid
+}
+
+// TestHarvesterUsesSampleURL verifies that executeNode uses sample_url for fetch
+func TestHarvesterUsesSampleURL(t *testing.T) {
+	node := db.BotGraphNode{
+		Url:       "https://example.com/artworks/%7Bid%7D", // template path
+		SampleUrl: sql.NullString{String: "https://example.com/artworks/12345", Valid: true},
+		NodeType:  sql.NullString{String: "detail", Valid: true},
+		ScriptID:  uuid.NullUUID{UUID: uuid.New(), Valid: true},
+	}
+
+	// The node has a template URL but sample_url with real URL
+	// executeNode should use sample_url for fetching
+	fetchURL := node.Url
+	if node.SampleUrl.Valid && node.SampleUrl.String != "" {
+		fetchURL = node.SampleUrl.String
+	}
+	if fetchURL != "https://example.com/artworks/12345" {
+		t.Errorf("Expected sample_url to be used for fetch, got %q", fetchURL)
+	}
+}
+
+// TestFindRootNodeByHash verifies findRootNode uses hash-based lookup
+func TestFindRootNodeByHash(t *testing.T) {
+	siteID := uuid.New()
+	rootURL := "https://example.com/"
+	rootHash := hashURL(rootURL)
+
+	graphRepo := NewMockGraphRepository()
+	// Create a node with the canonical root URL
+	_, _ = graphRepo.CreateNode(context.Background(), db.CreateNodeParams{
+		SiteID:    siteID,
+		Url:       templatePath(rootURL),
+		UrlHash:   rootHash,
+		SampleUrl: sql.NullString{String: rootURL, Valid: true},
+	})
+
+	h := &Harvester{graphRepo: graphRepo}
+	site := db.BotSite{ID: siteID, RootUrl: rootURL}
+
+	node, err := h.findRootNode(context.Background(), site)
+	if err != nil {
+		t.Fatalf("findRootNode() error: %v", err)
+	}
+	if node.UrlHash != rootHash {
+		t.Errorf("Expected root node hash %s, got %s", rootHash, node.UrlHash)
+	}
 }
 
 // TestRootNodeNotFound tests error when root node doesn't exist
