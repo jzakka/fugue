@@ -1,40 +1,61 @@
 package bot
 
 import (
-	"database/sql"
-	"net/url"
-	"regexp"
-	"strings"
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 )
 
-// toNullString converts a plain string to sql.NullString.
-func toNullString(s string) sql.NullString {
-	if s == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: s, Valid: true}
-}
-
-// parseLinks extracts all links from HTML
-func parseLinks(html, baseURL string) []string {
-	// Simple regex-based link extraction
-	// In production, use a proper HTML parser
-	re := regexp.MustCompile(`href=["']([^"']+)["']`)
-	matches := re.FindAllStringSubmatch(html, -1)
-
-	var links []string
-	for _, match := range matches {
-		if len(match) > 1 {
-			link := match[1]
-			// Convert relative to absolute URLs
-			if strings.HasPrefix(link, "/") {
-				baseU, err := url.Parse(baseURL)
-				if err == nil {
-					link = baseU.Scheme + "://" + baseU.Host + link
-				}
+// fetchHTMLShared fetches HTML content with timeout, redirect limits, and size limits.
+// Returns (html, finalURL, error) where finalURL is the URL after any redirects.
+// Shared by Pioneer and Harvester.
+func fetchHTMLShared(ctx context.Context, rawURL string) (string, string, error) {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 5 {
+				return fmt.Errorf("stopped after 5 redirects")
 			}
-			links = append(links, link)
-		}
+			return nil
+		},
 	}
-	return links
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "FugueBot/1.0 (+https://fugue.app)")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to fetch URL: %w", err)
+	}
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	// Preserve the final URL after redirects
+	finalURL := resp.Request.URL.String()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
+	}
+
+	// Limit response body to 5MB to prevent memory spikes
+	const maxBodySize = 5 * 1024 * 1024
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if len(body) == 0 {
+		return "", "", fmt.Errorf("empty response body")
+	}
+
+	return string(body), finalURL, nil
 }

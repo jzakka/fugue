@@ -6,8 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -15,8 +13,13 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// Package-level compiled regex patterns for URL classification
+var numericIDPattern = regexp.MustCompile(`^\d+$`)
+var pathNumericIDPattern = regexp.MustCompile(`/\d{4,}(?:/|$)`)
 
 // Pioneer config
 type PioneerConfig struct {
@@ -81,6 +84,15 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 	queue := NewPriorityQueue()
 	visited := make(map[string]uuid.UUID) // hash → node ID
 
+	// Initialize FilterChain
+	dedupFilter := NewCanonicalDedupFilter(visited)
+	filterChain := NewFilterChain(
+		&DomainFilter{RootDomain: rootDomain},
+		&ExtensionFilter{},
+		&PathPatternFilter{},
+		dedupFilter,
+	)
+
 	// Load existing edges for stale edge detection
 	type edgeKey struct{ from, to uuid.UUID }
 	existingEdges := make(map[edgeKey]uuid.UUID) // edgeKey → edge ID
@@ -127,10 +139,6 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		// Classify node type using the final URL after redirects
 		nodeType := classifyURL(finalURL)
 		fmt.Printf("🏷️  Node type: %s\n", nodeType)
-		if nodeType == NodeTypeSkip {
-			fmt.Printf("⏭️  Skipping node\n")
-			continue
-		}
 
 		// Recompute hash from finalURL to handle redirects correctly
 		canonical := templatePath(finalURL)
@@ -182,64 +190,56 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			// Don't return or continue - keep going to parse links
 		}
 
-		// Parse links and add to queue (even if script failed)
-		links := parseLinks(html, finalURL)
-		fmt.Printf("📊 Found %d links from %s\n", len(links), finalURL)
+		// Extract links using DOM-based parser
+		crawlerLinks, extractErr := crawler.ExtractLinksWithSelectors(strings.NewReader(html), finalURL)
+		if extractErr != nil {
+			fmt.Printf("⚠️  Link extraction error (will continue): %v\n", extractErr)
+			crawlerLinks = nil
+		}
+		fmt.Printf("📊 Found %d raw links from %s\n", len(crawlerLinks), finalURL)
 
+		// Apply FilterChain: domain, extension, path pattern, dedup
+		filteredLinks := filterChain.Apply(crawlerLinks)
+		fmt.Printf("📊 %d links after filtering\n", len(filteredLinks))
+
+		// Create edges for already-visited links
+		for _, vl := range dedupFilter.LastVisited {
+			if vl.NodeID != uuid.Nil {
+				edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
+					FromNodeID: currentNodeID,
+					ToNodeID:   vl.NodeID,
+				})
+				if edgeErr != nil {
+					fmt.Printf("⚠️  Edge error (visited, will continue): %v\n", edgeErr)
+				} else {
+					confirmedEdges[edgeKey{currentNodeID, vl.NodeID}] = true
+				}
+			}
+		}
+
+		// Process new links
 		addedCount := 0
-		for _, link := range links {
-			// Domain validation
-			if !isSameDomain(link, rootDomain) {
-				continue
-			}
-
-			// File extension filtering
-			if hasExcludedExtension(link) {
-				continue
-			}
-
+		for _, link := range filteredLinks {
 			if nodesProcessed >= p.config.MaxNodesPerSite {
 				break
 			}
 
-			linkHash := hashURL(link)
+			linkHash := hashURL(link.URL)
+			linkType := classifyURL(link.URL)
+			priority := NodeTypePriority(linkType) + semanticPriorityModifier(link)
 
-			if childNodeID, alreadyVisited := visited[linkHash]; alreadyVisited {
-				// Already visited — still create edge (parent→child) if we have a valid child ID
-				if childNodeID != uuid.Nil {
-					edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
-						FromNodeID: currentNodeID,
-						ToNodeID:   childNodeID,
-					})
-					if edgeErr != nil {
-						fmt.Printf("⚠️  Edge error (visited, will continue): %v\n", edgeErr)
-					} else {
-						confirmedEdges[edgeKey{currentNodeID, childNodeID}] = true
-					}
-				}
-				continue
-			}
-
-			// New link — create child node, edge, then push to queue
-			linkType := classifyURL(link)
-			if linkType == NodeTypeSkip {
-				continue
-			}
-
-			priority := NodeTypePriority(linkType)
-
-			linkCanonical := templatePath(link)
+			linkCanonical := templatePath(link.URL)
 			childNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
 				SiteID:    site.ID,
 				Url:       linkCanonical,
 				UrlHash:   linkHash,
 				NodeType:  sql.NullString{String: string(linkType), Valid: true},
 				ScriptID:  uuid.NullUUID{Valid: false},
-				SampleUrl: sql.NullString{String: link, Valid: true},
+				SampleUrl: sql.NullString{String: link.URL, Valid: true},
 			})
 			if createErr != nil {
+				// Duplicate key defense: concurrent insert recovery
 				if strings.Contains(createErr.Error(), "duplicate key") || strings.Contains(createErr.Error(), "unique constraint") {
-					// Node already exists (concurrent insert) — try to get it for edge
 					existingChild, getErr := p.graphRepo.GetNodeByHash(ctx, db.GetNodeByHashParams{
 						SiteID:  site.ID,
 						UrlHash: linkHash,
@@ -256,7 +256,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 							confirmedEdges[edgeKey{currentNodeID, existingChild.ID}] = true
 						}
 						queue.Push(&QueueItem{
-							URL:      link,
+							URL:      link.URL,
 							URLHash:  linkHash,
 							Priority: priority,
 						})
@@ -283,7 +283,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			}
 
 			queue.Push(&QueueItem{
-				URL:      link,
+				URL:      link.URL,
 				URLHash:  linkHash,
 				Priority: priority,
 			})
@@ -379,55 +379,10 @@ func (p *Pioneer) validateScript(ctx context.Context, scriptCode, html, url stri
 	return successRate >= p.config.SuccessThreshold, nil
 }
 
-// fetchHTML fetches HTML content with timeout.
+// fetchHTML fetches HTML content using the shared fetch function.
 // Returns (html, finalURL, error) where finalURL is the URL after any redirects.
 func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, string, error) {
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 5 {
-				return fmt.Errorf("stopped after 5 redirects")
-			}
-			return nil
-		},
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "FugueBot/1.0 (+https://fugue.app)")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to fetch URL: %w", err)
-	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
-		}
-	}()
-
-	// Preserve the final URL after redirects
-	finalURL := resp.Request.URL.String()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
-	}
-
-	// Limit response body to 5MB to prevent memory spikes
-	const maxBodySize = 5 * 1024 * 1024
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
-	if err != nil {
-		return "", "", fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if len(body) == 0 {
-		return "", "", fmt.Errorf("empty response body")
-	}
-
-	return string(body), finalURL, nil
+	return fetchHTMLShared(ctx, urlStr)
 }
 
 // urlPathContains checks if a URL path contains the given segment as a whole path component.
@@ -446,14 +401,6 @@ func classifyURL(urlStr string) NodeType {
 	}
 	path := u.Path
 
-	// Skip patterns (path segment match)
-	skipPatterns := []string{"ad", "popup", "login", "signup", "cart", "checkout"}
-	for _, pattern := range skipPatterns {
-		if urlPathContains(path, pattern) {
-			return NodeTypeSkip
-		}
-	}
-
 	// Detail page: content singular path segments (check BEFORE listing to avoid "hot" in "photos")
 	detailPathPatterns := []string{"artworks", "photos", "works", "illust", "artwork", "photo"}
 	for _, pattern := range detailPathPatterns {
@@ -467,7 +414,7 @@ func classifyURL(urlStr string) NodeType {
 	idKeys := []string{"id", "illust_id", "artwork_id", "photo_id"}
 	for _, key := range idKeys {
 		if val := q.Get(key); val != "" {
-			if regexp.MustCompile(`^\d+$`).MatchString(val) {
+			if numericIDPattern.MatchString(val) {
 				return NodeTypeDetail
 			}
 		}
@@ -498,7 +445,7 @@ func classifyURL(urlStr string) NodeType {
 	}
 
 	// Detail page: has numeric ID pattern in path
-	if regexp.MustCompile(`/\d{4,}(?:/|$)`).MatchString(path) {
+	if pathNumericIDPattern.MatchString(path) {
 		return NodeTypeDetail
 	}
 

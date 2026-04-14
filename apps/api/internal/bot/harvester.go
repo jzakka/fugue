@@ -2,7 +2,6 @@ package bot
 
 import (
 	"context"
-	_ "database/sql"
 	"fmt"
 	"sort"
 	"time"
@@ -231,9 +230,8 @@ func (h *Harvester) executeNode(ctx context.Context, node db.BotGraphNode) ([]Ra
 	return items, nil
 }
 
-// updateNodeSuccess increments success count and updates last visited time
+// fetchHTML fetches HTML content using the shared fetch function.
 func (h *Harvester) fetchHTML(ctx context.Context, urlStr string) (string, error) {
-	// TODO: Implement actual HTTP fetching with timeout
-	// For now, return empty to allow compilation
-	return "", fmt.Errorf("not implemented")
+	html, _, err := fetchHTMLShared(ctx, urlStr)
+	return html, err
 }

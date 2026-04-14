@@ -133,12 +133,12 @@ func TestClassifyURL(t *testing.T) {
 		// Pagination is NOT detail (?p= should remain list)
 		{"https://example.com/page", NodeTypeList},
 
-		// Skip pages
-		{"https://example.com/login", NodeTypeSkip},
-		{"https://example.com/signup", NodeTypeSkip},
-		{"https://example.com/ad/banner", NodeTypeSkip},
-		{"https://example.com/cart", NodeTypeSkip},
-		{"https://example.com/checkout/step1", NodeTypeSkip},
+		// Previously-skip pages now default to list (skip handled by PathPatternFilter)
+		{"https://example.com/login", NodeTypeList},
+		{"https://example.com/signup", NodeTypeList},
+		{"https://example.com/ad/banner", NodeTypeList},
+		{"https://example.com/cart", NodeTypeList},
+		{"https://example.com/checkout/step1", NodeTypeList},
 	}
 
 	for _, tt := range tests {
