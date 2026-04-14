@@ -52,22 +52,16 @@ type GraphNode struct {
 type NodeType string
 
 const (
-	NodeTypeListing  NodeType = "listing"
-	NodeTypeGallery  NodeType = "gallery"
-	NodeTypeDetail   NodeType = "detail"
-	NodeTypeCategory NodeType = "category"
-	NodeTypeSkip     NodeType = "skip"
+	NodeTypeList   NodeType = "list"
+	NodeTypeDetail NodeType = "detail"
+	NodeTypeSkip   NodeType = "skip"
 )
 
 // NodeTypePriority returns the priority value for BFS traversal
 func NodeTypePriority(nt NodeType) int {
 	switch nt {
-	case NodeTypeListing:
+	case NodeTypeList:
 		return 100
-	case NodeTypeGallery:
-		return 80
-	case NodeTypeCategory:
-		return 60
 	case NodeTypeDetail:
 		return 10
 	case NodeTypeSkip:

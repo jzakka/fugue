@@ -15,17 +15,15 @@ func TestHarvesterSortNodesByPriority(t *testing.T) {
 	h := &Harvester{}
 
 	nodes := []db.BotGraphNode{
-		{NodeType: sql.NullString{String: "detail", Valid: true}},   // priority 10
-		{NodeType: sql.NullString{String: "listing", Valid: true}},  // priority 100
-		{NodeType: sql.NullString{String: "gallery", Valid: true}},  // priority 80
-		{NodeType: sql.NullString{String: "category", Valid: true}}, // priority 60
-		{NodeType: sql.NullString{String: "skip", Valid: true}},     // priority 0
+		{NodeType: sql.NullString{String: "detail", Valid: true}}, // priority 10
+		{NodeType: sql.NullString{String: "list", Valid: true}},   // priority 100
+		{NodeType: sql.NullString{String: "skip", Valid: true}},   // priority 0
 	}
 
 	h.sortNodesByPriority(nodes)
 
-	// After sorting: listing (100), gallery (80), category (60), detail (10), skip (0)
-	expected := []string{"listing", "gallery", "category", "detail", "skip"}
+	// After sorting: list (100), detail (10), skip (0)
+	expected := []string{"list", "detail", "skip"}
 	for i, node := range nodes {
 		if node.NodeType.String != expected[i] {
 			t.Errorf("Position %d: got %s, want %s", i, node.NodeType.String, expected[i])
@@ -37,17 +35,17 @@ func TestHarvesterSortWithNullTypes(t *testing.T) {
 	h := &Harvester{}
 
 	nodes := []db.BotGraphNode{
-		{NodeType: sql.NullString{Valid: false}},                   // no type
-		{NodeType: sql.NullString{String: "listing", Valid: true}}, // priority 100
-		{NodeType: sql.NullString{Valid: false}},                   // no type
+		{NodeType: sql.NullString{Valid: false}},                // no type
+		{NodeType: sql.NullString{String: "list", Valid: true}}, // priority 100
+		{NodeType: sql.NullString{Valid: false}},                // no type
 	}
 
 	// Should not panic
 	h.sortNodesByPriority(nodes)
 
-	// Listing should be first
-	if nodes[0].NodeType.Valid && nodes[0].NodeType.String != "listing" {
-		t.Error("Expected listing node to be first")
+	// List should be first
+	if nodes[0].NodeType.Valid && nodes[0].NodeType.String != "list" {
+		t.Error("Expected list node to be first")
 	}
 }
 
@@ -139,20 +137,20 @@ func TestPrioritySortingWithinLevel(t *testing.T) {
 	level := []db.BotGraphNode{
 		{NodeType: sql.NullString{String: "detail", Valid: true}},
 		{NodeType: sql.NullString{String: "detail", Valid: true}},
-		{NodeType: sql.NullString{String: "listing", Valid: true}},
+		{NodeType: sql.NullString{String: "list", Valid: true}},
 		{NodeType: sql.NullString{String: "detail", Valid: true}},
-		{NodeType: sql.NullString{String: "listing", Valid: true}},
+		{NodeType: sql.NullString{String: "list", Valid: true}},
 	}
 
 	// Sort by priority
 	h.sortNodesByPriority(level)
 
-	// First 2 should be listing, next 3 should be detail
-	if level[0].NodeType.String != "listing" {
-		t.Errorf("Expected first node to be listing, got %s", level[0].NodeType.String)
+	// First 2 should be list, next 3 should be detail
+	if level[0].NodeType.String != "list" {
+		t.Errorf("Expected first node to be list, got %s", level[0].NodeType.String)
 	}
-	if level[1].NodeType.String != "listing" {
-		t.Errorf("Expected second node to be listing, got %s", level[1].NodeType.String)
+	if level[1].NodeType.String != "list" {
+		t.Errorf("Expected second node to be list, got %s", level[1].NodeType.String)
 	}
 	if level[2].NodeType.String != "detail" {
 		t.Errorf("Expected third node to be detail, got %s", level[2].NodeType.String)

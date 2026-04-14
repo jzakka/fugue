@@ -65,16 +65,8 @@ func (e Edge) MarshalJSON() ([]byte, error) {
 
 // Metadata contains summary statistics
 type Metadata struct {
-	GeneratedAt    time.Time     `json:"generated_at"`
-	TotalSites     int           `json:"total_sites"`
-	TotalNodes     int           `json:"total_nodes"`
-	TotalEdges     int           `json:"total_edges"`
-	ScriptCoverage CoverageStats `json:"script_coverage"`
-}
-
-// CoverageStats tracks script implementation coverage
-type CoverageStats struct {
-	TotalNodes      int     `json:"total_nodes"`
-	CoveredNodes    int     `json:"covered_nodes"`
-	CoveragePercent float64 `json:"coverage_percent"`
+	GeneratedAt time.Time `json:"generated_at"`
+	TotalSites  int       `json:"total_sites"`
+	TotalNodes  int       `json:"total_nodes"`
+	TotalEdges  int       `json:"total_edges"`
 }

@@ -101,20 +101,20 @@ func TestClassifyURL(t *testing.T) {
 		url      string
 		expected NodeType
 	}{
-		// Listing pages
-		{"https://example.com/trending", NodeTypeListing},
-		{"https://example.com/popular", NodeTypeListing},
-		{"https://example.com/shots/recent", NodeTypeListing},
+		// List pages (trending/popular keywords)
+		{"https://example.com/trending", NodeTypeList},
+		{"https://example.com/popular", NodeTypeList},
+		{"https://example.com/shots/recent", NodeTypeList},
 
-		// Gallery pages
-		{"https://example.com/gallery", NodeTypeGallery},
-		{"https://example.com/collections/art", NodeTypeGallery},
+		// List pages (gallery keywords)
+		{"https://example.com/gallery", NodeTypeList},
+		{"https://example.com/collections/art", NodeTypeList},
 
-		// Category pages
-		{"https://example.com/category/design", NodeTypeCategory},
-		{"https://example.com/tags/illustration", NodeTypeCategory},
-		{"https://example.com/contest/magicalparty", NodeTypeCategory},
-		{"https://example.com/event/summer2026", NodeTypeCategory},
+		// List pages (category keywords)
+		{"https://example.com/category/design", NodeTypeList},
+		{"https://example.com/tags/illustration", NodeTypeList},
+		{"https://example.com/contest/magicalparty", NodeTypeList},
+		{"https://example.com/event/summer2026", NodeTypeList},
 
 		// Detail pages (numeric ID in path)
 		{"https://example.com/item/12345", NodeTypeDetail},
@@ -130,8 +130,8 @@ func TestClassifyURL(t *testing.T) {
 		{"https://unsplash.com/photos/abc123", NodeTypeDetail},
 		{"https://example.com/works/my-piece", NodeTypeDetail},
 
-		// Pagination is NOT detail (?p= should remain listing)
-		{"https://example.com/page", NodeTypeListing},
+		// Pagination is NOT detail (?p= should remain list)
+		{"https://example.com/page", NodeTypeList},
 
 		// Skip pages
 		{"https://example.com/login", NodeTypeSkip},
@@ -416,9 +416,7 @@ func TestNodeTypePriority(t *testing.T) {
 		nodeType NodeType
 		priority int
 	}{
-		{NodeTypeListing, 100},
-		{NodeTypeGallery, 80},
-		{NodeTypeCategory, 60},
+		{NodeTypeList, 100},
 		{NodeTypeDetail, 10},
 		{NodeTypeSkip, 0},
 	}

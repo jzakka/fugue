@@ -442,7 +442,7 @@ func urlPathContains(urlPath string, segment string) bool {
 func classifyURL(urlStr string) NodeType {
 	u, parseErr := url.Parse(strings.ToLower(urlStr))
 	if parseErr != nil {
-		return NodeTypeListing
+		return NodeTypeList
 	}
 	path := u.Path
 
@@ -477,7 +477,7 @@ func classifyURL(urlStr string) NodeType {
 	listingPatterns := []string{"trending", "popular", "hot", "featured", "recent", "explore"}
 	for _, pattern := range listingPatterns {
 		if urlPathContains(path, pattern) {
-			return NodeTypeListing
+			return NodeTypeList
 		}
 	}
 
@@ -485,7 +485,7 @@ func classifyURL(urlStr string) NodeType {
 	galleryPatterns := []string{"gallery", "galleries", "collection", "collections", "album", "albums", "showcase"}
 	for _, pattern := range galleryPatterns {
 		if urlPathContains(path, pattern) {
-			return NodeTypeGallery
+			return NodeTypeList
 		}
 	}
 
@@ -493,7 +493,7 @@ func classifyURL(urlStr string) NodeType {
 	categoryPatterns := []string{"category", "categories", "tag", "tags", "genre", "genres", "style", "styles", "contest", "contests", "event", "events"}
 	for _, pattern := range categoryPatterns {
 		if urlPathContains(path, pattern) {
-			return NodeTypeCategory
+			return NodeTypeList
 		}
 	}
 
@@ -502,7 +502,7 @@ func classifyURL(urlStr string) NodeType {
 		return NodeTypeDetail
 	}
 
-	return NodeTypeListing // Default
+	return NodeTypeList // Default
 }
 
 // Domain validation (Task 6.3)

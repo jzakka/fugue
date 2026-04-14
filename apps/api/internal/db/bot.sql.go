@@ -14,41 +14,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const createBotSource = `-- name: CreateBotSource :one
-INSERT INTO bot_sources (name, seed_urls, interval_hours, enabled)
-VALUES ($1, $2, $3, $4)
-RETURNING id, name, platform, seed_urls, interval_hours, enabled, last_crawled_at, stats, created_at
-`
-
-type CreateBotSourceParams struct {
-	Name          string
-	SeedUrls      []string
-	IntervalHours int32
-	Enabled       bool
-}
-
-func (q *Queries) CreateBotSource(ctx context.Context, arg CreateBotSourceParams) (BotSource, error) {
-	row := q.db.QueryRowContext(ctx, createBotSource,
-		arg.Name,
-		pq.Array(arg.SeedUrls),
-		arg.IntervalHours,
-		arg.Enabled,
-	)
-	var i BotSource
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Platform,
-		pq.Array(&i.SeedUrls),
-		&i.IntervalHours,
-		&i.Enabled,
-		&i.LastCrawledAt,
-		&i.Stats,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createEdge = `-- name: CreateEdge :exec
 INSERT INTO bot_graph_edges (from_node_id, to_node_id)
 VALUES ($1, $2)
@@ -173,19 +138,6 @@ func (q *Queries) CreateSite(ctx context.Context, arg CreateSiteParams) (BotSite
 	return i, err
 }
 
-const deleteBotSource = `-- name: DeleteBotSource :execrows
-DELETE FROM bot_sources
-WHERE id = $1
-`
-
-func (q *Queries) DeleteBotSource(ctx context.Context, id uuid.UUID) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteBotSource, id)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const deleteEdgesByIDs = `-- name: DeleteEdgesByIDs :exec
 DELETE FROM bot_graph_edges WHERE id = ANY($1::uuid[])
 `
@@ -211,35 +163,6 @@ DELETE FROM bot_graph_edges WHERE from_node_id = to_node_id
 func (q *Queries) DeleteSelfLoopEdges(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteSelfLoopEdges)
 	return err
-}
-
-const getBotSource = `-- name: GetBotSource :one
-SELECT id, name, seed_urls, interval_hours, enabled, created_at
-FROM bot_sources
-WHERE id = $1
-`
-
-type GetBotSourceRow struct {
-	ID            uuid.UUID
-	Name          string
-	SeedUrls      []string
-	IntervalHours int32
-	Enabled       bool
-	CreatedAt     time.Time
-}
-
-func (q *Queries) GetBotSource(ctx context.Context, id uuid.UUID) (GetBotSourceRow, error) {
-	row := q.db.QueryRowContext(ctx, getBotSource, id)
-	var i GetBotSourceRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		pq.Array(&i.SeedUrls),
-		&i.IntervalHours,
-		&i.Enabled,
-		&i.CreatedAt,
-	)
-	return i, err
 }
 
 const getEdgesByNode = `-- name: GetEdgesByNode :many
@@ -393,52 +316,6 @@ func (q *Queries) GetSiteByDomain(ctx context.Context, domain string) (BotSite, 
 	return i, err
 }
 
-const listActiveBotSources = `-- name: ListActiveBotSources :many
-SELECT id, name, seed_urls, interval_hours, enabled, created_at
-FROM bot_sources
-WHERE enabled = true
-ORDER BY created_at
-`
-
-type ListActiveBotSourcesRow struct {
-	ID            uuid.UUID
-	Name          string
-	SeedUrls      []string
-	IntervalHours int32
-	Enabled       bool
-	CreatedAt     time.Time
-}
-
-func (q *Queries) ListActiveBotSources(ctx context.Context) ([]ListActiveBotSourcesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listActiveBotSources)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListActiveBotSourcesRow
-	for rows.Next() {
-		var i ListActiveBotSourcesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			pq.Array(&i.SeedUrls),
-			&i.IntervalHours,
-			&i.Enabled,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listActiveSites = `-- name: ListActiveSites :many
 SELECT id, domain, root_url, active, created_at, updated_at FROM bot_sites
 WHERE active = true
@@ -461,51 +338,6 @@ func (q *Queries) ListActiveSites(ctx context.Context) ([]BotSite, error) {
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listAllBotSources = `-- name: ListAllBotSources :many
-SELECT id, name, seed_urls, interval_hours, enabled, created_at
-FROM bot_sources
-ORDER BY created_at
-`
-
-type ListAllBotSourcesRow struct {
-	ID            uuid.UUID
-	Name          string
-	SeedUrls      []string
-	IntervalHours int32
-	Enabled       bool
-	CreatedAt     time.Time
-}
-
-func (q *Queries) ListAllBotSources(ctx context.Context) ([]ListAllBotSourcesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listAllBotSources)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListAllBotSourcesRow
-	for rows.Next() {
-		var i ListAllBotSourcesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			pq.Array(&i.SeedUrls),
-			&i.IntervalHours,
-			&i.Enabled,
-			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -747,7 +579,6 @@ func (q *Queries) ListEdgesReferencingNodes(ctx context.Context, dollar_1 []uuid
 }
 
 const listNodeURLsBySite = `-- name: ListNodeURLsBySite :many
-
 SELECT id, url, created_at
 FROM bot_graph_nodes
 WHERE site_id = $1
@@ -760,7 +591,6 @@ type ListNodeURLsBySiteRow struct {
 	CreatedAt time.Time
 }
 
-// Trie Merge queries
 func (q *Queries) ListNodeURLsBySite(ctx context.Context, siteID uuid.UUID) ([]ListNodeURLsBySiteRow, error) {
 	rows, err := q.db.QueryContext(ctx, listNodeURLsBySite, siteID)
 	if err != nil {
@@ -876,35 +706,6 @@ func (q *Queries) PinURLExists(ctx context.Context, url sql.NullString) (bool, e
 	var url_exists bool
 	err := row.Scan(&url_exists)
 	return url_exists, err
-}
-
-const toggleBotSource = `-- name: ToggleBotSource :one
-UPDATE bot_sources
-SET enabled = $2
-WHERE id = $1
-RETURNING id, name, platform, seed_urls, interval_hours, enabled, last_crawled_at, stats, created_at
-`
-
-type ToggleBotSourceParams struct {
-	ID      uuid.UUID
-	Enabled bool
-}
-
-func (q *Queries) ToggleBotSource(ctx context.Context, arg ToggleBotSourceParams) (BotSource, error) {
-	row := q.db.QueryRowContext(ctx, toggleBotSource, arg.ID, arg.Enabled)
-	var i BotSource
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Platform,
-		pq.Array(&i.SeedUrls),
-		&i.IntervalHours,
-		&i.Enabled,
-		&i.LastCrawledAt,
-		&i.Stats,
-		&i.CreatedAt,
-	)
-	return i, err
 }
 
 const updateNodeScript = `-- name: UpdateNodeScript :exec

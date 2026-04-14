@@ -11,19 +11,19 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #0a0a0a;
             color: #e0e0e0;
             overflow: hidden;
         }
-        
+
         #graph-container {
             width: 100vw;
             height: 100vh;
         }
-        
+
         #stats-panel {
             position: fixed;
             top: 20px;
@@ -35,44 +35,75 @@
             min-width: 250px;
             z-index: 1000;
         }
-        
+
         #stats-panel h2 {
             font-size: 18px;
             margin-bottom: 15px;
             color: #fff;
         }
-        
+
         .stat-row {
             display: flex;
             justify-content: space-between;
             margin: 8px 0;
             font-size: 14px;
         }
-        
+
         .stat-label {
             color: #999;
         }
-        
+
         .stat-value {
             color: #fff;
             font-weight: 600;
         }
-        
-        .coverage-bar {
-            width: 100%;
-            height: 8px;
-            background: #333;
+
+        .site-list {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .site-list h3 {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .site-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            margin: 2px 0;
             border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        
-        .coverage-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
-            transition: width 0.3s ease;
+
+        .site-item:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
-        
+
+        .site-item.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .site-item input[type="radio"] {
+            margin-right: 8px;
+            accent-color: #3b82f6;
+        }
+
+        .site-name {
+            font-weight: 600;
+            color: #fff;
+            margin-right: 8px;
+        }
+
+        .site-domain {
+            color: #666;
+            font-size: 12px;
+        }
+
         #legend {
             position: fixed;
             bottom: 20px;
@@ -83,33 +114,33 @@
             padding: 15px;
             z-index: 1000;
         }
-        
+
         #legend h3 {
             font-size: 14px;
             margin-bottom: 10px;
             color: #fff;
         }
-        
+
         .legend-item {
             display: flex;
             align-items: center;
             margin: 6px 0;
             font-size: 12px;
         }
-        
+
         .legend-color {
             width: 16px;
             height: 16px;
             border-radius: 50%;
             margin-right: 8px;
         }
-        
+
         .legend-line {
             width: 20px;
             height: 2px;
             margin-right: 8px;
         }
-        
+
         .node {
             cursor: pointer;
             stroke-width: 2px;
@@ -125,14 +156,7 @@
         .link-arrow {
             fill: #555;
         }
-        
-        .node-label {
-            font-size: 10px;
-            fill: #999;
-            pointer-events: none;
-            user-select: none;
-        }
-        
+
         .tooltip {
             position: fixed;
             background: rgba(0, 0, 0, 0.9);
@@ -145,17 +169,17 @@
             max-width: 300px;
             display: none;
         }
-        
+
         .tooltip-url {
             color: #60a5fa;
             word-break: break-all;
             margin-bottom: 5px;
         }
-        
+
         .tooltip-type {
             color: #fbbf24;
         }
-        
+
         .tooltip-status {
             margin-top: 5px;
             padding-top: 5px;
@@ -205,13 +229,9 @@
 </head>
 <body>
     <div id="graph-container"></div>
-    
+
     <div id="stats-panel">
-        <h2>🐡 Graph Statistics</h2>
-        <div class="stat-row">
-            <span class="stat-label">Sites:</span>
-            <span class="stat-value" id="stat-sites">0</span>
-        </div>
+        <h2>Graph Statistics</h2>
         <div class="stat-row">
             <span class="stat-label">Nodes:</span>
             <span class="stat-value" id="stat-nodes">0</span>
@@ -220,42 +240,20 @@
             <span class="stat-label">Edges:</span>
             <span class="stat-value" id="stat-edges">0</span>
         </div>
-        <div class="stat-row">
-            <span class="stat-label">Script Coverage:</span>
-            <span class="stat-value" id="stat-coverage">0%</span>
-        </div>
-        <div class="coverage-bar">
-            <div class="coverage-fill" id="coverage-fill" style="width: 0%"></div>
-        </div>
-        <div class="stat-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-            <span class="stat-label">Generated:</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-value" id="stat-timestamp" style="font-size: 11px; color: #666;">-</span>
+        <div class="site-list" id="site-list">
+            <h3>Sites</h3>
         </div>
     </div>
-    
+
     <div id="legend">
         <h3>Legend — Node Type</h3>
         <div class="legend-item">
             <div class="legend-color" style="background: #3b82f6; border: 2px solid #2563eb;"></div>
-            <span>Listing</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: #8b5cf6; border: 2px solid #7c3aed;"></div>
-            <span>Gallery</span>
+            <span>List</span>
         </div>
         <div class="legend-item">
             <div class="legend-color" style="background: #10b981; border: 2px solid #059669;"></div>
             <span>Detail</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: #f59e0b; border: 2px solid #d97706;"></div>
-            <span>Category</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: #6b7280; border: 2px solid #4b5563;"></div>
-            <span>Unknown</span>
         </div>
         <h3 style="margin-top: 10px;">Script Status</h3>
         <div class="legend-item">
@@ -271,36 +269,61 @@
             <span>Edge (link)</span>
         </div>
     </div>
-    
+
     <div class="tooltip" id="tooltip"></div>
     <div class="hint-text" id="hint">Scroll to zoom · Drag to pan</div>
-    
+
     <script>
-        // Graph data will be injected here
         const graphData = {{.GraphDataJSON}};
-        
+
         if (!graphData || graphData.nodes.length === 0) {
             document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; color: #666;">No nodes found in database</div>';
         } else {
-            renderGraph(graphData);
+            initApp(graphData);
         }
-        
-        function renderGraph(data) {
-            // Update stats
-            document.getElementById('stat-sites').textContent = data.metadata.total_sites;
-            document.getElementById('stat-nodes').textContent = data.metadata.total_nodes;
-            document.getElementById('stat-edges').textContent = data.metadata.total_edges;
-            document.getElementById('stat-coverage').textContent = data.metadata.script_coverage.coverage_percent.toFixed(1) + '%';
-            document.getElementById('coverage-fill').style.width = data.metadata.script_coverage.coverage_percent + '%';
-            document.getElementById('stat-timestamp').textContent = new Date(data.metadata.generated_at).toLocaleString();
-            
-            // Create site color map
-            const siteColors = d3.scaleOrdinal(d3.schemeSet3);
+
+        function normalizeNodeType(nt) {
+            if (nt === 'listing' || nt === 'gallery' || nt === 'category') return 'list';
+            return nt;
+        }
+
+        function stripTLD(domain) {
+            const parts = domain.split('.');
+            if (parts.length >= 2) return parts.slice(0, -1).join('.');
+            return domain;
+        }
+
+        function initApp(data) {
             const siteMap = {};
-            data.sites.forEach(site => {
-                siteMap[site.id] = site;
+            data.sites.forEach(site => { siteMap[site.id] = site; });
+
+            // Build site list UI
+            const siteListEl = document.getElementById('site-list');
+            data.sites.forEach((site, i) => {
+                const label = document.createElement('label');
+                label.className = 'site-item' + (i === 0 ? ' active' : '');
+                label.innerHTML = `<input type="radio" name="site" value="${site.id}" ${i === 0 ? 'checked' : ''}>` +
+                    `<span class="site-name">${stripTLD(site.domain)}</span>` +
+                    `<span class="site-domain">${site.domain}</span>`;
+                label.addEventListener('click', () => {
+                    document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
+                    label.classList.add('active');
+                    selectSite(site.id);
+                });
+                siteListEl.appendChild(label);
             });
-            
+
+            // Node type color map — treats old DB values (listing/gallery/category) as list
+            const typeColors = {
+                list:   '#3b82f6',
+                detail: '#10b981',
+            };
+            const defaultColor = '#6b7280';
+
+            function getNodeColor(d) {
+                return typeColors[normalizeNodeType(d.node_type)] || defaultColor;
+            }
+
             // Setup SVG
             let width = window.innerWidth;
             let height = window.innerHeight;
@@ -315,8 +338,7 @@
                 height = window.innerHeight;
                 svg.attr('width', width).attr('height', height);
             });
-            
-            // Add zoom behavior
+
             const g = svg.append('g');
             const hint = document.getElementById('hint');
             let hintVisible = true;
@@ -330,16 +352,8 @@
                     }
                 });
             svg.call(zoom);
-            
-            // Create links
-            const link = g.append('g')
-                .selectAll('path')
-                .data(data.edges)
-                .join('path')
-                .attr('class', 'link')
-                .attr('marker-end', 'url(#arrow)');
-            
-            // Create arrow marker
+
+            // Arrow marker
             svg.append('defs').append('marker')
                 .attr('id', 'arrow')
                 .attr('viewBox', '0 -5 10 10')
@@ -351,128 +365,138 @@
                 .append('path')
                 .attr('d', 'M0,-5L10,0L0,5')
                 .attr('class', 'link-arrow');
-            
-            // Node type color map
-            const typeColors = {
-                listing:  '#3b82f6',
-                gallery:  '#8b5cf6',
-                detail:   '#10b981',
-                category: '#f59e0b',
-            };
-            const defaultColor = '#6b7280';
 
-            // Create nodes
-            const node = g.append('g')
-                .selectAll('circle')
-                .data(data.nodes)
-                .join('circle')
-                .attr('class', 'node')
-                .attr('r', 8)
-                .attr('fill', d => typeColors[d.node_type] || defaultColor)
-                .attr('stroke', d => d.has_script ? '#fff' : '#333')
-                .call(d3.drag()
-                    .on('start', dragstarted)
-                    .on('drag', dragged)
-                    .on('end', dragended));
-            
-            // Labels removed — node type is conveyed by color alone
-            
-            // Tooltip
+            const linkGroup = g.append('g');
+            const nodeGroup = g.append('g');
             const tooltip = d3.select('#tooltip');
-            
-            node.on('mouseover', (event, d) => {
-                const site = siteMap[d.site_id];
-                const sampleLine = d.sample_url ? `<div class="tooltip-url" style="color:#86efac;">Sample: ${d.sample_url}</div>` : '';
-                tooltip.style('display', 'block')
-                    .html(`
-                        <div class="tooltip-url">Pattern: ${d.url}</div>
-                        ${sampleLine}
-                        <div class="tooltip-type">Type: ${d.node_type || 'unknown'}</div>
-                        <div>Site: ${site ? site.domain : 'unknown'}</div>
-                        <div class="tooltip-status">Script: ${d.has_script ? '✅ Implemented' : '❌ Missing'}</div>
-                    `);
-            })
-            .on('mousemove', (event) => {
-                tooltip.style('left', (event.pageX + 15) + 'px')
-                    .style('top', (event.pageY + 15) + 'px');
-            })
-            .on('mouseout', () => {
-                tooltip.style('display', 'none');
-            });
-            
-            // Force simulation — edges use source/target fields from server
-            const simulation = d3.forceSimulation(data.nodes)
-                .force('link', d3.forceLink(data.edges)
-                    .id(d => d.id)
-                    .distance(60))
-                .force('charge', d3.forceManyBody().strength(-150))
-                .force('center', d3.forceCenter(width / 2, height / 2))
-                .force('collision', d3.forceCollide().radius(15))
-                .force('x', d3.forceX(d => {
-                    const siteIndex = data.sites.findIndex(s => s.id === d.site_id);
-                    return width / (data.sites.length + 1) * (siteIndex + 1);
-                }).strength(0.5))
-                .force('y', d3.forceY(d => {
-                    const siteIndex = data.sites.findIndex(s => s.id === d.site_id);
-                    const rows = Math.ceil(Math.sqrt(data.sites.length));
-                    return height / (rows + 1) * (Math.floor(siteIndex / Math.ceil(data.sites.length / rows)) + 1);
-                }).strength(0.1))
-                .on('tick', ticked)
-                .on('end', fitToViewport);
 
-            function fitToViewport() {
-                const padding = 60;
-                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                data.nodes.forEach(d => {
-                    if (d.x < minX) minX = d.x;
-                    if (d.y < minY) minY = d.y;
-                    if (d.x > maxX) maxX = d.x;
-                    if (d.y > maxY) maxY = d.y;
-                });
-                const graphWidth = maxX - minX;
-                const graphHeight = maxY - minY;
-                if (graphWidth === 0 || graphHeight === 0) return;
-                const scale = Math.min(
-                    (width - padding * 2) / graphWidth,
-                    (height - padding * 2) / graphHeight,
-                    1.5
+            let simulation = null;
+
+            function selectSite(siteId) {
+                // Filter nodes/edges for selected site
+                const filteredNodes = data.nodes.filter(n => n.site_id === siteId);
+                const nodeIds = new Set(filteredNodes.map(n => n.id));
+                const filteredEdges = data.edges.filter(e =>
+                    nodeIds.has(e.source?.id || e.source) && nodeIds.has(e.target?.id || e.target)
                 );
-                const cx = (minX + maxX) / 2;
-                const cy = (minY + maxY) / 2;
-                const transform = d3.zoomIdentity
-                    .translate(width / 2, height / 2)
-                    .scale(scale)
-                    .translate(-cx, -cy);
-                svg.transition().duration(750).call(zoom.transform, transform);
-            }
 
-            function ticked() {
-                // D3 forceLink auto-resolves source/target to node objects
-                link.attr('d', d => {
-                    if (!d.source || !d.target) return '';
-                    return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
+                // Reset D3 link references to raw IDs (D3 mutates source/target to objects)
+                const edges = filteredEdges.map(e => ({
+                    ...e,
+                    source: e.source?.id || e.source,
+                    target: e.target?.id || e.target,
+                }));
+
+                // Update stats
+                document.getElementById('stat-nodes').textContent = filteredNodes.length;
+                document.getElementById('stat-edges').textContent = edges.length;
+
+                // Update links
+                const link = linkGroup.selectAll('path')
+                    .data(edges, d => d.id);
+                link.exit().remove();
+                const linkEnter = link.enter().append('path')
+                    .attr('class', 'link')
+                    .attr('marker-end', 'url(#arrow)');
+                const linkMerged = linkEnter.merge(link);
+
+                // Update nodes
+                const node = nodeGroup.selectAll('circle')
+                    .data(filteredNodes, d => d.id);
+                node.exit().remove();
+                const nodeEnter = node.enter().append('circle')
+                    .attr('class', 'node')
+                    .attr('r', 8)
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                const nodeMerged = nodeEnter.merge(node);
+
+                nodeMerged
+                    .attr('fill', d => getNodeColor(d))
+                    .attr('stroke', d => d.has_script ? '#fff' : '#333');
+
+                // Tooltip
+                nodeMerged.on('mouseover', (event, d) => {
+                    const site = siteMap[d.site_id];
+                    const sampleLine = d.sample_url ? `<div class="tooltip-url" style="color:#86efac;">Sample: ${d.sample_url}</div>` : '';
+                    tooltip.style('display', 'block')
+                        .html(`
+                            <div class="tooltip-url">Pattern: ${d.url}</div>
+                            ${sampleLine}
+                            <div class="tooltip-type">Type: ${normalizeNodeType(d.node_type) || 'unknown'}</div>
+                            <div>Site: ${site ? site.domain : 'unknown'}</div>
+                            <div class="tooltip-status">Script: ${d.has_script ? 'Implemented' : 'Missing'}</div>
+                        `);
+                })
+                .on('mousemove', (event) => {
+                    tooltip.style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY + 15) + 'px');
+                })
+                .on('mouseout', () => {
+                    tooltip.style('display', 'none');
                 });
 
-                node.attr('cx', d => d.x)
-                    .attr('cy', d => d.y);
+                // Restart simulation
+                if (simulation) simulation.stop();
+                simulation = d3.forceSimulation(filteredNodes)
+                    .force('link', d3.forceLink(edges)
+                        .id(d => d.id)
+                        .distance(60))
+                    .force('charge', d3.forceManyBody().strength(-150))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .force('collision', d3.forceCollide().radius(15))
+                    .on('tick', () => {
+                        linkMerged.attr('d', d => {
+                            if (!d.source || !d.target) return '';
+                            return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
+                        });
+                        nodeMerged.attr('cx', d => d.x).attr('cy', d => d.y);
+                    })
+                    .on('end', () => {
+                        const padding = 60;
+                        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                        filteredNodes.forEach(d => {
+                            if (d.x < minX) minX = d.x;
+                            if (d.y < minY) minY = d.y;
+                            if (d.x > maxX) maxX = d.x;
+                            if (d.y > maxY) maxY = d.y;
+                        });
+                        const gw = maxX - minX;
+                        const gh = maxY - minY;
+                        if (gw === 0 || gh === 0) return;
+                        const scale = Math.min((width - padding * 2) / gw, (height - padding * 2) / gh, 1.5);
+                        const cx = (minX + maxX) / 2;
+                        const cy = (minY + maxY) / 2;
+                        const transform = d3.zoomIdentity
+                            .translate(width / 2, height / 2)
+                            .scale(scale)
+                            .translate(-cx, -cy);
+                        svg.transition().duration(750).call(zoom.transform, transform);
+                    });
 
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
             }
-            
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            }
-            
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-            
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+
+            // Auto-select first site
+            if (data.sites.length > 0) {
+                selectSite(data.sites[0].id);
             }
         }
     </script>

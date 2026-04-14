@@ -58,17 +58,11 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 	}
 
 	nodes := make([]Node, len(nodeRows))
-	coveredCount := 0
 	for i, row := range nodeRows {
 		domain := domainMap[row.SiteID]
 		nodeType := ""
 		if row.NodeType.Valid {
 			nodeType = row.NodeType.String
-		}
-
-		hasScript := CheckScriptExists(domain, nodeType)
-		if hasScript {
-			coveredCount++
 		}
 
 		sampleURL := ""
@@ -82,7 +76,7 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 			URL:       row.Url,
 			SampleURL: sampleURL,
 			NodeType:  nodeType,
-			HasScript: hasScript,
+			HasScript: CheckScriptExists(domain, nodeType),
 			CreatedAt: row.CreatedAt,
 		}
 	}
@@ -103,12 +97,6 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 		}
 	}
 
-	// Calculate coverage
-	coveragePercent := 0.0
-	if len(nodes) > 0 {
-		coveragePercent = float64(coveredCount) / float64(len(nodes)) * 100
-	}
-
 	return &GraphData{
 		Sites: sites,
 		Nodes: nodes,
@@ -118,11 +106,6 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 			TotalSites:  len(sites),
 			TotalNodes:  len(nodes),
 			TotalEdges:  len(edges),
-			ScriptCoverage: CoverageStats{
-				TotalNodes:      len(nodes),
-				CoveredNodes:    coveredCount,
-				CoveragePercent: coveragePercent,
-			},
 		},
 	}, nil
 }
@@ -138,25 +121,3 @@ func CheckScriptExists(domain, nodeType string) bool {
 	return err == nil
 }
 
-// CalculateCoverageStats computes script coverage statistics
-func CalculateCoverageStats(nodes []Node) CoverageStats {
-	total := len(nodes)
-	covered := 0
-
-	for _, node := range nodes {
-		if node.HasScript {
-			covered++
-		}
-	}
-
-	percent := 0.0
-	if total > 0 {
-		percent = float64(covered) / float64(total) * 100
-	}
-
-	return CoverageStats{
-		TotalNodes:      total,
-		CoveredNodes:    covered,
-		CoveragePercent: percent,
-	}
-}

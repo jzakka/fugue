@@ -125,11 +125,6 @@ func generateHTML(data *visualize.GraphData, outputPath string) error {
 	fmt.Printf("  Open in browser: file://%s\n", absPath)
 	fmt.Printf("  %d sites, %d nodes, %d edges\n",
 		data.Metadata.TotalSites, data.Metadata.TotalNodes, data.Metadata.TotalEdges)
-	fmt.Printf("  Script coverage: %.1f%% (%d/%d nodes)\n",
-		data.Metadata.ScriptCoverage.CoveragePercent,
-		data.Metadata.ScriptCoverage.CoveredNodes,
-		data.Metadata.ScriptCoverage.TotalNodes)
-
 	return nil
 }
 
@@ -200,11 +195,10 @@ func filterBySite(data *visualize.GraphData, domain string) *visualize.GraphData
 		Nodes: filteredNodes,
 		Edges: filteredEdges,
 		Metadata: visualize.Metadata{
-			GeneratedAt:    data.Metadata.GeneratedAt,
-			TotalSites:     len(filteredSites),
-			TotalNodes:     len(filteredNodes),
-			TotalEdges:     len(filteredEdges),
-			ScriptCoverage: visualize.CalculateCoverageStats(filteredNodes),
+			GeneratedAt: data.Metadata.GeneratedAt,
+			TotalSites:  len(filteredSites),
+			TotalNodes:  len(filteredNodes),
+			TotalEdges:  len(filteredEdges),
 		},
 	}
 }
