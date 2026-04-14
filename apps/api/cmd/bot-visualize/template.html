@@ -375,15 +375,7 @@
                     .on('drag', dragged)
                     .on('end', dragended));
             
-            // Add labels
-            const labels = g.append('g')
-                .selectAll('text')
-                .data(data.nodes)
-                .join('text')
-                .attr('class', 'node-label')
-                .attr('dx', 12)
-                .attr('dy', 4)
-                .text(d => d.node_type || 'unknown');
+            // Labels removed — node type is conveyed by color alone
             
             // Tooltip
             const tooltip = d3.select('#tooltip');
@@ -464,8 +456,6 @@
                 node.attr('cx', d => d.x)
                     .attr('cy', d => d.y);
 
-                labels.attr('x', d => d.x)
-                    .attr('y', d => d.y);
             }
             
             function dragstarted(event, d) {

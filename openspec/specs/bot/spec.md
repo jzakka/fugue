@@ -35,6 +35,14 @@
 - **WHEN** Harvester가 노드를 처리할 때
 - **THEN** 시스템은 canonical path가 아닌 보존된 원본 URL을 사용하여 실제 페이지를 fetch한다
 
+#### Scenario: 링크 관계 기록
+- **WHEN** Pioneer가 BFS 크롤 중 페이지 A에서 페이지 B로의 링크를 발견할 때
+- **THEN** 시스템은 B의 노드를 생성(또는 기존 노드를 조회)한 뒤 A에서 B로의 엣지를 생성한다
+
+#### Scenario: 이미 방문한 노드로의 엣지 생성
+- **WHEN** Pioneer가 페이지 A에서 이미 방문한 페이지 C로의 링크를 발견할 때
+- **THEN** 시스템은 A에서 C로의 엣지를 생성한다 (중복 엣지는 무시된다)
+
 #### Scenario: 중복 엣지 방지
 - **WHEN** 같은 링크를 여러 번 발견했을 때
 - **THEN** 시스템은 하나의 엣지만 유지한다
@@ -282,3 +290,117 @@ CanonicalDedupFilter는 LinkFilter 인터페이스를 구현하며(SHALL), URL�
 #### Scenario: 이미 머지된 사이트에 재실행
 - **WHEN** 머지가 완료된 사이트에 대해 머지를 다시 실행할 때
 - **THEN** 추가 변경 없이 완료된다 (멱등성)
+
+---
+
+### Requirement: Pioneer가 DB 기존 노드와 무관하게 BFS 큐를 관리한다
+Pioneer의 BFS 큐에 링크를 넣을지 여부는 오직 `visited` 맵(인메모리, 세션 스코프)으로 결정해야 한다(SHALL). `CreateNode`가 duplicate key를 반환해도 해당 링크를 큐에 넣어야 한다(SHALL).
+
+#### Scenario: DB에 이미 있는 노드의 자식 링크도 큐에 추가
+- **WHEN** 루트 페이지에서 발견된 링크의 `CreateNode`가 duplicate key를 반환할 때
+- **THEN** 해당 링크는 `visited` 맵에 등록되고 BFS 큐에 push된다
+
+#### Scenario: visited 맵에 있는 링크는 큐에 추가하지 않음
+- **WHEN** 이번 세션에서 이미 `visited` 맵에 등록된 링크를 다시 발견할 때
+- **THEN** 해당 링크는 큐에 push되지 않는다 (edge만 생성)
+
+#### Scenario: 재실행 시 depth 1 이상 탐색
+- **WHEN** DB에 이전 크롤 데이터가 있는 상태에서 Pioneer를 재실행할 때
+- **THEN** 루트의 자식 노드가 큐에 들어가고, 그 자식의 자식까지 BFS 탐색이 계속된다
+
+---
+
+### Requirement: MaxNodesPerSite는 새로 생성된 노드만 집계한다
+`nodesProcessed` 카운터는 `CreateNode`가 성공하여 새 노드가 생성된 경우에만 증가해야 한다(SHALL). 기존 노드 재방문은 카운트하지 않아야 한다(SHALL).
+
+#### Scenario: 기존 노드 재방문 시 카운터 미증가
+- **WHEN** 큐에서 꺼낸 URL이 이미 DB에 존재하는 노드일 때
+- **THEN** `nodesProcessed` 카운터가 증가하지 않는다
+
+#### Scenario: 새 노드 생성 시 카운터 증가
+- **WHEN** `CreateNode`가 성공하여 새 노드가 DB에 생성될 때
+- **THEN** `nodesProcessed` 카운터가 1 증가한다
+
+#### Scenario: quota가 새 노드 기준으로 동작
+- **WHEN** DB에 기존 노드 50개가 있고 `MaxNodesPerSite=100`으로 재실행할 때
+- **THEN** 기존 50개 재방문 후에도 quota가 남아 새 노드를 최대 100개까지 추가 생성할 수 있다
+
+---
+
+### Requirement: 크롤 완료 후 stale edge를 삭제한다
+Pioneer는 크롤 완료 후, 이번 세션에서 방문한 노드의 outgoing edge 중 재확인되지 않은 edge를 삭제해야 한다(SHALL). 미방문 노드의 edge는 삭제하지 않아야 한다(SHALL).
+
+#### Scenario: 사이트에서 링크가 제거된 경우
+- **WHEN** 이전 크롤에서 A→B edge가 존재했으나 이번 크롤에서 A 페이지에 B 링크가 없을 때
+- **THEN** A→B edge가 DB에서 삭제된다
+
+#### Scenario: 방문하지 않은 노드의 edge는 유지
+- **WHEN** `MaxNodesPerSite` 한도로 BFS가 중단되어 노드 C를 방문하지 못했을 때
+- **THEN** 노드 C의 outgoing edge(C→D, C→E)는 삭제되지 않는다
+
+#### Scenario: 재확인된 edge는 유지
+- **WHEN** 이번 크롤에서 A→B edge가 다시 발견될 때 (CreateEdge 성공 또는 duplicate)
+- **THEN** A→B edge는 삭제 대상에서 제외된다
+
+---
+
+### Requirement: URL 패턴으로 페이지 타입을 분류한다
+시스템은 발견한 URL을 키워드 매칭, 경로 패턴, 쿼리 파라미터 분석을 통해 타입(listing, gallery, detail, category, skip)으로 분류해야 한다.
+
+#### Scenario: listing 페이지 분류
+- **WHEN** URL 경로가 'trending', 'popular', 'hot', 'featured', 'recent', 'explore' 키워드를 포함할 때
+- **THEN** 노드 타입이 'listing'으로 설정된다
+
+#### Scenario: detail 페이지 분류 (경로 패턴)
+- **WHEN** URL 경로에 4자리 이상 숫자 ID 패턴이 있고 고우선순위 키워드가 없을 때
+- **THEN** 노드 타입이 'detail'로 설정된다
+
+#### Scenario: detail 페이지 분류 (쿼리 파라미터)
+- **WHEN** URL 쿼리 파라미터에 id, illust_id 등 명시적 ID 키의 숫자 값이 포함되어 있을 때
+- **THEN** 노드 타입이 'detail'로 설정된다
+
+#### Scenario: detail 페이지 분류 (콘텐츠 단수형 경로)
+- **WHEN** URL 경로에 '/artworks/', '/photos/', '/works/', '/illust/' 등 단수형 콘텐츠 세그먼트가 포함될 때
+- **THEN** 노드 타입이 'detail'로 설정된다
+
+#### Scenario: category 페이지 분류
+- **WHEN** URL 경로가 'category', 'tag', 'genre', 'style', 'contest', 'event' 키워드를 포함할 때
+- **THEN** 노드 타입이 'category'로 설정된다
+
+#### Scenario: gallery 페이지 분류
+- **WHEN** URL 경로가 'gallery', 'collection', 'album', 'showcase' 키워드를 포함할 때
+- **THEN** 노드 타입이 'gallery'로 설정된다
+
+#### Scenario: 불필요한 URL 제외
+- **WHEN** URL이 'ad', 'popup', 'login', 'signup', 'cart', 'checkout' 키워드를 포함할 때
+- **THEN** 해당 URL은 그래프에 추가되지 않는다
+
+#### Scenario: 기본 분류
+- **WHEN** URL이 어떤 패턴에도 매칭되지 않을 때
+- **THEN** 노드 타입이 'listing'으로 설정된다
+
+---
+
+### Requirement: BFS로 사이트를 탐색한다 (Pioneer)
+시스템은 너비 우선 탐색으로 사이트 링크를 순회하며 노드 수 제한을 준수해야 한다(SHALL). 탐색 중 발견한 링크 관계를 엣지로 기록해야 한다(SHALL).
+
+#### Scenario: 최대 노드 수 제한 준수
+- **WHEN** Pioneer가 최대 노드 수 제한으로 크롤을 시작할 때
+- **THEN** 제한을 초과하는 노드는 처리하지 않는다
+
+#### Scenario: 부모 관계 추적 및 엣지 생성
+- **WHEN** Pioneer가 페이지 A에서 URL B를 발견할 때
+- **THEN** 노드 B를 생성(또는 기존 노드를 조회)한다
+- **AND** A에서 B로의 엣지가 생성된다
+
+#### Scenario: Fetcher 인터페이스를 통한 페이지 조회
+- **WHEN** BFS 탐색 중 페이지를 조회해야 할 때
+- **THEN** Fetcher 인터페이스의 Fetch 메서드를 호출하여 페이지를 가져온다
+
+#### Scenario: 테스트 시 FileFetcher 사용
+- **WHEN** 단위 테스트에서 BFS 로직을 검증할 때
+- **THEN** FileFetcher를 주입하여 파일 시스템 기반 fixture로 테스트한다
+
+#### Scenario: 프로덕션 시 HTTPFetcher 사용
+- **WHEN** 실제 크롤링을 수행할 때
+- **THEN** HTTPFetcher를 주입하여 HTTP 요청으로 페이지를 가져온다

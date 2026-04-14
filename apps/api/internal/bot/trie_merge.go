@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 
@@ -156,8 +157,24 @@ func mergeOnePrefix(
 		return 0, fmt.Errorf("delete victim nodes: %w", err)
 	}
 
+	// Extract domain from a matching node for full URL template
+	var domainPrefix string
+	for _, c := range candidates {
+		for _, n := range allNodes {
+			if n.ID == c.id {
+				if u, err := url.Parse(n.Url); err == nil && u.Host != "" {
+					domainPrefix = u.Scheme + "://" + u.Host
+				}
+				break
+			}
+		}
+		if domainPrefix != "" {
+			break
+		}
+	}
+
 	// Update representative to template pattern
-	templateURL := target.Prefix + "/{param}" + target.Suffix
+	templateURL := domainPrefix + target.Prefix + "/{param}" + target.Suffix
 	h := md5.Sum([]byte(templateURL))
 	templateHash := fmt.Sprintf("%x", h)
 	if err := q.UpdateNodeURLAndHash(ctx, db.UpdateNodeURLAndHashParams{
