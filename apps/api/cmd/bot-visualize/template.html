@@ -367,7 +367,34 @@
                     const siteIndex = data.sites.findIndex(s => s.id === d.site_id);
                     return width / (data.sites.length + 1) * (siteIndex + 1);
                 }).strength(0.3))
-                .on('tick', ticked);
+                .on('tick', ticked)
+                .on('end', fitToViewport);
+
+            function fitToViewport() {
+                const padding = 60;
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                data.nodes.forEach(d => {
+                    if (d.x < minX) minX = d.x;
+                    if (d.y < minY) minY = d.y;
+                    if (d.x > maxX) maxX = d.x;
+                    if (d.y > maxY) maxY = d.y;
+                });
+                const graphWidth = maxX - minX;
+                const graphHeight = maxY - minY;
+                if (graphWidth === 0 || graphHeight === 0) return;
+                const scale = Math.min(
+                    (width - padding * 2) / graphWidth,
+                    (height - padding * 2) / graphHeight,
+                    1.5
+                );
+                const cx = (minX + maxX) / 2;
+                const cy = (minY + maxY) / 2;
+                const transform = d3.zoomIdentity
+                    .translate(width / 2, height / 2)
+                    .scale(scale)
+                    .translate(-cx, -cy);
+                svg.transition().duration(750).call(zoom.transform, transform);
+            }
 
             function ticked() {
                 // D3 forceLink auto-resolves source/target to node objects
