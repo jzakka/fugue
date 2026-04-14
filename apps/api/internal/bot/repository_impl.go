@@ -75,6 +75,14 @@ func (r *GraphRepo) GetEdgesByNode(ctx context.Context, fromNodeID uuid.UUID) ([
 	return r.q.GetEdgesByNode(ctx, fromNodeID)
 }
 
+func (r *GraphRepo) ListEdgesBySiteNodes(ctx context.Context, siteID uuid.UUID) ([]db.ListEdgesBySiteNodesRow, error) {
+	return r.q.ListEdgesBySiteNodes(ctx, siteID)
+}
+
+func (r *GraphRepo) DeleteEdgesByIDs(ctx context.Context, ids []uuid.UUID) error {
+	return r.q.DeleteEdgesByIDs(ctx, ids)
+}
+
 // ScriptRepo implements ScriptRepository using sqlc-generated queries
 type ScriptRepo struct {
 	q *db.Queries

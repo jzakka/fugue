@@ -191,6 +191,20 @@ var pioneerCmd = &cobra.Command{
 		}
 
 		log.Println("fuguebot: pioneer run completed")
+
+		// Post-crawl: drain merge to deduplicate parameterized URL nodes
+		log.Println("fuguebot: running drain merge...")
+		mergeResult, mergeErr := bot.RunDrainMerge(ctx, infra.Queries, site.ID, bot.DefaultMergeThreshold)
+		if mergeErr != nil {
+			log.Printf("fuguebot: drain merge failed: %v", mergeErr)
+			return mergeErr
+		}
+		if mergeResult.MergedPrefixes > 0 {
+			log.Printf("fuguebot: drain merge done — %d prefixes merged, %d nodes removed", mergeResult.MergedPrefixes, mergeResult.RemovedNodes)
+		} else {
+			log.Println("fuguebot: drain merge — no merge targets found")
+		}
+
 		return nil
 	},
 }
@@ -267,9 +281,54 @@ var harvesterCmd = &cobra.Command{
 	},
 }
 
+var mergeCmd = &cobra.Command{
+	Use:   "merge <site>",
+	Short: "Merge duplicate URL-pattern nodes using Drain analysis",
+	Long:  "Analyzes crawled nodes for a site using Drain algorithm, detects parameterized URL patterns, and merges them into {param} template nodes.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		siteName := args[0]
+		threshold, _ := cmd.Flags().GetInt("threshold")
+
+		domain, err := resolveDomain(siteName)
+		if err != nil {
+			return err
+		}
+
+		infra, err := initInfrastructure()
+		if err != nil {
+			return fmt.Errorf("infrastructure initialization failed: %w", err)
+		}
+		defer infra.Close()
+
+		ctx := context.Background()
+		site, err := infra.Queries.GetSiteByDomain(ctx, domain)
+		if err != nil {
+			return fmt.Errorf("site not found: %s (domain: %s)", siteName, domain)
+		}
+
+		log.Printf("fuguebot: running drain merge for %s (threshold: %d)...", domain, threshold)
+
+		result, err := bot.RunDrainMerge(ctx, infra.Queries, site.ID, threshold)
+		if err != nil {
+			return fmt.Errorf("drain merge failed: %w", err)
+		}
+
+		if result.MergedPrefixes > 0 {
+			log.Printf("fuguebot: merged %d prefixes, removed %d nodes", result.MergedPrefixes, result.RemovedNodes)
+		} else {
+			log.Println("fuguebot: no merge targets found")
+		}
+
+		return nil
+	},
+}
+
 func init() {
+	mergeCmd.Flags().Int("threshold", bot.DefaultMergeThreshold, "minimum leaf count to trigger merge")
 	rootCmd.AddCommand(pioneerCmd)
 	rootCmd.AddCommand(harvesterCmd)
+	rootCmd.AddCommand(mergeCmd)
 }
 
 func main() {

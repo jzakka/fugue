@@ -1,4 +1,49 @@
-## ADDED Requirements
+## Requirements
+
+### Requirement: 그래프 노드와 엣지를 관리한다
+시스템은 크롤링한 페이지를 노드로, 링크를 엣지로 저장하며 중복을 방지해야 한다. 노드는 개별 URL이 아니라 **페이지 템플릿 패턴**을 표현해야 한다(SHALL).
+
+#### Scenario: 쿼리 파라미터가 다른 URL을 동일 노드로 합침
+- **WHEN** Pioneer가 `aaa/bbb?x=1`과 `aaa/bbb?x=2`를 발견할 때
+- **THEN** 시스템은 두 URL을 동일한 노드로 처리한다
+
+#### Scenario: 숫자 ID가 다른 URL을 동일 노드로 합침
+- **WHEN** Pioneer가 `/artworks/12345`와 `/artworks/67890`을 발견할 때
+- **THEN** 시스템은 두 URL을 동일한 노드로 처리한다 (path 내 숫자 전용 세그먼트는 동일 패턴으로 간주)
+
+#### Scenario: 다중 숫자 세그먼트 치환
+- **WHEN** Pioneer가 `/user/123/post/456`과 `/user/789/post/012`를 발견할 때
+- **THEN** 시스템은 두 URL을 동일한 노드로 처리한다
+
+#### Scenario: 비숫자 slug는 보존
+- **WHEN** Pioneer가 `/contest/magicalparty`를 발견할 때
+- **THEN** 시스템은 고유한 노드로 생성한다 (숫자가 아닌 세그먼트는 구분됨)
+
+#### Scenario: 혼합 문자열 세그먼트는 보존
+- **WHEN** Pioneer가 `/item/abc123`을 발견할 때
+- **THEN** 시스템은 고유한 노드로 생성한다 (순수 숫자가 아닌 세그먼트는 구분됨)
+
+#### Scenario: 원본 URL 보존
+- **WHEN** 새 패턴의 첫 번째 URL이 발견될 때
+- **THEN** 시스템은 해당 원본 URL을 보존하여 이후 실제 페이지 접근에 사용할 수 있게 한다
+
+#### Scenario: 이미 존재하는 패턴의 URL 발견
+- **WHEN** 동일 패턴에 해당하는 URL이 이미 노드로 존재할 때
+- **THEN** 시스템은 새 노드를 생성하지 않고 기존 노드를 재사용한다
+
+#### Scenario: Harvester가 원본 URL로 페이지를 접근
+- **WHEN** Harvester가 노드를 처리할 때
+- **THEN** 시스템은 canonical path가 아닌 보존된 원본 URL을 사용하여 실제 페이지를 fetch한다
+
+#### Scenario: 중복 엣지 방지
+- **WHEN** 같은 링크를 여러 번 발견했을 때
+- **THEN** 시스템은 하나의 엣지만 유지한다
+
+#### Scenario: 사이트의 모든 listing 페이지 조회
+- **WHEN** 특정 사이트의 listing 타입 노드들을 조회할 때
+- **THEN** 시스템은 해당하는 모든 노드를 빠르게 반환한다
+
+---
 
 ### Requirement: DOM ancestor selector를 포함하여 링크를 추출한다
 시스템은 HTML에서 링크를 추출할 때 각 링크의 DOM ancestor selector 경로를 함께 반환해야 한다(SHALL). 기존 `extractLinks()` 함수는 변경하지 않아야 한다(SHALL).
@@ -183,3 +228,57 @@ CanonicalDedupFilter는 LinkFilter 인터페이스를 구현하며(SHALL), URL�
 #### Scenario: 빈 링크 목록 처리
 - **WHEN** 빈 링크 목록이 필터 체인에 입력될 때
 - **THEN** 에러 없이 빈 목록이 반환된다
+
+---
+
+### Requirement: 크롤된 URL 집합에서 가변 segment를 자동 탐지한다
+시스템은 크롤된 URL 집합의 통계적 분석을 통해 가변 segment를 `{param}`으로 치환해야 한다(SHALL). leaf explosion과 mid-path parameterization을 모두 탐지해야 한다(SHALL). 탐지 임계값은 설정 가능해야 한다(SHALL).
+
+#### Scenario: leaf explosion 탐지 (같은 prefix 아래 리프 폭발)
+- **WHEN** `/howto/search/AIart`, `/howto/search/8bit`, `/howto/search/watercolor` 등 임계값을 초과하는 수의 URL이 같은 prefix 아래 서로 다른 마지막 segment를 가질 때
+- **THEN** 시스템은 이들을 동일 패턴으로 판별하고 템플릿 `/howto/search/{param}`을 생성한다
+
+#### Scenario: mid-path parameterization 탐지 (경로 중간의 가변 segment)
+- **WHEN** `/tags/TAG1/artwork`, `/tags/TAG2/artwork`, `/tags/TAG3/artwork` 등 임계값을 초과하는 수의 URL이 중간 segment만 다르고 나머지가 동일할 때
+- **THEN** 시스템은 이들을 동일 패턴으로 판별하고 템플릿 `/tags/{param}/artwork`을 생성한다
+
+#### Scenario: 다중 suffix를 가진 mid-path 탐지
+- **WHEN** `/tags/TAG1/artwork`, `/tags/TAG1/illustrations`, `/tags/TAG2/artwork`, `/tags/TAG2/illustrations` 등 각 suffix별로 임계값을 초과할 때
+- **THEN** 시스템은 suffix별로 별도 패턴을 생성한다: `/tags/{param}/artwork`, `/tags/{param}/illustrations`
+
+#### Scenario: 깊은 중첩 mid-path 탐지
+- **WHEN** `/users/USER1/posts/recent`, `/users/USER2/posts/recent` 등 임계값을 초과할 때
+- **THEN** 시스템은 템플릿 `/users/{param}/posts/recent`을 생성한다
+
+#### Scenario: 정적 리소스 경로는 머지하지 않음
+- **WHEN** `/api/users/{id}`, `/api/posts/{id}` 등 서로 다른 리소스 경로가 존재하고, 가변 위치 이후의 segment가 모두 이미 parameterized(`{id}` 등)일 때
+- **THEN** 시스템은 이들을 별도 경로로 유지한다
+
+#### Scenario: depth가 다른 URL은 별도 처리
+- **WHEN** `/tags/photo`(depth 2)와 `/tags/photo/artwork`(depth 3)가 존재할 때
+- **THEN** depth가 다르므로 서로 다른 그룹에서 독립적으로 처리된다
+
+#### Scenario: 임계값 미달 시 머지하지 않음
+- **WHEN** 같은 패턴에 해당하는 URL 수가 임계값 이하일 때
+- **THEN** 시스템은 해당 URL들을 개별 노드로 유지한다
+
+---
+
+### Requirement: 패턴 분석 결과를 기반으로 노드를 머지한다
+패턴 분석으로 동일 패턴에 속하는 DB 노드들을 하나의 대표 노드로 통합해야 한다(SHALL). 대표 노드는 가장 먼저 생성된 노드여야 한다(SHALL).
+
+#### Scenario: 패턴 내 노드 머지
+- **WHEN** `/tags/TAG1/artwork`, `/tags/TAG2/artwork`, `/tags/TAG3/artwork`가 동일 패턴으로 판별될 때
+- **THEN** 가장 먼저 생성된 노드를 대표로 선택하고, 나머지 노드의 엣지를 대표 노드로 재연결한 뒤, 나머지 노드를 삭제하고, 대표 노드의 URL을 `/tags/{param}/artwork`으로 변경한다
+
+#### Scenario: 엣지 재연결 시 중복 제거
+- **WHEN** 머지 대상 노드 A, B에 대해 X->A, X->B 엣지가 존재하고 B가 대표 노드일 때
+- **THEN** X->A를 X->B로 재연결하면 중복이므로 X->A를 삭제한다
+
+#### Scenario: self-loop 엣지 제거
+- **WHEN** 머지 전 A->B 엣지가 있었고 A, B가 같은 대표 노드로 머지될 때
+- **THEN** self-loop 엣지는 삭제된다
+
+#### Scenario: 이미 머지된 사이트에 재실행
+- **WHEN** 머지가 완료된 사이트에 대해 머지를 다시 실행할 때
+- **THEN** 추가 변경 없이 완료된다 (멱등성)

@@ -195,6 +195,24 @@ func (q *Queries) DeleteEdgesByIDs(ctx context.Context, dollar_1 []uuid.UUID) er
 	return err
 }
 
+const deleteNodesByIDs = `-- name: DeleteNodesByIDs :exec
+DELETE FROM bot_graph_nodes WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) DeleteNodesByIDs(ctx context.Context, dollar_1 []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteNodesByIDs, pq.Array(dollar_1))
+	return err
+}
+
+const deleteSelfLoopEdges = `-- name: DeleteSelfLoopEdges :exec
+DELETE FROM bot_graph_edges WHERE from_node_id = to_node_id
+`
+
+func (q *Queries) DeleteSelfLoopEdges(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteSelfLoopEdges)
+	return err
+}
+
 const getBotSource = `-- name: GetBotSource :one
 SELECT id, name, seed_urls, interval_hours, enabled, created_at
 FROM bot_sources
@@ -693,6 +711,79 @@ func (q *Queries) ListEdgesBySiteNodes(ctx context.Context, siteID uuid.UUID) ([
 	return items, nil
 }
 
+const listEdgesReferencingNodes = `-- name: ListEdgesReferencingNodes :many
+SELECT id, from_node_id, to_node_id
+FROM bot_graph_edges
+WHERE from_node_id = ANY($1::uuid[]) OR to_node_id = ANY($1::uuid[])
+`
+
+type ListEdgesReferencingNodesRow struct {
+	ID         uuid.UUID
+	FromNodeID uuid.UUID
+	ToNodeID   uuid.UUID
+}
+
+func (q *Queries) ListEdgesReferencingNodes(ctx context.Context, dollar_1 []uuid.UUID) ([]ListEdgesReferencingNodesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listEdgesReferencingNodes, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEdgesReferencingNodesRow
+	for rows.Next() {
+		var i ListEdgesReferencingNodesRow
+		if err := rows.Scan(&i.ID, &i.FromNodeID, &i.ToNodeID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listNodeURLsBySite = `-- name: ListNodeURLsBySite :many
+
+SELECT id, url, created_at
+FROM bot_graph_nodes
+WHERE site_id = $1
+ORDER BY created_at
+`
+
+type ListNodeURLsBySiteRow struct {
+	ID        uuid.UUID
+	Url       string
+	CreatedAt time.Time
+}
+
+// Trie Merge queries
+func (q *Queries) ListNodeURLsBySite(ctx context.Context, siteID uuid.UUID) ([]ListNodeURLsBySiteRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNodeURLsBySite, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListNodeURLsBySiteRow
+	for rows.Next() {
+		var i ListNodeURLsBySiteRow
+		if err := rows.Scan(&i.ID, &i.Url, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listNodesBySite = `-- name: ListNodesBySite :many
 SELECT id, site_id, url, url_hash, node_type, script_id, created_at, updated_at, sample_url FROM bot_graph_nodes
 WHERE site_id = $1
@@ -829,5 +920,22 @@ type UpdateNodeScriptParams struct {
 
 func (q *Queries) UpdateNodeScript(ctx context.Context, arg UpdateNodeScriptParams) error {
 	_, err := q.db.ExecContext(ctx, updateNodeScript, arg.ID, arg.ScriptID)
+	return err
+}
+
+const updateNodeURLAndHash = `-- name: UpdateNodeURLAndHash :exec
+UPDATE bot_graph_nodes
+SET url = $2, url_hash = $3, updated_at = now()
+WHERE id = $1
+`
+
+type UpdateNodeURLAndHashParams struct {
+	ID      uuid.UUID
+	Url     string
+	UrlHash string
+}
+
+func (q *Queries) UpdateNodeURLAndHash(ctx context.Context, arg UpdateNodeURLAndHashParams) error {
+	_, err := q.db.ExecContext(ctx, updateNodeURLAndHash, arg.ID, arg.Url, arg.UrlHash)
 	return err
 }

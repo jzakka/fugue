@@ -132,3 +132,25 @@ SELECT id, from_node_id, to_node_id, created_at
 FROM bot_graph_edges
 ORDER BY created_at;
 
+-- name: ListNodeURLsBySite :many
+SELECT id, url, created_at
+FROM bot_graph_nodes
+WHERE site_id = $1
+ORDER BY created_at;
+
+-- name: ListEdgesReferencingNodes :many
+SELECT id, from_node_id, to_node_id
+FROM bot_graph_edges
+WHERE from_node_id = ANY($1::uuid[]) OR to_node_id = ANY($1::uuid[]);
+
+-- name: DeleteSelfLoopEdges :exec
+DELETE FROM bot_graph_edges WHERE from_node_id = to_node_id;
+
+-- name: DeleteNodesByIDs :exec
+DELETE FROM bot_graph_nodes WHERE id = ANY($1::uuid[]);
+
+-- name: UpdateNodeURLAndHash :exec
+UPDATE bot_graph_nodes
+SET url = $2, url_hash = $3, updated_at = now()
+WHERE id = $1;
+
