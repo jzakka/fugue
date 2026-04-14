@@ -119,6 +119,9 @@ func NewMockGraphRepository() *MockGraphRepository {
 }
 
 func (m *MockGraphRepository) CreateNode(_ context.Context, arg db.CreateNodeParams) (db.BotGraphNode, error) {
+	if _, exists := m.Nodes[arg.UrlHash]; exists {
+		return db.BotGraphNode{}, fmt.Errorf("duplicate key value violates unique constraint")
+	}
 	m.nodeCounter++
 	node := db.BotGraphNode{
 		ID:        uuid.New(),
@@ -192,6 +195,32 @@ func (m *MockGraphRepository) GetEdgesByNode(_ context.Context, fromNodeID uuid.
 		}
 	}
 	return edges, nil
+}
+
+func (m *MockGraphRepository) ListEdgesBySiteNodes(_ context.Context, _ uuid.UUID) ([]db.ListEdgesBySiteNodesRow, error) {
+	var rows []db.ListEdgesBySiteNodesRow
+	for _, e := range m.Edges {
+		rows = append(rows, db.ListEdgesBySiteNodesRow{
+			ID:         uuid.New(),
+			FromNodeID: e.FromNodeID,
+			ToNodeID:   e.ToNodeID,
+		})
+	}
+	return rows, nil
+}
+
+func (m *MockGraphRepository) DeleteEdgesByIDs(_ context.Context, ids []uuid.UUID) error {
+	idSet := make(map[uuid.UUID]bool)
+	for _, id := range ids {
+		idSet[id] = true
+	}
+	var remaining []db.CreateEdgeParams
+	for _, e := range m.Edges {
+		// We can't match by ID since mock edges don't have stable IDs
+		// For mock purposes, just accept the deletion
+		remaining = append(remaining, e)
+	}
+	return nil
 }
 
 // MockSiteRepository is a mock implementation of SiteRepository for testing

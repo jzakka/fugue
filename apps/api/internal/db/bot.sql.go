@@ -186,6 +186,15 @@ func (q *Queries) DeleteBotSource(ctx context.Context, id uuid.UUID) (int64, err
 	return result.RowsAffected()
 }
 
+const deleteEdgesByIDs = `-- name: DeleteEdgesByIDs :exec
+DELETE FROM bot_graph_edges WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) DeleteEdgesByIDs(ctx context.Context, dollar_1 []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteEdgesByIDs, pq.Array(dollar_1))
+	return err
+}
+
 const getBotSource = `-- name: GetBotSource :one
 SELECT id, name, seed_urls, interval_hours, enabled, created_at
 FROM bot_sources
@@ -635,6 +644,42 @@ func (q *Queries) ListAllTags(ctx context.Context) ([]ListAllTagsRow, error) {
 	for rows.Next() {
 		var i ListAllTagsRow
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEdgesBySiteNodes = `-- name: ListEdgesBySiteNodes :many
+SELECT e.id, e.from_node_id, e.to_node_id
+FROM bot_graph_edges e
+JOIN bot_graph_nodes n ON e.from_node_id = n.id
+WHERE n.site_id = $1
+`
+
+type ListEdgesBySiteNodesRow struct {
+	ID         uuid.UUID
+	FromNodeID uuid.UUID
+	ToNodeID   uuid.UUID
+}
+
+func (q *Queries) ListEdgesBySiteNodes(ctx context.Context, siteID uuid.UUID) ([]ListEdgesBySiteNodesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listEdgesBySiteNodes, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEdgesBySiteNodesRow
+	for rows.Next() {
+		var i ListEdgesBySiteNodesRow
+		if err := rows.Scan(&i.ID, &i.FromNodeID, &i.ToNodeID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

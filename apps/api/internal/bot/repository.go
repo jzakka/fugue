@@ -29,6 +29,8 @@ type GraphRepository interface {
 
 	CreateEdge(ctx context.Context, arg db.CreateEdgeParams) error
 	GetEdgesByNode(ctx context.Context, fromNodeID uuid.UUID) ([]db.BotGraphEdge, error)
+	ListEdgesBySiteNodes(ctx context.Context, siteID uuid.UUID) ([]db.ListEdgesBySiteNodesRow, error)
+	DeleteEdgesByIDs(ctx context.Context, ids []uuid.UUID) error
 }
 
 // ScriptRepository provides access to script data

@@ -93,6 +93,15 @@ ON CONFLICT (from_node_id, to_node_id) DO NOTHING;
 SELECT * FROM bot_graph_edges
 WHERE from_node_id = $1;
 
+-- name: ListEdgesBySiteNodes :many
+SELECT e.id, e.from_node_id, e.to_node_id
+FROM bot_graph_edges e
+JOIN bot_graph_nodes n ON e.from_node_id = n.id
+WHERE n.site_id = $1;
+
+-- name: DeleteEdgesByIDs :exec
+DELETE FROM bot_graph_edges WHERE id = ANY($1::uuid[]);
+
 -- Bot Scripts queries
 -- name: CreateScript :one
 INSERT INTO bot_scripts (site_id, node_type, script_lang, script_code, ai_model)

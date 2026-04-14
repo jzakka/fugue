@@ -81,6 +81,19 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 	queue := NewPriorityQueue()
 	visited := make(map[string]uuid.UUID) // hash → node ID
 
+	// Load existing edges for stale edge detection
+	type edgeKey struct{ from, to uuid.UUID }
+	existingEdges := make(map[edgeKey]uuid.UUID) // edgeKey → edge ID
+	confirmedEdges := make(map[edgeKey]bool)
+	siteEdges, edgeListErr := p.graphRepo.ListEdgesBySiteNodes(ctx, site.ID)
+	if edgeListErr != nil {
+		fmt.Printf("⚠️  Could not load existing edges: %v\n", edgeListErr)
+	} else {
+		for _, e := range siteEdges {
+			existingEdges[edgeKey{e.FromNodeID, e.ToNodeID}] = e.ID
+		}
+	}
+
 	// Add root node
 	rootHash := hashURL(site.RootUrl)
 	queue.Push(&QueueItem{
@@ -152,14 +165,14 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 				return fmt.Errorf("failed to create node for %s: %w", finalURL, createErr)
 			}
 			currentNodeID = newNode.ID
+			nodesProcessed++
 		}
 
 		// Mark both original and final URL hashes as visited
 		visited[item.URLHash] = currentNodeID
 		visited[finalHash] = currentNodeID
 
-		nodesProcessed++
-		fmt.Printf("📊 Nodes processed: %d/%d\n", nodesProcessed, p.config.MaxNodesPerSite)
+		fmt.Printf("📊 Nodes processed: %d/%d (new)\n", nodesProcessed, p.config.MaxNodesPerSite)
 
 		// Handle script for this node type
 		_, scriptErr := p.handleScript(ctx, site.ID, nodeType, html, finalURL)
@@ -185,6 +198,10 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 				continue
 			}
 
+			if nodesProcessed >= p.config.MaxNodesPerSite {
+				break
+			}
+
 			linkHash := hashURL(link)
 
 			if childNodeID, alreadyVisited := visited[linkHash]; alreadyVisited {
@@ -196,6 +213,8 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 					})
 					if edgeErr != nil {
 						fmt.Printf("⚠️  Edge error (visited, will continue): %v\n", edgeErr)
+					} else {
+						confirmedEdges[edgeKey{currentNodeID, childNodeID}] = true
 					}
 				}
 				continue
@@ -206,6 +225,8 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			if linkType == NodeTypeSkip {
 				continue
 			}
+
+			priority := NodeTypePriority(linkType)
 
 			linkCanonical := templatePath(link)
 			childNode, createErr := p.graphRepo.CreateNode(ctx, db.CreateNodeParams{
@@ -231,7 +252,15 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 						})
 						if edgeErr != nil {
 							fmt.Printf("⚠️  Edge error (will continue): %v\n", edgeErr)
+						} else {
+							confirmedEdges[edgeKey{currentNodeID, existingChild.ID}] = true
 						}
+						queue.Push(&QueueItem{
+							URL:      link,
+							URLHash:  linkHash,
+							Priority: priority,
+						})
+						addedCount++
 					}
 					continue
 				}
@@ -240,6 +269,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			}
 
 			visited[linkHash] = childNode.ID
+			nodesProcessed++
 
 			// Create edge: parent → child
 			edgeErr := p.graphRepo.CreateEdge(ctx, db.CreateEdgeParams{
@@ -248,9 +278,10 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			})
 			if edgeErr != nil {
 				fmt.Printf("⚠️  Edge error (will continue): %v\n", edgeErr)
+			} else {
+				confirmedEdges[edgeKey{currentNodeID, childNode.ID}] = true
 			}
 
-			priority := NodeTypePriority(linkType)
 			queue.Push(&QueueItem{
 				URL:      link,
 				URLHash:  linkHash,
@@ -259,6 +290,28 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			addedCount++
 		}
 		fmt.Printf("✅ Added %d links to queue (queue size: %d)\n", addedCount, queue.Len())
+	}
+
+	// Cleanup stale edges: delete edges from visited nodes that were not re-confirmed
+	visitedNodeIDs := make(map[uuid.UUID]bool)
+	for _, nodeID := range visited {
+		if nodeID != uuid.Nil {
+			visitedNodeIDs[nodeID] = true
+		}
+	}
+	var staleEdgeIDs []uuid.UUID
+	for ek, edgeID := range existingEdges {
+		if visitedNodeIDs[ek.from] && !confirmedEdges[ek] {
+			staleEdgeIDs = append(staleEdgeIDs, edgeID)
+		}
+	}
+	if len(staleEdgeIDs) > 0 {
+		delErr := p.graphRepo.DeleteEdgesByIDs(ctx, staleEdgeIDs)
+		if delErr != nil {
+			fmt.Printf("⚠️  Failed to delete %d stale edges: %v\n", len(staleEdgeIDs), delErr)
+		} else {
+			fmt.Printf("🧹 Deleted %d stale edges\n", len(staleEdgeIDs))
+		}
 	}
 
 	return nil

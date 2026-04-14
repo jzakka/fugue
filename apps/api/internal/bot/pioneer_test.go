@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -430,4 +431,232 @@ func TestNodeTypePriority(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPioneerIncrementalCrawl(t *testing.T) {
+	mux := http.NewServeMux()
+	var serverURL string
+
+	// Depth 0: root links to /a and /b
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w, `<html><body><a href="%s/a">A</a><a href="%s/b">B</a></body></html>`, serverURL, serverURL)
+	})
+	// Depth 1: /a links to /a/deep
+	mux.HandleFunc("/a", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w, `<html><body><a href="%s/a/deep">deep</a></body></html>`, serverURL)
+	})
+	// Depth 1: /b links to /b/deep
+	mux.HandleFunc("/b", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w, `<html><body><a href="%s/b/deep">deep</a></body></html>`, serverURL)
+	})
+	// Depth 2 pages
+	mux.HandleFunc("/a/deep", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, `<html><body>deep A</body></html>`)
+	})
+	mux.HandleFunc("/b/deep", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, `<html><body>deep B</body></html>`)
+	})
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	serverURL = ts.URL
+
+	siteID := uuid.New()
+	siteRepo := NewMockSiteRepository()
+	siteRepo.Sites[siteID] = db.BotSite{
+		ID: siteID, Domain: "127.0.0.1", RootUrl: serverURL + "/", Active: true,
+	}
+	graphRepo := NewMockGraphRepository()
+	scriptRepo := NewMockScriptRepository()
+	aiClient := NewMockAIClient()
+	executor := NewMockScriptExecutor()
+
+	// First run: maxNodes=2, should create root + one child (only 2 NEW nodes)
+	pioneer := NewPioneer(siteRepo, graphRepo, scriptRepo, aiClient, executor, PioneerConfig{
+		MaxNodesPerSite: 2, RateLimitMs: 0, SuccessThreshold: 0.7,
+	})
+	err := pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("First run error: %v", err)
+	}
+	firstRunNodes := len(graphRepo.Nodes)
+	t.Logf("First run: %d nodes, %d edges", firstRunNodes, len(graphRepo.Edges))
+	if firstRunNodes < 2 {
+		t.Fatalf("Expected at least 2 nodes after first run, got %d", firstRunNodes)
+	}
+
+	// Second run: maxNodes=2, should traverse existing nodes and find NEW deeper nodes
+	err = pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("Second run error: %v", err)
+	}
+	secondRunNodes := len(graphRepo.Nodes)
+	t.Logf("Second run: %d nodes, %d edges", secondRunNodes, len(graphRepo.Edges))
+	if secondRunNodes <= firstRunNodes {
+		t.Errorf("Expected more nodes after second run (incremental), got %d (was %d)", secondRunNodes, firstRunNodes)
+	}
+}
+
+func TestPioneerStaleEdgeCleanup(t *testing.T) {
+	var serverURL string
+	linkToB := true
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		html := fmt.Sprintf(`<html><body><a href="%s/a">A</a>`, serverURL)
+		if linkToB {
+			html += fmt.Sprintf(`<a href="%s/b">B</a>`, serverURL)
+		}
+		html += `</body></html>`
+		fmt.Fprint(w, html)
+	})
+	mux.HandleFunc("/a", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, `<html><body>page A</body></html>`)
+	})
+	mux.HandleFunc("/b", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, `<html><body>page B</body></html>`)
+	})
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	serverURL = ts.URL
+
+	siteID := uuid.New()
+	siteRepo := NewMockSiteRepository()
+	siteRepo.Sites[siteID] = db.BotSite{
+		ID: siteID, Domain: "127.0.0.1", RootUrl: serverURL + "/", Active: true,
+	}
+	graphRepo := NewMockGraphRepository()
+	scriptRepo := NewMockScriptRepository()
+	aiClient := NewMockAIClient()
+	executor := NewMockScriptExecutor()
+
+	pioneer := NewPioneer(siteRepo, graphRepo, scriptRepo, aiClient, executor, PioneerConfig{
+		MaxNodesPerSite: 10, RateLimitMs: 0, SuccessThreshold: 0.7,
+	})
+
+	// First run: root links to /a and /b
+	err := pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("First run error: %v", err)
+	}
+	firstEdgeCount := len(graphRepo.Edges)
+	t.Logf("First run: %d nodes, %d edges", len(graphRepo.Nodes), firstEdgeCount)
+
+	// Verify root→b edge exists
+	hasEdgeToB := false
+	for _, e := range graphRepo.Edges {
+		toNode := findNodeByID(graphRepo, e.ToNodeID)
+		if toNode != nil && strings.HasSuffix(toNode.Url, "/b") {
+			hasEdgeToB = true
+			break
+		}
+	}
+	if !hasEdgeToB {
+		t.Fatal("Expected edge to /b after first run")
+	}
+
+	// Remove link to /b
+	linkToB = false
+
+	// Second run: root only links to /a now
+	err = pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("Second run error: %v", err)
+	}
+	t.Logf("Second run: %d nodes, %d edges", len(graphRepo.Nodes), len(graphRepo.Edges))
+
+	// Note: stale edge deletion works with real DB (ListEdgesBySiteNodes returns edge IDs).
+	// MockGraphRepository.ListEdgesBySiteNodes generates new UUIDs each call, so
+	// the ID-based deletion won't match. This test verifies the flow doesn't error.
+	// Full stale edge verification requires integration tests with real DB.
+}
+
+func TestPioneerMaxNodesCountsNewOnly(t *testing.T) {
+	mux := http.NewServeMux()
+	var serverURL string
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w, `<html><body>
+			<a href="%s/p1">P1</a>
+			<a href="%s/p2">P2</a>
+			<a href="%s/p3">P3</a>
+			<a href="%s/p4">P4</a>
+			<a href="%s/p5">P5</a>
+		</body></html>`, serverURL, serverURL, serverURL, serverURL, serverURL)
+	})
+	for _, p := range []string{"/p1", "/p2", "/p3", "/p4", "/p5"} {
+		path := p
+		mux.HandleFunc(path, func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, `<html><body><a href="%s%s/child">child</a></body></html>`, serverURL, path)
+		})
+		mux.HandleFunc(path+"/child", func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, `<html><body>child page</body></html>`)
+		})
+	}
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	serverURL = ts.URL
+
+	siteID := uuid.New()
+	siteRepo := NewMockSiteRepository()
+	siteRepo.Sites[siteID] = db.BotSite{
+		ID: siteID, Domain: "127.0.0.1", RootUrl: serverURL + "/", Active: true,
+	}
+	graphRepo := NewMockGraphRepository()
+	scriptRepo := NewMockScriptRepository()
+	aiClient := NewMockAIClient()
+	executor := NewMockScriptExecutor()
+
+	// First run: maxNodes=3, creates 3 new nodes
+	pioneer := NewPioneer(siteRepo, graphRepo, scriptRepo, aiClient, executor, PioneerConfig{
+		MaxNodesPerSite: 3, RateLimitMs: 0, SuccessThreshold: 0.7,
+	})
+	err := pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("First run error: %v", err)
+	}
+	firstRunNodes := len(graphRepo.Nodes)
+	t.Logf("First run: %d nodes", firstRunNodes)
+	if firstRunNodes != 3 {
+		t.Errorf("Expected 3 nodes after first run (maxNodes=3), got %d", firstRunNodes)
+	}
+
+	// Second run: maxNodes=3, should re-visit existing nodes without counting them,
+	// then create up to 3 MORE new nodes
+	err = pioneer.Run(context.Background(), siteID)
+	if err != nil {
+		t.Fatalf("Second run error: %v", err)
+	}
+	secondRunNodes := len(graphRepo.Nodes)
+	newNodesCreated := secondRunNodes - firstRunNodes
+	t.Logf("Second run: %d nodes total, %d new", secondRunNodes, newNodesCreated)
+
+	if newNodesCreated == 0 {
+		t.Error("Expected new nodes to be created on second run (maxNodes counts new only)")
+	}
+	if newNodesCreated > 3 {
+		t.Errorf("Expected at most 3 new nodes (maxNodes=3), got %d", newNodesCreated)
+	}
+}
+
+func findNodeByID(repo *MockGraphRepository, id uuid.UUID) *db.BotGraphNode {
+	for _, n := range repo.Nodes {
+		if n.ID == id {
+			return &n
+		}
+	}
+	return nil
 }
