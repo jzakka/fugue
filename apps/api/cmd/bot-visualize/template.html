@@ -161,6 +161,46 @@
             padding-top: 5px;
             border-top: 1px solid #444;
         }
+
+        @media (max-width: 600px) {
+            #stats-panel {
+                top: 10px;
+                right: 10px;
+                min-width: 0;
+                padding: 10px;
+                font-size: 12px;
+                max-width: 160px;
+            }
+            #stats-panel h2 {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            #legend {
+                bottom: 10px;
+                left: 10px;
+                padding: 8px;
+                font-size: 10px;
+                max-width: 150px;
+            }
+            #legend h3 {
+                font-size: 11px;
+            }
+            .legend-color {
+                width: 12px;
+                height: 12px;
+            }
+        }
+
+        .hint-text {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #555;
+            font-size: 12px;
+            z-index: 999;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
     </style>
 </head>
 <body>
@@ -233,6 +273,7 @@
     </div>
     
     <div class="tooltip" id="tooltip"></div>
+    <div class="hint-text" id="hint">Scroll to zoom · Drag to pan</div>
     
     <script>
         // Graph data will be injected here
@@ -277,10 +318,16 @@
             
             // Add zoom behavior
             const g = svg.append('g');
+            const hint = document.getElementById('hint');
+            let hintVisible = true;
             const zoom = d3.zoom()
                 .scaleExtent([0.1, 4])
                 .on('zoom', (event) => {
                     g.attr('transform', event.transform);
+                    if (hintVisible) {
+                        hint.style.opacity = '0';
+                        hintVisible = false;
+                    }
                 });
             svg.call(zoom);
             
