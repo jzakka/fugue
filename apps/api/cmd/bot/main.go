@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -164,8 +165,8 @@ var pioneerCmd = &cobra.Command{
 		// Wrap with adapter to implement bot.AIClient interface
 		aiClient := bot.NewAIClientAdapter(rawAIClient)
 
-		// Initialize script executor (using mock for now as there's no real implementation)
-		executor := bot.NewMockScriptExecutor()
+		// Initialize script executor (GojaExecutor for real script validation)
+		executor := bot.NewGojaExecutor(0)
 
 		// Create Pioneer instance
 		pioneer := bot.NewPioneer(
@@ -247,11 +248,27 @@ var harvesterCmd = &cobra.Command{
 		graphRepo := bot.NewGraphRepo(infra.DB)
 		scriptRepo := bot.NewScriptRepo(infra.DB)
 
-		// Initialize script executor (using mock for now)
-		executor := bot.NewMockScriptExecutor()
+		// Choose executor and pipeline based on HARVESTER_MODE
+		var executor bot.ScriptExecutor
+		var pipeline bot.Pipeline
 
-		// Initialize pipeline (using mock for now as Pipeline is just an interface)
-		pipeline := &bot.MockPipeline{}
+		mode := os.Getenv("HARVESTER_MODE")
+		if mode == "real" {
+			timeoutMs := 0 // 0 → GojaExecutor uses default 10000ms
+			if v := os.Getenv("SCRIPT_TIMEOUT_MS"); v != "" {
+				if parsed, parseErr := strconv.Atoi(v); parseErr == nil {
+					timeoutMs = parsed
+				}
+			}
+			executor = bot.NewGojaExecutor(timeoutMs)
+			storageAdapter := bot.NewStorageAdapter(infra.Storage)
+			pipeline = bot.NewHarvestPipeline(infra.Queries, storageAdapter)
+			log.Println("fuguebot: using real executor + pipeline")
+		} else {
+			executor = bot.NewMockScriptExecutor()
+			pipeline = bot.NewMockPipeline()
+			log.Println("fuguebot: using mock executor + pipeline (set HARVESTER_MODE=real for production)")
+		}
 
 		// Create Harvester instance
 		harvester := bot.NewHarvester(
@@ -271,12 +288,14 @@ var harvesterCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 		defer cancel()
 
-		if err := harvester.Run(ctx, site.ID); err != nil {
+		stats, err := harvester.Run(ctx, site.ID)
+		if err != nil {
 			log.Printf("fuguebot: harvester failed: %v", err)
 			return err
 		}
 
-		log.Println("fuguebot: harvester run completed")
+		log.Printf("fuguebot: harvester completed — nodes: %d, pins created: %d, deduped: %d, failed: %d",
+			stats.NodesProcessed, stats.PinsCreated, stats.Deduped, stats.Failed)
 		return nil
 	},
 }

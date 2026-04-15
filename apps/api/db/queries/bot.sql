@@ -1,6 +1,9 @@
 -- name: PinURLExists :one
 SELECT EXISTS(SELECT 1 FROM pins WHERE url = $1) AS url_exists;
 
+-- name: BotPinExistsByURL :one
+SELECT EXISTS(SELECT 1 FROM pins WHERE url = $1 AND creator_id = $2) AS url_exists;
+
 -- name: ListAllTags :many
 SELECT id, name FROM tags;
 

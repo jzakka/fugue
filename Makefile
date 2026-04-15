@@ -122,7 +122,7 @@ harvester:
 	@if [ -z "$(SITE)" ]; then echo "Usage: make harvester SITE=<site>"; exit 1; fi
 	@echo "🌾 Running Harvester for $(SITE)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
-		go run cmd/bot/main.go harvester $(SITE)
+		HARVESTER_MODE=real go run cmd/bot/main.go harvester $(SITE)
 
 # ============================================================
 # DB 마이그레이션 (개별 제어)

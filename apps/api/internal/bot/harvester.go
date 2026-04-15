@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"time"
 
@@ -10,6 +11,14 @@ import (
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// HarvestStats contains statistics from a Harvester run.
+type HarvestStats struct {
+	NodesProcessed int
+	PinsCreated    int
+	Deduped        int
+	Failed         int
+}
 
 // Harvester config
 type HarvesterConfig struct {
@@ -20,7 +29,7 @@ type HarvesterConfig struct {
 
 // Pipeline processes extracted items
 type Pipeline interface {
-	Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, error error)
+	Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error)
 }
 
 // Harvester executes scripts and extracts content
@@ -52,29 +61,31 @@ func NewHarvester(
 	}
 }
 
-func (h *Harvester) Run(ctx context.Context, siteID uuid.UUID) error {
+func (h *Harvester) Run(ctx context.Context, siteID uuid.UUID) (HarvestStats, error) {
 	// Execute harvest using BFS
 	return h.harvestBFS(ctx, siteID)
 }
 
 // harvestBFS traverses the graph using BFS and processes nodes level by level
-func (h *Harvester) harvestBFS(ctx context.Context, siteID uuid.UUID) error {
+func (h *Harvester) harvestBFS(ctx context.Context, siteID uuid.UUID) (HarvestStats, error) {
+	var stats HarvestStats
+
 	// Get the site to find root URL
 	site, err := h.siteRepo.Get(ctx, siteID)
 	if err != nil {
-		return fmt.Errorf("get site: %w", err)
+		return stats, fmt.Errorf("get site: %w", err)
 	}
 
 	// Find root node
 	rootNode, err := h.findRootNode(ctx, site)
 	if err != nil {
-		return fmt.Errorf("find root node: %w", err)
+		return stats, fmt.Errorf("find root node: %w", err)
 	}
 
 	// Fetch all nodes once and create a lookup map for efficiency
 	allNodes, err := h.graphRepo.ListNodesBySite(ctx, siteID)
 	if err != nil {
-		return fmt.Errorf("list nodes: %w", err)
+		return stats, fmt.Errorf("list nodes: %w", err)
 	}
 
 	nodeMap := make(map[uuid.UUID]db.BotGraphNode)
@@ -106,23 +117,26 @@ func (h *Harvester) harvestBFS(ctx context.Context, siteID uuid.UUID) error {
 			// Rate limiting
 			time.Sleep(time.Duration(h.config.RateLimitMs) * time.Millisecond)
 
+			stats.NodesProcessed++
+
 			// Execute script and extract items
 			items, execErr := h.executeNode(ctx, node)
 			if execErr != nil {
-				// Continue with next node on error
-				continue
+				log.Printf("harvester: node %s (type=%v) exec error: %v", node.Url, node.NodeType.String, execErr)
+			} else if len(items) == 0 {
+				log.Printf("harvester: node %s (type=%v) returned 0 items", node.Url, node.NodeType.String)
 			}
-
-			// Send items to pipeline
-			if len(items) > 0 {
-				_, _, pipeErr := h.pipeline.Process(ctx, items)
-				if pipeErr != nil {
-					// Log error but continue
-					continue
+			if execErr == nil && len(items) > 0 {
+				// Send items to pipeline
+				created, deduped, failed, pipeErr := h.pipeline.Process(ctx, items)
+				if pipeErr == nil {
+					stats.PinsCreated += created
+					stats.Deduped += deduped
+					stats.Failed += failed
 				}
 			}
 
-			// Get edges to find child nodes
+			// Always traverse edges regardless of script execution result
 			edges, edgesErr := h.graphRepo.GetEdgesByNode(ctx, node.ID)
 			if edgesErr != nil {
 				// Log error but continue
@@ -152,7 +166,7 @@ func (h *Harvester) harvestBFS(ctx context.Context, siteID uuid.UUID) error {
 		}
 	}
 
-	return nil
+	return stats, nil
 }
 
 // findRootNode locates the root URL node for the site using canonical hash lookup
@@ -188,25 +202,17 @@ func (h *Harvester) sortNodesByPriority(nodes []db.BotGraphNode) {
 
 // executeNode fetches HTML, loads script, and executes it
 func (h *Harvester) executeNode(ctx context.Context, node db.BotGraphNode) ([]RawItem, error) {
-	// Task 7.7: Check if node has a script
-	if !node.ScriptID.Valid {
-		return nil, fmt.Errorf("node has no script")
+	if !node.NodeType.Valid {
+		return nil, fmt.Errorf("node type not set")
 	}
 
-	// Get the script
-	var script db.BotScript
-	var err error
-
-	if node.NodeType.Valid {
-		script, err = h.scriptRepo.GetBySiteType(ctx, db.GetScriptBySiteTypeParams{
-			SiteID:   node.SiteID,
-			NodeType: node.NodeType.String,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("get script: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("node type not set")
+	// Look up script by (site_id, node_type)
+	script, err := h.scriptRepo.GetBySiteType(ctx, db.GetScriptBySiteTypeParams{
+		SiteID:   node.SiteID,
+		NodeType: node.NodeType.String,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("no script for node type %s: %w", node.NodeType.String, err)
 	}
 
 	// Use sample_url (original URL) for fetching; fall back to url (template path) if absent

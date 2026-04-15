@@ -99,8 +99,8 @@ HarvesterConfig{
 
 **Usage:**
 ```go
-harvester := bot.NewHarvester(siteRepo, graphRepo, scriptRepo, runRepo, executor, pipeline, config)
-err := harvester.Run(ctx, siteID)
+harvester := bot.NewHarvester(siteRepo, graphRepo, scriptRepo, executor, pipeline, config)
+stats, err := harvester.Run(ctx, siteID)
 ```
 
 ## Domain Types
@@ -142,7 +142,7 @@ Processes extracted items through existing bot pipeline.
 
 ```go
 type Pipeline interface {
-    Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, error error)
+    Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error)
 }
 ```
 

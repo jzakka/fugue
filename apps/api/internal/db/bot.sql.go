@@ -14,6 +14,22 @@ import (
 	"github.com/lib/pq"
 )
 
+const botPinExistsByURL = `-- name: BotPinExistsByURL :one
+SELECT EXISTS(SELECT 1 FROM pins WHERE url = $1 AND creator_id = $2) AS url_exists
+`
+
+type BotPinExistsByURLParams struct {
+	Url       sql.NullString
+	CreatorID uuid.UUID
+}
+
+func (q *Queries) BotPinExistsByURL(ctx context.Context, arg BotPinExistsByURLParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, botPinExistsByURL, arg.Url, arg.CreatorID)
+	var url_exists bool
+	err := row.Scan(&url_exists)
+	return url_exists, err
+}
+
 const createEdge = `-- name: CreateEdge :exec
 INSERT INTO bot_graph_edges (from_node_id, to_node_id)
 VALUES ($1, $2)
