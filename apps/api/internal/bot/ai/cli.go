@@ -36,11 +36,19 @@ func NewCLIClient(cfg CLIConfig) *CLIClient {
 	}
 }
 
+// buildArgs returns the final argument list for execution.
+// For codex, it prepends "exec -" for non-interactive mode.
+func (c *CLIClient) buildArgs() []string {
+	if c.command == "codex" {
+		return append([]string{"exec", "-"}, c.args...)
+	}
+	return c.args
+}
+
 // Call sends a prompt to the CLI and returns the response.
 func (c *CLIClient) Call(ctx context.Context, prompt string) (string, error) {
-	// Build command: codex [args...]
-	// Pass prompt via stdin to avoid argv limits and process list leaks
-	cmd := exec.CommandContext(ctx, c.command, c.args...)
+	args := c.buildArgs()
+	cmd := exec.CommandContext(ctx, c.command, args...)
 	cmd.Stdin = strings.NewReader(prompt)
 
 	// Separate stdout and stderr to avoid pollution

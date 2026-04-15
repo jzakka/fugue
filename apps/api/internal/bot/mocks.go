@@ -214,12 +214,10 @@ func (m *MockGraphRepository) DeleteEdgesByIDs(_ context.Context, ids []uuid.UUI
 	for _, id := range ids {
 		idSet[id] = true
 	}
-	var remaining []db.CreateEdgeParams
-	for _, e := range m.Edges {
-		// We can't match by ID since mock edges don't have stable IDs
-		// For mock purposes, just accept the deletion
-		remaining = append(remaining, e)
-	}
+	// Mock: remove edges matching the given IDs
+	// Since CreateEdgeParams lacks an ID field, filter by position is not possible.
+	// For test purposes, just acknowledge the deletion.
+	_ = idSet
 	return nil
 }
 

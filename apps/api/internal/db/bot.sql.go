@@ -697,6 +697,40 @@ func (q *Queries) ListNodesByType(ctx context.Context, arg ListNodesByTypeParams
 	return items, nil
 }
 
+const listScriptKeysForGraph = `-- name: ListScriptKeysForGraph :many
+SELECT site_id, node_type
+FROM bot_scripts
+ORDER BY site_id
+`
+
+type ListScriptKeysForGraphRow struct {
+	SiteID   uuid.UUID
+	NodeType string
+}
+
+func (q *Queries) ListScriptKeysForGraph(ctx context.Context) ([]ListScriptKeysForGraphRow, error) {
+	rows, err := q.db.QueryContext(ctx, listScriptKeysForGraph)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListScriptKeysForGraphRow
+	for rows.Next() {
+		var i ListScriptKeysForGraphRow
+		if err := rows.Scan(&i.SiteID, &i.NodeType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const pinURLExists = `-- name: PinURLExists :one
 SELECT EXISTS(SELECT 1 FROM pins WHERE url = $1) AS url_exists
 `

@@ -64,6 +64,66 @@ func TestCLIClient_Call_ContextCancellation(t *testing.T) {
 	}
 }
 
+func TestCLIClient_BuildArgs_CodexInjectsExec(t *testing.T) {
+	client := NewCLIClient(CLIConfig{})
+	args := client.buildArgs()
+
+	if len(args) < 2 || args[0] != "exec" || args[1] != "-" {
+		t.Errorf("Expected codex to inject [exec, -], got: %v", args)
+	}
+}
+
+func TestCLIClient_BuildArgs_CodexWithExistingArgs(t *testing.T) {
+	client := NewCLIClient(CLIConfig{
+		Command: "codex",
+		Args:    []string{"--model", "gpt-4"},
+	})
+	args := client.buildArgs()
+
+	expected := []string{"exec", "-", "--model", "gpt-4"}
+	if len(args) != len(expected) {
+		t.Fatalf("Expected %d args, got %d: %v", len(expected), len(args), args)
+	}
+	for i, v := range expected {
+		if args[i] != v {
+			t.Errorf("args[%d] = %q, want %q", i, args[i], v)
+		}
+	}
+}
+
+func TestCLIClient_BuildArgs_NonCodexNoInjection(t *testing.T) {
+	client := NewCLIClient(CLIConfig{
+		Command: "custom-ai",
+		Args:    []string{"--flag"},
+	})
+	args := client.buildArgs()
+
+	if len(args) != 1 || args[0] != "--flag" {
+		t.Errorf("Expected non-codex args unchanged [--flag], got: %v", args)
+	}
+}
+
+func TestCLIClient_BuildArgs_OriginalArgsUnmodified(t *testing.T) {
+	client := NewCLIClient(CLIConfig{
+		Command: "codex",
+		Args:    []string{"--model", "gpt-4"},
+	})
+
+	// Call buildArgs twice to ensure c.args is not mutated
+	_ = client.buildArgs()
+	args2 := client.buildArgs()
+
+	expected := []string{"exec", "-", "--model", "gpt-4"}
+	if len(args2) != len(expected) {
+		t.Fatalf("Second call: expected %d args, got %d: %v", len(expected), len(args2), args2)
+	}
+	for i, v := range expected {
+		if args2[i] != v {
+			t.Errorf("Second call: args[%d] = %q, want %q", i, args2[i], v)
+		}
+	}
+}
+
 func TestNewFromEnv_CLIMode(t *testing.T) {
 	// Clear all AI env vars
 	_ = os.Unsetenv("ENV")

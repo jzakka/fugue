@@ -123,3 +123,8 @@ UPDATE bot_graph_nodes
 SET url = $2, url_hash = $3, updated_at = now()
 WHERE id = $1;
 
+-- name: ListScriptKeysForGraph :many
+SELECT site_id, node_type
+FROM bot_scripts
+ORDER BY site_id;
+

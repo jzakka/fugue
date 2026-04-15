@@ -3,8 +3,9 @@ package bot
 import (
 	"testing"
 
-	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 	"github.com/google/uuid"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 )
 
 // makeLink is a test helper to create a crawler.Link with optional selectors.
@@ -195,11 +196,11 @@ func TestCanonicalDedupFilter(t *testing.T) {
 
 	links := []crawler.Link{
 		makeLink("https://example.com/page1"),
-		makeLink("https://example.com/page1"),                         // exact duplicate
-		makeLink("https://example.com/page2?utm_source=twitter"),      // canonical dup of next
-		makeLink("https://www.example.com/page2"),                     // canonical dup of previous
-		makeLink("https://example.com/visited"),                       // already visited
-		makeLink("https://example.com/page3"),                         // unique
+		makeLink("https://example.com/page1"),                    // exact duplicate
+		makeLink("https://example.com/page2?utm_source=twitter"), // canonical dup of next
+		makeLink("https://www.example.com/page2"),                // canonical dup of previous
+		makeLink("https://example.com/visited"),                  // already visited
+		makeLink("https://example.com/page3"),                    // unique
 	}
 
 	got := f.Filter(links)
@@ -238,9 +239,9 @@ func TestFilterChain(t *testing.T) {
 		)
 		links := []crawler.Link{
 			makeLink("https://example.com/gallery/art"),
-			makeLink("https://other.com/page"),           // removed by DomainFilter
-			makeLink("https://example.com/photo.jpg"),     // removed by ExtensionFilter
-			makeLink("https://example.com/login/form"),    // removed by PathPatternFilter
+			makeLink("https://other.com/page"),         // removed by DomainFilter
+			makeLink("https://example.com/photo.jpg"),  // removed by ExtensionFilter
+			makeLink("https://example.com/login/form"), // removed by PathPatternFilter
 		}
 		got := chain.Apply(links)
 		if len(got) != 1 {

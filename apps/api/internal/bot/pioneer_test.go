@@ -438,26 +438,26 @@ func TestPioneerIncrementalCrawl(t *testing.T) {
 	// Depth 0: root links to /a and /b
 	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<html><body><a href="%s/a">A</a><a href="%s/b">B</a></body></html>`, serverURL, serverURL)
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/a">A</a><a href="%s/b">B</a></body></html>`, serverURL, serverURL)
 	})
 	// Depth 1: /a links to /a/deep
 	mux.HandleFunc("/a", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<html><body><a href="%s/a/deep">deep</a></body></html>`, serverURL)
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/a/deep">deep</a></body></html>`, serverURL)
 	})
 	// Depth 1: /b links to /b/deep
 	mux.HandleFunc("/b", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<html><body><a href="%s/b/deep">deep</a></body></html>`, serverURL)
+		_, _ = fmt.Fprintf(w, `<html><body><a href="%s/b/deep">deep</a></body></html>`, serverURL)
 	})
 	// Depth 2 pages
 	mux.HandleFunc("/a/deep", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, `<html><body>deep A</body></html>`)
+		_, _ = fmt.Fprint(w, `<html><body>deep A</body></html>`)
 	})
 	mux.HandleFunc("/b/deep", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, `<html><body>deep B</body></html>`)
+		_, _ = fmt.Fprint(w, `<html><body>deep B</body></html>`)
 	})
 
 	ts := httptest.NewServer(mux)
@@ -512,15 +512,15 @@ func TestPioneerStaleEdgeCleanup(t *testing.T) {
 			html += fmt.Sprintf(`<a href="%s/b">B</a>`, serverURL)
 		}
 		html += `</body></html>`
-		fmt.Fprint(w, html)
+		_, _ = fmt.Fprint(w, html)
 	})
 	mux.HandleFunc("/a", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, `<html><body>page A</body></html>`)
+		_, _ = fmt.Fprint(w, `<html><body>page A</body></html>`)
 	})
 	mux.HandleFunc("/b", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, `<html><body>page B</body></html>`)
+		_, _ = fmt.Fprint(w, `<html><body>page B</body></html>`)
 	})
 
 	ts := httptest.NewServer(mux)
@@ -584,7 +584,7 @@ func TestPioneerMaxNodesCountsNewOnly(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<html><body>
+		_, _ = fmt.Fprintf(w, `<html><body>
 			<a href="%s/p1">P1</a>
 			<a href="%s/p2">P2</a>
 			<a href="%s/p3">P3</a>
@@ -596,11 +596,11 @@ func TestPioneerMaxNodesCountsNewOnly(t *testing.T) {
 		path := p
 		mux.HandleFunc(path, func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, `<html><body><a href="%s%s/child">child</a></body></html>`, serverURL, path)
+			_, _ = fmt.Fprintf(w, `<html><body><a href="%s%s/child">child</a></body></html>`, serverURL, path)
 		})
 		mux.HandleFunc(path+"/child", func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprint(w, `<html><body>child page</body></html>`)
+			_, _ = fmt.Fprint(w, `<html><body>child page</body></html>`)
 		})
 	}
 

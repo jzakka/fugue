@@ -3,7 +3,6 @@ package visualize
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,10 +10,11 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
-const (
-	// ScriptPathTemplate defines where Harvester scripts are located
-	ScriptPathTemplate = "apps/api/internal/bot/sources/%s/%s.go"
-)
+// scriptKey is used as a map key for (site_id, node_type) pairs
+type scriptKey struct {
+	SiteID   uuid.UUID
+	NodeType string
+}
 
 // GraphRepository fetches graph data from the database
 type GraphRepository struct {
@@ -51,15 +51,18 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 		return nil, fmt.Errorf("failed to fetch nodes: %w", err)
 	}
 
-	// Create domain lookup map
-	domainMap := make(map[uuid.UUID]string)
-	for _, site := range sites {
-		domainMap[site.ID] = site.Domain
+	// Build script existence lookup from DB
+	scriptRows, err := r.queries.ListScriptKeysForGraph(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch scripts: %w", err)
+	}
+	scriptSet := make(map[scriptKey]bool, len(scriptRows))
+	for _, row := range scriptRows {
+		scriptSet[scriptKey{SiteID: row.SiteID, NodeType: row.NodeType}] = true
 	}
 
 	nodes := make([]Node, len(nodeRows))
 	for i, row := range nodeRows {
-		domain := domainMap[row.SiteID]
 		nodeType := ""
 		if row.NodeType.Valid {
 			nodeType = row.NodeType.String
@@ -76,7 +79,7 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 			URL:       row.Url,
 			SampleURL: sampleURL,
 			NodeType:  nodeType,
-			HasScript: CheckScriptExists(domain, nodeType),
+			HasScript: scriptSet[scriptKey{SiteID: row.SiteID, NodeType: nodeType}],
 			CreatedAt: row.CreatedAt,
 		}
 	}
@@ -109,15 +112,3 @@ func (r *GraphRepository) FetchGraphData(ctx context.Context) (*GraphData, error
 		},
 	}, nil
 }
-
-// CheckScriptExists checks if a Harvester script file exists for the given domain and node type
-func CheckScriptExists(domain, nodeType string) bool {
-	if domain == "" || nodeType == "" {
-		return false
-	}
-
-	scriptPath := fmt.Sprintf(ScriptPathTemplate, domain, nodeType)
-	_, err := os.Stat(scriptPath)
-	return err == nil
-}
-

@@ -4,8 +4,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 	"github.com/google/uuid"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 )
 
 // LinkFilter defines the contract for filtering crawled links.
