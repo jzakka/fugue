@@ -121,10 +121,17 @@ Examples:
 var pioneerCmd = &cobra.Command{
 	Use:   "pioneer <site>",
 	Short: "Run Pioneer crawler for a site",
-	Long:  "Pioneer explores sites and generates parsing scripts using AI.",
-	Args:  cobra.ExactArgs(1),
+	Long: `Pioneer explores sites and generates parsing scripts using AI.
+
+Flags:
+  --fetcher       http (default) or playwright. Use playwright for JS-heavy sites.
+  --sitemap-dir   If set, each fetched node's HTML is saved to <dir>/<host>/<path>/index.html.`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		siteName := args[0]
+		fetcherKind, _ := cmd.Flags().GetString("fetcher")
+		sitemapDir, _ := cmd.Flags().GetString("sitemap-dir")
+		maxNodes, _ := cmd.Flags().GetInt("max-nodes")
 
 		log.Printf("fuguebot: starting pioneer for site: %s", siteName)
 
@@ -169,6 +176,9 @@ var pioneerCmd = &cobra.Command{
 		executor := bot.NewGojaExecutor(0)
 
 		// Create Pioneer instance
+		if maxNodes <= 0 {
+			maxNodes = 100
+		}
 		pioneer := bot.NewPioneer(
 			siteRepo,
 			graphRepo,
@@ -176,11 +186,45 @@ var pioneerCmd = &cobra.Command{
 			aiClient,
 			executor,
 			bot.PioneerConfig{
-				MaxNodesPerSite:  100,
+				MaxNodesPerSite:  maxNodes,
 				RateLimitMs:      500,
 				SuccessThreshold: 0.7,
 			},
 		)
+
+		// Configure fetcher: http (default) or playwright, optionally wrapped
+		// in a SavingFetcher that writes each node's HTML to --sitemap-dir.
+		var fetcher bot.Fetcher
+		switch fetcherKind {
+		case "", "http":
+			if sitemapDir != "" {
+				fetcher = bot.HTTPFetcher{}
+			}
+		case "playwright":
+			log.Println("fuguebot: starting headless chromium via playwright...")
+			pw, pwErr := bot.NewPlaywrightFetcher(bot.PlaywrightFetcherConfig{})
+			if pwErr != nil {
+				return fmt.Errorf("playwright fetcher: %w", pwErr)
+			}
+			defer func() {
+				if cerr := pw.Close(); cerr != nil {
+					log.Printf("fuguebot: playwright close: %v", cerr)
+				}
+			}()
+			fetcher = pw
+		default:
+			return fmt.Errorf("unknown --fetcher value: %q (expected http|playwright)", fetcherKind)
+		}
+		if fetcher != nil && sitemapDir != "" {
+			log.Printf("fuguebot: saving node HTML under %s/", sitemapDir)
+			fetcher = &bot.SavingFetcher{
+				Inner: fetcher,
+				Saver: &bot.FileSaver{BaseDir: sitemapDir},
+			}
+		}
+		if fetcher != nil {
+			pioneer.SetFetcher(fetcher)
+		}
 
 		// Run Pioneer
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
@@ -344,6 +388,9 @@ var mergeCmd = &cobra.Command{
 }
 
 func init() {
+	pioneerCmd.Flags().String("fetcher", "http", "fetcher backend: http or playwright")
+	pioneerCmd.Flags().String("sitemap-dir", "", "if set, save each node's HTML under <dir>/<host>/<path>/index.html")
+	pioneerCmd.Flags().Int("max-nodes", 100, "maximum nodes to crawl before stopping")
 	mergeCmd.Flags().Int("threshold", bot.DefaultMergeThreshold, "minimum leaf count to trigger merge")
 	rootCmd.AddCommand(pioneerCmd)
 	rootCmd.AddCommand(harvesterCmd)

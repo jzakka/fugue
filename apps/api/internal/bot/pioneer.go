@@ -36,6 +36,14 @@ type Pioneer struct {
 	aiClient   AIClient
 	executor   ScriptExecutor
 	config     PioneerConfig
+	fetcher    Fetcher // optional; defaults to fetchHTMLShared when nil
+}
+
+// SetFetcher overrides the default HTTP-based fetcher. Pass a PlaywrightFetcher
+// (optionally wrapped in SavingFetcher) to crawl JS-heavy sites and/or persist
+// each node's HTML to disk.
+func (p *Pioneer) SetFetcher(f Fetcher) {
+	p.fetcher = f
 }
 
 // NewPioneer creates a new Pioneer service
@@ -379,9 +387,13 @@ func (p *Pioneer) validateScript(ctx context.Context, scriptCode, html, url stri
 	return successRate >= p.config.SuccessThreshold, nil
 }
 
-// fetchHTML fetches HTML content using the shared fetch function.
+// fetchHTML fetches HTML content using the configured Fetcher, falling back
+// to the shared HTTP fetch when none is set.
 // Returns (html, finalURL, error) where finalURL is the URL after any redirects.
 func (p *Pioneer) fetchHTML(ctx context.Context, urlStr string) (string, string, error) {
+	if p.fetcher != nil {
+		return p.fetcher.Fetch(ctx, urlStr)
+	}
 	return fetchHTMLShared(ctx, urlStr)
 }
 
