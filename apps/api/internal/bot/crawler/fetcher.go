@@ -10,7 +10,7 @@ import (
 type Fetcher interface {
 	// Fetch retrieves the content at the given URL.
 	// Returns FetchResult containing the body and content type, or an error.
-	Fetch(ctx context.Context, url string) (*FetchResult, error)
+	Fetch(ctx context.Context, url string, headers map[string][]string) (*FetchResult, error)
 }
 
 // FetchResult represents the result of fetching a page.

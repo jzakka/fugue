@@ -57,7 +57,7 @@ func (c *BFSCrawler) Crawl(ctx context.Context, rootURL string, maxDepth int) (*
 		queue = queue[1:]
 
 		// Fetch the page
-		fetchResult, err := c.fetcher.Fetch(ctx, current.url)
+		fetchResult, err := c.fetcher.Fetch(ctx, current.url, nil)
 		if err != nil {
 			// Record the error but continue
 			results = append(results, VisitedURL{
