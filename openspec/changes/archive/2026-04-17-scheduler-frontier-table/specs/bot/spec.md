@@ -1,7 +1,7 @@
 ## REMOVED Requirements
 
 ### Requirement: Pioneer가 DB 기존 노드와 무관하게 BFS 큐를 관리한다
-**Reason**: Pioneer가 복수 프로세스로 실행될 때 인메모리 `visited` 맵으로는 중복 fetch를 막을 수 없다. URL 큐와 visited 상태 모두 영속 frontier(`bot_frontier`)로 옮겨가므로, "DB 기존 노드와 무관하게 인메모리 visited로 큐를 관리한다"는 본 requirement는 더 이상 유효하지 않다.
+**Reason**: Pioneer가 복수 프로세스로 실행될 때 인메모리 `visited` 맵으로는 중복 fetch를 막을 수 없다. URL 큐와 visited 상태 모두 영속 frontier 테이블(`pioneer_frontier` / `harvester_frontier`)로 옮겨가므로, "DB 기존 노드와 무관하게 인메모리 visited로 큐를 관리한다"는 본 requirement는 더 이상 유효하지 않다.
 
 **Migration**: 후속 change `scheduler-claim-api`에서 frontier 기반 enqueue/claim 동작을 새 requirement로 정의한다. 동일 사이트 재실행 시의 depth 1 이상 탐색 보장은 frontier의 `last_fetched_at IS NULL` 조건으로 자연 충족된다.
 

@@ -98,6 +98,25 @@ type Creator struct {
 	Email     sql.NullString
 }
 
+type HarvesterFrontier struct {
+	ID                int64
+	NormalizedUrl     string
+	Url               string
+	UrlHash           []byte
+	Host              string
+	SnapshotKey       sql.NullString
+	Score             float64
+	HarvestedAt       sql.NullTime
+	NextHarvestAt     time.Time
+	HarvestErrorCount int32
+	LastUpdatedAt     time.Time
+}
+
+type HarvesterFrontierPin struct {
+	FrontierID int64
+	PinID      uuid.UUID
+}
+
 type Interaction struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
@@ -122,6 +141,20 @@ type Pin struct {
 type PinTag struct {
 	PinID uuid.UUID
 	TagID uuid.UUID
+}
+
+type PioneerFrontier struct {
+	ID              int64
+	NormalizedUrl   string
+	Url             string
+	UrlHash         []byte
+	Host            string
+	Depth           int32
+	Score           float64
+	LastFetchedAt   sql.NullTime
+	NextFetchAt     time.Time
+	FetchErrorCount int32
+	LastUpdatedAt   time.Time
 }
 
 type Tag struct {

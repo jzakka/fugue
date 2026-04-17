@@ -235,6 +235,43 @@ DEL  /api/admin/bot/sources/:id  — 소스 제거
 - 핀 생성: 30/분/유저
 - OG fetch: 20/분/IP
 
+## 크롤러 frontier (Pioneer → Harvester fanout)
+
+기존 인메모리 BFS 큐(`PriorityQueue`, `BFSQueue`)는 단일 프로세스에서만 동작하며, 재시작 시 진행 상태가 휘발된다. 복수 워커로 수평 확장 가능한 운영을 위해 URL 큐를 Postgres 기반 `pioneer_frontier` / `harvester_frontier` 두 테이블로 분리하여 영속화한다. (스키마 상세는 [erd.md](erd.md#크롤러-frontier-테이블) 참조.)
+
+```
+                        ┌─────────────────────────────┐
+  새 링크 N개 enqueue    │      pioneer_frontier       │  (URL fetch 큐)
+ ┌────────────────────→│ claim → HTTP fetch           │
+ │                      └──────────────┬──────────────┘
+ │                                     │ fetch 성공
+ │                                     ▼
+ │ 새로 발견된 링크         ┌─────────────────────────────┐
+ │ (같은 호스트/규칙)       │       snapshot 저장 (S3)      │
+ │                      └──────────────┬──────────────┘
+ │                                     │ snapshot_key 확보
+ │                                     ▼
+ │                      ┌─────────────────────────────┐
+ └──────────────────────│     harvester_frontier      │  (HTML 파싱 큐)
+     (Pioneer는 자기    │ UPSERT (harvested_at IS NULL│
+      자신에게도 fanout)│  가드) → claim → parse        │
+                        └──────────────┬──────────────┘
+                                       │ Pin N개 생성
+                                       ▼
+                        ┌─────────────────────────────┐
+                        │   harvester_frontier_pins   │
+                        │        (1:N 조인)            │
+                        └─────────────────────────────┘
+```
+
+Pioneer의 한 fetch 결과는 (a) 새 링크 N개 → `pioneer_frontier` 재enqueue, (b) 원본 URL 1건 + snapshot_key → `harvester_frontier` UPSERT 로 **fanout**된다. 두 큐의 partial index(`pioneer_frontier_claimable_idx`, `harvester_frontier_claimable_idx`)가 `score DESC, next_*_at ASC` 순으로 claim 대상을 O(log n)에 꺼낸다. `next_fetch_at` / `next_harvest_at`은 claim 시 `now() + 10 minutes`로 밀어 **in-flight lease marker**를 겸한다(워커 크래시 시 10분 뒤 자동 회수).
+
+### 로드맵
+- `scheduler-frontier-table` *(본 change)*: 테이블/인덱스/제약/lease 규약 확정. sqlc 모델 생성.
+- `scheduler-claim-api`: `URLScheduler` Go 인터페이스 추가 + `SELECT ... FOR UPDATE SKIP LOCKED` 기반 claim 쿼리, Pioneer/Harvester 호출부 교체, 기존 `priority_queue.go` / `bfs_queue.go` 제거, Pioneer→Harvester fanout 트랜잭션 경계 확정.
+- `scheduler-retry-backoff`: `fetch_error_count` / `harvest_error_count`에 따른 `next_*_at` exponential backoff 공식.
+- `scheduler-host-token-bucket`: host별 동시 요청 제어(토큰 버킷) — `host` 컬럼을 키로 사용.
+
 ## 인프라
 
 tech-stack.md 참조. Terraform + EKS + ArgoCD.
