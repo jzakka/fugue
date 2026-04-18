@@ -8,6 +8,8 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 
 본 change는 이 중 **Pioneer 측 저장 경로**만 구현 범위로 삼는다. Harvester 측 재사용(CompositeFetcher에서 ObjectStorageFetcher 조회)은 `harvester-snapshot-first-fetch`에서 다룬다.
 
+> **주의 — 의사코드 reframing**: `fuguebot_pseudo.go`는 deprecated 스케치이며, 그 안에 `SaveRawContent` 성공 여부에 따라 `URLScheduler.SetStatus`를 게이트하는 패턴이 등장하더라도 본 change에서는 **그 패턴을 따르지 않는다**. 본 change의 fail-open 정책은 "fetch 성공 시점에 즉시 스케줄러 상태를 전이하고, 스냅샷 업로드는 그 뒤 best-effort로 호출하며, 업로드 결과는 스케줄러 상태에 영향을 주지 않는다"이다. 의사코드의 `if err := p.SaveRawContent(...); err == nil { ... SetStatus(...) }` 형태를 그대로 옮기면 Decision 4(fail-open)와 spec의 "업로드 실패가 스케줄러 상태에 영향 없음" 시나리오를 위반한다.
+
 제약:
 - 기존 Pioneer 루프 구조(`URLScheduler` consumer, BFS, dedup 정책)는 건드리지 않는다.
 - 스냅샷 실패가 크롤 자체를 막으면 안 된다(사이트 공급자 장애로 크롤 전체 멈추는 블로킹 방지).
@@ -106,6 +108,8 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 - **[URL normalization 불일치로 해시 충돌/누락]** → Pioneer와 Harvester가 동일 normalization 함수를 공유해야 한다. 기존 `bot` capability의 URL 정규화 규칙을 그대로 재사용하며, 변경 시 두 소비자 모두 영향 받음을 문서화.
 - **[민감한 HTML이 장기 보관됨]** → 버킷은 비공개 + 서버측 암호화 전제. 개인정보가 포함된 페이지는 애초 크롤 제외 대상(기존 `bot` 정책). TTL 365일이 보존 한도.
 - **[동일 키에 대한 동시 PUT]** → 여러 Pioneer 워커가 동일 URL을 같은 UTC 날짜에 동시에 업로드할 수 있으나, object storage의 기본 atomic PUT 동작(last-write-wins)을 따른다. 별도 lock/version 관리는 두지 않는다. 같은 날 같은 URL의 스냅샷은 내용이 거의 같다는 전제 하에 수용 가능한 risk로 기록.
+- **[해시 함수 변경 = 행위 계약 변경]** → sha256 hex는 spec의 키 형식 일부로 외부 행위 계약이다. 향후 BLAKE3 등 다른 해시로 교체하려면 (a) Harvester를 포함한 모든 소비자 코드 동시 변경, (b) 기존 객체의 키 재계산/마이그레이션 또는 dual-read 기간 운영이 필요하다. 본 change 범위에서는 sha256 고정.
+- **[메트릭/관측성을 spec에 포함하지 않은 이유]** → 업로드 카운터/지연 히스토그램(tasks 5.1–5.3)은 운영 모니터링 수단이며 외부 행위 계약이 아니다. 따라서 spec에는 "업로드 실패 시 로그 기록"(외부 관찰 가능 행위)만 명시하고, 메트릭 명칭/레이블은 design/tasks 영역으로 격리한다. 향후 SLA/SLO를 외부 약속으로 도입한다면 별도 spec 시나리오로 승격할 수 있다.
 
 ## Migration Plan
 

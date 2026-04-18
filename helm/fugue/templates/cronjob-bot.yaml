@@ -61,6 +61,23 @@ spec:
                     configMapKeyRef:
                       name: {{ include "fugue.fullname" . }}-config
                       key: s3-public-url
+                # pioneer-snapshot-storage feature toggle. Default off
+                # (matches application default). Operators flip to "true"
+                # only after the snapshots/ prefix and 365d lifecycle rule
+                # are in place. Optional: omit to inherit Pioneer's default.
+                - name: PIONEER_SNAPSHOT_ENABLED
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "fugue.fullname" . }}-config
+                      key: pioneer-snapshot-enabled
+                      optional: true
+                # Optional override: defaults to S3_BUCKET when empty.
+                - name: PIONEER_SNAPSHOT_BUCKET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "fugue.fullname" . }}-config
+                      key: pioneer-snapshot-bucket
+                      optional: true
                 - name: UNSPLASH_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:

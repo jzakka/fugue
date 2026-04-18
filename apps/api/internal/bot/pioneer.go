@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
@@ -26,6 +27,11 @@ type PioneerConfig struct {
 	MaxNodesPerSite  int
 	RateLimitMs      int
 	SuccessThreshold float64 // 0.7 = 70%
+
+	// SnapshotEnabled gates the raw-HTML snapshot upload step
+	// (pioneer-snapshot-storage spec). When false, no PUTs occur and the
+	// crawl loop behaves identically to the pre-feature implementation.
+	SnapshotEnabled bool
 }
 
 // Pioneer explores sites and generates parsing scripts
@@ -36,6 +42,12 @@ type Pioneer struct {
 	aiClient   AIClient
 	executor   ScriptExecutor
 	config     PioneerConfig
+
+	// snapshotStore is best-effort raw-HTML storage for downstream
+	// reuse by Harvester. Nil means snapshots are disabled regardless
+	// of config.SnapshotEnabled (defensive double-gate).
+	snapshotStore   snapshot.SnapshotStore
+	snapshotMetrics *snapshot.Metrics
 }
 
 // NewPioneer creates a new Pioneer service
@@ -55,6 +67,16 @@ func NewPioneer(
 		executor:   executor,
 		config:     config,
 	}
+}
+
+// WithSnapshotStore injects a raw-HTML snapshot store. The Pioneer will
+// only call it when config.SnapshotEnabled is true (per spec
+// "Scenario: 비활성화 시 업로드 스킵"). metrics may be nil; the
+// snapshot package's *Metrics methods are nil-safe.
+func (p *Pioneer) WithSnapshotStore(store snapshot.SnapshotStore, metrics *snapshot.Metrics) *Pioneer {
+	p.snapshotStore = store
+	p.snapshotMetrics = metrics
+	return p
 }
 
 // Run executes a full pioneer crawl for a site
@@ -135,6 +157,29 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 			continue
 		}
 		fmt.Printf("✅ Fetched %d bytes (final: %s)\n", len(html), finalURL)
+
+		// Snapshot the raw response for downstream Harvester reuse.
+		//
+		// Per the pioneer-snapshot-storage spec this is best-effort and
+		// fail-open: any error is logged + counted but never breaks the
+		// crawl. fetchHTMLShared has already enforced "2xx + body length > 0"
+		// (see helpers.go:46-58), so reaching this point means the spec's
+		// "fetch success" precondition holds.
+		//
+		// We pass templatePath(finalURL) — the normalized URL — to honor
+		// design Decision 1a's contract that the key is sha256 of the
+		// *normalized* URL. Pioneer and Harvester must share the same
+		// normalization so the harvester change can reconstruct the key
+		// from the URL alone. templatePath is the same normalizer used
+		// by hashURL/CreateNode above, so a single fetched page
+		// produces one stable snapshot key regardless of redirect-time
+		// query-string variation.
+		//
+		// Done here, before any state-changing operation, so the upload
+		// outcome cannot influence subsequent scheduler/graph state — the
+		// inverse of the deprecated `fuguebot_pseudo.go` pattern that
+		// gated SetStatus on SaveRawContent success.
+		p.saveSnapshot(ctx, templatePath(finalURL), []byte(html))
 
 		// Classify node type using the final URL after redirects
 		nodeType := classifyURL(finalURL)
@@ -553,6 +598,41 @@ func estimateItemCount(html string) int {
 		max = articleCount
 	}
 	return max
+}
+
+// saveSnapshot uploads the raw fetched body for a URL to the snapshot
+// store. It is fail-open: feature-flag off, missing store, empty body, or
+// upload failure all return without affecting the caller's control flow.
+//
+// The hook is called only after fetchHTMLShared confirmed HTTP 2xx and a
+// non-empty body — see helpers.go. fetchHTMLShared returns an error for
+// 4xx/5xx, timeouts, and zero-length bodies, so this method is naturally
+// not invoked for those failure modes (spec: "Scenario: HTTP 404 응답",
+// "Scenario: 네트워크 타임아웃", "Scenario: 본문이 비어 있는 성공 응답").
+func (p *Pioneer) saveSnapshot(ctx context.Context, normalizedURL string, body []byte) {
+	if !p.config.SnapshotEnabled || p.snapshotStore == nil {
+		return
+	}
+
+	start := time.Now()
+	err := p.snapshotStore.Put(ctx, normalizedURL, body)
+	elapsed := time.Since(start)
+
+	if err != nil {
+		p.snapshotMetrics.IncFailure()
+		// Structured-ish log: URL, hash, error, and elapsed so operators
+		// can trace which key failed and whether it was a fast reject
+		// (auth/4xx) vs a slow timeout, without re-running the hash.
+		fmt.Printf("⚠️  snapshot upload failed url=%q hash=%s elapsed=%s err=%v\n",
+			normalizedURL, snapshot.HashNormalizedURL(normalizedURL), elapsed, err)
+		return
+	}
+	// Observe duration only on success so the histogram represents
+	// the cost of the steady-state happy path; failure latencies (which
+	// can be dominated by client-side timeouts) get their own signal
+	// via the failure counter and the elapsed= field on the log line.
+	p.snapshotMetrics.ObserveDuration(elapsed)
+	p.snapshotMetrics.IncSuccess()
 }
 
 // Helper: extract links from HTML

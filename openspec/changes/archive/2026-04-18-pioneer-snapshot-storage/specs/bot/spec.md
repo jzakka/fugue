@@ -1,15 +1,22 @@
 ## ADDED Requirements
 
 ### Requirement: Pioneer는 fetch 성공 시 raw 응답을 object storage에 스냅샷 저장한다
-Pioneer가 URL을 fetch하여 성공적으로 본문을 수신한 경우, 시스템은 해당 raw 응답 바이트를 object storage에 스냅샷으로 업로드해야 한다(SHALL). "fetch 성공"은 HTTP 2xx 응답 수신 및 본문 길이 > 0을 의미한다(SHALL).
+스냅샷 저장 기능이 운영 토글로 활성화된 상태에서 Pioneer가 URL을 fetch하여 성공적으로 본문을 수신한 경우, 시스템은 해당 raw 응답 바이트를 object storage에 스냅샷으로 업로드해야 한다(SHALL). "fetch 성공"은 HTTP 2xx 응답 수신 및 본문 길이 > 0을 의미한다(SHALL). 운영 토글이 비활성화된 경우 시스템은 어떤 스냅샷도 업로드하지 않아야 한다(SHALL NOT).
 
 #### Scenario: 2xx 본문 수신 시 스냅샷 업로드
+- **GIVEN** 스냅샷 저장 기능이 활성화되어 있을 때
 - **WHEN** Pioneer가 URL을 fetch하여 HTTP 200 응답과 비어 있지 않은 본문을 수신할 때
 - **THEN** 해당 raw 응답 바이트를 object storage에 업로드한다
 
 #### Scenario: 링크 추출과 별개로 저장 수행
+- **GIVEN** 스냅샷 저장 기능이 활성화되어 있을 때
 - **WHEN** Pioneer가 fetch 성공 후 링크를 추출할 때
 - **THEN** 링크 추출과 무관하게 동일한 raw 바이트가 스냅샷으로 저장된다
+
+#### Scenario: 스냅샷 저장 기능 비활성화 시 업로드 스킵
+- **GIVEN** 스냅샷 저장 기능이 비활성화되어 있을 때
+- **WHEN** Pioneer가 URL을 fetch하여 HTTP 2xx 응답과 비어 있지 않은 본문을 수신할 때
+- **THEN** object storage에 스냅샷이 업로드되지 않으며, 링크 추출과 후속 큐 처리는 정상적으로 수행된다
 
 ---
 

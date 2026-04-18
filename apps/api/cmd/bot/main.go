@@ -16,6 +16,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/ai"
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
@@ -107,6 +108,20 @@ func envOrDefault(key, fallback string) string {
 	return fallback
 }
 
+// envBool parses a boolean env var; on missing or unparseable values it
+// returns fallback. Used for feature flags whose default must be safe.
+func envBool(key string, fallback bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return fallback
+	}
+	return b
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "fuguebot",
 	Short: "Fugue bot crawler CLI",
@@ -168,6 +183,15 @@ var pioneerCmd = &cobra.Command{
 		// Initialize script executor (GojaExecutor for real script validation)
 		executor := bot.NewGojaExecutor(0)
 
+		// Snapshot storage (pioneer-snapshot-storage). Off by default;
+		// flips on via PIONEER_SNAPSHOT_ENABLED=true. Bucket defaults to
+		// the existing media bucket so the snapshots/ prefix can co-exist
+		// (operator may override with PIONEER_SNAPSHOT_BUCKET).
+		snapshotEnabled := envBool("PIONEER_SNAPSHOT_ENABLED", false)
+		snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
+		snapshotStore := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
+		snapshotMetrics := snapshot.NewMetrics(0)
+
 		// Create Pioneer instance
 		pioneer := bot.NewPioneer(
 			siteRepo,
@@ -179,8 +203,9 @@ var pioneerCmd = &cobra.Command{
 				MaxNodesPerSite:  100,
 				RateLimitMs:      500,
 				SuccessThreshold: 0.7,
+				SnapshotEnabled:  snapshotEnabled,
 			},
-		)
+		).WithSnapshotStore(snapshotStore, snapshotMetrics)
 
 		// Run Pioneer
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)

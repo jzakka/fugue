@@ -98,6 +98,15 @@ func NewClient(cfg Config) (*Client, error) {
 	}, nil
 }
 
+// S3Client exposes the underlying AWS SDK client for callers that need
+// to drive object storage directly (for example, the bot/snapshot
+// package's S3-backed SnapshotStore). Returning the SDK type rather
+// than re-wrapping it avoids spinning up duplicate clients/credentials.
+func (c *Client) S3Client() *s3.Client { return c.s3 }
+
+// Bucket returns the configured bucket name.
+func (c *Client) Bucket() string { return c.bucket }
+
 // UploadResult holds info about a successful upload.
 type UploadResult struct {
 	Key       string    // S3 object key

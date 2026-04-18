@@ -6,7 +6,7 @@ raw 응답을 object storage에 스냅샷으로 남겨 두면 후속 단계(우�
 
 ## What Changes
 
-- Pioneer는 `URLScheduler`로부터 받은 URL을 fetch하여 성공(2xx + 본문 수신)한 경우 raw 응답 바이트를 object storage에 스냅샷으로 업로드한다.
+- Pioneer는 `URLScheduler`로부터 받은 URL을 fetch하여 성공(2xx + 본문 길이 > 0)한 경우 raw 응답 바이트를 object storage에 스냅샷으로 업로드한다.
 - 스냅샷은 gzip으로 압축해 저장하고, TTL 365일을 적용한다.
 - 스냅샷 키는 normalized URL의 **sha256** hex digest를 사용한다: `snapshots/<sha256_hex>/<yyyymmdd>.html.gz` (hex 64자 + UTC 날짜).
 - fetch가 실패하면(네트워크 오류, 4xx/5xx 등) 스냅샷을 저장하지 않는다.

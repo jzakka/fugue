@@ -32,6 +32,14 @@ type Config struct {
 	SchedulerHostDefaultRatePerSec  float64
 	SchedulerHostDefaultBurst       int
 	SchedulerHostTokenBucketEnabled bool
+
+	// Pioneer snapshot storage (per pioneer-snapshot-storage spec).
+	// PioneerSnapshotEnabled is the operational toggle: when false, no
+	// snapshot uploads are performed (spec: "Scenario: 비활성화 시 업로드 스킵").
+	// PioneerSnapshotBucket selects the destination bucket; defaults to
+	// the existing media bucket so the snapshots/ prefix can co-exist.
+	PioneerSnapshotEnabled bool
+	PioneerSnapshotBucket  string
 }
 
 func Load() (*Config, error) {
@@ -85,6 +93,10 @@ func Load() (*Config, error) {
 		SchedulerHostDefaultRatePerSec:  envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
 		SchedulerHostDefaultBurst:       envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
 		SchedulerHostTokenBucketEnabled: envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
+
+		// Default off; staging/prod enable explicitly during rollout.
+		PioneerSnapshotEnabled: envBool("PIONEER_SNAPSHOT_ENABLED", false),
+		PioneerSnapshotBucket:  envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media")),
 	}, nil
 }
 

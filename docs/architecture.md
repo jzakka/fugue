@@ -345,6 +345,56 @@ SET harvest_error_count = 0,
 WHERE url_hash = decode($1, 'hex');
 ```
 
+## Snapshot Storage (Pioneer → Harvester handoff)
+
+`pioneer-snapshot-storage` change에서 도입. Pioneer가 fetch에 성공한 raw HTML을
+object storage에 보관하여, 후속 Harvester가 같은 바이트를 재요청 없이 재사용할 수
+있게 한다(`harvester-snapshot-first-fetch`가 이 데이터의 첫 소비자).
+
+### 키 규칙 (행위 계약 — Pioneer/Harvester 공유)
+
+- 패턴: `snapshots/<sha256_hex>/<yyyymmdd>.html.gz`
+  - `<sha256_hex>`: normalized URL의 sha256 hex digest, 정확히 64자 소문자
+  - `<yyyymmdd>`: UTC 기준 fetch 날짜
+- Go 상수/함수: `apps/api/internal/bot/snapshot.SnapshotKeyPattern`,
+  `snapshot.SnapshotKey(normalizedURL, t)`. Harvester change는 같은 함수를 호출해
+  키를 재구성한다.
+- 동일 URL의 같은 UTC 날짜 재fetch는 같은 키에 덮어쓴다(idempotent).
+
+### 저장 형식
+
+- gzip 압축 (`compress/gzip` 표준 라이브러리). 객체에는 `Content-Type: text/html`,
+  `Content-Encoding: gzip`이 부여된다.
+- gzip trailer의 CRC-32가 손상 감지 역할을 겸하므로 별도 MD5/SHA 체크섬은 두지 않는다.
+  손상이 감지되면 Harvester는 snapshot miss로 처리하고 HTTP fallback한다.
+
+### TTL 및 lifecycle
+
+- 365일 후 만료. 버킷의 `snapshots/` prefix에 lifecycle rule을 설정해 운영(infra
+  owner action). 애플리케이션 코드는 TTL 시점을 알 필요 없다.
+
+### 동시 쓰기 정책
+
+- last-write-wins. object storage의 atomic PUT 동작에 위임하며, 애플리케이션 레벨의
+  lock/version/조건부 헤더는 사용하지 않는다.
+
+### 운영 토글 & 롤백
+
+- 환경변수: `PIONEER_SNAPSHOT_ENABLED` (기본 `false`),
+  `PIONEER_SNAPSHOT_BUCKET` (생략 시 `S3_BUCKET`).
+- helm: `cronjob-bot.yaml`에 두 변수를 `optional: true`로 노출. ConfigMap 키는
+  각각 `pioneer-snapshot-enabled`, `pioneer-snapshot-bucket`.
+- **롤아웃**: 스테이징에 flag on → 24시간 모니터링(업로드 성공률, 지연, 용량 증가)
+  → 운영에 점진적으로 on.
+- **롤백**: ConfigMap에서 `pioneer-snapshot-enabled`를 제거하거나 `"false"`로
+  설정 → 다음 CronJob 실행부터 업로드 즉시 중단. 이미 저장된 객체는 365일 TTL로
+  자연 소멸하며 별도 클린업 작업은 불필요하다.
+
+### 후속 change 의존성
+
+- `harvester-snapshot-first-fetch`: 위 키 규칙·gzip 포맷·last-write-wins 전제를
+  공유 소비. 키 함수는 같은 `snapshot` 패키지를 import하여 결정성을 유지한다.
+
 ## 인프라
 
 tech-stack.md 참조. Terraform + EKS + ArgoCD.
