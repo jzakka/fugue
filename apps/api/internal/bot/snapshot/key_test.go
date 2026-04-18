@@ -67,3 +67,23 @@ func TestSnapshotKey_MatchesPattern(t *testing.T) {
 		t.Fatalf("key %q does not match SnapshotKeyPattern shape", key)
 	}
 }
+
+func TestNormalizeURL(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		in, want string
+	}{
+		{"", ""},
+		{"  https://Example.COM/path  ", "https://example.com/path"},
+		{"https://example.com/a#frag", "https://example.com/a"},
+		{"HTTP://Example.com:80/x", "http://example.com/x"},
+		{"HTTPS://Example.com:443/", "https://example.com/"},
+		{"https://example.com:8443/y", "https://example.com:8443/y"},
+		{"garbage", "garbage"},
+	}
+	for _, c := range cases {
+		if got := NormalizeURL(c.in); got != c.want {
+			t.Errorf("NormalizeURL(%q)=%q, want %q", c.in, got, c.want)
+		}
+	}
+}

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
@@ -176,7 +177,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		// errors are swallowed here so the crawl continues and the
 		// scheduler's status for this URL is unaffected.
 		if len(html) > 0 {
-			_ = p.snapshot.SaveRawContent(ctx, pioneerSnapshotKey(finalURL), []byte(html))
+			_ = p.snapshot.SaveRawContent(ctx, snapshot.NormalizeURL(finalURL), []byte(html))
 		}
 
 		// Classify node type using the final URL after redirects
@@ -599,29 +600,3 @@ func estimateItemCount(html string) int {
 }
 
 // Helper: extract links from HTML
-
-// pioneerSnapshotKey returns the URL string used as input to the snapshot
-// key builder. It applies the minimal canonicalization shared with the
-// scheduler (lowercased scheme/host, fragment stripped, default ports
-// removed) so Pioneer (writer) and Harvester (reader) compute the same
-// sha256 hex for the same URL. This is intentionally a thin helper; any
-// future evolution of the bot's URL normalization should update both the
-// scheduler and this helper together so the snapshot key contract holds.
-func pioneerSnapshotKey(raw string) string {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return ""
-	}
-	u, err := url.Parse(raw)
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		return raw
-	}
-	u.Scheme = strings.ToLower(u.Scheme)
-	u.Host = strings.ToLower(u.Host)
-	u.Fragment = ""
-	if (u.Scheme == "http" && strings.HasSuffix(u.Host, ":80")) ||
-		(u.Scheme == "https" && strings.HasSuffix(u.Host, ":443")) {
-		u.Host = strings.SplitN(u.Host, ":", 2)[0]
-	}
-	return u.String()
-}

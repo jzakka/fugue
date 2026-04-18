@@ -16,6 +16,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/ai"
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
@@ -107,6 +108,20 @@ func envOrDefault(key, fallback string) string {
 	return fallback
 }
 
+// envBool parses a boolean env var (1/true/t/yes/y vs 0/false/f/no/n,
+// case-insensitive). Unset or unparseable falls back to the supplied
+// default so the bot stays safe when config is missing.
+func envBool(key string, fallback bool) bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
+	if v == "" {
+		return fallback
+	}
+	if b, err := strconv.ParseBool(v); err == nil {
+		return b
+	}
+	return fallback
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "fuguebot",
 	Short: "Fugue bot crawler CLI",
@@ -181,6 +196,17 @@ var pioneerCmd = &cobra.Command{
 				SuccessThreshold: 0.7,
 			},
 		)
+
+		// Wire snapshot saver based on PIONEER_SNAPSHOT_ENABLED
+		// (openspec: pioneer-snapshot-storage). When false the Pioneer
+		// keeps its default noop saver, so fetch/link-extraction still run
+		// but no object-storage upload occurs.
+		if envBool("PIONEER_SNAPSHOT_ENABLED", false) {
+			snapStore := snapshot.NewS3Store(infra.Storage.S3Client(), infra.Storage.Bucket())
+			snapSaver := snapshot.NewSaver(snapStore, snapshot.NewMetricsRecorder(), nil)
+			pioneer = pioneer.WithSnapshotSaver(snapSaver)
+			log.Println("fuguebot: pioneer snapshot upload enabled")
+		}
 
 		// Run Pioneer
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)

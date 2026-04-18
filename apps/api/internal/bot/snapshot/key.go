@@ -8,6 +8,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -42,4 +44,38 @@ func SnapshotKey(normalizedURL string, t time.Time) string {
 		HashNormalizedURL(normalizedURL),
 		t.UTC().Format("20060102"),
 	)
+}
+
+// NormalizeURL applies the canonicalization that Pioneer (writer) and
+// Harvester (reader, see harvester-snapshot-first-fetch) share when
+// deriving a snapshot key. Keeping both consumers on this one function
+// guarantees they agree on the sha256 hex segment for the same URL.
+//
+// Normalization rules (kept intentionally minimal — identical to the
+// scheduler's own normalization so url_hash and snapshot key stay aligned):
+//   - trim surrounding whitespace
+//   - lowercase scheme and host
+//   - strip fragment
+//   - drop the default port (:80 for http, :443 for https)
+//
+// Malformed URLs (missing scheme/host) are returned unchanged so the caller
+// still gets a deterministic key; the resulting hash is irrelevant because
+// such URLs never reach the fetch path in practice.
+func NormalizeURL(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return raw
+	}
+	u.Scheme = strings.ToLower(u.Scheme)
+	u.Host = strings.ToLower(u.Host)
+	u.Fragment = ""
+	if (u.Scheme == "http" && strings.HasSuffix(u.Host, ":80")) ||
+		(u.Scheme == "https" && strings.HasSuffix(u.Host, ":443")) {
+		u.Host = strings.SplitN(u.Host, ":", 2)[0]
+	}
+	return u.String()
 }

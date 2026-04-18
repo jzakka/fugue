@@ -98,6 +98,15 @@ func NewClient(cfg Config) (*Client, error) {
 	}, nil
 }
 
+// S3Client returns the underlying *s3.Client so that callers inside this
+// repo (e.g. the bot snapshot store) can issue arbitrary S3 operations
+// under the same credentials without re-building an AWS config. Exposed as
+// a read-only accessor — callers must not mutate SDK internal state.
+func (c *Client) S3Client() *s3.Client { return c.s3 }
+
+// Bucket returns the bucket name this client was configured with.
+func (c *Client) Bucket() string { return c.bucket }
+
 // UploadResult holds info about a successful upload.
 type UploadResult struct {
 	Key       string    // S3 object key
