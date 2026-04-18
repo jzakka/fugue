@@ -10,11 +10,11 @@
 ## What Changes
 
 - 새 capability spec `harvester` 도입. 다음 정본 경로를 정의한다:
-  1. **Generic HTML→Pin extractor**: 어떤 페이지든 OpenGraph → Twitter Card → `<article>`/주요 본문 → JSON-LD(`schema.org/Article`, `schema.org/CreativeWork`) → HTML title 순으로 fallback 체인을 적용해 Pin 후보 문서를 만든다. 추출 필드: `title`, `body_text`(본문 텍스트), `canonical_url`, `thumbnail_url`, `media_candidates[]`(image/video/audio URL 후보), `lang`, `author`, `published_at`, `og_data`(원본 메타 전체 JSON).
-  2. **Content classifier**: 추출 결과가 Pin이 될 자격이 있는지 판정하고, 부적합 시 사유를 `listing` / `empty_body` / `low_text_link_ratio` / `no_primary_media` 중 하나로 분류한다. 부적합 페이지는 Pin을 만들지 않고 frontier row의 `harvested_at`만 마킹한다(반복 fetch 방지).
-  3. **Canonical-URL upsert**: Bot이 만드는 Pin은 canonical URL 기준으로 멱등하게 upsert된다. ERD의 "user pin URL 중복 허용" 정책은 유지하기 위해, 봇 계정이 만든 Pin에만 적용되는 partial unique index `pins(url) WHERE creator_id = BotCreatorID`를 추가한다.
-  4. **PerSiteAdapter / AdapterRegistry**: `domain → Adapter` 레지스트리. 도메인에 매치되는 어댑터가 있으면 generic extractor 대신 어댑터 결과를 채택한다(또는 generic 결과를 보강한다). 기존 `GojaExecutor`는 `ScriptAdapter`라는 한 가지 구현으로 래핑되어 레지스트리에 등록된다(즉, JS 스크립트는 default가 아닌 per-site override다).
-  5. **Frontier 역참조**: Pin이 어떤 frontier URL에서 유래했는지를 추적할 수 있도록 `og_data.source` 키에 원본 fetch URL을 보존한다(canonical_url과 다를 수 있다).
+  1. **Generic HTML→Pin extractor**: 어떤 페이지든 OpenGraph → Twitter Card → `<article>`/주요 본문 → JSON-LD(`schema.org/Article`, `schema.org/CreativeWork`) → HTML title 순으로 fallback 체인을 적용해 Pin 후보 문서를 만든다. 추출 필드: `title`, `body_text`(본문 텍스트, `pins.description`에만 저장되며 `og_data`에는 저장하지 않음), `canonical_url`, `thumbnail_url`, `media_candidates[]`(image/video/audio URL 후보), `lang`, `author`, `published_at`, `og_data`(원본 메타 JSON, body_text 제외).
+  2. **Content classifier**: 추출 결과가 Pin이 될 자격이 있는지 판정하고, 부적합 시 사유를 `listing` / `empty_body` / `no_primary_media` 중 하나로 분류한다. 부적합 페이지는 Pin을 만들지 않고 frontier row의 `harvested_at`만 마킹한다(반복 fetch 방지).
+  3. **Canonical-URL upsert**: Bot이 만드는 Pin은 canonical URL 기준으로 멱등하게 upsert된다. ERD의 "user pin URL 중복 허용" 정책은 유지하기 위해, 봇 계정이 만든 Pin에만 적용되는 partial unique index `pins(url) WHERE creator_id = BotCreatorID`를 추가한다. Cross-domain canonical(HTML의 canonical이 fetch URL과 다른 도메인을 가리키는 경우)은 무시하고 `canonical_url = fetch_url`로 fallback한다.
+  4. **PerSiteAdapter / AdapterRegistry**: `domain → Adapter` 레지스트리. 도메인에 매치되는 어댑터가 있으면 generic extractor 대신 어댑터 결과를 채택한다(또는 generic 결과를 보강한다). 기존 `GojaExecutor`는 `ScriptAdapter`라는 한 가지 구현으로 래핑되어 레지스트리에 등록된다(즉, JS 스크립트는 default가 아닌 per-site override다). ScriptAdapter는 **첫 번째 RawItem을 정본 PinDocument(title/thumbnail_url/body_text/description 등 모든 메타 필드)로 채택하고, 나머지 RawItem들은 `og_data.media_candidates` 배열로** 축약한다.
+  5. **Frontier 역참조**: Pin이 어떤 frontier URL에서 유래했는지를 추적할 수 있도록 `og_data.source` 키에 원본 fetch URL을 보존한다. cross-domain canonical 무시 정책에 따라 `og_data.source = fetch_url`이다.
 
 - `bot` capability spec MODIFIED: "JavaScript 파싱 스크립트를 실행하여 콘텐츠 항목을 추출한다" 및 그에 부속된 DOM 헬퍼·결과 변환 requirement를 "**per-site override 경로**"로 재정의한다. 기본(default) HTML→Pin 경로가 아님을 명시한다. 실행기 자체의 계약(타임아웃·구문/런타임 에러·필수 필드 검증)은 변경하지 않는다.
 

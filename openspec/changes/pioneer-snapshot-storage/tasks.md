@@ -1,6 +1,6 @@
 ## 1. 인프라 및 설정
 
-- [ ] 1.1 스냅샷 전용 bucket(또는 기존 미디어 bucket + `snapshots/` prefix) 결정 및 terraform/helm 반영
+- [ ] 1.1 운영 환경에서 **단일 bucket + `snapshots/` prefix로 통합 여부 확정** (스냅샷 전용 bucket vs 기존 미디어 bucket 공유) 및 terraform/helm 반영
 - [ ] 1.2 `snapshots/` prefix에 TTL 365일 lifecycle rule 추가 (365일 경과 객체 삭제)
 - [ ] 1.3 Pioneer 서비스의 IAM/자격 증명에 `PutObject` 권한 부여 (해당 prefix 한정)
 - [ ] 1.4 feature flag `PIONEER_SNAPSHOT_ENABLED` 환경변수/컨피그 도입 (기본값 off)
@@ -8,9 +8,9 @@
 ## 2. 스냅샷 저장 컴포넌트 구현
 
 - [ ] 2.1 `apps/api/internal/bot/` 하위에 `snapshot` 저장 인터페이스 정의 (예: `SnapshotStore.Put(ctx, normalizedURL, body) error`)
-- [ ] 2.2 normalized URL → 해시 함수 구현 (Pioneer/Harvester 공유 가능하도록 bot 공용 패키지에 배치)
-- [ ] 2.3 키 빌더 구현: `snapshots/<hash>/<UTC yyyymmdd>.html.gz` 생성 함수
-- [ ] 2.4 gzip 스트림 압축 래퍼 구현 (응답 바이트 → gzip → object storage Put)
+- [ ] 2.2 normalized URL → **sha256** 해시 함수 구현 (`crypto/sha256` 표준 라이브러리 사용, hex 64자 소문자 출력). Pioneer/Harvester 공유 가능하도록 bot 공용 패키지에 배치
+- [ ] 2.3 키 빌더 구현: 상수 `SnapshotKeyPattern = "snapshots/%s/%s.html.gz"` 정의 및 공개 함수 `SnapshotKey(normalizedURL string, t time.Time) string` 제공 (UTC `yyyymmdd` 포맷). `harvester-snapshot-first-fetch`에서 동일 키 재구성에 사용
+- [ ] 2.4 gzip 스트림 압축 래퍼 구현 (응답 바이트 → gzip → object storage Put). 별도 checksum 검증 없이 gzip 자체 CRC 활용
 - [ ] 2.5 object storage 클라이언트 어댑터 구현 (S3 호환, 기존 미디어 업로드 코드 재사용 가능 시 공유)
 
 ## 3. Pioneer 통합
@@ -23,12 +23,12 @@
 
 ## 4. 테스트
 
-- [ ] 4.1 단위 테스트: 키 빌더(동일 URL → 동일 해시, UTC 날짜 포맷)
-- [ ] 4.2 단위 테스트: gzip 압축 래퍼(원문 바이트 복원 가능)
+- [ ] 4.1 단위 테스트: 키 빌더(동일 normalized URL → 동일 sha256 hex 64자, UTC 날짜 포맷, `SnapshotKeyPattern`과 일치)
+- [ ] 4.2 단위 테스트: gzip 압축 래퍼(원문 바이트 복원 가능, gzip CRC로 손상 검증)
 - [ ] 4.3 단위 테스트: fetch 실패(4xx/5xx/타임아웃/빈 본문)에서 업로드 미호출
 - [ ] 4.4 단위 테스트: SnapshotStore Put 실패 시 Pioneer가 링크 추출을 계속 수행
 - [ ] 4.5 통합 테스트(로컬 S3 mock): 2xx 수신 → 업로드된 객체 키/본문/압축 확인
-- [ ] 4.6 통합 테스트: 같은 날 같은 URL 두 번 fetch 시 동일 키로 덮어쓰기 확인
+- [ ] 4.6 통합 테스트: **동시 쓰기 idempotent 확인** — 동일 URL을 같은 UTC 날짜에 두 번(또는 병렬로) 저장 시 동일 키에 덮어쓰기 수행, 최종 객체는 마지막 PUT 내용(last-write-wins)
 
 ## 5. 관측성
 

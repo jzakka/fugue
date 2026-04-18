@@ -1,18 +1,26 @@
 ## Why
 
-현재 Pioneer의 링크 필터 체인은 "같은 루트 도메인 링크만 통과"를 전제로 설계되어 있어, 크로스미디어 큐레이션이라는 Fugue의 비전에 필요한 **교차 사이트 크롤**을 구조적으로 막는다. 또한 robots.txt 존중 로직과 본격적인 URL canonicalization(scheme/host 소문자, default port 제거, query 정렬 등)이 정책 차원에서 정의되지 않아, 대외 정중함(politeness)과 중복 제거 정확도 양쪽 모두에서 구멍이 있다. 이번 변경은 Pioneer가 파싱한 링크를 Enqueue 전에 반드시 **필터 체인 → robots.txt → canonicalization**을 통과하도록 정책을 확립하고, 교차 사이트 크롤을 명시적으로 허용한다.
+현재 Pioneer의 링크 필터 체인은 archive change `2026-04-13-pioneer-link-filter-impl`(이하 "archive impl")에서 확립되었지만, 다음 세 가지 공백이 존재한다.
+
+1. **DomainFilter의 same-root-domain 전제**: archive impl에서 `DomainFilter.RootDomain` 단일 필드를 사용해 루트 도메인 고정 매칭으로 동작한다. 이는 Fugue의 **크로스미디어 큐레이션** 비전(음악→아트→블로그를 넘나들며 수집)과 구조적으로 모순된다.
+2. **canonicalURL의 부분적 정규화**: archive impl의 `canonicalURL()`은 www 제거, 트래킹 파라미터 제거, trailing slash 통일, fragment 제거만 수행한다. scheme/host 소문자, default port(80/443) 제거, query 파라미터 정렬 등 RFC 3986 수준의 정규화가 빠져 있어 같은 리소스가 서로 다른 해시로 튀는 중복 생성 위험이 있다.
+3. **robots.txt 미지원**: 외부 사이트를 크롤할 때 요구되는 `Disallow` 존중과 `Crawl-delay` 반영이 정책 차원에서 정의되어 있지 않다.
+
+본 change는 **archive impl을 un-archive하여 덮어쓰는(MODIFIED) 방식**으로 위 세 공백을 메운다. 즉 `openspec/changes/archive/2026-04-13-pioneer-link-filter-impl/`의 기존 요구사항 중 DomainFilter·canonicalURL·FilterChain 요구사항을 본 change가 대체하고, RobotsFilter·필터 순서 강제·Pioneer 루프 플로우 요구사항을 새로 추가한다.
 
 ## What Changes
 
-- **BREAKING**: Pioneer의 도메인 정책을 "같은 루트 도메인만 허용"에서 **교차 사이트 크롤 허용**으로 변경한다. 도메인 제약은 이제 Allow/Deny 키워드 리스트로 표현된다.
-- Pioneer Run 루프에 **"ParseLinks → FilterLinks → Enqueue"** 순서를 필수 정책으로 못박는다. FilterLinks를 건너뛴 Enqueue는 금지된다.
-- 필터 체인의 **고정 순서**를 정의한다: `Domain allow/deny → Extension → PathPattern → Robots.txt → CanonicalDedup`. 값이 비싼 필터(robots.txt 네트워크 조회, canonical 계산)를 뒤로 배치한다.
-- **DomainFilter를 Allow/Deny 키워드 기반으로 재정의**: 루트 도메인 고정 비교 대신, 도메인 allow 리스트와 deny 리스트 키워드 매칭으로 동작한다. 리스트가 비어 있으면 모든 도메인을 통과시킨다(교차 사이트 기본 허용).
-- **ExtensionFilter / PathPatternFilter를 Allow/Deny 의미로 확장**: 기존 deny 확장자/경로에 더해, 선택적 allow 리스트를 지원한다.
-- **RobotsFilter(신규)**: 호스트별 robots.txt를 **lazy fetch**하여 User-agent="FugueBot" 기준으로 Disallow 경로를 차단한다. **호스트별 캐시 TTL 24시간**, **fetch 실패 시 fail-open**(허용)으로 동작한다.
-- **Crawl-delay pass-through**: robots.txt의 `Crawl-delay` 값을 파싱하여 호스트별 메타데이터로 노출한다. `scheduler-host-token-bucket`이 이를 host bucket rate로 반영하도록 surface만 정의한다(실제 bucket 구현은 본 변경 범위 외).
-- **Canonicalization 확장**: 기존 canonicalURL을 확장하여 (a) scheme/host 소문자화, (b) 기본 포트(http:80, https:443) 제거, (c) fragment 제거(기존), (d) trailing slash 정규화(기존), (e) query 파라미터 알파벳 정렬을 수행한다. 기존 트래킹 파라미터 제거와 www 제거는 유지된다.
-- **Semantic priority modifier를 score 기여 정책으로 승격**: 기존 "Selector 기반 보정값 반환" 헬퍼의 출력이 Pioneer의 우선순위 점수 계산에 **가산/감산으로 반드시 반영**되도록 정책을 고정한다(footer/aside=-50, nav/header=-20, 본문=0).
+- **archive 재활용(특수)**: archive change `2026-04-13-pioneer-link-filter-impl`의 DomainFilter / canonicalURL / 필터 체인 요구사항을 본 change가 **MODIFIED로 덮어쓴다**. archive 디렉터리는 기록용으로 그대로 유지하되, 실제 baseline(`openspec/specs/bot/spec.md`)에는 본 change의 delta가 반영되어 archive 내용을 override한다.
+- **BREAKING**: `DomainFilter.RootDomain` 단일 필드 → `AllowKeywords []string`, `DenyKeywords []string` 두 필드로 교체한다. 교차 사이트 크롤을 기본 허용(Allow 비어 있으면 모든 호스트 통과)하고, Deny 리스트에 매칭되는 호스트만 차단한다. 두 리스트 모두에 매칭되면 Deny가 우선한다.
+- **canonicalURL 확장**: 기존 규칙(www 제거, 트래킹 파라미터 제거, trailing slash 통일, fragment 제거)에 더해 다음 세 규칙을 추가한다.
+  - scheme 소문자화 (`HTTPS://` → `https://`)
+  - default port 제거 (`http://x:80/` → `http://x/`, `https://x:443/` → `https://x/`)
+  - query 파라미터 이름순 오름차순 정렬 (`?b=2&a=1` → `?a=1&b=2`)
+- **RobotsFilter(신규)**: 호스트별 robots.txt를 lazy fetch하여 `FugueBot` User-agent(없으면 `*`)의 Disallow 규칙에 매칭되는 URL을 제거한다. 호스트별 인메모리 캐시 TTL 24시간, fetch 실패(네트워크 오류, 5xx, 타임아웃) 시 fail-open으로 동작한다. 404는 "규칙 없음"으로 해석하여 모두 허용한다. `Crawl-delay` 값을 파싱하여 `scheduler-host-token-bucket`의 `SetHostRate(host, 1/delay, 1)`로 전달한다.
+- **필터 체인 순서 고정**: `Domain → Extension → PathPattern → Robots → Dedup`. 값이 싼 필터(in-memory 문자열/regex)를 앞에, 네트워크 I/O가 있는 Robots를 중간에, DB 조회가 있는 Dedup을 뒤에 배치한다.
+- **Pioneer 루프 플로우 강제**: `ParseLinks → FilterLinks → Enqueue` 순서를 정책으로 못박아 FilterLinks 우회 Enqueue를 금지한다.
+- **Redirect chain 처리**: 필터는 `pioneer.go`의 `fetchHTML`가 반환하는 **최종 URL(finalURL)** 에 대해서만 적용된다. 중간 redirect URL은 검사하지 않는다.
+- **국가별 TLD(Open Question 종결)**: Allow/Deny 매칭은 호스트 substring 매칭으로 고정한다. `.co.kr`, `.co.jp` 등 국가별 TLD에 대한 특별 처리는 추가하지 않는다.
 
 ## Capabilities
 
@@ -20,14 +28,22 @@
 (없음)
 
 ### Modified Capabilities
-- `bot`: Pioneer 링크 처리 파이프라인의 정책 계층을 확립한다. (1) Pioneer Run 루프가 FilterLinks를 강제로 통과시키도록 플로우 요구사항을 추가, (2) 기존 DomainFilter를 "루트 도메인 고정"에서 "Allow/Deny 키워드 + 교차 사이트 기본 허용"으로 재정의, (3) RobotsFilter 요구사항 신설(lazy fetch, TTL 24h, fail-open, Crawl-delay surface), (4) canonicalURL의 정규화 규칙을 확장(scheme/host 소문자, default port 제거, query 정렬), (5) semanticPriorityModifier의 출력이 우선순위 점수에 반영되도록 정책을 고정.
+- `bot`: archive impl의 DomainFilter / canonicalURL / 필터 체인 요구사항을 MODIFIED로 대체하고, RobotsFilter와 Pioneer 루프 플로우 / 필터 순서 / Crawl-delay surface 요구사항을 ADDED로 추가한다.
 
 ## Impact
 
-- **코드**: `apps/api/internal/bot/link_filter.go`의 `DomainFilter` 의미 변경, 신규 `RobotsFilter` 추가, `canonicalURL()` 확장, Pioneer 크롤 루프에서 FilterLinks 호출 강제 및 semantic modifier의 score 반영 지점 확인 필요.
-- **정책 변경(BREAKING)**: 기존 "같은 루트 도메인만 크롤" 동작에 의존하는 호출부(Pioneer 초기화 코드, 테스트)는 Allow/Deny 리스트를 명시해야 한다.
-- **네트워크**: RobotsFilter가 호스트별로 robots.txt에 HTTP GET을 추가로 수행한다(첫 접근 시 1회, 이후 24시간 캐시). scheduler-host-token-bucket의 fetcher 인프라를 통해 나가며 별도 bucket을 소비한다.
-- **의존성**: `scheduler-host-token-bucket` 변경이 Crawl-delay를 bucket rate로 소비하는 쪽을 정의한다. 본 변경은 surface(호스트별 crawl-delay 값 노출)까지만 책임진다.
-- **DB/API**: 스키마 변경 없음. 외부 API 변경 없음.
-- **참조 구현**: `apps/api/internal/bot/link_filter.go`, `apps/api/fuguebot_pseudo.go`의 `Pioneer.FilterLinks`.
-- **구현 변경 아카이브 경로**: `openspec/changes/archive/2026-04-13-pioneer-link-filter-impl/` (본 정책 변경의 후속 구현 아카이브는 향후 해당 경로에 추가).
+- **코드**:
+  - `apps/api/internal/bot/link_filter.go`: `DomainFilter.RootDomain` 제거 → `AllowKeywords`, `DenyKeywords` 필드 추가. `canonicalURL()` 확장(scheme 소문자, default port 제거, query 정렬). `RobotsFilter` 타입 신규 추가(별도 파일 `robots_filter.go` 또는 `link_filter.go` 내).
+  - `apps/api/internal/bot/pioneer.go`: 기본 FilterChain 조립 시 필터 순서 `Domain → Extension → PathPattern → Robots → Dedup`로 조정. DomainFilter 생성부에서 Allow/Deny 기본값(`nil, nil`)을 주입.
+  - RobotsFilter의 Crawl-delay surface를 `scheduler-host-token-bucket.SetHostRate`에 연결.
+- **archive 재활용 처리 방식**:
+  - archive 디렉터리(`openspec/changes/archive/2026-04-13-pioneer-link-filter-impl/`)는 **물리적으로 이동하지 않는다**. archive는 과거 구현 change의 기록이다.
+  - 본 change는 `openspec/specs/bot/spec.md` 베이스라인에 기록된 archive impl의 요구사항 중 DomainFilter / canonicalURL / 필터 체인 3개를 `## MODIFIED Requirements`로 override한다.
+  - 본 change가 archive 완료 후 `openspec archive`로 이동하면 `pioneer-link-filter-policy-impl`(후속 구현 change) 대신 본 change가 해당 요구사항의 최종 소유자가 된다.
+- **네트워크**: RobotsFilter가 호스트별로 robots.txt HTTP GET을 추가한다(첫 접근 1회, 이후 24h 캐시).
+- **DB/API**: 스키마·외부 API 변경 없음.
+- **테스트**:
+  - archive impl의 기존 DomainFilter 테스트는 Allow/Deny 매칭 시나리오로 대체된다.
+  - canonicalURL 테스트는 기존 회귀 테스트(www, utm, trailing slash, fragment) 유지 + 신규(scheme 대문자, default port 80/443, non-default 포트 보존, query 정렬) 추가.
+  - RobotsFilter 테스트 신규: Disallow 차단, 404 허용, 5xx fail-open, Crawl-delay 파싱, TTL 만료 재조회.
+- **참조 구현**: `apps/api/internal/bot/link_filter.go`, `apps/api/internal/bot/pioneer.go` (Run 루프의 finalURL 취득 지점).

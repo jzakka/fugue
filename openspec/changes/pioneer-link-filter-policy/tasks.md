@@ -1,53 +1,100 @@
+## 0. 선행 조건 / 아카이브 정리
+
+- [ ] 0.1 archive change `2026-04-13-pioneer-link-filter-impl`의 DomainFilter / canonicalURL / 필터 체인 요구사항이 현재 baseline(`openspec/specs/bot/spec.md`)에 존재하는지 확인 (MODIFIED 대상이 실재해야 함)
+- [ ] 0.2 archive 디렉터리는 **물리적으로 옮기지 않는다**는 점 재확인: 본 change의 spec delta가 baseline을 override하는 방식으로 un-archive 효과를 낸다
+- [ ] 0.3 `go build ./apps/api/internal/bot/...` 현재 상태에서 성공 확인
+
 ## 1. DomainFilter 재정의 (Allow/Deny 키워드)
 
-- [ ] 1.1 `DomainFilter` 구조체 필드를 `RootDomain` 단일 필드에서 `AllowKeywords []string`, `DenyKeywords []string`로 교체
-- [ ] 1.2 Filter 로직을 "호스트 substring 매칭(대소문자 무시, www 제거)"으로 재작성: Deny 우선 → Allow 비어 있으면 통과 → 그 외 Allow 매칭만 통과
-- [ ] 1.3 기존 DomainFilter 호출부(Pioneer 초기화, 테스트 픽스처) 전수 조사 및 Allow/Deny 리스트로 마이그레이션
-- [ ] 1.4 기본 설정값: Allow=[], Deny=[] (= 교차 사이트 기본 허용)을 Pioneer 초기화 기본 경로에 반영
-- [ ] 1.5 단위 테스트: 기본 허용, Deny 매칭, Allow 화이트리스트, Deny 우선, www 무시 6개 시나리오 커버
+archive impl tasks §2에서 정의된 `DomainFilter{RootDomain}`를 본 작업이 대체한다.
+
+- [ ] 1.1 `apps/api/internal/bot/link_filter.go`의 `DomainFilter` 구조체에서 `RootDomain string` 필드 제거
+- [ ] 1.2 `DomainFilter`에 `AllowKeywords []string`, `DenyKeywords []string` 필드 추가
+- [ ] 1.3 `Filter` 메서드 로직 재작성: 호스트를 lowercase + `www.` 제거 → DenyKeywords substring 매칭 시 제외 → AllowKeywords 비어 있으면 통과 → 아니면 AllowKeywords 중 하나라도 substring으로 포함해야 통과
+- [ ] 1.4 Pioneer 초기화 경로(`apps/api/internal/bot/pioneer.go` 등)에서 DomainFilter 생성 지점을 찾아 Allow/Deny 리스트 주입 형태로 호출부 업데이트
+- [ ] 1.5 기본 Deny 리스트는 빈 값으로 시작(추후 운영 중 확장). 기본 Allow는 빈 값(= 교차 사이트 기본 허용)
+- [ ] 1.6 테스트 업데이트: archive impl의 `TestDomainFilter`를 Allow/Deny 시나리오로 교체 (기본 허용, Deny 매칭, Allow 화이트리스트, Deny 우선, www 무시, 대소문자 무시 6케이스)
 
 ## 2. canonicalURL 확장
 
-- [ ] 2.1 scheme 소문자화 로직 추가
-- [ ] 2.2 host 소문자화 확인(기존 `strings.ToLower` 경로 유지) 및 default port(http:80, https:443) 제거 로직 추가
-- [ ] 2.3 query 파라미터 알파벳 순 정렬(`url.Values.Encode()`가 이미 정렬하므로 파라미터 제거 후 재인코딩 확인)
-- [ ] 2.4 기존 트래킹 파라미터 제거 / www 제거 / trailing slash / fragment 제거 동작 회귀 테스트 통과 확인
-- [ ] 2.5 단위 테스트 추가: scheme 대문자, default port(80/443), non-default port 보존, query 정렬, fragment, 루트 "/" 보존
+archive impl tasks §1.2 및 §6.2에서 정의된 `canonicalURL()`을 본 작업이 확장한다.
+
+- [ ] 2.1 `canonicalURL()` 함수 초입에 scheme을 lowercase로 변환하는 로직 추가
+- [ ] 2.2 host에서 `www.` 제거 후, scheme이 `http`일 때 `:80` 포트, `https`일 때 `:443` 포트를 Host 문자열에서 제거
+- [ ] 2.3 트래킹 파라미터 제거 후 `url.Values.Encode()`로 재인코딩하여 query 파라미터가 key 오름차순으로 정렬되는지 확인 (Go 표준 동작)
+- [ ] 2.4 회귀 테스트 확인: 기존 www 제거 / utm 제거 / trailing slash 제거 / fragment 제거 시나리오가 여전히 통과
+- [ ] 2.5 신규 테스트 추가:
+  - scheme 대문자 입력(`HTTPS://Example.COM/Page`) → scheme/host만 lowercase, 경로 case 보존
+  - `http://example.com:80/path` → `:80` 제거
+  - `https://example.com:443/path` → `:443` 제거
+  - `http://example.com:8080/path` → `:8080` 보존
+  - `?b=2&a=1&c=3` → `?a=1&b=2&c=3`
+  - 대표 케이스: `http://Example.com:80/path/?b=2&a=1#frag` → `http://example.com/path?a=1&b=2`
+  - 루트 `/` 보존
 
 ## 3. RobotsFilter 신규 구현
 
-- [ ] 3.1 `RobotsFilter` 구조체 선언 및 `LinkFilter` 인터페이스 구현 (apps/api/internal/bot/robots_filter.go 또는 link_filter.go 내)
-- [ ] 3.2 호스트별 인메모리 캐시 구조 정의: `map[host]robotsCacheEntry { rules, crawlDelay, fetchedAt, failOpen bool }`
-- [ ] 3.3 캐시 TTL 24h 만료 체크 및 재조회 로직
-- [ ] 3.4 robots.txt fetch 유틸: `https://<host>/robots.txt`로 HTTP GET, 타임아웃 설정, 상태 코드별 분기(200: 파싱, 404: 규칙 없음, 5xx/network error: fail-open)
-- [ ] 3.5 robots.txt 파서: `User-agent` 블록 구분, `FugueBot` 우선 `*` fallback, `Disallow` 경로 수집, `Crawl-delay` 초 단위 파싱(파싱 불가 시 무시)
-- [ ] 3.6 Filter 본문: 각 링크 호스트별로 캐시 조회/fetch → 경로 매칭 → Disallow에 걸리면 제거, 아니면 통과
-- [ ] 3.7 Crawl-delay surface API: `(host) → (delay seconds, ok)` 형태의 호스트별 조회 메서드 추가 (scheduler-host-token-bucket이 사용)
-- [ ] 3.8 단위 테스트: Disallow 매칭 차단, 규칙 없음 통과, FugueBot 블록 우선, `*` fallback, 404 허용, 5xx fail-open, 타임아웃 fail-open, TTL 만료 재조회, Crawl-delay 파싱
+- [ ] 3.1 `apps/api/internal/bot/robots_filter.go`(또는 `link_filter.go` 내) 파일에 `RobotsFilter` 구조체 선언 및 `LinkFilter` 인터페이스 구현
+- [ ] 3.2 호스트별 캐시 구조 정의:
+  ```
+  type robotsCacheEntry struct {
+      rules      []disallowRule
+      crawlDelay *float64
+      fetchedAt  time.Time
+      failOpen   bool
+  }
+  ```
+- [ ] 3.3 `sync.RWMutex`로 보호되는 `map[string]robotsCacheEntry` 캐시를 RobotsFilter에 포함
+- [ ] 3.4 캐시 TTL 24시간 만료 체크 로직 (`time.Since(entry.fetchedAt) > 24*time.Hour`이면 재조회)
+- [ ] 3.5 robots.txt fetch 유틸: `https://<host>/robots.txt` HTTP GET (Pioneer 공유 fetcher 사용, 타임아웃 5초)
+- [ ] 3.6 상태 코드 분기: 200 → 파싱, 404 → 빈 rules로 캐시, 5xx/network/timeout → `failOpen=true`로 캐시
+- [ ] 3.7 robots.txt 파서 구현: User-agent 블록 분리, `FugueBot` 블록 우선 / `*` fallback, `Disallow:` 경로 수집, `Crawl-delay:` 초 단위 파싱 (파싱 불가 값은 무시)
+- [ ] 3.8 Filter 메서드: 각 링크의 host를 뽑아 캐시 조회/fetch → `failOpen` 또는 빈 rules면 통과 → rules와 링크 경로 prefix 매칭으로 Disallow 판정 → 매칭 시 제거
+- [ ] 3.9 Crawl-delay 연동: fetch 완료 후 파싱된 `Crawl-delay`(초)가 있으면 `scheduler.SetHostRate(host, 1/delay, 1)` 호출 (캐시 hit 시 재호출하지 않음)
+- [ ] 3.10 scheduler 인스턴스 주입 경로: RobotsFilter 생성자가 `HostRateSetter` 인터페이스를 받아 약한 결합 유지
+- [ ] 3.11 테스트:
+  - Disallow 매칭 시 링크 제거
+  - rules 없을 때 통과
+  - `FugueBot` 블록 우선 / `*` fallback
+  - 404 응답 → 모두 통과
+  - 5xx/timeout → fail-open(모두 통과)
+  - TTL 만료 후 재fetch 발생
+  - `Crawl-delay: 5` → `SetHostRate(host, 0.2, 1)` 호출 검증 (mock scheduler)
+  - 파싱 불가능한 Crawl-delay는 `SetHostRate` 미호출
 
-## 4. 필터 체인 순서 고정
+## 4. FilterChain 순서 고정 (Domain → Extension → PathPattern → Robots → Dedup)
 
-- [ ] 4.1 Pioneer 초기화 코드에서 `NewFilterChain(...)` 호출 시 필터 순서를 `Domain → Extension → PathPattern → Robots → CanonicalDedup`으로 고정
-- [ ] 4.2 순서가 바뀌지 않도록 보호하는 통합 테스트 추가 (체인 구성 검증 또는 링크 흐름 관찰)
+- [ ] 4.1 Pioneer 초기화 코드에서 `NewFilterChain(...)` 호출 위치를 찾아 필터 인자 순서를 `&DomainFilter{...}, &ExtensionFilter{}, &PathPatternFilter{}, robotsFilter, dedupFilter`로 변경
+- [ ] 4.2 기존 `DomainFilter → ExtensionFilter → PathPatternFilter → CanonicalDedupFilter`(archive impl) 구성을 RobotsFilter가 Dedup 앞에 삽입된 형태로 교체
+- [ ] 4.3 순서 보호용 통합 테스트: 체인 구성 검증 또는 각 필터가 호출된 횟수·순서를 mock으로 확인
 
-## 5. Pioneer 루프 정책 강제
+## 5. Pioneer Run 루프 플로우 강제 (ParseLinks → FilterLinks → Enqueue)
 
-- [ ] 5.1 Pioneer Run 루프에서 `ParseLinks` 결과가 반드시 `FilterChain.Apply`를 거쳐 Enqueue되는지 코드 경로 확인
-- [ ] 5.2 우회 경로(필터 없이 Enqueue) 존재 여부를 검색하여 제거
-- [ ] 5.3 통합 테스트: 가짜 HTML → ParseLinks → FilterChain(모두 차단) → Enqueue 호출 0회 확인
+- [ ] 5.1 `pioneer.go` Run 루프에서 `ExtractLinksWithSelectors` 결과가 반드시 `FilterChain.Apply`를 거쳐 `URLPriorityQueue.Enqueue`되는 코드 경로를 확인
+- [ ] 5.2 필터를 우회하여 Enqueue하는 경로 존재 여부를 `grep`으로 검색하여 제거 또는 필터 경유로 리팩터
+- [ ] 5.3 Redirect chain 처리: 필터 입력 URL이 `fetchHTML`의 `finalURL`인지 재확인 (기존 pioneer.go 경로 유지)
+- [ ] 5.4 통합 테스트: 가짜 HTML → ParseLinks → FilterChain(모두 차단) → `Enqueue` 호출 0회
+- [ ] 5.5 통합 테스트: redirect가 있는 fetch → 최종 URL만 필터/canonicalization에 투입
 
-## 6. Semantic priority modifier 점수 반영
+## 6. archive impl tasks와의 관계
 
-- [ ] 6.1 Pioneer 크롤 루프에서 각 링크의 우선순위 점수 계산 지점을 찾아 `semanticPriorityModifier(link)` 반환값을 가산
-- [ ] 6.2 가산이 실제 우선순위 큐의 Enqueue 점수에 반영되는지 단위 또는 통합 테스트로 증명 (footer 링크의 상대 우선순위가 본문 링크보다 낮음)
+archive impl에서 정의된 다음 tasks는 **본 change가 대체**한다.
+- archive §2 (DomainFilter 구조체 및 Filter 메서드) → 본 change §1
+- archive §1.2 / §6.2 (canonicalURL 정규화 규칙) → 본 change §2
 
-## 7. scheduler-host-token-bucket 연동 확인
+archive impl에서 정의된 다음 tasks는 **변경 없이 유지**된다.
+- archive §3 (ExtensionFilter)
+- archive §4 (PathPatternFilter)
+- archive §5 (CanonicalDedupFilter 내부 로직)
+- archive §1.3–1.4 (VisitedLink, semanticPriorityModifier)
+- archive §6.3–6.7 (위 항목들의 기존 테스트)
 
-- [ ] 7.1 RobotsFilter의 Crawl-delay surface API 서명을 `scheduler-host-token-bucket` 스펙과 맞춤 확인
-- [ ] 7.2 scheduler 측이 해당 API를 호출하여 rate를 조정하는지 후속 변경(또는 연동 테스트)에서 검증
+## 7. 검증
 
-## 8. 문서 / 마이그레이션
+- [ ] 7.1 `go test ./apps/api/internal/bot/...` 전체 통과
+- [ ] 7.2 `openspec validate pioneer-link-filter-policy --strict` 통과
+- [ ] 7.3 baseline spec(`openspec/specs/bot/spec.md`)의 DomainFilter / canonicalURL / 필터 체인 요구사항이 본 change의 MODIFIED 정의로 대체되었는지 `openspec show pioneer-link-filter-policy`로 확인
 
-- [ ] 8.1 `AGENTS.md` 또는 bot 관련 문서에 교차 사이트 크롤 정책과 Allow/Deny 설정 방법 기재
-- [ ] 8.2 구현 완료 후 본 변경을 아카이브(`openspec/changes/archive/2026-04-13-pioneer-link-filter-impl/` 규칙에 맞춘 날짜 슬러그 디렉터리)
-- [ ] 8.3 bot capability 스펙(`openspec/specs/bot/spec.md`)에 ADDED/MODIFIED 요구사항이 반영되었는지 `openspec` 도구로 확인
+## 8. 문서
+
+- [ ] 8.1 `AGENTS.md` 또는 bot 관련 문서에 교차 사이트 크롤 정책, Allow/Deny 설정, robots.txt 정책(24h 캐시, fail-open, Crawl-delay 연동) 기재

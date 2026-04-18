@@ -8,8 +8,9 @@
 - 스케줄러는 URL claim 시점에 호스트의 token bucket을 검사하여 token이 부족하면 그 후보를 건너뛰고 다른 host의 후보를 시도한다.
 - 모든 후보가 blocked 상태이면 짧은 sleep 후 재시도하는 busy-wait 동작을 정의한다.
 - 기본 rate는 **호스트당 1 req/sec**, 기본 burst는 **5**로 설정 가능한 값으로 정의한다.
+- rate/burst 유효성 정책: `rate <= 0` 또는 `burst <= 0`이 입력되면 **기본값(1 req/sec, burst 5)으로 대체하고 경고 로그**를 남긴다. 서비스는 중단되지 않는다.
 - Pioneer가 robots.txt에서 추출한 Crawl-delay 값을 해당 호스트 bucket의 rate로 surface하는 인터페이스를 정의한다(파싱은 `pioneer-link-filter-policy` 범위).
-- Token bucket은 **프로세스별 인메모리 자료구조**(예: `map[host]*tokenBucket` + mutex)이며, 프로세스 간 조율은 하지 않는다.
+- Token bucket은 **프로세스별 인메모리 자료구조**(`map[string]*rate.Limiter` + `sync.RWMutex`)이며, 프로세스 간 조율은 하지 않는다.
 
 ## Capabilities
 

@@ -30,17 +30,28 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 
 ## Decisions
 
-### Decision 1: 키 규칙 — `snapshots/<hash>/<yyyymmdd>.html.gz`
+### Decision 1: 키 규칙 — `snapshots/<sha256_hex>/<yyyymmdd>.html.gz`
 
-- `<hash>`: normalized URL의 고정 길이 해시(예: sha256 hex prefix 또는 xxh3 128bit hex). Pioneer/Harvester가 동일 해시 함수와 동일 normalization 규칙을 공유한다(`bot` capability의 기존 URL normalization 재사용).
+- `<sha256_hex>`: normalized URL의 **sha256** digest를 hex로 인코딩한 64자 소문자 문자열. Pioneer/Harvester가 동일 해시 함수(`crypto/sha256`)와 동일 normalization 규칙을 공유한다(`bot` capability의 기존 URL normalization 재사용).
 - `<yyyymmdd>`: UTC 기준 fetch 날짜. 같은 날 같은 URL을 다시 fetch하면 동일 키로 **덮어쓴다**.
 - 확장자 `.html.gz`: 콘텐츠 타입과 압축 방식을 파일명으로 명시.
+- 상수화: Go 코드에서 `SnapshotKeyPattern = "snapshots/%s/%s.html.gz"`로 정의하고, `SnapshotKey(normalizedURL string, t time.Time) string` 공개 함수를 제공해 Pioneer와 Harvester(`harvester-snapshot-first-fetch`)가 동일 구현을 공유한다.
 
 **대안:**
 - `snapshots/<hash>.html.gz` (날짜 없음): 동일 키 덮어쓰기만 남아 "최근 스냅샷" 개념이 희미해진다. 같은 날 여러 번 찍히는 재크롤과 날짜 기반 비교 니즈에 약함.
 - `snapshots/<yyyy>/<mm>/<dd>/<hash>.html.gz` 파티셔닝: S3 listing 효율은 좋아지나, Harvester가 조회 시 날짜를 몰라 불편. 키 조회는 정확 매치가 주 유스케이스라 불필요.
 
 채택 이유: 정확 매치 조회와 날짜별 구분이 모두 가능하고, 동일 날짜 재fetch는 idempotent 덮어쓰기로 단순해진다.
+
+### Decision 1a: 해시 함수 — sha256 확정
+
+- `crypto/sha256` (Go 표준 라이브러리) 사용. 외부 의존성 없이 즉시 사용 가능.
+- 출력은 hex 64자 소문자. 키 경로에 그대로 노출되므로 외부 관찰 가능한 behavior contract다.
+- 속도: Pioneer의 fetch 지연(네트워크 I/O) 대비 sha256 계산 비용은 무시할 수준. HTML 본문이 아닌 normalized URL 문자열(수백 바이트)만 해싱.
+
+**Open Question 종결(sha256 vs xxh3):**
+- xxh3는 더 빠르지만 `github.com/cespare/xxhash` 같은 외부 의존성이 필요하고, 본 use case의 해싱 대상이 짧은 URL 문자열이라 속도 이점이 사실상 없음.
+- **sha256 채택**. 근거: (a) 표준 라이브러리만 사용 → 의존성 추가 없음, (b) URL 길이가 짧아 속도 충분, (c) 충돌 확률이 암호학적으로 무시 가능 수준이라 prefix 자르기 불필요(64자 전체 사용).
 
 ### Decision 2: 압축 — gzip (Pioneer 프로세스에서 인라인)
 
@@ -72,6 +83,21 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 
 **대안:** object별 metadata에 만료 시각 기록 후 배치 삭제 — 운영 부담만 증가, lifecycle rule이 표준 방식.
 
+### Decision 6: 동시 쓰기 — last-write-wins (object storage 기본 동작)
+
+- 여러 Pioneer 워커가 동일 URL을 같은 UTC 날짜에 각자 fetch하여 업로드하면, 같은 키(`snapshots/<sha256_hex>/<yyyymmdd>.html.gz`)에 대해 동시 PUT이 발생할 수 있다.
+- 처리 정책: **object storage의 기본 atomic PUT 동작을 따른다**. 마지막에 commit된 PUT이 최종 객체로 남는다(last-write-wins).
+- 애플리케이션 레벨에서 lock, If-Match/If-None-Match 헤더, versioning 사용 안 함.
+- 근거: 같은 URL의 같은 날 스냅샷은 내용이 거의 같고, Harvester가 요구하는 것은 "그날의 HTML 한 벌"이지 특정 워커의 결과물이 아니다. 일관성보다 단순성이 우선.
+
+### Decision 7: checksum 검증 — gzip CRC만 사용
+
+- object storage에 업로드 전/후 별도 MD5/SHA checksum 비교를 수행하지 않는다.
+- 압축 시 gzip 포맷 자체가 trailer에 CRC-32를 포함하므로, Harvester가 읽어 gunzip할 때 손상이 자연스럽게 드러난다.
+- 손상 감지 시 Harvester는 snapshot miss로 취급하고 HTTP fallback한다(fail-open 정책과 일관).
+
+**대안:** S3 `Content-MD5` 헤더 + 서버측 검증 — 구현 비용 대비 이득 제한적. 실패해도 HTTP fallback이 있으므로 불필요.
+
 ## Risks / Trade-offs
 
 - **[스토리지 비용 증가]** → TTL 365일 + gzip 압축 + HTML에 한정으로 예산을 제한한다. 필요 시 TTL을 당기는 정책을 후속 change에서 조정.
@@ -79,6 +105,7 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 - **[스냅샷과 그래프 불일치]** → Pioneer가 저장에 실패하면 Harvester가 스냅샷을 못 찾고 HTTP로 폴백하므로 정합성은 Harvester가 담당. 본 change는 best-effort 경로만 책임.
 - **[URL normalization 불일치로 해시 충돌/누락]** → Pioneer와 Harvester가 동일 normalization 함수를 공유해야 한다. 기존 `bot` capability의 URL 정규화 규칙을 그대로 재사용하며, 변경 시 두 소비자 모두 영향 받음을 문서화.
 - **[민감한 HTML이 장기 보관됨]** → 버킷은 비공개 + 서버측 암호화 전제. 개인정보가 포함된 페이지는 애초 크롤 제외 대상(기존 `bot` 정책). TTL 365일이 보존 한도.
+- **[동일 키에 대한 동시 PUT]** → 여러 Pioneer 워커가 동일 URL을 같은 UTC 날짜에 동시에 업로드할 수 있으나, object storage의 기본 atomic PUT 동작(last-write-wins)을 따른다. 별도 lock/version 관리는 두지 않는다. 같은 날 같은 URL의 스냅샷은 내용이 거의 같다는 전제 하에 수용 가능한 risk로 기록.
 
 ## Migration Plan
 
@@ -89,6 +116,6 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 
 ## Open Questions
 
-- 해시 함수 선택(sha256 prefix vs xxh3)과 prefix 길이: 키 충돌 가능성과 파일명 가독성 사이의 결정은 구현 단계에서 합의.
+- ~~해시 함수 선택(sha256 prefix vs xxh3)과 prefix 길이~~ — **해결**: sha256 hex 64자 전체 사용 (Decision 1a). `crypto/sha256` 표준 라이브러리, 의존성 추가 없음, URL 문자열 해싱 속도 충분, prefix 자르기 없음(충돌 방지).
 - feature flag의 영구화 여부: 장기적으로 on-by-default 이후 삭제할지, 운영 toggle로 유지할지.
-- 버킷 선택: 기존 미디어 버킷과 동일 물리 bucket + prefix 분리로 갈지, 전용 bucket을 만들지(IAM/lifecycle 분리 편의).
+- 버킷 선택: 기존 미디어 버킷과 동일 물리 bucket + prefix 분리로 갈지, 전용 bucket을 만들지(IAM/lifecycle 분리 편의). **운영 시점 결정**(terraform/helm에서 확정). 본 change의 키 규칙(`snapshots/` prefix)은 두 선택지 모두와 호환.

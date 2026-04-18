@@ -26,20 +26,33 @@ Pioneer가 URL을 fetch하여 성공적으로 본문을 수신한 경우, 시스
 
 ---
 
-### Requirement: 스냅샷 키는 normalized URL 기반이다
-시스템은 스냅샷 키를 normalized URL의 결정적 해시를 기반으로 생성해야 한다(SHALL). 동일한 normalized URL은 동일한 해시를 산출해야 한다(SHALL). 키 형식은 `snapshots/<hash>/<yyyymmdd>.html.gz` 이며 `<yyyymmdd>`는 UTC 기준 fetch 날짜이다(SHALL).
+### Requirement: 스냅샷 키는 normalized URL의 sha256 기반이다
+시스템은 스냅샷 키를 normalized URL의 **sha256** digest(hex 인코딩 64자 소문자)를 기반으로 생성해야 한다(SHALL). 키 형식은 `snapshots/{sha256(normalized_url)}/{yyyymmdd}.html.gz` 이며, `{sha256(normalized_url)}`은 정확히 64자의 hex digest이고 `{yyyymmdd}`는 UTC 기준 fetch 날짜이다(SHALL). 동일한 normalized URL은 동일한 sha256 hex를 산출해야 한다(SHALL).
 
-#### Scenario: 동일 URL은 동일 해시
+#### Scenario: 동일 URL은 동일 sha256
 - **WHEN** Pioneer가 normalized 결과가 같은 두 URL을 각각 fetch할 때
-- **THEN** 두 스냅샷 키의 `<hash>` 부분이 동일하다
+- **THEN** 두 스냅샷 키의 sha256 hex 세그먼트가 동일하다
 
-#### Scenario: 키 형식 준수
+#### Scenario: 키 형식 준수 (64자 hex + UTC 날짜)
 - **WHEN** Pioneer가 UTC 2026-04-17에 URL을 fetch하여 스냅샷을 저장할 때
-- **THEN** 업로드되는 객체 키는 `snapshots/<hash>/20260417.html.gz` 형태다
+- **THEN** 업로드되는 객체 키는 `snapshots/<64-char-sha256-hex>/20260417.html.gz` 형태이고, hex 세그먼트는 소문자 `[0-9a-f]`로만 구성된 정확히 64자다
 
 #### Scenario: 같은 날 같은 URL 재fetch
 - **WHEN** Pioneer가 같은 UTC 날짜에 동일한 normalized URL을 두 번 fetch하여 저장할 때
 - **THEN** 두 번째 업로드는 첫 번째와 같은 키를 덮어쓴다
+
+---
+
+### Requirement: 동일 키에 대한 동시 쓰기는 last-write-wins이다
+시스템은 동일 키에 대한 동시 PUT을 object storage의 기본 atomic PUT 동작에 위임해야 한다(SHALL). 애플리케이션 레벨의 lock, conditional write, versioning을 사용하지 않아야 한다(SHALL NOT). 마지막에 commit된 PUT이 최종 객체로 남아야 한다(SHALL).
+
+#### Scenario: 동일 URL을 여러 Pioneer 워커가 같은 날 저장
+- **WHEN** 두 개 이상의 Pioneer 워커가 동일한 normalized URL을 같은 UTC 날짜에 각각 fetch하여 스냅샷을 업로드할 때
+- **THEN** 두 PUT 모두 동일 키를 대상으로 수행되며, 마지막으로 commit된 쓰기의 내용이 최종 객체로 유지된다 (last-write-wins)
+
+#### Scenario: 동시 쓰기 시 별도 충돌 에러가 Pioneer에 전파되지 않음
+- **WHEN** 동일 키에 대한 동시 PUT이 발생할 때
+- **THEN** Pioneer는 lock 획득 실패나 version conflict 같은 별도 에러 경로를 거치지 않고, 각자의 PUT 결과(성공/실패)만 일반 업로드 경로로 처리한다
 
 ---
 

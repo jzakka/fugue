@@ -81,16 +81,17 @@ published_at:
 
 ### Decision 3: Content classifier가 Pin 생성 여부와 사유를 결정
 
-**Chosen**: 추출 결과에 다음 4가지 사유 중 하나라도 해당되면 Pin을 만들지 않고 frontier row의 `harvested_at`만 마킹한다(반복 fetch 방지).
+**Chosen**: 추출 결과에 다음 3가지 사유 중 하나라도 해당되면 Pin을 만들지 않고 frontier row의 `harvested_at`만 마킹한다(반복 fetch 방지).
 
 | 사유 | 판정 기준 |
 |------|-----------|
-| `listing` | URL 노드 타입이 `list`이거나, 같은 도메인 내 outgoing link 수가 본문 텍스트 단어 수의 일정 비율을 초과 (`low_text_link_ratio` 와 다름) |
-| `empty_body` | `body_text`가 임계 길이(설정값, 기본 200 chars) 미만 |
-| `low_text_link_ratio` | 본문 텍스트 길이 / outgoing 링크 수가 임계값 미만 (네비게이션 hub로 추정) |
+| `listing` | URL 노드 타입이 `list`이거나, `링크 수 / 단어 수 > threshold_link_density` (단일 공식, 기본 임계값은 설정값) |
+| `empty_body` | `body_text`가 임계 길이(설정값, 기본 200 bytes; Go `len([]byte)` 기준) 미만 |
 | `no_primary_media` | `thumbnail_url`이 없고 `media_candidates`도 비어 있고 `body_text`도 임계 길이 미만 (콘텐츠 동시 부재) |
 
-분류는 우선순위가 있다: `listing` > `empty_body` > `no_primary_media` > `low_text_link_ratio` (가장 명확한 사유부터). 하나라도 매치되면 후속은 평가하지 않는다.
+분류는 우선순위가 있다: `listing` > `empty_body` > `no_primary_media` (가장 명확한 사유부터). 하나라도 매치되면 후속은 평가하지 않는다.
+
+`low_text_link_ratio`는 본 change에서 제거한다(`listing`의 단일 공식 `링크 수 / 단어 수 > threshold_link_density`로 통합 흡수됨). `body_text` 길이 단위는 바이트(Go `len([]byte)` 기본)로 통일한다.
 
 **Alternatives considered**:
 - *모든 페이지를 Pin으로 만들고 낮은 score 부여*: 검색 결과 품질이 떨어지고 인덱스가 비대해짐. 기각.
@@ -127,7 +128,7 @@ Harvester는 fetch 후 다음 순서를 따른다.
 4. canonicalUpsert(doc) → set frontier.pin_id
 ```
 
-기존 `GojaExecutor`는 신규 `ScriptAdapter`로 래핑해 레지스트리에 등록한다. ScriptAdapter는 DB의 (site_id, node_type) 스크립트를 로드해 실행하고, 결과 RawItem 1건당 PinDocument 1건이 아니라 **첫 번째 RawItem을 정본 PinDocument로, 나머지를 `og_data.media_candidates`에 추가**하는 방식으로 1 페이지 = 1 Pin 계약을 유지한다.
+기존 `GojaExecutor`는 신규 `ScriptAdapter`로 래핑해 레지스트리에 등록한다. ScriptAdapter는 DB의 (site_id, node_type) 스크립트를 로드해 실행하고, 결과 RawItem 1건당 PinDocument 1건이 아니라 **첫 번째 RawItem을 정본 PinDocument(title, thumbnail_url, body_text, description 등 모든 메타 필드)로, 나머지 RawItem들은 `og_data.media_candidates` 배열에 추가**하는 방식으로 1 페이지 = 1 Pin 계약을 유지한다. 즉 ScriptAdapter는 N → 1 축약의 정본 선택 규칙이 "첫 RawItem"으로 고정된다.
 
 **Alternatives considered**:
 - *어댑터 매칭 시 generic extractor 결과를 무시*: 어댑터가 부분 정보만 줄 때(예: 미디어만 추출) 메타가 누락된다. → "어댑터 결과 우선, 누락 필드는 generic으로 보강" 정책으로 보완 가능하나, 본 change는 단순화를 위해 "어댑터 결과를 채택, generic은 fallback"만 정의하고 보강 정책은 향후 검토.
@@ -137,7 +138,7 @@ Harvester는 fetch 후 다음 순서를 따른다.
 
 ### Decision 5: 추출 메타는 `pins.og_data` JSONB에 보관 (스키마 변경 최소화)
 
-**Chosen**: 신규 컬럼을 추가하지 않는다. 추출된 부가 필드는 다음 키로 `og_data` JSONB에 저장한다.
+**Chosen**: 신규 컬럼을 추가하지 않는다. 추출된 부가 필드는 다음 키로 `og_data` JSONB에 저장한다. `body_text`는 **키에 없음** — `pins.description`에 500자 잘라 저장하며 `og_data`에는 저장하지 않는다.
 
 ```json
 {
@@ -146,16 +147,21 @@ Harvester는 fetch 후 다음 순서를 따른다.
   "author": "...",
   "published_at": "2026-01-01T00:00:00Z",
   "media_candidates": [
-    {"type": "image", "url": "...", "width": 800, "height": 600},
-    ...
+    {"type": "image", "url": "...", "width": 800, "height": 600}
   ],
   "source": "<원본 fetch URL>",
   "extractor": "generic" | "script:<site_id>" | "<adapter_name>",
-  "classifier": {"pinnable": true} | {"pinnable": false, "reason": "listing"}
+  "classifier": {"pinnable": true} | {"pinnable": false, "reason": "listing" | "empty_body" | "no_primary_media"}
 }
 ```
 
-`og_data.source`는 frontier 역참조용이다(canonical URL과 fetch URL이 다를 때 원본 URL을 보존).
+스키마 (behavior contract에 필요한 최소 노출):
+
+- `og_data.classifier`: `{pinnable: boolean, reason?: "listing" | "empty_body" | "no_primary_media"}` (reason enum은 3개로 축소).
+- `og_data.media_candidates[i]`: `{type: "image" | "video" | "audio", url: string, width?: number, height?: number}`.
+- `og_data.source`: frontier 역참조용(cross-domain canonical 무시 정책에 따라 항상 fetch URL을 저장; 아래 cross-domain canonical 결정 참조).
+- `og_data.extractor`: 추출기 식별자 문자열.
+- `og_data`에 `body_text` 키는 **존재하지 않는다**.
 
 **Alternatives considered**:
 - *전용 컬럼 추가(`canonical_url VARCHAR`, `lang VARCHAR`, ...)*: 인덱싱은 좋아지지만 스키마 변경이 커지고 검색 쿼리가 본 change에서 정의되지 않은 시점에서는 과한 결정. 향후 검색 모듈 도입 시 재검토 가능.
@@ -163,7 +169,19 @@ Harvester는 fetch 후 다음 순서를 따른다.
 
 **Rationale**: ERD에 이미 `og_data JSONB`가 존재하므로 마이그레이션은 partial unique index 한 개만 추가된다.
 
-### Decision 6: Bot creator ID 처리
+### Decision 6: Cross-domain canonical 무시
+
+**Chosen**: HTML의 `<link rel="canonical">`(또는 `og:url`)이 fetch URL과 **다른 도메인**을 가리키면 그 canonical을 무시하고 `canonical_url = fetch_url`로 fallback한다. 이때 `og_data.source = fetch_url`로 저장되어 두 필드가 동일해진다.
+
+| 조건 | `canonical_url` | `og_data.source` |
+|------|-----------------|------------------|
+| canonical 없음 | `fetch_url` | `fetch_url` |
+| canonical이 fetch와 동일 도메인 | canonical | `fetch_url` |
+| canonical이 fetch와 **다른 도메인** | `fetch_url` (canonical 무시) | `fetch_url` |
+
+**Rationale**: canonical 위조로 다른 페이지의 봇 Pin을 덮어쓰는 것을 방지. Cross-domain canonical은 합법적인 경우(syndication)도 있으나 그 경우에도 원본 호스트가 별도 Pin을 가지는 것이 정본 인덱스 정책과 일관된다.
+
+### Decision 7: Bot creator ID 처리
 
 **Chosen**: 봇 Pin의 partial unique index는 `WHERE creator_id = <고정 UUID>`가 아닌 `WHERE creator_id IN (SELECT id FROM creators WHERE is_bot = true)` 형태가 이상적이지만, PostgreSQL partial index는 IMMUTABLE 표현식만 허용하므로 부분 index 자체는 단일 BotCreatorID 상수에 대해 정의한다. 봇 계정이 여러 개 있을 가능성을 위해 `creators.is_bot` 플래그(이미 있다면 재활용, 없다면 본 change에서 추가하지 않고 BotCreatorID 상수로 처리)를 운용 정책으로 둔다. 본 change는 "단일 BotCreatorID 상수"를 가정한다.
 
@@ -172,12 +190,12 @@ Harvester는 fetch 후 다음 순서를 따른다.
 ## Risks / Trade-offs
 
 - **[generic extractor 오추출] → Mitigation**: classifier 사유를 메트릭으로 노출하고, 오추출이 빈번한 도메인은 PerSiteAdapter로 override한다. 첫 도입 시 의심 스러운 페이지는 `pinnable=false, reason=...` 로 분류되어 Pin이 생성되지 않으므로 검색 인덱스 오염 위험은 제한된다.
-- **[canonical 위조 페이지가 다른 페이지의 Pin을 덮어씀] → Mitigation**: canonical URL이 fetch URL과 다른 도메인을 가리키는 경우 fetch URL을 사용한다(cross-domain canonical 무시). 본 정책을 generic extractor에 명시한다.
+- **[canonical 위조 페이지가 다른 페이지의 Pin을 덮어씀] → Mitigation**: Decision 6 cross-domain canonical 무시 정책. canonical URL이 fetch URL과 다른 도메인을 가리키는 경우 fetch URL을 사용하고 `og_data.source = fetch_url`로 저장한다.
 - **[partial unique index와 동시 upsert race] → Mitigation**: PostgreSQL `ON CONFLICT (url) WHERE creator_id = <BotID> DO UPDATE`로 처리. 인덱스가 race를 직렬화한다.
 - **[ScriptAdapter가 N개 RawItem을 반환할 때 정본 1개만 채택해서 정보 손실] → Mitigation**: 채택되지 않은 RawItem들은 `og_data.media_candidates`에 type/url/width/height로 보관된다. 향후 N개 분리가 필요해지면 별도 change에서 도입.
-- **[og_data JSONB 비대화] → Mitigation**: `media_candidates` 길이 상한(예: 50)을 두고 초과분은 잘라낸다. 본문 텍스트(`body_text`)는 og_data에 넣지 않고 `pins.description` 또는 별도 컬럼/검색 인덱스에 넣는 것이 이상적이나, 본 change는 description (500자 제한)에 잘라 넣고 전체 본문은 og_data에 두지 않는 보수적 정책을 채택한다(검색 모듈 도입 시 재정의).
+- **[og_data JSONB 비대화] → Mitigation**: `media_candidates` 길이 상한(예: 50)을 두고 초과분은 잘라낸다. `body_text`는 og_data에 저장하지 **않는다**. 대신 `pins.description`에 500자 잘라 저장한다(검색 모듈 도입 시 재정의).
 - **[ERD의 `pins.media_url NOT NULL` 제약과 충돌] → Mitigation**: generic 경로에서 `thumbnail_url`이나 첫 `media_candidates`를 `media_url`로 채운다. 둘 다 없으면 classifier의 `no_primary_media` 사유로 Pin을 만들지 않으므로 NOT NULL 위반은 발생하지 않는다.
-- **[기존 RawItem 기반 통계(`PinsCreated`, `Deduped`, `Failed`)와 의미 불일치] → Mitigation**: 통계 정의를 "노드 단위"로 재정의한다. PinsCreated = 신규 upsert, Deduped = 기존 봇 Pin update, Failed = extractor/classifier/upsert 에러. ScriptAdapter가 N개 RawItem을 반환하더라도 노드 1개당 통계 1개로 집계된다.
+- **[기존 RawItem 기반 통계(`PinsCreated`, `Deduped`, `Failed`)와 의미 불일치] → Mitigation**: 통계 정의를 "노드 단위"로 재정의한다. PinsCreated = 신규 upsert, Deduped = 기존 봇 Pin update, Skipped = classifier 부적합, Failed = extractor/upsert 에러, AdapterFallback = 어댑터 실패로 generic 사용. 통계 카테고리명은 "Skipped"로 통일하며 "Classified" 등 대체 표현은 사용하지 않는다. ScriptAdapter가 N개 RawItem을 반환하더라도 노드 1개당 통계 1개로 집계된다.
 
 ## Migration Plan
 
@@ -205,6 +223,12 @@ Harvester는 fetch 후 다음 순서를 따른다.
 
 ## Open Questions
 
-- BotCreatorID는 환경 변수/설정으로 외부화해야 하는가, 아니면 코드 상수로 둘 것인가? (운영 정책에 따라 결정; 본 change는 환경변수/설정으로 노출하고 마이그레이션은 placeholder로 두는 것을 제안.)
-- `body_text` 임계 길이(기본 200), `low_text_link_ratio` 임계값, `media_candidates` 상한(기본 50) 등의 튜닝 값은 어디서 관리할 것인가? (사이트별 override 가능성 → 향후 사이트 설정 테이블 도입 시 재정의.)
-- ScriptAdapter가 multi-RawItem 결과를 정본 1 PinDocument로 축약할 때, 어떤 RawItem을 "정본"으로 선택할지의 우선순위(첫 번째 vs largest media vs explicit primary 플래그). 본 change는 "첫 번째"로 고정, 추후 어댑터별 옵션 도입 가능.
+(없음 — 이전 Open Questions는 DECISIONS.md §9 및 본 문서 Decision 3·5·6으로 모두 종결되었다.)
+
+Resolved:
+- BotCreatorID 외부화: 환경변수/설정으로 노출(Decision 7 / tasks 9.3).
+- `body_text` 임계(기본 200 bytes, Go `len([]byte)`), `media_candidates` 상한(기본 50), `threshold_link_density` 임계: 설정값으로 노출(tasks 9.2). 사이트별 override는 향후 사이트 설정 테이블 도입 시 재정의(범위 외).
+- ScriptAdapter의 정본 선택 규칙: **첫 번째 RawItem**으로 고정(Decision 4).
+- classifier reason enum: `listing`, `empty_body`, `no_primary_media` 3개로 확정(Decision 3; `low_text_link_ratio` 제거).
+- body_text 저장 위치: `pins.description`에 500자 잘라 저장, `og_data`에는 저장하지 않음(Decision 5).
+- Cross-domain canonical 처리: 무시하고 `canonical_url = fetch_url`(Decision 6).

@@ -39,7 +39,7 @@
 
 ### Decision 2: 인메모리 자료구조와 락
 
-**선택**: `map[string]*rate.Limiter` + `sync.RWMutex`. 호스트 키는 `bot_frontier.host` 컬럼 값을 그대로 사용.
+**선택**: `map[string]*rate.Limiter` + `sync.RWMutex`. 호스트 키는 `scheduler-frontier-table`의 `host` 컬럼 값(Pioneer 측 정규화 결과: 호스트명만, 포트 제외, 대소문자 원본 유지, `www.` prefix 유지)을 그대로 사용한다. 정규화 책임은 Pioneer(`pioneer-link-filter-policy`)에 있으며, scheduler는 저장된 값을 그대로 키로 취급한다.
 
 **대안**:
 - (A) `sync.Map`
@@ -79,18 +79,42 @@
 - 본 change 범위에서는 단순성을 우선. Exponential backoff는 운영 데이터로 필요성이 확인되면 후속에서 도입.
 - (C)는 Decision 3의 `Allow()` 모델과 충돌. 후속 개선 후보로 Open Questions에 기록.
 
-### Decision 5: 기본 rate/burst와 설정 surface
+### Decision 5: 기본 rate/burst와 설정 surface, Go 시그니처
 
 **선택**:
 - 기본 rate: **1 req/sec per host**
 - 기본 burst: **5**
 - 설정 키: `scheduler.host_default_rate_per_sec`, `scheduler.host_default_burst`
-- 호스트별 override: 단일 호스트의 rate/burst를 외부에서 set할 수 있는 메서드를 노출(예: `SetHostRate(host, rate, burst)`).
+- Go 시그니처(receiver 포함):
+  - `func (l *HostRateLimiter) SetHostRate(host string, rate float64, burst int)` — 지정 호스트의 rate/burst를 즉시 반영(Limiter 재생성). 신규 호스트면 새 Limiter 생성.
+  - `func (l *HostRateLimiter) Allow(host string) bool` — 호스트 bucket의 token이 있으면 true와 함께 token 1개 소비, 없으면 false. 호스트 bucket이 없으면 기본 rate/burst로 lazy 생성 후 판정.
+- 호스트별 override는 `SetHostRate`로 일원화(robots.txt Crawl-delay, 운영자 수동 조정 모두 동일 진입점).
 
 **근거**:
 - 1 req/sec은 일반적인 크롤러 politeness 디폴트와 일치.
 - burst 5는 같은 호스트 내 작은 페이지 그룹을 짧게 처리하면서도 평균 1 req/sec를 유지하는 합리적 값.
-- override 메서드를 둠으로써 robots.txt Crawl-delay나 운영자 수동 조정이 동일 진입점을 사용.
+- `Allow`/`SetHostRate` 두 메서드만 외부로 드러내어 claim-api 등 소비자와의 결합도를 최소화.
+
+### Decision 5a: rate/burst 유효성 정책
+
+**선택**: `SetHostRate`에 `rate <= 0` 또는 `burst <= 0`이 들어오면 해당 호스트 bucket을 **기본값(1 req/sec, burst 5)으로 생성/대체**하고 **경고 로그**(`WARN`)를 남긴다. 서비스는 중단되지 않고 호출자에게 에러를 반환하지도 않는다(void 시그니처 유지).
+
+**근거**:
+- 잘못된 robots.txt 값(`Crawl-delay: 0`, 음수 등)이나 운영자 실수로 인한 입력이 크롤링 파이프라인을 중단시키지 않도록 안전 기본값을 적용.
+- 호출부(Pioneer)가 정상/비정상 분기 로직을 가질 필요 없이 단순하게 scheduler에 값을 위임할 수 있음.
+- 경고 로그는 운영 분석에서 잘못된 입력 패턴을 발견하는 용도.
+
+**대안 기각**:
+- error 반환 시그니처: Pioneer 호출부 복잡도 증가, 실패 시 fallback 책임을 Pioneer가 중복 구현해야 함.
+- panic: 크롤링 파이프라인 전체 중단 위험.
+
+### Decision 5b: claim-api와의 통합
+
+**선택**: 본 change는 `Allow(host) bool`과 `SetHostRate(host, rate, burst)` 두 메서드만 제공한다. claim 시점의 호출(후보 row의 host에 대해 `Allow(host)`를 검사하는 로직)은 `scheduler-claim-api` change의 Claim 프로토콜(`SELECT FOR UPDATE SKIP LOCKED` → 각 row의 host에 `Allow` → 첫 true row claim)에서 정의된다. 즉 claim 호출 타이밍은 claim-api의 spec requirement이며, 본 change는 **메서드의 행위 계약(behavior contract)**만 정의한다.
+
+**근거**:
+- 역할 분리: 본 change = rate limiter 동작/계약, claim-api = dequeue 프로토콜.
+- Allow 호출이 claim 트랜잭션 안에서 어떻게 엮이는지는 claim-api 책임이어야, 양쪽 change가 독립적으로 진화 가능.
 
 ### Decision 6: robots.txt Crawl-delay 반영
 
@@ -124,5 +148,8 @@
 
 - **Limiter GC 정책**: 일정 시간(예: 1시간) 미사용 호스트의 Limiter를 정리할지. 운영 후 메모리 사용량 보고 결정.
 - **`Reserve()` 모델 전환 시점**: 정확한 score 우선순위 보장이 필요해지는 시점이 오면 후속 change로 전환 검토.
-- **호스트 키 정규화**: `host` 컬럼에 포트가 포함된 경우(`example.com:8080`)와 그렇지 않은 경우의 정책. 본 change는 frontier에 저장된 값을 그대로 키로 사용한다고 가정.
 - **분산 조율 필요 시점**: 프로세스 수가 N개를 초과하여 외부 사이트 차단이 빈번해지면 분산 rate limit(redis 기반 등) 도입. 본 change 범위 외.
+
+### Closed Questions
+
+- **호스트 키 정규화** (종결): `scheduler-frontier-table`의 `host` 컬럼 규칙(호스트명만, 포트 제외, 대소문자 원본 유지, `www.` prefix 유지)과 **동일**. 정규화 책임은 Pioneer(`pioneer-link-filter-policy`)에 있고, scheduler는 저장된 값을 그대로 키로 사용한다. 따라서 scheduler 내부에 별도 정규화 로직은 두지 않는다.

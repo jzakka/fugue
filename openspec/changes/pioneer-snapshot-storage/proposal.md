@@ -8,9 +8,10 @@ raw 응답을 object storage에 스냅샷으로 남겨 두면 후속 단계(우�
 
 - Pioneer는 `URLScheduler`로부터 받은 URL을 fetch하여 성공(2xx + 본문 수신)한 경우 raw 응답 바이트를 object storage에 스냅샷으로 업로드한다.
 - 스냅샷은 gzip으로 압축해 저장하고, TTL 365일을 적용한다.
-- 스냅샷 키는 normalized URL 기반 해시를 사용한다(예: `snapshots/<hash>/<yyyymmdd>.html.gz`).
+- 스냅샷 키는 normalized URL의 **sha256** hex digest를 사용한다: `snapshots/<sha256_hex>/<yyyymmdd>.html.gz` (hex 64자 + UTC 날짜).
 - fetch가 실패하면(네트워크 오류, 4xx/5xx 등) 스냅샷을 저장하지 않는다.
 - object storage write가 실패해도 Pioneer 파이프라인은 fail-open으로 계속 진행하며, 오류는 로그로만 남긴다.
+- 동시 쓰기 정책: 같은 키에 대한 동시 PUT은 object storage의 기본 동작을 따르는 **last-write-wins**다. 애플리케이션 레벨의 lock/version 관리는 두지 않는다.
 
 범위 외: Harvester가 스냅샷을 재사용하는 동작(별도 change `harvester-snapshot-first-fetch`에서 다룸), Pioneer의 BFS/스케줄 루프 구조 자체는 변경하지 않는다.
 

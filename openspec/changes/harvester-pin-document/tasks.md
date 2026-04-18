@@ -29,13 +29,12 @@
 ## 4. Content classifier
 
 - [ ] 4.1 `apps/api/internal/bot/classifier.go` 신규 작성: `Classifier.Classify(doc PinDocument, nodeType string) (pinnable bool, reason string)`
-- [ ] 4.2 사유 우선순위 (`listing` > `empty_body` > `no_primary_media` > `low_text_link_ratio`) 적용
-- [ ] 4.3 `listing` 판정: nodeType == "list" OR outgoing-link/word 비율
-- [ ] 4.4 `empty_body` 판정: body_text < 임계값 (기본 200자, 설정 가능)
+- [ ] 4.2 사유 우선순위 (`listing` > `empty_body` > `no_primary_media`) 적용 — 3개 reason enum만 유지
+- [ ] 4.3 `listing` 판정: nodeType == "list" OR `링크 수 / 단어 수 > threshold_link_density` (단일 공식)
+- [ ] 4.4 `empty_body` 판정: body_text < 임계값 (기본 200 bytes, Go `len([]byte)` 기준, 설정 가능)
 - [ ] 4.5 `no_primary_media` 판정: thumbnail 없음 AND media_candidates 비어 있음 AND body_text 임계값 미만
-- [ ] 4.6 `low_text_link_ratio` 판정: body_text 길이 / outgoing 링크 수 < 임계값
-- [ ] 4.7 classifier 결과를 `og_data.classifier` 키에 보존
-- [ ] 4.8 unit test: 사유 우선순위, 정상 페이지, 각 사유별 경계 케이스
+- [ ] 4.6 classifier 결과를 `og_data.classifier = {pinnable, reason?}` 키에 보존 (reason enum: `listing` | `empty_body` | `no_primary_media`)
+- [ ] 4.7 unit test: 3개 reason(`listing`, `empty_body`, `no_primary_media`)별 경계 케이스 + 사유 우선순위 + 정상 페이지 통과
 
 ## 5. PerSiteAdapter / AdapterRegistry
 
@@ -50,21 +49,21 @@
 - [ ] 6.1 `apps/api/internal/bot/script_adapter.go` 신규 작성: `ScriptAdapter` struct가 `PerSiteAdapter` 구현
 - [ ] 6.2 기존 `GojaExecutor`를 의존성 주입으로 ScriptAdapter 내부에 보유
 - [ ] 6.3 `Extract`에서 (site_id, node_type) 스크립트 로드 → 실행 → RawItem 배열 수신
-- [ ] 6.4 N개 RawItem → PinDocument 1건 축약: 첫 번째를 정본 메타로, 나머지를 `og_data.media_candidates`에 추가
+- [ ] 6.4 N→1 축약 로직: **첫 RawItem**을 정본 PinDocument로 채택(title, thumbnail_url, body_text, description 등 모든 메타 필드), 나머지 RawItem들은 `og_data.media_candidates` 배열(`{type, url, width?, height?}`)로 추가
 - [ ] 6.5 빈 결과(0건) 또는 실행 실패 시 에러 반환 → Harvester가 generic으로 fallback
 - [ ] 6.6 부트스트랩 시 DB의 (site_id, node_type) 스크립트가 있는 사이트의 도메인을 AdapterRegistry에 등록
-- [ ] 6.7 unit test: N개 RawItem 축약, 빈 결과 처리, 실행 실패 처리
+- [ ] 6.7 unit test: 첫 RawItem 정본 채택, 나머지 media_candidates 배열 구성, 빈 결과 처리, 실행 실패 처리
 
 ## 7. Harvester 결합
 
 - [ ] 7.1 `apps/api/internal/bot/harvester.go`의 `executeNode`를 PinDocument 반환으로 변경
 - [ ] 7.2 처리 순서 적용: `adapter, ok = registry.Resolve(domain) → adapter.Extract OR generic.Extract → classifier.Classify → upsert OR mark harvested_at`
 - [ ] 7.3 어댑터 실패 시 generic fallback 경로 구현 (AdapterFallback 통계 카운트 증가)
-- [ ] 7.4 `og_data.source` 보존 (canonical_url과 다를 때 원본 fetch URL)
-- [ ] 7.5 `media_candidates` 길이 상한(기본 50) 적용
-- [ ] 7.6 `body_text`는 `pins.description` (500자 제한)에 잘라 넣고 og_data에는 중복 저장하지 않음
+- [ ] 7.4 cross-domain canonical 처리: canonical URL의 도메인이 fetch URL과 다르면 canonical을 무시하고 `canonical_url = fetch_url`로 fallback. `og_data.source = fetch_url`로 저장(항상 fetch URL).
+- [ ] 7.5 `media_candidates` 길이 상한(기본 50) 적용; 각 원소 스키마 `{type: "image"|"video"|"audio", url, width?, height?}`
+- [ ] 7.6 `body_text`는 `pins.description`에 500자 잘라 저장하고 `og_data`에는 **포함하지 않음** (키 자체 부재)
 - [ ] 7.7 `media_url` NOT NULL 제약 충족: thumbnail_url 또는 첫 media_candidates URL 사용
-- [ ] 7.8 통계 재정의: `PinsCreated`, `Deduped`, `Skipped`, `Failed`, `AdapterFallback` 5개 카테고리
+- [ ] 7.8 통계 재정의: `PinsCreated`, `Deduped`, `Skipped`, `Failed`, `AdapterFallback` 5개 카테고리 (통계 카테고리명은 "Skipped"로 통일; "Classified" 대체 표현 사용 금지)
 - [ ] 7.9 노드 1개 = 통계 1건 보장 (ScriptAdapter N개 RawItem이어도 노드 단위 1건)
 - [ ] 7.10 pinnable=false 노드는 frontier row의 `harvested_at`만 마킹 (Pin 생성/update 없음)
 
@@ -78,19 +77,20 @@
 ## 9. 설정 / Feature flag
 
 - [ ] 9.1 `HARVESTER_DEFAULT_EXTRACTOR=generic|script` 환경변수 도입 (기본 `generic`)
-- [ ] 9.2 임계값 설정 노출: `body_text` 최소 길이, `low_text_link_ratio` 임계, `media_candidates` 상한
+- [ ] 9.2 임계값 설정 노출: `body_text` 최소 길이(기본 200 bytes, `len([]byte)`), `threshold_link_density`(listing 단일 공식 임계), `media_candidates` 상한(기본 50)
 - [ ] 9.3 BotCreatorID 설정 노출 (env or config)
 
 ## 10. 테스트 / 검증
 
 - [ ] 10.1 generic extractor 시나리오 unit test (specs/harvester의 모든 시나리오 매핑)
-- [ ] 10.2 classifier 시나리오 unit test (사유 우선순위 포함)
-- [ ] 10.3 ScriptAdapter 시나리오 unit test (N→1 축약, fallback)
+- [ ] 10.2 classifier 시나리오 unit test: 3개 reason(`listing`, `empty_body`, `no_primary_media`)별 경계 케이스 + 우선순위
+- [ ] 10.3 ScriptAdapter 시나리오 unit test: N→1 축약(첫 RawItem 정본, 나머지 media_candidates), fallback
 - [ ] 10.4 canonical-URL upsert 통합 테스트 (insert/update/race/일반 사용자 Pin과의 공존)
-- [ ] 10.5 Harvester 통계 5-카테고리 통합 테스트
-- [ ] 10.6 cross-domain canonical 무시 회귀 테스트
+- [ ] 10.5 Harvester 통계 5-카테고리 통합 테스트 (카테고리명 "Skipped" 포함)
+- [ ] 10.6 cross-domain canonical 무시 회귀 테스트: canonical이 다른 도메인일 때 `canonical_url = fetch_url` 및 `og_data.source = fetch_url` 보장
 - [ ] 10.7 `media_url` NOT NULL 위반이 발생하지 않음을 확인하는 회귀 테스트
-- [ ] 10.8 기존 `goja_executor_test.go` / `harvest_pipeline_test.go` 가 ScriptAdapter 경계 안에서 통과하도록 보강
+- [ ] 10.8 `og_data`에 `body_text` 키가 존재하지 않고 `pins.description`에 500자로 잘려 저장됨을 확인하는 회귀 테스트
+- [ ] 10.9 기존 `goja_executor_test.go` / `harvest_pipeline_test.go` 가 ScriptAdapter 경계 안에서 통과하도록 보강
 
 ## 11. 문서화 / Spec sync
 

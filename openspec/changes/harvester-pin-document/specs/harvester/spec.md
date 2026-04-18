@@ -80,23 +80,19 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: Content classifier가 Pin 생성 가능 여부를 판정한다
-시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `low_text_link_ratio`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media` > `low_text_link_ratio`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL).
+시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 3개 enum 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL). `body_text` 길이 단위는 바이트(Go `len([]byte)`)이다(SHALL).
 
 #### Scenario: listing 페이지 분류
-- **WHEN** 노드 타입이 `list`이거나, 같은 도메인 내 outgoing 링크 수가 본문 단어 수에 비해 압도적으로 많을 때
+- **WHEN** 노드 타입이 `list`이거나, 페이지의 `링크 수 / 단어 수 > threshold_link_density` (단일 공식)일 때
 - **THEN** classifier는 `pinnable=false, reason=listing`을 반환한다
 
 #### Scenario: empty_body 분류
-- **WHEN** PinDocument의 body_text가 임계 길이(기본 200자) 미만일 때
+- **WHEN** PinDocument의 body_text 바이트 길이가 임계값(기본 200 bytes) 미만일 때
 - **THEN** classifier는 `pinnable=false, reason=empty_body`를 반환한다 (단, listing이 먼저 매치되면 listing이 우선)
 
 #### Scenario: no_primary_media 분류
-- **WHEN** PinDocument의 thumbnail_url이 비어 있고 media_candidates가 빈 배열이며 body_text도 임계 길이 미만일 때
+- **WHEN** PinDocument의 thumbnail_url이 비어 있고 media_candidates가 빈 배열이며 body_text도 임계 바이트 길이 미만일 때
 - **THEN** classifier는 `pinnable=false, reason=no_primary_media`를 반환한다 (listing/empty_body가 먼저 매치되면 그쪽이 우선)
-
-#### Scenario: low_text_link_ratio 분류
-- **WHEN** body_text 길이를 outgoing 링크 수로 나눈 비율이 임계값 미만일 때
-- **THEN** classifier는 `pinnable=false, reason=low_text_link_ratio`를 반환한다 (다른 사유가 매치되지 않은 경우에 한해)
 
 #### Scenario: 정상 콘텐츠 페이지 통과
 - **WHEN** PinDocument가 충분한 body_text를 가지고 thumbnail_url 또는 media_candidates가 존재하며 listing 패턴에 해당하지 않을 때
@@ -104,7 +100,11 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 
 #### Scenario: 사유는 og_data에 보존된다
 - **WHEN** classifier가 어떤 사유로든 판정을 내릴 때
-- **THEN** 판정 결과(`{pinnable, reason?}`)는 PinDocument의 `og_data.classifier`에 저장되어 후속 디버깅/메트릭에 사용된다
+- **THEN** 판정 결과가 PinDocument의 `og_data.classifier = {pinnable: boolean, reason?: "listing" | "empty_body" | "no_primary_media"}` 스키마로 저장되어 후속 디버깅/메트릭에 사용된다
+
+#### Scenario: reason enum은 3개로 제한
+- **WHEN** classifier가 `pinnable=false`를 반환하며 reason을 설정할 때
+- **THEN** reason은 정확히 `listing`, `empty_body`, `no_primary_media` 중 하나여야 하며 다른 값(예: `low_text_link_ratio`)은 사용되지 않는다
 
 ---
 
@@ -121,7 +121,7 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 
 #### Scenario: 통계 분류
 - **WHEN** Harvester가 노드 단위 통계를 집계할 때
-- **THEN** pinnable=false로 분류된 노드는 PinsCreated/Deduped/Failed 어디에도 카운트되지 않고 별도의 Skipped(또는 Classified) 카운트로 분류된다
+- **THEN** pinnable=false로 분류된 노드는 PinsCreated/Deduped/Failed 어디에도 카운트되지 않고 별도의 `Skipped` 카운트로 분류된다 (카테고리명은 `Skipped`로 통일하며 `Classified` 등 대체 표현은 사용하지 않는다)
 
 ---
 
@@ -157,9 +157,9 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 - **WHEN** Harvester 부트스트랩 시 DB에 (site_id, node_type) 스크립트가 등록된 사이트가 있을 때
 - **THEN** 그 사이트의 도메인에 대한 ScriptAdapter가 AdapterRegistry에 등록된다
 
-#### Scenario: ScriptAdapter는 RawItem N건을 PinDocument 1건으로 축약
+#### Scenario: ScriptAdapter는 RawItem N건을 PinDocument 1건으로 축약 (첫 RawItem 정본)
 - **WHEN** ScriptAdapter가 스크립트를 실행하여 N개의 RawItem을 받을 때
-- **THEN** 첫 번째 RawItem이 PinDocument의 정본 메타(title, thumbnail_url, body_text 등)로 채택되고, 나머지 RawItem들은 type/url/width/height와 함께 `og_data.media_candidates`에 추가된다
+- **THEN** **첫 번째 RawItem**이 PinDocument의 정본 메타(title, thumbnail_url, body_text, description 등 모든 메타 필드)로 채택되고, 나머지 RawItem들은 `{type, url, width?, height?}` 스키마로 `og_data.media_candidates` 배열에 추가된다
 
 #### Scenario: ScriptAdapter 결과의 extractor 식별자
 - **WHEN** ScriptAdapter가 PinDocument를 반환할 때
@@ -193,15 +193,19 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: 원본 fetch URL은 og_data.source에 보존된다
-시스템은 PinDocument를 Pin으로 변환할 때, fetch에 사용한 원본 URL을 `og_data.source`에 보존해야 한다(SHALL). 이는 canonical_url과 다를 수 있으며, frontier row 역참조에 사용된다(SHALL).
+시스템은 PinDocument를 Pin으로 변환할 때, fetch에 사용한 원본 URL을 `og_data.source`에 보존해야 한다(SHALL). `og_data.source`는 항상 fetch URL이며, cross-domain canonical이 감지된 경우 `canonical_url` 역시 fetch URL로 fallback된다(SHALL). frontier row 역참조에 사용된다(SHALL).
 
 #### Scenario: canonical_url과 fetch URL이 같을 때
 - **WHEN** PinDocument의 canonical_url과 fetch URL이 동일할 때
 - **THEN** `og_data.source`에 fetch URL이 저장된다 (canonical_url과 동일한 값)
 
-#### Scenario: canonical_url과 fetch URL이 다를 때
-- **WHEN** PinDocument의 canonical_url이 같은 도메인의 다른 URL을 가리킬 때 (예: query string 정규화)
-- **THEN** `og_data.source`에는 원본 fetch URL이, `og_data.canonical_url`에는 canonical URL이 각각 저장된다
+#### Scenario: same-domain canonical
+- **WHEN** HTML의 canonical이 fetch URL과 동일 도메인의 다른 URL(예: query string 정규화)일 때
+- **THEN** `og_data.canonical_url`에는 canonical이, `og_data.source`에는 fetch URL이 저장된다
+
+#### Scenario: cross-domain canonical은 fetch_url 기준으로 fallback
+- **WHEN** HTML의 canonical이 fetch URL과 **다른 도메인**을 가리킬 때
+- **THEN** 시스템은 canonical을 무시하고 `canonical_url = fetch_url`로 설정하며, `og_data.source = fetch_url`로 저장한다 (두 값이 동일해진다)
 
 #### Scenario: frontier 역참조
 - **WHEN** 운영자가 어떤 Pin이 어떤 frontier URL에서 유래했는지 추적할 때
@@ -210,11 +214,23 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: 추출 부가 메타는 pins.og_data JSONB에 보관한다
-시스템은 PinDocument의 부가 필드(canonical_url, lang, author, published_at, media_candidates, source, extractor, classifier)를 `pins` 테이블의 신규 컬럼이 아닌 기존 `og_data` JSONB 컬럼에 보관해야 한다(SHALL). `media_candidates`의 길이는 상한(기본 50)을 넘지 않도록 잘려야 한다(SHALL).
+시스템은 PinDocument의 부가 필드(canonical_url, lang, author, published_at, media_candidates, source, extractor, classifier)를 `pins` 테이블의 신규 컬럼이 아닌 기존 `og_data` JSONB 컬럼에 보관해야 한다(SHALL). `body_text`는 `og_data`에 저장하지 **않으며**(SHALL NOT), `pins.description`에 500자 잘라 저장해야 한다(SHALL). `media_candidates`의 길이는 상한(기본 50)을 넘지 않도록 잘려야 한다(SHALL).
 
 #### Scenario: og_data 키 구조
 - **WHEN** Pin이 upsert될 때
-- **THEN** `og_data`에는 최소 다음 키가 포함된다: `canonical_url`, `lang`, `author`, `published_at`, `media_candidates`, `source`, `extractor`, `classifier`
+- **THEN** `og_data`에는 다음 키가 포함된다: `canonical_url`, `lang`, `author`, `published_at`, `media_candidates`, `source`, `extractor`, `classifier`. `body_text` 키는 존재하지 않는다
+
+#### Scenario: media_candidates 원소 스키마
+- **WHEN** `og_data.media_candidates` 배열의 원소를 확인할 때
+- **THEN** 각 원소는 `{type: "image" | "video" | "audio", url: string, width?: number, height?: number}` 스키마를 따른다
+
+#### Scenario: classifier 스키마
+- **WHEN** `og_data.classifier`를 확인할 때
+- **THEN** 값은 `{pinnable: boolean, reason?: "listing" | "empty_body" | "no_primary_media"}` 스키마를 따르며 reason enum은 3개로 제한된다
+
+#### Scenario: body_text는 og_data가 아니라 description에 저장된다
+- **WHEN** extractor 또는 adapter가 body_text를 추출할 때
+- **THEN** 시스템은 `og_data`에 body_text를 포함하지 않고, `pins.description`에 500자 이내로 잘라 저장한다
 
 #### Scenario: media_candidates 상한 적용
 - **WHEN** 추출된 media_candidates가 상한(기본 50)을 초과할 때

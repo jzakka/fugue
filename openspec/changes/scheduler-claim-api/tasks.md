@@ -1,57 +1,86 @@
 ## 1. 패키지 스캐폴딩
 
-- [ ] 1.1 `apps/api/internal/scheduler/` 디렉터리 생성 (또는 합의 시 `apps/api/internal/bot/scheduler/`)
-- [ ] 1.2 `scheduler.go` 에 `URLScheduler` interface 선언 (메서드: `Enqueue(urls ...string)`, `Dequeue(cond queryCondition) string`, `SetStatus(key string, status string)`)
-- [ ] 1.3 `queryCondition` 타입 결정 — design.md Decision 4의 옵션 1~3 중 PR 리뷰로 확정. 기본값은 옵션 3(미리 정의된 const `PioneerClaimable`, `HarvesterClaimable`)으로 시작
-- [ ] 1.4 `pioneerCondition`, `harvesterCondition` 헬퍼/상수 정의 — Pioneer는 `last_fetched_at IS NULL AND fetch_error_count < 5 AND next_fetch_at <= now()`, Harvester는 `pin_id IS NULL AND harvest_error_count < 5 AND next_harvest_at <= now()`
+- [ ] 1.1 `apps/api/internal/scheduler/` 디렉터리 생성
+- [ ] 1.2 `scheduler.go` 에 `QueueType` enum 정의 — `type QueueType string`, 상수 `QueuePioneer = "pioneer"`, `QueueHarvester = "harvester"`
+- [ ] 1.3 `scheduler.go` 에 `URLScheduler` interface 선언 — 메서드: `Enqueue(queueType QueueType, urls ...string) error`, `Dequeue(queueType QueueType) (url string, err error)`, `SetStatus(key string, status string, pinIDs []int64) error`, `RecordFetchError(key string, errorKind string) error`, `RecordHarvestError(key string, errorKind string) error`
+- [ ] 1.4 status 상수 정의 — `StatusFetched = "fetched"`, `StatusFetchFailed = "fetch_failed"`, `StatusHarvested = "harvested"`, `StatusHarvestFailed = "harvest_failed"`
+- [ ] 1.5 errorKind 상수 정의 — `ErrorHTTP4xx = "http_4xx"`, `ErrorHTTP5xx = "http_5xx"`, `ErrorNetwork = "network"`, `ErrorTimeout = "timeout"`
+- [ ] 1.6 `HostRateLimiter` 인터페이스 의존성 선언 — `Allow(host string) bool` 메서드만 사용. 실제 구현은 `scheduler-host-token-bucket` change가 제공
 
 ## 2. sqlc 쿼리 작성
 
-- [ ] 2.1 `enqueue` — `INSERT INTO bot_frontier (...) VALUES (...) ON CONFLICT (normalized_url) DO NOTHING`. URL list batch insert 지원
-- [ ] 2.2 `claim_pioneer` — `SELECT ... WHERE last_fetched_at IS NULL AND fetch_error_count < 5 AND next_fetch_at <= now() ORDER BY score DESC, next_fetch_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED`
-- [ ] 2.3 `claim_harvester` — `SELECT ... WHERE pin_id IS NULL AND harvest_error_count < 5 AND next_harvest_at <= now() ORDER BY score DESC, next_harvest_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED`
-- [ ] 2.4 `set_fetched` — `UPDATE bot_frontier SET last_fetched_at = now(), last_updated_at = now() WHERE normalized_url = $1`
-- [ ] 2.5 `set_fetch_failed` — `UPDATE bot_frontier SET fetch_error_count = fetch_error_count + 1, next_fetch_at = now(), last_updated_at = now() WHERE normalized_url = $1` (backoff 곡선은 후속 change)
-- [ ] 2.6 `set_harvested` — `UPDATE bot_frontier SET pin_id = $2, last_updated_at = now() WHERE normalized_url = $1`
-- [ ] 2.7 `set_harvest_failed` — `UPDATE bot_frontier SET harvest_error_count = harvest_error_count + 1, next_harvest_at = now(), last_updated_at = now() WHERE normalized_url = $1`
-- [ ] 2.8 `make sqlc` (또는 동등 명령)으로 Go 코드 생성 확인
+- [ ] 2.1 `enqueue_pioneer` — `INSERT INTO pioneer_frontier (normalized_url, url, url_hash, host, depth, score) VALUES (...) ON CONFLICT (url_hash) DO NOTHING`. URL batch insert 지원
+- [ ] 2.2 `enqueue_harvester` — DECISIONS §8 UPSERT 규칙 적용: `ON CONFLICT (url_hash) DO UPDATE SET snapshot_key = EXCLUDED.snapshot_key, next_harvest_at = now(), harvest_error_count = 0 WHERE harvester_frontier.harvested_at IS NULL`
+- [ ] 2.3 `claim_pioneer_candidates` — `SELECT id, url, host FROM pioneer_frontier WHERE fetch_error_count < 5 AND next_fetch_at <= now() ORDER BY score DESC, next_fetch_at ASC LIMIT $1 FOR UPDATE SKIP LOCKED`
+- [ ] 2.4 `claim_harvester_candidates` — `SELECT id, url, host FROM harvester_frontier WHERE harvested_at IS NULL AND harvest_error_count < 5 AND next_harvest_at <= now() ORDER BY score DESC, next_harvest_at ASC LIMIT $1 FOR UPDATE SKIP LOCKED`
+- [ ] 2.5 `mark_pioneer_in_flight` — `UPDATE pioneer_frontier SET next_fetch_at = now() + interval '10 minutes', last_updated_at = now() WHERE id = $1`
+- [ ] 2.6 `mark_harvester_in_flight` — `UPDATE harvester_frontier SET next_harvest_at = now() + interval '10 minutes', last_updated_at = now() WHERE id = $1`
+- [ ] 2.7 `set_status_fetched` — `UPDATE pioneer_frontier SET last_fetched_at = now(), next_fetch_at = now() + interval '365 days', last_updated_at = now() WHERE url_hash = sha256($1::bytea)` (또는 normalized_url로 lookup)
+- [ ] 2.8 `set_status_fetch_failed` — `UPDATE pioneer_frontier SET last_updated_at = now() WHERE url_hash = ...` (error_count/next_fetch_at 갱신은 RecordFetchError 책임이므로 여기서는 마킹만)
+- [ ] 2.9 `set_status_harvested` — `UPDATE harvester_frontier SET harvested_at = now(), last_updated_at = now() WHERE url_hash = ... RETURNING id`
+- [ ] 2.10 `insert_harvester_frontier_pins` — `INSERT INTO harvester_frontier_pins (frontier_id, pin_id) VALUES ($1, UNNEST($2::bigint[]))` 또는 동등 batch INSERT
+- [ ] 2.11 `set_status_harvest_failed` — `UPDATE harvester_frontier SET last_updated_at = now() WHERE url_hash = ...`
+- [ ] 2.12 `record_fetch_error_http_4xx` — `UPDATE pioneer_frontier SET fetch_error_count = 5, last_updated_at = now() WHERE url_hash = ...` (즉시 dead)
+- [ ] 2.13 `record_fetch_error_transient` — `UPDATE pioneer_frontier SET fetch_error_count = fetch_error_count + 1, next_fetch_at = $2, last_updated_at = now() WHERE url_hash = ...` (next_fetch_at은 Go 측에서 backoff 공식으로 계산)
+- [ ] 2.14 `record_harvest_error_http_4xx` / `record_harvest_error_transient` — harvester 대응 쿼리
+- [ ] 2.15 `make sqlc` (또는 동등 명령)으로 Go 코드 생성 확인
 
 ## 3. URLScheduler Postgres 구현
 
-- [ ] 3.1 `postgres_scheduler.go` 에 `URLScheduler` interface 구현체 추가 — `pgxpool.Pool`(또는 프로젝트 표준 DB 핸들) 의존성 주입
-- [ ] 3.2 `Enqueue(urls ...string)` 구현 — 각 URL을 정규화한 뒤 batch upsert. 정규화 로직은 기존 helper 재사용 또는 placeholder
-- [ ] 3.3 `Dequeue(cond)` 구현 — `tryClaim(cond)` 헬퍼로 단발 SELECT 시도, 0 row 반환 시 `time.Sleep(1 * time.Second)` 후 재시도하는 무한 루프
-- [ ] 3.4 `tryClaim` 내부에서 트랜잭션 시작 → `FOR UPDATE SKIP LOCKED` SELECT → 즉시 in-flight marker UPDATE(예: `last_fetched_at = now()` for Pioneer, 또는 design.md의 권고에 따라 처리) → COMMIT → 잠긴 row의 URL 반환
-- [ ] 3.5 `SetStatus(key, status)` 구현 — status 문자열을 파싱하여 적절한 sqlc 호출로 분기 (`fetched`, `fetch_failed`, `harvested:<pin_id>`, `harvest_failed`). 알 수 없는 status는 에러 로깅 후 noop
-- [ ] 3.6 알 수 없는 `key`(존재하지 않는 normalized_url)에 대한 SetStatus 처리 — UPDATE의 RowsAffected 확인하여 0이면 warn 로그, panic 금지
+- [ ] 3.1 `postgres_scheduler.go` 에 `URLScheduler` interface 구현체 추가 — `pgxpool.Pool`(또는 프로젝트 표준 DB 핸들)와 `HostRateLimiter` 의존성 주입
+- [ ] 3.2 `Enqueue(queueType, urls...)` 구현 — queueType에 따라 `enqueue_pioneer` 또는 `enqueue_harvester` 쿼리 호출. 각 URL을 정규화·url_hash 계산 후 batch upsert
+- [ ] 3.3 `Dequeue(queueType)` 구현 — 내부 `tryClaim(queueType)` 호출 → 성공 시 URL 반환, 실패 시 `time.Sleep(1 * time.Second)` 후 재시도하는 무한 루프. 빈 큐/throttle 구분 없이 동일 sleep
+- [ ] 3.4 `tryClaim(queueType)` 구현 — (1) 트랜잭션 시작, (2) `SCHEDULER_CLAIM_CANDIDATE_N`(env, default 1) 만큼 `claim_*_candidates` 쿼리로 row 잠금, (3) 각 row의 host에 대해 `HostRateLimiter.Allow(host)` 호출, (4) 첫 true row에 대해 `mark_*_in_flight` 쿼리로 `next_*_at = now() + 10min` UPDATE, (5) COMMIT 후 winner URL 반환. 모두 false면 ROLLBACK 후 "not claimed" 반환
+- [ ] 3.5 `SetStatus(key, status, pinIDs)` 구현 — status로 분기:
+  - `StatusFetched`: `set_status_fetched` 호출
+  - `StatusFetchFailed`: `set_status_fetch_failed` 호출 (마킹만)
+  - `StatusHarvested`: 트랜잭션 내에서 `set_status_harvested` (RETURNING frontier_id) → `insert_harvester_frontier_pins(frontier_id, pinIDs)` 순차 실행. `pinIDs`가 비어 있으면 INSERT 스킵
+  - `StatusHarvestFailed`: `set_status_harvest_failed` 호출
+  - 알 수 없는 status: 에러 반환
+- [ ] 3.6 `RecordFetchError(key, errorKind)` 구현 — errorKind로 분기:
+  - `ErrorHTTP4xx`: `record_fetch_error_http_4xx` 호출 (즉시 error_count=5)
+  - `ErrorHTTP5xx` / `ErrorNetwork` / `ErrorTimeout`: 현재 error_count를 읽어 backoff 공식(`scheduler-retry-backoff`의 공식, 본 change 범위에서는 placeholder로 `now()` 또는 stub)으로 next_fetch_at 계산 후 `record_fetch_error_transient` 호출
+  - 알 수 없는 errorKind: 에러 반환
+- [ ] 3.7 `RecordHarvestError(key, errorKind)` 구현 — 3.6과 동일 구조, harvester 테이블 대상
+- [ ] 3.8 알 수 없는 `key`(존재하지 않는 url_hash)에 대한 SetStatus/RecordXxxError 처리 — UPDATE의 RowsAffected 확인하여 0이면 warn 로그, panic 금지
 
 ## 4. 단위 테스트
 
-- [ ] 4.1 `Enqueue` 멱등성 테스트 — 동일 URL 두 번 enqueue 후 frontier에 row 1개만 존재
+- [ ] 4.1 `Enqueue` 멱등성 테스트 — 동일 URL 두 번 enqueue 후 frontier에 row 1개만 존재 (pioneer/harvester 양쪽)
 - [ ] 4.2 `Enqueue` batch 테스트 — 가변인자 다중 URL 등록, 일부가 conflict여도 나머지 성공
-- [ ] 4.3 `Dequeue` linearizability 테스트 — goroutine 2개가 동일 조건으로 동시 호출 시 동일 normalized_url이 두 번 반환되지 않음
-- [ ] 4.4 `Dequeue` block-on-empty 테스트 — 빈 frontier에서 호출 시 즉시 반환하지 않고, 별도 goroutine이 enqueue하면 1~2초 이내에 반환
-- [ ] 4.5 `Dequeue` Pioneer/Harvester 조건 분리 테스트 — 같은 row가 Pioneer 조건엔 잡히고 Harvester 조건엔 안 잡히는 상태(예: fetched but not harvested)에서 정확한 분기 확인
-- [ ] 4.6 `SetStatus("fetched")` 후 동일 row가 Pioneer 조건의 다음 Dequeue에서 제외되는지 확인
-- [ ] 4.7 `SetStatus("harvested:<pin_id>")` 후 동일 row가 Harvester 조건의 다음 Dequeue에서 제외되는지 확인
-- [ ] 4.8 `SetStatus("fetch_failed")` 5회 호출 후 partial index에서 제외되는지 확인
-- [ ] 4.9 `SetStatus`에 알 수 없는 key 전달 시 panic 없이 noop/warn 처리되는지 확인
+- [ ] 4.3 `Enqueue` harvester UPSERT 테스트 — `harvested_at IS NOT NULL`인 row에 대한 재enqueue는 no-op, `harvested_at IS NULL`인 row는 snapshot_key·next_harvest_at 갱신
+- [ ] 4.4 `Dequeue` linearizability 테스트 — goroutine 2개가 동일 QueueType으로 동시 호출 시 동일 url_hash가 두 번 반환되지 않음
+- [ ] 4.5 `Dequeue` block-on-empty 테스트 — 빈 frontier에서 호출 시 즉시 반환하지 않고, 별도 goroutine이 enqueue하면 약 1~2초 이내 반환
+- [ ] 4.6 `Dequeue` host throttle 테스트 — `HostRateLimiter.Allow`가 항상 false를 반환하도록 mock하면 Dequeue가 block, true로 전환되면 다음 폴링에서 반환
+- [ ] 4.7 `Dequeue` top N 후보 테스트 — `SCHEDULER_CLAIM_CANDIDATE_N=3`으로 설정, head row host만 throttle 시 두 번째 row가 claim되는지 확인
+- [ ] 4.8 `Dequeue` Pioneer/Harvester enum 분리 테스트 — 같은 URL이 pioneer만 claimable한 상태에서 `QueueHarvester` Dequeue는 block, `QueuePioneer`는 즉시 반환
+- [ ] 4.9 `Dequeue` in-flight marker 테스트 — claim 직후 동일 row가 partial index에서 제외(`next_*_at > now()`)됨을 확인
+- [ ] 4.10 `Dequeue` lease 만료 회수 테스트 — claim 후 consumer가 SetStatus를 호출하지 않고 10분 경과 시(테스트에서는 clock skew 주입) 다시 claim 가능
+- [ ] 4.11 `SetStatus("fetched")` 후 동일 row가 Pioneer Dequeue에서 제외(`next_fetch_at = now() + 365 days`) 확인
+- [ ] 4.12 `SetStatus("harvested", pinIDs)` 원자성 테스트 — `harvester_frontier.harvested_at` 갱신과 `harvester_frontier_pins` INSERT가 동일 트랜잭션에서 실행, 중간 실패 시 둘 다 롤백
+- [ ] 4.13 `SetStatus("harvested", [])` 빈 pinIDs 테스트 — harvested_at만 갱신되고 pins INSERT는 스킵
+- [ ] 4.14 `RecordFetchError("http_4xx")` 테스트 — `fetch_error_count`가 즉시 5로 설정, partial index에서 제외
+- [ ] 4.15 `RecordFetchError("http_5xx"|"network"|"timeout")` 테스트 — `fetch_error_count`가 1 증가, `next_fetch_at`가 갱신 (backoff 공식 stub은 허용)
+- [ ] 4.16 Consumer 호출 규약 테스트 — 실패 시 `SetStatus(fetch_failed, nil)` + `RecordFetchError(errorKind)` 둘 다 호출 시 error_count 증가가 1회만 발생하는지 확인(SetStatus가 count 증가시키지 않음)
+- [ ] 4.17 `SetStatus`/`RecordXxxError`에 알 수 없는 key 전달 시 panic 없이 warn 로깅
+- [ ] 4.18 알 수 없는 status 또는 errorKind 전달 시 에러 반환
 
 ## 5. 통합 테스트
 
-- [ ] 5.1 docker-compose Postgres 인스턴스에서 마이그레이션(`bot_frontier`) 적용 후 위 단위 테스트 통과
-- [ ] 5.2 EXPLAIN으로 `claim_pioneer` 쿼리가 `bot_frontier_pioneer_claimable_idx`를 사용하는지 확인
-- [ ] 5.3 EXPLAIN으로 `claim_harvester` 쿼리가 `bot_frontier_harvester_claimable_idx`를 사용하는지 확인
+- [ ] 5.1 docker-compose Postgres 인스턴스에서 `scheduler-frontier-table` 마이그레이션 적용 후 위 단위 테스트 통과
+- [ ] 5.2 EXPLAIN으로 `claim_pioneer_candidates` 쿼리가 pioneer 쪽 partial index를 사용하는지 확인 (DECISIONS §1의 `WHERE fetch_error_count < 5 ORDER BY score DESC, next_fetch_at ASC`)
+- [ ] 5.3 EXPLAIN으로 `claim_harvester_candidates` 쿼리가 harvester 쪽 partial index를 사용하는지 확인 (DECISIONS §1의 `WHERE harvested_at IS NULL AND harvest_error_count < 5 ORDER BY score DESC, next_harvest_at ASC`)
+- [ ] 5.4 두 프로세스(또는 goroutine 풀) 동시 Dequeue 부하 테스트 — claim 중복 없음, host throttle 준수, lease 회수 정상 동작
 
 ## 6. 의사코드 정리 (호출부 미수정 원칙 유지)
 
 - [ ] 6.1 `apps/api/fuguebot_pseudo.go`의 `URLPriorityQueue` 타입 옆에 `// Deprecated: use scheduler.URLScheduler` 주석 추가
-- [ ] 6.2 `URLPriorityQueue.Dequeue(string)` 호출 부분(`p.pq.Dequeue("not-visited")` 등)에 후속 change에서 `URLScheduler.Dequeue(PioneerClaimable)` 등으로 교체될 예정임을 주석으로 표기
+- [ ] 6.2 `URLPriorityQueue.Dequeue(string)` 호출 부분에 후속 change에서 `URLScheduler.Dequeue(QueuePioneer|QueueHarvester)` 등으로 교체될 예정임을 주석으로 표기
 - [ ] 6.3 본 change에서는 Pioneer/Harvester worker 진입점(`Run()`) 코드를 변경하지 않음을 PR 설명에 명시
 
 ## 7. 문서
 
-- [ ] 7.1 `docs/architecture.md`의 bot 섹션에 `URLScheduler` interface 1단락 추가 (메서드, linearizable, block-on-empty, queryCondition 의미 요약)
+- [ ] 7.1 `docs/architecture.md`의 bot 섹션에 `URLScheduler` interface 1단락 추가 (메서드, QueueType, linearizable, block-on-empty, host throttle 통합 요약)
 - [ ] 7.2 후속 change 로드맵에 `harvester-scheduler-consumer`, Pioneer 측 호출부 마이그레이션, `scheduler-retry-backoff`, `scheduler-host-token-bucket` 연결 명시
 
 ## 8. 검증
