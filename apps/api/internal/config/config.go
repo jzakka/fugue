@@ -32,6 +32,11 @@ type Config struct {
 	SchedulerHostDefaultRatePerSec  float64
 	SchedulerHostDefaultBurst       int
 	SchedulerHostTokenBucketEnabled bool
+
+	// Pioneer raw-HTML snapshot storage (per pioneer-snapshot-storage spec).
+	// When false (default), Pioneer skips the object-storage upload on
+	// fetch success but still performs link extraction normally.
+	PioneerSnapshotEnabled bool
 }
 
 func Load() (*Config, error) {
@@ -85,6 +90,8 @@ func Load() (*Config, error) {
 		SchedulerHostDefaultRatePerSec:  envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
 		SchedulerHostDefaultBurst:       envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
 		SchedulerHostTokenBucketEnabled: envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
+
+		PioneerSnapshotEnabled: envBool("PIONEER_SNAPSHOT_ENABLED", false),
 	}, nil
 }
 

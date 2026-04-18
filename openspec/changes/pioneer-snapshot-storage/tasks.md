@@ -1,9 +1,10 @@
 ## 1. 인프라 및 설정
 
-- [ ] 1.1 운영 환경에서 **단일 bucket + `snapshots/` prefix로 통합 여부 확정** (스냅샷 전용 bucket vs 기존 미디어 bucket 공유) 및 terraform/helm 반영
-- [ ] 1.2 `snapshots/` prefix에 TTL 365일 lifecycle rule 추가 (365일 경과 객체 삭제)
-- [ ] 1.3 Pioneer 서비스의 IAM/자격 증명에 `PutObject` 권한 부여 (해당 prefix 한정)
-- [ ] 1.4 feature flag `PIONEER_SNAPSHOT_ENABLED` 환경변수/컨피그 도입 (기본값 off)
+- [ ] 1.1 (결정) 단일 bucket + `snapshots/` prefix 통합 여부 확정 (스냅샷 전용 bucket vs 기존 미디어 bucket 공유). 1.2/1.3은 본 결정에 의존하므로 1.1 완료 후 진행
+- [ ] 1.2 (적용) 1.1 결정 결과를 terraform/helm에 반영
+- [ ] 1.3 `snapshots/` prefix에 TTL 365일 lifecycle rule 추가 (365일 경과 객체 삭제)
+- [ ] 1.4 Pioneer 서비스의 IAM/자격 증명에 `PutObject` 권한 부여 (해당 prefix 한정)
+- [ ] 1.5 feature flag `PIONEER_SNAPSHOT_ENABLED` 환경변수/컨피그 도입 (기본값 off)
 
 ## 2. 스냅샷 저장 컴포넌트 구현
 
@@ -26,9 +27,10 @@
 - [ ] 4.1 단위 테스트: 키 빌더(동일 normalized URL → 동일 sha256 hex 64자, UTC 날짜 포맷, `SnapshotKeyPattern`과 일치)
 - [ ] 4.2 단위 테스트: gzip 압축 래퍼(원문 바이트 복원 가능, gzip CRC로 손상 검증)
 - [ ] 4.3 단위 테스트: fetch 실패(4xx/5xx/타임아웃/빈 본문)에서 업로드 미호출
-- [ ] 4.4 단위 테스트: SnapshotStore Put 실패 시 Pioneer가 링크 추출을 계속 수행
-- [ ] 4.5 통합 테스트(로컬 S3 mock): 2xx 수신 → 업로드된 객체 키/본문/압축 확인
-- [ ] 4.6 통합 테스트: **동시 쓰기 idempotent 확인** — 동일 URL을 같은 UTC 날짜에 두 번(또는 병렬로) 저장 시 동일 키에 덮어쓰기 수행, 최종 객체는 마지막 PUT 내용(last-write-wins)
+- [ ] 4.4 단위 테스트: feature flag off 상태에서 업로드 미호출 — fetch/링크 추출/스케줄러 업데이트는 정상 수행
+- [ ] 4.5 단위 테스트: SnapshotStore Put 실패 시 Pioneer가 링크 추출을 계속 수행
+- [ ] 4.6 통합 테스트(로컬 S3 mock): 2xx 수신 → 업로드된 객체 키/본문/압축 확인
+- [ ] 4.7 통합 테스트: **동시 쓰기 idempotent 확인** — 동일 URL을 같은 UTC 날짜에 두 번(또는 병렬로) 저장 시 동일 키에 덮어쓰기 수행, 최종 객체는 마지막 PUT 내용(last-write-wins)
 
 ## 5. 관측성
 
@@ -42,3 +44,4 @@
 - [ ] 6.2 운영 환경에 feature flag on으로 점진 롤아웃
 - [ ] 6.3 후속 change `harvester-snapshot-first-fetch`에 키 규칙/TTL/압축 포맷을 문서로 넘김
 - [ ] 6.4 롤백 절차 문서화: feature flag off로 업로드 중단, 저장된 스냅샷은 TTL 자연 소멸
+- [ ] 6.5 `harvester-snapshot-first-fetch` 배포 완료 후 `PIONEER_SNAPSHOT_ENABLED` 영구화 여부 결정(운영 toggle 유지 vs 제거)을 내리고 기록 (design.md Open Question 해소)

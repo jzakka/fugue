@@ -61,6 +61,14 @@ spec:
                     configMapKeyRef:
                       name: {{ include "fugue.fullname" . }}-config
                       key: s3-public-url
+                # Pioneer raw-HTML snapshot storage (openspec: pioneer-snapshot-storage).
+                # Infra decision: reuse the shared media bucket (S3_BUCKET) with
+                # a `snapshots/` prefix. Apply a 365-day object lifecycle rule
+                # scoped to that prefix in the bucket's lifecycle configuration;
+                # grant this CronJob's IAM principal PutObject on
+                # `arn:aws:s3:::${S3_BUCKET}/snapshots/*`. Flag is off by default.
+                - name: PIONEER_SNAPSHOT_ENABLED
+                  value: {{ .Values.bot.pioneerSnapshotEnabled | default "false" | quote }}
                 - name: UNSPLASH_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:

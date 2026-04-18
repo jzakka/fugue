@@ -29,6 +29,24 @@ type PioneerConfig struct {
 }
 
 // Pioneer explores sites and generates parsing scripts
+// SnapshotSaver is the hook Pioneer calls after a successful fetch to
+// persist the raw HTML response to object storage (see
+// openspec change pioneer-snapshot-storage). Errors are logged by the
+// implementation; Pioneer ignores the return value to remain fail-open.
+// Implementations must be safe for concurrent use.
+type SnapshotSaver interface {
+	SaveRawContent(ctx context.Context, normalizedURL string, body []byte) error
+}
+
+// noopSnapshotSaver is used when PIONEER_SNAPSHOT_ENABLED is off or when
+// no saver is wired. Keeping a non-nil default lets the BFS loop call the
+// hook unconditionally without nil checks.
+type noopSnapshotSaver struct{}
+
+func (noopSnapshotSaver) SaveRawContent(context.Context, string, []byte) error {
+	return nil
+}
+
 type Pioneer struct {
 	siteRepo   SiteRepository
 	graphRepo  GraphRepository
@@ -36,6 +54,7 @@ type Pioneer struct {
 	aiClient   AIClient
 	executor   ScriptExecutor
 	config     PioneerConfig
+	snapshot   SnapshotSaver
 }
 
 // NewPioneer creates a new Pioneer service
@@ -54,7 +73,19 @@ func NewPioneer(
 		aiClient:   aiClient,
 		executor:   executor,
 		config:     config,
+		snapshot:   noopSnapshotSaver{},
 	}
+}
+
+// WithSnapshotSaver wires a snapshot saver into Pioneer. The caller is
+// responsible for choosing between a real saver (PIONEER_SNAPSHOT_ENABLED=true)
+// and a no-op implementation based on feature-flag state.
+func (p *Pioneer) WithSnapshotSaver(s SnapshotSaver) *Pioneer {
+	if s == nil {
+		s = noopSnapshotSaver{}
+	}
+	p.snapshot = s
+	return p
 }
 
 // Run executes a full pioneer crawl for a site
@@ -130,11 +161,23 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		// Fetch HTML (with timeout)
 		html, finalURL, fetchErr := p.fetchHTML(ctx, item.URL)
 		if fetchErr != nil {
-			// Log error but continue
+			// Log error but continue. Note: we do NOT call SaveRawContent
+			// for fetch failures (network error / non-2xx) — the spec
+			// restricts uploads to 2xx + non-empty body.
 			fmt.Printf("Error fetching %s: %v\n", item.URL, fetchErr)
 			continue
 		}
 		fmt.Printf("✅ Fetched %d bytes (final: %s)\n", len(html), finalURL)
+
+		// Snapshot raw HTML to object storage (fail-open). Only 2xx + body
+		// reach this point because fetchHTML returns an error for non-2xx
+		// responses; the len(html) > 0 check below enforces the "body > 0"
+		// half of the "fetch success" predicate from the spec. Upload
+		// errors are swallowed here so the crawl continues and the
+		// scheduler's status for this URL is unaffected.
+		if len(html) > 0 {
+			_ = p.snapshot.SaveRawContent(ctx, pioneerSnapshotKey(finalURL), []byte(html))
+		}
 
 		// Classify node type using the final URL after redirects
 		nodeType := classifyURL(finalURL)
@@ -556,3 +599,29 @@ func estimateItemCount(html string) int {
 }
 
 // Helper: extract links from HTML
+
+// pioneerSnapshotKey returns the URL string used as input to the snapshot
+// key builder. It applies the minimal canonicalization shared with the
+// scheduler (lowercased scheme/host, fragment stripped, default ports
+// removed) so Pioneer (writer) and Harvester (reader) compute the same
+// sha256 hex for the same URL. This is intentionally a thin helper; any
+// future evolution of the bot's URL normalization should update both the
+// scheduler and this helper together so the snapshot key contract holds.
+func pioneerSnapshotKey(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return raw
+	}
+	u.Scheme = strings.ToLower(u.Scheme)
+	u.Host = strings.ToLower(u.Host)
+	u.Fragment = ""
+	if (u.Scheme == "http" && strings.HasSuffix(u.Host, ":80")) ||
+		(u.Scheme == "https" && strings.HasSuffix(u.Host, ":443")) {
+		u.Host = strings.SplitN(u.Host, ":", 2)[0]
+	}
+	return u.String()
+}

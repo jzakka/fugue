@@ -74,7 +74,7 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 - object storage `Put` 실패는 경고 로그 + 메트릭 카운터만 남기고 Pioneer 루프는 링크 처리로 계속 진행한다.
 - 트랜잭션/재시도 큐 없음. 다음 크롤 세션에서 자연스럽게 재작성된다.
 
-**대안:** 실패 시 재시도 큐 — 구조 복잡도 증가. 스냅샷은 best-effort 자료로 정의하고 Harvester도 스냅샷 부재 시 HTTP fallback을 전제로 한다(`harvester-snapshot-first-fetch`에서 정의).
+**대안:** 실패 시 재시도 큐 — 구조 복잡도 증가. 본 change는 스냅샷을 best-effort 자료로만 정의한다. 부재·손상 시의 소비자 fallback 정책은 후속 change `harvester-snapshot-first-fetch`에서 확정한다.
 
 ### Decision 5: TTL 365일 — 버킷 lifecycle rule로 관리
 
@@ -90,13 +90,13 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 - 애플리케이션 레벨에서 lock, If-Match/If-None-Match 헤더, versioning 사용 안 함.
 - 근거: 같은 URL의 같은 날 스냅샷은 내용이 거의 같고, Harvester가 요구하는 것은 "그날의 HTML 한 벌"이지 특정 워커의 결과물이 아니다. 일관성보다 단순성이 우선.
 
-### Decision 7: checksum 검증 — gzip CRC만 사용
+### Decision 7: checksum 검증 — Pioneer 측은 별도 검증을 두지 않는다
 
-- object storage에 업로드 전/후 별도 MD5/SHA checksum 비교를 수행하지 않는다.
-- 압축 시 gzip 포맷 자체가 trailer에 CRC-32를 포함하므로, Harvester가 읽어 gunzip할 때 손상이 자연스럽게 드러난다.
-- 손상 감지 시 Harvester는 snapshot miss로 취급하고 HTTP fallback한다(fail-open 정책과 일관).
+- Pioneer는 object storage 업로드 전/후 별도 MD5/SHA checksum 비교를 수행하지 않는다.
+- gzip 포맷 자체가 trailer에 CRC-32를 포함하므로, 저장 형식 자체에 손상 감지 수단이 이미 내재한다.
+- 소비자(Harvester)가 손상을 감지했을 때의 fallback 정책(예: snapshot miss 취급 + HTTP fallback)은 **본 change의 책임 범위 밖**이며 후속 change `harvester-snapshot-first-fetch`에서 정의한다. 본 change는 해당 소비자 동작을 선결정하지 않는다.
 
-**대안:** S3 `Content-MD5` 헤더 + 서버측 검증 — 구현 비용 대비 이득 제한적. 실패해도 HTTP fallback이 있으므로 불필요.
+**대안:** S3 `Content-MD5` 헤더 + 서버측 검증 — 구현 비용 대비 이득 제한적. 저장 형식(gzip trailer CRC)이 이미 손상 감지 수단을 제공하므로 Pioneer 측 추가 검증은 불필요.
 
 ## Risks / Trade-offs
 
@@ -116,6 +116,6 @@ Pioneer는 `URLScheduler` consumer로서 큐에서 URL을 꺼내 fetch한 뒤, r
 
 ## Open Questions
 
-- ~~해시 함수 선택(sha256 prefix vs xxh3)과 prefix 길이~~ — **해결**: sha256 hex 64자 전체 사용 (Decision 1a). `crypto/sha256` 표준 라이브러리, 의존성 추가 없음, URL 문자열 해싱 속도 충분, prefix 자르기 없음(충돌 방지).
-- feature flag의 영구화 여부: 장기적으로 on-by-default 이후 삭제할지, 운영 toggle로 유지할지.
+- (해결 완료) 해시 함수 선택(sha256 prefix vs xxh3)과 prefix 길이 → Decision 1a 참조.
+- feature flag의 영구화 여부: 장기적으로 on-by-default 이후 삭제할지, 운영 toggle로 유지할지. **결정 시점**: `harvester-snapshot-first-fetch` 배포 완료 후 본 change의 롤아웃 마감 단계(tasks 6)에서 결정 기록 남긴다.
 - 버킷 선택: 기존 미디어 버킷과 동일 물리 bucket + prefix 분리로 갈지, 전용 bucket을 만들지(IAM/lifecycle 분리 편의). **운영 시점 결정**(terraform/helm에서 확정). 본 change의 키 규칙(`snapshots/` prefix)은 두 선택지 모두와 호환.

@@ -27,7 +27,7 @@ _(없음)_
 
 ## Impact
 
-- **코드 변경**: `apps/api/internal/bot/pioneer.go` (또는 동등한 Pioneer 진입점)에서 fetch 성공 후 스냅샷 저장 훅 추가. `fuguebot_pseudo.go`의 `SaveRawContent` 상응 지점.
+- **코드 변경**: Pioneer의 fetch 성공 후크 지점에 스냅샷 저장 단계를 추가한다(현 스케치: `apps/api/fuguebot_pseudo.go`의 `SaveRawContent` 상응 지점, 실제 위치는 구현 시 Pioneer 진입점에 결정).
 - **새 의존성**: object storage 클라이언트(S3 호환) 접근 경로. 기존 미디어 업로드 경로와 bucket/자격 증명을 공유 가능성이 높음.
 - **설정**: 스냅샷 전용 bucket/prefix, TTL(365일) lifecycle rule, 스냅샷 on/off feature flag.
 - **관측성**: 스냅샷 저장 성공/실패 카운터, 업로드 지연 로그.
