@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -26,6 +27,11 @@ type Config struct {
 	S3AccessKey         string
 	S3SecretKey         string
 	S3PublicURL         string
+
+	// Scheduler host token bucket (per scheduler-host-token-bucket spec).
+	SchedulerHostDefaultRatePerSec  float64
+	SchedulerHostDefaultBurst       int
+	SchedulerHostTokenBucketEnabled bool
 }
 
 func Load() (*Config, error) {
@@ -75,7 +81,47 @@ func Load() (*Config, error) {
 		S3AccessKey:         envOrDefault("S3_ACCESS_KEY", "fugue"),
 		S3SecretKey:         envOrDefault("S3_SECRET_KEY", "fuguedev123"),
 		S3PublicURL:         envOrDefault("S3_PUBLIC_URL", "http://localhost:9000/fugue-media"),
+
+		SchedulerHostDefaultRatePerSec:  envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
+		SchedulerHostDefaultBurst:       envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
+		SchedulerHostTokenBucketEnabled: envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
 	}, nil
+}
+
+func envFloat(key string, fallback float64) float64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return fallback
+	}
+	return f
+}
+
+func envInt(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		return fallback
+	}
+	return n
+}
+
+func envBool(key string, fallback bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return fallback
+	}
+	return b
 }
 
 func (c *Config) IsDevMode() bool {

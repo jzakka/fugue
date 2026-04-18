@@ -272,6 +272,25 @@ Pioneer의 한 fetch 결과는 (a) 새 링크 N개 → `pioneer_frontier` 재enq
 - `scheduler-retry-backoff`: `fetch_error_count` / `harvest_error_count`에 따른 `next_*_at` exponential backoff 공식.
 - `scheduler-host-token-bucket`: host별 동시 요청 제어(토큰 버킷) — `host` 컬럼을 키로 사용.
 
+### Host Token Bucket (politeness)
+
+`apps/api/internal/scheduler/host_rate_limiter.go`의 `HostRateLimiter`는 호스트별 token bucket을 인메모리(`map[string]*rate.Limiter` + `sync.RWMutex`)로 유지한다. 두 메서드만 외부에 노출한다.
+
+- `Allow(host string) bool`: 토큰이 있으면 1개 소비하고 true, 없으면 false. 처음 보는 호스트는 운영자 설정 기본값으로 lazy 생성된다. 비활성화 상태(`SCHEDULER_HOST_TOKEN_BUCKET_ENABLED=false`)에서는 항상 true를 반환하며 bucket 상태를 변경하지 않는다.
+- `SetHostRate(host string, rate float64, burst int)`: 호스트의 rate/burst를 즉시 교체. `rate <= 0` 또는 `burst <= 0` 입력은 운영자 설정 기본값(미설정 시 공장 기본값 1 req/sec, burst 5)으로 대체하고 WARN 로그를 남긴다. 에러 반환/패닉 없음.
+
+설정 키:
+
+| 키 | 환경변수 | 기본값 |
+|---|---|---|
+| `scheduler.host_default_rate_per_sec` | `SCHEDULER_HOST_DEFAULT_RATE_PER_SEC` | `1.0` |
+| `scheduler.host_default_burst` | `SCHEDULER_HOST_DEFAULT_BURST` | `5` |
+| `scheduler.host_token_bucket_enabled` | `SCHEDULER_HOST_TOKEN_BUCKET_ENABLED` | `true` |
+
+claim 시점에 `Allow`를 호출하는 dequeue 패턴(상위 N개 후보를 가져와 host별 검사, 모든 후보 blocked 시 sleep)은 본 모듈이 아니라 `scheduler-claim-api`의 책임이다. robots.txt Crawl-delay → `SetHostRate` 호출은 `pioneer-link-filter-policy`의 책임이다.
+
+> **운영 주의**: 토큰 상태는 프로세스별 인메모리이므로 외부 사이트가 보는 실효 rate ≈ **(scheduler 프로세스 수) × (호스트 rate)**. 동일 호스트로의 합산 요청률을 1 req/sec로 제한하고 싶다면 (a) 단일 프로세스 운영 또는 (b) 프로세스 수를 N으로 줄이고 `SCHEDULER_HOST_DEFAULT_RATE_PER_SEC = 1/N`로 설정 또는 (c) 호스트별 `SetHostRate(host, 1/N, ...)` 호출이 필요하다. 운영 중 문제 발생 시 `SCHEDULER_HOST_TOKEN_BUCKET_ENABLED=false`로 즉시 롤백 가능하다.
+
 ## 인프라
 
 tech-stack.md 참조. Terraform + EKS + ArgoCD.

@@ -9,14 +9,14 @@
 ## Goals / Non-Goals
 
 **Goals:**
-- 호스트별 token bucket으로 claim 시점 politeness를 강제한다.
-- 한 호스트가 token 부족이면 다른 호스트의 후보로 즉시 fallback하여 처리량 손실을 최소화한다.
-- 모든 후보가 blocked일 때의 동작(busy-wait sleep)을 명확히 정의한다.
-- 기본 rate/burst와 호스트별 override(특히 robots.txt Crawl-delay) 인터페이스를 정의한다.
+- 호스트별 token bucket의 행위 계약(허용-여부 질의 동작, 호스트 rate/burst 설정 동작)을 정의한다.
+- 기본 rate/burst와 호스트별 override(특히 robots.txt Crawl-delay) 진입점을 정의한다.
+- 운영 롤백 수단으로서 token bucket 검사 비활성화 설정의 행위 계약을 정의한다.
 
 **Non-Goals:**
 - robots.txt 자체의 fetch/파싱 — `pioneer-link-filter-policy` 범위.
 - URLScheduler Go interface 시그니처 정의 — `scheduler-claim-api` 범위.
+- claim 시점의 후보 iteration(상위 N개 후보에 대한 host 허용-여부 검사 패턴)과 모든 후보 blocked 시 sleep/backoff 동작 — `scheduler-claim-api` 범위.
 - frontier 테이블 컬럼/인덱스 — `scheduler-frontier-table` 범위.
 - 프로세스 간 token 조율(분산 rate limit) — 본 change에서는 명시적으로 제외.
 - 호스트별 동시 inflight 카운트 제한(semaphore 류) — token bucket과 별도 개념이며 본 change 범위 외.
@@ -52,32 +52,13 @@
 - `sync.Map`은 Limiter 포인터 lazy 생성 패턴에서 race 처리가 번거로움.
 - 메모리 회수: 일정 시간 미사용 호스트의 Limiter를 GC하는 정책은 본 change 범위 외(메모 수준으로 Open Question에 기록).
 
-### Decision 3: claim 흐름에서의 token 체크 위치
+### Decision 3: 호출 패턴(참고용, 본 change 범위 외)
 
-**선택**: URLScheduler가 frontier에서 후보 N개를 score 순으로 가져온 뒤, 각 후보에 대해 host bucket의 `Allow()`를 호출. 통과한 첫 후보를 claim한다. 통과 후보가 없으면 짧은 sleep 후 재시도.
+**참고**: claim 흐름에서 본 change가 정의한 허용-여부 질의 동작이 어떻게 호출되는지(예: 상위 N개 후보를 score 순으로 가져와 각 후보의 host에 허용-여부 질의를 호출하고 첫 통과 후보를 claim, 통과 후보가 없으면 짧은 sleep)는 `scheduler-claim-api` change의 Claim 프로토콜에서 정의된다. 본 design은 호출 패턴을 결정하지 않으며, 본 capability는 두 메서드의 행위 계약만 제공한다.
 
-**대안**:
-- (A) DB 쿼리에서 host별 가용 row만 SELECT (host당 throttle을 SQL로 표현)
-- (B) 후보 N개를 가져와 application에서 필터 (채택)
-- (C) host bucket의 `Reserve()`로 대기 시각을 받아 가장 빨리 가능한 host 선택
+### Decision 4: 모든 후보 blocked 시 동작(참고용, 본 change 범위 외)
 
-**근거**:
-- (A)는 host bucket 상태가 인메모리이므로 SQL로 노출하기 어렵고, 프로세스별로 상태가 달라 단일 쿼리 표현이 부자연스럽다.
-- (B)는 frontier가 score 우선순위 정렬을 이미 보장하므로, 상위 N개 안에서 host 다양성이 어느 정도 확보되면 처리량 손실이 작다. N은 설정값(예: 16~64).
-- (C)는 정확한 wait 계산은 가능하나 dequeue 호출자에게 wait 책임을 떠넘겨 코드 복잡도가 증가. 본 change는 단순화를 위해 `Allow()` 기반의 try/skip 모델 채택.
-
-### Decision 4: 모든 후보 blocked 시 동작
-
-**선택**: 후보 N개가 모두 token 부족이면 짧은 시간(기본 100ms) sleep 후 다시 frontier를 조회한다. 이 sleep은 설정 가능하며, 상한(예: 1s)을 두어 polling 간격이 무한히 늘어나지 않게 한다.
-
-**대안**:
-- (A) Exponential backoff (100ms → 200ms → … → 1s)
-- (B) 고정 sleep (채택, 단순)
-- (C) `Reserve()` 기반의 가장 빠른 wait 시각까지 정확히 sleep
-
-**근거**:
-- 본 change 범위에서는 단순성을 우선. Exponential backoff는 운영 데이터로 필요성이 확인되면 후속에서 도입.
-- (C)는 Decision 3의 `Allow()` 모델과 충돌. 후속 개선 후보로 Open Questions에 기록.
+**참고**: 모든 후보 host가 token 부족일 때의 sleep/backoff/Reserve 모델 선택은 `scheduler-claim-api`의 책임이다. 본 capability는 sleep 자체를 정의하지 않으며 관련 설정 키도 정의하지 않는다. 본 design에서는 의사결정 기록을 두지 않고 claim-api 쪽에서 다룬다.
 
 ### Decision 5: 기본 rate/burst와 설정 surface, Go 시그니처
 
@@ -97,11 +78,12 @@
 
 ### Decision 5a: rate/burst 유효성 정책
 
-**선택**: `SetHostRate`에 `rate <= 0` 또는 `burst <= 0`이 들어오면 해당 호스트 bucket을 **기본값(1 req/sec, burst 5)으로 생성/대체**하고 **경고 로그**(`WARN`)를 남긴다. 서비스는 중단되지 않고 호출자에게 에러를 반환하지도 않는다(void 시그니처 유지).
+**선택**: `SetHostRate`에 `rate <= 0` 또는 `burst <= 0`이 들어오면 해당 호스트 bucket을 **현재 운영자 설정 기본값**(`scheduler.host_default_rate_per_sec`, `scheduler.host_default_burst`)으로 생성/대체하고 **경고 로그**(`WARN`)를 남긴다. 운영자가 별도 설정을 하지 않은 경우 공장 기본값(1 req/sec, burst 5)이 적용된다. 서비스는 중단되지 않고 호출자에게 에러를 반환하지도 않는다(void 시그니처 유지).
 
 **근거**:
 - 잘못된 robots.txt 값(`Crawl-delay: 0`, 음수 등)이나 운영자 실수로 인한 입력이 크롤링 파이프라인을 중단시키지 않도록 안전 기본값을 적용.
 - 호출부(Pioneer)가 정상/비정상 분기 로직을 가질 필요 없이 단순하게 scheduler에 값을 위임할 수 있음.
+- 운영자가 default를 더 보수적으로(예: 0.5 rps) 변경한 환경에서는 그 보수적 값이 fallback으로도 적용되는 것이 안전.
 - 경고 로그는 운영 분석에서 잘못된 입력 패턴을 발견하는 용도.
 
 **대안 기각**:
@@ -132,13 +114,12 @@
 
 - **프로세스 간 조율 없음** → 외부 사이트가 보는 실효 rate는 프로세스 수 × 호스트 rate. → 운영자가 프로세스 수와 rate를 함께 튜닝. 보수적 디폴트(1 req/sec)와 호스트 override로 완화. 분산 조율은 후속 change(`scheduler-distributed-rate-limit` 등)에서 검토.
 - **Limiter 메모리 누수 가능** → 한 번 본 호스트의 Limiter는 영구 보유. 호스트 다양성이 큰 환경에서 메모리 증가. → 본 change 범위 외이며 Open Question에 기록. 운영 모니터링 후 LRU/TTL 정리 정책 추가.
-- **모든 후보 blocked 시 처리량 손실** → host 다양성이 낮은 frontier(특정 사이트 집중) 상황에서 sleep 비중 증가. → N(후보 개수)을 늘리거나, host별 quota를 frontier 쿼리에서 일부 다양화하는 후속 개선 가능.
-- **busy-wait sleep의 CPU/DB 부담** → sleep 100ms 단위 polling이 다수 워커에서 발생하면 frontier 쿼리가 누적. → sleep 상한(1s)과 워커 수 운영으로 완화.
-- **`Allow()` 기반 try/skip의 우선순위 왜곡** → 최상위 score 후보가 host blocked이면 차상위 후보가 먼저 처리되어 score 정렬이 일시적으로 깨짐. → 의도된 trade-off. 정확한 score 보장이 필요한 경우 후속에서 `Reserve()` 모델로 전환 검토.
+- **유효성 대체 시 운영자가 변경한 default와 공장 기본값의 혼동 가능** → 운영자가 default를 변경한 환경에서 잘못된 입력이 들어오면 변경된 default가 적용된다. 로그에는 어떤 값으로 대체되었는지 명시 필요.
+- **claim 흐름 관련 risk(모든 후보 blocked 시 처리량 손실, busy-wait sleep의 CPU/DB 부담, try/skip의 우선순위 왜곡)** → 본 change의 행위 계약(`Allow`/`SetHostRate`)만으로는 발생하지 않으며, `scheduler-claim-api`의 dequeue 호출 패턴이 정의될 때 비로소 나타나는 후속 risk이다. 본 design에서는 다루지 않는다.
 
 ## Migration Plan
 
-1. 본 change는 `scheduler-claim-api`의 URLScheduler 구현 일부로 동작한다. 본 change 단독으로는 사용처가 없으며, 후속 change에서 dequeue 호출 경로에 host bucket 검사를 삽입한다.
+1. 본 change는 호스트별 token bucket의 행위 계약을 제공한다. claim 경로에서의 허용-여부 질의 호출은 `scheduler-claim-api` change에서 통합되며, robots.txt Crawl-delay 파싱 결과를 호스트 rate/burst로 surface하는 호출은 `pioneer-link-filter-policy` change에서 통합된다.
 2. `golang.org/x/time/rate` 의존성을 `go.mod`에 추가.
 3. 기본 rate/burst 설정값을 환경변수 또는 config 파일에 노출. 기본값(1 rps, burst 5)으로 시작.
 4. Pioneer가 robots.txt 파싱 결과를 가지고 `SetHostRate`를 호출하는 통합은 `pioneer-link-filter-policy` change와 짧게 묶어 진행.
