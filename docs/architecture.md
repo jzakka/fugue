@@ -291,6 +291,48 @@ claim 시점에 `Allow`를 호출하는 dequeue 패턴(상위 N개 후보를 가
 
 > **운영 주의**: 토큰 상태는 프로세스별 인메모리이므로 외부 사이트가 보는 실효 rate ≈ **(scheduler 프로세스 수) × (호스트 rate)**. 동일 호스트로의 합산 요청률을 1 req/sec로 제한하고 싶다면 (a) 단일 프로세스 운영 또는 (b) 프로세스 수를 N으로 줄이고 `SCHEDULER_HOST_DEFAULT_RATE_PER_SEC = 1/N`로 설정 또는 (c) 호스트별 `SetHostRate(host, 1/N, ...)` 호출이 필요하다. 운영 중 문제 발생 시 `SCHEDULER_HOST_TOKEN_BUCKET_ENABLED=false`로 즉시 롤백 가능하다.
 
+### 실패 보고 & 재시도 backoff
+
+OpenSpec change `scheduler-retry-backoff`가 정의하는 정책. `URLScheduler.RecordFetchError(key, errorKind)` / `RecordHarvestError(key, errorKind)`가 실패 경로를 담당하며, 성공 경로(`fetch_error_count = 0` reset)는 `scheduler-claim-api`의 `SetStatus`가 담당한다.
+
+**errorKind enum**: `"http_4xx"`, `"http_5xx"`, `"network"`, `"timeout"`. 열거 외 값은 에러 반환(row 무변경).
+
+**4xx 즉시 dead 정책**: `errorKind == "http_4xx"`인 경우 `fetch_error_count` / `harvest_error_count`를 공식 적용 없이 즉시 5로 설정한다. `next_*_at`은 갱신하지 않는다(partial index가 이미 dead 조건을 처리). 근거: 404/410/401/403 등은 재시도해도 회복 불가.
+
+**Non-4xx backoff 공식** (Go 애플리케이션이 `time.Now()` 기준으로 계산, DB `random()`은 사용하지 않음):
+
+```
+delay      = 30s * 2^(error_count_after - 1)          // error_count_after ∈ [1, 5]
+jitter     = uniform[-0.1 * delay, +0.1 * delay]      // math/rand, 정규분포 아님
+next_*_at  = T_report + delay + jitter                // T_report = 워커가 관측한 보고 시각
+```
+
+- `error_count_after = 1`부터 차례대로 30s / 60s / 120s / 240s / 480s. 최대 delay cap은 `30s * 2^4 = 480s`(8분).
+- 다섯 번째 보고 UPDATE 커밋 시 `… = 5`가 되어 partial index 조건(`< 5`)에서 자동 제외 → dead. 별도 `is_dead` 컬럼 없음.
+- jitter는 thundering herd 완화용. PRNG는 scheduler 구현체 생성자 레벨에서 캡슐화되어 노출 API 시그니처에 드러나지 않는다.
+
+**dead row 운영 절차**: dead 처리된 row는 frontier 테이블에 그대로 남고 cleanup은 자동으로 수행되지 않는다. 운영자가 수동으로 재활성화하려면 아래 SQL을 psql에서 실행. 본 capability는 런타임 애플리케이션 코드가 backoff 컬럼을 직접 UPDATE하는 것을 금지하지만(`RecordFetchError` / `RecordHarvestError` / `SetStatus` 외부 경로 금지 규약), **운영자의 수동 psql 개입**은 해당 금지 조항의 명시적 예외로 허용된다(scheduler-retry-backoff spec의 "실패 보고 경로 외부에서 backoff 컬럼을 직접 수정하지 않는다" 요구사항의 예외 단서 참조).
+
+```sql
+-- (선택) 대상 row의 hex 해시 찾기: normalized_url을 아는 운영자가 UPDATE 전에
+-- hex 값을 확인하려면 다음 조회를 먼저 실행한다.
+SELECT encode(url_hash, 'hex') FROM pioneer_frontier   WHERE normalized_url = $1;
+SELECT encode(url_hash, 'hex') FROM harvester_frontier WHERE normalized_url = $1;
+
+-- Pioneer 측. $1은 대상 URL을 sha256 해시한 hex 문자열(운영자 psql 편의 표기).
+-- 애플리케이션 런타임 쿼리는 raw BYTEA 바인딩(`WHERE url_hash = $1`, `$1 = sha256(key)`)을 사용한다.
+UPDATE pioneer_frontier
+SET fetch_error_count = 0,
+    next_fetch_at     = now()
+WHERE url_hash = decode($1, 'hex');
+
+-- Harvester 측
+UPDATE harvester_frontier
+SET harvest_error_count = 0,
+    next_harvest_at     = now()
+WHERE url_hash = decode($1, 'hex');
+```
+
 ## 인프라
 
 tech-stack.md 참조. Terraform + EKS + ArgoCD.

@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const countHarvesterFrontier = `-- name: CountHarvesterFrontier :one
@@ -46,4 +47,136 @@ func (q *Queries) CountPioneerFrontier(ctx context.Context) (int64, error) {
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const updateFetchErrorBackoff = `-- name: UpdateFetchErrorBackoff :execrows
+UPDATE pioneer_frontier
+SET fetch_error_count = LEAST(fetch_error_count + 1, 5),
+    next_fetch_at = CASE LEAST(fetch_error_count + 1, 5)
+        WHEN 1 THEN $1::timestamptz
+        WHEN 2 THEN $2::timestamptz
+        WHEN 3 THEN $3::timestamptz
+        WHEN 4 THEN $4::timestamptz
+        ELSE       $5::timestamptz
+    END,
+    last_updated_at = now()
+WHERE url_hash = $6
+`
+
+type UpdateFetchErrorBackoffParams struct {
+	NextAt1 time.Time
+	NextAt2 time.Time
+	NextAt3 time.Time
+	NextAt4 time.Time
+	NextAt5 time.Time
+	UrlHash []byte
+}
+
+// Non-4xx path. Caller passes ts1..ts5 = T_report + delay(n) + jitter(n)
+// for n = 1..5 (all pre-jittered in Go). LEAST(count+1, 5) keeps index
+// lookup safe even if a race managed to bump count past 5 (not expected in
+// practice because dead rows are excluded from claim). The LEAST expression
+// is evaluated twice per UPDATE — once to set fetch_error_count, once as
+// the CASE selector — on the same row snapshot, so both evaluations see the
+// same fetch_error_count value (PostgreSQL single-statement semantics).
+func (q *Queries) UpdateFetchErrorBackoff(ctx context.Context, arg UpdateFetchErrorBackoffParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateFetchErrorBackoff,
+		arg.NextAt1,
+		arg.NextAt2,
+		arg.NextAt3,
+		arg.NextAt4,
+		arg.NextAt5,
+		arg.UrlHash,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateFetchErrorDead = `-- name: UpdateFetchErrorDead :execrows
+
+UPDATE pioneer_frontier
+SET fetch_error_count = 5,
+    last_updated_at = now()
+WHERE url_hash = $1
+`
+
+// scheduler-retry-backoff change:
+// Failure reporting queries. spec.md requires that the count increment and
+// the next_*_at update be visible as a single atomic write (SHALL NOT tear
+// across readers), so each RecordFetchError / RecordHarvestError is expressed
+// as ONE UPDATE statement. The caller pre-computes five candidate
+// T_report + delay(n) + jitter(n) timestamps (one per error_count_after
+// ∈ {1..5}) and the CASE clause in the UPDATE picks the one matching the
+// post-increment count. This keeps the jitter computation in Go (per design
+// decision "공식 계산은 Go app, time.Now() 기준") while still writing both
+// columns in a single statement.
+// http_4xx path: set fetch_error_count to the dead threshold immediately.
+// next_fetch_at is intentionally NOT updated; the row is excluded from the
+// partial index (fetch_error_count < 5), so its backoff timestamp is unused.
+// :execrows lets the caller detect an unknown key (rows affected = 0) and
+// log a warning without synthesizing a row.
+func (q *Queries) UpdateFetchErrorDead(ctx context.Context, urlHash []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateFetchErrorDead, urlHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateHarvestErrorBackoff = `-- name: UpdateHarvestErrorBackoff :execrows
+UPDATE harvester_frontier
+SET harvest_error_count = LEAST(harvest_error_count + 1, 5),
+    next_harvest_at = CASE LEAST(harvest_error_count + 1, 5)
+        WHEN 1 THEN $1::timestamptz
+        WHEN 2 THEN $2::timestamptz
+        WHEN 3 THEN $3::timestamptz
+        WHEN 4 THEN $4::timestamptz
+        ELSE       $5::timestamptz
+    END,
+    last_updated_at = now()
+WHERE url_hash = $6
+`
+
+type UpdateHarvestErrorBackoffParams struct {
+	NextAt1 time.Time
+	NextAt2 time.Time
+	NextAt3 time.Time
+	NextAt4 time.Time
+	NextAt5 time.Time
+	UrlHash []byte
+}
+
+// Harvester counterpart of UpdateFetchErrorBackoff. See that query for the
+// LEAST-evaluated-twice semantics note.
+func (q *Queries) UpdateHarvestErrorBackoff(ctx context.Context, arg UpdateHarvestErrorBackoffParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateHarvestErrorBackoff,
+		arg.NextAt1,
+		arg.NextAt2,
+		arg.NextAt3,
+		arg.NextAt4,
+		arg.NextAt5,
+		arg.UrlHash,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateHarvestErrorDead = `-- name: UpdateHarvestErrorDead :execrows
+UPDATE harvester_frontier
+SET harvest_error_count = 5,
+    last_updated_at = now()
+WHERE url_hash = $1
+`
+
+// http_4xx path for the harvester frontier.
+func (q *Queries) UpdateHarvestErrorDead(ctx context.Context, urlHash []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateHarvestErrorDead, urlHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
