@@ -61,5 +61,5 @@ func (m *MetricsRecorder) Calls() int64 { return m.calls.Load() }
 // nopMetrics is used when the caller does not supply a Metrics backend.
 type nopMetrics struct{}
 
-func (nopMetrics) IncUpload(string)                  {}
+func (nopMetrics) IncUpload(string)                    {}
 func (nopMetrics) ObserveUploadDuration(time.Duration) {}
