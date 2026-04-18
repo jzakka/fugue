@@ -19,7 +19,7 @@
 - `QueueType` enum(`pioneer`, `harvester`)을 도입하여 Dequeue의 대상 테이블을 결정한다.
 - `Dequeue`의 두 핵심 의미 — **linearizability**(워커 간 동일 row 중복 claim 금지)와 **block-on-empty**(빈 큐/host throttle 동일 1초 폴링) — 를 구체적 구현 패턴(`SELECT ... FOR UPDATE SKIP LOCKED`, `time.Sleep(1s)`)으로 못 박는다.
 - Claim 프로토콜을 host token bucket과 통합한다: 상위 N 후보 → `HostRateLimiter.Allow(host)` → 첫 통과 row claim.
-- in-flight marker로 `next_fetch_at` / `next_harvest_at` 컬럼을 재활용하고 lease timeout은 10분으로 고정한다.
+- in-flight marker로 `next_fetch_at` / `next_harvest_at` 컬럼을 재활용하고 lease timeout은 base scheduler spec과 일치하여 10분으로 고정한다.
 - `SetStatus`의 status enum(4종)과 `"harvested"` 시 `harvester_frontier_pins` INSERT 책임을 정의한다.
 - `RecordFetchError`/`RecordHarvestError`를 별도 메서드로 분리하고 errorKind enum(4종)과 4xx 즉시 dead 규칙을 정의한다.
 
@@ -37,6 +37,8 @@
 
 ```go
 type QueueType string
+type Status string
+type ErrorKind string
 
 const (
     QueuePioneer   QueueType = "pioneer"
@@ -46,11 +48,13 @@ const (
 type URLScheduler interface {
     Enqueue(queueType QueueType, urls ...string) error
     Dequeue(queueType QueueType) (url string, err error)
-    SetStatus(key string, status string, pinIDs []int64) error
-    RecordFetchError(key string, errorKind string) error
-    RecordHarvestError(key string, errorKind string) error
+    SetStatus(key string, status Status, pinIDs []uuid.UUID) error
+    RecordFetchError(key string, errorKind ErrorKind) error
+    RecordHarvestError(key string, errorKind ErrorKind) error
 }
 ```
+
+`Status`/`ErrorKind`를 `string` alias로 둔 것은 `QueueType`과 동일한 이유: 인라인 문자열 오기입을 컴파일 단계에서 잡기 위함이다. 상수 값 자체는 여전히 `"fetched"` 등 문자열이어서 SQL 바인딩·JSON 로깅에 지장이 없다.
 
 **근거**:
 - 의사코드의 `URLPriorityQueue`를 그대로 계승하되, "priority queue"라는 이름은 자료구조 종류를 노출하므로 더 일반적인 `URLScheduler`로 rename. 실제 구현은 인메모리 heap이 아닌 Postgres index scan이며, 향후 다른 저장소로 교체될 여지를 남긴다.
@@ -146,7 +150,7 @@ for {
 **선택**: 별도 `claimed_at` 또는 `in_flight` 컬럼을 도입하지 않는다. 대신:
 - Pioneer: claim 시 `next_fetch_at = now() + 10min` UPDATE. partial index 조건 `next_fetch_at <= now()` 때문에 즉시 제외된다.
 - Harvester: claim 시 `next_harvest_at = now() + 10min` UPDATE. 마찬가지로 partial index에서 제외.
-- **Lease timeout 고정 10분**. 워커가 10분 내에 SetStatus/RecordXxxError를 호출하지 않으면 lease 만료 → partial index에 다시 등장 → 다른 워커가 재claim.
+- **Lease timeout 10분 고정** (base scheduler spec과 일치). 워커가 10분 내에 SetStatus/RecordXxxError를 호출하지 않으면 lease 만료 → partial index에 다시 등장 → 다른 워커가 재claim. 후속 운영 관측 결과에 따라 env 노출이 필요해지면 별도 change에서 base spec과 함께 완화한다.
 
 **근거**:
 - `DECISIONS.md §3`. 스키마 변경을 피하고 기존 컬럼 의미를 확장. 10분은 fetch/harvest 정상 소요 시간의 수 배 마진.
@@ -156,36 +160,55 @@ for {
 - (A) 별도 `claimed_at TIMESTAMPTZ` 컬럼 — 스키마 변경 필요, partial index 재정의 필요. 이득 대비 비용 큼.
 - (B) advisory lock을 lease로 사용 — connection 종료 시점과 lease 의미가 얽힘.
 
+**테스트 전략 — Clock 주입**:
+lease 만료 후 자동 재claim 시나리오를 10분을 실제로 기다리지 않고 검증하기 위해, scheduler 패키지는 `scheduler-retry-backoff`가 이미 도입한 `Clock` interface(`Now() time.Time`)와 `RealClock()` 팩토리를 재사용한다. lease 만료 테스트는 두 가지 접근이 가능하며 본 change는 **(a)** 를 기본으로 한다:
+
+(a) **Go 측 clock 주입**: `PGURLScheduler`(또는 동등 구현체)가 `Clock` 의존성을 갖고, `tryClaim`이 `next_*_at = s.clock.Now() + leaseDuration` 으로 계산해 바인딩한다. 테스트는 `fakeClock`을 10분 앞당긴 뒤 두 번째 Dequeue를 호출하여 재claim 여부를 확인한다. Postgres는 `now()`가 아니라 Go가 전달한 시각을 사용하므로 SQL 변경 없이 빠른 테스트가 가능하다.
+
+(b) **DB row 시각 조작**: 대안으로 Postgres 세션 시각 설정을 건드리지 않고, `UPDATE ... SET next_*_at = now() - interval '11 minutes'` 같은 헬퍼 쿼리로 row의 `next_*_at` 컬럼 자체를 과거로 이동시켜 lease 만료를 시뮬레이션. 별도 DB 라운드트립이 필요해 (a)보다 느리고 테스트 간 race 위험이 있어 기본안은 아니다.
+
+본 change의 tasks.md 4.10은 (a) 방식을 명시적으로 요구한다.
+
 ### Decision 6: `Enqueue` 의 upsert 동작
 
-**선택**: 
+**선택**:
 - `pioneer_frontier`: `INSERT ... ON CONFLICT (url_hash) DO NOTHING`.
-- `harvester_frontier`: `DECISIONS §8` 규칙을 따른다:
+- `harvester_frontier`: `DECISIONS §8` 규칙을 따르되, **본 change의 `Enqueue(queueType, urls...)` 시그니처는 URL 이외의 컨텍스트(특히 `snapshot_key`)를 전달할 방법이 없으므로**, 본 change는 `snapshot_key`를 건드리지 않는 UPSERT만 정의한다:
 
 ```sql
-INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, score)
+INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, score)
 VALUES (...)
 ON CONFLICT (url_hash) DO UPDATE
-  SET snapshot_key = EXCLUDED.snapshot_key,
-      next_harvest_at = now(),
-      harvest_error_count = 0
+  SET next_harvest_at = now(),
+      harvest_error_count = 0,
+      last_updated_at = now()
   WHERE harvester_frontier.harvested_at IS NULL;
 ```
 
-즉 이미 harvest된 URL에 대한 재enqueue는 no-op, 아직 harvest되지 않은 URL에 대해서는 snapshot_key·next_harvest_at을 갱신하여 Pioneer 재크롤 결과를 반영한다.
+즉 이미 harvest된 URL에 대한 재enqueue는 no-op, 아직 harvest되지 않은 URL에 대해서는 `next_harvest_at` · `harvest_error_count` 만 갱신한다.
+
+`snapshot_key` 초기 설정과 재크롤 갱신은 본 change의 `URLScheduler` 범위 바깥이다. Pioneer가 pin URL을 발견하여 harvester_frontier에 최초 row를 생성할 때는 `snapshot_key`를 포함한 구조화된 enqueue 경로(후속 change `harvester-scheduler-consumer` / `harvester-pin-document`)를 사용해야 한다. 본 change의 Enqueue는 **최소 필드만 있는 URL 레벨 upsert**이다.
 
 **근거**:
 - `url_hash`에 unique constraint가 있어 DB 레벨 충돌은 발생. `ON CONFLICT`로 호출자에게 violation을 노출하지 않는다.
 - Harvester는 재harvest하지 않는다는 DECISIONS §8 정책을 SQL 레벨에서 강제.
+- 문자열 URL만 받는 Enqueue 시그니처에 snapshot_key 필드를 끼워넣지 않고, 구조화된 전달은 후속 change로 이관하여 본 change의 contract를 단순하게 유지.
+
+**NOT NULL 컬럼 기본값** (base scheduler spec이 `depth`/`score`를 pioneer에서 NOT NULL로 요구):
+- `depth`: URL만 받는 본 change의 Enqueue는 `depth = 0`을 기본값으로 사용한다. BFS depth 전파는 parent row의 depth를 아는 호출자에게만 가능하므로, 그 요구를 충족시키는 **구조화된 enqueue 경로**는 후속 change(`pioneer-scheduler-consumer` 등)에서 도입한다.
+- `score`: 본 change는 `score = 0.0`을 기본값으로 사용한다. Score 계산(`scheduler-scoring-policy` 류)은 별도 change 범위.
+- `host`: URL에서 파싱하여 자동 채운다(base spec의 host 저장 규칙 준수: 포트 제외, 대소문자 보존, `www.` 유지).
+
+본 Enqueue 시그니처는 고정 기본값을 적용하는 low-friction 경로이며, 세밀한 depth/score/snapshot_key를 지정해야 하는 호출자는 후속 change의 구조화된 enqueue를 써야 한다.
 
 ### Decision 7: `SetStatus` 의 의미와 harvester_frontier_pins INSERT 책임
 
-**선택**: `SetStatus(key string, status string, pinIDs []int64) error`.
+**선택**: `SetStatus(key string, status string, pinIDs []uuid.UUID) error`. `pinIDs`가 `[]uuid.UUID`인 이유는 `pins.id`가 UUID PRIMARY KEY이고 `harvester_frontier_pins.pin_id`도 UUID FK이기 때문(migration 000003, 000026).
 
 - `status` enum (4종):
-  - `"fetched"` — Pioneer 성공. `pioneer_frontier.last_fetched_at = now()`, `next_fetch_at = now() + 365 days`(DECISIONS §8). `pinIDs`는 무시(nil 허용).
+  - `"fetched"` — Pioneer 성공. `pioneer_frontier.last_fetched_at = now()`, `next_fetch_at = now() + 365 days`(DECISIONS §8), `fetch_error_count = 0` 리셋. `pinIDs`는 무시(nil 허용).
   - `"fetch_failed"` — Pioneer 실패 마킹. `next_fetch_at`은 RecordFetchError가 backoff로 다시 설정(분리). SetStatus는 마킹 의미만.
-  - `"harvested"` — Harvester 성공. `harvester_frontier.harvested_at = now()` 갱신 **+ 동일 트랜잭션 내에서** `pinIDs` 각 요소에 대해 `INSERT INTO harvester_frontier_pins (frontier_id, pin_id) VALUES (..., ...)` 수행.
+  - `"harvested"` — Harvester 성공. `harvester_frontier.harvested_at = now()` 갱신, `harvest_error_count = 0` 리셋, **동일 트랜잭션 내에서** `pinIDs` 각 요소에 대해 `INSERT INTO harvester_frontier_pins (frontier_id, pin_id) VALUES (..., ...)` 수행.
   - `"harvest_failed"` — Harvester 실패 마킹. `pinIDs`는 nil.
 
 **pinIDs INSERT 책임**:
@@ -200,12 +223,12 @@ ON CONFLICT (url_hash) DO UPDATE
 
 **선택**: 
 ```go
-// errorKind 값
+// errorKind 값 (ErrorKind = string alias, Decision 1 참조)
 const (
-    ErrorHTTP4xx  = "http_4xx"
-    ErrorHTTP5xx  = "http_5xx"
-    ErrorNetwork  = "network"
-    ErrorTimeout  = "timeout"
+    ErrorHTTP4xx  ErrorKind = "http_4xx"
+    ErrorHTTP5xx  ErrorKind = "http_5xx"
+    ErrorNetwork  ErrorKind = "network"
+    ErrorTimeout  ErrorKind = "timeout"
 )
 ```
 
@@ -220,7 +243,7 @@ const (
 
 ### Decision 9: 본 change 범위에서 호출부를 교체하지 않는다
 
-Pioneer/Harvester 코드(`internal/bot/pioneer/*.go`, `internal/bot/harvester/*.go`, 의사코드 포함)의 실제 호출부 교체는 후속 change(`harvester-scheduler-consumer` 등)에서 진행한다. 본 change는 **interface 정의 + Postgres 구현체 + 단위 테스트** 까지만 포함.
+Pioneer/Harvester 코드(`internal/bot/pioneer/*.go`, `internal/bot/harvester/*.go`)의 실제 호출부 교체는 후속 change(`harvester-scheduler-consumer` 등)에서 진행한다. 본 change는 **interface 정의 + Postgres 구현체 + 단위 테스트** 까지만 포함하며, 예외적으로 `apps/api/fuguebot_pseudo.go`의 `URLPriorityQueue` 타입/호출 부분에 **deprecation 주석만** 추가한다 (타입 rename, 시그니처 변경, 호출 치환 없음).
 
 **근거**:
 - 호출부 마이그레이션은 Pioneer worker budget, Harvester pin_document 등 다른 진행 중 change와 결합도가 높아 별도 PR로 다루는 편이 안전.
@@ -228,7 +251,7 @@ Pioneer/Harvester 코드(`internal/bot/pioneer/*.go`, `internal/bot/harvester/*.
 ## Risks / Trade-offs
 
 - **폴링 idle load** — 워커 N개 × 1 QPS의 빈 SELECT 쿼리. partial index 스캔이라 비용은 작지만, 워커 수가 수십 개로 증가하면 모니터링 필요 → LISTEN/NOTIFY 또는 backoff sleep으로 교체 가능.
-- **Lease 10분 고정** — 네트워크가 매우 느린 대형 페이지에서 fetch가 10분을 넘기면 lease 만료 후 중복 fetch 발생. 실측 기반으로 조정 필요할 경우 후속 change에서 env 노출.
+- **Lease 10분 고정** — 네트워크가 매우 느린 대형 페이지에서 fetch가 10분을 넘기면 lease 만료 후 중복 fetch 발생. 실측 기반으로 조정 필요할 경우 base spec과 함께 env 노출하는 후속 change 필요.
 - **`SetStatus` string 기반** — typo 위험. 구현 시 package 레벨 const(`StatusFetched`, `StatusFetchFailed`, ...)와 검증 로직으로 방어.
 - **`FOR UPDATE SKIP LOCKED` starvation** — partial index head row가 host throttle을 계속 맞으면 후순위 row만 처리될 수 있음. N>1로 후보 다양성 확보 가능.
 - **Claim 트랜잭션 길이** — host throttle 체크를 트랜잭션 내부에서 하므로, `HostRateLimiter.Allow`는 O(1) 인메모리 호출이어야 한다(scheduler-host-token-bucket이 보장).
@@ -246,4 +269,4 @@ Pioneer/Harvester 코드(`internal/bot/pioneer/*.go`, `internal/bot/harvester/*.
 - 폴링 주기 1초가 운영 부하상 과도/부족한지 — 메트릭 수집 후 후속 change에서 튜닝.
 - Lease 10분이 실제 fetch/harvest 소요 분포에 적합한지 — 관측 후 조정. 필요시 env 노출은 후속 change.
 - `SCHEDULER_CLAIM_CANDIDATE_N` default 1이 starvation 관점에서 충분한지 — 프로덕션 partial index head 점유율 관측 후 조정.
-- `Dequeue`가 `context.Context`를 받지 않아 graceful shutdown이 어려움 — 후속 change에서 `DequeueCtx(ctx, queueType)` 도입할지 결정.
+- ~~`Dequeue`가 `context.Context`를 받지 않아 graceful shutdown이 어려움~~ — **결정**: 본 change의 interface는 context.Context를 받지 않는 Decision 1의 시그니처를 유지한다. 대신 spec Requirement의 "다섯 메서드를 정확히 가져야 한다(SHALL)"를 "다섯 메서드를 최소한 가져야 한다"로 완화하여, 후속 change에서 `DequeueCtx(ctx, queueType)` overload를 추가하는 것이 본 spec의 breaking 변경이 되지 않도록 한다. 구체적 shutdown 전략(인터럽트 채널, overload, 교체)은 호출부 마이그레이션 change에서 결정.

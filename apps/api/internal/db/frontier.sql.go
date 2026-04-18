@@ -8,7 +8,95 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
+
+const claimHarvesterCandidates = `-- name: ClaimHarvesterCandidates :many
+SELECT id, url, host
+FROM harvester_frontier
+WHERE harvested_at IS NULL
+  AND harvest_error_count < 5
+  AND next_harvest_at <= now()
+ORDER BY score DESC, next_harvest_at ASC
+LIMIT $1
+FOR UPDATE SKIP LOCKED
+`
+
+type ClaimHarvesterCandidatesRow struct {
+	ID   int64
+	Url  string
+	Host string
+}
+
+// Harvester counterpart of ClaimPioneerCandidates.
+func (q *Queries) ClaimHarvesterCandidates(ctx context.Context, n int32) ([]ClaimHarvesterCandidatesRow, error) {
+	rows, err := q.db.QueryContext(ctx, claimHarvesterCandidates, n)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ClaimHarvesterCandidatesRow
+	for rows.Next() {
+		var i ClaimHarvesterCandidatesRow
+		if err := rows.Scan(&i.ID, &i.Url, &i.Host); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const claimPioneerCandidates = `-- name: ClaimPioneerCandidates :many
+SELECT id, url, host
+FROM pioneer_frontier
+WHERE fetch_error_count < 5
+  AND next_fetch_at <= now()
+ORDER BY score DESC, next_fetch_at ASC
+LIMIT $1
+FOR UPDATE SKIP LOCKED
+`
+
+type ClaimPioneerCandidatesRow struct {
+	ID   int64
+	Url  string
+	Host string
+}
+
+// Top-N claim candidates from the pioneer partial index. SKIP LOCKED ensures
+// that two workers running the same query in parallel see disjoint rows.
+// The outer transaction (opened by the Go caller) keeps the lock until
+// mark_pioneer_in_flight or ROLLBACK; the claim protocol (scheduler-claim-api
+// Decision: single transaction) forbids splitting SELECT and UPDATE.
+func (q *Queries) ClaimPioneerCandidates(ctx context.Context, n int32) ([]ClaimPioneerCandidatesRow, error) {
+	rows, err := q.db.QueryContext(ctx, claimPioneerCandidates, n)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ClaimPioneerCandidatesRow
+	for rows.Next() {
+		var i ClaimPioneerCandidatesRow
+		if err := rows.Scan(&i.ID, &i.Url, &i.Host); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const countHarvesterFrontier = `-- name: CountHarvesterFrontier :one
 SELECT count(*) FROM harvester_frontier
@@ -47,6 +135,208 @@ func (q *Queries) CountPioneerFrontier(ctx context.Context) (int64, error) {
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const enqueueHarvester = `-- name: EnqueueHarvester :exec
+INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, score)
+SELECT
+    UNNEST($1::text[]),
+    UNNEST($2::text[]),
+    UNNEST($3::bytea[]),
+    UNNEST($4::text[]),
+    0.0
+ON CONFLICT (url_hash) DO UPDATE
+SET next_harvest_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE harvester_frontier.harvested_at IS NULL
+`
+
+type EnqueueHarvesterParams struct {
+	NormalizedUrls []string
+	Urls           []string
+	UrlHashes      [][]byte
+	Hosts          []string
+}
+
+// Harvester enqueue. Conditional UPSERT per DECISIONS §8: re-enqueue of a
+// URL that is still awaiting harvest (harvested_at IS NULL) resets the
+// backoff schedule so the claim picks it up immediately; re-enqueue of an
+// already-harvested URL is a no-op. snapshot_key is deliberately not set
+// here — structured enqueue (harvester-scheduler-consumer) owns that.
+func (q *Queries) EnqueueHarvester(ctx context.Context, arg EnqueueHarvesterParams) error {
+	_, err := q.db.ExecContext(ctx, enqueueHarvester,
+		pq.Array(arg.NormalizedUrls),
+		pq.Array(arg.Urls),
+		pq.Array(arg.UrlHashes),
+		pq.Array(arg.Hosts),
+	)
+	return err
+}
+
+const enqueuePioneer = `-- name: EnqueuePioneer :exec
+
+INSERT INTO pioneer_frontier (normalized_url, url, url_hash, host, depth, score)
+SELECT
+    UNNEST($1::text[]),
+    UNNEST($2::text[]),
+    UNNEST($3::bytea[]),
+    UNNEST($4::text[]),
+    0,
+    0.0
+ON CONFLICT (url_hash) DO NOTHING
+`
+
+type EnqueuePioneerParams struct {
+	NormalizedUrls []string
+	Urls           []string
+	UrlHashes      [][]byte
+	Hosts          []string
+}
+
+// scheduler-claim-api change:
+// Enqueue / claim / status / record-error queries implementing the
+// URLScheduler interface. Row lookup uses url_hash (sha256(normalized_url))
+// exclusively because the BYTEA index is more selective than the TEXT
+// normalized_url column.
+// Pioneer enqueue. Batch upsert via UNNEST-parallel arrays. ON CONFLICT on
+// url_hash keeps enqueue idempotent: a re-enqueue of a URL already in the
+// frontier does not touch score, depth, or next_fetch_at. depth=0 and
+// score=0.0 are spec-mandated defaults for URL-only Enqueue (proposal §
+// Enqueue; structured enqueue lands in a future change).
+func (q *Queries) EnqueuePioneer(ctx context.Context, arg EnqueuePioneerParams) error {
+	_, err := q.db.ExecContext(ctx, enqueuePioneer,
+		pq.Array(arg.NormalizedUrls),
+		pq.Array(arg.Urls),
+		pq.Array(arg.UrlHashes),
+		pq.Array(arg.Hosts),
+	)
+	return err
+}
+
+const insertHarvesterFrontierPins = `-- name: InsertHarvesterFrontierPins :exec
+INSERT INTO harvester_frontier_pins (frontier_id, pin_id)
+SELECT $1, UNNEST($2::uuid[])
+`
+
+type InsertHarvesterFrontierPinsParams struct {
+	FrontierID int64
+	PinIds     []uuid.UUID
+}
+
+// Batch insert of (frontier_id, pin_id) pairs. pin_id is UUID — pins.id and
+// harvester_frontier_pins.pin_id are both UUID (migration 000003, 000026).
+func (q *Queries) InsertHarvesterFrontierPins(ctx context.Context, arg InsertHarvesterFrontierPinsParams) error {
+	_, err := q.db.ExecContext(ctx, insertHarvesterFrontierPins, arg.FrontierID, pq.Array(arg.PinIds))
+	return err
+}
+
+const markHarvesterInFlight = `-- name: MarkHarvesterInFlight :exec
+UPDATE harvester_frontier
+SET next_harvest_at = $1::timestamptz,
+    last_updated_at = now()
+WHERE id = $2
+`
+
+type MarkHarvesterInFlightParams struct {
+	NextHarvestAt time.Time
+	ID            int64
+}
+
+func (q *Queries) MarkHarvesterInFlight(ctx context.Context, arg MarkHarvesterInFlightParams) error {
+	_, err := q.db.ExecContext(ctx, markHarvesterInFlight, arg.NextHarvestAt, arg.ID)
+	return err
+}
+
+const markPioneerInFlight = `-- name: MarkPioneerInFlight :exec
+UPDATE pioneer_frontier
+SET next_fetch_at = $1::timestamptz,
+    last_updated_at = now()
+WHERE id = $2
+`
+
+type MarkPioneerInFlightParams struct {
+	NextFetchAt time.Time
+	ID          int64
+}
+
+// In-flight marker. next_fetch_at is passed in from Go (clock.Now() + lease)
+// so tests can inject a fakeClock to simulate lease expiry without sleeping.
+// No separate in_flight column; pushing next_fetch_at forward removes the
+// row from the claim partial index, and an unclean worker crash will
+// naturally restore visibility once the lease expires.
+func (q *Queries) MarkPioneerInFlight(ctx context.Context, arg MarkPioneerInFlightParams) error {
+	_, err := q.db.ExecContext(ctx, markPioneerInFlight, arg.NextFetchAt, arg.ID)
+	return err
+}
+
+const setStatusFetchFailed = `-- name: SetStatusFetchFailed :execrows
+UPDATE pioneer_frontier
+SET last_updated_at = now()
+WHERE url_hash = $1
+`
+
+// Failure marking only. Error-count bump and next_fetch_at backoff are
+// RecordFetchError's responsibility (consumer contract: failure → both
+// SetStatus + RecordFetchError are invoked).
+func (q *Queries) SetStatusFetchFailed(ctx context.Context, urlHash []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setStatusFetchFailed, urlHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const setStatusFetched = `-- name: SetStatusFetched :execrows
+UPDATE pioneer_frontier
+SET last_fetched_at = now(),
+    next_fetch_at = now() + interval '365 days',
+    fetch_error_count = 0,
+    last_updated_at = now()
+WHERE url_hash = $1
+`
+
+// Pioneer success. 365-day re-crawl schedule per DECISIONS §8. Error count
+// reset here rather than in a separate RecordFetchSuccess because success
+// is reported via SetStatus per consumer contract.
+func (q *Queries) SetStatusFetched(ctx context.Context, urlHash []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setStatusFetched, urlHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const setStatusHarvestFailed = `-- name: SetStatusHarvestFailed :execrows
+UPDATE harvester_frontier
+SET last_updated_at = now()
+WHERE url_hash = $1
+`
+
+func (q *Queries) SetStatusHarvestFailed(ctx context.Context, urlHash []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setStatusHarvestFailed, urlHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const setStatusHarvested = `-- name: SetStatusHarvested :one
+UPDATE harvester_frontier
+SET harvested_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE url_hash = $1
+RETURNING id
+`
+
+// Harvester success. Returns the frontier_id so the caller can insert the
+// pin-id mapping in the same transaction.
+func (q *Queries) SetStatusHarvested(ctx context.Context, urlHash []byte) (int64, error) {
+	row := q.db.QueryRowContext(ctx, setStatusHarvested, urlHash)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateFetchErrorBackoff = `-- name: UpdateFetchErrorBackoff :execrows

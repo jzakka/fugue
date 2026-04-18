@@ -76,3 +76,136 @@ SET harvest_error_count = LEAST(harvest_error_count + 1, 5),
     END,
     last_updated_at = now()
 WHERE url_hash = sqlc.arg(url_hash);
+
+-- scheduler-claim-api change:
+-- Enqueue / claim / status / record-error queries implementing the
+-- URLScheduler interface. Row lookup uses url_hash (sha256(normalized_url))
+-- exclusively because the BYTEA index is more selective than the TEXT
+-- normalized_url column.
+
+-- name: EnqueuePioneer :exec
+-- Pioneer enqueue. Batch upsert via UNNEST-parallel arrays. ON CONFLICT on
+-- url_hash keeps enqueue idempotent: a re-enqueue of a URL already in the
+-- frontier does not touch score, depth, or next_fetch_at. depth=0 and
+-- score=0.0 are spec-mandated defaults for URL-only Enqueue (proposal §
+-- Enqueue; structured enqueue lands in a future change).
+INSERT INTO pioneer_frontier (normalized_url, url, url_hash, host, depth, score)
+SELECT
+    UNNEST(sqlc.arg(normalized_urls)::text[]),
+    UNNEST(sqlc.arg(urls)::text[]),
+    UNNEST(sqlc.arg(url_hashes)::bytea[]),
+    UNNEST(sqlc.arg(hosts)::text[]),
+    0,
+    0.0
+ON CONFLICT (url_hash) DO NOTHING;
+
+-- name: EnqueueHarvester :exec
+-- Harvester enqueue. Conditional UPSERT per DECISIONS §8: re-enqueue of a
+-- URL that is still awaiting harvest (harvested_at IS NULL) resets the
+-- backoff schedule so the claim picks it up immediately; re-enqueue of an
+-- already-harvested URL is a no-op. snapshot_key is deliberately not set
+-- here — structured enqueue (harvester-scheduler-consumer) owns that.
+INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, score)
+SELECT
+    UNNEST(sqlc.arg(normalized_urls)::text[]),
+    UNNEST(sqlc.arg(urls)::text[]),
+    UNNEST(sqlc.arg(url_hashes)::bytea[]),
+    UNNEST(sqlc.arg(hosts)::text[]),
+    0.0
+ON CONFLICT (url_hash) DO UPDATE
+SET next_harvest_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE harvester_frontier.harvested_at IS NULL;
+
+-- name: ClaimPioneerCandidates :many
+-- Top-N claim candidates from the pioneer partial index. SKIP LOCKED ensures
+-- that two workers running the same query in parallel see disjoint rows.
+-- The outer transaction (opened by the Go caller) keeps the lock until
+-- mark_pioneer_in_flight or ROLLBACK; the claim protocol (scheduler-claim-api
+-- Decision: single transaction) forbids splitting SELECT and UPDATE.
+SELECT id, url, host
+FROM pioneer_frontier
+WHERE fetch_error_count < 5
+  AND next_fetch_at <= now()
+ORDER BY score DESC, next_fetch_at ASC
+LIMIT sqlc.arg(n)
+FOR UPDATE SKIP LOCKED;
+
+-- name: ClaimHarvesterCandidates :many
+-- Harvester counterpart of ClaimPioneerCandidates.
+SELECT id, url, host
+FROM harvester_frontier
+WHERE harvested_at IS NULL
+  AND harvest_error_count < 5
+  AND next_harvest_at <= now()
+ORDER BY score DESC, next_harvest_at ASC
+LIMIT sqlc.arg(n)
+FOR UPDATE SKIP LOCKED;
+
+-- name: MarkPioneerInFlight :exec
+-- In-flight marker. next_fetch_at is passed in from Go (clock.Now() + lease)
+-- so tests can inject a fakeClock to simulate lease expiry without sleeping.
+-- No separate in_flight column; pushing next_fetch_at forward removes the
+-- row from the claim partial index, and an unclean worker crash will
+-- naturally restore visibility once the lease expires.
+UPDATE pioneer_frontier
+SET next_fetch_at = sqlc.arg(next_fetch_at)::timestamptz,
+    last_updated_at = now()
+WHERE id = sqlc.arg(id);
+
+-- name: MarkHarvesterInFlight :exec
+UPDATE harvester_frontier
+SET next_harvest_at = sqlc.arg(next_harvest_at)::timestamptz,
+    last_updated_at = now()
+WHERE id = sqlc.arg(id);
+
+-- name: SetStatusFetched :execrows
+-- Pioneer success. 365-day re-crawl schedule per DECISIONS §8. Error count
+-- reset here rather than in a separate RecordFetchSuccess because success
+-- is reported via SetStatus per consumer contract.
+UPDATE pioneer_frontier
+SET last_fetched_at = now(),
+    next_fetch_at = now() + interval '365 days',
+    fetch_error_count = 0,
+    last_updated_at = now()
+WHERE url_hash = sqlc.arg(url_hash);
+
+-- name: SetStatusFetchFailed :execrows
+-- Failure marking only. Error-count bump and next_fetch_at backoff are
+-- RecordFetchError's responsibility (consumer contract: failure → both
+-- SetStatus + RecordFetchError are invoked).
+UPDATE pioneer_frontier
+SET last_updated_at = now()
+WHERE url_hash = sqlc.arg(url_hash);
+
+-- name: SetStatusHarvested :one
+-- Harvester success. Returns the frontier_id so the caller can insert the
+-- pin-id mapping in the same transaction.
+UPDATE harvester_frontier
+SET harvested_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE url_hash = sqlc.arg(url_hash)
+RETURNING id;
+
+-- name: SetStatusHarvestFailed :execrows
+UPDATE harvester_frontier
+SET last_updated_at = now()
+WHERE url_hash = sqlc.arg(url_hash);
+
+-- name: InsertHarvesterFrontierPins :exec
+-- Batch insert of (frontier_id, pin_id) pairs. pin_id is UUID — pins.id and
+-- harvester_frontier_pins.pin_id are both UUID (migration 000003, 000026).
+INSERT INTO harvester_frontier_pins (frontier_id, pin_id)
+SELECT sqlc.arg(frontier_id), UNNEST(sqlc.arg(pin_ids)::uuid[]);
+
+-- The record-fetch-error / record-harvest-error SQL entry points are
+-- already provided by scheduler-retry-backoff (UpdateFetchErrorDead /
+-- UpdateFetchErrorBackoff / UpdateHarvestErrorDead / UpdateHarvestErrorBackoff
+-- above). scheduler-claim-api reuses them unchanged — the URLScheduler
+-- implementation's RecordFetchError/RecordHarvestError dispatch through the
+-- recordErrorOps table defined in url_scheduler.go. See tasks.md §2.12-2.15
+-- notes: those entries are satisfied by the existing Update* queries, and
+-- duplicating them under new names would fork the CASE-based backoff
+-- selector (which needs the five pre-jittered candidates to remain atomic).

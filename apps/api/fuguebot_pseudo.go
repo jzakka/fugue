@@ -5,8 +5,16 @@ import "log"
 /*
 fugubot의 동작 플로우를 스도코드로 나타낸 것
 참고만 하시오
+
+Deprecated: 이 파일은 의사코드이며, 실제 구현은 OpenSpec change
+"scheduler-claim-api"가 정의한 scheduler.URLScheduler interface와 그 Postgres
+구현체(apps/api/internal/scheduler/)로 대체된다. 후속 호출부 마이그레이션 change
+(harvester-scheduler-consumer, pioneer-* 시리즈)가 Run() 진입점을 실제
+URLScheduler로 전환한다.
 */
 
+// Deprecated: use scheduler.URLScheduler. URLPriorityQueue는 설계 논의용
+// 의사 타입이며 후속 change에서 삭제 예정.
 type URLPriorityQueue struct {
 }
 
@@ -14,6 +22,9 @@ func (pq *URLPriorityQueue) Enqueue(value ...string) {
 
 }
 
+// Deprecated: use scheduler.URLScheduler.Dequeue(scheduler.QueuePioneer|QueueHarvester).
+// 새 interface는 QueueType enum으로 대상 테이블을 지정하며 block-on-empty /
+// linearizable / host throttle 통합 의미를 가진다.
 func (pq *URLPriorityQueue) Dequeue(status string) string {
 	// block if pq is empty
 	// pq must guarantee that linearizable.
@@ -22,6 +33,7 @@ func (pq *URLPriorityQueue) Dequeue(status string) string {
 	return "https://high-value/url"
 }
 
+// Deprecated: use scheduler.URLScheduler.SetStatus(key, scheduler.Status, pinIDs).
 func (pq *URLPriorityQueue) SetStatus(key string, s string) {
 
 }

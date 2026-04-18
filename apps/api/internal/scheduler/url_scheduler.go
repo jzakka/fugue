@@ -9,39 +9,83 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// QueueType selects which frontier table (pioneer vs harvester) an
+// Enqueue/Dequeue call targets. Spec: OpenSpec change `scheduler-claim-api`.
+type QueueType string
+
+const (
+	QueuePioneer   QueueType = "pioneer"
+	QueueHarvester QueueType = "harvester"
+)
+
+// Status is the enum accepted by SetStatus. Values are the four terminal
+// outcomes a crawler worker can report. Spec: `scheduler-claim-api`.
+type Status string
+
+const (
+	StatusFetched       Status = "fetched"
+	StatusFetchFailed   Status = "fetch_failed"
+	StatusHarvested     Status = "harvested"
+	StatusHarvestFailed Status = "harvest_failed"
+)
+
+// ErrorKind is the enum accepted by RecordFetchError / RecordHarvestError.
+// Spec: `scheduler-claim-api`.
+type ErrorKind string
+
+// Error-kind enum values accepted by the failure-reporting API.
+const (
+	ErrorHTTP4xx ErrorKind = "http_4xx"
+	ErrorHTTP5xx ErrorKind = "http_5xx"
+	ErrorNetwork ErrorKind = "network"
+	ErrorTimeout ErrorKind = "timeout"
+)
+
+// HostRateLimiterIface is the minimal surface PGURLScheduler consumes from
+// scheduler.HostRateLimiter. Declared as a narrow interface (not the concrete
+// struct) so that tests can substitute a deterministic mock. The production
+// implementation is *HostRateLimiter (host_rate_limiter.go).
+type HostRateLimiterIface interface {
+	Allow(host string) bool
+}
 
 // URLScheduler is the scheduler boundary between crawler workers (Pioneer /
 // Harvester) and the Postgres frontier tables.
 //
-// The full interface (Dequeue / Enqueue / SetStatus / RecordFetchError /
-// RecordHarvestError) is specified by OpenSpec change `scheduler-claim-api`.
-// This change (`scheduler-retry-backoff`) ships only the two failure-reporting
-// methods; `scheduler-claim-api` will extend this interface with the remaining
-// three methods. Keeping the name stable now lets downstream code type-assert
-// against URLScheduler without a subsequent rename.
+// Spec: OpenSpec change `scheduler-claim-api` defines the full five-method
+// interface. `Dequeue` has block-on-empty and linearizable semantics. The
+// failure-reporting methods (RecordFetchError/RecordHarvestError) were
+// originally delivered by `scheduler-retry-backoff` and are now typed
+// (ErrorKind) here.
 //
-// TODO(scheduler-claim-api): re-evaluate whether RecordFetchError /
-// RecordHarvestError should accept a context.Context. The current signature
-// is fixed by scheduler-claim-api spec, but a follow-up refactor may want to
-// propagate cancellation from the worker loop.
+// TODO(scheduler-claim-api): re-evaluate whether the failure-reporting methods
+// should accept a context.Context. The current signature omits it; a follow-up
+// refactor may want to propagate cancellation from the worker loop.
 type URLScheduler interface {
+	// Enqueue inserts one or more URLs into the given queue's frontier table.
+	// Duplicates are no-ops for pioneer and conditional UPSERTs for harvester
+	// (see DECISIONS §8 / scheduler-claim-api proposal).
+	Enqueue(queueType QueueType, urls ...string) error
+	// Dequeue blocks until a claimable URL is returned. Empty queue and host
+	// throttle both trigger a 1-second sleep before retry. Linearizable via
+	// FOR UPDATE SKIP LOCKED.
+	Dequeue(queueType QueueType) (url string, err error)
+	// SetStatus reports a terminal outcome for `key` (= normalized_url). For
+	// StatusHarvested the caller may pass pin ids (UUIDs, matching pins.id) to
+	// atomically insert into harvester_frontier_pins in the same transaction.
+	SetStatus(key string, status Status, pinIDs []uuid.UUID) error
 	// RecordFetchError reports a Pioneer fetch failure for the given key
 	// (= normalized_url) with one of the four errorKind enum values.
-	RecordFetchError(key string, errorKind string) error
+	RecordFetchError(key string, errorKind ErrorKind) error
 	// RecordHarvestError reports a Harvester harvest failure for the given
 	// key with one of the four errorKind enum values.
-	RecordHarvestError(key string, errorKind string) error
+	RecordHarvestError(key string, errorKind ErrorKind) error
 }
-
-// Error-kind enum values accepted by the failure-reporting API.
-const (
-	ErrorKindHTTP4xx = "http_4xx"
-	ErrorKindHTTP5xx = "http_5xx"
-	ErrorKindNetwork = "network"
-	ErrorKindTimeout = "timeout"
-)
 
 // ErrUnknownErrorKind is returned when a caller passes an errorKind outside
 // the allowed enum. The row is not modified. Callers MUST NOT map their own
@@ -52,27 +96,41 @@ var ErrUnknownErrorKind = errors.New("scheduler: unknown errorKind")
 // validateErrorKind returns ErrUnknownErrorKind (wrapped with the offending
 // value) when k is outside the enum, and nil otherwise. Extracted so unit
 // tests can exercise enum rejection without constructing a PGURLScheduler.
-func validateErrorKind(k string) error {
+func validateErrorKind(k ErrorKind) error {
 	switch k {
-	case ErrorKindHTTP4xx, ErrorKindHTTP5xx, ErrorKindNetwork, ErrorKindTimeout:
+	case ErrorHTTP4xx, ErrorHTTP5xx, ErrorNetwork, ErrorTimeout:
 		return nil
 	default:
-		return fmt.Errorf("%w: %q", ErrUnknownErrorKind, k)
+		return fmt.Errorf("%w: %q", ErrUnknownErrorKind, string(k))
 	}
 }
 
-// PGURLScheduler is the Postgres-backed URLScheduler implementation. The
-// current change only wires up the failure-reporting methods; dequeue /
-// enqueue / setStatus are added by `scheduler-claim-api`.
+// PGURLScheduler is the Postgres-backed URLScheduler implementation. It wires
+// the sqlc Queries bundle, a Clock for testable lease arithmetic, a Jitterer
+// for backoff sampling, a HostRateLimiter for the claim protocol's host
+// politeness check, and the raw *sql.DB so tryClaim can open its own
+// transaction (SELECT ... FOR UPDATE SKIP LOCKED + UPDATE must share a tx).
+//
+// The struct is intentionally mutable via WithRateLimiter/WithLease/
+// WithPollInterval so that bootstrap wiring can use the basic
+// NewPGURLScheduler constructor and then attach the rate limiter once it's
+// been constructed from config; tests override lease/poll without env vars.
 type PGURLScheduler struct {
-	queries *db.Queries
-	clock   Clock
-	jitter  Jitterer
+	db           *sql.DB
+	queries      *db.Queries
+	clock        Clock
+	jitter       Jitterer
+	rateLimiter  HostRateLimiterIface
+	lease        time.Duration // zero = defaultLeaseDuration
+	pollInterval time.Duration // zero = defaultPollInterval
+	candidateN   int32         // populated from env at construction; zero = defaultCandidateN
 }
 
 // NewPGURLScheduler constructs the scheduler with operational defaults:
 // a real wall-clock and the process-wide uniform PRNG jitterer. Tests that
 // need deterministic timestamps should use NewPGURLSchedulerWithDeps.
+// The returned scheduler has no rate limiter; the bootstrap path is expected
+// to chain WithRateLimiter before calling Dequeue.
 func NewPGURLScheduler(sqlDB *sql.DB) *PGURLScheduler {
 	return NewPGURLSchedulerWithDeps(sqlDB, RealClock(), defaultJitterer())
 }
@@ -88,19 +146,36 @@ func NewPGURLSchedulerWithDeps(sqlDB *sql.DB, clock Clock, jitter Jitterer) *PGU
 		jitter = defaultJitterer()
 	}
 	return &PGURLScheduler{
-		queries: db.New(sqlDB),
-		clock:   clock,
-		jitter:  jitter,
+		db:         sqlDB,
+		queries:    db.New(sqlDB),
+		clock:      clock,
+		jitter:     jitter,
+		candidateN: int32(candidateNFromEnv()),
 	}
 }
 
+// WithLease overrides the default 10-minute lease duration. Primarily for
+// tests that need to exercise lease-expiry paths without waiting.
+func (s *PGURLScheduler) WithLease(d time.Duration) *PGURLScheduler {
+	s.lease = d
+	return s
+}
+
+// WithPollInterval overrides the default 1-second empty-queue poll interval.
+// Primarily for tests that want fast block-on-empty feedback without sleeping
+// a real second per iteration.
+func (s *PGURLScheduler) WithPollInterval(d time.Duration) *PGURLScheduler {
+	s.pollInterval = d
+	return s
+}
+
 // RecordFetchError implements URLScheduler.
-func (s *PGURLScheduler) RecordFetchError(key string, errorKind string) error {
+func (s *PGURLScheduler) RecordFetchError(key string, errorKind ErrorKind) error {
 	return s.recordError(key, errorKind, recordErrorOpsFetch)
 }
 
 // RecordHarvestError implements URLScheduler.
-func (s *PGURLScheduler) RecordHarvestError(key string, errorKind string) error {
+func (s *PGURLScheduler) RecordHarvestError(key string, errorKind ErrorKind) error {
 	return s.recordError(key, errorKind, recordErrorOpsHarvest)
 }
 
@@ -166,19 +241,19 @@ func hashKey(key string) []byte {
 // The ctx is created internally because the URLScheduler interface signature
 // (defined by scheduler-claim-api) does not accept one. See the TODO note on
 // the interface declaration for the follow-up migration.
-func (s *PGURLScheduler) recordError(key, errorKind string, ops recordErrorOps) error {
+func (s *PGURLScheduler) recordError(key string, errorKind ErrorKind, ops recordErrorOps) error {
 	if err := validateErrorKind(errorKind); err != nil {
 		return err
 	}
 	ctx := context.Background()
 	hash := hashKey(key)
 
-	if errorKind == ErrorKindHTTP4xx {
+	if errorKind == ErrorHTTP4xx {
 		rows, err := ops.dead(ctx, s.queries, hash)
 		if err != nil {
 			return fmt.Errorf("scheduler: %s dead update: %w", ops.side, err)
 		}
-		warnIfUnknownKey(rows, ops.side, key)
+		warnIfUnknownKey(rows, "record_"+ops.side+"_error", key)
 		return nil
 	}
 
@@ -205,15 +280,16 @@ func (s *PGURLScheduler) recordError(key, errorKind string, ops recordErrorOps) 
 	if err != nil {
 		return fmt.Errorf("scheduler: update %s backoff: %w", ops.side, err)
 	}
-	warnIfUnknownKey(rows, ops.side, key)
+	warnIfUnknownKey(rows, "record_"+ops.side+"_error", key)
 	return nil
 }
 
-// warnIfUnknownKey emits the shared "row not in frontier" warning both the
-// 4xx dead path and the non-4xx backoff path use. Extracted so the log format
-// stays identical between the two call sites (operators grep for the prefix).
-func warnIfUnknownKey(rows int64, side, key string) {
+// warnIfUnknownKey emits the shared "row not in frontier" warning. op is the
+// full operation label (e.g. "record_fetch_error", "set_status_fetched"); the
+// caller picks it so SetStatus paths don't get a misleading "record_*_error"
+// prefix. Operators grep scheduler warnings by the `scheduler.<op>` prefix.
+func warnIfUnknownKey(rows int64, op, key string) {
 	if rows == 0 {
-		log.Printf("WARN scheduler.record_%s_error: unknown key (row not in frontier); key=%q", side, key)
+		log.Printf("WARN scheduler.%s: unknown key (row not in frontier); key=%q", op, key)
 	}
 }

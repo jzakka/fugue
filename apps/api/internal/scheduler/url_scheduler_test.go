@@ -21,7 +21,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func TestValidateErrorKind_AcceptsEnum(t *testing.T) {
-	for _, k := range []string{ErrorKindHTTP4xx, ErrorKindHTTP5xx, ErrorKindNetwork, ErrorKindTimeout} {
+	for _, k := range []ErrorKind{ErrorHTTP4xx, ErrorHTTP5xx, ErrorNetwork, ErrorTimeout} {
 		if err := validateErrorKind(k); err != nil {
 			t.Errorf("validateErrorKind(%q) returned %v, want nil", k, err)
 		}
@@ -29,7 +29,7 @@ func TestValidateErrorKind_AcceptsEnum(t *testing.T) {
 }
 
 func TestValidateErrorKind_RejectsOthers(t *testing.T) {
-	for _, k := range []string{"", "unknown", "HTTP_4XX", "503", "4xx", "fetch_failed"} {
+	for _, k := range []ErrorKind{"", "unknown", "HTTP_4XX", "503", "4xx", "fetch_failed"} {
 		err := validateErrorKind(k)
 		if err == nil || !errors.Is(err, ErrUnknownErrorKind) {
 			t.Errorf("validateErrorKind(%q) = %v, want ErrUnknownErrorKind", k, err)
@@ -57,6 +57,12 @@ func openTestDB(t *testing.T) *sql.DB {
 	if err := sqlDB.Ping(); err != nil {
 		t.Fatalf("db.Ping: %v", err)
 	}
+	// Registered FIRST so it runs LAST (t.Cleanup is LIFO). Subsequent
+	// t.Cleanup registrations in the test body (e.g. purgeByHost) execute
+	// before this Close, so DELETE statements still see an open connection.
+	// This fixes the ordering bug where `defer sqlDB.Close()` in each test
+	// would close the DB before test-scoped cleanups ran.
+	t.Cleanup(func() { _ = sqlDB.Close() })
 	return sqlDB
 }
 
@@ -151,7 +157,6 @@ func readHarvesterLastUpdated(t *testing.T, sqlDB *sql.DB, url string) time.Time
 // next_fetch_at. 5.2: dead row excluded from the claimable partial index.
 func TestIntegration_RecordFetchError_4xxImmediateDead(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := seedPioneerRow(t, sqlDB, 0)
@@ -160,7 +165,7 @@ func TestIntegration_RecordFetchError_4xxImmediateDead(t *testing.T) {
 		t.Fatalf("precondition: count=0, got %d", beforeCount)
 	}
 
-	if err := s.RecordFetchError(url, ErrorKindHTTP4xx); err != nil {
+	if err := s.RecordFetchError(url, ErrorHTTP4xx); err != nil {
 		t.Fatalf("RecordFetchError: %v", err)
 	}
 
@@ -189,7 +194,6 @@ func TestIntegration_RecordFetchError_4xxImmediateDead(t *testing.T) {
 // (±10%). After the fifth, the row is excluded from the claimable index.
 func TestIntegration_RecordFetchError_FiveConsecutiveBackoffs(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := seedPioneerRow(t, sqlDB, 0)
@@ -199,7 +203,7 @@ func TestIntegration_RecordFetchError_FiveConsecutiveBackoffs(t *testing.T) {
 	}
 	for i, d := range expectedDelays {
 		callStart := time.Now()
-		if err := s.RecordFetchError(url, ErrorKindHTTP5xx); err != nil {
+		if err := s.RecordFetchError(url, ErrorHTTP5xx); err != nil {
 			t.Fatalf("call %d: %v", i+1, err)
 		}
 		count, next := readPioneer(t, sqlDB, url)
@@ -235,7 +239,6 @@ func TestIntegration_RecordFetchError_FiveConsecutiveBackoffs(t *testing.T) {
 // a single-point check).
 func TestIntegration_RecordFetchError_NetworkAndTimeoutFormula(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	type step struct {
@@ -248,12 +251,12 @@ func TestIntegration_RecordFetchError_NetworkAndTimeoutFormula(t *testing.T) {
 		{seedCount: 1, wantCount: 2, wantDelay: 60 * time.Second},
 		{seedCount: 3, wantCount: 4, wantDelay: 240 * time.Second},
 	}
-	kinds := []string{ErrorKindNetwork, ErrorKindTimeout}
+	kinds := []ErrorKind{ErrorNetwork, ErrorTimeout}
 	for _, kind := range kinds {
 		kind := kind
 		for _, st := range steps {
 			st := st
-			t.Run(kind+"_n"+strconv.Itoa(int(st.wantCount)), func(t *testing.T) {
+			t.Run(string(kind)+"_n"+strconv.Itoa(int(st.wantCount)), func(t *testing.T) {
 				url := seedPioneerRow(t, sqlDB, st.seedCount)
 				callStart := time.Now()
 				if err := s.RecordFetchError(url, kind); err != nil {
@@ -277,14 +280,13 @@ func TestIntegration_RecordFetchError_NetworkAndTimeoutFormula(t *testing.T) {
 // 6.7: harvest side mirrors fetch side for 4xx and 5xx.
 func TestIntegration_RecordHarvestError_4xxAndBackoff(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	t.Run("4xx_immediate_dead", func(t *testing.T) {
 		url := seedHarvesterRow(t, sqlDB, 0)
 		_, beforeNext := readHarvester(t, sqlDB, url)
 
-		if err := s.RecordHarvestError(url, ErrorKindHTTP4xx); err != nil {
+		if err := s.RecordHarvestError(url, ErrorHTTP4xx); err != nil {
 			t.Fatalf("RecordHarvestError: %v", err)
 		}
 		count, afterNext := readHarvester(t, sqlDB, url)
@@ -300,7 +302,7 @@ func TestIntegration_RecordHarvestError_4xxAndBackoff(t *testing.T) {
 	t.Run("5xx_backoff", func(t *testing.T) {
 		url := seedHarvesterRow(t, sqlDB, 1)
 		callStart := time.Now()
-		if err := s.RecordHarvestError(url, ErrorKindHTTP5xx); err != nil {
+		if err := s.RecordHarvestError(url, ErrorHTTP5xx); err != nil {
 			t.Fatalf("RecordHarvestError: %v", err)
 		}
 		count, next := readHarvester(t, sqlDB, url)
@@ -317,7 +319,6 @@ func TestIntegration_RecordHarvestError_4xxAndBackoff(t *testing.T) {
 // 5.3 / claim-api Scenario "알 수 없는 key": warn log, no row created, no panic.
 func TestIntegration_RecordFetchError_UnknownKeyWarnsNoRow(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := "https://example.test/unknown-key/" + uuid.NewString()
@@ -332,7 +333,7 @@ func TestIntegration_RecordFetchError_UnknownKeyWarnsNoRow(t *testing.T) {
 		t.Fatalf("test setup: row already present")
 	}
 
-	if err := s.RecordFetchError(url, ErrorKindHTTP5xx); err != nil {
+	if err := s.RecordFetchError(url, ErrorHTTP5xx); err != nil {
 		t.Fatalf("RecordFetchError should not return error for unknown key, got: %v", err)
 	}
 
@@ -351,7 +352,6 @@ func TestIntegration_RecordFetchError_UnknownKeyWarnsNoRow(t *testing.T) {
 // shared validateErrorKind unit coverage.
 func TestIntegration_RecordFetchError_UnknownKindLeavesRowIntact(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := seedPioneerRow(t, sqlDB, 2)
@@ -377,7 +377,6 @@ func TestIntegration_RecordFetchError_UnknownKindLeavesRowIntact(t *testing.T) {
 // tests above and is not re-asserted here.
 func TestIntegration_RecordError_UpdatesLastUpdatedAt(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	type recordFn func(url string) error
@@ -387,35 +386,35 @@ func TestIntegration_RecordError_UpdatesLastUpdatedAt(t *testing.T) {
 		seed    func() string
 		record  recordFn
 		read    readFn
-		errKind string
+		errKind ErrorKind
 	}{
 		{
 			name:    "pioneer_4xx",
 			seed:    func() string { return seedPioneerRow(t, sqlDB, 0) },
-			record:  func(url string) error { return s.RecordFetchError(url, ErrorKindHTTP4xx) },
+			record:  func(url string) error { return s.RecordFetchError(url, ErrorHTTP4xx) },
 			read:    func(url string) time.Time { return readPioneerLastUpdated(t, sqlDB, url) },
-			errKind: ErrorKindHTTP4xx,
+			errKind: ErrorHTTP4xx,
 		},
 		{
 			name:    "pioneer_5xx",
 			seed:    func() string { return seedPioneerRow(t, sqlDB, 0) },
-			record:  func(url string) error { return s.RecordFetchError(url, ErrorKindHTTP5xx) },
+			record:  func(url string) error { return s.RecordFetchError(url, ErrorHTTP5xx) },
 			read:    func(url string) time.Time { return readPioneerLastUpdated(t, sqlDB, url) },
-			errKind: ErrorKindHTTP5xx,
+			errKind: ErrorHTTP5xx,
 		},
 		{
 			name:    "harvester_4xx",
 			seed:    func() string { return seedHarvesterRow(t, sqlDB, 0) },
-			record:  func(url string) error { return s.RecordHarvestError(url, ErrorKindHTTP4xx) },
+			record:  func(url string) error { return s.RecordHarvestError(url, ErrorHTTP4xx) },
 			read:    func(url string) time.Time { return readHarvesterLastUpdated(t, sqlDB, url) },
-			errKind: ErrorKindHTTP4xx,
+			errKind: ErrorHTTP4xx,
 		},
 		{
 			name:    "harvester_5xx",
 			seed:    func() string { return seedHarvesterRow(t, sqlDB, 0) },
-			record:  func(url string) error { return s.RecordHarvestError(url, ErrorKindHTTP5xx) },
+			record:  func(url string) error { return s.RecordHarvestError(url, ErrorHTTP5xx) },
 			read:    func(url string) time.Time { return readHarvesterLastUpdated(t, sqlDB, url) },
-			errKind: ErrorKindHTTP5xx,
+			errKind: ErrorHTTP5xx,
 		},
 	}
 	for _, tc := range cases {
@@ -447,11 +446,10 @@ func TestIntegration_RecordError_UpdatesLastUpdatedAt(t *testing.T) {
 // rewritten timestamp.
 func TestIntegration_RecordFetchError_DeadRowNon4xxIsIdempotentOnCount(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := seedPioneerRow(t, sqlDB, 5)
-	if err := s.RecordFetchError(url, ErrorKindHTTP5xx); err != nil {
+	if err := s.RecordFetchError(url, ErrorHTTP5xx); err != nil {
 		t.Fatalf("RecordFetchError: %v", err)
 	}
 	count, _ := readPioneer(t, sqlDB, url)
@@ -472,7 +470,6 @@ func TestIntegration_RecordFetchError_DeadRowNon4xxIsIdempotentOnCount(t *testin
 
 func TestIntegration_RecordHarvestError_UnknownKindLeavesRowIntact(t *testing.T) {
 	sqlDB := openTestDB(t)
-	defer func() { _ = sqlDB.Close() }()
 	s := NewPGURLScheduler(sqlDB)
 
 	url := seedHarvesterRow(t, sqlDB, 2)
