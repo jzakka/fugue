@@ -177,6 +177,10 @@ Run tests:
 go test ./internal/bot/...
 ```
 
+## Primary Image Cache
+
+Harvester는 Pin 생성 시점에 page HTML에서 primary 이미지를 추출하여 object storage에 캐시한다. 추출 우선순위는 `og:image` → `twitter:image` → article/main 내 의미있는 `<img>` → JSON-LD `image`이며, 첫 번째 유효 후보만 채택한다. 저장 키는 `images/<sha256(normalizedURL)>/<unix_ts>.<ext>` 형식이고, 확장자는 응답 Content-Type → URL path → `.bin` 순서로 결정된다. 다운로드/업로드 실패, 크기 초과(기본 20 MiB, `HARVESTER_IMAGE_CACHE_MAX_BYTES`로 조정) 등 **모든 실패는 단일 fallback 경로**로 처리되어 Pin의 `og_image` 컬럼에 원본 후보 URL이 그대로 기록되고 Pin 생성은 계속된다. 후보가 없으면 `og_image`는 NULL. 본 스펙상 `og_image`와 `thumbnail_url`은 동일 의미이지만 현재 스키마에는 `og_image`만 존재하므로 그 컬럼만 사용한다.
+
 ## Future Work
 
 - HTTP client implementation for fetchHTML

@@ -60,7 +60,7 @@
 | url | VARCHAR(1000) | 원본 URL (선택) |
 | title | VARCHAR(200) NOT NULL | 제목 |
 | description | VARCHAR(500) | 설명 (선택) |
-| og_image | VARCHAR(1000) | OG 썸네일 URL |
+| og_image | VARCHAR(1000) | Pin의 primary 이미지 URL. Harvester가 `images/<sha256>/<ts>.<ext>` 키로 object storage에 캐시 성공 시 storage URL, 실패(다운로드/업로드/크기초과) 시 원본 후보 URL, 후보 없음 시 NULL (`harvester-image-cache`). |
 | og_data | JSONB | OG 메타데이터 전체 |
 | created_at | TIMESTAMPTZ | |
 
