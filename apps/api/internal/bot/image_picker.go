@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -169,15 +170,23 @@ func flattenJSONLDImage(raw string) []string {
 func walkJSONLD(node any, out *[]string) {
 	switch v := node.(type) {
 	case map[string]any:
+		// image field is collected first (priority), then nested objects are
+		// recursed in a deterministic (alphabetical) key order so repeated
+		// runs yield identical candidate ordering. Go map range is randomized
+		// otherwise.
 		if img, ok := v["image"]; ok {
 			collectImageField(img, out)
 		}
-		// Recurse into nested objects (e.g., @graph)
-		for k, child := range v {
+		keys := make([]string, 0, len(v))
+		for k := range v {
 			if k == "image" {
 				continue
 			}
-			walkJSONLD(child, out)
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			walkJSONLD(v[k], out)
 		}
 	case []any:
 		for _, child := range v {

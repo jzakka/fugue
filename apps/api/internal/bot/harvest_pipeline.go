@@ -1,9 +1,9 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -225,13 +225,9 @@ func (p *HarvestPipeline) cacheImage(ctx context.Context, rawURL string) (string
 		uploadCT = "application/octet-stream"
 	}
 
-	uploadedURL, upErr := p.storage.Upload(ctx, key, uploadCT, int64(len(buf)), strings.NewReader(string(buf)))
+	uploadedURL, upErr := p.storage.Upload(ctx, key, uploadCT, int64(len(buf)), bytes.NewReader(buf))
 	if upErr != nil {
 		return rawURL, fmt.Errorf("image cache: upload: %w", upErr)
-	}
-	if !strings.HasPrefix(key, "images/") {
-		// Defensive: our key builder always uses images/, but guard anyway.
-		return rawURL, errors.New("image cache: invariant: key missing images/ prefix")
 	}
 	return uploadedURL, nil
 }
