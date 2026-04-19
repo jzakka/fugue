@@ -47,3 +47,4 @@
   - canonicalURL 테스트는 기존 회귀 테스트(www, utm, trailing slash, fragment) 유지 + 신규(scheme 대문자, default port 80/443, non-default 포트 보존, query 정렬) 추가.
   - RobotsFilter 테스트 신규: Disallow 차단, 404 허용, 5xx fail-open, Crawl-delay 파싱, TTL 만료 재조회.
 - **참조 구현**: `apps/api/internal/bot/link_filter.go`, `apps/api/internal/bot/pioneer.go` (Run 루프의 finalURL 취득 지점).
+- **후속 작업 (deferred)**: tasks.md §5.4 / §5.5의 Pioneer Run-loop 통합 테스트(가짜 HTML → 필터 차단 시 `Enqueue` 호출 0회, redirect 발생 시 finalURL 단독 필터 검증)는 graph 저장소·HTTP fetcher·Enqueuer를 포함한 대규모 테스트 하니스 신설이 필요하므로 본 change 범위에서 **의도적으로 미구현**한다. 본 change는 스펙 계약("큐에 적재되는 모든 URL은 필터 체인의 최종 출력에 속한다")과 unit-level 테스트(DomainFilter/canonical/Robots)로 충분히 보증된다고 판단하며, 통합 하니스는 후속 change에서 Pioneer 전체 루프를 포함해 별도로 다룬다.

@@ -105,6 +105,21 @@ make harvester SITE=artstation    # Harvester 크롤러 실행
 make show-map                     # Bot 그래프 시각화 (graph.html 생성)
 ```
 
+#### Pioneer 링크 필터 정책
+
+Pioneer가 Enqueue하기 전 적용하는 FilterChain 순서는 고정이다: **Domain → Extension → PathPattern → Robots → Dedup**. 각 필터의 책임은 다음과 같다.
+
+- **DomainFilter (교차 사이트 기본 허용)**: `AllowKeywords`/`DenyKeywords` 두 리스트로 링크 호스트를 substring 매칭한다. 매칭 전 호스트는 lowercase + `www.` 제거로 정규화된다.
+  - `AllowKeywords`가 비어 있으면 Deny에 걸리지 않은 모든 호스트를 통과시킨다 (Fugue의 크로스미디어 비전 기본값).
+  - `DenyKeywords` 매칭이 `AllowKeywords`보다 우선한다.
+  - 국가별 TLD에 대한 특별 처리는 없다. 필요한 키워드는 명시적으로 리스트에 추가한다.
+- **RobotsFilter**: 호스트별 robots.txt를 최초 접근 시 lazy fetch하여 in-memory 캐시에 저장한다. User-agent는 `FugueBot` 우선, 없으면 `*` fallback (두 블록은 병합하지 않는다).
+  - 캐시 TTL은 24시간이며, fetch 실패(네트워크 오류·타임아웃·5xx) 시 **fail-open**(모두 통과)으로 동작한다. 실패 상태도 같은 TTL로 캐시해 재시도 폭주를 막는다. 캐시는 in-memory per-process이므로 Pioneer 프로세스가 종료되면 비워지며, 여러 Pioneer 인스턴스는 캐시를 공유하지 않는다.
+  - `Disallow` 규칙은 prefix 매칭으로 해당 경로를 차단한다. `Crawl-delay: N`가 명시되면 `scheduler-host-token-bucket`의 `SetHostRate(host, 1/N, 1)`을 호출해 해당 호스트의 토큰 버킷 rate를 갱신한다 (캐시 갱신 시점에만 1회).
+- **Redirect chain**: 필터 체인은 `fetchHTML`이 반환하는 **최종 URL**에만 적용된다. 중간 redirect URL은 검사하지 않는다.
+
+관련 스펙: `openspec/specs/bot/spec.md`의 DomainFilter / canonicalURL / RobotsFilter / 필터 체인 요구사항.
+
 ### 초기 설정
 
 ```bash

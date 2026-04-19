@@ -55,18 +55,31 @@ var trackingParams = map[string]bool{
 	"gclid":        true,
 }
 
-// canonicalURL normalizes a URL by removing tracking parameters,
-// stripping the www. prefix, and removing trailing slashes.
+// canonicalURL normalizes a URL to RFC 3986 level:
+//   - scheme lowercased
+//   - host lowercased + www. prefix stripped + default port removed
+//     (":80" for http, ":443" for https; non-default ports preserved)
+//   - fragment removed
+//   - tracking parameters removed; remaining query keys sorted ascending
+//     (url.Values.Encode sorts by key)
+//   - trailing slash removed for non-root paths; root "/" preserved
+//   - path case is preserved
 func canonicalURL(urlStr string) string {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return urlStr
 	}
 
-	// Remove www. prefix
-	u.Host = strings.TrimPrefix(strings.ToLower(u.Host), "www.")
+	// Scheme lowercase
+	u.Scheme = strings.ToLower(u.Scheme)
 
-	// Remove tracking parameters
+	// Host: lowercase + strip www. + strip default port
+	host := strings.ToLower(u.Host)
+	host = stripWWW(host)
+	host = stripDefaultPort(u.Scheme, host)
+	u.Host = host
+
+	// Remove tracking parameters; Encode sorts keys ascending
 	q := u.Query()
 	for param := range trackingParams {
 		q.Del(param)
@@ -82,6 +95,24 @@ func canonicalURL(urlStr string) string {
 	u.Fragment = ""
 
 	return u.String()
+}
+
+// stripWWW removes a leading "www." from a host string. Input must already be lowercase.
+func stripWWW(host string) string {
+	return strings.TrimPrefix(host, "www.")
+}
+
+// stripDefaultPort removes ":80" from http hosts and ":443" from https hosts.
+// Non-default ports are preserved. Input must already be lowercase.
+func stripDefaultPort(scheme, host string) string {
+	switch scheme {
+	case "http":
+		return strings.TrimSuffix(host, ":80")
+	case "https":
+		return strings.TrimSuffix(host, ":443")
+	default:
+		return host
+	}
 }
 
 // VisitedLink records a link that was already visited, pairing the original
@@ -108,19 +139,63 @@ func semanticPriorityModifier(link crawler.Link) int {
 
 // --- Filter Implementations ---
 
-// DomainFilter keeps only links whose domain matches RootDomain.
+// DomainFilter selects links by substring-matching the link host against
+// AllowKeywords / DenyKeywords. Hosts are normalized (lowercased, "www."
+// stripped) before matching.
+//
+// Deny always wins: a host matched by any DenyKeywords entry is rejected.
+// If AllowKeywords is empty (the default), all non-denied hosts pass —
+// this is the cross-site default-allow mode. If AllowKeywords is
+// non-empty, a host must match at least one Allow entry to pass.
 type DomainFilter struct {
-	RootDomain string
+	AllowKeywords []string
+	DenyKeywords  []string
 }
 
 func (f *DomainFilter) Filter(links []crawler.Link) []crawler.Link {
 	var out []crawler.Link
 	for _, l := range links {
-		if isSameDomain(l.URL, f.RootDomain) {
+		host := normalizedHost(l.URL)
+		if host == "" {
+			// Unparseable or hostless URL: drop.
+			continue
+		}
+		if matchesAnyKeyword(host, f.DenyKeywords) {
+			continue
+		}
+		if len(f.AllowKeywords) == 0 || matchesAnyKeyword(host, f.AllowKeywords) {
 			out = append(out, l)
 		}
 	}
 	return out
+}
+
+// normalizedHost returns the link host lowercased with "www." stripped.
+// Returns "" for URLs that cannot be parsed or have no host.
+func normalizedHost(urlStr string) string {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return ""
+	}
+	h := strings.ToLower(u.Hostname())
+	if h == "" {
+		return ""
+	}
+	return stripWWW(h)
+}
+
+// matchesAnyKeyword returns true if host contains any of keywords as a
+// case-insensitive substring. Empty keywords are skipped.
+func matchesAnyKeyword(host string, keywords []string) bool {
+	for _, kw := range keywords {
+		if kw == "" {
+			continue
+		}
+		if strings.Contains(host, strings.ToLower(kw)) {
+			return true
+		}
+	}
+	return false
 }
 
 // ExtensionFilter removes links with excluded file extensions.

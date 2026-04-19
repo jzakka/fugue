@@ -85,7 +85,7 @@ host → {
 ```
 
 **Fetch 절차**:
-1. 호스트가 캐시에 없거나 `fetchedAt + 24h < now()`이면 `https://<host>/robots.txt`에 HTTP GET을 건다.
+1. 호스트가 캐시에 없거나 `fetchedAt + 24h < now()`이면 `https://<host>/robots.txt`에 HTTP GET을 건다. 스킴은 `https` 고정 — Fugue 대상 사이트는 현대 공개 웹 기준 모두 HTTPS를 제공한다고 가정하며, HTTP-only 사이트는 TLS 실패 → `failOpen` 경로로 수렴되어 안전하게 통과된다.
 2. 응답 상태 분기:
    - **200**: body를 파싱한다. User-agent 블록을 순회하여 `FugueBot`이 있으면 그 블록을 사용, 없으면 `*` 블록을 사용(둘 다 없으면 빈 rules).
    - **404**: "규칙 없음"으로 해석. rules는 빈 배열로 캐시.
@@ -137,6 +137,18 @@ host → {
 
 즉 Robots는 **의미적 차단**(해당 URL을 크롤하면 안 됨), host bucket은 **속도 제어**(해당 호스트에 너무 자주 가면 안 됨)로 책임이 분리된다.
 
+### D6-b. 필터 체인 우회 경로 금지 (구현 정책)
+
+**결정**: Pioneer Run 루프에서 "`ExtractLinksWithSelectors` 결과를 직접 Enqueue하는 경로"는 구현 단계에서 제거한다. 모든 Enqueue 호출은 `FilterChain.Apply` 반환값을 인자로 취해야 한다.
+
+**검증**:
+- 코드 리뷰에서 `Enqueue(` 호출의 인자가 `FilterChain.Apply` 결과에서 유래하는지 grep으로 확인.
+- 통합 테스트(tasks §5.4)에서 필터가 모든 링크를 차단하는 케이스에 Enqueue 호출 횟수가 0임을 검증.
+
+**사유**: 이 규칙은 관찰 불가능한 "내부 코드 경로 존재 금지"라 spec 계약(ADDED Requirement)에서는 Enqueue 결과의 불변식("모든 큐 항목은 필터 출력 집합에 속한다")으로 기술한다. 실제 구현 차원에서의 "우회 경로 제거"는 design.md의 정책으로 남긴다.
+
+**Seed URL 예외**: Pioneer가 최초 구동 시 주입하는 seed URL은 필터 체인을 거치지 않고 직접 큐에 push된다. spec "페이지로부터 유래한 모든 큐 항목은 필터 체인의 최종 출력 집합에 포함된다" 문구가 "페이지로부터 유래한"으로 한정되어 있어 seed는 스펙 범위 밖이다. 운영자가 명시적으로 seed를 제공한다는 전제는 Fugue 크롤러의 운영 모델이며, seed 호스트 자체가 Disallow에 해당한다면 첫 fetch 직후 RobotsFilter가 정상적으로 그 호스트의 파생 링크들을 차단하므로 실질적 영향은 없다.
+
 ### D7. Redirect chain: 최종 URL만 체크
 
 **결정**: `pioneer.go`의 `fetchHTML`가 반환하는 `finalURL`에 대해서만 필터 체인/canonicalization을 적용한다. 중간 redirect URL(예: `301 Location: ...` 체인 중간 URL)은 검사 대상에서 제외한다.
@@ -172,13 +184,14 @@ host → {
 
 ## Risks / Trade-offs
 
-- **[교차 사이트 크롤 예산 폭발]** → scheduler-host-token-bucket과 pioneer-worker-budget이 이미 예산 제어를 담당. 운영 중 Deny 리스트 확장으로 대응.
+- **[교차 사이트 크롤 예산 폭발]** → 호스트 단위 정중함은 baseline의 `scheduler-host-token-bucket`이 이미 담당. 워커/페이지 예산 제어는 현재 in-flight change `pioneer-worker-budget`(아직 baseline spec에 포함되지 않음)이 맡을 예정이며, 운영 중 Deny 리스트 확장으로도 대응 가능.
 - **[robots.txt fail-open으로 인한 정중함 위반]** → fetch 실패 호스트는 TTL 24h 동안 재조회하지 않아 폭주 방지. 운영 로그로 모니터링 가능.
 - **[Crawl-delay 비현실적 큰 값(예: 300초)]** → 본 change는 scheduler `SetHostRate`에 그대로 전달. 상한 clamp는 scheduler 측에서 결정(본 change 범위 외).
 - **[canonicalURL 확장이 기존 visited 맵 키와 충돌]** → archive impl은 `visited` 맵 키를 `hashURL(l.URL)`(원본), `seen` 맵 키를 `hashURL(canonicalURL(l.URL))`(정규화)로 분리 유지 중. 본 change의 canonical 확장은 `seen` 쪽만 영향. 두 맵의 역할 분리는 유지.
 - **[프로세스별 인메모리 robots 캐시]** → 다중 Pioneer 인스턴스에서 같은 호스트 중복 조회 가능. 24h TTL로 유의미한 부담 아님. 분산 캐시는 후속 과제.
 - **[Redirect chain 중간 URL 미검증]** → Disallow 경로로 리디렉션 당하는 드문 케이스에 false negative 가능. 최종 URL이 허용된다면 실익 낮아 수용.
 - **[RobotsFilter와 `SetHostRate` 중복 호출]** → 같은 호스트 Crawl-delay는 TTL 내에 최초 1회만 호출되도록 구현(캐시 hit 시 skip).
+- **[호스트별 동시 refresh로 인한 K × timeout latency]** → K개의 Pioneer 워커가 같은 미캐시 호스트에 동시에 도달하면 단순 구현은 각자 5초 timeout × K번의 HTTP GET을 유발할 수 있다. 이를 막기 위해 구현은 호스트 단위 single-flight(`inflight map[string]*fetch`)를 적용하여 동시 N개의 호출 중 1회만 네트워크 GET을 수행하고 나머지는 결과 채널에서 대기한다. 최악 지연은 여전히 1 × timeout(5s)이며, `SetHostRate`도 정확히 1회만 호출된다.
 
 ## Migration Plan
 

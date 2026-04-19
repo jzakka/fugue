@@ -1,23 +1,23 @@
 ## ADDED Requirements
 
 ### Requirement: Pioneer는 ParseLinks 후 FilterLinks를 거쳐 Enqueue한다
-Pioneer Run 루프는 각 페이지를 fetch한 뒤 추출된 링크 목록을 **반드시 필터 체인에 통과**시킨 후 결과만 프런티어 큐에 Enqueue해야 한다(SHALL). 필터 체인을 우회하여 Enqueue하는 경로가 있어서는 안 된다(MUST NOT). 필터 체인의 입력 URL은 `fetchHTML`이 반환하는 redirect chain의 **최종 URL**이어야 한다(SHALL).
+Pioneer Run 루프에서 프런티어 큐에 Enqueue되는 URL은 **반드시 필터 체인의 최종 출력 집합에 속해야 한다**(SHALL). 필터 체인의 입력 URL은 `fetchHTML`이 반환하는 redirect chain의 **최종 URL**이어야 한다(SHALL).
 
-#### Scenario: 정상 플로우
-- **WHEN** Pioneer가 페이지에서 링크 목록을 추출할 때
-- **THEN** 해당 목록은 필터 체인에 입력되고, 체인의 최종 출력만 큐에 Enqueue된다
-
-#### Scenario: 필터 우회 금지
-- **WHEN** 구현이 링크 목록을 필터 체인 없이 직접 Enqueue하려 할 때
-- **THEN** 해당 구현은 본 스펙을 위반하며 허용되지 않는다
+#### Scenario: Enqueue된 URL은 필터 체인 통과 결과만 포함한다
+- **WHEN** Pioneer가 한 페이지에서 추출한 링크 목록을 필터 체인에 투입하고 그 결과를 큐에 Enqueue한 직후 큐 상태를 관찰할 때
+- **THEN** 해당 페이지로부터 유래한 모든 큐 항목은 필터 체인의 최종 출력 집합에 포함된다
 
 #### Scenario: 빈 결과 처리
 - **WHEN** 필터 체인이 모든 링크를 걸러내어 빈 목록을 반환할 때
-- **THEN** Pioneer는 에러 없이 다음 Dequeue로 진행한다
+- **THEN** Pioneer는 에러 없이 다음 Dequeue로 진행하며 해당 페이지로부터 Enqueue된 URL은 0건이다
 
 #### Scenario: Redirect chain의 최종 URL만 사용
 - **WHEN** Pioneer가 301/302 리디렉션을 거쳐 최종 페이지에 도달할 때
 - **THEN** 필터 체인과 canonicalization은 최종 URL에만 적용되고 중간 redirect URL은 검사되지 않는다
+
+#### Scenario: 파싱 불가능한 URL은 큐에 포함되지 않는다
+- **WHEN** 추출된 링크 중 URL이 빈 문자열이거나 파싱 불가능하여 호스트를 얻을 수 없는 항목이 포함될 때
+- **THEN** 해당 항목은 필터 체인에서 제거되어 큐에 Enqueue되지 않는다
 
 ---
 
@@ -72,33 +72,37 @@ RobotsFilter는 robots.txt fetch가 네트워크 오류, 타임아웃, 5xx 응�
 - **WHEN** robots.txt가 5xx로 응답할 때
 - **THEN** 해당 호스트는 fail-open 상태로 캐시되며, TTL 이내에는 재시도하지 않는다
 
+#### Scenario: 404·5xx 외 비-2xx 응답은 "규칙 없음"으로 해석한다
+- **WHEN** robots.txt가 404·5xx 이외의 비-2xx 응답(예: 인증 요구 401/403, 비정상 3xx, 429)을 반환할 때
+- **THEN** 해당 호스트는 "규칙 없음"으로 간주되어 모든 링크가 통과하되, fail-open 상태가 아닌 "빈 규칙"으로 캐시된다(실패 상태와 다르게 정책 확대 해석을 하지 않음)
+
 ---
 
 ### Requirement: RobotsFilter는 Crawl-delay를 호스트 bucket에 반영한다
-RobotsFilter는 robots.txt에서 `Crawl-delay: N` (초) 지시어를 파싱해야 하며(SHALL), 파싱에 성공한 경우 `scheduler-host-token-bucket` capability가 노출하는 `SetHostRate(host, 1/N, 1)`을 호출하여 해당 호스트의 토큰 버킷 rate를 갱신해야 한다(SHALL). burst는 `1`로 고정한다(SHALL). Crawl-delay가 없거나 파싱에 실패한 경우 `SetHostRate`을 호출하지 않으며 scheduler의 기본 rate가 유지되어야 한다(SHALL).
+RobotsFilter는 robots.txt에서 `Crawl-delay: N` (초) 지시어를 파싱해야 하며(SHALL), 파싱에 성공한 경우 `scheduler-host-token-bucket` capability의 **호스트 rate/burst 설정 동작**을 호출하여 해당 호스트의 rate를 `1/N` req/sec, burst `1`로 갱신해야 한다(SHALL). Crawl-delay가 없거나 파싱에 실패한 경우 호스트 rate/burst 설정 동작을 호출하지 않으며 scheduler의 기본 rate가 유지되어야 한다(SHALL).
 
-#### Scenario: Crawl-delay 파싱 및 SetHostRate 호출
+#### Scenario: Crawl-delay 파싱 및 호스트 rate 갱신
 - **WHEN** robots.txt에 `Crawl-delay: 5`가 포함될 때
-- **THEN** RobotsFilter는 해당 호스트에 대해 `SetHostRate(host, 0.2, 1)`을 호출하여 초당 0.2 requests로 rate를 갱신한다
+- **THEN** RobotsFilter는 해당 호스트에 대해 scheduler의 호스트 rate/burst 설정 동작을 호출하여 rate가 초당 0.2 requests, burst가 1로 갱신된다
 
 #### Scenario: Crawl-delay 미지정 시 기본 rate 유지
 - **WHEN** robots.txt에 Crawl-delay가 명시되지 않을 때
-- **THEN** `SetHostRate`은 호출되지 않고 scheduler의 기본 rate가 유지된다
+- **THEN** 호스트 rate/burst 설정 동작은 호출되지 않고 scheduler의 기본 rate가 유지된다
 
 #### Scenario: 파싱 불가능한 Crawl-delay 무시
 - **WHEN** Crawl-delay 값이 정수/실수로 파싱되지 않을 때
-- **THEN** 해당 값은 무시되고 `SetHostRate`은 호출되지 않는다
+- **THEN** 해당 값은 무시되고 호스트 rate/burst 설정 동작은 호출되지 않는다
 
 #### Scenario: 캐시 TTL 내 중복 호출 방지
 - **WHEN** 같은 호스트에 대해 24시간 캐시 TTL 이내에 다수 링크가 필터링될 때
-- **THEN** `SetHostRate`은 캐시 갱신 시점(최초 fetch 또는 TTL 만료 재fetch)에만 호출된다
+- **THEN** 호스트 rate/burst 설정 동작은 캐시 갱신 시점(최초 fetch 또는 TTL 만료 재fetch)에만 호출된다
 
 ---
 
 ## MODIFIED Requirements
 
-### Requirement: DomainFilter는 Allow/Deny 키워드로 도메인을 필터링하며 교차 사이트 크롤을 기본 허용한다
-archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "DomainFilter가 루트 도메인 링크만 통과시킨다" 요구사항을 본 요구사항이 대체한다. DomainFilter는 단일 루트 도메인 비교가 아니라 **Allow 키워드 리스트**와 **Deny 키워드 리스트**를 받아 링크 호스트에 대한 substring 매칭으로 필터링해야 한다(SHALL).
+### Requirement: DomainFilter가 루트 도메인 링크만 통과시킨다
+DomainFilter는 단일 루트 도메인 비교가 아니라 **Allow 키워드 리스트**와 **Deny 키워드 리스트**를 받아 링크 호스트에 대한 substring 매칭으로 필터링해야 한다(SHALL). 종전의 "루트 도메인 고정 비교" 정책은 본 요구사항이 대체하며, 교차 사이트 크롤을 기본 허용한다(SHALL).
 
 - Deny 리스트에 매칭되는 호스트는 항상 차단한다(SHALL).
 - Allow 리스트가 비어 있으면 Deny에 걸리지 않은 모든 호스트를 통과시킨다(SHALL). 즉 **교차 사이트 크롤을 기본 허용**한다.
@@ -130,8 +134,8 @@ archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "DomainFilter가 루트 �
 
 ---
 
-### Requirement: canonicalURL은 URL을 RFC 3986 수준으로 정규화한다
-archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "canonicalPath가 URL을 정규화한다" 요구사항을 본 요구사항이 대체한다. URL 정규화는 다음을 **모두** 수행해야 한다(SHALL).
+### Requirement: canonicalURL이 URL을 정규화한다
+URL 정규화는 다음을 **모두** 수행해야 한다(SHALL). 종전 규칙(트래킹 파라미터 제거, www 제거, trailing slash 통일)에 scheme 소문자화, default port 제거, query 파라미터 이름순 정렬, fragment 제거를 추가하여 RFC 3986 수준의 정규화를 달성한다.
 
 - scheme을 소문자로 변환한다(SHALL).
 - host를 소문자로 변환하고 `www.` 접두어를 제거한다(SHALL).
@@ -147,14 +151,14 @@ archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "canonicalPath가 URL을 
 - **THEN** `https://example.com/Page` 로 정규화된다
 
 #### Scenario: default port 제거
-- **WHEN** scheme이 http이고 호스트에 `:80`이 포함된 URL이 입력될 때
-- **THEN** `:80`이 제거된 URL이 반환된다
-- **WHEN** scheme이 https이고 호스트에 `:443`이 포함된 URL이 입력될 때
-- **THEN** `:443`이 제거된 URL이 반환된다
+- **WHEN** http 스킴의 URL에 기본 포트(80)가 명시적으로 포함될 때
+- **THEN** 정규화된 URL은 기본 포트를 포함하지 않는다
+- **WHEN** https 스킴의 URL에 기본 포트(443)가 명시적으로 포함될 때
+- **THEN** 정규화된 URL은 기본 포트를 포함하지 않는다
 
 #### Scenario: non-default 포트는 보존
-- **WHEN** 호스트에 `:8080` 등 default가 아닌 포트를 포함한 URL이 입력될 때
-- **THEN** 해당 포트는 그대로 유지된다
+- **WHEN** URL이 해당 스킴의 기본 포트가 아닌 포트(예: 8080)를 포함할 때
+- **THEN** 정규화된 URL은 해당 포트를 그대로 유지한다
 
 #### Scenario: query 파라미터 이름순 정렬
 - **WHEN** 파라미터가 `b=2&a=1&c=3` 순서로 입력될 때
@@ -180,8 +184,8 @@ archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "canonicalPath가 URL을 
 
 ---
 
-### Requirement: 필터 체인은 고정된 순서로 필터를 적용한다
-archive impl(`2026-04-13-pioneer-link-filter-impl`)의 "필터 체인이 순서대로 필터를 적용한다" 요구사항을 본 요구사항이 대체한다. Pioneer의 기본 필터 체인은 다음 순서를 따라야 한다(SHALL): (1) Domain allow/deny, (2) Extension, (3) PathPattern, (4) Robots, (5) Dedup. 이 순서는 값이 싼 필터를 앞에, 네트워크 I/O(Robots)와 공유 맵/DB 조회(Dedup)가 있는 값비싼 필터를 뒤에 배치하기 위해 고정되어야 한다(SHALL).
+### Requirement: 필터 체인이 순서대로 필터를 적용한다
+Pioneer의 기본 필터 체인은 다음 고정 순서를 따라야 한다(SHALL): (1) Domain allow/deny, (2) Extension, (3) PathPattern, (4) Robots, (5) Dedup. 각 필터의 출력이 다음 필터의 입력이 되며(SHALL), 이 순서는 값이 싼 필터를 앞에, 네트워크 I/O(Robots)와 공유 맵/DB 조회(Dedup)가 있는 값비싼 필터를 뒤에 배치하기 위해 고정되어야 한다(SHALL).
 
 - Domain / Extension / PathPattern은 인메모리 문자열 또는 regex 매칭으로 가장 저렴하다.
 - Robots는 캐시 hit 시 인메모리, miss 시 HTTP GET이 발생하므로 앞 세 필터로 먼저 후보를 줄인 뒤 평가한다.

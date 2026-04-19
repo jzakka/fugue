@@ -48,6 +48,12 @@ type Pioneer struct {
 	// of config.SnapshotEnabled (defensive double-gate).
 	snapshotStore   snapshot.SnapshotStore
 	snapshotMetrics *snapshot.Metrics
+
+	// hostRateSetter receives Crawl-delay directives parsed from robots.txt.
+	// Typically the scheduler-host-token-bucket HostRateLimiter. Nil is
+	// allowed; in that case RobotsFilter parses Crawl-delay but does not
+	// propagate it, which is the bootstrap state before scheduler wiring.
+	hostRateSetter HostRateSetter
 }
 
 // NewPioneer creates a new Pioneer service
@@ -67,6 +73,15 @@ func NewPioneer(
 		executor:   executor,
 		config:     config,
 	}
+}
+
+// WithHostRateSetter injects the scheduler-side rate setter used by
+// RobotsFilter to forward robots.txt Crawl-delay directives. Calling this
+// is optional: when left unset, the filter chain still enforces Disallow
+// rules but Crawl-delay goes unobserved.
+func (p *Pioneer) WithHostRateSetter(s HostRateSetter) *Pioneer {
+	p.hostRateSetter = s
+	return p
 }
 
 // WithSnapshotStore injects a raw-HTML snapshot store. The Pioneer will
@@ -106,14 +121,20 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 	queue := NewPriorityQueue()
 	visited := make(map[string]uuid.UUID) // hash → node ID
 
-	// Initialize FilterChain
+	// Initialize FilterChain in the spec-mandated order
+	// Domain → Extension → PathPattern → Robots → Dedup.
+	// Default DomainFilter leaves Allow/Deny empty, i.e. cross-site default-allow.
+	// RobotsFilter receives p.hostRateSetter (may be nil until scheduler wiring lands;
+	// in that case Crawl-delay is still parsed but not surfaced).
 	dedupFilter := NewCanonicalDedupFilter(visited)
 	filterChain := NewFilterChain(
-		&DomainFilter{RootDomain: rootDomain},
+		&DomainFilter{},
 		&ExtensionFilter{},
 		&PathPatternFilter{},
+		NewRobotsFilter(p.hostRateSetter),
 		dedupFilter,
 	)
+	_ = rootDomain // retained for downstream domain-aware logic (hashing, templates)
 
 	// Load existing edges for stale edge detection
 	type edgeKey struct{ from, to uuid.UUID }
@@ -243,7 +264,7 @@ func (p *Pioneer) crawl(ctx context.Context, site db.BotSite) error {
 		}
 		fmt.Printf("📊 Found %d raw links from %s\n", len(crawlerLinks), finalURL)
 
-		// Apply FilterChain: domain, extension, path pattern, dedup
+		// Apply FilterChain: domain, extension, path pattern, robots, dedup
 		filteredLinks := filterChain.Apply(crawlerLinks)
 		fmt.Printf("📊 %d links after filtering\n", len(filteredLinks))
 
