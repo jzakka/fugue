@@ -1,19 +1,39 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// imageCacheMaxBytesEnv is the environment variable name used to override
+// the default primary image cache size threshold (Decision 5).
+const imageCacheMaxBytesEnv = "HARVESTER_IMAGE_CACHE_MAX_BYTES"
+
+// DefaultImageCacheMaxBytes is the default maximum number of bytes the
+// primary image cache will download before aborting and falling back to the
+// original URL (Decision 5). 20 MiB.
+const DefaultImageCacheMaxBytes int64 = 20 * 1024 * 1024
+
+// errImageOversize is returned by cacheImage when the candidate exceeds the
+// configured size threshold. It triggers the single fallback path along with
+// download and upload failures.
+var errImageOversize = errors.New("image exceeds size threshold")
 
 // BotDB abstracts the database queries needed by HarvestPipeline.
 type BotDB interface {
@@ -23,18 +43,58 @@ type BotDB interface {
 
 // HarvestPipeline implements Pipeline by deduping, downloading media, and creating Pins.
 type HarvestPipeline struct {
-	db      BotDB
-	storage Storage
-	client  *http.Client
+	db                 BotDB
+	storage            Storage
+	client             *http.Client
+	imageCacheMaxBytes int64
+	imageCacheEnabled  bool
+	nowUnix            func() int64
 }
 
-// NewHarvestPipeline creates a new HarvestPipeline.
-func NewHarvestPipeline(db BotDB, storage Storage) *HarvestPipeline {
-	return &HarvestPipeline{
-		db:      db,
-		storage: storage,
-		client:  &http.Client{},
+// HarvestPipelineOption configures a HarvestPipeline.
+type HarvestPipelineOption func(*HarvestPipeline)
+
+// WithImageCacheMaxBytes overrides the default primary image size threshold.
+func WithImageCacheMaxBytes(n int64) HarvestPipelineOption {
+	return func(p *HarvestPipeline) {
+		if n > 0 {
+			p.imageCacheMaxBytes = n
+		}
 	}
+}
+
+// WithImageCacheEnabled toggles primary image caching on or off.
+func WithImageCacheEnabled(enabled bool) HarvestPipelineOption {
+	return func(p *HarvestPipeline) {
+		p.imageCacheEnabled = enabled
+	}
+}
+
+// NewHarvestPipeline creates a new HarvestPipeline. The default primary
+// image cache threshold is DefaultImageCacheMaxBytes (20 MiB); it can be
+// overridden via the HARVESTER_IMAGE_CACHE_MAX_BYTES environment variable,
+// and then further overridden by the WithImageCacheMaxBytes option.
+func NewHarvestPipeline(db BotDB, storage Storage, opts ...HarvestPipelineOption) *HarvestPipeline {
+	maxBytes := DefaultImageCacheMaxBytes
+	if v := strings.TrimSpace(os.Getenv(imageCacheMaxBytesEnv)); v != "" {
+		if parsed, err := strconv.ParseInt(v, 10, 64); err == nil && parsed > 0 {
+			maxBytes = parsed
+		} else {
+			log.Printf("harvest: invalid %s=%q, falling back to default %d bytes", imageCacheMaxBytesEnv, v, maxBytes)
+		}
+	}
+	p := &HarvestPipeline{
+		db:                 db,
+		storage:            storage,
+		client:             &http.Client{},
+		imageCacheMaxBytes: maxBytes,
+		imageCacheEnabled:  true,
+		nowUnix:            func() int64 { return time.Now().Unix() },
+	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
 }
 
 // Process deduplicates items, downloads and uploads media, and creates Pins.
@@ -73,6 +133,22 @@ func (p *HarvestPipeline) Process(ctx context.Context, items []RawItem) (pinsCre
 			continue
 		}
 
+		// Primary image caching: extract candidate from page HTML and cache to
+		// our storage. cacheImage always returns a string to record: success →
+		// storage URL, any failure → original candidate URL. If no candidate
+		// is found, the column stays NULL.
+		var ogImage sql.NullString
+		if p.imageCacheEnabled && len(item.PageHTML) > 0 {
+			candidate := PickPrimaryImage(item.PageHTML, item.SourceURL)
+			if candidate != "" {
+				cached, cacheErr := p.cacheImage(ctx, candidate)
+				if cacheErr != nil {
+					log.Printf("harvest: image cache fallback (source=%s candidate=%s): %v", item.SourceURL, candidate, cacheErr)
+				}
+				ogImage = sql.NullString{String: cached, Valid: true}
+			}
+		}
+
 		// Create Pin
 		_, createErr := p.db.CreatePin(ctx, db.CreatePinParams{
 			CreatorID:   BotCreatorID,
@@ -81,7 +157,7 @@ func (p *HarvestPipeline) Process(ctx context.Context, items []RawItem) (pinsCre
 			Url:         sql.NullString{String: item.SourceURL, Valid: true},
 			Title:       item.Title,
 			Description: sql.NullString{String: item.Description, Valid: item.Description != ""},
-			OgImage:     sql.NullString{},
+			OgImage:     ogImage,
 			OgData:      pqtype.NullRawMessage{},
 		})
 		if createErr != nil {
@@ -169,4 +245,63 @@ func extensionFromURL(rawURL string) string {
 		return ".bin"
 	}
 	return ext
+}
+
+// cacheImage downloads the given candidate image URL and uploads it to
+// object storage under the images/<hash>/<unix_ts>.<ext> key. Returns the
+// storage URL on success. On any failure (download, upload, or size
+// threshold exceeded), returns the original candidate URL unchanged together
+// with a non-nil error describing the reason. Callers always record the
+// returned string in the Pin's primary image URL column.
+//
+// candidateURL MUST be an absolute URL. Callers should obtain it from
+// PickPrimaryImage, which resolves relative candidates against the page URL
+// before returning. Passing a relative URL causes normalization to fail and
+// the function returns the original string via the fallback path.
+func (p *HarvestPipeline) cacheImage(ctx context.Context, candidateURL string) (string, error) {
+	normalized, err := normalizeImageURL(candidateURL, "")
+	if err != nil {
+		return candidateURL, fmt.Errorf("normalize: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, normalized, nil)
+	if err != nil {
+		return candidateURL, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return candidateURL, fmt.Errorf("download: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return candidateURL, fmt.Errorf("download: status %d", resp.StatusCode)
+	}
+
+	// Pre-check Content-Length against threshold (Decision 5).
+	if resp.ContentLength > 0 && resp.ContentLength > p.imageCacheMaxBytes {
+		return candidateURL, fmt.Errorf("%w: content-length %d > %d", errImageOversize, resp.ContentLength, p.imageCacheMaxBytes)
+	}
+
+	// Read with a hard cap of threshold+1 bytes so we can detect overshoot on
+	// servers that lie about / omit Content-Length.
+	limited := io.LimitReader(resp.Body, p.imageCacheMaxBytes+1)
+	body, err := io.ReadAll(limited)
+	if err != nil {
+		return candidateURL, fmt.Errorf("read body: %w", err)
+	}
+	if int64(len(body)) > p.imageCacheMaxBytes {
+		return candidateURL, fmt.Errorf("%w: read %d bytes", errImageOversize, len(body))
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	key := buildImageCacheKey(normalized, contentType, p.nowUnix())
+
+	storageURL, err := p.storage.Upload(ctx, key, contentType, int64(len(body)), bytes.NewReader(body))
+	if err != nil {
+		return candidateURL, fmt.Errorf("upload: %w", err)
+	}
+	log.Printf("harvest: image cache success (candidate=%s key=%s)", candidateURL, key)
+	return storageURL, nil
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -329,6 +330,271 @@ func TestHarvestPipeline_MixedResults(t *testing.T) {
 	}
 	if failed != 1 {
 		t.Errorf("expected 1 failed, got %d", failed)
+	}
+}
+
+// --- Section 5 of harvester-image-cache: primary image cache integration ---
+
+// imageCacheTestServer returns a httptest server that serves
+//   - /media   → 200 body "media-data" with Content-Type image/jpeg
+//   - /image.jpg → 200 body "image-bytes" with Content-Type image/jpeg
+//   - /notfound-image.jpg → 404
+//   - /huge.jpg → 200 with Content-Length > threshold
+//   - /stream-huge.jpg → 200 with no Content-Length but streamed body > threshold
+func imageCacheTestServer(threshold int) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/media":
+			w.Header().Set("Content-Type", "image/jpeg")
+			_, _ = w.Write([]byte("media-data"))
+		case "/image.jpg":
+			w.Header().Set("Content-Type", "image/jpeg")
+			_, _ = w.Write([]byte("image-bytes"))
+		case "/notfound-image.jpg":
+			w.WriteHeader(http.StatusNotFound)
+		case "/huge.jpg":
+			body := make([]byte, threshold+100)
+			w.Header().Set("Content-Type", "image/jpeg")
+			w.Header().Set("Content-Length", fmt.Sprintf("%d", len(body)))
+			_, _ = w.Write(body)
+		case "/stream-huge.jpg":
+			// No Content-Length → forces read-side size check.
+			w.Header().Set("Content-Type", "image/jpeg")
+			// Write threshold+100 bytes in chunks.
+			chunk := make([]byte, 1024)
+			written := 0
+			for written < threshold+100 {
+				n := threshold + 100 - written
+				if n > len(chunk) {
+					n = len(chunk)
+				}
+				_, _ = w.Write(chunk[:n])
+				written += n
+			}
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+}
+
+func TestHarvestPipeline_ImageCache_Success(t *testing.T) {
+	server := imageCacheTestServer(1024)
+	defer server.Close()
+
+	mockDB := NewMockBotDB()
+	mockStorage := NewMockStorage()
+	// Record image upload keys to verify "images/" prefix is used.
+	var imageUploadKey string
+	mockStorage.UploadFunc = func(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (string, error) {
+		if strings.HasPrefix(filename, "images/") {
+			imageUploadKey = filename
+		}
+		return "https://cdn.example.com/" + filename, nil
+	}
+	pipeline := NewHarvestPipeline(mockDB, mockStorage)
+	pipeline.client = server.Client()
+
+	html := fmt.Sprintf(`<html><head><meta property="og:image" content="%s/image.jpg"></head></html>`, server.URL)
+
+	items := []RawItem{
+		{
+			Title:     "Cached Image",
+			MediaURL:  server.URL + "/media",
+			MediaType: "image",
+			SourceURL: "https://example.com/page1",
+			PageHTML:  []byte(html),
+		},
+	}
+
+	created, _, failed, err := pipeline.Process(context.Background(), items)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created != 1 || failed != 0 {
+		t.Fatalf("expected created=1 failed=0, got created=%d failed=%d", created, failed)
+	}
+	if len(mockDB.CreatedPins) != 1 {
+		t.Fatalf("expected 1 pin, got %d", len(mockDB.CreatedPins))
+	}
+	pin := mockDB.CreatedPins[0]
+	if !pin.OgImage.Valid {
+		t.Fatalf("expected OgImage to be set on cache success, got NULL")
+	}
+	if !strings.HasPrefix(pin.OgImage.String, "https://cdn.example.com/images/") {
+		t.Errorf("expected OgImage to be storage URL with images/ prefix, got %q", pin.OgImage.String)
+	}
+	if imageUploadKey == "" {
+		t.Errorf("expected storage.Upload called with images/ prefix key")
+	}
+	// Key format: images/<hash>/<ts>.jpg
+	parts := strings.Split(imageUploadKey, "/")
+	if len(parts) != 3 || parts[0] != "images" || len(parts[1]) != 64 || !strings.HasSuffix(parts[2], ".jpg") {
+		t.Errorf("unexpected key format: %q", imageUploadKey)
+	}
+}
+
+func TestHarvestPipeline_ImageCache_DownloadFail_FallbackToOriginalURL(t *testing.T) {
+	server := imageCacheTestServer(1024)
+	defer server.Close()
+
+	mockDB := NewMockBotDB()
+	mockStorage := NewMockStorage()
+	pipeline := NewHarvestPipeline(mockDB, mockStorage)
+	pipeline.client = server.Client()
+
+	candidate := server.URL + "/notfound-image.jpg"
+	html := fmt.Sprintf(`<html><head><meta property="og:image" content="%s"></head></html>`, candidate)
+
+	items := []RawItem{
+		{
+			Title:     "Download Fail",
+			MediaURL:  server.URL + "/media",
+			MediaType: "image",
+			SourceURL: "https://example.com/page2",
+			PageHTML:  []byte(html),
+		},
+	}
+
+	created, _, failed, err := pipeline.Process(context.Background(), items)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Pin must still be created — image failure does NOT block pin creation.
+	if created != 1 || failed != 0 {
+		t.Fatalf("expected created=1 failed=0, got created=%d failed=%d", created, failed)
+	}
+	pin := mockDB.CreatedPins[0]
+	if !pin.OgImage.Valid {
+		t.Fatalf("expected OgImage to be set to original candidate URL on fallback")
+	}
+	// Fallback: original candidate URL is recorded (not storage URL).
+	if pin.OgImage.String != candidate {
+		t.Errorf("expected OgImage = %q (original candidate), got %q", candidate, pin.OgImage.String)
+	}
+}
+
+func TestHarvestPipeline_ImageCache_NoCandidate_OgImageNull(t *testing.T) {
+	server := imageCacheTestServer(1024)
+	defer server.Close()
+
+	mockDB := NewMockBotDB()
+	mockStorage := NewMockStorage()
+	pipeline := NewHarvestPipeline(mockDB, mockStorage)
+	pipeline.client = server.Client()
+
+	// HTML with no image metadata at all.
+	html := `<html><head><title>nothing</title></head><body><p>no imgs</p></body></html>`
+
+	items := []RawItem{
+		{
+			Title:     "No Image",
+			MediaURL:  server.URL + "/media",
+			MediaType: "image",
+			SourceURL: "https://example.com/page3",
+			PageHTML:  []byte(html),
+		},
+	}
+
+	created, _, _, err := pipeline.Process(context.Background(), items)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created != 1 {
+		t.Fatalf("expected 1 pin created, got %d", created)
+	}
+	pin := mockDB.CreatedPins[0]
+	if pin.OgImage.Valid {
+		t.Errorf("expected OgImage to be NULL when no candidate, got %q", pin.OgImage.String)
+	}
+}
+
+func TestHarvestPipeline_ImageCache_Oversize_FallbackToOriginalURL(t *testing.T) {
+	const threshold = 1024
+	server := imageCacheTestServer(threshold)
+	defer server.Close()
+
+	mockDB := NewMockBotDB()
+	mockStorage := NewMockStorage()
+	// Image upload must NOT be called for oversized payloads (partial bytes
+	// are not uploaded per spec). Only body-media upload is expected.
+	imageUploadCalled := false
+	mockStorage.UploadFunc = func(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (string, error) {
+		if strings.HasPrefix(filename, "images/") {
+			imageUploadCalled = true
+		}
+		return "https://cdn.example.com/" + filename, nil
+	}
+	pipeline := NewHarvestPipeline(mockDB, mockStorage, WithImageCacheMaxBytes(threshold))
+	pipeline.client = server.Client()
+
+	candidate := server.URL + "/huge.jpg"
+	html := fmt.Sprintf(`<html><head><meta property="og:image" content="%s"></head></html>`, candidate)
+
+	items := []RawItem{
+		{
+			Title:     "Huge Image",
+			MediaURL:  server.URL + "/media",
+			MediaType: "image",
+			SourceURL: "https://example.com/page4",
+			PageHTML:  []byte(html),
+		},
+	}
+
+	created, _, failed, err := pipeline.Process(context.Background(), items)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created != 1 || failed != 0 {
+		t.Fatalf("expected created=1 failed=0, got created=%d failed=%d", created, failed)
+	}
+	pin := mockDB.CreatedPins[0]
+	if !pin.OgImage.Valid || pin.OgImage.String != candidate {
+		t.Errorf("expected OgImage = %q (original candidate on oversize fallback), got %v", candidate, pin.OgImage)
+	}
+	if imageUploadCalled {
+		t.Errorf("expected NO image upload on oversize (partial bytes must not be uploaded)")
+	}
+}
+
+func TestHarvestPipeline_ImageCache_UploadFail_FallbackToOriginalURL(t *testing.T) {
+	server := imageCacheTestServer(1024)
+	defer server.Close()
+
+	mockDB := NewMockBotDB()
+	mockStorage := NewMockStorage()
+	// Make only image upload fail; media upload should still succeed.
+	mockStorage.UploadFunc = func(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (string, error) {
+		if strings.HasPrefix(filename, "images/") {
+			return "", fmt.Errorf("simulated storage failure")
+		}
+		return "https://cdn.example.com/" + filename, nil
+	}
+	pipeline := NewHarvestPipeline(mockDB, mockStorage)
+	pipeline.client = server.Client()
+
+	candidate := server.URL + "/image.jpg"
+	html := fmt.Sprintf(`<html><head><meta property="og:image" content="%s"></head></html>`, candidate)
+
+	items := []RawItem{
+		{
+			Title:     "Upload Fail Image",
+			MediaURL:  server.URL + "/media",
+			MediaType: "image",
+			SourceURL: "https://example.com/page5",
+			PageHTML:  []byte(html),
+		},
+	}
+
+	created, _, failed, err := pipeline.Process(context.Background(), items)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created != 1 || failed != 0 {
+		t.Fatalf("expected created=1 failed=0, got created=%d failed=%d", created, failed)
+	}
+	pin := mockDB.CreatedPins[0]
+	if !pin.OgImage.Valid || pin.OgImage.String != candidate {
+		t.Errorf("expected OgImage = %q (original candidate on upload fail), got %v", candidate, pin.OgImage)
 	}
 }
 
