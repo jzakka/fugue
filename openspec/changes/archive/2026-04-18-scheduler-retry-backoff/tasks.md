@@ -39,7 +39,8 @@
 - [x] 6.3 통합 테스트: `errorKind="http_4xx"`로 `RecordFetchError`를 1회 호출하면 `fetch_error_count = 5`로 즉시 set되고, 이후 Pioneer claim이 0건을 반환한다.
 - [x] 6.4 통합 테스트: `errorKind="http_5xx"`로 `RecordFetchError`를 5회 연속 호출하면 각 호출 후 count가 1,2,3,4,5로 증가하고, `next_fetch_at`이 각각 30s/60s/120s/240s/480s (±10%) 범위 내에서 `time.Now()`를 기준으로 갱신되며, 5번째 호출 후에는 Pioneer claim이 0건을 반환한다.
 - [x] 6.5 통합 테스트: `errorKind="network"`, `errorKind="timeout"`도 `http_5xx`와 동일하게 공식 적용됨을 확인.
-- [ ] 6.6 통합 테스트(`scheduler-claim-api` change 구현이 선행된 이후 수행): `fetch_error_count = 3`인 row에 `SetStatus("fetched")`를 호출하면 base scheduler spec의 성공 경로 요구사항에 따라 `fetch_error_count = 0`이 되고 `last_fetched_at`이 비-NULL이 됨을 본 change 영향 영역 경계로 검증(실제 구현은 claim-api 소관).
+- [x] 6.6 통합 테스트(`scheduler-claim-api` change 구현이 선행된 이후 수행): `fetch_error_count = 3`인 row에 `SetStatus("fetched")`를 호출하면 base scheduler spec의 성공 경로 요구사항에 따라 `fetch_error_count = 0`이 되고 `last_fetched_at`이 비-NULL이 됨을 본 change 영향 영역 경계로 검증(실제 구현은 claim-api 소관).
+    - Covered by `apps/api/internal/scheduler/postgres_scheduler_test.go:TestIntegration_SetStatus_FetchedExcludesFromQueue` (본 change `scheduler-retry-backoff-closeout` 에서 `last_fetched_at` 비-NULL 단언 보강).
 - [x] 6.7 통합 테스트: harvest 측에 대해 6.3, 6.4, 6.5와 동일 시나리오.
 - [x] 6.8 단위 테스트: `RecordFetchError`와 `RecordHarvestError` 양쪽 모두에 대해 알 수 없는 errorKind(`"unknown"`)로 호출 시 에러 반환, 대응 row의 카운트/`next_*_at` 무변경을 검증한다.
 

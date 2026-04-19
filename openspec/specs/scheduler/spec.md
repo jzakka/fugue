@@ -653,7 +653,7 @@ WHERE 절 조립용 별도 추상(`queryCondition` 타입, 쿼리 빌더 closure
 
 #### Scenario: fetched status — error_count 리셋
 - **WHEN** `fetch_error_count = 3` 인 row에 대해 `SetStatus(key, "fetched", nil)` 이 호출될 때
-- **THEN** 호출 후 `fetch_error_count = 0` 이며, 해당 URL이 다시 enqueue되어 실패할 경우 backoff는 첫 실패 수준에서 재시작한다.
+- **THEN** 호출 후 `fetch_error_count = 0` 이고 `last_fetched_at` 은 비-NULL 상태이며, 해당 URL이 다시 enqueue되어 실패할 경우 backoff는 첫 실패 수준에서 재시작한다.
 
 #### Scenario: fetch_failed status 처리 (SetStatus 단독)
 - **WHEN** Pioneer consumer가 `SetStatus(..., "fetch_failed", nil)` 를 호출했지만 RecordFetchError는 아직 호출하지 않았을 때
@@ -669,7 +669,7 @@ WHERE 절 조립용 별도 추상(`queryCondition` 타입, 쿼리 빌더 closure
 
 #### Scenario: harvested status — 빈 pinIDs
 - **WHEN** Harvester consumer가 `SetStatus(..., "harvested", nil)` 또는 `[]uuid.UUID{}`로 호출할 때
-- **THEN** `harvested_at`만 갱신되고 `harvester_frontier_pins` INSERT는 실행되지 않는다.
+- **THEN** `harvested_at` 은 호출 시각으로 갱신되어 비-NULL 상태가 되고, `harvester_frontier_pins` INSERT는 실행되지 않는다.
 
 #### Scenario: harvest_failed status 처리
 - **WHEN** Harvester consumer가 `SetStatus(..., "harvest_failed", nil)` 를 호출할 때

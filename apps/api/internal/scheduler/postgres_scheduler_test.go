@@ -520,11 +520,12 @@ func TestIntegration_SetStatus_FetchedExcludesFromQueue(t *testing.T) {
 
 	var count int32
 	var next time.Time
+	var lastFetched sql.NullTime
 	h := sha256.Sum256([]byte(url))
 	if err := sqlDB.QueryRow(
-		`SELECT fetch_error_count, next_fetch_at FROM pioneer_frontier WHERE url_hash = $1`,
+		`SELECT fetch_error_count, next_fetch_at, last_fetched_at FROM pioneer_frontier WHERE url_hash = $1`,
 		h[:],
-	).Scan(&count, &next); err != nil {
+	).Scan(&count, &next, &lastFetched); err != nil {
 		t.Fatalf("read: %v", err)
 	}
 	if count != 0 {
@@ -533,6 +534,11 @@ func TestIntegration_SetStatus_FetchedExcludesFromQueue(t *testing.T) {
 	// 365 days is ~8760h; the scheduled re-crawl must be at least 300 days out.
 	if time.Until(next) < 300*24*time.Hour {
 		t.Errorf("next_fetch_at too close: %s", next)
+	}
+	// Success-path boundary check (archived scheduler-retry-backoff task 6.6):
+	// SetStatus("fetched") MUST set last_fetched_at non-NULL.
+	if !lastFetched.Valid {
+		t.Errorf("last_fetched_at is NULL, want non-NULL after SetStatus(fetched)")
 	}
 }
 
