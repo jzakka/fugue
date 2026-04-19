@@ -30,19 +30,6 @@ const imageCacheMaxBytesEnv = "HARVESTER_IMAGE_CACHE_MAX_BYTES"
 // original URL (Decision 5). 20 MiB.
 const DefaultImageCacheMaxBytes int64 = 20 * 1024 * 1024
 
-// imageCacheTTLDaysEnv is the environment variable name used to override
-// the default TTL (in days) applied to cached primary image objects in the
-// images/ storage namespace (harvester-image-cache-ttl Decision D3).
-const imageCacheTTLDaysEnv = "HARVESTER_IMAGE_CACHE_TTL_DAYS"
-
-// DefaultImageCacheTTLDays is the default age-based TTL (in days) for
-// objects stored under the primary image cache namespace
-// (harvester-image-cache-ttl Decision D2). Object removal itself is
-// performed asynchronously by the storage bucket's lifecycle rule; this
-// application-side value is the single source of truth the lifecycle
-// configuration is derived from.
-const DefaultImageCacheTTLDays int = 90
-
 // errImageOversize is returned by cacheImage when the candidate exceeds the
 // configured size threshold. It triggers the single fallback path along with
 // download and upload failures.
@@ -60,7 +47,6 @@ type HarvestPipeline struct {
 	storage            Storage
 	client             *http.Client
 	imageCacheMaxBytes int64
-	imageCacheTTLDays  int
 	imageCacheEnabled  bool
 	nowUnix            func() int64
 }
@@ -77,18 +63,6 @@ func WithImageCacheMaxBytes(n int64) HarvestPipelineOption {
 	}
 }
 
-// WithImageCacheTTLDays overrides the default age-based TTL (in days)
-// applied to cached primary image objects. Non-positive values are ignored
-// (preserving the previously resolved value, env-derived or default), in
-// keeping with the WithImageCacheMaxBytes convention.
-func WithImageCacheTTLDays(n int) HarvestPipelineOption {
-	return func(p *HarvestPipeline) {
-		if n > 0 {
-			p.imageCacheTTLDays = n
-		}
-	}
-}
-
 // WithImageCacheEnabled toggles primary image caching on or off.
 func WithImageCacheEnabled(enabled bool) HarvestPipelineOption {
 	return func(p *HarvestPipeline) {
@@ -100,13 +74,6 @@ func WithImageCacheEnabled(enabled bool) HarvestPipelineOption {
 // image cache threshold is DefaultImageCacheMaxBytes (20 MiB); it can be
 // overridden via the HARVESTER_IMAGE_CACHE_MAX_BYTES environment variable,
 // and then further overridden by the WithImageCacheMaxBytes option.
-//
-// The default age-based TTL for cached image objects is
-// DefaultImageCacheTTLDays (90 days); it can be overridden via the
-// HARVESTER_IMAGE_CACHE_TTL_DAYS environment variable. This value is not
-// consumed on the Pin-creation hot path — it is held as runtime metadata so
-// external configuration (bucket lifecycle rule) can be sourced from it
-// (harvester-image-cache-ttl Decision D3/D4).
 func NewHarvestPipeline(db BotDB, storage Storage, opts ...HarvestPipelineOption) *HarvestPipeline {
 	maxBytes := DefaultImageCacheMaxBytes
 	if v := strings.TrimSpace(os.Getenv(imageCacheMaxBytesEnv)); v != "" {
@@ -116,36 +83,18 @@ func NewHarvestPipeline(db BotDB, storage Storage, opts ...HarvestPipelineOption
 			log.Printf("harvest: invalid %s=%q, falling back to default %d bytes", imageCacheMaxBytesEnv, v, maxBytes)
 		}
 	}
-	ttlDays := DefaultImageCacheTTLDays
-	if v := strings.TrimSpace(os.Getenv(imageCacheTTLDaysEnv)); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			ttlDays = parsed
-		} else {
-			log.Printf("harvest: invalid %s=%q, falling back to default %d days", imageCacheTTLDaysEnv, v, ttlDays)
-		}
-	}
 	p := &HarvestPipeline{
 		db:                 db,
 		storage:            storage,
 		client:             &http.Client{},
 		imageCacheMaxBytes: maxBytes,
-		imageCacheTTLDays:  ttlDays,
 		imageCacheEnabled:  true,
 		nowUnix:            func() int64 { return time.Now().Unix() },
 	}
 	for _, opt := range opts {
 		opt(p)
 	}
-	log.Printf("harvest: image cache configured: max_bytes=%d ttl_days=%d enabled=%t", p.imageCacheMaxBytes, p.imageCacheTTLDays, p.imageCacheEnabled)
 	return p
-}
-
-// ImageCacheTTLDays returns the configured age-based TTL (in days) applied
-// to objects in the primary image cache namespace. The value is advisory —
-// actual object removal is performed by the storage bucket's lifecycle rule
-// configured from this same value (harvester-image-cache-ttl Decision D3).
-func (p *HarvestPipeline) ImageCacheTTLDays() int {
-	return p.imageCacheTTLDays
 }
 
 // Process deduplicates items, downloads and uploads media, and creates Pins.

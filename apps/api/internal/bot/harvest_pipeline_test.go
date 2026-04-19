@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -623,73 +622,5 @@ func TestHarvestPipeline_EmptyDescription(t *testing.T) {
 	}
 	if mockDB.CreatedPins[0].Description != (sql.NullString{}) {
 		t.Errorf("expected NULL description for empty string, got %v", mockDB.CreatedPins[0].Description)
-	}
-}
-
-// TestNewHarvestPipeline_ImageCacheTTLDays covers HARVESTER_IMAGE_CACHE_TTL_DAYS
-// parsing per harvester-image-cache-ttl Decision D3: valid > 0, zero,
-// negative, non-numeric, and unset all resolve to a configured TTL exposed
-// by ImageCacheTTLDays(). Invalid inputs fall back to the default.
-func TestNewHarvestPipeline_ImageCacheTTLDays(t *testing.T) {
-	cases := []struct {
-		name  string
-		env   string
-		unset bool
-		want  int
-	}{
-		{name: "unset uses default", unset: true, want: DefaultImageCacheTTLDays},
-		{name: "valid positive", env: "30", want: 30},
-		{name: "valid large", env: "365", want: 365},
-		{name: "leading/trailing whitespace trimmed", env: "  45\t", want: 45},
-		{name: "zero falls back", env: "0", want: DefaultImageCacheTTLDays},
-		{name: "negative falls back", env: "-7", want: DefaultImageCacheTTLDays},
-		{name: "non-numeric falls back", env: "forever", want: DefaultImageCacheTTLDays},
-		{name: "blank string treated as unset", env: "   ", want: DefaultImageCacheTTLDays},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.unset {
-				// Register a cleanup via t.Setenv then genuinely unset the
-				// variable so NewHarvestPipeline takes the "os.Getenv returns
-				// empty because the variable was never set" branch. t.Setenv
-				// ensures the prior value is restored even though we remove
-				// the var within the test body.
-				t.Setenv(imageCacheTTLDaysEnv, "restore-marker")
-				if err := os.Unsetenv(imageCacheTTLDaysEnv); err != nil {
-					t.Fatalf("os.Unsetenv failed: %v", err)
-				}
-			} else {
-				t.Setenv(imageCacheTTLDaysEnv, tc.env)
-			}
-			p := NewHarvestPipeline(NewMockBotDB(), NewMockStorage())
-			if got := p.ImageCacheTTLDays(); got != tc.want {
-				t.Errorf("ImageCacheTTLDays() = %d, want %d (env=%q, unset=%v)", got, tc.want, tc.env, tc.unset)
-			}
-		})
-	}
-}
-
-// TestWithImageCacheTTLDays exercises the programmatic option override of
-// the image cache TTL, mirroring WithImageCacheMaxBytes.
-func TestWithImageCacheTTLDays(t *testing.T) {
-	t.Setenv(imageCacheTTLDaysEnv, "")
-	if err := os.Unsetenv(imageCacheTTLDaysEnv); err != nil {
-		t.Fatalf("os.Unsetenv failed: %v", err)
-	}
-
-	p := NewHarvestPipeline(NewMockBotDB(), NewMockStorage(), WithImageCacheTTLDays(7))
-	if got := p.ImageCacheTTLDays(); got != 7 {
-		t.Errorf("ImageCacheTTLDays() after option = %d, want 7", got)
-	}
-
-	// Zero or negative values are ignored; default or env survives.
-	p2 := NewHarvestPipeline(NewMockBotDB(), NewMockStorage(), WithImageCacheTTLDays(0))
-	if got := p2.ImageCacheTTLDays(); got != DefaultImageCacheTTLDays {
-		t.Errorf("ImageCacheTTLDays() after zero option = %d, want default %d", got, DefaultImageCacheTTLDays)
-	}
-	p3 := NewHarvestPipeline(NewMockBotDB(), NewMockStorage(), WithImageCacheTTLDays(-5))
-	if got := p3.ImageCacheTTLDays(); got != DefaultImageCacheTTLDays {
-		t.Errorf("ImageCacheTTLDays() after negative option = %d, want default %d", got, DefaultImageCacheTTLDays)
 	}
 }
