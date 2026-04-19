@@ -177,6 +177,10 @@ Run tests:
 go test ./internal/bot/...
 ```
 
+## Image cache
+
+Harvester caches the primary image of each new Pin to our object storage so Pin views are decoupled from upstream availability. Candidates are extracted from the item's page HTML in priority order — `<meta property="og:image">` → `<meta name|property="twitter:image">` → `<article>`/`<main>` 내 의미 있는 `<img>` (width·height 모두 ≥100 이거나 비어있지 않은 `alt`) → `<script type="application/ld+json">`의 `image` 필드 — 그리고 첫 번째 유효 후보(절대 URL, http/https, data: 아님, 1×1 추적 픽셀 아님)가 채택된다. 채택된 URL은 정규화(fragment 제거, scheme/host 소문자, path·query 보존) 후 `images/<sha256>/<unix_ts>.<ext>` 키로 저장되며, 확장자는 Content-Type → URL path → `.bin` fallback 순으로 결정된다. 성공 시 storage URL이, 실패(다운로드·업로드·20 MiB 임계 초과 중 어느 것이든) 시 원본 후보 URL이, 후보 없음 시 NULL이 단일 컬럼 `pin.og_image`에 기록된다. 이미지 캐시 실패는 Pin 생성을 차단하지 않는다.
+
 ## Future Work
 
 - HTTP client implementation for fetchHTML
