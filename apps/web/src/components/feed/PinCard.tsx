@@ -82,6 +82,15 @@ function VideoSection({ pin }: { pin: Pin }) {
         alt={pin.title}
         loading="lazy"
         className="w-full block object-cover"
+        onError={(e) => {
+          // Gracefully degrade when the poster image fails to resolve —
+          // e.g., cached og_image evicted by the harvester image cache TTL,
+          // or the original source URL is no longer reachable. For video
+          // Pins the only meaningful poster is og_image (media_url is the
+          // video file itself), so we simply hide the image; the centered
+          // play-button overlay still indicates the video card.
+          e.currentTarget.style.display = "none";
+        }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center text-white text-lg">
