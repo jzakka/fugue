@@ -87,7 +87,7 @@ Pioneer는 URLScheduler로부터 URL을 Dequeue하여 크롤링하는 consumer �
 
 ### Decision 7: idle 시나리오는 Dequeue 내부 책임
 
-**선택**: frontier에 claim 가능한 URL이 없을 때는 `URLScheduler.Dequeue` 내부에서 1초 sleep 후 재시도한다(`scheduler-claim-api` §3 참조). consumer(Pioneer 워커)는 별도 idle 처리를 하지 않으며, Dequeue가 URL을 반환할 때까지 대기하는 동안 **워커는 계속 살아 있다**. 이 대기 시간은 budget 카운트에 포함되지 않는다.
+**선택**: frontier에 claim 가능한 URL이 없을 때는 `URLScheduler.Dequeue` 내부에서 1초 sleep 후 재시도한다(베이스라인 `specs/scheduler/spec.md`의 "폴링 주기 1초 고정" Scenario 참조). consumer(Pioneer 워커)는 별도 idle 처리를 하지 않으며, Dequeue가 URL을 반환할 때까지 대기하는 동안 **워커는 계속 살아 있다**. 이 대기 시간은 budget 카운트에 포함되지 않는다.
 
 **근거**: idle 처리는 scheduler의 계약이므로 consumer가 중복 구현할 필요가 없다. 또한 idle 대기 중에도 카운터가 0으로 누적된 상태가 유지되므로 "장기 idle 워커가 영원히 산다"는 문제는 구조적으로 존재하지 않는다 — 워커가 할 일이 없으면 가만히 기다릴 뿐이고, 일이 들어오면 정확히 100회를 처리하고 종료한다.
 
