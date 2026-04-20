@@ -18,17 +18,24 @@ import (
 // HarvestStats are the per-node aggregated counters returned by Run.
 //
 // PinsCreated/Deduped/Skipped/Failed are the four PRIMARY categories: each
-// processed node increments exactly one of them. AdapterFallback is an
-// AUXILIARY counter that tracks how many nodes had to fall back to the
-// generic extractor because their PerSiteAdapter returned an error — it is
-// independent of the primary categories and may increment at the same time.
+// processed node increments exactly one of them. AdapterFallback and
+// HarvestErrorCount are AUXILIARY counters:
+//   - AdapterFallback tracks how many nodes had to fall back to the
+//     generic extractor because their PerSiteAdapter returned an error.
+//   - HarvestErrorCount tracks the specific sub-case of Failed where both
+//     the ObjectStorage path and the HTTP fallback path returned an error
+//     (spec harvester-snapshot-first-fetch §3.2). It is a strict subset of
+//     Failed and is recorded separately so dashboards can distinguish
+//     "content genuinely unreachable" from other failure modes (extractor
+//     bugs, pipeline errors, classifier skip-write failures).
 type HarvestStats struct {
-	NodesProcessed  int
-	PinsCreated     int
-	Deduped         int
-	Skipped         int
-	Failed          int
-	AdapterFallback int
+	NodesProcessed    int
+	PinsCreated       int
+	Deduped           int
+	Skipped           int
+	Failed            int
+	AdapterFallback   int
+	HarvestErrorCount int
 }
 
 // HarvesterConfig is process-level harvester tuning.
@@ -55,15 +62,21 @@ type DocumentPipeline interface {
 // HTML into a PinDocument via either a PerSiteAdapter or the generic
 // extractor.
 type Harvester struct {
-	siteRepo    SiteRepository
-	graphRepo   GraphRepository
-	scriptRepo  ScriptRepository
-	executor    ScriptExecutor
-	pipeline    DocumentPipeline
-	registry    AdapterRegistry
-	extractor   *GenericExtractor
-	classifier  *Classifier
-	config      HarvesterConfig
+	siteRepo   SiteRepository
+	graphRepo  GraphRepository
+	scriptRepo ScriptRepository
+	executor   ScriptExecutor
+	pipeline   DocumentPipeline
+	registry   AdapterRegistry
+	extractor  *GenericExtractor
+	classifier *Classifier
+	config     HarvesterConfig
+	// fetcher is the single fetch surface per harvester-snapshot-first-fetch
+	// §1. Defaults to HTTPFetcher (HTTP-only, matching pre-change behavior)
+	// and is replaced with CompositeFetcher at the cmd/bot/main.go wiring
+	// site to enable ObjectStorage-first reads. Tests use WithFetcher to
+	// inject mocks without rewriting NewHarvester call sites.
+	fetcher Fetcher
 }
 
 // NewHarvester wires the harvester. registry/extractor/classifier may be nil
@@ -98,7 +111,20 @@ func NewHarvester(
 		extractor:  extractor,
 		classifier: classifier,
 		config:     config,
+		fetcher:    NewHTTPFetcher(),
 	}
+}
+
+// WithFetcher swaps the Fetcher implementation. Production code calls this
+// with a CompositeFetcher (ObjectStorage-first → HTTP fallback) right
+// after NewHarvester; tests inject mocks to count calls or simulate
+// failures. A nil fetcher is ignored so callers can unconditionally chain
+// the call.
+func (h *Harvester) WithFetcher(f Fetcher) *Harvester {
+	if f != nil {
+		h.fetcher = f
+	}
+	return h
 }
 
 // Run executes the harvester for the given site.
@@ -178,13 +204,19 @@ func (h *Harvester) processNode(ctx context.Context, node db.BotGraphNode, stats
 		fetchURL = node.SampleUrl.String
 	}
 
-	htmlStr, _, err := fetchHTMLShared(ctx, fetchURL)
+	// Route through the Fetcher interface (spec §1). CompositeFetcher
+	// handles ObjectStorage-first → HTTP fallback internally, so an error
+	// at this point means BOTH paths failed and the node is unreachable.
+	// Per spec §3.2 this increments HarvestErrorCount in addition to the
+	// primary Failed category. The loop in harvestBFS continues with the
+	// next node (spec §3.3: single-node failures MUST NOT abort the run).
+	htmlBytes, err := h.fetcher.Fetch(fetchURL)
 	if err != nil {
 		log.Printf("harvester: fetch %s: %v", fetchURL, err)
 		stats.Failed++
+		stats.HarvestErrorCount++
 		return
 	}
-	htmlBytes := []byte(htmlStr)
 
 	doc, fellBack, err := h.extractDocument(ctx, htmlBytes, fetchURL, node)
 	if fellBack {

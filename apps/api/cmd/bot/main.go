@@ -337,6 +337,18 @@ var harvesterCmd = &cobra.Command{
 			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", err)
 		}
 
+		// Snapshot-first Fetcher wiring (harvester-snapshot-first-fetch).
+		// CompositeFetcher tries the ObjectStorage snapshot first and falls
+		// back to HTTP on ANY error — not_found, expired (TTL'd objects
+		// surface as NoSuchKey), network, permission, or 5xx. The bucket
+		// must match the one Pioneer writes to so keys line up bit-for-bit.
+		harvestBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
+		snapshotReader := snapshot.NewS3Reader(infra.Storage.S3Client(), harvestBucket)
+		compositeFetcher := bot.NewCompositeFetcher(
+			bot.NewObjectStorageFetcher(snapshotReader),
+			bot.NewHTTPFetcher(),
+		)
+
 		// Create Harvester instance. Classifier and extractor read their
 		// thresholds from env.
 		harvester := bot.NewHarvester(
@@ -353,7 +365,7 @@ var harvesterCmd = &cobra.Command{
 				RetryFailedNodes: false,
 				MaxRetries:       3,
 			},
-		)
+		).WithFetcher(compositeFetcher)
 
 		// Run Harvester
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
