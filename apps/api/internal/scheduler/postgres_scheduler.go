@@ -113,6 +113,33 @@ func (s *PGURLScheduler) Enqueue(queueType QueueType, urls ...string) error {
 	}
 }
 
+// EnqueueHarvester implements URLScheduler. Singular-URL UPSERT that writes
+// snapshot_key alongside the row. The SQL (UpsertHarvesterWithSnapshot) is
+// guarded by `WHERE harvested_at IS NULL`, so an already-harvested row is a
+// no-op — the caller receives nil and the row is untouched. snapshot_key is
+// written via sql.NullString; this method requires a non-empty snapshotKey
+// (empty violates the spec's "snapshot_key를 호출 인자 값으로 세팅" clause).
+//
+// Spec: pioneer-scheduler-consumer change / scheduler spec ADDED Requirement.
+func (s *PGURLScheduler) EnqueueHarvester(rawURL string, snapshotKey string) error {
+	if snapshotKey == "" {
+		return fmt.Errorf("scheduler: EnqueueHarvester requires non-empty snapshotKey")
+	}
+	nu, host, parseErr := normalizeURL(rawURL)
+	if parseErr != nil {
+		return fmt.Errorf("scheduler: EnqueueHarvester parse %q: %w", rawURL, parseErr)
+	}
+	h := sha256.Sum256([]byte(nu))
+	ctx := context.Background()
+	return s.queries.UpsertHarvesterWithSnapshot(ctx, db.UpsertHarvesterWithSnapshotParams{
+		NormalizedUrl: nu,
+		Url:           rawURL,
+		UrlHash:       h[:],
+		Host:          host,
+		SnapshotKey:   sql.NullString{String: snapshotKey, Valid: true},
+	})
+}
+
 // prepareEnqueueBatch parses each URL once and returns four parallel slices
 // ready for UNNEST. Parse failure for any URL fails the whole batch because
 // the caller contract (enqueue N URLs) expects atomic success — partial

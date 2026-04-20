@@ -118,6 +118,25 @@ SET next_harvest_at = now(),
     last_updated_at = now()
 WHERE harvester_frontier.harvested_at IS NULL;
 
+-- name: UpsertHarvesterWithSnapshot :exec
+-- pioneer-scheduler-consumer change: singular UPSERT used by Pioneer
+-- consumer's fanout-B path. Writes snapshot_key alongside the frontier row
+-- so Harvester can pick the exact snapshot to re-hydrate. Guarded by
+-- `WHERE harvester_frontier.harvested_at IS NULL` so an already-harvested
+-- row is a no-op (spec: scheduler EnqueueHarvester ADDED Requirement,
+-- "이미 harvest된 URL은 no-op"). For un-harvested rows snapshot_key is
+-- overwritten with EXCLUDED.snapshot_key (= caller's argument), and both
+-- next_harvest_at and harvest_error_count are reset so the row becomes
+-- immediately claimable.
+INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, score)
+VALUES (sqlc.arg(normalized_url), sqlc.arg(url), sqlc.arg(url_hash), sqlc.arg(host), sqlc.arg(snapshot_key), 0.0)
+ON CONFLICT (url_hash) DO UPDATE
+SET snapshot_key = EXCLUDED.snapshot_key,
+    next_harvest_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE harvester_frontier.harvested_at IS NULL;
+
 -- name: ClaimPioneerCandidates :many
 -- Top-N claim candidates from the pioneer partial index. SKIP LOCKED ensures
 -- that two workers running the same query in parallel see disjoint rows.

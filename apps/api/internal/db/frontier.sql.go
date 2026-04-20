@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -469,4 +470,43 @@ func (q *Queries) UpdateHarvestErrorDead(ctx context.Context, urlHash []byte) (i
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const upsertHarvesterWithSnapshot = `-- name: UpsertHarvesterWithSnapshot :exec
+INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, score)
+VALUES ($1, $2, $3, $4, $5, 0.0)
+ON CONFLICT (url_hash) DO UPDATE
+SET snapshot_key = EXCLUDED.snapshot_key,
+    next_harvest_at = now(),
+    harvest_error_count = 0,
+    last_updated_at = now()
+WHERE harvester_frontier.harvested_at IS NULL
+`
+
+type UpsertHarvesterWithSnapshotParams struct {
+	NormalizedUrl string
+	Url           string
+	UrlHash       []byte
+	Host          string
+	SnapshotKey   sql.NullString
+}
+
+// pioneer-scheduler-consumer change: singular UPSERT used by Pioneer
+// consumer's fanout-B path. Writes snapshot_key alongside the frontier row
+// so Harvester can pick the exact snapshot to re-hydrate. Guarded by
+// `WHERE harvester_frontier.harvested_at IS NULL` so an already-harvested
+// row is a no-op (spec: scheduler EnqueueHarvester ADDED Requirement,
+// "이미 harvest된 URL은 no-op"). For un-harvested rows snapshot_key is
+// overwritten with EXCLUDED.snapshot_key (= caller's argument), and both
+// next_harvest_at and harvest_error_count are reset so the row becomes
+// immediately claimable.
+func (q *Queries) UpsertHarvesterWithSnapshot(ctx context.Context, arg UpsertHarvesterWithSnapshotParams) error {
+	_, err := q.db.ExecContext(ctx, upsertHarvesterWithSnapshot,
+		arg.NormalizedUrl,
+		arg.Url,
+		arg.UrlHash,
+		arg.Host,
+		arg.SnapshotKey,
+	)
+	return err
 }
