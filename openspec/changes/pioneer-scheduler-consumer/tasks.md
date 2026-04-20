@@ -16,11 +16,11 @@
 
 - [x] 3.1 `apps/api/internal/bot/pioneer_consumer.go`(또는 동등 경로) 생성. 루프 본문을 `Dequeue(QueuePioneer) → fetch → saveSnapshot → extractLinks → FilterChain.Apply → Enqueue(QueuePioneer, filteredURLs...) → EnqueueHarvester(url, snapshotKey) → SetStatus(url, "fetched", nil)` 순으로 구현 (기존 BFS/PriorityQueue 로직 교체). `filteredURLs`는 `FilterChain.Apply` 결과 `[]Link`에서 URL 문자열만 추출한 `[]string`
 - [x] 3.2 Pioneer 생성자에서 `URLScheduler`, `SnapshotStore`, `FilterChain`, `LinkExtractor`, `Fetcher`를 주입받도록 시그니처 정리(컴포지션 포인트). 인메모리 큐/visited 필드는 **추가하지 않는다**
-- [x] 3.3 `Enqueue(QueuePioneer, filteredURLs...)` 호출 경로: 각 링크별로 normalized URL 계산 → `url_hash = sha256(normalized_url)` 생성 → scheduler가 `pioneer_frontier`에 `INSERT ... ON CONFLICT (url_hash) DO NOTHING`. URL 정규화 규칙(scheme 소문자, default port 제거, query 이름순 정렬 등)은 baseline `bot` spec의 canonicalURL requirement를 SSOT로 따르며, `pioneer-link-filter-policy`/`DedupFilter`가 이를 소비한다
+- [x] 3.3 `Enqueue(QueuePioneer, filteredURLs...)` 호출 경로: 각 링크별로 normalized URL 계산 → `url_hash = sha256(normalized_url)` 생성 → scheduler가 `pioneer_frontier`에 `INSERT ... ON CONFLICT (url_hash) DO NOTHING`. URL 정규화 규칙(scheme 소문자, default port 제거, query 이름순 정렬 등)은 baseline `bot` spec의 canonicalURL requirement를 SSOT로 따르며, Pioneer(snapshot_key용)와 scheduler(url_hash/normalized_url용)가 동일한 canonicalization을 호출하도록 공용 구현(참고: `internal/urlcanon`)을 경유한다. `pioneer-link-filter-policy`/`DedupFilter`도 동일 규칙을 소비한다
 - [x] 3.4 `EnqueueHarvester(url, snapshotKey)` 호출 경로 검증: §2에서 구현된 `EnqueueHarvester` 메서드를 Pioneer consumer가 fetch 성공 직후에 정확히 1회 호출하는지 확인한다. UPSERT SQL 세부(컬럼/가드)는 본 change `specs/scheduler/spec.md` ADDED Requirement가 SSOT이며, 참고 예시는 본 change `design.md` Decision 5를 참조. 이미 harvest된 URL(`harvested_at IS NOT NULL`)은 no-op이어야 함을 통합 테스트로 검증
 - [x] 3.5 성공 시 `scheduler.SetStatus(url, "fetched", nil)` 호출. `pinIDs`는 Pioneer에서 `nil`로 고정 (Pin 생성은 Harvester 책임)
-- [x] 3.6 실패 시 에러 분류 → `scheduler.SetStatus(url, "fetch_failed", nil)` + `scheduler.RecordFetchError(url, errorKind)` **둘 다** 호출. 호출 누락이 없도록 defer/helper로 묶을 것
-- [x] 3.7 `classifyError(err)` helper 구현: HTTP 4xx → `"http_4xx"`, HTTP 5xx → `"http_5xx"`, `net.Error` with `Timeout()==true` → `"timeout"`, 그 외 → `"network"`. snapshot 저장 실패도 `"network"`로 분류
+- [x] 3.6 실패 시 에러 분류 → `scheduler.SetStatus(url, "fetch_failed", nil)` + `scheduler.RecordFetchError(url, errorKind)` **둘 다** 호출. 두 호출이 함께 이뤄지지 않는 경로가 생기지 않도록 실패 보고를 단일 helper 함수(classify 이후 dual-call을 수행하는 helper 하나)로 추상화한다. 실패 경로 테스트가 두 호출 시퀀스(SetStatus→RecordFetchError)를 모두 검증하는지 확인한다
+- [x] 3.7 `classifyError(err)` helper 구현: HTTP 4xx → `"http_4xx"`, HTTP 5xx → `"http_5xx"`, `net.Error` with `Timeout()==true` → `"timeout"`, 그 외 → `"network"`. snapshot 저장 실패도 `"network"`로 분류. **HTTP 2xx이지만 `len(body) == 0`인 응답은 fetch 실패로 전환**하고 `"network"`로 분류(baseline `bot` spec "fetch 실패 시 스냅샷을 저장하지 않는다" 유지)
 - [x] 3.8 `FilterChain.Apply(links)` 호출 위치: `extractLinks` 직후, `scheduler.Enqueue(QueuePioneer, ...)` 직전. 필터 내용은 수정하지 않고 `pioneer-link-filter-policy`가 구성한 체인을 그대로 호출
 - [x] 3.9 루프 sleep/backoff 코드 제거: 빈 큐 폴링은 scheduler 내부 책임이므로 Pioneer 루프에 `time.Sleep` 등을 **추가하지 않음**
 - [x] 3.10 feature flag 추가: `BOT_PIONEER_SCHEDULER` 환경변수 (기본 `false`). `true`일 때만 신규 consumer 경로 실행, `false`이면 기존 BFS 경로 유지 — **BFS fallback 병행 가능 기간** 확보
@@ -41,6 +41,8 @@
 - [x] 5.5 실패 경로 테스트: HTTP 404 응답 시 `SetStatus("fetch_failed", nil)` + `RecordFetchError(url, "http_4xx")` 둘 다 호출되는지 검증 (scheduler가 `fetch_error_count = 5`로 즉시 dead 처리) — `TestPioneerConsumer_FetchFailure_HTTP404`가 dual-call과 harvester fanout 미발생을 검증
 - [x] 5.6 실패 경로 테스트: 네트워크 timeout 시 `errorKind = "timeout"`으로 기록되고 다음 `next_fetch_at`이 backoff 공식에 따라 계산되는지 검증 — `TestClassifyFetchError_Timeout`이 classification을 검증하고 `TestIntegration_RecordFetchError_NetworkAndTimeoutFormula`가 timeout kind에 대해 30s×2^(n-1) backoff 공식이 적용됨을 DB 레벨에서 검증
 - [x] 5.7 재크롤 가드 테스트: 이미 `harvested_at IS NOT NULL`인 URL을 재fetch하면 `EnqueueHarvester` 호출이 no-op이 되는지(snapshot_key/next_harvest_at 미변경) SQL 레벨에서 검증
+- [x] 5.8 Dequeue 에러 경로 테스트: scheduler `Dequeue`가 영구 에러를 반환하는 fake를 주입하고 Pioneer 루프가 hot-loop 로그 폭주 없이 에러 보고 후 빠르게 종료(또는 supervisor 재시작에 위임)되는지 — 최소한 "1초당 1000회 미만"의 완화된 경계라도 설정해 검증한다
+- [x] 5.9 빈 body 실패 경로 테스트(`TestPioneerConsumer_FetchFailure_EmptyBody`): Fetcher fake가 HTTP 200 + `len(body) == 0`을 반환할 때 Pioneer가 snapshot을 저장하지 않고 `SetStatus("fetch_failed", nil)` + `RecordFetchError(url, "network")` 호출 시퀀스를 수행하는지 검증
 
 ## 6. 레거시 코드 제거 (신규 경로 안정화 후)
 
@@ -49,7 +51,8 @@
 - [ ] 6.3 `apps/api/internal/bot/bfs_queue.go` 제거
 - [ ] 6.4 기존 `pioneer.go`의 BFS 본문/visited 맵/세션 카운터 제거 (생성자·공개 API는 신규 구현으로 일원화)
 - [ ] 6.5 feature flag 제거(신규 경로가 유일 경로가 된 시점)
-- [ ] 6.6 제거된 코드를 참조하던 테스트·진단 도구(`show-map` 등) 동작 재확인
+- [ ] 6.6 제거된 코드를 참조하던 테스트·진단 도구(`show-map` 등) 동작 재확인. 특히 `pioneer-snapshot-storage` archive가 남긴 `TestPioneer_FailOpen_StoreErrorDoesNotBlockCrawl` 회귀 테스트는 본 change의 fail-close 규약(SetStatus + RecordFetchError("network"))에 맞춰 교체 또는 제거한다
+- [ ] 6.7 `apps/api/fuguebot_pseudo.go`의 Pioneer.Run 블록을 본 change 구현 결과에 맞춰 동기화하거나, "부가 참고 자료: 정식 계약은 `openspec/specs/pioneer/spec.md`" 주석을 파일 상단에 명시한다. 유지하지 않기로 결정되면 파일 자체를 제거 대상으로 돌린다(후속 change들이 이 파일을 "현행"으로 오인하지 않도록 방지)
 
 ## 7. 스펙/문서 정리
 
@@ -57,3 +60,4 @@
 - [x] 7.2 `docs/architecture.md`의 Pioneer-Scheduler 관계 다이어그램/서술 갱신: Pioneer가 scheduler consumer이자 fanout B의 producer(새 링크 → `pioneer_frontier`, 원본+snapshot_key → `harvester_frontier`)임을 명시
 - [x] 7.3 AGENTS.md에 Pioneer 동작 모델 한 줄 요약 업데이트 (Dequeue → fetch → snapshot → Enqueue(pioneer) + EnqueueHarvester → SetStatus)
 - [ ] 7.4 아카이브: 배포 완료 후 **배포 완료 당일 날짜**를 디렉토리 prefix로 사용하여 `openspec/changes/archive/YYYY-MM-DD-pioneer-scheduler-consumer/` 하위로 이동(프로젝트 archive 디렉토리 명명 규칙: 아카이브 시점 기준). `.openspec.yaml:created`의 생성 시점 날짜와 혼동하지 말 것
+- [ ] 7.5 아카이브 시점에 신규 생성되는 `openspec/specs/pioneer/spec.md`의 상단에 `# Pioneer Specification` 헤더와 `## Purpose` 블록을 작성한다. Purpose는 "Pioneer는 `URLScheduler`의 consumer이자 `pioneer_frontier`(새 링크) + `harvester_frontier`(원본 URL + snapshot_key) 양쪽의 producer(fanout B)이다. 본 capability는 Pioneer의 메인 루프(Dequeue→fetch→snapshot→parse→filter→Enqueue+EnqueueHarvester→SetStatus), 실패 보고 규약(SetStatus + RecordFetchError), 책임 경계(링크·snapshot·fanout만, 콘텐츠/Pin은 Harvester), 인메모리 상태 금지, 다중 워커 정확성 scheduler 위임을 정의한다." 취지로 작성한다(baseline `harvester`/`scheduler`/`bot` spec과 동일 구조). TBD로 남기지 않는다
