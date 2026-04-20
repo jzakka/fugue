@@ -7,15 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/urlcanon"
 )
 
 // Claim / lease tuning constants. Spec: scheduler-claim-api.
@@ -163,34 +162,14 @@ func prepareEnqueueBatch(raws []string) (normalized, rawOut []string, hashes [][
 	return normalized, rawOut, hashes, hosts, nil
 }
 
-// normalizeURL is the scheduler's own minimal URL normalization — lowercase
-// scheme+host, trim default ports, strip fragment. This is intentionally a
-// thin function: the canonical normalizer lives in the crawler fetcher and
-// will replace this in a follow-up change. For now, the scheduler accepts
-// URLs as-is and only guarantees that two structurally-identical URLs hash
-// the same. Empty or schemeless inputs error out so they cannot sneak into
-// the url_hash index with ambiguous keys.
+// normalizeURL delegates to urlcanon.CanonicalWithHost so the scheduler
+// shares a single canonicalizer with the crawler (pioneer snapshot_key
+// derivation). Any rule divergence here would silently desynchronize
+// url_hash from snapshot_key; the shared package eliminates that failure
+// mode by construction. Empty or schemeless inputs error out so they
+// cannot sneak into the url_hash index with ambiguous keys.
 func normalizeURL(raw string) (normalized, host string, err error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return "", "", errors.New("empty url")
-	}
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", "", err
-	}
-	if u.Scheme == "" || u.Host == "" {
-		return "", "", fmt.Errorf("url missing scheme or host: %q", raw)
-	}
-	u.Scheme = strings.ToLower(u.Scheme)
-	u.Host = strings.ToLower(u.Host)
-	u.Fragment = ""
-	// Strip default ports so http://x:80/ and http://x/ hash the same.
-	if (u.Scheme == "http" && strings.HasSuffix(u.Host, ":80")) ||
-		(u.Scheme == "https" && strings.HasSuffix(u.Host, ":443")) {
-		u.Host = strings.SplitN(u.Host, ":", 2)[0]
-	}
-	return u.String(), u.Hostname(), nil
+	return urlcanon.CanonicalWithHost(raw)
 }
 
 // Dequeue implements URLScheduler. It loops, calling tryClaim until a URL
