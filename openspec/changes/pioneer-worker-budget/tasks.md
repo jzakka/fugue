@@ -9,7 +9,7 @@
 ## 2. Graceful Shutdown 경로
 
 - [x] 2.1 루프 탈출 후 exit code 0으로 프로세스 종료 (`runPioneerConsumer`가 `Run`의 nil 반환을 그대로 RunE에 전파 → cobra가 exit 0)
-- [x] 2.2 종료 직전 구조화 로그 1회 출력: Harvester와 대칭된 형식 — 메시지 `"pioneer worker: work budget exhausted"`, 필드 `component=pioneer_worker reason=budget_exhausted dequeues=100`
+- [x] 2.2 종료 직전 key=value 포맷 로그 1회 출력: Harvester와 대칭된 형식 — 메시지 `"pioneer worker: work budget exhausted"`, 필드 `component=pioneer_worker reason=budget_exhausted dequeues=100`
 - [x] 2.3 종료 시점에 열려 있는 리소스(HTTP client, DB conn 등)가 기존 defer/Close 경로로 정리되는지 점검 — `runPioneerConsumer` 호출 사이트의 `defer infra.Close()` 가 그대로 정리 보장
 - [x] 2.4 워커가 자기 자신을 fork/exec하지 않는지 확인 — `Run` 루프에 fork/exec 호출 없음
 

@@ -116,7 +116,7 @@ Pioneer 또는 Harvester 관련 작업(신규 source 추가, 필터/스케줄러
 
 #### Pioneer 동작 모델 (scheduler consumer)
 
-Pioneer는 `URLScheduler`의 consumer이자 fanout B의 producer다. 한 루프 반복은 다음 순서로 동작한다: **`Dequeue(QueuePioneer)` → fetch → snapshot 저장 → link 추출 → `FilterChain.Apply` → `Enqueue(QueuePioneer, filteredURLs...)` + `EnqueueHarvester(url, snapshotKey)` → `SetStatus(url, "fetched", nil)`**. 인메모리 큐/visited 맵은 보유하지 않으며, URL 중복·우선순위·host 배려는 `URLScheduler`가 `pioneer_frontier` 테이블과 host token bucket으로 처리한다. 롤아웃은 `BOT_PIONEER_SCHEDULER` feature flag(기본 false)로 제어하며 false면 기존 BFS 경로를 유지한다. 관련 스펙: `openspec/specs/pioneer/spec.md`.
+Pioneer는 `URLScheduler`의 consumer이자 fanout B의 producer다. 한 루프 반복은 다음 순서로 동작한다: **`Dequeue(QueuePioneer)` → fetch → snapshot 저장 → link 추출 → `FilterChain.Apply` → `Enqueue(QueuePioneer, filteredURLs...)` + `EnqueueHarvester(url, snapshotKey)` → `SetStatus(url, "fetched", nil)`**. 인메모리 큐/visited 맵은 보유하지 않으며, URL 중복·우선순위·host 배려는 `URLScheduler`가 `pioneer_frontier` 테이블과 host token bucket으로 처리한다. 관련 스펙: `openspec/specs/pioneer/spec.md`.
 
 #### Pioneer 링크 필터 정책
 
