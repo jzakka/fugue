@@ -62,6 +62,15 @@ Harvester script 경로 규칙:
 - `apps/api/internal/bot/sources/<domain>/<node_type>.go`
 - 존재하면 초록색(구현됨), 없으면 회색(미구현)으로 표시
 
+### Fuguebot 진행 현황
+
+OpenSpec 체인지 진행 현황 및 의존성 그래프 시각화:
+
+```bash
+make fuguebot-progress  # 진행 상황 + 의존성 그래프 HTML 생성 (브라우저 자동 오픈)
+```
+
+
 ### 코드 컨벤션
 
 - Go: 표준 프로젝트 레이아웃 (cmd/ internal/)
