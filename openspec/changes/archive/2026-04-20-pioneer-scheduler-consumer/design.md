@@ -24,7 +24,7 @@ Pioneer는 지금까지 단일 프로세스 BFS 크롤러였다. 큐/visited/카
 - Pioneer 코드에 인메모리 크롤 상태(큐/visited/세션 카운터)가 존재하지 않음을 규범화.
 - 링크 추출과 콘텐츠 추출의 책임 경계를 명확히: Pioneer는 링크 + snapshot + harvester_frontier fanout만, 콘텐츠/Pin 생성은 Harvester.
 - 전환 기간 feature flag + 롤백 경로를 명시.
-- `bot` spec에서 인메모리 BFS를 전제하는 마지막 requirement 1건 제거. 제거되는 scenario 중 "DOM 기반 링크 추출"과 "필터 체인을 통한 링크 필터링"은 `bot` spec의 독립 requirement가 이미 담당하므로 기능 무영향이며, "복합 우선순위 계산"은 `pioneer-link-filter-policy`로 이관, "최대 노드 수 제한"은 사이트 단위 quota가 폐기되고 워커 단위 예산(`pioneer-worker-budget`)·host 속도 제한(`scheduler-host-token-bucket`)으로 관점 전환, "엣지 생성/부모 관계 추적"은 graph edge 자체를 폐기하므로 복원하지 않는다(의도적 trade-off). 상세 매핑은 본 change `specs/bot/spec.md` Reason/Migration 참조.
+- `bot` spec에서 3개 requirement 제거: (1) "BFS로 사이트를 탐색한다 (Pioneer)" — Pioneer 탐색 모델이 새 `pioneer` capability로 이관. 세부 scenario 처리는 "DOM 기반 링크 추출"과 "필터 체인을 통한 링크 필터링"은 `bot` spec의 독립 requirement가 이미 담당하므로 무영향, "복합 우선순위 계산"은 `pioneer-link-filter-policy`로 이관, "최대 노드 수 제한"은 사이트 단위 quota 폐기 후 워커 단위 예산(`pioneer-worker-budget`)·host 속도 제한(`scheduler-host-token-bucket`)으로 관점 전환, "엣지 생성/부모 관계 추적"은 graph edge 폐기로 복원하지 않음(의도적 trade-off). (2) "스냅샷 저장 실패는 fail-open으로 처리한다" — 새 `pioneer` capability의 "실패 시 SetStatus + RecordFetchError 둘 다 호출" 규약으로 대체(fail-open→fail-close BREAKING). (3) "Pioneer는 ParseLinks 후 FilterLinks를 거쳐 Enqueue한다" — 새 `pioneer` capability의 "FilterChain 호출은 Pioneer의 책임이다"로 SSOT 단일화. 상세 매핑은 본 change `specs/bot/spec.md` Reason/Migration 참조.
 
 **Non-Goals:**
 - fetch 에러 backoff 공식 자체(`scheduler-retry-backoff`에서 정의. 본 change는 `RecordFetchError` 호출만 책임).
@@ -42,16 +42,24 @@ Pioneer는 지금까지 단일 프로세스 BFS 크롤러였다. 큐/visited/카
 Pioneer는 자체 큐/BFS/visited 상태를 보유하지 않는다. 메인 루프 pseudo-code는 다음과 같이 최소화된다.
 
 ```go
+// ctx는 Pioneer 프로세스 수명과 동일한 루트 컨텍스트(p.ctx). 모든 반복이 공유하며,
+// shutdown은 ctx.Done()이 닫힐 때 현재 반복을 완료한 뒤 루프를 빠져나가는 식으로 구현한다
+// (워커 종료 정책은 pioneer-worker-budget change에서 확정).
+ctx := p.ctx
 for {
     url, err := scheduler.Dequeue(scheduler.QueuePioneer) // 내부 blocking (빈 큐 → 1초 sleep 재시도)
     if err != nil {
+        // 정상 폴링에서 Dequeue는 에러를 반환하지 않는다(scheduler spec: 빈 큐/throttle은 내부 sleep으로 흡수).
+        // 에러는 DB 연결 실패 등 영구적 장애 신호이므로 루프에 sleep/backoff를 추가하지 않고 에러를 상위로
+        // 돌려 supervisor 재시작에 위임한다(tasks.md §5.8). 아래는 예시이며, 실제 구현은 `return err`로
+        // 루프를 빠져나가도 동등하다 — 두 형태 모두 "루프 내부 sleep 금지" + "hot-loop 방지"를 만족한다.
         log.Error("dequeue", err)
-        continue
+        return err
     }
 
     html, fetchErr := fetcher.Fetch(url)
     if fetchErr != nil {
-        kind := classifyError(fetchErr) // "http_4xx" | "http_5xx" | "timeout" | "network"
+        kind := classifyError(fetchErr) // errorKind classification per pioneer spec SSOT
         scheduler.SetStatus(url, "fetch_failed", nil)
         scheduler.RecordFetchError(url, kind)
         continue
@@ -98,7 +106,7 @@ DECISIONS.md §3 "Consumer 호출 규약"에 따라, fetch 실패 시 Pioneer는
 1. `scheduler.SetStatus(url, "fetch_failed", nil)` — status 마킹
 2. `scheduler.RecordFetchError(url, errorKind)` — `fetch_error_count` 증가 + `next_fetch_at` backoff 계산(공식은 `scheduler-retry-backoff`)
 
-errorKind 분류 규칙은 본 change `specs/pioneer/spec.md`의 "Pioneer는 fetch 실패를 errorKind로 분류한다" requirement를 SSOT로 한다(design.md에서 중복 기재하지 않는다). 참고로 `"http_4xx"`는 scheduler 쪽에서 즉시 `fetch_error_count = 5`(dead)로 설정한다(DECISIONS.md §3).
+errorKind 분류 규칙은 본 change `specs/pioneer/spec.md`의 "Pioneer는 fetch 실패를 errorKind로 분류한다" requirement를 SSOT로 한다(design.md에서 중복 기재하지 않는다). scheduler 측의 errorKind별 후속 처리(backoff/dead 전환 등)는 `scheduler-claim-api` / `scheduler-retry-backoff`가 책임지며 본 change 범위 밖이다.
 
 ### Decision 5: Pioneer는 fanout B의 producer이다
 Pioneer는 동일한 `URLScheduler` 인스턴스에 대해 두 큐 모두에 쓴다.
@@ -117,6 +125,10 @@ ON CONFLICT (url_hash) DO UPDATE
   WHERE harvester_frontier.harvested_at IS NULL;
 ```
 이 SQL은 baseline scheduler spec의 `Enqueue(QueueHarvester, urls...)`(snapshot_key 미변경 유지)와는 별개 경로다. snapshot_key 갱신은 본 change가 추가하는 `EnqueueHarvester` 경로에서만 이뤄지며, 기존 `Enqueue(QueueHarvester, ...)`의 baseline 규약(snapshot_key 미변경)은 그대로 유효하다.
+
+**URL 정규화 책임**: `EnqueueHarvester(url, snapshotKey)`의 `url` 인자는 "기록용 원본 URL"이며, 정규화(scheme 소문자, default port 제거, fragment 제거 등)와 `url_hash` 계산은 scheduler 구현체 책임이다. Pioneer consumer는 `Dequeue`가 반환한 URL을 그대로 `EnqueueHarvester`에 전달하고, `snapshotStore.Put` 및 `SnapshotKey` 호출에 사용하는 `normalized`는 Pioneer 내부에서 계산하여 snapshot 저장 경로에만 사용한다. 이 분리로 `harvester_frontier.url`(원본)과 `harvester_frontier.normalized_url`/`url_hash`(구현체가 계산)가 일관성 있게 기록된다.
+
+정규화 함수 단일화: Pioneer가 snapshot 저장 경로에서 계산한 `normalized`와 scheduler 구현체가 frontier 컬럼(`normalized_url`/`url_hash`)에 기록하는 정규화 결과가 서로 달라지면, 동일 URL에 대해 `url_hash`(scheduler가 계산)와 `snapshot_key`(Pioneer가 계산)가 각기 다른 URL을 가리켜 추적 경로(frontier row → snapshot)가 깨진다. 이를 방지하기 위해 두 쪽은 **동일한 canonicalization 규칙**(baseline `bot` spec의 `canonicalURL` 요구사항: scheme/host lowercase, `www.` 제거, default port 제거, tracking param 제거 + query 키 정렬, 비루트 경로의 trailing slash 제거, fragment 제거)을 따르는 공용 구현을 호출해야 한다. 참고 구현은 `internal/urlcanon` 패키지이며, Pioneer와 scheduler는 모두 이 패키지를 경유한다.
 
 **대안**: Pioneer가 harvester_frontier에는 쓰지 않고 별도 indexer가 snapshot 이벤트를 소비. → 거부. 컴포넌트와 실패 지점이 늘어나는 반면 이익이 없다. frontier가 이미 dedup / re-harvest 가드를 담당한다.
 

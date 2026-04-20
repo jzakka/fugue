@@ -18,8 +18,11 @@ Pioneer는 현재 자체 인메모리 BFS 큐(`PriorityQueue`/`BFSQueue`)와 사
 - 콘텐츠 추출(스크립트 실행, Pin 생성)은 본 change 범위 밖이며 Harvester의 책임이다. Pioneer는 **링크 추출 + snapshot 저장 + harvester_frontier fanout**만 수행한다.
 - 다중 워커 정확성(중복 fetch 방지, 정확히-한 번 claim)은 scheduler의 `FOR UPDATE SKIP LOCKED` + host token bucket 기반 claim이 보장한다. Pioneer 코드에 동시성 제어 로직을 두지 않는다.
 - Pioneer 프로세스는 인메모리 크롤 상태(큐/visited/카운터)를 가져서는 안 된다(SHALL NOT). 재시작 후 곧바로 frontier 상태를 그대로 이어받을 수 있어야 한다.
-- **Feature flag 기반 롤백**: 전환 기간 동안 `BOT_PIONEER_SCHEDULER=false`로 설정하면 구 BFS 경로로 즉시 복귀 가능해야 한다. frontier 테이블은 삭제하지 않는다.
-- **BREAKING**: `bot` spec의 "BFS로 사이트를 탐색한다 (Pioneer)" requirement를 제거한다.
+- **Feature flag 기반 롤백 (전환기 임시 장치)**: 전환 기간 동안 `BOT_PIONEER_SCHEDULER=false` 설정으로 구 BFS 경로로 즉시 복귀하는 롤백 수단을 구현 단계에서 제공한다(tasks.md 3.10 / 6.1 / 6.5 참조). 이 플래그는 영구 spec requirement가 아니라 **배포 전환기 동안만 유지되는 임시 장치**이며, 신규 경로 안정화 확인 후 tasks.md 6.5에서 제거된다. frontier 테이블은 롤백 시에도 삭제하지 않는다.
+- **BREAKING**: `bot` spec에서 3개 requirement를 제거한다.
+  1. "BFS로 사이트를 탐색한다 (Pioneer)" — Pioneer의 탐색 모델이 scheduler consumer 루프로 대체됨에 따른 제거.
+  2. "스냅샷 저장 실패는 fail-open으로 처리한다" — snapshot 저장 실패를 fail-open(크롤 성공 취급)에서 fail-close(`SetStatus(fetch_failed) + RecordFetchError("network")`)로 **외부 관찰 가능한 행위 역전**. archived `pioneer-snapshot-storage`가 남긴 fail-open 회귀 테스트는 본 change 구현 단계에서 교체 필요.
+  3. "Pioneer는 ParseLinks 후 FilterLinks를 거쳐 Enqueue한다" — 동일 책임을 새 `pioneer` capability가 이어받아 SSOT를 단일화.
 
 ## Capabilities
 
@@ -27,7 +30,7 @@ Pioneer는 현재 자체 인메모리 BFS 큐(`PriorityQueue`/`BFSQueue`)와 사
 - `pioneer`: URLScheduler를 백엔드로 하는 새 Pioneer 동작 모델. Dequeue/fetch/snapshot/parse/filter/Enqueue(pioneer)/EnqueueHarvester 루프, scheduler 보고 책임(`SetStatus` + `RecordFetchError`), 인메모리 상태 금지, 링크 추출만 담당하는 책임 경계, fanout B 동작을 정의한다.
 
 ### Modified Capabilities
-- `bot`: 인메모리 BFS 전제를 가진 마지막 requirement("BFS로 사이트를 탐색한다 (Pioneer)")를 제거한다. 기존 scenario의 처리 방향은 다음과 같이 분산된다. (1) "DOM 기반 링크 추출"과 "필터 체인을 통한 링크 필터링"은 `bot` spec의 독립 requirement가 이미 담당하므로 무영향. (2) Pioneer 루프 동작 자체는 새 `pioneer` capability가 담당. (3) "복합 우선순위 계산"은 `pioneer-link-filter-policy`에서 재정의. (4) "최대 노드 수 제한"은 사이트 단위 quota가 폐기되고 워커 단위 예산(`pioneer-worker-budget`)·host 단위 속도 제한(`scheduler-host-token-bucket`)으로 관점이 전환된다. (5) "이미 방문한 링크에 대한 엣지 생성"과 "부모 관계 추적 및 엣지 생성"은 graph edge 유지 자체를 폐기하므로 복원하지 않는다(의도적 trade-off).
+- `bot`: 3개 requirement를 제거한다. (a) "BFS로 사이트를 탐색한다 (Pioneer)" — 인메모리 BFS 전제 제거, 탐색 모델은 새 `pioneer` capability가 담당. 세부 scenario 처리: "DOM 기반 링크 추출"/"필터 체인을 통한 링크 필터링"은 `bot` spec의 독립 requirement가 이미 담당하므로 무영향, "복합 우선순위 계산"은 `pioneer-link-filter-policy`로 이관, "최대 노드 수 제한"은 워커 단위 예산(`pioneer-worker-budget`)·host 단위 속도 제한(`scheduler-host-token-bucket`)으로 관점 전환, "이미 방문한 링크/부모 관계 엣지 생성"은 graph edge 폐기로 의도적 미복원. (b) "스냅샷 저장 실패는 fail-open으로 처리한다" — 새 `pioneer` capability의 "실패 시 `SetStatus` + `RecordFetchError` 둘 다 호출" 규약으로 대체되며, 이는 외부 관찰 가능한 행위가 fail-open → fail-close로 역전되는 BREAKING. (c) "Pioneer는 ParseLinks 후 FilterLinks를 거쳐 Enqueue한다" — 동일 책임을 새 `pioneer` capability의 "FilterChain 호출은 Pioneer의 책임이다" requirement가 이어받아 SSOT를 단일화. 세부 scenario 매핑은 `specs/bot/spec.md` 델타 참조.
 - `scheduler`: `URLScheduler` 인터페이스에 `EnqueueHarvester(url, snapshotKey) error` 메서드를 ADDED Requirement로 추가한다. baseline scheduler spec은 "Enqueue 경로에서 `snapshot_key`를 건드리지 않으며 snapshot_key 기록은 후속 change 책임"이라 명시했고(baseline `scheduler` spec의 "Enqueue는 url_hash 기준 upsert로 동작한다" requirement), 본 change가 그 후속 책임을 이행한다. 기존 `Enqueue(QueueHarvester, urls...)` 경로는 snapshot_key 미변경 규약을 그대로 유지한다. UPSERT 규약: 이미 harvested인 row에 대한 no-op, 미완료 row에 대한 snapshot_key/next_harvest_at/harvest_error_count 갱신.
 
 ## Impact

@@ -199,22 +199,41 @@ func TestPioneerConsumer_SuccessPath(t *testing.T) {
 	fixed := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
 	c := NewPioneerConsumer(sched, store, chain, fetcher).WithClock(func() time.Time { return fixed })
 
-	c.processOne(context.Background(), "https://a.example/root")
+	// tasks §5.1 requires verifying the cycle "수 회 정상 반복". Drive processOne
+	// three times to assert the consumer is stateless — every iteration must
+	// emit the full Enqueue + EnqueueHarvester + SetStatus(fetched) triple.
+	const iterations = 3
+	for i := 0; i < iterations; i++ {
+		c.processOne(context.Background(), "https://a.example/root")
+	}
 
-	if len(sched.enqueuePioneer) != 1 || len(sched.enqueuePioneer[0]) != 2 {
-		t.Fatalf("expected 1 Enqueue(pioneer) with 2 URLs, got %+v", sched.enqueuePioneer)
+	if len(sched.enqueuePioneer) != iterations {
+		t.Fatalf("expected %d Enqueue(pioneer) calls, got %d: %+v",
+			iterations, len(sched.enqueuePioneer), sched.enqueuePioneer)
 	}
-	if len(sched.enqueueHarvester) != 1 {
-		t.Fatalf("expected exactly 1 EnqueueHarvester, got %d", len(sched.enqueueHarvester))
+	for i, batch := range sched.enqueuePioneer {
+		if len(batch) != 2 {
+			t.Fatalf("iter %d: expected 2 URLs in Enqueue payload, got %+v", i, batch)
+		}
 	}
-	if sched.enqueueHarvester[0].url != "https://a.example/root" {
-		t.Fatalf("enqueueHarvester url: got %q", sched.enqueueHarvester[0].url)
+	if len(sched.enqueueHarvester) != iterations {
+		t.Fatalf("expected %d EnqueueHarvester, got %d", iterations, len(sched.enqueueHarvester))
 	}
-	if sched.enqueueHarvester[0].snapshotKey == "" {
-		t.Fatalf("enqueueHarvester snapshotKey should be non-empty")
+	for i, call := range sched.enqueueHarvester {
+		if call.url != "https://a.example/root" {
+			t.Fatalf("iter %d enqueueHarvester url: got %q", i, call.url)
+		}
+		if call.snapshotKey == "" {
+			t.Fatalf("iter %d enqueueHarvester snapshotKey should be non-empty", i)
+		}
 	}
-	if len(sched.setStatus) != 1 || sched.setStatus[0].status != scheduler.StatusFetched {
-		t.Fatalf("expected SetStatus(fetched), got %+v", sched.setStatus)
+	if len(sched.setStatus) != iterations {
+		t.Fatalf("expected %d SetStatus calls, got %+v", iterations, sched.setStatus)
+	}
+	for i, s := range sched.setStatus {
+		if s.status != scheduler.StatusFetched {
+			t.Fatalf("iter %d: expected SetStatus(fetched), got %+v", i, s)
+		}
 	}
 	if len(sched.recordFetchError) != 0 {
 		t.Fatalf("success path must not call RecordFetchError, got %+v", sched.recordFetchError)
@@ -284,6 +303,84 @@ func TestPioneerConsumer_CrossSiteEnqueue(t *testing.T) {
 		if !want[u] {
 			t.Errorf("unexpected URL in Enqueue payload: %q", u)
 		}
+	}
+}
+
+// TestPioneerConsumer_FetchFailure_EmptyBody verifies tasks §5.9 / pioneer
+// spec scenario "HTTP 2xx + 빈 body는 fetch 실패로 분류": even though the
+// HTTP status is 200, a zero-byte body must be treated as a fetch failure
+// and classified as network. No snapshot is written, no harvester fanout.
+func TestPioneerConsumer_FetchFailure_EmptyBody(t *testing.T) {
+	sched := &fakeScheduler{}
+	// fetcher surfaces the empty-body failure via err — matches the
+	// fetcher.go:301 contract ("empty response body: status=..."). The
+	// consumer must see fetchErr != nil and route through reportFailure
+	// before the snapshot step is reached.
+	fetcher := &fakeFetcher{
+		body:       nil,
+		finalURL:   "https://a.example/empty",
+		statusCode: 200,
+		err:        fmt.Errorf("pioneer_consumer: empty response body: status=200 url=https://a.example/empty"),
+	}
+	store := &fakeSnapshotStore{}
+	chain := NewFilterChain()
+
+	c := NewPioneerConsumer(sched, store, chain, fetcher)
+	c.processOne(context.Background(), "https://a.example/empty")
+
+	if len(sched.setStatus) != 1 || sched.setStatus[0].status != scheduler.StatusFetchFailed {
+		t.Fatalf("expected SetStatus(fetch_failed), got %+v", sched.setStatus)
+	}
+	if len(sched.recordFetchError) != 1 || sched.recordFetchError[0].kind != scheduler.ErrorNetwork {
+		t.Fatalf("expected RecordFetchError(network), got %+v", sched.recordFetchError)
+	}
+	if len(store.puts) != 0 {
+		t.Fatalf("empty-body failure must not Put a snapshot, got %+v", store.puts)
+	}
+	if len(sched.enqueueHarvester) != 0 {
+		t.Fatalf("empty-body failure must not fanout to harvester, got %+v", sched.enqueueHarvester)
+	}
+}
+
+// alwaysErrDequeueScheduler implements the scheduler interface but makes
+// every Dequeue call fail. Used by the hot-loop test to verify that Run
+// returns (propagating the error to the supervisor) instead of spinning.
+type alwaysErrDequeueScheduler struct {
+	fakeScheduler
+	calls int
+}
+
+func (s *alwaysErrDequeueScheduler) Dequeue(scheduler.QueueType) (string, error) {
+	s.calls++
+	return "", errors.New("fake: permanent dequeue error")
+}
+
+// TestPioneerConsumer_DequeueError_NoHotLoop verifies tasks §5.8: when the
+// scheduler's Dequeue returns an error, Run must surface it (so the
+// supervisor can back off/restart) rather than spinning in a tight loop.
+// The consumer itself has no sleep — hot-loop prevention is delegated per
+// design.md Decision 1.
+func TestPioneerConsumer_DequeueError_NoHotLoop(t *testing.T) {
+	sched := &alwaysErrDequeueScheduler{}
+	fetcher := &fakeFetcher{}
+	store := &fakeSnapshotStore{}
+	chain := NewFilterChain()
+
+	c := NewPioneerConsumer(sched, store, chain, fetcher)
+
+	done := make(chan error, 1)
+	go func() { done <- c.Run(context.Background()) }()
+
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatalf("expected Run to return error on permanent Dequeue failure, got nil")
+		}
+		if sched.calls != 1 {
+			t.Fatalf("Run must exit after first Dequeue error (no hot-loop); got %d calls", sched.calls)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatalf("Run did not return within 2s — hot-loop suspected (calls=%d)", sched.calls)
 	}
 }
 

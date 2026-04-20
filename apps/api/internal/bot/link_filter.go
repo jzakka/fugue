@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/chungsanghwa/fugue/apps/api/internal/urlcanon"
 )
 
 // LinkFilter defines the contract for filtering crawled links.
@@ -43,76 +44,19 @@ func (c *FilterChain) Apply(links []crawler.Link) []crawler.Link {
 
 // --- Helpers ---
 
-// trackingParams lists URL query parameters to strip during canonicalization.
-var trackingParams = map[string]bool{
-	"utm_source":   true,
-	"utm_medium":   true,
-	"utm_campaign": true,
-	"utm_term":     true,
-	"utm_content":  true,
-	"ref":          true,
-	"fbclid":       true,
-	"gclid":        true,
-}
-
-// canonicalURL normalizes a URL to RFC 3986 level:
-//   - scheme lowercased
-//   - host lowercased + www. prefix stripped + default port removed
-//     (":80" for http, ":443" for https; non-default ports preserved)
-//   - fragment removed
-//   - tracking parameters removed; remaining query keys sorted ascending
-//     (url.Values.Encode sorts by key)
-//   - trailing slash removed for non-root paths; root "/" preserved
-//   - path case is preserved
+// canonicalURL is a thin wrapper around urlcanon.Canonical. It exists so
+// existing bot callers don't have to change their import paths. The single
+// source of truth for canonicalization rules is urlcanon (shared with the
+// scheduler so url_hash and snapshot_key stay in lockstep).
 func canonicalURL(urlStr string) string {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return urlStr
-	}
-
-	// Scheme lowercase
-	u.Scheme = strings.ToLower(u.Scheme)
-
-	// Host: lowercase + strip www. + strip default port
-	host := strings.ToLower(u.Host)
-	host = stripWWW(host)
-	host = stripDefaultPort(u.Scheme, host)
-	u.Host = host
-
-	// Remove tracking parameters; Encode sorts keys ascending
-	q := u.Query()
-	for param := range trackingParams {
-		q.Del(param)
-	}
-	u.RawQuery = q.Encode()
-
-	// Remove trailing slash (but keep root "/")
-	if u.Path != "/" && strings.HasSuffix(u.Path, "/") {
-		u.Path = strings.TrimSuffix(u.Path, "/")
-	}
-
-	// Remove fragment
-	u.Fragment = ""
-
-	return u.String()
+	return urlcanon.Canonical(urlStr)
 }
 
-// stripWWW removes a leading "www." from a host string. Input must already be lowercase.
+// stripWWW removes a leading "www." from a host string. Input must already
+// be lowercase. Kept as a local helper because DomainFilter's host-keyword
+// matching wants just the www-stripped hostname, not full canonicalization.
 func stripWWW(host string) string {
 	return strings.TrimPrefix(host, "www.")
-}
-
-// stripDefaultPort removes ":80" from http hosts and ":443" from https hosts.
-// Non-default ports are preserved. Input must already be lowercase.
-func stripDefaultPort(scheme, host string) string {
-	switch scheme {
-	case "http":
-		return strings.TrimSuffix(host, ":80")
-	case "https":
-		return strings.TrimSuffix(host, ":443")
-	default:
-		return host
-	}
 }
 
 // VisitedLink records a link that was already visited, pairing the original

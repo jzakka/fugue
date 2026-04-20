@@ -1,3 +1,24 @@
+## MODIFIED Requirements
+
+### Requirement: 신규 enqueue된 row는 즉시 처리 가능한 초기 상태를 가진다
+Pioneer가 새 URL을 `pioneer_frontier`에 enqueue할 때, 또는 Pioneer가 fetch에 성공한 URL을 `harvester_frontier`에 fanout할 때, 신규 row는 즉시 처리 가능한 초기 상태로 생성되어야 한다(SHALL).
+
+본 change는 기존 scenario 중 두 개를 개정한다. (1) `pioneer_frontier`의 신규 INSERT는 항상 `depth = 0`으로 기록되며, 부모 row 기반 `depth + 1` 전파는 더 이상 수행되지 않는다(Pioneer가 부모 관계를 추적하지 않는 새 consumer 모델과 일관). 구조화된 enqueue 경로에서의 depth 전파는 후속 change의 범위로 남는다. (2) `harvester_frontier`의 UPSERT 시 `snapshot_key`를 세팅하는 경로는 `EnqueueHarvester(url, snapshotKey)`이며, baseline `Enqueue(QueueHarvester, urls...)` 경로는 `snapshot_key`를 건드리지 않는다(baseline 규약 유지).
+
+#### Scenario: pioneer_frontier 초기 상태
+- **WHEN** Pioneer가 새 URL을 `pioneer_frontier`에 INSERT할 때
+- **THEN** `last_fetched_at IS NULL`, `fetch_error_count = 0`, `next_fetch_at <= now()` 상태로 생성되어 partial index에 포함된다.
+
+#### Scenario: pioneer_frontier depth 초기값
+- **WHEN** Pioneer가 발견한 링크를 `pioneer_frontier`에 enqueue할 때
+- **THEN** 신규 INSERT row의 `depth`는 항상 `0`으로 기록된다 (Pioneer는 부모-자식 관계를 추적하지 않으며, BFS depth 전파는 후속 change의 구조화된 enqueue 경로에서 다룬다).
+
+#### Scenario: harvester_frontier 초기 상태
+- **WHEN** Pioneer가 fetch에 성공하여 `EnqueueHarvester(url, snapshotKey)`로 `harvester_frontier`에 UPSERT할 때
+- **THEN** (신규 INSERT일 때) `harvested_at IS NULL`, `harvest_error_count = 0`, `snapshot_key`는 호출 인자 `snapshotKey`로 세팅, `next_harvest_at <= now()` 상태로 생성되어 partial index에 포함된다 (baseline `Enqueue(QueueHarvester, urls...)` 경로의 `snapshot_key` 미변경 규약과의 분리는 본 change ADDED Requirement의 "baseline Enqueue와의 분리" scenario가 별도 담당).
+
+---
+
 ## ADDED Requirements
 
 ### Requirement: URLScheduler는 EnqueueHarvester(url, snapshotKey) 메서드를 제공한다
@@ -6,7 +27,7 @@
 - `EnqueueHarvester(url string, snapshotKey string) error` — `url`을 `harvester_frontier`에 UPSERT하고, 동일 호출에서 `snapshot_key` 컬럼을 `snapshotKey`로 세팅한다.
 
 본 메서드는 baseline의 `Enqueue(QueueHarvester, urls...)`와 병행 제공되며, 서로 다른 두 가지 호출 상황을 분리한다.
-- `Enqueue(QueueHarvester, urls...)`는 URL만 전달하는 기존 경로로, `snapshot_key`를 건드리지 않는다(baseline 규약 유지).
+- `Enqueue(QueueHarvester, urls...)`는 URL만 전달하는 기존 경로로, `snapshot_key`를 건드리지 않는다(baseline 규약 유지). 본 change 적용 후 프로덕션 코드 경로에 이 메서드의 호출자는 없으며(Pioneer는 항상 `EnqueueHarvester`를 사용), 향후 재시도 재투입·운영 도구 등 보조 enqueue 용도로 보존된다.
 - `EnqueueHarvester(url, snapshotKey)`는 Pioneer consumer가 fetch 직후 snapshot을 저장한 뒤 snapshot_key까지 함께 기록해야 하는 상황을 위한 경로다.
 
 UPSERT 동작:

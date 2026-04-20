@@ -1,3 +1,5 @@
+# Pioneer Specification
+
 ## Purpose
 
 Fugue의 Pioneer crawler capability. Pioneer는 `URLScheduler`의 얇은 consumer로 정의되며, `pioneer_frontier`에서 `Dequeue`로 다음 URL을 받아 fetch · snapshot 저장 · 링크 추출 · 필터 통과 링크의 `Enqueue` · 원본 URL+snapshot_key의 `EnqueueHarvester` · `SetStatus` 보고를 반복한다. 인메모리 큐/visited 맵/사이트 세션 상태를 보유하지 않으며, 다중 워커 동시성·dedup·ordering은 모두 scheduler가 보장한다.

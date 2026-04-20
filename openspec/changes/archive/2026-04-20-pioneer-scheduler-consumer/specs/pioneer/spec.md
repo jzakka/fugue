@@ -1,5 +1,7 @@
 ## ADDED Requirements
 
+> **Note on "정적 분석" scenarios**: 아래 일부 Scenario는 "WHEN Pioneer 구현체를 정적 분석할 때 / THEN ...이 존재하지 않는다" 형태로 외부 블랙박스 관찰이 아닌 **구현 구조 제약**을 표현한다(예: 자체 URL 큐 부재, 분산 락/mutex 부재). 이는 `design.md` Decision 9·10의 의도(재시작 복구·다중 워커 정확성을 scheduler에 완전 위임)를 강제하기 위한 의도적 trade-off이며, 프로젝트 차원에서 수용된 제약이다. 해당 시나리오는 코드 리뷰·정적 검사(`grep`/AST) 단계에서 검증된다.
+
 ### Requirement: Pioneer는 URLScheduler의 consumer이다
 Pioneer는 URL frontier를 `URLScheduler` 인터페이스를 통해서만 읽어야 하며(SHALL), 자체 URL 큐/스택/BFS 자료구조를 보유해서는 안 된다(SHALL NOT). 크롤할 다음 URL은 `scheduler.Dequeue(scheduler.QueuePioneer)` 호출로만 획득한다.
 
@@ -7,9 +9,9 @@ Pioneer는 URL frontier를 `URLScheduler` 인터페이스를 통해서만 읽어
 - **WHEN** Pioneer가 다음으로 크롤할 URL을 결정할 때
 - **THEN** `scheduler.Dequeue(scheduler.QueuePioneer)`를 호출하여 URL을 얻으며, 내부 큐/스택/리스트에서 꺼내지 않는다
 
-#### Scenario: Dequeue 시그니처는 QueueType 단일 인자이다
+#### Scenario: Dequeue는 추가 필터 파라미터 없이 호출한다
 - **WHEN** Pioneer가 `Dequeue`를 호출할 때
-- **THEN** 인자는 `scheduler.QueuePioneer` 하나이며, `queryCondition` 같은 추가 문자열 파라미터를 전달하지 않는다 (partial index 조건은 scheduler 구현체에 내재되어 있다)
+- **THEN** `queryCondition` 같은 추가 문자열 파라미터를 전달하지 않는다 (partial index 조건은 scheduler 구현체에 내재되어 있으며, `Dequeue` 인터페이스 시그니처 자체의 SSOT는 `scheduler` capability의 claim API spec이다)
 
 #### Scenario: 자체 URL 큐를 보유하지 않는다
 - **WHEN** Pioneer 구현체를 정적 분석할 때
@@ -88,6 +90,7 @@ Pioneer는 `RecordFetchError`의 `errorKind` 인자를 다음 규칙으로 결�
 | HTTP 응답 status 400-499 | `"http_4xx"` |
 | HTTP 응답 status 500-599 | `"http_5xx"` |
 | `net.Error` 이며 `Timeout() == true` | `"timeout"` |
+| HTTP 2xx 응답 + body 길이 0 (fetch 실패로 간주, baseline `bot` spec "fetch 실패 시 스냅샷을 저장하지 않는다" 유지) | `"network"` |
 | 그 외 네트워크/IO 에러, snapshot 저장 실패 | `"network"` |
 
 #### Scenario: HTTP 4xx는 "http_4xx"로 분류
@@ -105,6 +108,10 @@ Pioneer는 `RecordFetchError`의 `errorKind` 인자를 다음 규칙으로 결�
 #### Scenario: 그 외 에러와 snapshot 실패는 "network"로 분류
 - **WHEN** DNS 실패, connection reset, TLS 에러, 또는 snapshot 저장 실패 등이 발생했을 때
 - **THEN** Pioneer는 `RecordFetchError(url, "network")`를 호출한다
+
+#### Scenario: HTTP 2xx + 빈 body는 fetch 실패로 분류
+- **WHEN** fetch 결과가 HTTP 2xx이지만 body 길이가 0일 때
+- **THEN** Pioneer는 이를 fetch 실패로 취급하여 snapshot을 저장하지 않고 `SetStatus(url, "fetch_failed", nil)` + `RecordFetchError(url, "network")`를 호출한다 (baseline `bot` spec의 "fetch 실패 시 스냅샷을 저장하지 않는다" 요구사항을 새 consumer 경로에서도 유지)
 
 ---
 

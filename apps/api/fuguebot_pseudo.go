@@ -4,13 +4,16 @@ import "log"
 
 /*
 fugubot의 동작 플로우를 스도코드로 나타낸 것
-참고만 하시오
+부가 참고 자료: 정식 계약은 openspec/specs/pioneer/spec.md (Pioneer),
+openspec/specs/scheduler/spec.md (URLScheduler), openspec/specs/harvester/spec.md
+(Harvester)이며, 본 파일의 시그니처/순서가 정식 계약과 다르더라도 spec이
+정본이다.
 
 Deprecated: 이 파일은 의사코드이며, 실제 구현은 OpenSpec change
 "scheduler-claim-api"가 정의한 scheduler.URLScheduler interface와 그 Postgres
-구현체(apps/api/internal/scheduler/)로 대체된다. 후속 호출부 마이그레이션 change
-(harvester-scheduler-consumer, pioneer-* 시리즈)가 Run() 진입점을 실제
-URLScheduler로 전환한다.
+구현체(apps/api/internal/scheduler/)로 대체된다. Pioneer 호출부는
+"pioneer-scheduler-consumer" change(아카이브됨)가 정의한 PioneerConsumer
+(apps/api/internal/bot/pioneer_consumer.go)로 이미 전환되었다.
 */
 
 // Deprecated: use scheduler.URLScheduler. URLPriorityQueue는 설계 논의용
