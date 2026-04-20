@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -18,6 +20,7 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/ai"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/scheduler"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
 
@@ -166,6 +169,17 @@ var pioneerCmd = &cobra.Command{
 		}
 
 		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
+
+		// pioneer-scheduler-consumer: BOT_PIONEER_SCHEDULER gates the new
+		// URLScheduler-backed consumer loop. Default false keeps the legacy
+		// BFS path. When true, the CLI seeds the site's root URL into
+		// pioneer_frontier and then hands control to PioneerConsumer.Run
+		// for the lifetime of the process. Rollback: flip the flag back to
+		// false — no schema change required.
+		if envBool("BOT_PIONEER_SCHEDULER", false) {
+			log.Printf("fuguebot: BOT_PIONEER_SCHEDULER=true — running new scheduler-backed Pioneer consumer")
+			return runPioneerConsumer(cmd.Context(), infra, site.RootUrl)
+		}
 
 		// Initialize Pioneer dependencies
 		graphRepo := bot.NewGraphRepo(infra.DB)
@@ -379,4 +393,48 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("fuguebot: %v", err)
 	}
+}
+
+// runPioneerConsumer bootstraps the new scheduler-backed Pioneer loop.
+// Seeds `seedURL` into pioneer_frontier (idempotent via ON CONFLICT DO NOTHING
+// inside EnqueuePioneer) and then blocks in PioneerConsumer.Run. Returns when
+// the consumer's context is cancelled or Run returns a fatal error.
+//
+// Wiring is intentionally minimal: the consumer has no notion of "sites", so
+// the CLI arg (site name) only selects which root URL to seed. Subsequent
+// links discovered via fanout B populate pioneer_frontier organically.
+func runPioneerConsumer(parent context.Context, infra *Infrastructure, seedURL string) error {
+	sched := scheduler.NewPGURLScheduler(infra.DB).
+		WithRateLimiter(scheduler.NewHostRateLimiter(scheduler.FactoryDefaultRatePerSec, scheduler.FactoryDefaultBurst, true))
+
+	snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
+	store := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
+
+	chain := bot.NewFilterChain(
+		&bot.DomainFilter{},
+		&bot.ExtensionFilter{},
+		&bot.PathPatternFilter{},
+		bot.NewRobotsFilter(nil),
+		bot.NewCanonicalDedupFilter(nil),
+	)
+
+	consumer := bot.NewPioneerConsumer(sched, store, chain, bot.NewDefaultConsumerFetcher())
+
+	if err := sched.Enqueue(scheduler.QueuePioneer, seedURL); err != nil {
+		return fmt.Errorf("seed enqueue: %w", err)
+	}
+	log.Printf("fuguebot: seeded pioneer_frontier with %s", seedURL)
+
+	// Wire SIGINT/SIGTERM so operators can stop the consumer cleanly between
+	// URLs, and inherit the cobra command's parent context so ancestor
+	// cancellation also propagates. Note: URLScheduler.Dequeue does not take
+	// a context, so a pending Dequeue call may block up to one internal poll
+	// interval before the cancellation is observed by the Run loop —
+	// acknowledged in postgres_scheduler.go.
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	return consumer.Run(ctx)
 }

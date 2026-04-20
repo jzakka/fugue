@@ -17,16 +17,16 @@ Pioneer는 URL frontier를 `URLScheduler` 인터페이스를 통해서만 읽어
 
 #### Scenario: frontier가 비어 있으면 Dequeue가 블록된다
 - **WHEN** `pioneer_frontier`에 claim 가능한 URL이 없는 상태에서 Pioneer가 `scheduler.Dequeue(scheduler.QueuePioneer)`를 호출할 때
-- **THEN** Pioneer는 scheduler가 URL을 반환할 때까지 대기한다 (scheduler의 busy-wait/1초 sleep 정책을 그대로 따르며 Pioneer 루프 측에서 별도 `time.Sleep`이나 스핀을 구현하지 않는다)
+- **THEN** Pioneer는 scheduler가 URL을 반환할 때까지 대기한다 (scheduler의 block-on-empty 대기 정책을 그대로 따르며 Pioneer 루프 측에서 별도 `time.Sleep`이나 스핀을 구현하지 않는다. 내부 폴링 간격은 scheduler spec 책임)
 
 ---
 
 ### Requirement: Pioneer 메인 루프는 Dequeue → fetch → snapshot → parse → filter → Enqueue(pioneer) + EnqueueHarvester → SetStatus 반복이다
-Pioneer의 메인 루프는 `scheduler.Dequeue(QueuePioneer)`, URL fetch, snapshot 저장, 링크 추출, `FilterChain.Apply`, `scheduler.Enqueue(QueuePioneer, filteredLinks)`, `scheduler.EnqueueHarvester(url, snapshotKey)`, `scheduler.SetStatus(url, "fetched", nil)`의 반복으로 구성되어야 한다(SHALL). 추가 단계를 이 루프의 책임으로 포함하지 않아야 한다(SHALL NOT).
+Pioneer의 메인 루프는 `scheduler.Dequeue(QueuePioneer)`, URL fetch, snapshot 저장, 링크 추출, `FilterChain.Apply`, `scheduler.Enqueue(QueuePioneer, filteredURLs)`, `scheduler.EnqueueHarvester(url, snapshotKey)`, `scheduler.SetStatus(url, "fetched", nil)`의 반복으로 구성되어야 한다(SHALL). 추가 단계를 이 루프의 책임으로 포함하지 않아야 한다(SHALL NOT).
 
 #### Scenario: 정상 경로의 루프 순서
 - **WHEN** Pioneer가 한 번의 성공 반복을 수행할 때
-- **THEN** 순서대로 `scheduler.Dequeue(QueuePioneer)` → URL fetch → snapshot 저장(`snapshot_key` 획득) → 링크 추출 → `FilterChain.Apply` → `scheduler.Enqueue(QueuePioneer, filteredLinks)` → `scheduler.EnqueueHarvester(url, snapshotKey)` → `scheduler.SetStatus(url, "fetched", nil)` 이 실행된다
+- **THEN** 순서대로 `scheduler.Dequeue(QueuePioneer)` → URL fetch → snapshot 저장(`snapshot_key` 획득) → 링크 추출 → `FilterChain.Apply` → `scheduler.Enqueue(QueuePioneer, filteredURLs)` → `scheduler.EnqueueHarvester(url, snapshotKey)` → `scheduler.SetStatus(url, "fetched", nil)` 이 실행된다
 
 #### Scenario: FilterChain은 Enqueue 직전에 Pioneer consumer가 호출한다
 - **WHEN** Pioneer가 링크 목록을 `pioneer_frontier`에 넣기 직전일 때
@@ -34,7 +34,7 @@ Pioneer의 메인 루프는 `scheduler.Dequeue(QueuePioneer)`, URL fetch, snapsh
 
 #### Scenario: 추출한 링크를 같은 pioneer_frontier로 다시 Enqueue한다
 - **WHEN** 한 URL의 fetch 결과에서 n개 링크를 추출하여 필터를 통과시켰을 때
-- **THEN** Pioneer는 `scheduler.Enqueue(scheduler.QueuePioneer, filteredLinks)`를 호출하여 동일 scheduler의 `pioneer_frontier`에 다시 투입한다 (별도 큐/채널/파일로 내보내지 않는다)
+- **THEN** Pioneer는 `scheduler.Enqueue(scheduler.QueuePioneer, filteredURLs)`를 호출하여 동일 scheduler의 `pioneer_frontier`에 다시 투입한다 (별도 큐/채널/파일로 내보내지 않는다)
 
 #### Scenario: 루프에 별도 sleep/backoff를 두지 않는다
 - **WHEN** Pioneer consumer 루프 코드를 정적 분석할 때
@@ -111,14 +111,14 @@ Pioneer는 `RecordFetchError`의 `errorKind` 인자를 다음 규칙으로 결�
 ### Requirement: Pioneer는 fanout B의 producer이다
 Pioneer는 한 번의 fetch 성공에 대해 동일한 `URLScheduler` 인스턴스의 두 큐에 모두 써야 한다(SHALL).
 
-1. **새 링크**: `scheduler.Enqueue(scheduler.QueuePioneer, filteredLinks)` — `pioneer_frontier`에 다음 크롤 대상으로 투입.
+1. **새 링크**: `scheduler.Enqueue(scheduler.QueuePioneer, filteredURLs)` — `pioneer_frontier`에 다음 크롤 대상으로 투입.
 2. **원본 URL + snapshot_key**: `scheduler.EnqueueHarvester(url, snapshotKey)` — `harvester_frontier`에 UPSERT.
 
 별도의 ingestor나 외부 큐 파이프라인을 경유해서는 안 된다(SHALL NOT).
 
 #### Scenario: 새 링크는 pioneer_frontier로 Enqueue
 - **WHEN** Pioneer가 필터를 통과한 새 링크를 frontier에 투입할 때
-- **THEN** `scheduler.Enqueue(scheduler.QueuePioneer, filteredLinks)`를 호출한다 (`harvester_frontier`로 직접 보내지 않는다)
+- **THEN** `scheduler.Enqueue(scheduler.QueuePioneer, filteredURLs)`를 호출한다 (`harvester_frontier`로 직접 보내지 않는다)
 
 #### Scenario: 원본 URL과 snapshot_key는 harvester_frontier로 EnqueueHarvester
 - **WHEN** Pioneer가 fetch를 성공적으로 마치고 snapshot을 저장하여 `snapshot_key`를 얻었을 때
@@ -137,13 +137,19 @@ Pioneer는 한 번의 fetch 성공에 대해 동일한 `URLScheduler` 인스턴�
 ### Requirement: FilterChain 호출은 Pioneer의 책임이다
 Pioneer consumer는 링크 추출 직후, `Enqueue(QueuePioneer, ...)` 직전에 `FilterChain.Apply(links)`를 호출해야 한다(SHALL). 필터 체인의 **구성**(어떤 필터가 어떤 순서로 배치되는지, 각 필터의 정책)은 `pioneer-link-filter-policy`가 정의하며, 본 requirement는 **호출 타이밍**만 규범화한다.
 
+Pioneer consumer는 `FilterChain.Apply`가 반환한 링크 구조체 컬렉션에서 URL 문자열만 추출하여 `scheduler.Enqueue(QueuePioneer, urls...)`에 전달해야 한다(SHALL). baseline scheduler `Enqueue` 시그니처는 `urls ...string`을 받으므로, 링크 구조체의 URL 필드 이외 메타데이터는 Enqueue 경로에서 소모되지 않는다.
+
 #### Scenario: FilterChain.Apply는 Pioneer consumer가 호출한다
 - **WHEN** Pioneer가 한 URL에서 링크를 추출했을 때
 - **THEN** Pioneer consumer 코드가 `filterChain.Apply(extractedLinks)`를 호출하며, 이 호출을 scheduler나 Enqueue 내부에 위임하지 않는다
 
 #### Scenario: 필터 통과 링크만 Enqueue
 - **WHEN** FilterChain이 일부 링크를 제외하고 부분 집합을 반환했을 때
-- **THEN** Pioneer는 반환된 부분 집합만 `scheduler.Enqueue(QueuePioneer, ...)`에 전달한다 (제외된 링크는 frontier에 들어가지 않는다)
+- **THEN** Pioneer는 반환된 부분 집합의 URL 문자열만 `scheduler.Enqueue(QueuePioneer, urls...)`에 전달한다 (제외된 링크는 frontier에 들어가지 않는다)
+
+#### Scenario: Enqueue 인자는 URL 문자열이다
+- **WHEN** Pioneer consumer가 `scheduler.Enqueue(QueuePioneer, ...)`를 호출할 때
+- **THEN** 전달 인자는 FilterChain 결과 링크의 URL 필드에서 뽑은 문자열 목록이며, 링크 구조체 자체나 메타데이터는 Enqueue 경로에 전달되지 않는다
 
 ---
 

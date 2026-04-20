@@ -7,9 +7,9 @@ Pioneer는 지금까지 단일 프로세스 BFS 크롤러였다. 큐/visited/카
 
 선행 change들이 이 기반을 이미 만들어뒀다.
 - `scheduler-frontier-table`: `pioneer_frontier` / `harvester_frontier` 두 독립 테이블, `UNIQUE(url_hash)` 제약, Pioneer claim용 partial index(`WHERE fetch_error_count < 5 ORDER BY score DESC, next_fetch_at ASC`) 정의.
-- `scheduler-claim-api`: `URLScheduler` 인터페이스. `Dequeue(QueueType)` 단일 인자, 내부에서 `FOR UPDATE SKIP LOCKED` + host token bucket으로 linearizable claim, 빈 큐면 1초 sleep 후 재시도. `SetStatus(key, status, pinIDs)` / `RecordFetchError(key, errorKind)` / `EnqueueHarvester(url, snapshotKey)`.
+- `scheduler-claim-api`: `URLScheduler` 인터페이스. `Dequeue(QueueType)` 단일 인자, 내부에서 `FOR UPDATE SKIP LOCKED` + host token bucket으로 linearizable claim, 빈 큐면 1초 sleep 후 재시도. `Enqueue(QueueType, urls...)` / `SetStatus(key, status, pinIDs)` / `RecordFetchError(key, errorKind)` / `RecordHarvestError(...)`. **주의**: `EnqueueHarvester(url, snapshotKey)` 메서드는 baseline에 존재하지 않으며, 본 change `specs/scheduler/spec.md` delta에서 새로 추가한다(baseline scheduler spec이 "Enqueue 경로에서 snapshot_key를 건드리지 않으며 snapshot_key 기록은 후속 change 책임"이라 명시한 부분을 본 change가 이행).
 - `pioneer-snapshot-storage`: `snapshots/<sha256_hex>/<yyyymmdd>.html.gz` 키 규약, 365일 TTL, gzip 압축.
-- `pioneer-link-filter-policy`: `FilterChain`의 필터 구성(Domain → Extension → PathPattern → Robots → Dedup) 정의.
+- `pioneer-link-filter-policy`: `FilterChain`의 필터 구성(Domain → Extension → PathPattern → Robots → Dedup) 정의. 이 change가 반영되면 baseline `bot` spec에 흩어져 있던 개별 필터 requirement(DomainFilter/ExtensionFilter/PathPatternFilter/RobotsFilter/DedupFilter/필터 체인 순서)의 정책 SSOT는 `pioneer-link-filter-policy`로 이관된다. 본 change는 필터 체인 구성에 관여하지 않고 호출 타이밍만 규범화한다.
 
 본 change는 이 기반 위에 **Pioneer의 동작 모델**을 확정한다. Pioneer는 `pioneer_frontier` consumer이면서 `pioneer_frontier`(새 링크) + `harvester_frontier`(원본 + snapshot_key) 양쪽의 producer — 즉 DECISIONS.md §2의 **fanout B**다.
 
@@ -24,7 +24,7 @@ Pioneer는 지금까지 단일 프로세스 BFS 크롤러였다. 큐/visited/카
 - Pioneer 코드에 인메모리 크롤 상태(큐/visited/세션 카운터)가 존재하지 않음을 규범화.
 - 링크 추출과 콘텐츠 추출의 책임 경계를 명확히: Pioneer는 링크 + snapshot + harvester_frontier fanout만, 콘텐츠/Pin 생성은 Harvester.
 - 전환 기간 feature flag + 롤백 경로를 명시.
-- `bot` spec에서 인메모리 BFS를 전제하는 마지막 requirement 1건 제거.
+- `bot` spec에서 인메모리 BFS를 전제하는 마지막 requirement 1건 제거. 제거되는 scenario 중 "DOM 기반 링크 추출"과 "필터 체인을 통한 링크 필터링"은 `bot` spec의 독립 requirement가 이미 담당하므로 기능 무영향이며, "복합 우선순위 계산"은 `pioneer-link-filter-policy`로 이관, "최대 노드 수 제한"은 사이트 단위 quota가 폐기되고 워커 단위 예산(`pioneer-worker-budget`)·host 속도 제한(`scheduler-host-token-bucket`)으로 관점 전환, "엣지 생성/부모 관계 추적"은 graph edge 자체를 폐기하므로 복원하지 않는다(의도적 trade-off). 상세 매핑은 본 change `specs/bot/spec.md` Reason/Migration 참조.
 
 **Non-Goals:**
 - fetch 에러 backoff 공식 자체(`scheduler-retry-backoff`에서 정의. 본 change는 `RecordFetchError` 호출만 책임).
@@ -57,19 +57,22 @@ for {
         continue
     }
 
-    snapshotKey, snapErr := snapshotStore.Save(url, html) // pioneer-snapshot-storage 규약
-    if snapErr != nil {
+    // pioneer-snapshot-storage 규약: Put(ctx, normalizedURL, body) + SnapshotKey(normalizedURL, t)
+    normalized := canonicalURL(url)
+    if snapErr := snapshotStore.Put(ctx, normalized, html); snapErr != nil {
         // snapshot 저장 실패는 network 분류로 기록
         scheduler.SetStatus(url, "fetch_failed", nil)
         scheduler.RecordFetchError(url, "network")
         continue
     }
+    snapshotKey := snapshot.SnapshotKey(normalized, time.Now().UTC())
 
-    newLinks := extractor.ExtractLinks(html)              // <a href> 집합 + 메타데이터
-    filteredLinks := filterChain.Apply(newLinks)          // pioneer-link-filter-policy
+    newLinks := extractor.ExtractLinks(html)              // []Link (URL + 메타데이터)
+    filteredLinks := filterChain.Apply(newLinks)          // []Link — pioneer-link-filter-policy
+    urls := linkURLs(filteredLinks)                       // []string — FilterChain 결과에서 URL만 추출
 
-    scheduler.Enqueue(scheduler.QueuePioneer, filteredLinks) // 새 링크 → pioneer_frontier
-    scheduler.EnqueueHarvester(url, snapshotKey)              // 원본 URL → harvester_frontier (UPSERT)
+    scheduler.Enqueue(scheduler.QueuePioneer, urls...)    // 새 링크 → pioneer_frontier
+    scheduler.EnqueueHarvester(url, snapshotKey)           // 원본 URL → harvester_frontier (UPSERT)
 
     scheduler.SetStatus(url, "fetched", nil)              // next_fetch_at = now() + 365d
 }
@@ -95,24 +98,15 @@ DECISIONS.md §3 "Consumer 호출 규약"에 따라, fetch 실패 시 Pioneer는
 1. `scheduler.SetStatus(url, "fetch_failed", nil)` — status 마킹
 2. `scheduler.RecordFetchError(url, errorKind)` — `fetch_error_count` 증가 + `next_fetch_at` backoff 계산(공식은 `scheduler-retry-backoff`)
 
-**errorKind 분류 규칙 (Pioneer 책임)**:
-| 조건 | errorKind |
-|------|-----------|
-| HTTP 응답 status 400-499 | `"http_4xx"` |
-| HTTP 응답 status 500-599 | `"http_5xx"` |
-| `net.Error` 이며 `Timeout() == true` | `"timeout"` |
-| 그 외 네트워크/IO 에러 | `"network"` |
-| snapshot 저장 실패 | `"network"` (서버 원인 분류 없음 → 일반 IO로 취급) |
-
-`"http_4xx"`는 scheduler 쪽에서 즉시 `fetch_error_count = 5`(dead)로 설정한다(DECISIONS.md §3).
+errorKind 분류 규칙은 본 change `specs/pioneer/spec.md`의 "Pioneer는 fetch 실패를 errorKind로 분류한다" requirement를 SSOT로 한다(design.md에서 중복 기재하지 않는다). 참고로 `"http_4xx"`는 scheduler 쪽에서 즉시 `fetch_error_count = 5`(dead)로 설정한다(DECISIONS.md §3).
 
 ### Decision 5: Pioneer는 fanout B의 producer이다
 Pioneer는 동일한 `URLScheduler` 인스턴스에 대해 두 큐 모두에 쓴다.
 
-- **새 링크**: `scheduler.Enqueue(scheduler.QueuePioneer, filteredLinks)` — `pioneer_frontier`에 INSERT ON CONFLICT (url_hash) DO NOTHING.
+- **새 링크**: `scheduler.Enqueue(scheduler.QueuePioneer, urls...)` (FilterChain 결과 `[]Link`에서 URL 문자열만 추출한 `[]string`) — `pioneer_frontier`에 INSERT ON CONFLICT (url_hash) DO NOTHING.
 - **원본 URL + snapshot_key**: `scheduler.EnqueueHarvester(url, snapshotKey)` — `harvester_frontier`에 UPSERT. `ON CONFLICT (url_hash) DO UPDATE`에서 `WHERE harvester_frontier.harvested_at IS NULL` 가드를 걸어, 이미 harvest가 끝난 URL은 no-op으로 처리한다(DECISIONS.md §8).
 
-참고 UPSERT SQL(실제 쿼리는 `scheduler-claim-api` / sqlc에서 관리):
+참고 UPSERT SQL(실제 쿼리는 sqlc/scheduler 구현체에서 관리. 본 change `specs/scheduler/spec.md`의 `EnqueueHarvester` ADDED Requirement가 행위 계약의 SSOT임):
 ```sql
 INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, score, next_harvest_at)
 VALUES ($1, $2, $3, $4, $5, $6, now())
@@ -122,6 +116,7 @@ ON CONFLICT (url_hash) DO UPDATE
       harvest_error_count = 0
   WHERE harvester_frontier.harvested_at IS NULL;
 ```
+이 SQL은 baseline scheduler spec의 `Enqueue(QueueHarvester, urls...)`(snapshot_key 미변경 유지)와는 별개 경로다. snapshot_key 갱신은 본 change가 추가하는 `EnqueueHarvester` 경로에서만 이뤄지며, 기존 `Enqueue(QueueHarvester, ...)`의 baseline 규약(snapshot_key 미변경)은 그대로 유효하다.
 
 **대안**: Pioneer가 harvester_frontier에는 쓰지 않고 별도 indexer가 snapshot 이벤트를 소비. → 거부. 컴포넌트와 실패 지점이 늘어나는 반면 이익이 없다. frontier가 이미 dedup / re-harvest 가드를 담당한다.
 
@@ -165,7 +160,7 @@ Pioneer는 사이트/도메인 경계를 알지 않는다. 도메인 제한이 �
 
 ## Migration Plan
 
-1. 선행 change 확인: `scheduler-frontier-table`(두 테이블), `scheduler-claim-api`(`Dequeue(QueueType)` / `EnqueueHarvester` / `RecordFetchError` 포함), `pioneer-snapshot-storage`, `pioneer-link-filter-policy`가 반영되어야 한다.
+1. 선행 change 확인: `scheduler-frontier-table`(두 테이블), `scheduler-claim-api`(`Dequeue(QueueType)` / `Enqueue` / `SetStatus` / `RecordFetchError` / `RecordHarvestError` 포함. `EnqueueHarvester`는 baseline에 없으며 본 change의 scheduler spec delta로 추가됨), `pioneer-snapshot-storage`(`SnapshotStore.Put` + `SnapshotKey`), `pioneer-link-filter-policy`가 반영되어야 한다.
 2. 새 Pioneer consumer 구현을 `apps/api/internal/bot/` 하위에 추가. `BOT_PIONEER_SCHEDULER=false`가 기본값이며 스테이징에서 `true`로 전환해 병행 운영.
 3. 신규 경로 안정화(스테이징 + 일부 프로덕션 워커)가 확인되면 플래그 기본값을 `true`로 올리고, 이후 `priority_queue.go` / `bfs_queue.go` / `pioneer.go`의 BFS 본문을 제거.
 4. 롤백 전략: 플래그만 토글. `pioneer_frontier` / `harvester_frontier` 테이블은 삭제하지 않는다.

@@ -268,9 +268,10 @@ Pioneer의 한 fetch 결과는 (a) 새 링크 N개 → `pioneer_frontier` 재enq
 
 ### URLScheduler interface (scheduler-claim-api)
 
-`apps/api/internal/scheduler/url_scheduler.go`의 `URLScheduler`는 Pioneer/Harvester 워커가 frontier 테이블과 상호작용하는 단일 경계다. 다섯 메서드를 제공한다:
+`apps/api/internal/scheduler/url_scheduler.go`의 `URLScheduler`는 Pioneer/Harvester 워커가 frontier 테이블과 상호작용하는 단일 경계다. 여섯 메서드를 제공한다:
 
-- `Enqueue(queueType, urls...)` — `QueuePioneer` / `QueueHarvester` enum으로 대상 테이블을 지정. 정규화 + `url_hash` 해싱 + batch UPSERT(pioneer: `DO NOTHING`, harvester: `harvested_at IS NULL` 조건부 UPSERT).
+- `Enqueue(queueType, urls...)` — `QueuePioneer` / `QueueHarvester` enum으로 대상 테이블을 지정. 정규화 + `url_hash` 해싱 + batch UPSERT(pioneer: `DO NOTHING`, harvester: `harvested_at IS NULL` 조건부 UPSERT, **snapshot_key 미변경**).
+- `EnqueueHarvester(url, snapshotKey)` — Pioneer consumer의 fanout B 경로. 단일 URL + `snapshot_key`를 `harvester_frontier`에 UPSERT한다. `harvested_at IS NULL` 가드를 그대로 사용하므로 이미 harvest된 row는 no-op이며, 미완료 row는 `snapshot_key`/`next_harvest_at`/`harvest_error_count`가 갱신된다. `pioneer-scheduler-consumer` change에서 추가.
 - `Dequeue(queueType)` — **block-on-empty**(빈 큐/host throttle에서 1초 sleep 후 재시도) · **linearizable**(`SELECT ... FOR UPDATE SKIP LOCKED` + in-flight marker UPDATE를 동일 트랜잭션에서 수행) 규약. 상위 `SCHEDULER_CLAIM_CANDIDATE_N`(기본 1)개 후보 중 `HostRateLimiter.Allow(host)`가 처음 true인 row를 claim한다.
 - `SetStatus(key, status, pinIDs)` — `fetched` / `fetch_failed` / `harvested` / `harvest_failed` 네 status만 허용. `harvested` 시 `harvester_frontier_pins` 테이블에 `pinIDs`(UUID)를 동일 트랜잭션으로 INSERT.
 - `RecordFetchError(key, errorKind)` / `RecordHarvestError(key, errorKind)` — `http_4xx` / `http_5xx` / `network` / `timeout` 네 enum. 4xx는 즉시 `*_error_count = 5`(dead), 나머지는 `scheduler-retry-backoff` 공식에 따라 count++ + `next_*_at` jittered backoff.
@@ -282,7 +283,8 @@ In-flight marker는 별도 컬럼 없이 `next_fetch_at = clock.Now() + 10min`(G
 - `scheduler-claim-api` *(완료)*: `URLScheduler` Go 인터페이스 + `SELECT ... FOR UPDATE SKIP LOCKED` 기반 claim 쿼리 + Postgres 구현체. 호출부 마이그레이션(`priority_queue.go` / `bfs_queue.go` 제거 포함)은 후속 change 범위.
 - `scheduler-retry-backoff` *(완료)*: `fetch_error_count` / `harvest_error_count`에 따른 `next_*_at` exponential backoff 공식.
 - `scheduler-host-token-bucket` *(완료)*: host별 동시 요청 제어(토큰 버킷) — `host` 컬럼을 키로 사용.
-- `harvester-scheduler-consumer` (예정) / `pioneer-scheduler-consumer` (예정): Worker Run() 진입점을 `URLScheduler.Dequeue` 기반으로 교체.
+- `pioneer-scheduler-consumer` *(완료)*: Pioneer Run() 진입점을 `URLScheduler.Dequeue` 기반 consumer 루프로 교체하고, fetch 성공 시 새 링크를 `Enqueue(QueuePioneer, ...)`로, 원본+snapshot_key를 `EnqueueHarvester(url, snapKey)`로 fanout한다 (feature flag `BOT_PIONEER_SCHEDULER`로 롤아웃).
+- `harvester-scheduler-consumer` (예정): Harvester Run() 진입점을 `URLScheduler.Dequeue(QueueHarvester)` 기반으로 교체.
 
 ### Host Token Bucket (politeness)
 

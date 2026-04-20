@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -485,5 +486,275 @@ func TestIntegration_RecordHarvestError_UnknownKindLeavesRowIntact(t *testing.T)
 	}
 	if !afterNext.Equal(beforeNext) {
 		t.Errorf("next_harvest_at changed: %s -> %s", beforeNext, afterNext)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// pioneer-scheduler-consumer change: integration tests for the new
+// EnqueueHarvester(url, snapshotKey) method on URLScheduler. Covers task
+// §2.3 (baseline Enqueue does not touch snapshot_key) and §5.7 (already
+// harvested row is a no-op). Gated on TEST_DATABASE_URL like the rest of
+// this file.
+// ---------------------------------------------------------------------------
+
+// readHarvesterSnapshot returns the snapshot_key column for the given URL.
+// Returns ("", false) when the column is NULL, mirroring sql.NullString.
+func readHarvesterSnapshot(t *testing.T, sqlDB *sql.DB, url string) (string, bool) {
+	t.Helper()
+	h := sha256.Sum256([]byte(url))
+	var key sql.NullString
+	if err := sqlDB.QueryRow(`SELECT snapshot_key FROM harvester_frontier WHERE url_hash = $1`, h[:]).Scan(&key); err != nil {
+		t.Fatalf("read harvester snapshot_key: %v", err)
+	}
+	return key.String, key.Valid
+}
+
+// TestIntegration_EnqueueHarvester_NewRow verifies the "미존재 URL에 대한
+// EnqueueHarvester는 새 row를 생성한다" scenario. A URL that does not yet
+// exist in harvester_frontier is inserted with the caller-provided
+// snapshot_key.
+func TestIntegration_EnqueueHarvester_NewRow(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB)
+
+	url := "https://example.test/enq-new/" + uuid.NewString()
+	h := sha256.Sum256([]byte(url))
+	t.Cleanup(func() { _, _ = sqlDB.Exec("DELETE FROM harvester_frontier WHERE url_hash = $1", h[:]) })
+
+	snapKey := "snapshots/abc/20251120.html.gz"
+	if err := s.EnqueueHarvester(url, snapKey); err != nil {
+		t.Fatalf("EnqueueHarvester: %v", err)
+	}
+
+	got, ok := readHarvesterSnapshot(t, sqlDB, url)
+	if !ok || got != snapKey {
+		t.Errorf("snapshot_key: got (%q, ok=%v), want %q", got, ok, snapKey)
+	}
+}
+
+// TestIntegration_EnqueueHarvester_AlreadyHarvestedNoop verifies task §5.7:
+// a row where harvested_at IS NOT NULL is a no-op. snapshot_key,
+// next_harvest_at, harvest_error_count must all remain unchanged.
+func TestIntegration_EnqueueHarvester_AlreadyHarvestedNoop(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB)
+
+	url := "https://example.test/already-done/" + uuid.NewString()
+	h := sha256.Sum256([]byte(url))
+	t.Cleanup(func() { _, _ = sqlDB.Exec("DELETE FROM harvester_frontier WHERE url_hash = $1", h[:]) })
+
+	// Seed: row exists with snapshot_key="snap-old" AND harvested_at=now().
+	oldKey := "snap-old"
+	_, err := sqlDB.Exec(`
+		INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, harvested_at, harvest_error_count)
+		VALUES ($1, $1, $2, 'example.test', $3, now(), 2)
+	`, url, h[:], oldKey)
+	if err != nil {
+		t.Fatalf("seed harvested row: %v", err)
+	}
+
+	beforeCount, beforeNext := readHarvester(t, sqlDB, url)
+
+	if err := s.EnqueueHarvester(url, "snap-NEW"); err != nil {
+		t.Fatalf("EnqueueHarvester: %v", err)
+	}
+
+	// snapshot_key MUST remain the old value.
+	got, ok := readHarvesterSnapshot(t, sqlDB, url)
+	if !ok || got != oldKey {
+		t.Errorf("snapshot_key mutated on harvested row: got (%q, ok=%v), want %q", got, ok, oldKey)
+	}
+	// harvest_error_count and next_harvest_at MUST NOT change.
+	afterCount, afterNext := readHarvester(t, sqlDB, url)
+	if afterCount != beforeCount {
+		t.Errorf("harvest_error_count changed: %d -> %d", beforeCount, afterCount)
+	}
+	if !afterNext.Equal(beforeNext) {
+		t.Errorf("next_harvest_at changed: %s -> %s", beforeNext, afterNext)
+	}
+}
+
+// TestIntegration_EnqueueHarvester_UpdatesSnapshotOnUnfinished verifies the
+// "미완료 URL에 대한 EnqueueHarvester는 snapshot_key를 갱신한다" scenario:
+// on a row with harvested_at IS NULL, snapshot_key is overwritten and
+// harvest_error_count is reset to 0.
+func TestIntegration_EnqueueHarvester_UpdatesSnapshotOnUnfinished(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB)
+
+	url := "https://example.test/unfinished/" + uuid.NewString()
+	h := sha256.Sum256([]byte(url))
+	t.Cleanup(func() { _, _ = sqlDB.Exec("DELETE FROM harvester_frontier WHERE url_hash = $1", h[:]) })
+
+	_, err := sqlDB.Exec(`
+		INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, harvest_error_count)
+		VALUES ($1, $1, $2, 'example.test', 'snap-old', 3)
+	`, url, h[:])
+	if err != nil {
+		t.Fatalf("seed unfinished row: %v", err)
+	}
+
+	if err := s.EnqueueHarvester(url, "snap-NEW"); err != nil {
+		t.Fatalf("EnqueueHarvester: %v", err)
+	}
+
+	got, ok := readHarvesterSnapshot(t, sqlDB, url)
+	if !ok || got != "snap-NEW" {
+		t.Errorf("snapshot_key not updated: got (%q, ok=%v), want %q", got, ok, "snap-NEW")
+	}
+	afterCount, _ := readHarvester(t, sqlDB, url)
+	if afterCount != 0 {
+		t.Errorf("harvest_error_count not reset: got %d, want 0", afterCount)
+	}
+}
+
+// TestIntegration_BaselineEnqueueHarvester_DoesNotTouchSnapshotKey verifies
+// task §2.3: the baseline batch-array Enqueue(QueueHarvester, urls...) path
+// MUST NOT write snapshot_key. snapshot_key remains NULL (or whatever it
+// was before) after the call.
+func TestIntegration_BaselineEnqueueHarvester_DoesNotTouchSnapshotKey(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB)
+
+	url := "https://example.test/baseline/" + uuid.NewString()
+	h := sha256.Sum256([]byte(url))
+	t.Cleanup(func() { _, _ = sqlDB.Exec("DELETE FROM harvester_frontier WHERE url_hash = $1", h[:]) })
+
+	// Seed with a pre-existing snapshot_key so we can detect any stomp.
+	preKey := "snap-pre-existing"
+	_, err := sqlDB.Exec(`
+		INSERT INTO harvester_frontier (normalized_url, url, url_hash, host, snapshot_key, harvest_error_count)
+		VALUES ($1, $1, $2, 'example.test', $3, 2)
+	`, url, h[:], preKey)
+	if err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	// Call the baseline path.
+	if err := s.Enqueue(QueueHarvester, url); err != nil {
+		t.Fatalf("Enqueue(QueueHarvester): %v", err)
+	}
+
+	// snapshot_key MUST remain untouched by the baseline path.
+	got, ok := readHarvesterSnapshot(t, sqlDB, url)
+	if !ok || got != preKey {
+		t.Errorf("baseline Enqueue stomped snapshot_key: got (%q, ok=%v), want %q", got, ok, preKey)
+	}
+}
+
+// TestIntegration_Dequeue_ConcurrentClaimsAreDistinct verifies tasks §5.2:
+// when multiple Pioneer workers race on Dequeue against the same scheduler,
+// each pioneer_frontier row is claimed by exactly one worker. This is the
+// FOR UPDATE SKIP LOCKED + lease-bump guarantee the scheduler contract
+// depends on. Uses tryClaim directly to avoid Dequeue's empty-queue loop
+// (the test needs to stop as soon as all rows are claimed).
+func TestIntegration_Dequeue_ConcurrentClaimsAreDistinct(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(NewHostRateLimiter(100, 100, true))
+
+	const rowsN = 8
+	seeded := make(map[string]bool, rowsN)
+	for i := 0; i < rowsN; i++ {
+		u := seedPioneerRow(t, sqlDB, 0)
+		seeded[u] = true
+	}
+
+	var mu sync.Mutex
+	claimed := make(map[string]int)
+	var wg sync.WaitGroup
+	const workers = 3
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// Each worker tries up to rowsN claims; stops once tryClaim returns
+			// (false, nil) (queue empty / all throttled). The partial index
+			// ordering plus SKIP LOCKED ensures workers don't collide.
+			for i := 0; i < rowsN; i++ {
+				url, ok, err := s.tryClaim(QueuePioneer)
+				if err != nil {
+					t.Errorf("tryClaim: %v", err)
+					return
+				}
+				if !ok {
+					return
+				}
+				// Only count URLs this test seeded; other concurrent tests may
+				// have dropped rows into pioneer_frontier that also get claimed.
+				if !seeded[url] {
+					continue
+				}
+				mu.Lock()
+				claimed[url]++
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+
+	if len(claimed) != rowsN {
+		t.Errorf("expected all %d seeded URLs claimed exactly once, got %d distinct URLs", rowsN, len(claimed))
+	}
+	for u, n := range claimed {
+		if n != 1 {
+			t.Errorf("URL %q claimed %d times (want 1) — FOR UPDATE SKIP LOCKED guarantee violated", u, n)
+		}
+	}
+}
+
+// TestIntegration_Dequeue_ExpiredLeaseIsReclaimable verifies tasks §5.3:
+// after a Pioneer worker claims a row, its in-flight marker (next_fetch_at
+// pushed 10 minutes forward) eventually expires. When that happens — for
+// example because the worker crashed — another worker MUST be able to
+// re-claim the row. Simulated by manually rewinding next_fetch_at to the
+// past and asserting that tryClaim returns the same URL on the next call.
+func TestIntegration_Dequeue_ExpiredLeaseIsReclaimable(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(NewHostRateLimiter(100, 100, true))
+
+	url := seedPioneerRow(t, sqlDB, 0)
+	h := sha256.Sum256([]byte(url))
+
+	// First claim: row is marked in-flight (next_fetch_at ≈ now + 10min).
+	u1, ok, err := s.tryClaim(QueuePioneer)
+	if err != nil || !ok {
+		t.Fatalf("first tryClaim: ok=%v err=%v", ok, err)
+	}
+	// Other concurrent tests may beat us to our row or seed their own; loop
+	// until we hit the URL this test seeded.
+	for u1 != url {
+		u1, ok, err = s.tryClaim(QueuePioneer)
+		if err != nil {
+			t.Fatalf("tryClaim probe: %v", err)
+		}
+		if !ok {
+			t.Fatalf("queue drained without returning our seeded URL")
+		}
+	}
+
+	// Simulate lease expiry by rewinding next_fetch_at to the past.
+	if _, err := sqlDB.Exec(
+		`UPDATE pioneer_frontier SET next_fetch_at = now() - interval '1 second' WHERE url_hash = $1`,
+		h[:]); err != nil {
+		t.Fatalf("expire lease: %v", err)
+	}
+
+	// Second claim MUST succeed: the row is claimable again because its
+	// next_fetch_at is now in the past and fetch_error_count is still 0.
+	u2, ok, err := s.tryClaim(QueuePioneer)
+	if err != nil || !ok {
+		t.Fatalf("second tryClaim: ok=%v err=%v", ok, err)
+	}
+	for u2 != url {
+		u2, ok, err = s.tryClaim(QueuePioneer)
+		if err != nil {
+			t.Fatalf("tryClaim probe (post-expiry): %v", err)
+		}
+		if !ok {
+			t.Fatalf("row not reclaimable after lease expiry")
+		}
+	}
+	if u2 != url {
+		t.Fatalf("expected reclaim of %q, got %q", url, u2)
 	}
 }

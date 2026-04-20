@@ -71,6 +71,15 @@ type URLScheduler interface {
 	// Duplicates are no-ops for pioneer and conditional UPSERTs for harvester
 	// (see DECISIONS §8 / scheduler-claim-api proposal).
 	Enqueue(queueType QueueType, urls ...string) error
+	// EnqueueHarvester is the snapshot-aware variant of the harvester enqueue
+	// path. Unlike Enqueue(QueueHarvester, urls...), which does not touch
+	// snapshot_key (baseline contract), this method writes `snapshotKey` into
+	// the harvester_frontier row so Harvester can re-hydrate the exact
+	// snapshot Pioneer saved. Used by Pioneer consumer's fanout-B step.
+	// Semantics: UPSERT guarded by `harvested_at IS NULL` — already-harvested
+	// rows are a no-op (no re-harvest). Spec: pioneer-scheduler-consumer
+	// change / `specs/scheduler/spec.md` ADDED Requirement.
+	EnqueueHarvester(url string, snapshotKey string) error
 	// Dequeue blocks until a claimable URL is returned. Empty queue and host
 	// throttle both trigger a 1-second sleep before retry. Linearizable via
 	// FOR UPDATE SKIP LOCKED.
