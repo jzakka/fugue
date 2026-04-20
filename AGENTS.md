@@ -143,8 +143,9 @@ make setup         # Lefthook git hooks 설치
 
 - 커밋 전에 반드시 `/codex` review를 실행할 것
 - Makefile 타겟은 루트에만 추가한다 (`apps/api/Makefile`에 추가하지 말 것)
-- PR을 생성하지 않는다. 변경사항은 main 브랜치에 직접 커밋하고 push한다.
-  - 여기서 "push"는 `git push`로 remote `origin/main`에 머지되는 것을 의미한다 (로컬 커밋만으로는 push 완료가 아니다).
+- **PR을 절대 생성하지 않는다.** `gh pr create`, GitHub UI 등 어떤 방식으로도 PR을 만들지 말 것. 변경사항은 항상 `main` 브랜치에 직접 커밋하고 `git push`로 `origin/main`에 머지한다 (로컬 커밋만으로는 push 완료가 아니다).
+  - 사용자가 "ship", "deploy", "push", "PR 만들어" 등으로 요청해도 PR을 만들지 말고 main에 직접 push한다.
+  - `/ship` 같은 스킬이 PR 생성을 시도하면 중단하고 main 직접 push로 대체한다.
 
 ## 배포 정책
 
