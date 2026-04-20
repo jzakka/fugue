@@ -40,31 +40,19 @@ c := crawler.NewBFSCrawler(fetcher)
 result, err := c.Crawl(ctx, "http://example.com/", 2)
 ```
 
-### Pioneer
-**Purpose:** Explore sites using BFS, generate parsing scripts with AI
+### Pioneer (PioneerConsumer)
+**Purpose:** Explore sites by consuming the `pioneer_frontier` queue, snapshot raw HTML, and fan out discovered links to both `pioneer_frontier` (new URLs) and `harvester_frontier` (original URL + snapshot key).
 
 **Key Features:**
-- Priority-based BFS traversal (listing pages first)
-- URL classification (listing, gallery, category, detail, skip)
-- Strict domain validation (no subdomains)
-- AI-powered script generation
-- Script validation (70% threshold)
-- Script reuse to minimize AI costs
-
-**Configuration:**
-```go
-PioneerConfig{
-    MaxDepth:        5,
-    MaxNodesPerSite: 500,
-    RateLimitMs:     2000,
-    SuccessThreshold: 0.7, // 70%
-}
-```
+- `URLScheduler`-backed loop: `Dequeue → fetch → snapshot → extract → filter → Enqueue(pioneer) + EnqueueHarvester → SetStatus(fetched)`
+- No in-memory queue, no visited map: all dedup/ordering owned by the scheduler (`FOR UPDATE SKIP LOCKED`)
+- Multiple instances may run concurrently against the same scheduler
+- Composable filter chain: `DomainFilter`, `ExtensionFilter`, `PathPatternFilter`, `RobotsFilter`, `CanonicalDedupFilter`
 
 **Usage:**
 ```go
-pioneer := bot.NewPioneer(siteRepo, graphRepo, scriptRepo, runRepo, aiClient, executor, config)
-err := pioneer.Run(ctx, siteID)
+consumer := bot.NewPioneerConsumer(scheduler, snapshotStore, filterChain, fetcher)
+err := consumer.Run(ctx)
 ```
 
 ### Harvester

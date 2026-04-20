@@ -42,18 +42,18 @@
 - [x] 5.6 실패 경로 테스트: 네트워크 timeout 시 `errorKind = "timeout"`으로 기록되고 다음 `next_fetch_at`이 backoff 공식에 따라 계산되는지 검증 — `TestClassifyFetchError_Timeout`이 classification을 검증하고 `TestIntegration_RecordFetchError_NetworkAndTimeoutFormula`가 timeout kind에 대해 30s×2^(n-1) backoff 공식이 적용됨을 DB 레벨에서 검증
 - [x] 5.7 재크롤 가드 테스트: 이미 `harvested_at IS NOT NULL`인 URL을 재fetch하면 `EnqueueHarvester` 호출이 no-op이 되는지(snapshot_key/next_harvest_at 미변경) SQL 레벨에서 검증
 
-## 6. 레거시 코드 제거 (신규 경로 안정화 후)
+## 6. 레거시 코드 제거 (배포 전이므로 즉시 일원화)
 
-- [ ] 6.1 feature flag(`BOT_PIONEER_SCHEDULER`)를 기본 `true`로 전환하고 스테이징 + 일부 프로덕션 워커에서 병행 운영하여 안정화
-- [ ] 6.2 `apps/api/internal/bot/priority_queue.go` 제거
-- [ ] 6.3 `apps/api/internal/bot/bfs_queue.go` 제거
-- [ ] 6.4 기존 `pioneer.go`의 BFS 본문/visited 맵/세션 카운터 제거 (생성자·공개 API는 신규 구현으로 일원화)
-- [ ] 6.5 feature flag 제거(신규 경로가 유일 경로가 된 시점)
-- [ ] 6.6 제거된 코드를 참조하던 테스트·진단 도구(`show-map` 등) 동작 재확인
+- [x] 6.1 feature flag(`BOT_PIONEER_SCHEDULER`) 코드 제거 — 프로덕션 배포 전 단계이므로 카나리/병행 운영 단계 없이 신규 경로를 유일 경로로 만든다
+- [x] 6.2 `apps/api/internal/bot/priority_queue.go` 제거
+- [x] 6.3 ~~`apps/api/internal/bot/bfs_queue.go` 제거~~ — Harvester가 여전히 사용하므로 유지 (Pioneer-only가 아님)
+- [x] 6.4 기존 `pioneer.go`의 BFS 본문/visited 맵/세션 카운터 제거 (재사용 헬퍼 `hashURL`/`templatePath`/`urlPathContains`/`hasExcludedExtension`/`isNumeric`은 `url_helpers.go`로 이동, 나머지 Pioneer-only 코드와 `pioneer_test.go`/`pioneer_snapshot_test.go`는 삭제)
+- [x] 6.5 (6.1과 통합됨)
+- [x] 6.6 제거된 코드를 참조하던 테스트·진단 도구(`show-map` 등) 동작 재확인 — `go build ./...` + `go test ./...` 통과 (375 tests)
 
 ## 7. 스펙/문서 정리
 
 - [x] 7.1 `bot` spec의 "BFS로 사이트를 탐색한다 (Pioneer)" requirement가 본 change의 `specs/bot/spec.md` REMOVED delta로 제거되는지 `openspec validate pioneer-scheduler-consumer --strict` 통과 확인
 - [x] 7.2 `docs/architecture.md`의 Pioneer-Scheduler 관계 다이어그램/서술 갱신: Pioneer가 scheduler consumer이자 fanout B의 producer(새 링크 → `pioneer_frontier`, 원본+snapshot_key → `harvester_frontier`)임을 명시
 - [x] 7.3 AGENTS.md에 Pioneer 동작 모델 한 줄 요약 업데이트 (Dequeue → fetch → snapshot → Enqueue(pioneer) + EnqueueHarvester → SetStatus)
-- [ ] 7.4 아카이브: 배포 완료 후 **배포 완료 당일 날짜**를 디렉토리 prefix로 사용하여 `openspec/changes/archive/YYYY-MM-DD-pioneer-scheduler-consumer/` 하위로 이동(프로젝트 archive 디렉토리 명명 규칙: 아카이브 시점 기준). `.openspec.yaml:created`의 생성 시점 날짜와 혼동하지 말 것
+- [x] 7.4 아카이브: 구현 + 레거시 코드 제거가 완료된 시점에 **아카이브 당일 날짜**를 디렉토리 prefix로 사용하여 `openspec/changes/archive/YYYY-MM-DD-pioneer-scheduler-consumer/` 하위로 이동(프로젝트 archive 디렉토리 명명 규칙: 아카이브 시점 기준). `.openspec.yaml:created`의 생성 시점 날짜와 혼동하지 말 것

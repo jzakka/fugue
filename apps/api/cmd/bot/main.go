@@ -18,7 +18,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot"
-	"github.com/chungsanghwa/fugue/apps/api/internal/bot/ai"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/scheduler"
@@ -112,20 +111,6 @@ func envOrDefault(key, fallback string) string {
 	return fallback
 }
 
-// envBool parses a boolean env var; on missing or unparseable values it
-// returns fallback. Used for feature flags whose default must be safe.
-func envBool(key string, fallback bool) bool {
-	v := os.Getenv(key)
-	if v == "" {
-		return fallback
-	}
-	b, err := strconv.ParseBool(v)
-	if err != nil {
-		return fallback
-	}
-	return b
-}
-
 var rootCmd = &cobra.Command{
 	Use:   "fuguebot",
 	Short: "Fugue bot crawler CLI",
@@ -171,82 +156,10 @@ var pioneerCmd = &cobra.Command{
 
 		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
 
-		// pioneer-scheduler-consumer: BOT_PIONEER_SCHEDULER gates the new
-		// URLScheduler-backed consumer loop. Default false keeps the legacy
-		// BFS path. When true, the CLI seeds the site's root URL into
-		// pioneer_frontier and then hands control to PioneerConsumer.Run
-		// for the lifetime of the process. Rollback: flip the flag back to
-		// false — no schema change required.
-		if envBool("BOT_PIONEER_SCHEDULER", false) {
-			log.Printf("fuguebot: BOT_PIONEER_SCHEDULER=true — running new scheduler-backed Pioneer consumer")
-			return runPioneerConsumer(cmd.Context(), infra, site.RootUrl)
-		}
-
-		// Initialize Pioneer dependencies
-		graphRepo := bot.NewGraphRepo(infra.DB)
-		scriptRepo := bot.NewScriptRepo(infra.DB)
-
-		// Initialize AI client (CLI mode by default, SDK mode with AI_CLIENT_TYPE=sdk)
-		rawAIClient, err := ai.NewFromEnv()
-		if err != nil {
-			return fmt.Errorf("failed to create AI client: %w", err)
-		}
-
-		// Wrap with adapter to implement bot.AIClient interface
-		aiClient := bot.NewAIClientAdapter(rawAIClient)
-
-		// Initialize script executor (GojaExecutor for real script validation)
-		executor := bot.NewGojaExecutor(0)
-
-		// Snapshot storage (pioneer-snapshot-storage). Off by default;
-		// flips on via PIONEER_SNAPSHOT_ENABLED=true. Bucket defaults to
-		// the existing media bucket so the snapshots/ prefix can co-exist
-		// (operator may override with PIONEER_SNAPSHOT_BUCKET).
-		snapshotEnabled := envBool("PIONEER_SNAPSHOT_ENABLED", false)
-		snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
-		snapshotStore := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
-		snapshotMetrics := snapshot.NewMetrics(0)
-
-		// Create Pioneer instance
-		pioneer := bot.NewPioneer(
-			siteRepo,
-			graphRepo,
-			scriptRepo,
-			aiClient,
-			executor,
-			bot.PioneerConfig{
-				MaxNodesPerSite:  100,
-				RateLimitMs:      500,
-				SuccessThreshold: 0.7,
-				SnapshotEnabled:  snapshotEnabled,
-			},
-		).WithSnapshotStore(snapshotStore, snapshotMetrics)
-
-		// Run Pioneer
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-		defer cancel()
-
-		if err := pioneer.Run(ctx, site.ID); err != nil {
-			log.Printf("fuguebot: pioneer failed: %v", err)
-			return err
-		}
-
-		log.Println("fuguebot: pioneer run completed")
-
-		// Post-crawl: drain merge to deduplicate parameterized URL nodes
-		log.Println("fuguebot: running drain merge...")
-		mergeResult, mergeErr := bot.RunDrainMerge(ctx, infra.Queries, site.ID, bot.DefaultMergeThreshold)
-		if mergeErr != nil {
-			log.Printf("fuguebot: drain merge failed: %v", mergeErr)
-			return mergeErr
-		}
-		if mergeResult.MergedPrefixes > 0 {
-			log.Printf("fuguebot: drain merge done — %d prefixes merged, %d nodes removed", mergeResult.MergedPrefixes, mergeResult.RemovedNodes)
-		} else {
-			log.Println("fuguebot: drain merge — no merge targets found")
-		}
-
-		return nil
+		// Pioneer is now a scheduler-backed consumer (pioneer-scheduler-consumer).
+		// The CLI seeds the site's root URL into pioneer_frontier and then
+		// hands control to PioneerConsumer.Run for the lifetime of the process.
+		return runPioneerConsumer(cmd.Context(), infra, site.RootUrl)
 	},
 }
 
