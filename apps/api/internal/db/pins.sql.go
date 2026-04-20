@@ -725,3 +725,78 @@ func (q *Queries) RelatedPins(ctx context.Context, arg RelatedPinsParams) ([]Rel
 	}
 	return items, nil
 }
+
+const upsertBotPinByURL = `-- name: UpsertBotPinByURL :one
+INSERT INTO pins (creator_id, media_url, media_type, url, title, description, og_image, og_data)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (url) WHERE creator_id = '00000000-0000-0000-0000-00000000f096'
+DO UPDATE SET
+    media_url = EXCLUDED.media_url,
+    media_type = EXCLUDED.media_type,
+    title = EXCLUDED.title,
+    description = EXCLUDED.description,
+    og_image = EXCLUDED.og_image,
+    og_data = EXCLUDED.og_data
+RETURNING id, creator_id, url, title, description, og_image, og_data, created_at, media_url, media_type, (xmax = 0) AS inserted
+`
+
+type UpsertBotPinByURLParams struct {
+	CreatorID   uuid.UUID
+	MediaUrl    string
+	MediaType   string
+	Url         sql.NullString
+	Title       string
+	Description sql.NullString
+	OgImage     sql.NullString
+	OgData      pqtype.NullRawMessage
+}
+
+type UpsertBotPinByURLRow struct {
+	ID          uuid.UUID
+	CreatorID   uuid.UUID
+	Url         sql.NullString
+	Title       string
+	Description sql.NullString
+	OgImage     sql.NullString
+	OgData      pqtype.NullRawMessage
+	CreatedAt   time.Time
+	MediaUrl    string
+	MediaType   string
+	Inserted    bool
+}
+
+// Idempotent upsert keyed on canonical URL for the bot creator.
+//
+// The ON CONFLICT predicate hard-codes the bot UUID literal because
+// PostgreSQL only matches partial unique indexes when the WHERE clause is
+// IMMUTABLE — parameter binding (`$N`) here would prevent arbiter inference.
+// The literal MUST stay in sync with `BotCreatorID` in
+// apps/api/internal/bot/source.go and the partial index predicate in
+// apps/api/db/migrations/000027_add_pins_url_bot_unique.up.sql.
+func (q *Queries) UpsertBotPinByURL(ctx context.Context, arg UpsertBotPinByURLParams) (UpsertBotPinByURLRow, error) {
+	row := q.db.QueryRowContext(ctx, upsertBotPinByURL,
+		arg.CreatorID,
+		arg.MediaUrl,
+		arg.MediaType,
+		arg.Url,
+		arg.Title,
+		arg.Description,
+		arg.OgImage,
+		arg.OgData,
+	)
+	var i UpsertBotPinByURLRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.Url,
+		&i.Title,
+		&i.Description,
+		&i.OgImage,
+		&i.OgData,
+		&i.CreatedAt,
+		&i.MediaUrl,
+		&i.MediaType,
+		&i.Inserted,
+	)
+	return i, err
+}

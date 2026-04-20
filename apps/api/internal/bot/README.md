@@ -137,10 +137,81 @@ type ScriptExecutor interface {
 }
 ```
 
-### Pipeline
-Processes extracted items through existing bot pipeline.
+### DocumentPipeline
+Persists a `PinDocument` as a single bot Pin, idempotently upserting on canonical URL.
 
 ```go
+type DocumentPipeline interface {
+    ProcessDocument(ctx context.Context, node db.BotGraphNode, doc PinDocument) (created bool, pinID uuid.UUID, err error)
+    MarkSkipped(ctx context.Context, node db.BotGraphNode) error
+}
+```
+
+`created=true` maps to the `PinsCreated` stat; `created=false` maps to `Deduped`. `MarkSkipped` records classifier-rejected nodes without creating a Pin. The `HarvestPipeline.MarkSkipped` is currently a no-op (frontier `harvested_at` writes are owned by the scheduler-consumer change); the Harvester still increments `Skipped` unconditionally so the stat is accurate before that wiring lands.
+
+## PinDocument flow
+
+The harvester converts one fetched page into one `PinDocument`:
+
+```
+fetch HTML
+  ↓
+PerSiteAdapter (if registered) ──→ on error ──→ GenericExtractor  (AdapterFallback++)
+  ↓                                     ↓
+  └────────────── PinDocument ──────────┘
+                       ↓
+              Classifier.Classify → pinnable=false ─→ MarkSkipped (Skipped++)
+                       ↓ pinnable=true
+              ProcessDocument → Upsert on canonical URL
+                       ↓
+              created=true → PinsCreated++   created=false → Deduped++
+```
+
+Stats categories are **mutually exclusive**: each node increments exactly one of `PinsCreated`, `Deduped`, `Skipped`, `Failed`. `AdapterFallback` is an **auxiliary** counter that may increment on the same node as any primary category.
+
+### Extractors
+
+- **GenericExtractor**: Walks HTML once and resolves `(title, body_text, canonical_url, thumbnail_url, media_candidates, lang, author, published_at)` via a fallback chain over OG meta → Twitter Card → JSON-LD (`schema.org/Article`, `CreativeWork`) → `<article>` → `<h1>`/`<title>` / `<link rel=canonical>` / `<html lang>` / `<time datetime>`. Media candidates are `<img>/<video>/<audio>/<source>` inside `<article>` (or `<body>` when no article), capped at 50 by default. Cross-domain canonical candidates are dropped inside the fallback chain; the returned canonical always points back to the fetched host.
+- **PerSiteAdapter**: Site-specific extractors that take precedence over the generic extractor for their domain. Registered in an in-memory `AdapterRegistry` with exact and `*.example.com` wildcard matching (longest suffix wins; exact beats wildcard). On adapter error, the harvester falls back to `GenericExtractor` and increments `AdapterFallback`.
+- **ScriptAdapter**: A `PerSiteAdapter` wrapping the existing `GojaExecutor`. Looks up the `(site_id, node_type)` script and collapses N `RawItem`s into 1 `PinDocument` — the first `RawItem` becomes the primary metadata (title/body/thumbnail), remaining items become `og_data.media_candidates`. Node type is passed via `context.Context` (`WithNodeType`/`NodeTypeFromContext`).
+
+### Classifier
+
+Single-pass rule-based gate with three reason codes (priority order):
+
+1. **`listing`** — `links/words > threshold` (default 0.5) with division-by-zero guard
+2. **`empty_body`** — body text byte length `< 200` bytes (default)
+3. **`no_primary_media`** — no thumbnail and no media candidates (body length sufficient, else `empty_body` matches first)
+
+The classifier depends only on `PinDocument` — never on `node_type` or external state. The verdict is persisted in `pins.og_data.classifier = {pinnable, reason?}`.
+
+### Canonical-URL upsert
+
+Bot Pins are keyed on canonical URL, enforced by a PostgreSQL **partial unique index**:
+
+```sql
+CREATE UNIQUE INDEX pins_url_bot_unique ON pins(url)
+  WHERE creator_id = '00000000-0000-0000-0000-00000000f096';
+```
+
+The `UpsertBotPinByURL` sqlc query uses `ON CONFLICT (url) WHERE creator_id = '<literal UUID>'` — the literal is required because PostgreSQL only matches partial indexes when the predicate is IMMUTABLE. The UUID literal is duplicated across three locations (see `source.go` for the IMMUTABLE-sync policy). The query returns `(xmax = 0) AS inserted` which the harvester maps to `PinsCreated` (inserted=true) vs `Deduped` (inserted=false).
+
+## Configuration (env)
+
+| Env var                             | Default   | Description                                                                 |
+| ----------------------------------- | --------- | --------------------------------------------------------------------------- |
+| `HARVESTER_BODY_TEXT_MIN_BYTES`     | `200`     | Classifier `empty_body` threshold                                           |
+| `HARVESTER_LINK_DENSITY_THRESHOLD`  | `0.5`     | Classifier `listing` threshold (links/words)                                |
+| `HARVESTER_MEDIA_CANDIDATES_MAX`    | `50`      | Generic extractor `media_candidates` cap                                    |
+| `FUGUE_BOT_CREATOR_ID`              | compiled  | Override bot UUID. **Must match** the migration predicate + upsert literal. |
+| `HARVESTER_IMAGE_CACHE_MAX_BYTES`   | 20 MiB    | Primary image cache size threshold                                          |
+| `HARVESTER_IMAGE_CACHE_TTL_DAYS`    | `90`      | Primary image cache age-based TTL                                           |
+
+## Legacy Pipeline (RawItem)
+
+```go
+// HarvestPipeline.Process is retained for pre-existing tests. New code
+// uses DocumentPipeline. RawItem flow is now confined to ScriptAdapter.
 type Pipeline interface {
     Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error)
 }

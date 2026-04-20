@@ -55,6 +55,37 @@ func (m *MockBotDB) CreatePin(ctx context.Context, arg db.CreatePinParams) (db.P
 	}, nil
 }
 
+func (m *MockBotDB) UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinByURLParams) (db.UpsertBotPinByURLRow, error) {
+	if m.CreateErr != nil {
+		return db.UpsertBotPinByURLRow{}, m.CreateErr
+	}
+	url := arg.Url.String
+	inserted := !m.ExistingURLs[url]
+	m.ExistingURLs[url] = true
+	m.CreatedPins = append(m.CreatedPins, db.CreatePinParams{
+		CreatorID:   arg.CreatorID,
+		MediaUrl:    arg.MediaUrl,
+		MediaType:   arg.MediaType,
+		Url:         arg.Url,
+		Title:       arg.Title,
+		Description: arg.Description,
+		OgImage:     arg.OgImage,
+		OgData:      arg.OgData,
+	})
+	return db.UpsertBotPinByURLRow{
+		ID:          uuid.New(),
+		CreatorID:   arg.CreatorID,
+		Url:         arg.Url,
+		Title:       arg.Title,
+		Description: arg.Description,
+		OgImage:     arg.OgImage,
+		OgData:      arg.OgData,
+		MediaUrl:    arg.MediaUrl,
+		MediaType:   arg.MediaType,
+		Inserted:    inserted,
+	}, nil
+}
+
 func TestHarvestPipeline_NewItems(t *testing.T) {
 	// Set up a mock media server
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

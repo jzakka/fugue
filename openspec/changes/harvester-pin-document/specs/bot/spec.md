@@ -34,7 +34,7 @@
 ---
 
 ### Requirement: DOM 헬퍼 함수를 스크립트 런타임에 주입한다
-실행 런타임은 스크립트가 HTML을 탐색할 수 있도록 DOM 유사 API를 제공해야 한다(SHALL). 최소한 querySelectorAll, querySelector, textContent, getAttribute 접근을 지원해야 한다(SHALL). **본 헬퍼는 `PerSiteAdapter`의 ScriptAdapter 구현 내부에서만 사용되며, default 변환 경로(generic HTML→Pin extractor)는 표준 Go HTML 파서(`golang.org/x/net/html` 등)를 사용해야 한다(SHALL).**
+실행 런타임은 스크립트가 HTML을 탐색할 수 있도록 DOM 유사 API를 제공해야 한다(SHALL). 최소한 querySelectorAll, querySelector, textContent, getAttribute 접근을 지원해야 한다(SHALL). **본 헬퍼는 `PerSiteAdapter`의 ScriptAdapter 구현 내부에서만 사용되며, default 변환 경로(generic HTML→Pin extractor)는 표준 HTML 파서를 사용해야 한다(SHALL).**
 
 #### Scenario: querySelectorAll로 요소 목록 조회
 - **WHEN** 스크립트가 CSS selector를 인자로 querySelectorAll을 호출할 때
@@ -54,7 +54,7 @@
 
 #### Scenario: DOM 헬퍼는 default 경로에서 사용되지 않는다
 - **WHEN** Harvester가 generic HTML→Pin extractor를 통해 페이지를 처리할 때
-- **THEN** 시스템은 JavaScript DOM 헬퍼 런타임을 초기화하지 않고 표준 Go HTML 파서를 사용한다
+- **THEN** 시스템은 JavaScript DOM 헬퍼 런타임을 초기화하지 않고 표준 HTML 파서를 사용한다
 
 ---
 

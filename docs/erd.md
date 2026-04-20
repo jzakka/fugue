@@ -61,8 +61,10 @@
 | title | VARCHAR(200) NOT NULL | 제목 |
 | description | VARCHAR(500) | 설명 (선택) |
 | og_image | VARCHAR(1000) | 대표 이미지 URL — `harvester-image-cache` capability에 의해 기록. 캐시 성공 시 object storage URL, 실패 시 원본 후보 URL, 후보 없음 시 NULL |
-| og_data | JSONB | OG 메타데이터 전체 |
+| og_data | JSONB | OG 메타데이터 + 추출/분류 증거. 키: `source`(항상 fetch URL), `extractor`(`generic` \| `script:<site_id>` \| `<adapter_name>`), `classifier.{pinnable, reason?}` (reason enum: `listing` \| `empty_body` \| `no_primary_media`), `media_candidates[]`, `lang`, `author`, `published_at`. **키 부재 계약**: `body_text`와 `canonical_url`은 포함되지 않음 — `body_text`는 `description`에, canonical은 `url`에만 저장된다 |
 | created_at | TIMESTAMPTZ | |
+
+**Partial unique index** `pins_url_bot_unique`: 봇 creator_id(`00000000-0000-0000-0000-00000000f096`)가 생성한 Pin에 한해 `url`을 유일 제약으로 강제한다(`harvester-pin-document` change). 일반 사용자는 동일 URL을 중복 핀할 수 있으며 해당 row는 이 인덱스에 포함되지 않는다. PostgreSQL partial index predicate는 IMMUTABLE이어야 하므로 UUID는 하드코딩된 리터럴로 migration 과 `UpsertBotPinByURL` 쿼리 양쪽에 동일하게 존재한다(`apps/api/internal/bot/source.go` IMMUTABLE-sync policy 참고).
 
 ### tags
 사전정의된 태그 목록.

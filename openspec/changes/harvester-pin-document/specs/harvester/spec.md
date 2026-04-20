@@ -80,7 +80,7 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: Content classifier가 Pin 생성 가능 여부를 판정한다
-시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 3개 enum 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL). `body_text` 길이 단위는 바이트(Go `len([]byte)`)이다(SHALL). classifier는 `PinDocument`만을 입력으로 받으며 외부 상태(node_type 등)에 의존하지 않아야 한다(SHALL).
+시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 3개 enum 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL). `body_text` 길이 단위는 바이트다(SHALL). classifier는 `PinDocument`만을 입력으로 받으며 외부 상태(node_type 등)에 의존하지 않아야 한다(SHALL).
 
 #### Scenario: listing 페이지 분류
 - **WHEN** 페이지의 단어 수가 0보다 크고 `링크 수 / 단어 수 > threshold_link_density`일 때
@@ -95,8 +95,8 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 - **THEN** classifier는 `pinnable=false, reason=empty_body`를 반환한다 (단, listing이 먼저 매치되면 listing이 우선)
 
 #### Scenario: no_primary_media 분류
-- **WHEN** PinDocument의 thumbnail_url이 비어 있고 media_candidates가 빈 배열이며 body_text도 임계 바이트 길이 미만일 때
-- **THEN** classifier는 `pinnable=false, reason=no_primary_media`를 반환한다 (listing/empty_body가 먼저 매치되면 그쪽이 우선)
+- **WHEN** PinDocument의 thumbnail_url이 비어 있고 media_candidates가 빈 배열일 때 (listing/empty_body가 먼저 매치되지 않은 경우)
+- **THEN** classifier는 `pinnable=false, reason=no_primary_media`를 반환한다
 
 #### Scenario: 정상 콘텐츠 페이지 통과
 - **WHEN** PinDocument가 충분한 body_text를 가지고 thumbnail_url 또는 media_candidates가 존재하며 listing 패턴에 해당하지 않을 때

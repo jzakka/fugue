@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
@@ -289,7 +290,7 @@ var harvesterCmd = &cobra.Command{
 
 		// Choose executor and pipeline based on HARVESTER_MODE
 		var executor bot.ScriptExecutor
-		var pipeline bot.Pipeline
+		var pipeline bot.DocumentPipeline
 
 		mode := os.Getenv("HARVESTER_MODE")
 		if mode == "real" {
@@ -309,13 +310,44 @@ var harvesterCmd = &cobra.Command{
 			log.Println("fuguebot: using mock executor + pipeline (set HARVESTER_MODE=real for production)")
 		}
 
-		// Create Harvester instance
+		// Apply env overrides for BotCreatorID (IMMUTABLE-sync policy
+		// applies — see source.go doc comment).
+		bot.ApplyBotCreatorIDFromEnv()
+
+		// Build the AdapterRegistry and register a ScriptAdapter for every
+		// active site that has at least one (site_id, node_type) script in
+		// the DB. Sites without scripts fall through to the generic
+		// extractor. hasAnyScript is derived from ListScriptKeysForGraph
+		// (one DB round-trip) to avoid per-site lookups.
+		scriptSites := map[uuid.UUID]bool{}
+		if keys, keysErr := infra.Queries.ListScriptKeysForGraph(ctx); keysErr == nil {
+			for _, k := range keys {
+				scriptSites[k.SiteID] = true
+			}
+		} else {
+			log.Printf("fuguebot: list script keys: %v (continuing with generic only)", keysErr)
+		}
+		registry := bot.NewInMemoryAdapterRegistry()
+		if err := bot.RegisterScriptAdaptersForActiveSites(
+			ctx, registry, siteRepo, scriptRepo, executor,
+			func(_ context.Context, siteID uuid.UUID) (bool, error) {
+				return scriptSites[siteID], nil
+			},
+		); err != nil {
+			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", err)
+		}
+
+		// Create Harvester instance. Classifier and extractor read their
+		// thresholds from env.
 		harvester := bot.NewHarvester(
 			siteRepo,
 			graphRepo,
 			scriptRepo,
 			executor,
 			pipeline,
+			registry,
+			bot.NewGenericExtractorFromEnv(),
+			bot.NewClassifierFromEnv(),
 			bot.HarvesterConfig{
 				RateLimitMs:      500,
 				RetryFailedNodes: false,

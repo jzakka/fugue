@@ -52,6 +52,7 @@ var errImageOversize = errors.New("image exceeds size threshold")
 type BotDB interface {
 	BotPinExistsByURL(ctx context.Context, arg db.BotPinExistsByURLParams) (bool, error)
 	CreatePin(ctx context.Context, arg db.CreatePinParams) (db.Pin, error)
+	UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinByURLParams) (db.UpsertBotPinByURLRow, error)
 }
 
 // HarvestPipeline implements Pipeline by deduping, downloading media, and creating Pins.
@@ -221,6 +222,91 @@ func (p *HarvestPipeline) Process(ctx context.Context, items []RawItem) (pinsCre
 	}
 
 	return pinsCreated, deduped, failed, nil
+}
+
+// ProcessDocument upserts a PinDocument as a single bot Pin keyed on the
+// canonical URL. Returns (created, pinID, err) where created=true means a
+// new row was inserted (PinsCreated stat) and created=false means an
+// existing bot Pin was updated (Deduped stat).
+//
+// ScriptAdapter / GenericExtractor have already collapsed N RawItems into
+// one PinDocument by this point — there is no N→1 reduction here.
+func (p *HarvestPipeline) ProcessDocument(ctx context.Context, _ db.BotGraphNode, doc PinDocument) (bool, uuid.UUID, error) {
+	if doc.CanonicalURL == "" {
+		return false, uuid.Nil, fmt.Errorf("pin document missing canonical_url")
+	}
+
+	mediaURL, mediaType := pickMediaForPin(doc)
+	if mediaURL == "" {
+		return false, uuid.Nil, fmt.Errorf("pin document missing media_url (no thumbnail or media candidate)")
+	}
+
+	// Optionally download+cache the primary image so we serve the Pin's
+	// og_image from our own storage. On any failure we fall back to the
+	// extractor-provided URL so we still have something to render.
+	ogImage := sql.NullString{}
+	if p.imageCacheEnabled && doc.ThumbnailURL != "" {
+		cached, cacheErr := p.cacheImage(ctx, doc.ThumbnailURL)
+		if cacheErr != nil {
+			log.Printf("harvest: doc image cache fallback (canonical=%s thumb=%s): %v", doc.CanonicalURL, doc.ThumbnailURL, cacheErr)
+		}
+		ogImage = sql.NullString{String: cached, Valid: true}
+	}
+
+	ogJSON, jsonErr := MarshalOGData(doc.OGData)
+	if jsonErr != nil {
+		return false, uuid.Nil, fmt.Errorf("marshal og_data: %w", jsonErr)
+	}
+
+	row, err := p.db.UpsertBotPinByURL(ctx, db.UpsertBotPinByURLParams{
+		CreatorID:   BotCreatorID,
+		MediaUrl:    mediaURL,
+		MediaType:   mediaType,
+		Url:         sql.NullString{String: doc.CanonicalURL, Valid: true},
+		Title:       doc.Title,
+		Description: sql.NullString{String: doc.BodyText, Valid: doc.BodyText != ""},
+		OgImage:     ogImage,
+		OgData:      pqtype.NullRawMessage{RawMessage: ogJSON, Valid: len(ogJSON) > 0},
+	})
+	if err != nil {
+		return false, uuid.Nil, fmt.Errorf("upsert bot pin: %w", err)
+	}
+	return row.Inserted, row.ID, nil
+}
+
+// MarkSkipped is the hook the Harvester calls when classifier returns
+// pinnable=false. Frontier `harvested_at` writes are owned by the
+// scheduler-consumer change; until that is wired this is a no-op so the
+// Harvester can still record the Skipped stat without blocking on a table
+// that may not exist yet.
+func (p *HarvestPipeline) MarkSkipped(_ context.Context, _ db.BotGraphNode) error {
+	return nil
+}
+
+// pickMediaForPin chooses (mediaURL, mediaType) for a Pin row.
+// Preference: ThumbnailURL → first MediaCandidate URL.
+// MediaType defaults to "image" when only a thumbnail is available.
+func pickMediaForPin(doc PinDocument) (string, string) {
+	if doc.ThumbnailURL != "" {
+		mediaType := "image"
+		for _, c := range doc.MediaCandidates {
+			if c.URL == doc.ThumbnailURL && c.Type != "" {
+				mediaType = c.Type
+				break
+			}
+		}
+		return doc.ThumbnailURL, mediaType
+	}
+	for _, c := range doc.MediaCandidates {
+		if c.URL != "" {
+			t := c.Type
+			if t == "" {
+				t = "image"
+			}
+			return c.URL, t
+		}
+	}
+	return "", ""
 }
 
 // downloadAndUpload downloads media from the source URL and uploads it via Storage.

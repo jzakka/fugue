@@ -3,6 +3,27 @@ INSERT INTO pins (creator_id, media_url, media_type, url, title, description, og
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
+-- name: UpsertBotPinByURL :one
+-- Idempotent upsert keyed on canonical URL for the bot creator.
+--
+-- The ON CONFLICT predicate hard-codes the bot UUID literal because
+-- PostgreSQL only matches partial unique indexes when the WHERE clause is
+-- IMMUTABLE — parameter binding (`$N`) here would prevent arbiter inference.
+-- The literal MUST stay in sync with `BotCreatorID` in
+-- apps/api/internal/bot/source.go and the partial index predicate in
+-- apps/api/db/migrations/000027_add_pins_url_bot_unique.up.sql.
+INSERT INTO pins (creator_id, media_url, media_type, url, title, description, og_image, og_data)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (url) WHERE creator_id = '00000000-0000-0000-0000-00000000f096'
+DO UPDATE SET
+    media_url = EXCLUDED.media_url,
+    media_type = EXCLUDED.media_type,
+    title = EXCLUDED.title,
+    description = EXCLUDED.description,
+    og_image = EXCLUDED.og_image,
+    og_data = EXCLUDED.og_data
+RETURNING *, (xmax = 0) AS inserted;
+
 -- name: LinkPinTag :exec
 INSERT INTO pin_tags (pin_id, tag_id) VALUES ($1, $2);
 

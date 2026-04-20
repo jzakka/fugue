@@ -225,7 +225,7 @@ Harvester는 fetch 후 다음 순서를 따른다.
    - 새 `harvester` capability spec 생성.
    - 기존 `bot` spec의 ScriptExecutor 관련 requirement는 "per-site override 경로"임을 명시하는 MODIFIED로 갱신.
 5. **Rollback**:
-   - 코드 변경은 feature flag(`HARVESTER_DEFAULT_EXTRACTOR=generic|script`) 뒤에 배포 가능. 기본값은 `generic`.
+   - ScriptAdapter 등록은 per-site opt-in이라 문제 발생 시 해당 site row(`bot_scripts`)만 비워두면 generic 경로로 즉시 되돌아간다 — 별도 feature flag는 불필요.
    - DB 인덱스는 `DROP INDEX CONCURRENTLY pins_url_bot_unique`로 즉시 되돌릴 수 있다.
 
 ## Open Questions
