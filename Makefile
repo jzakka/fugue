@@ -93,7 +93,7 @@ dev-stop:
 # ============================================================
 test:
 	@echo "🧪 Running Go tests..."
-	@cd $(API_DIR) && go test ./internal/works/... -v
+	@cd $(API_DIR) && go test ./internal/... -v
 	@echo ""
 	@echo "🧪 Running Frontend tests..."
 	@cd $(WEB_DIR) && npm test
