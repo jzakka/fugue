@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Pioneer 워커는 성공 Dequeue 100회 후 종료한다
-Pioneer 워커 프로세스는 `URLScheduler.Dequeue` 호출을 통해 URL을 실제로 수령한 횟수가 정확히 100회에 도달하면 정상 종료(exit code 0)해야 한다(SHALL). 카운터는 "URL을 실제로 반환한 Dequeue 호출"만 증가시켜야 하며(SHALL), 빈 결과 또는 오류를 반환한 Dequeue 호출은 카운트하지 않아야 한다(SHALL NOT). budget 값(100)은 빌드 시 상수로 고정되며, 환경변수·설정·CLI 플래그로 변경 가능하지 않아야 한다(SHALL NOT).
+Pioneer 워커 프로세스는 `URLScheduler.Dequeue` 호출을 통해 URL을 정확히 100회 수령하여 해당 URL 처리 사이클을 완료한 뒤 정상 종료(exit code 0)해야 한다(SHALL). 카운터는 "URL을 실제로 반환한 Dequeue 호출"만 증가시켜야 하며(SHALL), 증가 시점은 **성공 Dequeue 직후**(= 호출이 URL을 리턴한 직후)여야 한다(SHALL). 빈 결과 또는 오류를 반환한 Dequeue 호출은 카운트하지 않아야 한다(SHALL NOT). budget 값(100)은 **빌드 타임 상수**로 고정되어야 하며(SHALL), 환경변수·설정 파일·CLI 플래그 등 어떤 런타임 수단으로도 변경 가능하게 노출되어서는 안 된다(SHALL NOT). 본 정책은 `harvester-worker-budget`과 대칭이다.
 
 #### Scenario: 99회까지는 종료하지 않는다
 - **WHEN** Pioneer 워커가 `URLScheduler.Dequeue`로부터 URL을 99회 수령하여 각 URL의 fetch/링크 추출/Enqueue/SetStatus 사이클을 모두 완료한 직후
@@ -11,9 +11,17 @@ Pioneer 워커 프로세스는 `URLScheduler.Dequeue` 호출을 통해 URL을 �
 - **WHEN** Pioneer 워커가 100회째 Dequeue로 URL을 수령하여 fetch → 링크 추출 → Enqueue(신규 링크) → SetStatus(frontier 갱신)까지 모두 완료했을 때
 - **THEN** 워커 프로세스는 추가 Dequeue를 시도하지 않고 exit code 0으로 종료한다
 
-#### Scenario: 빈/오류 Dequeue는 카운트되지 않는다
-- **WHEN** `URLScheduler.Dequeue`가 (정상 동작상 drained 상태가 consumer에게 노출되지는 않지만) URL을 반환하지 않거나 오류를 반환하는 호출 경로가 발생할 때
-- **THEN** Dequeue 카운터는 증가하지 않으며, 워커는 계속 살아 있다 (idle 대기는 Dequeue 내부 blocking의 책임이므로 consumer가 별도 처리하지 않는다)
+#### Scenario: 빈 Dequeue는 카운트되지 않는다
+- **WHEN** `URLScheduler.Dequeue`가 URL을 반환하지 않을 때
+- **THEN** Dequeue 카운터는 증가하지 않으며, 워커는 다음 Dequeue를 시도한다.
+
+#### Scenario: Dequeue 자체 오류는 카운트되지 않는다
+- **WHEN** `URLScheduler.Dequeue` 호출이 (URL을 반환하지 않고) 오류를 반환할 때
+- **THEN** Dequeue 카운터는 증가하지 않으며, 워커는 오류를 로깅한 뒤 다시 Dequeue를 시도한다.
+
+#### Scenario: 카운터는 성공 Dequeue 직후 증가한다
+- **WHEN** `URLScheduler.Dequeue`가 URL을 성공적으로 반환한 직후
+- **THEN** Dequeue 카운터가 1 증가한 뒤에 해당 URL의 fetch 파이프라인이 시작된다.
 
 #### Scenario: budget은 빌드 시 상수
 - **WHEN** 운영자가 환경변수나 설정 파일, CLI 플래그로 budget 값을 변경하려 할 때
@@ -39,7 +47,7 @@ budget 카운터 체크와 종료 결정은 **현재 URL 처리 사이클이 완
 ---
 
 ### Requirement: 워커 재시작은 supervisor의 책임이다
-Pioneer 워커 프로세스 자체는 자기 자신을 재기동하는 로직을 가져서는 안 된다(SHALL NOT). 종료 후 새 인스턴스를 띄우는 것은 외부 supervisor(systemd, Kubernetes Deployment, Docker restart policy 등)의 책임이어야 한다(SHALL). 종료 직전 워커는 budget 소진을 식별할 수 있는 구조화 로그(예: 메시지 `pioneer worker reached dequeue budget, exiting` + 필드 `reason=budget_exhausted`)를 남겨야 한다(SHALL).
+Pioneer 워커 프로세스 자체는 자기 자신을 재기동하는 로직을 가져서는 안 된다(SHALL NOT). 종료 후 새 인스턴스를 띄우는 것은 외부 supervisor(systemd, Kubernetes Deployment, Docker restart policy 등)의 책임이어야 한다(SHALL). 종료 직전 워커는 Harvester 워커와 동일한 필드(`reason=budget_exhausted`, `dequeues=100`)를 포함한 구조화 로그(예: `msg="pioneer worker: work budget exhausted" component=pioneer_worker reason=budget_exhausted dequeues=100`)를 정확히 1회 남겨야 한다(SHALL).
 
 #### Scenario: 워커는 자식을 spawn하지 않는다
 - **WHEN** Pioneer 워커가 100회 처리를 마치고 종료할 때
@@ -47,7 +55,7 @@ Pioneer 워커 프로세스 자체는 자기 자신을 재기동하는 로직을
 
 #### Scenario: 종료 사유 로그
 - **WHEN** Pioneer 워커가 budget 소진으로 종료하기 직전일 때
-- **THEN** `reason=budget_exhausted` 필드를 포함한 로그 라인(Harvester 워커와 동일한 포맷)이 정확히 1회 출력된다
+- **THEN** Harvester worker-budget과 동일한 필드(`reason=budget_exhausted`, `dequeues=100`)를 포함한 structured 로그 라인(예: `msg="pioneer worker: work budget exhausted" component=pioneer_worker reason=budget_exhausted dequeues=100`)이 정확히 1회 출력된다
 
 #### Scenario: supervisor가 새 워커를 띄운다
 - **WHEN** supervisor(예: docker restart policy, systemd `Restart=always`, k8s `restartPolicy: Always`)가 exit 0로 종료된 Pioneer 워커를 감지할 때

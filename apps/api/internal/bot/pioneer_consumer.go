@@ -40,6 +40,14 @@ type ConsumerFetcher interface {
 	Fetch(ctx context.Context, rawURL string) (body []byte, finalURL string, statusCode int, err error)
 }
 
+// WorkerBudget caps the number of successful URLScheduler.Dequeue calls a
+// single Pioneer worker process performs before exiting (spec
+// `pioneer-worker-budget`). The constant is intentionally not exposed via
+// env/config/CLI: budget changes happen by editing this value and rebuilding.
+// Symmetric to harvester's worker budget so operators reason about both
+// workers with one mental model.
+const WorkerBudget = 100
+
 // PioneerConsumer implements the new Dequeue → fetch → snapshot → parse →
 // filter → Enqueue(pioneer) + EnqueueHarvester → SetStatus loop.
 //
@@ -55,6 +63,11 @@ type PioneerConsumer struct {
 	// now is injected so tests can freeze the snapshot-key date segment.
 	// Production: time.Now.
 	now func() time.Time
+	// budget overrides WorkerBudget for in-process tests only. Zero (the
+	// default) means "use WorkerBudget". This field is package-private and
+	// has no env/config/CLI surface, satisfying the spec's "build-time
+	// constant" rule for production callers.
+	budget int
 }
 
 // NewPioneerConsumer wires the consumer with its four mandatory dependencies
@@ -86,20 +99,54 @@ func (p *PioneerConsumer) WithClock(now func() time.Time) *PioneerConsumer {
 	return p
 }
 
-// Run blocks, processing URLs from pioneer_frontier until ctx is cancelled or
-// the scheduler returns a non-recoverable error. Per spec "루프 sleep/backoff
-// 코드 제거": no sleeps here — block-on-empty polling is internal to
-// URLScheduler.Dequeue.
+// Run blocks, processing URLs from pioneer_frontier until ctx is cancelled,
+// or the worker budget is exhausted (spec `pioneer-worker-budget`). Per spec
+// "루프 sleep/backoff 코드 제거": no sleeps here — block-on-empty polling is
+// internal to URLScheduler.Dequeue.
+//
+// Budget accounting (spec `pioneer-worker-budget`):
+//   - Counter increments only after Dequeue returns a non-empty URL with no
+//     error. Empty results and errors are NOT counted; the loop logs the
+//     error and retries so a transient scheduler hiccup cannot kill the
+//     worker before its budget is spent.
+//   - The 100th URL is processed to completion (fetch → snapshot → parse →
+//     enqueue → set_status); only then does Run emit the structured
+//     budget-exhausted log and return nil so the supervisor can restart a
+//     fresh process.
 func (p *PioneerConsumer) Run(ctx context.Context) error {
+	budget := p.budget
+	if budget <= 0 {
+		budget = WorkerBudget
+	}
+	dequeues := 0
 	for {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
 		rawURL, err := p.scheduler.Dequeue(scheduler.QueuePioneer)
 		if err != nil {
-			return fmt.Errorf("pioneer_consumer: dequeue: %w", err)
+			// Spec "Dequeue 자체 오류는 카운트되지 않는다": log and retry
+			// instead of returning, so a transient scheduler/DB hiccup does
+			// not consume any budget or kill the worker prematurely.
+			log.Printf("WARN pioneer_consumer: dequeue err=%v", err)
+			continue
 		}
+		if rawURL == "" {
+			// Spec "빈 Dequeue는 카운트되지 않는다": URLScheduler.Dequeue is
+			// internally blocking and is not expected to return an empty
+			// string in production, but defensive handling here keeps the
+			// counter contract correct if the contract ever loosens.
+			continue
+		}
+		dequeues++
 		p.processOne(ctx, rawURL)
+		if dequeues >= budget {
+			log.Printf(
+				`msg="pioneer worker: work budget exhausted" component=pioneer_worker reason=budget_exhausted dequeues=%d`,
+				dequeues,
+			)
+			return nil
+		}
 	}
 }
 

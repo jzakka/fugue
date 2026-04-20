@@ -89,13 +89,27 @@ func TestLinkURLs_PreservesOrder(t *testing.T) {
 // fakeScheduler implements scheduler.URLScheduler with in-memory slices so
 // tests can assert on the exact call sequence (Enqueue / EnqueueHarvester /
 // SetStatus / RecordFetchError) that PioneerConsumer produces per URL.
+//
+// dequeueScript, when non-empty, takes precedence over dequeueQueue and lets
+// budget-loop tests script per-call (url, err) outcomes — needed to verify
+// that empty results and errors are not counted toward the worker budget.
+// dequeueCalls tracks the total number of Dequeue invocations regardless of
+// outcome so tests can assert on retry behaviour.
 type fakeScheduler struct {
 	dequeueQueue       []string
+	dequeueScript      []dequeueResult
+	dequeueIdx         int
+	dequeueCalls       int
 	enqueuePioneer     [][]string
 	enqueueHarvester   []enqueueHarvesterCall
 	setStatus          []setStatusCall
 	recordFetchError   []recordFetchErrorCall
 	recordHarvestError []recordFetchErrorCall
+}
+
+type dequeueResult struct {
+	url string
+	err error
 }
 
 type enqueueHarvesterCall struct {
@@ -115,6 +129,19 @@ type recordFetchErrorCall struct {
 }
 
 func (f *fakeScheduler) Dequeue(qt scheduler.QueueType) (string, error) {
+	f.dequeueCalls++
+	if len(f.dequeueScript) > 0 {
+		if f.dequeueIdx >= len(f.dequeueScript) {
+			// Test setup bug: budget loop should have exited before draining
+			// the script. Returning a sentinel error keeps the loop alive
+			// (since errors are now retried) but the test will time out via
+			// ctx, surfacing the misconfiguration.
+			return "", errors.New("fake: script exhausted")
+		}
+		r := f.dequeueScript[f.dequeueIdx]
+		f.dequeueIdx++
+		return r.url, r.err
+	}
 	if len(f.dequeueQueue) == 0 {
 		return "", errors.New("fake: queue drained")
 	}
@@ -400,5 +427,207 @@ func TestPioneerConsumer_SnapshotFailure_ClassifiedNetwork(t *testing.T) {
 	}
 	if len(sched.enqueueHarvester) != 0 {
 		t.Fatalf("snapshot failure must not fanout to harvester, got %+v", sched.enqueueHarvester)
+	}
+}
+
+// --- pioneer-worker-budget: Run loop budget tests ---
+
+// newBudgetConsumer wires a PioneerConsumer with a small budget so loop
+// tests don't have to dequeue 100 URLs to exercise the exhaustion path.
+// Production callers go through NewPioneerConsumer and inherit WorkerBudget;
+// the budget field is package-private precisely because the spec forbids
+// runtime exposure.
+func newBudgetConsumer(t *testing.T, sched scheduler.URLScheduler, body []byte, budget int) *PioneerConsumer {
+	t.Helper()
+	fetcher := &fakeFetcher{body: body, finalURL: "https://a.example/root", statusCode: 200}
+	store := &fakeSnapshotStore{}
+	chain := NewFilterChain()
+	c := NewPioneerConsumer(sched, store, chain, fetcher)
+	c.budget = budget
+	return c
+}
+
+// TestPioneerConsumer_Run_BudgetExhaustionExitsZero covers the canonical
+// "100회째 처리 완료 후 exit 0" scenario at a smaller budget. After exactly
+// `budget` successful Dequeues + processOne cycles, Run returns nil and the
+// extra queued URL is never dequeued — verifying the spec's "100회 완료 후
+// 추가 Dequeue 호출이 발생하지 않음".
+func TestPioneerConsumer_Run_BudgetExhaustionExitsZero(t *testing.T) {
+	sched := &fakeScheduler{
+		dequeueQueue: []string{
+			"https://a.example/u1",
+			"https://a.example/u2",
+			"https://a.example/u3",
+			// u4 must not be dequeued — Run should exit after u3.
+			"https://a.example/u4",
+		},
+	}
+	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 3)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion, got %v", err)
+	}
+	if got := len(sched.setStatus); got != 3 {
+		t.Fatalf("expected exactly budget=3 SetStatus calls, got %d", got)
+	}
+	if sched.dequeueCalls != 3 {
+		t.Fatalf("expected exactly 3 Dequeue calls, got %d (u4 must not be dequeued)", sched.dequeueCalls)
+	}
+}
+
+// TestPioneerConsumer_Run_DoesNotExitBeforeBudget verifies "99회까지는
+// 종료하지 않는다": with budget=3 and 2 URLs queued + a context cancel after
+// the 2nd processOne, Run must NOT have returned via budget exhaustion.
+// We assert that all 2 URLs were processed (Run kept consuming) and the
+// loop only exits via ctx — proving no early exit at <budget.
+func TestPioneerConsumer_Run_DoesNotExitBeforeBudget(t *testing.T) {
+	sched := &fakeScheduler{
+		dequeueScript: []dequeueResult{
+			{url: "https://a.example/u1"},
+			{url: "https://a.example/u2"},
+			// 3rd call: ctx is cancelled by then via the timeout below.
+			// Returning a sentinel error keeps the loop alive (errors are
+			// retried per spec); the ctx check at the top of the loop will
+			// trip on the next iteration.
+			{err: errors.New("hold")},
+		},
+	}
+	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 3)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	err := c.Run(ctx)
+	if err == nil {
+		t.Fatalf("expected Run to exit via ctx cancel (not budget), got nil")
+	}
+	if got := len(sched.setStatus); got != 2 {
+		t.Fatalf("expected 2 URLs processed before ctx cancel, got %d", got)
+	}
+}
+
+// TestPioneerConsumer_Run_DequeueErrorNotCounted verifies the spec scenario
+// "Dequeue 자체 오류는 카운트되지 않는다 ... 워커는 오류를 로깅한 뒤 다시
+// Dequeue를 시도한다". With budget=1, 2 errors precede 1 success: Run must
+// retry past the errors, count only the successful Dequeue, and exit
+// cleanly via budget exhaustion.
+func TestPioneerConsumer_Run_DequeueErrorNotCounted(t *testing.T) {
+	sched := &fakeScheduler{
+		dequeueScript: []dequeueResult{
+			{err: errors.New("transient: connection reset")},
+			{err: errors.New("transient: deadline")},
+			{url: "https://a.example/u1"},
+		},
+	}
+	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion after retried errors, got %v", err)
+	}
+	if sched.dequeueCalls != 3 {
+		t.Fatalf("expected 3 Dequeue calls (2 retried errors + 1 success), got %d", sched.dequeueCalls)
+	}
+	if len(sched.setStatus) != 1 {
+		t.Fatalf("expected 1 SetStatus (only the successful URL processed), got %d", len(sched.setStatus))
+	}
+}
+
+// TestPioneerConsumer_Run_EmptyDequeueNotCounted defends the spec scenario
+// "빈 Dequeue는 카운트되지 않는다". Even though production Dequeue is
+// internally blocking and is not expected to surface an empty result, the
+// loop must still treat ("", nil) as "skip & retry" so the contract holds
+// if the scheduler implementation ever loosens that invariant.
+func TestPioneerConsumer_Run_EmptyDequeueNotCounted(t *testing.T) {
+	sched := &fakeScheduler{
+		dequeueScript: []dequeueResult{
+			{url: ""}, // empty: must be skipped without incrementing budget
+			{url: "https://a.example/u1"},
+		},
+	}
+	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion after empty skip, got %v", err)
+	}
+	if sched.dequeueCalls != 2 {
+		t.Fatalf("expected 2 Dequeue calls (1 empty + 1 success), got %d", sched.dequeueCalls)
+	}
+	if len(sched.setStatus) != 1 {
+		t.Fatalf("expected 1 SetStatus (only the non-empty URL processed), got %d", len(sched.setStatus))
+	}
+}
+
+// TestPioneerConsumer_Run_IndependentBudgetsPerInstance verifies the spec
+// requirement "복수 워커는 각자 독립 카운터를 갖는다": two PioneerConsumer
+// instances each spend their own budget without affecting the other's.
+func TestPioneerConsumer_Run_IndependentBudgetsPerInstance(t *testing.T) {
+	makeSched := func() *fakeScheduler {
+		return &fakeScheduler{dequeueQueue: []string{"https://a.example/x", "https://a.example/y"}}
+	}
+	schedA := makeSched()
+	schedB := makeSched()
+	cA := newBudgetConsumer(t, schedA, []byte("<html></html>"), 2)
+	cB := newBudgetConsumer(t, schedB, []byte("<html></html>"), 2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := cA.Run(ctx); err != nil {
+		t.Fatalf("consumer A: %v", err)
+	}
+	if err := cB.Run(ctx); err != nil {
+		t.Fatalf("consumer B: %v", err)
+	}
+	if schedA.dequeueCalls != 2 || schedB.dequeueCalls != 2 {
+		t.Fatalf("each consumer should dequeue 2 URLs independently, got A=%d B=%d", schedA.dequeueCalls, schedB.dequeueCalls)
+	}
+}
+
+// TestPioneerConsumer_Run_BudgetExhaustionOnFetchFailure verifies the spec
+// scenario "100회째 처리 실패도 정상 종료": when the budget-completing URL's
+// fetch fails, Run still exits with nil (exit 0) — the failure is recorded
+// via SetStatus(fetch_failed)+RecordFetchError, but does NOT bubble up to
+// Run's return value. Symmetric to harvester's "100회째 작업이 실패해도 종료는
+// 정상" scenario.
+func TestPioneerConsumer_Run_BudgetExhaustionOnFetchFailure(t *testing.T) {
+	sched := &fakeScheduler{
+		dequeueQueue: []string{"https://a.example/will-404"},
+	}
+	fetcher := &fakeFetcher{
+		statusCode: 404,
+		err:        fmt.Errorf("HTTP error: status code 404"),
+	}
+	store := &fakeSnapshotStore{}
+	chain := NewFilterChain()
+	c := NewPioneerConsumer(sched, store, chain, fetcher)
+	c.budget = 1
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run must return nil even when the budget-completing URL fails fetch, got %v", err)
+	}
+	if len(sched.setStatus) != 1 || sched.setStatus[0].status != scheduler.StatusFetchFailed {
+		t.Fatalf("expected SetStatus(fetch_failed), got %+v", sched.setStatus)
+	}
+	if len(sched.recordFetchError) != 1 || sched.recordFetchError[0].kind != scheduler.ErrorHTTP4xx {
+		t.Fatalf("expected RecordFetchError(http_4xx), got %+v", sched.recordFetchError)
+	}
+}
+
+// TestPioneerConsumer_Run_DefaultBudgetIsWorkerBudget guards against
+// regressions where the default budget drifts from the spec-mandated 100.
+func TestPioneerConsumer_Run_DefaultBudgetIsWorkerBudget(t *testing.T) {
+	if WorkerBudget != 100 {
+		t.Fatalf("spec violation: WorkerBudget must be 100, got %d", WorkerBudget)
+	}
+	c := NewPioneerConsumer(&fakeScheduler{}, &fakeSnapshotStore{}, NewFilterChain(), &fakeFetcher{})
+	// Default budget field is zero, which Run interprets as "use WorkerBudget".
+	if c.budget != 0 {
+		t.Fatalf("constructor must leave budget at zero (defaults to WorkerBudget at Run time), got %d", c.budget)
 	}
 }

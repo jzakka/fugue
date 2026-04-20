@@ -13,6 +13,8 @@ Pioneer 워커는 URLScheduler consumer로서 Dequeue 루프를 장시간 돌리
 
 범위 외: Harvester 워커 budget(별도 change), URLScheduler 자체 수명 관리, supervisor/오케스트레이터 구현.
 
+**의존**: 본 change는 `pioneer` capability를 신설하는 `pioneer-scheduler-consumer`가 먼저 아카이브된 뒤에 적용/아카이브된다. 적용 순서가 어긋나면 베이스라인에 `pioneer` capability가 없어 Modified Capabilities 선언이 무효가 된다.
+
 ## Capabilities
 
 ### New Capabilities
@@ -20,7 +22,7 @@ Pioneer 워커는 URLScheduler consumer로서 Dequeue 루프를 장시간 돌리
 (없음)
 
 ### Modified Capabilities
-- `pioneer`: Pioneer 워커에 성공 Dequeue 100회 work budget과 graceful shutdown 요건 추가
+- `pioneer`: Pioneer 워커에 성공 Dequeue 100회 work budget과 graceful shutdown 요건 추가 (capability 자체는 `pioneer-scheduler-consumer`가 신설)
 
 ## Impact
 
