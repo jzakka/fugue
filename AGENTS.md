@@ -107,7 +107,12 @@ make test          # Go + Frontend 테스트
 make pioneer SITE=artstation      # Pioneer 크롤러 실행
 make harvester SITE=artstation    # Harvester 크롤러 실행
 make show-map                     # Bot 그래프 시각화 (graph.html 생성)
+make fuguebot-progress            # Fuguebot 진행 현황/의존성 그래프 (fuguebot_graph.py)
 ```
+
+#### Pioneer/Harvester 작업 시 필수 업데이트
+
+Pioneer 또는 Harvester 관련 작업(신규 source 추가, 필터/스케줄러 변경, 크롤 엔진 수정 등)을 수행했다면 `fuguebot_graph.py`가 생성하는 fuguebot-graph에 표시되는 내용도 함께 업데이트해야 한다. 노드/엣지/상태 라벨 등이 실제 구현과 일치하도록 `make fuguebot-progress`로 확인한다.
 
 #### Pioneer 동작 모델 (scheduler consumer)
 
