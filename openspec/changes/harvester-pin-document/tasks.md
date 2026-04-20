@@ -1,10 +1,10 @@
 ## 1. DB 마이그레이션
 
-- [ ] 1.1 BotCreatorID 운영 정책 정리 (환경변수 vs 코드 상수) 후 단일 ID 결정
-- [ ] 1.2 기존 봇 Pin 중 같은 URL의 중복 행을 dedup하는 일회성 SQL 스크립트 작성 (가장 최근 created_at만 유지)
-- [ ] 1.3 마이그레이션 추가: `CREATE UNIQUE INDEX CONCURRENTLY pins_url_bot_unique ON pins(url) WHERE creator_id = '<BotCreatorID>'`
+- [ ] 1.1 BotCreatorID 운영 정책 정리 후 단일 UUID 리터럴 결정 — env/config로 런타임 노출하되, 마이그레이션 SQL과 upsert 쿼리에는 동일한 UUID 리터럴이 하드코딩되어야 함을 문서화(IMMUTABLE 제약)
+- [ ] 1.2 기존 봇 Pin 중 같은 URL의 중복 행을 dedup하는 일회성 SQL 스크립트 작성. (a) 대상 그룹별 가장 최근 created_at Pin을 생존자로 지정, (b) `harvester_frontier_pins` 등 pin_id를 참조하는 조인 테이블의 row를 생존자 pin_id로 재할당(UPDATE)한 뒤, (c) 나머지 중복 봇 Pin을 삭제. interaction/board 등 사용자 접점 테이블에 봇 Pin이 참조되고 있는지 사전 확인
+- [ ] 1.3 마이그레이션 추가: `CREATE UNIQUE INDEX CONCURRENTLY pins_url_bot_unique ON pins(url) WHERE creator_id = '<BotCreatorID UUID 리터럴>'`
 - [ ] 1.4 down 마이그레이션: `DROP INDEX CONCURRENTLY IF EXISTS pins_url_bot_unique`
-- [ ] 1.5 sqlc 쿼리 추가: `UpsertBotPinByURL` (`INSERT ... ON CONFLICT (url) WHERE creator_id = $bot_id DO UPDATE SET title=..., description=..., og_image=..., og_data=...`)
+- [ ] 1.5 sqlc 쿼리 추가: `UpsertBotPinByURL` — `INSERT ... ON CONFLICT (url) WHERE creator_id = '<BotCreatorID UUID 리터럴>' DO UPDATE SET title=..., description=..., og_image=..., og_data=...`. 파라미터 바인딩(`$1` 등)이 아닌 UUID 리터럴로 작성해야 PostgreSQL이 partial unique index predicate와 매칭하여 arbiter inference에 성공한다
 
 ## 2. PinDocument 도메인 타입
 
@@ -20,21 +20,21 @@
 - [ ] 3.3 JSON-LD `schema.org` 파서 구현 (Article, CreativeWork: headline, articleBody, image, author, datePublished)
 - [ ] 3.4 `<article>` / 최대 텍스트 밀도 블록 추출 로직
 - [ ] 3.5 `<title>` / `<h1>` / `<link rel=canonical>` / `<html lang>` / `<time datetime>` 태그 파서
-- [ ] 3.6 본문 내 `<img>`/`<video>`/`<audio>`/`<source>` 수집 + 절대 URL 변환
-- [ ] 3.7 cross-domain canonical 무시 정책 적용
+- [ ] 3.6 본문 범위(`<article>` 태그가 있으면 그 내부, 없으면 `<body>` 전체) 내 `<img>`/`<video>`/`<audio>`/`<source>` 수집 + 절대 URL 변환
+- [ ] 3.7 canonical_url 결정 시 cross-domain canonical 무시 정책을 fallback 체인 내부에서 적용 — 채택 후보 호스트가 fetch URL 호스트와 다르면 건너뛰고 다음 fallback으로 진행 (Harvester 결합 단계에서 중복 판정하지 않음)
 - [ ] 3.8 fallback 체인 우선순위 적용 (title/body_text/canonical/thumbnail 각각)
 - [ ] 3.9 unit test: OG만 있는 페이지, JSON-LD만 있는 페이지, `<article>`만 있는 페이지, 셋 다 없는 페이지, cross-domain canonical 케이스
 - [ ] 3.10 PinDocument는 항상 nil이 아닌 객체를 반환함을 보장하는 테스트
 
 ## 4. Content classifier
 
-- [ ] 4.1 `apps/api/internal/bot/classifier.go` 신규 작성: `Classifier.Classify(doc PinDocument, nodeType string) (pinnable bool, reason string)`
+- [ ] 4.1 `apps/api/internal/bot/classifier.go` 신규 작성: `Classifier.Classify(doc PinDocument) (pinnable bool, reason string)` — 입력은 PinDocument뿐이며 node_type 등 외부 상태에 의존하지 않음
 - [ ] 4.2 사유 우선순위 (`listing` > `empty_body` > `no_primary_media`) 적용 — 3개 reason enum만 유지
-- [ ] 4.3 `listing` 판정: nodeType == "list" OR `링크 수 / 단어 수 > threshold_link_density` (단일 공식)
+- [ ] 4.3 `listing` 판정: 단어 수 > 0 AND `링크 수 / 단어 수 > threshold_link_density` (단일 공식, 단어 수=0일 때 division-by-zero 회피를 위해 guard 적용)
 - [ ] 4.4 `empty_body` 판정: body_text < 임계값 (기본 200 bytes, Go `len([]byte)` 기준, 설정 가능)
 - [ ] 4.5 `no_primary_media` 판정: thumbnail 없음 AND media_candidates 비어 있음 AND body_text 임계값 미만
 - [ ] 4.6 classifier 결과를 `og_data.classifier = {pinnable, reason?}` 키에 보존 (reason enum: `listing` | `empty_body` | `no_primary_media`)
-- [ ] 4.7 unit test: 3개 reason(`listing`, `empty_body`, `no_primary_media`)별 경계 케이스 + 사유 우선순위 + 정상 페이지 통과
+- [ ] 4.7 unit test: 3개 reason(`listing`, `empty_body`, `no_primary_media`)별 경계 케이스 + 사유 우선순위 + 정상 페이지 통과 + 단어 수 0 페이지에서 listing 판정이 발생하지 않음(division-by-zero 회귀)
 
 ## 5. PerSiteAdapter / AdapterRegistry
 
@@ -51,21 +51,21 @@
 - [ ] 6.3 `Extract`에서 (site_id, node_type) 스크립트 로드 → 실행 → RawItem 배열 수신
 - [ ] 6.4 N→1 축약 로직: **첫 RawItem**을 정본 PinDocument로 채택(title, thumbnail_url, body_text, description 등 모든 메타 필드), 나머지 RawItem들은 `og_data.media_candidates` 배열(`{type, url, width?, height?}`)로 추가
 - [ ] 6.5 빈 결과(0건) 또는 실행 실패 시 에러 반환 → Harvester가 generic으로 fallback
-- [ ] 6.6 부트스트랩 시 DB의 (site_id, node_type) 스크립트가 있는 사이트의 도메인을 AdapterRegistry에 등록
+- [ ] 6.6 부트스트랩 시 DB의 (site_id, node_type) 스크립트가 있는 사이트의 도메인을 AdapterRegistry에 등록 (범위: 프로세스 시작 시점 1회. 런타임 DB 변경 반영은 본 change 범위 외 — 프로세스 재시작 필요)
 - [ ] 6.7 unit test: 첫 RawItem 정본 채택, 나머지 media_candidates 배열 구성, 빈 결과 처리, 실행 실패 처리
 
 ## 7. Harvester 결합
 
 - [ ] 7.1 `apps/api/internal/bot/harvester.go`의 `executeNode`를 PinDocument 반환으로 변경
-- [ ] 7.2 처리 순서 적용: `adapter, ok = registry.Resolve(domain) → adapter.Extract OR generic.Extract → classifier.Classify → upsert OR mark harvested_at`
-- [ ] 7.3 어댑터 실패 시 generic fallback 경로 구현 (AdapterFallback 통계 카운트 증가)
-- [ ] 7.4 cross-domain canonical 처리: canonical URL의 도메인이 fetch URL과 다르면 canonical을 무시하고 `canonical_url = fetch_url`로 fallback. `og_data.source = fetch_url`로 저장(항상 fetch URL).
+- [ ] 7.2 처리 순서 적용: `adapter, ok = registry.Resolve(domain) → adapter.Extract OR generic.Extract → classifier.Classify(doc) → upsert OR mark harvested_at`. classifier에는 node_type을 전달하지 않는다
+- [ ] 7.3 어댑터 실패 시 generic fallback 경로 구현 (AdapterFallback 부가 카운터 증가 — 주 카테고리와 독립적)
+- [ ] 7.4 cross-domain canonical 처리는 generic extractor(및 PerSiteAdapter) 내부 fallback 체인에서만 수행한다. Harvester 결합 단계는 extractor가 반환한 `canonical_url`을 신뢰하여 그대로 `pins.url`에 upsert하며 추가 판정을 하지 않는다. `og_data.source`는 항상 fetch URL로 저장
 - [ ] 7.5 `media_candidates` 길이 상한(기본 50) 적용; 각 원소 스키마 `{type: "image"|"video"|"audio", url, width?, height?}`
-- [ ] 7.6 `body_text`는 `pins.description`에 500자 잘라 저장하고 `og_data`에는 **포함하지 않음** (키 자체 부재)
+- [ ] 7.6 `body_text`는 `pins.description`에 500 rune(UTF-8 rune-safe, `utf8.RuneCountInString` 기준) 잘라 저장하고 `og_data`에는 **포함하지 않음** (키 자체 부재). 바이트 경계 절단으로 multi-byte 문자 손상 금지
 - [ ] 7.7 `media_url` NOT NULL 제약 충족: thumbnail_url 또는 첫 media_candidates URL 사용
-- [ ] 7.8 통계 재정의: `PinsCreated`, `Deduped`, `Skipped`, `Failed`, `AdapterFallback` 5개 카테고리 (통계 카테고리명은 "Skipped"로 통일; "Classified" 대체 표현 사용 금지)
-- [ ] 7.9 노드 1개 = 통계 1건 보장 (ScriptAdapter N개 RawItem이어도 노드 단위 1건)
-- [ ] 7.10 pinnable=false 노드는 frontier row의 `harvested_at`만 마킹 (Pin 생성/update 없음)
+- [ ] 7.8 통계 재정의: 주 카테고리(`PinsCreated`, `Deduped`, `Skipped`, `Failed` — 정확히 하나 증가) + 부가 카운터(`AdapterFallback` — 독립 증가). 카테고리명은 "Skipped"로 통일; "Classified" 대체 표현 사용 금지
+- [ ] 7.9 노드 1개 = 주 카테고리 1건 보장 (ScriptAdapter N개 RawItem이어도 노드 단위 1건; AdapterFallback은 동일 노드에서 별도 증가 가능)
+- [ ] 7.10 pinnable=false 노드는 frontier row의 `harvested_at`만 마킹 (Pin 생성/update 없음). Pin이 upsert된 노드는 scheduler-consumer가 `SetStatus(key, "harvested", []uuid{pin_id})`로 `harvester_frontier_pins` 조인 기록 (본 change는 pin_id 반환까지 책임; 조인 기록은 scheduler-consumer change 소유)
 
 ## 8. Harvest pipeline 정리
 
@@ -86,10 +86,10 @@
 - [ ] 10.2 classifier 시나리오 unit test: 3개 reason(`listing`, `empty_body`, `no_primary_media`)별 경계 케이스 + 우선순위
 - [ ] 10.3 ScriptAdapter 시나리오 unit test: N→1 축약(첫 RawItem 정본, 나머지 media_candidates), fallback
 - [ ] 10.4 canonical-URL upsert 통합 테스트 (insert/update/race/일반 사용자 Pin과의 공존)
-- [ ] 10.5 Harvester 통계 5-카테고리 통합 테스트 (카테고리명 "Skipped" 포함)
-- [ ] 10.6 cross-domain canonical 무시 회귀 테스트: canonical이 다른 도메인일 때 `canonical_url = fetch_url` 및 `og_data.source = fetch_url` 보장
+- [ ] 10.5 Harvester 통계 통합 테스트: 주 카테고리 4개(PinsCreated/Deduped/Skipped/Failed) 상호 배타 + AdapterFallback 부가 카운터가 주 카테고리와 동시에 증가할 수 있음 (카테고리명 "Skipped" 포함)
+- [ ] 10.6 cross-domain canonical 무시 회귀 테스트: canonical이 다른 호스트일 때 extractor가 `canonical_url = fetch_url`로 반환하고 `og_data.source = fetch_url`임을 보장. 판정 위치는 extractor 내부 한 곳 — Harvester 결합 단계는 추가 판정하지 않음
 - [ ] 10.7 `media_url` NOT NULL 위반이 발생하지 않음을 확인하는 회귀 테스트
-- [ ] 10.8 `og_data`에 `body_text` 키가 존재하지 않고 `pins.description`에 500자로 잘려 저장됨을 확인하는 회귀 테스트
+- [ ] 10.8 `og_data`에 `body_text` 및 `canonical_url` 키가 존재하지 않고 `pins.description`에 500 rune(rune-safe)으로 잘려 저장되며 canonical은 `pins.url`에만 저장됨을 확인하는 회귀 테스트 (multi-byte 문자 바이트 경계 절단 부재 검증 포함)
 - [ ] 10.9 기존 `goja_executor_test.go` / `harvest_pipeline_test.go` 가 ScriptAdapter 경계 안에서 통과하도록 보강
 
 ## 11. 문서화 / Spec sync
@@ -104,4 +104,4 @@
 - [ ] 12.1 dev 환경에서 partial unique index 생성 + dedup 스크립트 실행
 - [ ] 12.2 staging에서 `HARVESTER_DEFAULT_EXTRACTOR=generic` 활성화 후 노드 단위 통계 검증
 - [ ] 12.3 ScriptAdapter가 등록된 도메인(예: pixiv)에서 N→1 축약이 검색 결과 품질을 떨어뜨리지 않는지 샘플 확인
-- [ ] 12.4 prod 롤아웃 + 메트릭 (PinsCreated/Deduped/Skipped/Failed/AdapterFallback) 모니터링
+- [ ] 12.4 prod 롤아웃 + 메트릭 (주 카테고리: PinsCreated/Deduped/Skipped/Failed, 부가 카운터: AdapterFallback) 모니터링

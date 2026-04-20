@@ -38,7 +38,7 @@ Bot이 만드는 Pin은 검색 SSOT 역할을 하며, 한 원본 페이지(canon
 
 #### Scenario: canonical_url 결정
 - **WHEN** generic extractor가 canonical URL을 결정할 때
-- **THEN** 시스템은 `<link rel="canonical">`, `og:url`, fetch에 사용한 URL 순으로 검사하여 처음 발견된 비어있지 않은 값을 사용한다
+- **THEN** 시스템은 `<link rel="canonical">`, `og:url`, fetch에 사용한 URL 순으로 검사하여 처음 발견된 비어있지 않은 값을 사용한다. 단, 채택 후보의 호스트가 fetch URL의 호스트와 다르면 해당 후보는 건너뛰고 다음 fallback으로 넘어간다 (cross-domain canonical 무시)
 
 #### Scenario: thumbnail_url 추출
 - **WHEN** generic extractor가 썸네일 URL을 결정할 때
@@ -46,7 +46,7 @@ Bot이 만드는 Pin은 검색 SSOT 역할을 하며, 한 원본 페이지(canon
 
 #### Scenario: media_candidates 수집
 - **WHEN** generic extractor가 본문에서 미디어 후보를 수집할 때
-- **THEN** 시스템은 본문 내 `<img>`, `<video>`, `<audio>`, `<source>` 태그의 URL을 절대 경로로 변환하여 type(image/video/audio)과 함께 `media_candidates` 배열에 수집한다
+- **THEN** 시스템은 본문 범위 내 `<img>`, `<video>`, `<audio>`, `<source>` 태그의 URL을 절대 경로로 변환하여 type(image/video/audio)과 함께 `media_candidates` 배열에 수집한다. 본문 범위는 `<article>` 태그가 있으면 그 내부, 없으면 `<body>` 전체로 정의된다
 
 #### Scenario: lang/author/published_at 추출
 - **WHEN** generic extractor가 부가 메타를 추출할 때
@@ -80,11 +80,15 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: Content classifier가 Pin 생성 가능 여부를 판정한다
-시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 3개 enum 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL). `body_text` 길이 단위는 바이트(Go `len([]byte)`)이다(SHALL).
+시스템은 PinDocument 생성 후 Pin으로 indexing할지 여부를 판정해야 한다(SHALL). 부적합한 경우 Pin을 만들지 않고 사유를 다음 3개 enum 중 하나로 분류해야 한다(SHALL): `listing`, `empty_body`, `no_primary_media`. 사유는 우선순위(`listing` > `empty_body` > `no_primary_media`) 순으로 평가되며, 첫 매치에서 평가가 종료되어야 한다(SHALL). `body_text` 길이 단위는 바이트(Go `len([]byte)`)이다(SHALL). classifier는 `PinDocument`만을 입력으로 받으며 외부 상태(node_type 등)에 의존하지 않아야 한다(SHALL).
 
 #### Scenario: listing 페이지 분류
-- **WHEN** 노드 타입이 `list`이거나, 페이지의 `링크 수 / 단어 수 > threshold_link_density` (단일 공식)일 때
+- **WHEN** 페이지의 단어 수가 0보다 크고 `링크 수 / 단어 수 > threshold_link_density`일 때
 - **THEN** classifier는 `pinnable=false, reason=listing`을 반환한다
+
+#### Scenario: 단어 수 0인 페이지는 listing 아님
+- **WHEN** 페이지의 단어 수가 0일 때
+- **THEN** classifier는 `listing` 판정을 내리지 않고 다음 우선순위 사유(`empty_body`) 평가로 진행한다 (division-by-zero 회피)
 
 #### Scenario: empty_body 분류
 - **WHEN** PinDocument의 body_text 바이트 길이가 임계값(기본 200 bytes) 미만일 때
@@ -201,11 +205,11 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 
 #### Scenario: same-domain canonical
 - **WHEN** HTML의 canonical이 fetch URL과 동일 도메인의 다른 URL(예: query string 정규화)일 때
-- **THEN** `og_data.canonical_url`에는 canonical이, `og_data.source`에는 fetch URL이 저장된다
+- **THEN** `pins.url`에는 canonical이, `og_data.source`에는 fetch URL이 저장된다
 
 #### Scenario: cross-domain canonical은 fetch_url 기준으로 fallback
 - **WHEN** HTML의 canonical이 fetch URL과 **다른 도메인**을 가리킬 때
-- **THEN** 시스템은 canonical을 무시하고 `canonical_url = fetch_url`로 설정하며, `og_data.source = fetch_url`로 저장한다 (두 값이 동일해진다)
+- **THEN** 시스템은 canonical을 무시하고 `pins.url = fetch_url`로 설정하며, `og_data.source = fetch_url`로 저장한다 (두 값이 동일해진다)
 
 #### Scenario: frontier 역참조
 - **WHEN** 운영자가 어떤 Pin이 어떤 frontier URL에서 유래했는지 추적할 때
@@ -214,11 +218,11 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: 추출 부가 메타는 pins.og_data JSONB에 보관한다
-시스템은 PinDocument의 부가 필드(canonical_url, lang, author, published_at, media_candidates, source, extractor, classifier)를 `pins` 테이블의 신규 컬럼이 아닌 기존 `og_data` JSONB 컬럼에 보관해야 한다(SHALL). `body_text`는 `og_data`에 저장하지 **않으며**(SHALL NOT), `pins.description`에 500자 잘라 저장해야 한다(SHALL). `media_candidates`의 길이는 상한(기본 50)을 넘지 않도록 잘려야 한다(SHALL).
+시스템은 PinDocument의 부가 필드(lang, author, published_at, media_candidates, source, extractor, classifier)를 `pins` 테이블의 신규 컬럼이 아닌 기존 `og_data` JSONB 컬럼에 보관해야 한다(SHALL). canonical URL은 `pins.url` 컬럼에 단일 SSOT로 저장되며 `og_data`에는 중복 저장하지 않는다(SHALL NOT). `body_text`는 `og_data`에 저장하지 **않으며**(SHALL NOT), `pins.description`에 500자(rune 기준, UTF-8 문자 500개) 이내로 잘라 저장해야 한다(SHALL). classifier는 잘리지 않은 원본 `body_text`를 입력으로 받으며, `pins.description`에 저장되는 값은 잘린 형태다(SHALL). `media_candidates`의 길이는 상한(기본 50)을 넘지 않도록 잘려야 한다(SHALL).
 
 #### Scenario: og_data 키 구조
 - **WHEN** Pin이 upsert될 때
-- **THEN** `og_data`에는 다음 키가 포함된다: `canonical_url`, `lang`, `author`, `published_at`, `media_candidates`, `source`, `extractor`, `classifier`. `body_text` 키는 존재하지 않는다
+- **THEN** `og_data`에는 다음 키가 포함된다: `lang`, `author`, `published_at`, `media_candidates`, `source`, `extractor`, `classifier`. `body_text`와 `canonical_url` 키는 존재하지 않는다 (body_text는 `pins.description`, canonical URL은 `pins.url` 컬럼이 SSOT)
 
 #### Scenario: media_candidates 원소 스키마
 - **WHEN** `og_data.media_candidates` 배열의 원소를 확인할 때
@@ -230,7 +234,15 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 
 #### Scenario: body_text는 og_data가 아니라 description에 저장된다
 - **WHEN** extractor 또는 adapter가 body_text를 추출할 때
-- **THEN** 시스템은 `og_data`에 body_text를 포함하지 않고, `pins.description`에 500자 이내로 잘라 저장한다
+- **THEN** 시스템은 `og_data`에 body_text를 포함하지 않고, `pins.description`에 500 rune 이내로 잘라 저장한다 (UTF-8 rune-safe, multi-byte 문자를 바이트 경계에서 절단하지 않는다)
+
+#### Scenario: classifier는 원본 body_text를 받고 description은 잘린 형태
+- **WHEN** classifier가 PinDocument를 평가할 때
+- **THEN** classifier는 잘리지 않은 원본 body_text(바이트 길이 기준)로 `empty_body`/`no_primary_media` 판정을 수행하며, `pins.description`에 저장되는 값은 이와 무관하게 500 rune으로 잘린 형태다
+
+#### Scenario: same-domain canonical은 og_data에 중복 저장되지 않는다
+- **WHEN** Pin이 upsert될 때
+- **THEN** 채택된 canonical URL은 `pins.url` 컬럼 한 곳에만 저장되며 `og_data.canonical_url` 키는 존재하지 않는다
 
 #### Scenario: media_candidates 상한 적용
 - **WHEN** 추출된 media_candidates가 상한(기본 50)을 초과할 때
@@ -243,7 +255,7 @@ Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 
 ---
 
 ### Requirement: Harvester 노드 단위 통계 정의
-시스템은 Harvester가 처리한 한 노드(URL)에 대해 다음 5개 통계 카테고리 중 정확히 하나로 집계해야 한다(SHALL): `PinsCreated`(신규 봇 Pin insert), `Deduped`(기존 봇 Pin update), `Skipped`(classifier가 pinnable=false 판정), `Failed`(extractor/upsert 에러), `AdapterFallback`(어댑터 실패로 generic으로 fallback). ScriptAdapter가 RawItem을 N개 반환하더라도 노드 1개당 통계 1개만 집계되어야 한다(SHALL).
+시스템은 Harvester가 처리한 한 노드(URL)에 대해 다음 4개 주 카테고리 중 정확히 하나로 집계해야 한다(SHALL): `PinsCreated`(신규 봇 Pin insert), `Deduped`(기존 봇 Pin update), `Skipped`(classifier가 pinnable=false 판정), `Failed`(extractor/upsert 에러). `AdapterFallback`(어댑터 실패로 generic으로 fallback)은 주 카테고리와 독립적인 부가 카운터이며 주 카테고리와 동시에 증가할 수 있다(SHALL). ScriptAdapter가 RawItem을 N개 반환하더라도 노드 1개당 주 카테고리 증가는 1이어야 한다(SHALL).
 
 #### Scenario: 신규 페이지 harvest
 - **WHEN** Harvester가 새 canonical URL의 페이지를 처리하고 Pin을 새로 insert할 때

@@ -10,9 +10,9 @@
 ## What Changes
 
 - 새 capability spec `harvester` 도입. 다음 정본 경로를 정의한다:
-  1. **Generic HTML→Pin extractor**: 어떤 페이지든 OpenGraph → Twitter Card → `<article>`/주요 본문 → JSON-LD(`schema.org/Article`, `schema.org/CreativeWork`) → HTML title 순으로 fallback 체인을 적용해 Pin 후보 문서를 만든다. 추출 필드: `title`, `body_text`(본문 텍스트, `pins.description`에만 저장되며 `og_data`에는 저장하지 않음), `canonical_url`, `thumbnail_url`, `media_candidates[]`(image/video/audio URL 후보), `lang`, `author`, `published_at`, `og_data`(원본 메타 JSON, body_text 제외).
+  1. **Generic HTML→Pin extractor**: 어떤 페이지든 OpenGraph → Twitter Card → `<article>`/주요 본문 → JSON-LD(`schema.org/Article`, `schema.org/CreativeWork`) → HTML title 순으로 fallback 체인을 적용해 Pin 후보 문서를 만든다. 추출 필드: `title`, `body_text`(본문 텍스트, `pins.description`에만 500 rune 잘라 저장되며 `og_data`에는 저장하지 않음), `canonical_url`(`pins.url` 컬럼이 단일 SSOT, `og_data`에는 저장하지 않음), `thumbnail_url`, `media_candidates[]`(image/video/audio URL 후보), `lang`, `author`, `published_at`, `og_data`(원본 메타 JSON, body_text 및 canonical_url 제외).
   2. **Content classifier**: 추출 결과가 Pin이 될 자격이 있는지 판정하고, 부적합 시 사유를 `listing` / `empty_body` / `no_primary_media` 중 하나로 분류한다. 부적합 페이지는 Pin을 만들지 않고 frontier row의 `harvested_at`만 마킹한다(반복 fetch 방지).
-  3. **Canonical-URL upsert**: Bot이 만드는 Pin은 canonical URL 기준으로 멱등하게 upsert된다. ERD의 "user pin URL 중복 허용" 정책은 유지하기 위해, 봇 계정이 만든 Pin에만 적용되는 partial unique index `pins(url) WHERE creator_id = BotCreatorID`를 추가한다. Cross-domain canonical(HTML의 canonical이 fetch URL과 다른 도메인을 가리키는 경우)은 무시하고 `canonical_url = fetch_url`로 fallback한다.
+  3. **Canonical-URL upsert**: Bot이 만드는 Pin은 canonical URL 기준으로 멱등하게 upsert된다. ERD의 "user pin URL 중복 허용" 정책은 유지하기 위해, 봇 계정이 만든 Pin에만 적용되는 partial unique index `pins(url) WHERE creator_id = '<BotCreatorID UUID 리터럴>'`를 추가한다. `UpsertBotPinByURL` 쿼리도 동일한 UUID 리터럴을 `ON CONFLICT WHERE` 절에 포함해야 partial index arbiter inference에 성공한다. Cross-domain canonical(HTML의 canonical이 fetch URL과 다른 도메인을 가리키는 경우) 판정은 extractor의 canonical_url fallback 체인 내부에서만 수행되며, Harvester 결합 단계는 extractor 결과를 그대로 신뢰한다.
   4. **PerSiteAdapter / AdapterRegistry**: `domain → Adapter` 레지스트리. 도메인에 매치되는 어댑터가 있으면 generic extractor 대신 어댑터 결과를 채택한다(또는 generic 결과를 보강한다). 기존 `GojaExecutor`는 `ScriptAdapter`라는 한 가지 구현으로 래핑되어 레지스트리에 등록된다(즉, JS 스크립트는 default가 아닌 per-site override다). ScriptAdapter는 **첫 번째 RawItem을 정본 PinDocument(title/thumbnail_url/body_text/description 등 모든 메타 필드)로 채택하고, 나머지 RawItem들은 `og_data.media_candidates` 배열로** 축약한다.
   5. **Frontier 역참조**: Pin이 어떤 frontier URL에서 유래했는지를 추적할 수 있도록 `og_data.source` 키에 원본 fetch URL을 보존한다. cross-domain canonical 무시 정책에 따라 `og_data.source = fetch_url`이다.
 
@@ -35,8 +35,9 @@
   - `apps/api/internal/bot/harvester.go` — `executeNode`가 "스크립트 호출"이 아닌 "AdapterRegistry.Resolve(domain) || GenericExtractor"를 사용하도록 변경. 스크립트가 없는 도메인도 Pin이 생성된다.
   - `apps/api/internal/bot/harvest_pipeline.go` — RawItem 흐름은 ScriptAdapter 경로에만 남기고, generic 경로는 Pin upsert로 바로 진입.
 - **DB**:
-  - `pins` 테이블에 partial unique index `pins(url) WHERE creator_id = <BotCreatorID>` 추가. 일반 사용자 Pin의 URL 중복 허용 정책은 유지된다.
-  - 신규 컬럼은 추가하지 않는다. 추출된 부가 메타(`canonical_url`, `lang`, `author`, `published_at`, `media_candidates`)는 기존 `pins.og_data` JSONB에 보관한다.
+  - `pins` 테이블에 partial unique index `pins(url) WHERE creator_id = '<BotCreatorID UUID 리터럴>'` 추가. 일반 사용자 Pin의 URL 중복 허용 정책은 유지된다.
+  - 신규 컬럼은 추가하지 않는다. 추출된 부가 메타(`lang`, `author`, `published_at`, `media_candidates`, `source`, `extractor`, `classifier`)는 기존 `pins.og_data` JSONB에 보관한다. canonical URL은 `pins.url` 컬럼이 단일 SSOT이며 `og_data`에 중복 저장하지 않는다. `body_text`도 `og_data`에 저장하지 않으며 `pins.description`(500 rune)에 저장한다.
+  - dedup 전처리 시 `harvester_frontier_pins` 등 pin_id 참조 조인 테이블을 생존 Pin으로 재할당한 뒤 중복 봇 Pin을 삭제한다(CASCADE로 인한 frontier 참조 유실 방지).
 - **인터페이스**: 본 change는 `URLScheduler` consumer 루프(`harvester-scheduler-consumer`)가 호출하는 `ParseDocument`/`Index`의 내부 구현을 정의한다. scheduler 인터페이스 자체는 건드리지 않는다.
 - **범위 외 (별도 change)**: 이미지/HTML 캐시(`harvester-image-cache`), snapshot first fetch(`harvester-snapshot-first-fetch`), 워커 예산/종료 조건(`harvester-worker-budget`), scheduler consumer 루프 자체(`harvester-scheduler-consumer`).
 - **참조**:
