@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fuguebot 의존성 그래프 생성기 — make fuguebot-progress에서 호출됨."""
+import glob
 import os
 import subprocess
 
@@ -7,7 +8,11 @@ import subprocess
 def task_info(name):
     path = f"openspec/changes/{name}/tasks.md"
     if not os.path.exists(path):
-        return "?", 0, 0
+        # 아카이브된 change는 `archive/<date>-<name>/tasks.md` 형태로 저장된다.
+        matches = sorted(glob.glob(f"openspec/changes/archive/*-{name}/tasks.md"))
+        if not matches:
+            return "?", 0, 0
+        path = matches[-1]
     content = open(path).read()
     done = content.count("- [x]")
     inp  = content.count("- [~]")
@@ -37,7 +42,7 @@ def pct_label(done, total):
 
 
 # ── 레이아웃 상수 ──────────────────────────────────────────────
-W, H   = 820, 540
+W, H   = 880, 540
 NW, NH = 196, 72   # node width, height
 
 # (x, y, w, h)
@@ -49,6 +54,7 @@ NODES = {
     "hpd":     (532, 178, NW, NH),
     "hsc":     (407, 322, NW, NH),
     "hwb":     (407, 440, NW, NH),
+    "hsfc":    (660, 440, NW, NH),
 }
 
 
@@ -170,6 +176,14 @@ parts += [
 hwb = task_info("harvester-worker-budget")
 parts.append(arrow(cx("hsc"), bot("hsc"), cx("hwb"), top("hwb")))
 parts.append(draw_node("hwb", hwb, "harvester-worker-", "budget"))
+
+# harvester-snapshot-first-fetchconsumer (integration spec-delta)
+# prereqs: hsc + hsf. hsf는 hsc를 거쳐 transitive 의존하므로 arrow는 hsc 하나만.
+hsfc = task_info("harvester-snapshot-first-fetchconsumer")
+parts += [
+    arrow(cx("hsc"), bot("hsc"), cx("hsfc"), top("hsfc")),
+    draw_node("hsfc", hsfc, "harvester-snapshot-", "first-fetchconsumer"),
+]
 
 # ── HTML ──────────────────────────────────────────────────────
 svg_body = "\n  ".join(parts)

@@ -175,14 +175,10 @@ fuguebot-progress:
 	@printf '[ 진행 중 (active) ]\n'
 	@printf '──────────────────────────────────────────────────────────────────\n'
 	@total_done=0; total_all=0; \
-	for name in \
-		pioneer-scheduler-consumer \
-		harvester-scheduler-consumer \
-		harvester-snapshot-first-fetch \
-		harvester-pin-document \
-		pioneer-worker-budget \
-		harvester-worker-budget; do \
-		tasks_file="openspec/changes/$$name/tasks.md"; \
+	for dir in openspec/changes/*/; do \
+		name=$$(basename "$$dir"); \
+		[ "$$name" = "archive" ] && continue; \
+		tasks_file="$$dir/tasks.md"; \
 		if [ ! -f "$$tasks_file" ]; then \
 			printf '  (!) %-40s tasks.md 없음\n' "$$name"; \
 			continue; \
