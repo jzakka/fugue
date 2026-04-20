@@ -276,7 +276,7 @@ Pioneer의 한 fetch 결과는 (a) 새 링크 N개 → `pioneer_frontier` 재enq
 - `SetStatus(key, status, pinIDs)` — `fetched` / `fetch_failed` / `harvested` / `harvest_failed` 네 status만 허용. `harvested` 시 `harvester_frontier_pins` 테이블에 `pinIDs`(UUID)를 동일 트랜잭션으로 INSERT.
 - `RecordFetchError(key, errorKind)` / `RecordHarvestError(key, errorKind)` — `http_4xx` / `http_5xx` / `network` / `timeout` 네 enum. 4xx는 즉시 `*_error_count = 5`(dead), 나머지는 `scheduler-retry-backoff` 공식에 따라 count++ + `next_*_at` jittered backoff.
 
-In-flight marker는 별도 컬럼 없이 `next_fetch_at = clock.Now() + 10min`(Go 시계 기준) UPDATE로 처리되며 lease 만료 시 partial index에 자연히 복귀한다. 호출부(Pioneer/Harvester worker)의 실제 교체는 `harvester-scheduler-consumer` / `pioneer-*` 후속 change에서 이루어진다.
+In-flight marker는 별도 컬럼 없이 `next_fetch_at = clock.Now() + 10min`(Go 시계 기준) UPDATE로 처리되며 lease 만료 시 partial index에 자연히 복귀한다. 호출부(Pioneer/Harvester worker)의 실제 교체는 `pioneer-scheduler-consumer` / `harvester-scheduler-consumer` change에서 완료되었다 — 두 consumer 모두 `URLScheduler.Dequeue` 기반 단일 루프이며, 사이트 단위 BFS는 더 이상 런타임에 존재하지 않는다.
 
 ### 로드맵
 - `scheduler-frontier-table` *(완료)*: 테이블/인덱스/제약/lease 규약 확정. sqlc 모델 생성.
@@ -284,7 +284,7 @@ In-flight marker는 별도 컬럼 없이 `next_fetch_at = clock.Now() + 10min`(G
 - `scheduler-retry-backoff` *(완료)*: `fetch_error_count` / `harvest_error_count`에 따른 `next_*_at` exponential backoff 공식.
 - `scheduler-host-token-bucket` *(완료)*: host별 동시 요청 제어(토큰 버킷) — `host` 컬럼을 키로 사용.
 - `pioneer-scheduler-consumer` *(완료)*: Pioneer Run() 진입점을 `URLScheduler.Dequeue` 기반 consumer 루프로 교체하고, fetch 성공 시 새 링크를 `Enqueue(QueuePioneer, ...)`로, 원본+snapshot_key를 `EnqueueHarvester(url, snapKey)`로 fanout한다 (feature flag `BOT_PIONEER_SCHEDULER`로 롤아웃).
-- `harvester-scheduler-consumer` (예정): Harvester Run() 진입점을 `URLScheduler.Dequeue(QueueHarvester)` 기반으로 교체.
+- `harvester-scheduler-consumer` *(완료)*: Harvester Run() 진입점을 `URLScheduler.Dequeue(QueueHarvester)` 기반 consumer 루프(`HarvesterConsumer`)로 교체. 사이트 단위 BFS(`harvestBFS`, `visited map`, `nodeMap`, `ListNodesBySite` 사전 적재)는 전부 제거되고, 한 워커가 score 우선순위로 여러 host row를 섞어 처리한다. 실패 시 `SetStatus("harvest_failed", nil)` + `RecordHarvestError(url, errorKind)` 이중 호출(errorKind는 `http_4xx`/`http_5xx`/`network`/`timeout` 4-enum만); 성공 시 `SetStatus("harvested", pinIDs)` 단일 호출로 `harvested_at` UPDATE + `harvest_error_count=0` 리셋 + `harvester_frontier_pins` INSERT가 한 트랜잭션에서 수행된다.
 
 ### Host Token Bucket (politeness)
 

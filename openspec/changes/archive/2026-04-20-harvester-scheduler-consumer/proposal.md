@@ -8,15 +8,15 @@
 
 ## What Changes
 
-- 새 capability spec `harvester` 도입. Harvester를 "URLScheduler consumer"로 정의한다.
+- 기존 `harvester` capability에 "URLScheduler consumer" 정의를 추가한다.
 - Harvester 메인 루프를 다음 한 줄로 환원:
   `scheduler.Dequeue(QueueHarvester) → fetchSnapshotOrLive → harvestPipeline.Process → createPins → scheduler.SetStatus(url, "harvested", pinIDs)`.
 - URL 수급은 `scheduler.Dequeue(scheduler.QueueHarvester)`로만 이루어진다. 자체 BFS/`BFSQueue`/`visited`/`nodeMap`/사이트별 인메모리 캐시는 **전면 제거**한다.
 - Harvester는 `harvester_frontier`의 partial index를 통해 claim한다. 실제 SQL/락 정의는 `scheduler-claim-api` 책임, 파티셜 인덱스 정의는 `scheduler-frontier-table` 책임.
 - `snapshot_key`가 있으면 object storage에서 snapshot을 읽어 HTML로 사용하고, 없거나 miss이면 live HTTP fetch로 폴백한다. 실제 fetch 동작은 `harvester-snapshot-first-fetch` 책임이며, 본 change는 "snapshot-first 경로를 경유한다"는 호출 규약만 정의한다.
-- Pin 파싱(`harvestPipeline.Process`)은 `harvester-pin-document` 책임. 본 change는 pipeline이 반환한 `PinDocument`를 받아 Pin을 생성하고 그 `pin_id`들을 `SetStatus`로 전달하는 흐름만 정의한다.
-- 다중 Pin 처리: 한 URL이 N개의 Pin을 생성할 수 있다. `createPins`의 결과 `[]int64`를 `SetStatus(url, "harvested", pinIDs)`에 그대로 전달하면, scheduler 구현이 `harvester_frontier.harvested_at` UPDATE와 `harvester_frontier_pins` 일괄 INSERT를 **한 트랜잭션**에서 처리한다. `pinnable = false`거나 Pin이 0건이면 `pinIDs = nil`로 호출해 매핑 없이 완료 표시한다.
-- 실패 처리: fetch/파싱/Pin 생성 중 어느 단계든 실패하면 `SetStatus(url, "harvest_failed", nil)`과 `RecordHarvestError(url, errorKind)`를 **둘 다** 호출한다(DECISIONS §3 "Consumer 호출 규약"). `errorKind`는 `"http_4xx" | "http_5xx" | "network" | "timeout" | "parse" | "pin_create"` 중 하나.
+- Pin 파싱(`harvestPipeline.Process`)은 `harvester-pin-document` 책임. 본 change는 pipeline이 반환한 `PinDocument`를 받아 Pin을 생성하고 그 `pinIDs`(`[]uuid.UUID`)를 `SetStatus`로 전달하는 흐름만 정의한다.
+- 다중 Pin 처리: 한 URL이 N개의 Pin을 생성할 수 있다. `createPins`의 결과 `[]uuid.UUID`를 `SetStatus(url, "harvested", pinIDs)`에 그대로 전달하면, scheduler 구현이 `harvester_frontier.harvested_at` UPDATE와 `harvester_frontier_pins` 일괄 INSERT를 **한 트랜잭션**에서 처리한다. `pinnable = false`거나 Pin이 0건이면 `pinIDs = nil`로 호출해 매핑 없이 완료 표시한다.
+- 실패 처리: fetch/파싱/Pin 생성 중 어느 단계든 실패하면 `SetStatus(url, "harvest_failed", nil)`과 `RecordHarvestError(url, errorKind)`를 **둘 다** 호출한다(DECISIONS §3 "Consumer 호출 규약"). `errorKind`는 `scheduler-claim-api`가 허용하는 enum 4종(`"http_4xx" | "http_5xx" | "network" | "timeout"`) 중 하나. 파싱/Pin 생성 실패 같은 내부 분류는 consumer 내부에서 위 4종 중 하나로 매핑한다(design.md Decision 6 참조).
 - 재harvest 없음: `harvester_frontier` UPSERT는 `WHERE harvested_at IS NULL` 가드를 가지므로(DECISIONS §8), Harvester 측은 이미 harvest된 URL을 다시 claim할 걱정을 할 필요가 없다.
 - 폴링 책임: 빈 큐 polling은 `Dequeue` **내부 책임**이다(DECISIONS §3, 1초 sleep). Harvester consumer 루프는 sleep/backoff를 자체 수행하지 않는다.
 - 워커 단위 동시성: `FOR UPDATE SKIP LOCKED` claim은 `scheduler-claim-api`가 보장. Harvester는 자체 advisory lock/분산 락을 쓰지 않는다.
@@ -24,11 +24,9 @@
 
 ## Capabilities
 
-### New Capabilities
-- `harvester`: `harvester_frontier`에서 `Dequeue(QueueHarvester)`로 claim한 한 URL을 snapshot-first fetch → `PinDocument` 파싱 → Pin 생성 → `SetStatus(url, "harvested", pinIDs)`로 `harvester_frontier_pins` 매핑까지 단일 consumer 루프로 정의. BFS/인메모리 큐/사이트별 nodeMap 사용 금지. 다중 워커 정확성은 scheduler에 위임.
-
 ### Modified Capabilities
-- `bot`: 본 change의 `specs/bot/spec.md`에서 직접 REMOVED delta로 다음 requirement 2건을 제거한다. 동등한 행위는 새 `harvester` spec에서 frontier 기반으로 재정의된다.
+- `harvester`: 기존 `openspec/specs/harvester/` capability(archived `harvester-pin-document`가 도입한 Pin 멱등성·PinDocument 스키마·classifier 등)에 **URLScheduler consumer 모델**을 추가한다. `harvester_frontier`에서 `Dequeue(QueueHarvester)`로 claim한 한 URL을 snapshot-first fetch → `PinDocument` 파싱 → Pin 생성 → `SetStatus(url, "harvested", pinIDs)`로 `harvester_frontier_pins` 매핑까지 단일 consumer 루프로 정의. BFS/인메모리 큐/사이트별 nodeMap 사용 금지. 다중 워커 정확성은 scheduler에 위임. 기존 "Harvester 노드 단위 통계 정의"(PinsCreated/Deduped/Skipped/Failed)는 보존되며 의미 단위가 "1 iteration = 1 URL = 1 카운터 증가"로 해석된다.
+- `bot`: 본 change의 `specs/bot/spec.md`에서 직접 REMOVED delta로 다음 requirement 2건을 제거한다. 동등한 행위는 `harvester` spec의 consumer 모델에서 frontier 기반으로 재정의된다.
   - "Harvester 실행 완료 시 전체 통계를 집계한다" (사이트 단위 BFS 종료 시점 누적 통계)
   - "Harvester CLI가 실제 모드를 지원한다" (사이트 ID 인자로 BFS 1회 트리거하는 CLI 모드)
 

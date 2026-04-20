@@ -164,21 +164,16 @@ var pioneerCmd = &cobra.Command{
 }
 
 var harvesterCmd = &cobra.Command{
-	Use:   "harvester <site>",
-	Short: "Run Harvester crawler for a site",
-	Long:  "Harvester executes scripts and extracts content from sites.",
-	Args:  cobra.ExactArgs(1),
+	Use:   "harvester",
+	Short: "Run Harvester consumer worker",
+	Long: `Harvester is a URLScheduler consumer: it dequeues URLs from
+harvester_frontier, fetches each via snapshot-first CompositeFetcher,
+extracts a PinDocument, creates Pins, and reports back via SetStatus.
+Takes no site argument — one worker processes URLs across all hosts in
+priority order defined by harvester_frontier's partial index.`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		siteName := args[0]
-
-		log.Printf("fuguebot: starting harvester for site: %s", siteName)
-
-		// Resolve site name to domain
-		domain, err := resolveDomain(siteName)
-		if err != nil {
-			return err
-		}
-		log.Printf("fuguebot: resolved %s → %s", siteName, domain)
+		log.Println("fuguebot: starting harvester consumer worker")
 
 		// Initialize infrastructure
 		infra, err := initInfrastructure()
@@ -187,21 +182,16 @@ var harvesterCmd = &cobra.Command{
 		}
 		defer infra.Close()
 
-		// Get site from database
-		ctx := context.Background()
-		siteRepo := bot.NewSiteRepo(infra.DB)
-		site, err := siteRepo.GetByDomain(ctx, domain)
-		if err != nil {
-			return fmt.Errorf("site not found in database: %s (domain: %s)", siteName, domain)
+		// Choose executor and pipeline based on HARVESTER_MODE. The executor
+		// is consumed only by ScriptAdapter registration; mock executor is
+		// still useful for exercising the consumer without a real goja runtime.
+		ctx := cmd.Context()
+		if ctx == nil {
+			ctx = context.Background()
 		}
-
-		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
-
-		// Initialize Harvester dependencies
-		graphRepo := bot.NewGraphRepo(infra.DB)
+		siteRepo := bot.NewSiteRepo(infra.DB)
 		scriptRepo := bot.NewScriptRepo(infra.DB)
 
-		// Choose executor and pipeline based on HARVESTER_MODE
 		var executor bot.ScriptExecutor
 		var pipeline bot.DocumentPipeline
 
@@ -230,8 +220,7 @@ var harvesterCmd = &cobra.Command{
 		// Build the AdapterRegistry and register a ScriptAdapter for every
 		// active site that has at least one (site_id, node_type) script in
 		// the DB. Sites without scripts fall through to the generic
-		// extractor. hasAnyScript is derived from ListScriptKeysForGraph
-		// (one DB round-trip) to avoid per-site lookups.
+		// extractor.
 		scriptSites := map[uuid.UUID]bool{}
 		if keys, keysErr := infra.Queries.ListScriptKeysForGraph(ctx); keysErr == nil {
 			for _, k := range keys {
@@ -241,20 +230,19 @@ var harvesterCmd = &cobra.Command{
 			log.Printf("fuguebot: list script keys: %v (continuing with generic only)", keysErr)
 		}
 		registry := bot.NewInMemoryAdapterRegistry()
-		if err := bot.RegisterScriptAdaptersForActiveSites(
+		if regErr := bot.RegisterScriptAdaptersForActiveSites(
 			ctx, registry, siteRepo, scriptRepo, executor,
 			func(_ context.Context, siteID uuid.UUID) (bool, error) {
 				return scriptSites[siteID], nil
 			},
-		); err != nil {
-			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", err)
+		); regErr != nil {
+			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", regErr)
 		}
 
 		// Snapshot-first Fetcher wiring (harvester-snapshot-first-fetch).
 		// CompositeFetcher tries the ObjectStorage snapshot first and falls
-		// back to HTTP on ANY error — not_found, expired (TTL'd objects
-		// surface as NoSuchKey), network, permission, or 5xx. The bucket
-		// must match the one Pioneer writes to so keys line up bit-for-bit.
+		// back to HTTP on ANY error. The bucket must match the one Pioneer
+		// writes to so keys line up bit-for-bit.
 		harvestBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
 		snapshotReader := snapshot.NewS3Reader(infra.Storage.S3Client(), harvestBucket)
 		compositeFetcher := bot.NewCompositeFetcher(
@@ -262,37 +250,29 @@ var harvesterCmd = &cobra.Command{
 			bot.NewHTTPFetcher(),
 		)
 
-		// Create Harvester instance. Classifier and extractor read their
-		// thresholds from env.
-		harvester := bot.NewHarvester(
-			siteRepo,
-			graphRepo,
-			scriptRepo,
-			executor,
-			pipeline,
+		// Scheduler boundary: URLs come from harvester_frontier via
+		// Dequeue(QueueHarvester). FOR UPDATE SKIP LOCKED in the scheduler
+		// guarantees no two consumer workers claim the same row even when
+		// this command runs N times concurrently.
+		sched := scheduler.NewPGURLScheduler(infra.DB).
+			WithRateLimiter(scheduler.NewHostRateLimiter(scheduler.FactoryDefaultRatePerSec, scheduler.FactoryDefaultBurst, true))
+
+		consumer := bot.NewHarvesterConsumer(
+			sched,
+			compositeFetcher,
 			registry,
 			bot.NewGenericExtractorFromEnv(),
 			bot.NewClassifierFromEnv(),
-			bot.HarvesterConfig{
-				RateLimitMs:      500,
-				RetryFailedNodes: false,
-				MaxRetries:       3,
-			},
-		).WithFetcher(compositeFetcher)
+			pipeline,
+		)
 
-		// Run Harvester
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		// Wire SIGINT/SIGTERM for clean worker shutdown between URLs.
+		// URLScheduler.Dequeue does not take a context, so a pending Dequeue
+		// may block up to one internal poll interval after cancellation
+		// before Run observes it — documented in postgres_scheduler.go.
+		runCtx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer cancel()
-
-		stats, err := harvester.Run(ctx, site.ID)
-		if err != nil {
-			log.Printf("fuguebot: harvester failed: %v", err)
-			return err
-		}
-
-		log.Printf("fuguebot: harvester completed — nodes: %d, pins created: %d, deduped: %d, failed: %d",
-			stats.NodesProcessed, stats.PinsCreated, stats.Deduped, stats.Failed)
-		return nil
+		return consumer.Run(runCtx)
 	},
 }
 

@@ -19,7 +19,7 @@
 - Harvester의 진행 상태는 100% `harvester_frontier` row에 보관 (인메모리 큐/visited/nodeMap 금지).
 - 다중 워커 정확성(중복 dequeue 금지, at-most-once Pin 생성)은 `URLScheduler` 책임에 위임. Harvester는 임의 워커 수에서 안전하게 돌 수 있음을 명시한다.
 - 사이트 경계와 무관하게 동작: 한 워커가 여러 host의 row를 섞어 처리할 수 있다. "사이트 단위 BFS" 개념을 Harvester에서 제거한다.
-- 다중 Pin 처리: 한 URL이 여러 Pin을 생성하면 `[]int64` pinIDs 전체를 `SetStatus`가 한 트랜잭션에서 `harvester_frontier_pins`에 일괄 INSERT.
+- 다중 Pin 처리: 한 URL이 여러 Pin을 생성하면 `[]uuid.UUID` pinIDs 전체를 `SetStatus`가 한 트랜잭션에서 `harvester_frontier_pins`에 일괄 INSERT.
 - 실패 시 `SetStatus("harvest_failed", nil)` + `RecordHarvestError(url, errorKind)` 이중 호출 규약 준수.
 
 **Non-Goals:**
@@ -54,18 +54,18 @@
 
 ### Decision 3: Snapshot-first fetch 경유
 
-**선택**: 루프의 fetch 단계는 `fetchSnapshotOrLive(url)` 헬퍼(또는 동등 함수)를 호출한다. 이 헬퍼는 `harvester-snapshot-first-fetch` capability가 정의한다:
+**선택**: 루프의 fetch 단계는 `harvester-snapshot-first-fetch` capability가 정의한 `Fetcher.Fetch(url) ([]byte, error)` 인터페이스를 호출한다(해당 change의 design.md §Decision 1). 주입되는 구현체는 `CompositeFetcher`로 내부에서 다음을 수행한다:
 - `harvester_frontier.snapshot_key`가 non-NULL이면 object storage에서 snapshot을 읽는다.
-- snapshot이 miss(key 없음/만료/네트워크/권한/내부 에러)이면 HTTP live fetch로 폴백한다(DECISIONS §11, 단일 "miss"로 취급).
+- snapshot이 miss(key 없음/만료/네트워크/권한/내부 에러)이면 HTTP live fetch로 폴백한다(단일 "miss"로 취급).
 
-본 spec은 "snapshot-first 경로를 경유한다"는 호출 규약만 정의하고, storage 클라이언트/HTTP 리트라이는 `harvester-snapshot-first-fetch`에 위임한다.
+`Fetcher.Fetch`가 반환한 에러는 consumer가 `classifyFetchError(err)` 헬퍼로 scheduler enum(`"http_4xx" | "http_5xx" | "network" | "timeout"`)으로 매핑한다(Pioneer consumer의 `classifyError` 패턴과 동형). 본 spec은 "snapshot-first 경로를 경유한다"는 호출 규약과 consumer 측 에러 분류 책임만 정의하고, storage 클라이언트/HTTP 리트라이는 `harvester-snapshot-first-fetch`에 위임한다.
 
 **근거**: Harvester가 snapshot 키 포맷을 직접 알아야 할 이유는 없다. 책임 분리가 명확.
 
 ### Decision 4: 파싱 → `PinDocument` → Pin 생성 흐름
 
 **선택**: fetch된 HTML을 `harvestPipeline.Process(html)`에 넘기면 `PinDocument`(핀 0~N개로 materialize 가능한 구조)를 반환한다. consumer는:
-- `pinDocument.Pinnable == true` → `createPins(pinDocument) → pinIDs []int64`
+- `pinDocument.Pinnable == true` → `createPins(pinDocument) → pinIDs []uuid.UUID`
 - `pinDocument.Pinnable == false` → skip (pinIDs = nil)
 
 다음 구문은 `harvester-pin-document` capability에서 정의된 스키마를 그대로 사용하며, 본 spec은 흐름만 정의한다.
@@ -74,11 +74,12 @@
 
 ### Decision 5: 성공 상태 전이는 `SetStatus(url, "harvested", pinIDs)` 단일 호출
 
-**선택**: `scheduler.SetStatus`가 다음을 한 트랜잭션으로 처리한다(DECISIONS §3):
+**선택**: `scheduler.SetStatus`가 다음을 한 트랜잭션으로 처리한다(`scheduler/spec.md` 의 `SetStatus` requirement 참조):
 1. `UPDATE harvester_frontier SET harvested_at = now(), last_updated_at = now() WHERE url_hash = sha256(url)`
-2. `INSERT INTO harvester_frontier_pins (frontier_id, pin_id) VALUES (..., $1), (..., $2), ...` (pinIDs 일괄 INSERT)
+2. `UPDATE harvester_frontier SET harvest_error_count = 0` — 이전 harvest 시도에서 누적된 실패 카운터를 리셋한다(scheduler SSOT: `scheduler/spec.md` `"harvested"` status 요구사항).
+3. `INSERT INTO harvester_frontier_pins (frontier_id, pin_id) VALUES (..., $1), (..., $2), ...` (pinIDs 일괄 INSERT)
 
-pinIDs가 `nil` 또는 빈 슬라이스면 2단계는 no-op. row는 여전히 harvested로 표시되어 partial index(`WHERE harvested_at IS NULL`)에서 자동 제외된다.
+pinIDs가 `nil` 또는 빈 슬라이스면 3단계는 no-op. row는 여전히 harvested로 표시되어 partial index(`WHERE harvested_at IS NULL`)에서 자동 제외된다.
 
 **근거**: `harvested_at`과 `harvester_frontier_pins` INSERT가 분리되면 "매핑 없는 harvested row" 또는 "harvested_at이 NULL인데 pin 매핑이 있는 row"가 생길 수 있다. 한 트랜잭션으로 묶어 이 불일치를 원천 차단한다.
 
@@ -89,19 +90,19 @@ pinIDs가 `nil` 또는 빈 슬라이스면 2단계는 no-op. row는 여전히 ha
 scheduler.SetStatus(url, "harvest_failed", nil)
 scheduler.RecordHarvestError(url, errorKind)
 ```
-두 호출을 순서대로 수행한다. `errorKind`는 아래 분류 규칙을 따른다.
+두 호출을 순서대로 수행한다. `errorKind`는 `scheduler-claim-api`가 허용하는 enum 4종으로 제한된다(`scheduler/spec.md` `RecordHarvestError` requirement): `"http_4xx"`, `"http_5xx"`, `"network"`, `"timeout"`. 그 외 값은 scheduler가 에러를 반환하며 row를 변경하지 않으므로 consumer가 임의로 확장해서는 안 된다.
 
-**`errorKind` 분류 규칙:**
-| 상황 | errorKind |
-|------|-----------|
-| HTTP 4xx 응답 (snapshot miss 후 live fetch) | `"http_4xx"` |
-| HTTP 5xx 응답 | `"http_5xx"` |
-| DNS/connect/TLS 오류 | `"network"` |
-| fetch/스크립트 실행 타임아웃 | `"timeout"` |
-| `harvestPipeline.Process` 자체 실패 (스크립트 런타임/구문 에러 등) | `"parse"` |
-| DB 에러 등으로 Pin INSERT 실패 | `"pin_create"` |
+**consumer 측 실패 분류 → scheduler enum 매핑:**
+| 상황 | 내부 분류(로그/메트릭용) | scheduler errorKind |
+|------|-------------------------|---------------------|
+| HTTP 4xx 응답 (snapshot miss 후 live fetch) | `fetch_http_4xx` | `"http_4xx"` |
+| HTTP 5xx 응답 | `fetch_http_5xx` | `"http_5xx"` |
+| DNS/connect/TLS 오류 | `fetch_network` | `"network"` |
+| fetch/스크립트 실행 타임아웃 | `fetch_timeout` | `"timeout"` |
+| `harvestPipeline.Process` 자체 실패 (스크립트 런타임/구문 에러 등) | `parse` | `"network"` — 내부적 일시 실패로 간주, 백오프 후 재시도 |
+| DB 에러 등으로 Pin INSERT 실패 | `pin_create` | `"network"` — 내부적 일시 실패로 간주, 백오프 후 재시도 |
 
-본 spec에서는 위 6종으로 한정한다. `http_4xx`는 `RecordHarvestError` 쪽에서 즉시 `harvest_error_count = 5`로 설정(DECISIONS §3, Pioneer 규칙을 Harvester에도 동일 적용).
+`parse`/`pin_create`는 consumer 내부 로그·메트릭 라벨로만 사용하고, scheduler 보고 시에는 4종 enum 중 하나로 매핑한다. 내부 분류를 `network`로 집약하는 근거: 두 실패 모두 "특정 입력이나 일시적 리소스 상태로 인해 실패했을 수 있다"는 점에서 retriable로 취급하는 것이 안전하다. 실제로 같은 입력에 대해 계속 실패하면 `harvest_error_count`가 5에 도달해 partial index에서 자동으로 제외된다(`scheduler-claim-api`의 dead 경계). `http_4xx`는 `RecordHarvestError` 쪽에서 즉시 `harvest_error_count = 5`로 설정(Pioneer 규칙을 Harvester에도 동일 적용).
 
 **근거**: DECISIONS §3 "Consumer 호출 규약: 실패 시 SetStatus + RecordXxxError 둘 다 호출". 상태 갱신과 카운터 누적은 책임이 다르므로 별도 API로 분리되어 있다.
 
@@ -136,20 +137,22 @@ for {
         continue
     }
 
-    html, errorKind, fetchErr := fetchSnapshotOrLive(ctx, url)
-    // harvester-snapshot-first-fetch 책임: snapshot 우선, miss 시 HTTP fallback.
-    // 반환된 errorKind는 "http_4xx" | "http_5xx" | "network" | "timeout" 중 하나 (실패 시).
+    html, fetchErr := fetcher.Fetch(url)
+    // harvester-snapshot-first-fetch 책임: Fetcher.Fetch(url) ([]byte, error).
+    // CompositeFetcher가 ObjectStorage 우선 → HTTP fallback을 내부에서 처리.
     if fetchErr != nil {
+        errorKind := classifyFetchError(fetchErr) // "http_4xx"|"http_5xx"|"network"|"timeout"
         scheduler.SetStatus(url, "harvest_failed", nil)
         scheduler.RecordHarvestError(url, errorKind)
         continue
     }
 
     pinDocument, parseErr := harvestPipeline.Process(ctx, html, url)
-    // harvester-pin-document 책임. Process 자체 실패 시 errorKind = "parse".
+    // harvester-pin-document 책임. Process 자체 실패는 내부 분류 `parse`로 집계하고
+    // scheduler에는 `"network"`로 보고(일시 실패 간주, backoff 재시도).
     if parseErr != nil {
         scheduler.SetStatus(url, "harvest_failed", nil)
-        scheduler.RecordHarvestError(url, "parse")
+        scheduler.RecordHarvestError(url, "network")
         continue
     }
 
@@ -160,14 +163,15 @@ for {
     }
 
     pinIDs, createErr := createPins(ctx, pinDocument)
-    // 한 문서에서 N개 Pin 가능. pinIDs: []int64.
+    // 한 문서에서 N개 Pin 가능. pinIDs: []uuid.UUID.
     if createErr != nil {
+        // 내부 분류 `pin_create` → scheduler `"network"`로 보고.
         scheduler.SetStatus(url, "harvest_failed", nil)
-        scheduler.RecordHarvestError(url, "pin_create")
+        scheduler.RecordHarvestError(url, "network")
         continue
     }
 
-    // 성공 경로: harvested_at UPDATE + harvester_frontier_pins 일괄 INSERT가 한 트랜잭션.
+    // 성공 경로: harvested_at UPDATE + harvest_error_count=0 리셋 + harvester_frontier_pins 일괄 INSERT가 한 트랜잭션.
     scheduler.SetStatus(url, "harvested", pinIDs)
 }
 ```
@@ -186,7 +190,7 @@ for {
 
 1. (선결) `scheduler-frontier-table` 적용 → `harvester_frontier`, `harvester_frontier_pins`, partial index 존재.
 2. (선결) `scheduler-claim-api` 적용 → `Dequeue(QueueType)`, `SetStatus(key, status, pinIDs)`, `RecordHarvestError(key, errorKind)` 사용 가능.
-3. (선결) `harvester-snapshot-first-fetch` 적용 → `fetchSnapshotOrLive` 헬퍼 사용 가능.
+3. (선결) `harvester-snapshot-first-fetch` 적용 → `Fetcher.Fetch(url) ([]byte, error)` 인터페이스와 `CompositeFetcher` 구현체 주입 가능.
 4. (선결) `harvester-pin-document` 적용 → `harvestPipeline.Process → PinDocument` 스키마 확정.
 5. 신규 Harvester `Run(ctx)` 구현: 본 design의 pseudo-code대로 consumer 루프 작성.
 6. 기존 `harvestBFS`, `BFSQueue` 의존, `nodeMap`, `findRootNode`, `findRootNode` 기반 초기화 경로 삭제.

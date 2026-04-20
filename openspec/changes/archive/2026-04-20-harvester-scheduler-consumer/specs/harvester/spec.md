@@ -26,14 +26,14 @@ Harvester의 단일 iteration은 다음 단계를 순서대로 수행해야 한�
 1. `scheduler.Dequeue(scheduler.QueueHarvester)`로 처리 대상 URL을 claim한다.
 2. `harvester-snapshot-first-fetch` capability가 제공하는 snapshot-first 경로로 HTML을 획득한다(snapshot_key가 있으면 snapshot 우선, miss 시 HTTP live fetch).
 3. `harvester-pin-document` capability의 `harvestPipeline.Process`로 HTML을 `PinDocument`로 파싱한다.
-4. `PinDocument.Pinnable`이 true이면 Pin을 생성하여 `pinIDs []int64`를 수집한다. false이면 Pin 생성을 건너뛴다.
+4. `PinDocument.Pinnable`이 true이면 Pin을 생성하여 `pinIDs []uuid.UUID`를 수집한다. false이면 Pin 생성을 건너뛴다.
 5. 성공 시 `scheduler.SetStatus(url, "harvested", pinIDs)`를 호출한다. `pinIDs`가 nil 또는 빈 슬라이스이면 매핑 없이 완료 표기한다.
 
 각 단계의 실패는 다음 단계 실행을 중단해야 하며(SHALL), 실패 처리(본 spec의 별도 requirement)를 따라야 한다.
 
 #### Scenario: 정상 흐름 - Pin 1건 생성
 - **WHEN** `Dequeue`가 URL `U`를 반환하고, snapshot-first fetch와 PinDocument 파싱이 성공하고 `Pinnable = true`이며 Pin 1건이 생성될 때
-- **THEN** Harvester는 `scheduler.SetStatus(U, "harvested", []int64{pinID})`를 호출한 뒤 다음 iteration을 시작한다.
+- **THEN** Harvester는 `scheduler.SetStatus(U, "harvested", []uuid.UUID{pinID})`를 호출한 뒤 다음 iteration을 시작한다.
 
 #### Scenario: 정상 흐름 - Pin N건 생성
 - **WHEN** `PinDocument`가 복수 Pin으로 materialize되어 `pinIDs`가 길이 N(N>=2)인 슬라이스일 때
@@ -50,14 +50,15 @@ Harvester의 단일 iteration은 다음 단계를 순서대로 수행해야 한�
 ---
 
 ### Requirement: 성공 상태 전이는 harvested_at UPDATE와 harvester_frontier_pins INSERT를 한 트랜잭션으로 처리한다
-Harvester consumer가 호출하는 `scheduler.SetStatus(url, "harvested", pinIDs)`는 다음 두 작업을 단일 DB 트랜잭션에서 수행해야 한다(SHALL):
+Harvester consumer가 호출하는 `scheduler.SetStatus(url, "harvested", pinIDs)`는 다음 작업을 단일 DB 트랜잭션에서 수행해야 한다(SHALL):
 - `harvester_frontier` row의 `harvested_at`을 `now()`로 UPDATE.
+- `harvester_frontier.harvest_error_count`를 0으로 리셋(scheduler SSOT: `scheduler/spec.md` `"harvested"` status 요구사항).
 - `pinIDs`의 각 원소에 대해 `harvester_frontier_pins(frontier_id, pin_id)`에 INSERT.
 
-두 작업이 분리되어 "매핑 없는 harvested row" 또는 "harvested_at이 NULL인데 매핑이 있는 row"가 생겨서는 안 된다(SHALL NOT).
+위 작업이 분리되어 "매핑 없는 harvested row" 또는 "harvested_at이 NULL인데 매핑이 있는 row"가 생겨서는 안 된다(SHALL NOT).
 
 #### Scenario: 성공 트랜잭션 원자성
-- **WHEN** `SetStatus(U, "harvested", []int64{p1, p2, p3})` 호출 중 어느 한 INSERT가 실패할 때
+- **WHEN** `SetStatus(U, "harvested", []uuid.UUID{p1, p2, p3})` 호출 중 어느 한 INSERT가 실패할 때
 - **THEN** `harvested_at` UPDATE를 포함한 전체 트랜잭션이 롤백되어, 다음 `Dequeue`에서 동일 row가 다시 반환될 수 있다.
 
 #### Scenario: Pin 0건 성공의 매핑 부재
@@ -75,7 +76,7 @@ Harvester가 fetch/파싱/Pin 생성 중 어느 단계에서 실패하든, 해�
 1. `scheduler.SetStatus(url, "harvest_failed", nil)` — 상태 전이 표기.
 2. `scheduler.RecordHarvestError(url, errorKind)` — 카운터 누적과 backoff 적용.
 
-`errorKind`는 다음 중 하나여야 한다(SHALL): `"http_4xx"`, `"http_5xx"`, `"network"`, `"timeout"`, `"parse"`, `"pin_create"`.
+`errorKind`는 `scheduler-claim-api`가 허용하는 enum 4종 중 하나여야 한다(SHALL): `"http_4xx"`, `"http_5xx"`, `"network"`, `"timeout"`. 열거 외 값을 전달해서는 안 된다(SHALL NOT). Harvester 내부에서 "파싱 실패", "Pin 생성 실패" 같은 범주 구분이 필요하면 로그/메트릭 라벨 수준에서 유지하되, scheduler 보고 시에는 위 4종 중 하나로 매핑해야 한다(SHALL).
 
 #### Scenario: HTTP 4xx 응답 시 errorKind = http_4xx
 - **WHEN** snapshot miss 후 live fetch가 HTTP 4xx를 반환할 때
@@ -93,13 +94,17 @@ Harvester가 fetch/파싱/Pin 생성 중 어느 단계에서 실패하든, 해�
 - **WHEN** fetch 또는 스크립트 실행이 타임아웃으로 종료될 때
 - **THEN** `RecordHarvestError(U, "timeout")`가 호출된다.
 
-#### Scenario: 파싱 실패 시 errorKind = parse
+#### Scenario: 파싱 실패는 scheduler enum으로 매핑된다
 - **WHEN** `harvestPipeline.Process`가 스크립트 구문/런타임 에러 등으로 실패할 때
-- **THEN** `RecordHarvestError(U, "parse")`가 호출된다.
+- **THEN** `RecordHarvestError(U, "network")`가 호출되어 일시 실패로 backoff 재시도에 편입되고, consumer 측 로그/메트릭에는 `parse` 내부 라벨이 남아 운영 분석이 가능하다.
 
-#### Scenario: Pin 생성 실패 시 errorKind = pin_create
+#### Scenario: Pin 생성 실패는 scheduler enum으로 매핑된다
 - **WHEN** DB 에러 등으로 Pin INSERT가 실패할 때
-- **THEN** `RecordHarvestError(U, "pin_create")`가 호출된다.
+- **THEN** `RecordHarvestError(U, "network")`가 호출되고, consumer 측 로그/메트릭에는 `pin_create` 내부 라벨이 남는다.
+
+#### Scenario: scheduler 허용 외 errorKind 미전달
+- **WHEN** Harvester consumer 구현체를 정적으로 점검할 때
+- **THEN** `RecordHarvestError`에 전달되는 errorKind 값은 항상 `"http_4xx"`, `"http_5xx"`, `"network"`, `"timeout"` 중 하나이며, 다른 문자열이 전달되는 경로가 존재하지 않는다.
 
 #### Scenario: SetStatus와 RecordHarvestError 둘 다 호출 보장
 - **WHEN** 어떤 실패 경로로든 iteration이 종료될 때
