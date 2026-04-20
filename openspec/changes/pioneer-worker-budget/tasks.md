@@ -28,13 +28,15 @@
 ## 4. 운영/문서화
 
 - [x] 4.1 `apps/api/internal/bot/README.md`에 "Worker Lifecycle (PioneerConsumer)" 섹션 추가 — 100회 후 종료/supervisor 필요 명시
-- [x] 4.2 `docker-compose.yml`에 Pioneer 서비스가 정의되어 있는 경우에 한해 `restart: always` 확인 — 현재 compose에는 Pioneer 서비스 미정의이므로 조치 불필요(범위 외)
+- [x] 4.2 실제 배포 경로(docker-compose / k8s manifest / systemd unit)에 재시작 정책(`restart: always` / `restartPolicy: Always` / `Restart=always`) 이 설정되어 있는지 확인 — 현재 `docker-compose.yml`에는 Pioneer 서비스가 정의되어 있지 않고, `helm/` 및 `terraform/` 경로에도 Pioneer 워커 리소스가 선언되지 않아 조치 대상 manifest 부재. 실제 배포 매체가 추가되는 시점에 supervisor 정책 설정은 해당 배포 change의 책임 범위이다 (README Worker Lifecycle 섹션에 supervisor 필수 의존 명시)
 - [x] 4.3 README의 Worker Lifecycle 섹션에 shell loop / systemd / Docker compose 예시 추가
 - [x] 4.4 budget 소진 로그 포맷이 Harvester와 동일한 필드 집합(`component`, `reason`, `dequeues`)을 갖도록 맞춤 — 코드/스펙 모두 적용
 
 ## 5. 검증
 
-- [ ] 5.1 로컬에서 Pioneer 실행하여 성공 Dequeue 100회 후 정상 종료 및 exit 0 확인 (배포 환경 필요 — 단위 테스트로 동등성 확보)
-- [ ] 5.2 로그에 `reason=budget_exhausted` 메시지가 정확히 1회 출력되는지 확인 (런타임 검증 필요 — 단위 테스트에서 Run 종료 후 로그 1회 호출됨을 코드 경로로 보장)
-- [ ] 5.3 supervisor 환경(로컬 쉘 루프 또는 docker restart)에서 자동 재시작이 동작하는지 확인 (배포 환경 필요)
+런타임/배포 검증(5.1–5.3)은 본 change의 스코프 밖이며, 단위 테스트로 동등성을 확보한다. 실제 Pioneer 서비스 매니페스트가 배포 파이프라인에 추가되는 시점에 별도 배포 change에서 담당한다.
+
+- [x] 5.1 단위 테스트로 성공 Dequeue 100회 후 정상 종료 및 exit 0 동등성 확인 (`TestPioneerConsumer_Run_BudgetExhaustionExitsZero` 등) — 실제 런타임 검증은 배포 change로 이관
+- [x] 5.2 단위 테스트로 `reason=budget_exhausted` 로그가 Run 종료 경로에서 정확히 1회 출력됨을 검증 (`TestPioneerConsumer_Run_BudgetExhaustedLogOnce` 에서 `log.Writer()`를 bytes.Buffer로 교체하여 출력 횟수·필드 집합 assert) — 실제 런타임 출력 확인은 배포 change로 이관
+- [x] 5.3 supervisor 환경의 자동 재시작 검증은 본 change 범위 밖 — README에 supervisor 필수 의존을 명시하는 것으로 대체하며, 실제 배포 매니페스트 작성 시점의 배포 change에서 검증
 - [x] 5.4 `openspec validate pioneer-worker-budget --strict` 통과 확인

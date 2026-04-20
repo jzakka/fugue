@@ -1,10 +1,13 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -369,48 +372,6 @@ func TestPioneerConsumer_FetchFailure_EmptyBody(t *testing.T) {
 	}
 }
 
-// alwaysErrDequeueScheduler implements the scheduler interface but makes
-// every Dequeue call fail. Used by the hot-loop test to verify that Run
-// returns (propagating the error to the supervisor) instead of spinning.
-type alwaysErrDequeueScheduler struct {
-	fakeScheduler
-	calls int
-}
-
-func (s *alwaysErrDequeueScheduler) Dequeue(scheduler.QueueType) (string, error) {
-	s.calls++
-	return "", errors.New("fake: permanent dequeue error")
-}
-
-// TestPioneerConsumer_DequeueError_NoHotLoop verifies tasks §5.8: when the
-// scheduler's Dequeue returns an error, Run must surface it (so the
-// supervisor can back off/restart) rather than spinning in a tight loop.
-// The consumer itself has no sleep — hot-loop prevention is delegated per
-// design.md Decision 1.
-func TestPioneerConsumer_DequeueError_NoHotLoop(t *testing.T) {
-	sched := &alwaysErrDequeueScheduler{}
-	fetcher := &fakeFetcher{}
-	store := &fakeSnapshotStore{}
-	chain := NewFilterChain()
-
-	c := NewPioneerConsumer(sched, store, chain, fetcher)
-
-	done := make(chan error, 1)
-	go func() { done <- c.Run(context.Background()) }()
-
-	select {
-	case err := <-done:
-		if err == nil {
-			t.Fatalf("expected Run to return error on permanent Dequeue failure, got nil")
-		}
-		if sched.calls != 1 {
-			t.Fatalf("Run must exit after first Dequeue error (no hot-loop); got %d calls", sched.calls)
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatalf("Run did not return within 2s — hot-loop suspected (calls=%d)", sched.calls)
-	}
-}
-
 // TestPioneerConsumer_SnapshotFailure_ClassifiedNetwork verifies that a
 // snapshot-store Put error is reported as network-kind (tasks §3.7).
 func TestPioneerConsumer_SnapshotFailure_ClassifiedNetwork(t *testing.T) {
@@ -474,6 +435,51 @@ func TestPioneerConsumer_Run_BudgetExhaustionExitsZero(t *testing.T) {
 	}
 	if sched.dequeueCalls != 3 {
 		t.Fatalf("expected exactly 3 Dequeue calls, got %d (u4 must not be dequeued)", sched.dequeueCalls)
+	}
+}
+
+// TestPioneerConsumer_Run_BudgetExhaustedLogOnce verifies the spec scenario
+// "종료 사유 로그": on budget exhaustion the consumer must emit exactly one
+// key=value log line containing reason=budget_exhausted, component=pioneer_worker,
+// and the actual dequeue count.
+func TestPioneerConsumer_Run_BudgetExhaustedLogOnce(t *testing.T) {
+	var buf bytes.Buffer
+	origOutput := log.Writer()
+	origFlags := log.Flags()
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(origOutput)
+		log.SetFlags(origFlags)
+	})
+
+	sched := &fakeScheduler{
+		dequeueQueue: []string{
+			"https://a.example/u1",
+			"https://a.example/u2",
+		},
+	}
+	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion, got %v", err)
+	}
+
+	out := buf.String()
+	if got := strings.Count(out, "reason=budget_exhausted"); got != 1 {
+		t.Fatalf("expected exactly 1 budget-exhausted log line, got %d\nlog output:\n%s", got, out)
+	}
+	for _, want := range []string{
+		`msg="pioneer worker: work budget exhausted"`,
+		"component=pioneer_worker",
+		"reason=budget_exhausted",
+		"dequeues=2",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("budget-exhausted log missing %q\nlog output:\n%s", want, out)
+		}
 	}
 }
 

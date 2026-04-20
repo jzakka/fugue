@@ -242,10 +242,9 @@ Harvester caches the primary image of each new Pin to our object storage so Pin 
 
 ## Worker Lifecycle (PioneerConsumer)
 
-When `BOT_PIONEER_SCHEDULER=true` is set, `fuguebot pioneer` runs the
-new scheduler-backed consumer instead of the legacy BFS Pioneer. The
+`fuguebot pioneer` runs the scheduler-backed PioneerConsumer. The
 consumer processes URLs from `pioneer_frontier` until it has handled
-exactly 100 successful Dequeues, then logs `reason=budget_exhausted` and
+100 successful Dequeues, then logs `reason=budget_exhausted` and
 exits 0. **A supervisor is required** — without one the worker process
 terminates after ~100 URLs and crawling stops.
 
@@ -256,14 +255,13 @@ one restart strategy for both.
 Local example (shell loop):
 
 ```sh
-while true; do BOT_PIONEER_SCHEDULER=true fuguebot pioneer <site> || break; done
+while true; do fuguebot pioneer <site> || break; done
 ```
 
 systemd:
 
 ```ini
 [Service]
-Environment=BOT_PIONEER_SCHEDULER=true
 ExecStart=/usr/local/bin/fuguebot pioneer <site>
 Restart=always
 ```
@@ -275,8 +273,6 @@ services:
   pioneer:
     image: fugue-bot:latest
     command: ["pioneer", "<site>"]
-    environment:
-      BOT_PIONEER_SCHEDULER: "true"
     restart: always
 ```
 

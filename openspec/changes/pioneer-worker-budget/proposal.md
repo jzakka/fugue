@@ -9,11 +9,11 @@ Pioneer 워커는 URLScheduler consumer로서 Dequeue 루프를 장시간 돌리
 - budget 값(100)은 **빌드 시 상수**로 고정하며, 환경변수·설정으로 노출하지 않는다
 - 워커는 **상태 없이(stateless)** 종료하여 supervisor(스펙 범위 밖, 예: docker restart policy / systemd / k8s)가 재시작 담당
 - 종료 직전 budget-소진 로그(`reason=budget_exhausted`)를 남겨 재시작 사이클을 관측 가능하게 함
-- Harvester 워커 budget(`harvester-worker-budget`)과 **정책·카운팅 기준·체크 위치·로그 메시지 포맷을 동일**하게 맞춘다
+- Harvester 워커 budget(`harvester-worker-budget`)과 **정책·카운팅 기준·증가 위치·종료 판정 위치·로그 메시지 포맷을 동일**하게 맞춘다
 
-범위 외: Harvester 워커 budget(별도 change), URLScheduler 자체 수명 관리, supervisor/오케스트레이터 구현.
+범위 외: Harvester 워커 budget(별도 change, 본 change 작성 시점에도 active), URLScheduler 자체 수명 관리, supervisor/오케스트레이터 구현.
 
-**의존**: 본 change는 `pioneer` capability를 신설하는 `pioneer-scheduler-consumer`가 먼저 아카이브된 뒤에 적용/아카이브된다. 적용 순서가 어긋나면 베이스라인에 `pioneer` capability가 없어 Modified Capabilities 선언이 무효가 된다.
+**의존**: 본 change는 `pioneer-scheduler-consumer`(이미 아카이브됨)가 신설한 베이스라인 `pioneer` capability를 전제로 하며, 해당 capability의 기존 요구사항에 work budget 관련 Requirement 추가 및 메인 루프 Requirement 수정(MODIFIED) 을 적용한다. `harvester-worker-budget`과는 상호 독립적이지만 두 change의 스펙·로그 포맷 일치는 `harvester-worker-budget` 아카이브 시점에 교차 검증한다.
 
 ## Capabilities
 

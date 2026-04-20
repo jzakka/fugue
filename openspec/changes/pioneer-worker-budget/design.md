@@ -24,11 +24,11 @@ Pioneer는 URLScheduler로부터 URL을 Dequeue하여 크롤링하는 consumer �
 - 예산 소진 시점에 **진행 중인 URL 처리(fetch/링크 추출/Enqueue/SetStatus)는 완료**한 뒤 종료(graceful, mid-flight abort 금지)
 - 종료 사유를 로그로 남겨 운영자가 재시작 사이클을 관측 가능하게 함
 - supervisor 기반 재시작 전제의 운영 모델을 명시적으로 문서화
-- Harvester 워커와 **정책·카운팅 기준·체크 위치·로그 포맷 동일**
+- Harvester 워커와 **정책·카운팅 기준·증가 위치·종료 판정 위치·로그 포맷 동일**
 
 **Non-Goals:**
 - supervisor/오케스트레이터(systemd, k8s, docker restart) 구현
-- Harvester 워커의 수명 관리(`harvester-worker-budget`에서 별도 정의)
+- Harvester 워커의 수명 관리(`harvester-worker-budget`에서 별도 정의 — 본 change 작성 시점에도 active 상태이며 아카이브 순서는 상호 독립이다. 두 change 사이의 스펙/로그 포맷 일치는 `harvester-worker-budget` 아카이브 시점에 교차 검증한다)
 - URLScheduler 자체의 수명/지속성 관리
 - 동적 budget 조정, 시간 기반 종료, 메모리 기반 종료 등 고도화된 정책
 - Warm restart, 상태 핸드오프, 프로세스 간 budget 공유
@@ -41,19 +41,19 @@ Pioneer는 URLScheduler로부터 URL을 Dequeue하여 크롤링하는 consumer �
 **선택**: `URLScheduler.Dequeue`가 **URL을 실제로 반환한 호출**에 한해서만 카운터를 1 증가시킨다. 빈 결과나 오류를 반환한 Dequeue 호출은 카운트하지 않는다. 상한 100 도달 시 종료.
 
 **대안 (폐기)**:
-- ~~(A) 루프 이터레이션 1회 = 1카운트~~ — 폐기. `URLScheduler.Dequeue`가 내부 blocking이라 "빈 이터레이션"이 consumer에게 노출되지 않으므로 구분이 모호하고, Harvester와 정책이 어긋남.
+- ~~(A) 루프 이터레이션 1회 = 1카운트~~ — 폐기. `URLScheduler.Dequeue`가 내부 blocking이라 "빈 이터레이션"이 consumer에게 노출되지 않으므로 구분이 모호하고, `harvester-worker-budget`(현재 active)가 제안하는 "성공 Dequeue만 카운트" 기준과 어긋남.
 - (B) 시간 기반 종료(예: 30분) — 처리량에 무관하게 종료되어 바쁜 워커가 과도하게 재시작됨. 처리량 기반(Dequeue 카운트)이 부하에 비례.
 - (C) 메모리 임계치 — 구현 복잡도 높고 플랫폼 의존적.
 
 **근거**: Harvester와 **동일한 카운팅 기준**을 사용하여 단일 멘탈 모델 유지. Dequeue 내부가 blocking이므로 "빈 결과는 카운트하지 않는다" 규칙은 실질적으로 "URL을 받으면 1카운트"로 환원된다. 다만 Dequeue가 에러를 반환하는 드문 경로가 생기더라도 해당 호출은 카운트에서 제외된다.
 
-### Decision 2: 카운터 체크 위치는 "Dequeue 성공 직후"
+### Decision 2: 카운터 증가는 "Dequeue 성공 직후", 종료 판정은 "현재 URL 사이클 완료 후"
 
-**선택**: 카운터 증가와 종료 임계 체크는 **Dequeue가 URL을 반환하여 성공한 직후**에 수행한다. URL을 받은 뒤 fetch/링크 추출/Enqueue/SetStatus 사이클을 끝까지 완료하고, 다음 루프 반복 시작 전에 "임계 도달이면 break" 한다.
+**선택**: 카운터 증가는 **Dequeue가 URL을 반환하여 성공한 직후**에 수행하며, 종료 임계 판정(break 결정)은 해당 URL의 fetch/링크 추출/Enqueue/SetStatus 사이클이 끝난 뒤 다음 루프 반복 시작 전에 "임계 도달이면 break" 한다. 증가 시점과 판정 시점이 분리된다는 점이 핵심이다.
 
 **대안 (폐기)**:
-- ~~(A) Dequeue 이전 루프 상단에서 체크~~ — 폐기. 성공/빈/오류 구분 없이 세는 옛 방식. Harvester와 불일치.
-- (B) 처리 완료 후에 체크 — 채택안과 실질 동일 (100회째 처리 후 즉시 break)
+- ~~(A) Dequeue 이전 루프 상단에서 종료 판정~~ — 폐기. 성공/빈/오류 구분 없이 세는 옛 방식. Harvester와 불일치.
+- (B) 처리 완료 후에 종료 판정 — 채택안과 실질 동일 (100회째 처리 후 즉시 break)
 
 **근거**: "성공 Dequeue만 카운트"와 "진행 중 작업 미중단" 두 요구를 동시에 만족. 100회째 URL을 받으면 카운터가 100이 되고, 해당 URL 처리가 끝난 뒤 루프 조건 검사에서 종료가 결정된다.
 
@@ -74,10 +74,12 @@ Pioneer는 URLScheduler로부터 URL을 Dequeue하여 크롤링하는 consumer �
 **선택**: `const WorkerBudget = 100`과 같이 **빌드 시 상수**로 고정한다. 환경변수·설정 파일·CLI 플래그로 런타임 변경을 허용하지 않는다.
 
 **대안 (폐기)**:
-- ~~(A) `PIONEER_WORKER_BUDGET` env로 노출~~ — 폐기. Harvester가 env 미노출이므로 Pioneer만 노출하면 두 워커 정책이 분기됨.
+- ~~(A) `PIONEER_WORKER_BUDGET` env로 노출~~ — 폐기. `harvester-worker-budget`(현재 active)도 env 미노출을 제안 중이며, Pioneer만 노출하면 두 워커 정책이 분기됨.
 - (B) 본 change 채택안: 빌드 상수
 
 **근거**: Harvester와 동일한 원칙("budget 튜닝은 별도 change로만"). 운영 환경마다 값이 달라지면 재시작 사이클 분석이 복잡해진다. 100이 부적절한 것으로 판명되면 후속 change에서 상수 값을 한 번 바꾼다.
+
+**주**: 단위 테스트 목적으로 package-private 필드(`budget int`)를 통해 소규모 값으로 override할 수 있는 경로는 존재할 수 있으나(구현 세부), 이는 env·config·CLI 노출이 아니며 외부 런타임 surface를 신설하지 않는다. 본 Decision의 "env 미노출" 원칙은 "런타임 config 경로 부재"를 의미한다.
 
 ### Decision 6: budget은 프로세스 로컬, 인메모리 카운터
 
