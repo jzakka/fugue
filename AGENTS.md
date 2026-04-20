@@ -139,3 +139,4 @@ make setup         # Lefthook git hooks 설치
 - 커밋 전에 반드시 `/codex` review를 실행할 것
 - Makefile 타겟은 루트에만 추가한다 (`apps/api/Makefile`에 추가하지 말 것)
 - PR을 생성하지 않는다. 변경사항은 main 브랜치에 직접 커밋하고 push한다.
+  - 여기서 "push"는 `git push`로 remote `origin/main`에 머지되는 것을 의미한다 (로컬 커밋만으로는 push 완료가 아니다).
