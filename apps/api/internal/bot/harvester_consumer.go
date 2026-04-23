@@ -21,7 +21,6 @@ package bot
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"net/url"
@@ -59,6 +58,14 @@ type DocumentPipeline interface {
 	MarkSkipped(ctx context.Context, node db.BotGraphNode) error
 }
 
+// harvesterDequeueBudget caps the number of successful URLScheduler.Dequeue
+// calls a single Harvester worker process performs before exiting (spec
+// `harvester-worker-budget`). The constant is intentionally not exposed via
+// env/config/CLI: budget changes happen by editing this value and rebuilding.
+// Symmetric to Pioneer's WorkerBudget so operators reason about both workers
+// with one mental model.
+const harvesterDequeueBudget = 100
+
 // HarvesterConsumer implements the Dequeue → fetch → extract → classify →
 // createPins → SetStatus loop defined in the harvester-scheduler-consumer
 // change. It holds only the dependencies needed by that loop and carries no
@@ -70,6 +77,13 @@ type HarvesterConsumer struct {
 	extractor  genericExtractorIface
 	classifier *Classifier
 	pipeline   DocumentPipeline
+	// budget overrides harvesterDequeueBudget for in-process tests only
+	// (spec `harvester-worker-budget`, symmetric with Pioneer's
+	// WorkerBudget test seam). Zero (the default) means "use
+	// harvesterDequeueBudget". Production code MUST NOT set this field —
+	// it is package-private and has no env/config/CLI surface, satisfying
+	// the spec's "build-time constant" rule.
+	budget int
 }
 
 // NewHarvesterConsumer wires the consumer with the five mandatory
@@ -115,20 +129,60 @@ func (h *HarvesterConsumer) withExtractor(e genericExtractorIface) *HarvesterCon
 }
 
 // Run blocks, processing URLs from harvester_frontier until ctx is cancelled
-// or the scheduler returns a non-recoverable error. Per spec Decision 2 the
-// consumer does not sleep; empty-queue polling is internal to Dequeue.
-// Duplicate-URL prevention for N>1 workers is delegated to scheduler's
-// FOR UPDATE SKIP LOCKED contract (Decision 9).
+// or the worker budget is exhausted (spec `harvester-worker-budget`). Per
+// spec the consumer does not sleep; empty-queue polling is internal to
+// Dequeue. Duplicate-URL prevention for N>1 workers is delegated to
+// scheduler's FOR UPDATE SKIP LOCKED contract.
+//
+// Budget accounting (spec `harvester-worker-budget`):
+//   - Counter increments only after Dequeue returns a non-empty URL with no
+//     error. Empty results and errors are NOT counted; the loop logs the
+//     error and retries so a transient scheduler hiccup cannot kill the
+//     worker before its budget is spent.
+//   - The 100th URL is processed to completion — success path waits for
+//     SetStatus(harvested, pinIDs) to return; failure path waits for the
+//     dual-call (SetStatus(harvest_failed, nil) + RecordHarvestError) to
+//     finish — only then does Run emit the structured budget-exhausted log
+//     and return nil so the supervisor can restart a fresh process.
+//   - ctx cancellation is independent of budget: it can exit the loop at
+//     any time without violating the budget contract (budget is an upper
+//     bound, not a lower bound).
 func (h *HarvesterConsumer) Run(ctx context.Context) error {
+	budget := h.budget
+	if budget <= 0 {
+		budget = harvesterDequeueBudget
+	}
+	dequeues := 0
 	for {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
 		rawURL, err := h.scheduler.Dequeue(scheduler.QueueHarvester)
 		if err != nil {
-			return fmt.Errorf("harvester_consumer: dequeue: %w", err)
+			// Spec "Dequeue 자체 오류는 카운트되지 않는다": log and retry
+			// instead of returning, so a transient scheduler/DB hiccup does
+			// not consume any budget or kill the worker prematurely.
+			// Key=value format; Pioneer symmetry is required only for the
+			// budget-exhausted log below (tasks.md §2.4).
+			log.Printf("WARN harvester_consumer: component=harvester_worker reason=dequeue_error err=%v", err)
+			continue
 		}
+		if rawURL == "" {
+			// Spec "빈 Dequeue는 카운트되지 않는다": URLScheduler.Dequeue is
+			// internally blocking and is not expected to return an empty
+			// string in production, but defensive handling here keeps the
+			// counter contract correct if the contract ever loosens.
+			continue
+		}
+		dequeues++
 		h.processOne(ctx, rawURL)
+		if dequeues >= budget {
+			log.Printf(
+				`msg="harvester worker: work budget exhausted" component=harvester_worker reason=budget_exhausted dequeues=%d`,
+				dequeues,
+			)
+			return nil
+		}
 	}
 }
 
@@ -141,6 +195,13 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 //   - success, Pinnable=false: SetStatus(harvested, nil)     — single call
 //   - any failure            : SetStatus(harvest_failed, nil) +
 //                              RecordHarvestError(errorKind) — dual call
+//
+// ctx is threaded to extractDocument and createPins (which carry it into
+// adapter scripts and the DocumentPipeline) but the fetch and scheduler
+// calls use their own internal timeouts; SIGTERM therefore takes effect at
+// the next loop iteration rather than mid-URL. This matches the spec's
+// graceful-shutdown requirement that the in-flight URL completes its final
+// status transition before Run returns.
 func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	body, fetchErr := h.fetcher.Fetch(rawURL)
 	if fetchErr != nil {

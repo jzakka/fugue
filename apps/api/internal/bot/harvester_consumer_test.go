@@ -1,9 +1,11 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -20,8 +22,17 @@ import (
 // tests. Only Dequeue / SetStatus / RecordHarvestError are exercised by
 // the consumer; the other methods return nil/empty so the interface is
 // satisfied. The fake is NOT goroutine-safe — tests drive it serially.
+//
+// dequeueScript, when non-empty, takes precedence over dequeueQueue and
+// lets budget-loop tests script per-call (url, err) outcomes — needed to
+// verify that empty results and errors are not counted toward the worker
+// budget. dequeueCalls tracks the total number of Dequeue invocations
+// regardless of outcome so tests can assert on retry behaviour.
 type fakeHarvestScheduler struct {
 	dequeueQueue       []string
+	dequeueScript      []dequeueResult
+	dequeueIdx         int
+	dequeueCalls       int
 	dequeueErr         error
 	setStatus          []setStatusCall
 	recordHarvestError []recordFetchErrorCall
@@ -30,6 +41,19 @@ type fakeHarvestScheduler struct {
 func (f *fakeHarvestScheduler) Dequeue(qt scheduler.QueueType) (string, error) {
 	if qt != scheduler.QueueHarvester {
 		return "", fmt.Errorf("unexpected queue type: %s", qt)
+	}
+	f.dequeueCalls++
+	if len(f.dequeueScript) > 0 {
+		if f.dequeueIdx >= len(f.dequeueScript) {
+			// Test setup bug: budget loop should have exited before draining
+			// the script. Returning a sentinel error keeps the loop alive
+			// (since errors are now retried) but the test will time out via
+			// ctx, surfacing the misconfiguration.
+			return "", errors.New("fake: script exhausted")
+		}
+		r := f.dequeueScript[f.dequeueIdx]
+		f.dequeueIdx++
+		return r.url, r.err
 	}
 	if f.dequeueErr != nil {
 		return "", f.dequeueErr
@@ -370,25 +394,26 @@ func TestHarvesterConsumer_Run_CtxCancel(t *testing.T) {
 	}
 }
 
-// TestHarvesterConsumer_Run_DequeueError verifies the Run loop surfaces
-// permanent Dequeue errors rather than hot-looping. Mirrors the Pioneer
-// TestPioneerConsumer_DequeueError_NoHotLoop contract.
-func TestHarvesterConsumer_Run_DequeueError(t *testing.T) {
+// TestHarvesterConsumer_Run_DequeueErrorRetries verifies the spec scenario
+// "Dequeue 자체 오류는 카운트되지 않는다 — 워커는 오류를 로깅한 뒤 다시
+// Dequeue를 시도한다". A permanent Dequeue error must not exit Run; Run
+// must retry and only return when ctx is cancelled. Replaces the earlier
+// "return on first error" contract which was superseded by
+// harvester-worker-budget.
+func TestHarvesterConsumer_Run_DequeueErrorRetries(t *testing.T) {
 	sched := &fakeHarvestScheduler{dequeueErr: errors.New("permanent failure")}
 	fetcher := newMapFetcher()
 
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
 
-	done := make(chan error, 1)
-	go func() { done <- c.Run(context.Background()) }()
-
-	select {
-	case err := <-done:
-		if err == nil {
-			t.Fatalf("expected Run to return error on permanent Dequeue failure")
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatalf("Run did not exit within 2s — hot-loop suspected")
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	err := c.Run(ctx)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected ctx deadline exceeded after retried errors, got %v", err)
+	}
+	if sched.dequeueCalls < 2 {
+		t.Fatalf("expected Dequeue to be retried (>=2 calls), got %d", sched.dequeueCalls)
 	}
 }
 
@@ -518,4 +543,316 @@ type erroringExtractor struct{}
 
 func (erroringExtractor) Extract([]byte, string) (PinDocument, error) {
 	return PinDocument{}, errors.New("extractor boom")
+}
+
+// --- harvester-worker-budget: Run loop budget tests ---
+
+// newBudgetHarvester wires a HarvesterConsumer with a small budget so loop
+// tests don't have to dequeue 100 URLs to exercise the exhaustion path.
+// Production callers go through NewHarvesterConsumer and inherit
+// harvesterDequeueBudget; the budget field is package-private precisely
+// because the spec forbids runtime exposure.
+func newBudgetHarvester(t *testing.T, sched scheduler.URLScheduler, fetcher Fetcher, pipeline DocumentPipeline, budget int) *HarvesterConsumer {
+	t.Helper()
+	if pipeline == nil {
+		pipeline = NewMockPipeline()
+	}
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+	c.budget = budget
+	return c
+}
+
+// TestHarvesterConsumer_Run_BudgetExhaustionExitsZero covers the canonical
+// "100회 처리 후 정상 종료" scenario at a smaller budget. After exactly
+// `budget` successful Dequeues + processOne cycles, Run returns nil and the
+// extra queued URL is never dequeued.
+func TestHarvesterConsumer_Run_BudgetExhaustionExitsZero(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueQueue: []string{
+			"https://a.example/u1",
+			"https://a.example/u2",
+			"https://a.example/u3",
+			// u4 must not be dequeued — Run should exit after u3.
+			"https://a.example/u4",
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{
+			"https://a.example/u1": pinnableDocHTML(),
+			"https://a.example/u2": pinnableDocHTML(),
+			"https://a.example/u3": pinnableDocHTML(),
+			"https://a.example/u4": pinnableDocHTML(),
+		},
+	}
+	c := newBudgetHarvester(t, sched, fetcher, nil, 3)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion, got %v", err)
+	}
+	if got := len(sched.setStatus); got != 3 {
+		t.Fatalf("expected exactly budget=3 SetStatus calls, got %d", got)
+	}
+	if sched.dequeueCalls != 3 {
+		t.Fatalf("expected exactly 3 Dequeue calls, got %d (u4 must not be dequeued)", sched.dequeueCalls)
+	}
+}
+
+// TestHarvesterConsumer_Run_BudgetExhaustedLogOnce verifies the spec
+// scenario "종료 사유 로그": on budget exhaustion the consumer emits exactly
+// one key=value log line containing reason=budget_exhausted,
+// component=harvester_worker, and the actual dequeue count.
+func TestHarvesterConsumer_Run_BudgetExhaustedLogOnce(t *testing.T) {
+	var buf bytes.Buffer
+	origOutput := log.Writer()
+	origFlags := log.Flags()
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(origOutput)
+		log.SetFlags(origFlags)
+	})
+
+	sched := &fakeHarvestScheduler{
+		dequeueQueue: []string{
+			"https://a.example/u1",
+			"https://a.example/u2",
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{
+			"https://a.example/u1": pinnableDocHTML(),
+			"https://a.example/u2": pinnableDocHTML(),
+		},
+	}
+	c := newBudgetHarvester(t, sched, fetcher, nil, 2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion, got %v", err)
+	}
+
+	out := buf.String()
+	if got := strings.Count(out, "reason=budget_exhausted"); got != 1 {
+		t.Fatalf("expected exactly 1 budget-exhausted log line, got %d\nlog output:\n%s", got, out)
+	}
+	for _, want := range []string{
+		`msg="harvester worker: work budget exhausted"`,
+		"component=harvester_worker",
+		"reason=budget_exhausted",
+		"dequeues=2",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("budget-exhausted log missing %q\nlog output:\n%s", want, out)
+		}
+	}
+}
+
+// TestHarvesterConsumer_Run_DoesNotExitBeforeBudget verifies "99회까지는
+// 종료하지 않는다": with budget=3 and 2 URLs queued + a context cancel after
+// the 2nd processOne, Run must NOT have returned via budget exhaustion.
+// We assert that all 2 URLs were processed (Run kept consuming) and the
+// loop only exits via ctx — proving no early exit at <budget.
+func TestHarvesterConsumer_Run_DoesNotExitBeforeBudget(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueScript: []dequeueResult{
+			{url: "https://a.example/u1"},
+			{url: "https://a.example/u2"},
+			// 3rd call: ctx is cancelled by then via the timeout below.
+			// Returning a sentinel error keeps the loop alive (errors are
+			// retried per spec); the ctx check at the top of the loop will
+			// trip on the next iteration.
+			{err: errors.New("hold")},
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{
+			"https://a.example/u1": pinnableDocHTML(),
+			"https://a.example/u2": pinnableDocHTML(),
+		},
+	}
+	c := newBudgetHarvester(t, sched, fetcher, nil, 3)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	err := c.Run(ctx)
+	if err == nil {
+		t.Fatalf("expected Run to exit via ctx cancel (not budget), got nil")
+	}
+	if got := len(sched.setStatus); got != 2 {
+		t.Fatalf("expected 2 URLs processed before ctx cancel, got %d", got)
+	}
+}
+
+// TestHarvesterConsumer_Run_DequeueErrorNotCounted verifies the spec
+// scenario "Dequeue 자체 오류는 카운트되지 않는다 ... 워커는 오류를 로깅한
+// 뒤 다시 Dequeue를 시도한다". With budget=1, 2 errors precede 1 success:
+// Run must retry past the errors, count only the successful Dequeue, and
+// exit cleanly via budget exhaustion.
+func TestHarvesterConsumer_Run_DequeueErrorNotCounted(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueScript: []dequeueResult{
+			{err: errors.New("transient: connection reset")},
+			{err: errors.New("transient: deadline")},
+			{url: "https://a.example/u1"},
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/u1": pinnableDocHTML()},
+	}
+	c := newBudgetHarvester(t, sched, fetcher, nil, 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion after retried errors, got %v", err)
+	}
+	if sched.dequeueCalls != 3 {
+		t.Fatalf("expected 3 Dequeue calls (2 retried errors + 1 success), got %d", sched.dequeueCalls)
+	}
+	if len(sched.setStatus) != 1 {
+		t.Fatalf("expected 1 SetStatus (only the successful URL processed), got %d", len(sched.setStatus))
+	}
+}
+
+// TestHarvesterConsumer_Run_EmptyDequeueNotCounted defends the spec
+// scenario "빈 Dequeue는 카운트되지 않는다". Even though production Dequeue
+// is internally blocking and is not expected to surface an empty result,
+// the loop must still treat ("", nil) as "skip & retry" so the contract
+// holds if the scheduler implementation ever loosens that invariant.
+func TestHarvesterConsumer_Run_EmptyDequeueNotCounted(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueScript: []dequeueResult{
+			{url: ""}, // empty: must be skipped without incrementing budget
+			{url: "https://a.example/u1"},
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/u1": pinnableDocHTML()},
+	}
+	c := newBudgetHarvester(t, sched, fetcher, nil, 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run should return nil on budget exhaustion after empty skip, got %v", err)
+	}
+	if sched.dequeueCalls != 2 {
+		t.Fatalf("expected 2 Dequeue calls (1 empty + 1 success), got %d", sched.dequeueCalls)
+	}
+	if len(sched.setStatus) != 1 {
+		t.Fatalf("expected 1 SetStatus (only the non-empty URL processed), got %d", len(sched.setStatus))
+	}
+}
+
+// TestHarvesterConsumer_Run_IndependentBudgetsPerInstance verifies the spec
+// requirement "복수 워커는 각자 독립 카운터를 갖는다": two HarvesterConsumer
+// instances each spend their own budget without affecting the other's.
+func TestHarvesterConsumer_Run_IndependentBudgetsPerInstance(t *testing.T) {
+	makeSched := func() *fakeHarvestScheduler {
+		return &fakeHarvestScheduler{dequeueQueue: []string{"https://a.example/x", "https://a.example/y"}}
+	}
+	makeFetcher := func() *mapFetcher {
+		return &mapFetcher{
+			bodies: map[string][]byte{
+				"https://a.example/x": pinnableDocHTML(),
+				"https://a.example/y": pinnableDocHTML(),
+			},
+		}
+	}
+	schedA := makeSched()
+	schedB := makeSched()
+	cA := newBudgetHarvester(t, schedA, makeFetcher(), nil, 2)
+	cB := newBudgetHarvester(t, schedB, makeFetcher(), nil, 2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := cA.Run(ctx); err != nil {
+		t.Fatalf("consumer A: %v", err)
+	}
+	if err := cB.Run(ctx); err != nil {
+		t.Fatalf("consumer B: %v", err)
+	}
+	if schedA.dequeueCalls != 2 || schedB.dequeueCalls != 2 {
+		t.Fatalf("each consumer should dequeue 2 URLs independently, got A=%d B=%d", schedA.dequeueCalls, schedB.dequeueCalls)
+	}
+}
+
+// TestHarvesterConsumer_Run_BudgetExhaustionOnFetchFailure covers the spec
+// scenario "100회째 작업이 실패해도 종료는 정상": when the budget-completing
+// URL's harvest fails, Run still exits with nil (exit 0) and the dual-call
+// (SetStatus(harvest_failed) + RecordHarvestError) both fire before exit.
+func TestHarvesterConsumer_Run_BudgetExhaustionOnFetchFailure(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueQueue: []string{"https://a.example/will-404"},
+	}
+	fetcher := newMapFetcher()
+	fetcher.errs["https://a.example/will-404"] = fmt.Errorf("HTTP error: status code 404")
+	c := newBudgetHarvester(t, sched, fetcher, nil, 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("Run must return nil even when the budget-completing URL fails fetch, got %v", err)
+	}
+	if len(sched.setStatus) != 1 || sched.setStatus[0].status != scheduler.StatusHarvestFailed {
+		t.Fatalf("expected SetStatus(harvest_failed), got %+v", sched.setStatus)
+	}
+	if len(sched.recordHarvestError) != 1 || sched.recordHarvestError[0].kind != scheduler.ErrorHTTP4xx {
+		t.Fatalf("expected RecordHarvestError(http_4xx), got %+v", sched.recordHarvestError)
+	}
+}
+
+// TestHarvesterConsumer_Run_CtxCancelMidBudget verifies the spec scenario
+// "ctx 취소 경로는 budget과 독립적이다": ctx cancellation must exit Run at
+// any time without waiting for the budget to be exhausted.
+func TestHarvesterConsumer_Run_CtxCancelMidBudget(t *testing.T) {
+	sched := &fakeHarvestScheduler{
+		dequeueQueue: []string{
+			"https://a.example/u1",
+			"https://a.example/u2",
+			"https://a.example/u3",
+			"https://a.example/u4",
+			"https://a.example/u5",
+		},
+	}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{
+			"https://a.example/u1": pinnableDocHTML(),
+			"https://a.example/u2": pinnableDocHTML(),
+			"https://a.example/u3": pinnableDocHTML(),
+			"https://a.example/u4": pinnableDocHTML(),
+			"https://a.example/u5": pinnableDocHTML(),
+		},
+	}
+	// budget=100 (default via zero), but we cancel after a short delay so
+	// Run must exit well before exhausting the queue.
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	err := c.Run(ctx)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected ctx deadline exceeded, got %v", err)
+	}
+	if len(sched.setStatus) >= 100 {
+		t.Fatalf("ctx cancel should have exited well before budget=100, got %d processed", len(sched.setStatus))
+	}
+}
+
+// TestHarvesterConsumer_Run_DefaultBudgetIsHarvesterBudget guards against
+// regressions where the default budget drifts from the spec-mandated 100
+// or is exposed via a runtime surface (env/CLI/config).
+func TestHarvesterConsumer_Run_DefaultBudgetIsHarvesterBudget(t *testing.T) {
+	if harvesterDequeueBudget != 100 {
+		t.Fatalf("spec violation: harvesterDequeueBudget must be 100, got %d", harvesterDequeueBudget)
+	}
+	c := NewHarvesterConsumer(&fakeHarvestScheduler{}, newMapFetcher(), nil, nil, nil, NewMockPipeline())
+	// Default budget field is zero, which Run interprets as
+	// "use harvesterDequeueBudget".
+	if c.budget != 0 {
+		t.Fatalf("constructor must leave budget at zero (defaults to harvesterDequeueBudget at Run time), got %d", c.budget)
+	}
 }

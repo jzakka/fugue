@@ -43,7 +43,12 @@ Harvester는 `harvester-scheduler-consumer` change 이후 `URLScheduler.Dequeue`
 
 ### Decision 2: 100회째 Dequeue 작업은 끝까지 수행 (graceful)
 
-**선택**: 100회째 Dequeue로 받은 URL의 harvest 작업은 중단하지 않고 완료한 뒤 프로세스를 종료한다. Dequeue 카운터는 **성공 Dequeue 직후**(= URL을 실제로 반환한 호출이 리턴된 직후) 1 증가시키며, 카운터가 100에 도달하면 해당 URL의 harvest 파이프라인을 끝까지 수행한 뒤 루프를 빠져나온다. 특히 **100회째 harvest 작업이 `harvester_frontier` 갱신 및 `harvester_frontier_pins` INSERT(트랜잭션 커밋)까지 완료된 이후**에만 exit 0으로 종료한다.
+**선택**: 100회째 Dequeue로 받은 URL의 harvest 작업은 중단하지 않고 완료한 뒤 프로세스를 종료한다. Dequeue 카운터는 **성공 Dequeue 직후**(= URL을 실제로 반환한 호출이 리턴된 직후) 1 증가시키며, 카운터가 100에 도달하면 해당 URL의 harvest 파이프라인을 끝까지 수행한 뒤 루프를 빠져나온다. "끝까지 수행"은 **최종 상태 전이 호출의 반환**을 기준으로 판정한다:
+
+- 성공 경로: `SetStatus(harvested, pinIDs)` 호출이 반환(=`harvester_frontier` 갱신 및 `harvester_frontier_pins` INSERT 트랜잭션이 커밋)된 직후.
+- 실패 경로: `SetStatus(harvest_failed, nil)` 호출과 `RecordHarvestError(errorKind)` 호출이 **둘 다** 반환된 직후(기존 "Harvester 실패 시 SetStatus + RecordHarvestError를 둘 다 호출한다" requirement와 정합). 중간에 한 호출만 반환된 상태로 종료하지 않는다.
+
+실패 경로에서도 exit code는 0이다(작업 실패가 워커 종료 코드를 바꾸지 않음).
 
 빈 Dequeue·오류 Dequeue는 카운트하지 않는다. `URLScheduler.Dequeue`는 `scheduler-claim-api` 규약상 내부 blocking이므로 consumer 레벨에서는 원칙적으로 성공 반환만 보이지만, 스케줄러 자체 오류(DB 실패 등)로 에러를 반환할 여지가 있다. 두 경우 모두 카운터를 건드리지 않는다(아래 §Open Questions 닫힘 참조).
 
