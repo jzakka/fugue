@@ -1,6 +1,6 @@
 ## Why
 
-`harvester-scheduler-consumer`의 consumer 루프는 fetch 단계를 `fetchSnapshotOrLive(ctx, url)`로 호출한다고 의사코드에 등장하지만, 이 진입점의 반환 형태와 호출 규약을 행위 계약으로 고정하지 않는다. 반면 `harvester-snapshot-first-fetch`는 `Fetcher.Fetch(url) ([]byte, error)` 시그니처만 명세하므로, consumer가 필요한 "fetch 단 실패 종류(`errorKind`)"를 자체 추론해야 한다. 두 spec 사이에 "루프 ↔ fetcher" 어댑터의 반환 형태·errorKind 범위·의존성 방향이 비어 있어, 구현이 만났을 때 (1) consumer에 HTTP 상태코드/에러 타입 분기 로직이 유출되거나, (2) `RecordHarvestError`에 fetch 단에서 나올 수 없는 kind가 섞이는 등의 표류가 발생할 수 있다.
+`harvester-scheduler-consumer`의 consumer 루프는 fetch 단계를 `fetcher.Fetch(url)` + `classifyFetchError(fetchErr)` 헬퍼 조합으로 의사코드에 등장시키고 상위 수준에서는 `fetchSnapshotOrLive` 같은 이름으로 요약하지만, consumer가 실제로 호출하는 fetch 단 진입점의 반환 형태와 호출 규약(특히 consumer에 노출되는 `errorKind`의 집합과 경계)을 행위 계약으로 고정하지 않는다. 반면 `harvester-snapshot-first-fetch`는 `Fetcher.Fetch(url) ([]byte, error)` 시그니처만 명세하므로, consumer가 필요한 "fetch 단 실패 종류(`errorKind`)"를 자체 추론해야 한다. 두 spec 사이에 "루프 ↔ fetcher" 어댑터의 반환 형태·errorKind 범위·의존성 방향이 비어 있어, 구현이 만났을 때 (1) consumer에 HTTP 상태코드/에러 타입 분기 로직이 유출되거나, (2) `RecordHarvestError`에 fetch 단에서 나올 수 없는 kind가 섞이는 등의 표류가 발생할 수 있다.
 
 본 change는 이 빈 칸만 정확히 메운다: consumer가 snapshot-first fetch를 어떻게 호출하고, 무엇을 받아 `RecordHarvestError`에 전달하는지를 행위 계약으로 확정한다. 새 기능은 도입하지 않으며, 두 기존 change의 경계 조건만 봉합한다.
 
@@ -23,7 +23,7 @@
 ## Capabilities
 
 ### Modified Capabilities
-- `harvester`: `harvester-scheduler-consumer`가 도입한 capability에 ADDED 5건("fetch 단 진입점 호출 규약" — 경유 제약, 입력 형태, 반환 3-tuple, 4종 errorKind, 스냅샷 내부 실패 은닉)만 추가. MODIFIED/REMOVED/RENAMED 없음.
+- `harvester`: 기존 `harvester` capability(`harvester-pin-document`에서 최초 도입, `harvester-scheduler-consumer`에서 consumer 루프 requirement 추가됨)에 ADDED 5건("fetch 단 진입점 호출 규약" — 경유 제약, 입력 형태, 반환 3-tuple, 4종 errorKind, 스냅샷 내부 실패 은닉)만 추가. MODIFIED/REMOVED/RENAMED 없음.
 
 ## Impact
 

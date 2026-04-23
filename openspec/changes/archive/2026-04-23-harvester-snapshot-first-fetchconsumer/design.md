@@ -2,7 +2,7 @@
 
 두 기존 change의 경계가 교차하는 지점을 구체화한다.
 
-- `harvester-scheduler-consumer`는 consumer 루프를 정의하면서 fetch 단계를 `fetchSnapshotOrLive(ctx, url) → (html, errorKind, fetchErr)`로 가정한 의사코드(`design.md:139`)를 제시하지만, 해당 capability spec은 이 진입점의 반환 형태를 행위 계약으로 고정하지 않는다.
+- `harvester-scheduler-consumer`는 consumer 루프를 정의하면서 fetch 단계를 `fetcher.Fetch(url)` + `classifyFetchError(fetchErr)` 헬퍼 조합으로 의사코드에 등장시키고 상위 수준에서는 `fetchSnapshotOrLive` 같은 이름으로 요약하지만, 해당 capability spec은 consumer가 실제로 호출하는 fetch 단 진입점의 반환 형태(특히 consumer에 노출되는 `errorKind`의 집합과 경계)를 행위 계약으로 고정하지 않는다.
 - `harvester-snapshot-first-fetch`는 `Fetcher.Fetch(url) ([]byte, error)` 시그니처의 `CompositeFetcher`만 정의하며 consumer가 필요한 `errorKind` 분류 정보를 포함하지 않는다. 같은 change의 Decision 5는 "스냅샷 키는 `ObjectStorageFetcher` 내부에서 `pioneer-snapshot-storage`의 공용 빌더로 URL에서 계산한다"로 고정한다(fetcher 측 책임).
 - `scheduler-claim-api` / DECISIONS.md §3은 `Dequeue(queueType QueueType) (url string, err error)` 시그니처를 고정하며, claim 결과에 `snapshot_key`가 동반되지 않는다. 본 design에서 `Dequeue`를 언급할 때는 이 완전 시그니처를 기본 계약으로 지칭한다.
 
@@ -95,12 +95,12 @@
 - **[Risk] 4종 `errorKind`만으로는 운영 분석이 부족할 수 있다.** → Mitigation: `harvester-snapshot-first-fetch`가 ObjectStorage 실패 종류를 로그/메트릭으로 별도 기록(관측성 계층). consumer가 받는 kind는 alerting/backoff용으로 단순 유지.
 - **[Trade-off] `Dequeue` 반환에 `snapshot_key`를 포함시키지 않음** → fetcher가 URL에서 키를 재계산한다. 해시 한 번의 연산 비용은 무시 가능하며, `scheduler-claim-api`를 건드리지 않아 본 change의 scope가 "integration 계약만 정의"로 유지된다.
 - **[Risk] 진입점 어댑터가 `Fetcher.Fetch`의 `error`를 4종으로 매핑할 때 분류 오류 가능성.** → Mitigation: 분류 로직을 헬퍼 함수로 집중화하고, 4종 외 값을 반환하지 않음을 구현 단의 단위 테스트로 커버. 본 spec은 production behavior만 규정한다.
-- **[Risk] 본 change가 순수 spec delta이므로 구현 change가 따라오지 않으면 계약만 떠 있게 됨.** → Mitigation: tasks.md의 수용 기준에 "향후 구현 change가 본 spec의 네 Requirement를 수용 기준으로 가져갈 수 있는 형태" 확인 항목을 둔다.
+- **[Risk] 본 change가 순수 spec delta이므로 구현 change가 따라오지 않으면 계약만 떠 있게 됨.** → Mitigation: tasks.md의 수용 기준에 "향후 구현 change가 본 spec의 5개 Requirement를 수용 기준으로 가져갈 수 있는 형태" 확인 항목을 둔다.
 
 ## Migration Plan
 
 1. (선결) `harvester-scheduler-consumer` 적용 → `harvester` capability와 consumer 루프 정의 존재.
 2. (선결) `harvester-snapshot-first-fetch` 적용 → `Fetcher`/`CompositeFetcher` 의미론과 스냅샷 키 내부 계산 규약 존재.
 3. 본 change 적용: `harvester` capability에 진입점 반환 규약 requirement 묶음 추가.
-4. 후속 구현 change: snapshot-first fetch 진입점을 `harvester-snapshot-first-fetch` 구현 모듈에 export하고, consumer 루프가 이를 호출하도록 연결. 본 spec의 네 Requirement를 수용 기준으로 가져간다.
+4. 후속 구현 change: snapshot-first fetch 진입점을 `harvester-snapshot-first-fetch` 구현 모듈에 export하고, consumer 루프가 이를 호출하도록 연결. 본 spec의 5개 Requirement를 수용 기준으로 가져간다.
 5. **Rollback**: spec 레벨 rollback은 본 change의 ADDED delta 제거만 수행하면 된다. 구현은 여전히 prerequisite 두 change의 계약만으로 동작 가능하지만, consumer의 errorKind 분류 경계가 헐거워진다.

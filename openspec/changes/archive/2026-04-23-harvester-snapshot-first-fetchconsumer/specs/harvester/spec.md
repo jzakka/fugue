@@ -86,8 +86,12 @@ ObjectStorage 조회 실패 종류(키 없음 / 만료 / 네트워크 / 권한 /
 
 #### Scenario: 스냅샷 키 부재는 consumer에 snapshot 전용 kind로 노출되지 않는다
 - **WHEN** ObjectStorage에 스냅샷이 존재하지 않아 snapshot 조회가 miss로 종료될 때
-- **THEN** 진입점은 `"snapshot_missing"` 같은 snapshot 전용 kind를 반환하지 않고, HTTP fallback을 수행한 뒤 그 결과(성공 또는 4종 errorKind 중 하나)를 반환한다.
+- **THEN** 진입점은 snapshot 전용 kind(키 부재·만료·캐시 miss 등 어떤 명칭이든)를 반환하지 않고, HTTP fallback을 수행한 뒤 그 결과(성공 또는 4종 errorKind 중 하나)를 반환한다.
 
 #### Scenario: 스냅샷 경로 네트워크/권한/내부 에러도 동일하게 HTTP fallback
 - **WHEN** ObjectStorage 조회가 네트워크/권한/내부(5xx) 에러로 실패할 때
 - **THEN** 진입점은 이 실패 종류를 consumer에 전파하지 않고 HTTP fallback을 수행하며, consumer는 최종 결과(HTTP 성공 또는 4종 errorKind 중 하나의 실패)만 관측한다.
+
+#### Scenario: ctx 취소/deadline은 스냅샷 경로 내부 실패로 분류되지 않고 "timeout"으로 귀결된다
+- **WHEN** 스냅샷 조회 또는 HTTP fallback이 ctx 취소/deadline으로 종료될 때
+- **THEN** 이는 "스냅샷 경로 내부 실패 흡수"의 대상이 아니라 fetch 단 진입점이 반환하는 `errorKind = "timeout"`로 분류되며, 두 요구(`ObjectStorage 실패 흡수` vs `timeout 분류`)가 경계에서 충돌하지 않는다.
