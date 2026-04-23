@@ -1,7 +1,8 @@
 // fetcher_test.go covers tasks 4.1-4.6 of harvester-snapshot-first-fetch:
 // unit tests for CompositeFetcher's ObjectStorage-first → HTTP-fallback
-// semantics. Tasks 4.7 and 4.8 (end-to-end Harvester flow) live in
-// harvester_snapshot_test.go.
+// semantics. Task 4.7 (clock-injected UTC-day hit/miss) lives in
+// fetcher_roundtrip_test.go; Task 4.8 (Harvester-loop integration +
+// in-memory fetch-failure counter) lives in harvester_consumer_test.go.
 
 package bot
 

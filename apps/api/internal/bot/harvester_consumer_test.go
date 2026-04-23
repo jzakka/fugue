@@ -481,6 +481,97 @@ func TestHarvesterConsumer_CrossHostMixedDequeue(t *testing.T) {
 	}
 }
 
+// TestHarvesterConsumer_SnapshotHit_NoHTTPCall covers
+// harvester-snapshot-first-fetch task §4.9 at the consumer integration
+// layer: when HarvesterConsumer runs with a CompositeFetcher whose
+// ObjectStorage side returns a snapshot hit, the HTTP side MUST NOT be
+// invoked. The unit-layer version of this assertion lives in
+// TestCompositeFetcher_SnapshotHitSkipsHTTP; this test pins the contract
+// at the Harvester-loop boundary so a future refactor cannot accidentally
+// reorder fetch attempts.
+func TestHarvesterConsumer_SnapshotHit_NoHTTPCall(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	pipeline := NewMockPipeline()
+
+	snap := &unitFetcher{body: pinnableDocHTML()}
+	httpSpy := &unitFetcher{body: []byte("<html>should-not-be-seen</html>")}
+	composite := NewCompositeFetcher(snap, httpSpy)
+
+	c := NewHarvesterConsumer(sched, composite, nil, nil, nil, pipeline)
+	c.processOne(context.Background(), "https://a.example/snap")
+
+	if snap.calls != 1 {
+		t.Errorf("ObjectStorage side called %d times, want 1", snap.calls)
+	}
+	if httpSpy.calls != 0 {
+		t.Errorf("HTTP side called %d times on snapshot hit, want 0", httpSpy.calls)
+	}
+	if len(sched.setStatus) != 1 || sched.setStatus[0].status != scheduler.StatusHarvested {
+		t.Errorf("expected SetStatus(harvested), got %+v", sched.setStatus)
+	}
+}
+
+// unitFetcher is a minimal Fetcher double used by the Harvester-loop
+// integration tests above. It records call count and returns canned
+// (body, err). Kept local because mapFetcher keys on URL, and these tests
+// only need one URL.
+type unitFetcher struct {
+	calls int
+	body  []byte
+	err   error
+}
+
+func (f *unitFetcher) Fetch(string) ([]byte, error) {
+	f.calls++
+	return f.body, f.err
+}
+
+// TestHarvesterConsumer_FetchFailureCounter_IsolatesPerNode covers
+// harvester-snapshot-first-fetch tasks §3.2 and §4.8: when a node's
+// Fetcher call fails (the injected Fetcher is typically CompositeFetcher,
+// so this represents an ObjectStorage+HTTP dual miss), the in-memory
+// fetchFailureCount MUST increment by exactly 1 and the consumer MUST
+// continue processing subsequent nodes unaffected. The counter is
+// orthogonal to scheduler.RecordHarvestError's DB-backed
+// harvest_error_count column (Decision 3).
+func TestHarvesterConsumer_FetchFailureCounter_IsolatesPerNode(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := newMapFetcher()
+	fetcher.errs["https://a.example/dead"] = errors.New("dual miss: snapshot and http both failed")
+	fetcher.bodies["https://b.example/live"] = pinnableDocHTML()
+
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
+
+	// Node 1: fetch failure — counter should tick to 1.
+	c.processOne(context.Background(), "https://a.example/dead")
+	if got := c.FetchFailureCount(); got != 1 {
+		t.Fatalf("after one fetch failure, FetchFailureCount = %d, want 1", got)
+	}
+
+	// Node 2: fetch succeeds — subsequent nodes must process despite the
+	// prior failure, and the counter must NOT double-count.
+	c.processOne(context.Background(), "https://b.example/live")
+	if got := c.FetchFailureCount(); got != 1 {
+		t.Fatalf("after one success following one failure, FetchFailureCount = %d, want 1 (no double-count)", got)
+	}
+
+	// Scheduler-side invariants (spec Decision 6 / §8.3): dual call on
+	// failure, single harvested call on success. Confirms the in-memory
+	// counter lives alongside — not instead of — the scheduler contract.
+	if len(sched.setStatus) != 2 {
+		t.Fatalf("expected 2 SetStatus calls (one per node), got %+v", sched.setStatus)
+	}
+	if sched.setStatus[0].status != scheduler.StatusHarvestFailed {
+		t.Errorf("node 1 SetStatus = %v, want harvest_failed", sched.setStatus[0].status)
+	}
+	if sched.setStatus[1].status != scheduler.StatusHarvested {
+		t.Errorf("node 2 SetStatus = %v, want harvested", sched.setStatus[1].status)
+	}
+	if len(sched.recordHarvestError) != 1 {
+		t.Errorf("RecordHarvestError should fire exactly once (node 1), got %+v", sched.recordHarvestError)
+	}
+}
+
 // --- test doubles that can't live with the test where they're used ---
 
 // mapFetcher implements bot.Fetcher by looking up a URL in bodies for the

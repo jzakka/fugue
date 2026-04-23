@@ -27,6 +27,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -84,6 +85,15 @@ type HarvesterConsumer struct {
 	// it is package-private and has no env/config/CLI surface, satisfying
 	// the spec's "build-time constant" rule.
 	budget int
+
+	// fetchFailureCount is the in-memory worker-stat counter required by
+	// harvester-snapshot-first-fetch tasks §3.2 and design.md Decision 3.
+	// It is explicitly distinct from harvester_frontier.harvest_error_count
+	// (DB column): the DB counter tracks per-URL retry state for scheduler
+	// backoff, while this counter aggregates per-process fetch failures
+	// (CompositeFetcher dual-miss: ObjectStorage + HTTP both failed) for
+	// worker-level observability.
+	fetchFailureCount atomic.Uint64
 }
 
 // NewHarvesterConsumer wires the consumer with the five mandatory
@@ -115,6 +125,15 @@ func NewHarvesterConsumer(
 		classifier: classifier,
 		pipeline:   pipeline,
 	}
+}
+
+// FetchFailureCount returns the in-memory total of fetch failures
+// observed by this consumer instance since construction. Exposed for
+// worker-level observability and tests (tasks §3.2, §4.8). This counter
+// is process-local and independent of the scheduler's per-URL
+// harvest_error_count DB column.
+func (h *HarvesterConsumer) FetchFailureCount() uint64 {
+	return h.fetchFailureCount.Load()
 }
 
 // withExtractor swaps the fallback extractor. Used by tests to install a
@@ -205,6 +224,11 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	body, fetchErr := h.fetcher.Fetch(rawURL)
 	if fetchErr != nil {
+		// Fetch failure here means the injected Fetcher (typically
+		// CompositeFetcher) already exhausted its ObjectStorage → HTTP
+		// chain; count it once per node in the in-memory worker stat
+		// (tasks §3.2 / Decision 3).
+		h.fetchFailureCount.Add(1)
 		kind := classifyHarvestFetchError(fetchErr)
 		h.reportFailure(rawURL, kind, "fetch", fetchErr)
 		return

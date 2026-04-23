@@ -1,7 +1,7 @@
 // fetcher.go implements the harvester-snapshot-first-fetch OpenSpec change.
 //
 // Spec SSoT: openspec/changes/harvester-snapshot-first-fetch/specs/bot/spec.md
-// Pseudo reference: apps/api/fuguebot_pseudo.go lines 86-97
+// Pseudo reference: apps/api/fuguebot_pseudo.go lines 97-112
 //
 // The single public surface Harvester (and future Pioneer migration) depends
 // on is the Fetcher interface. Production wires three concrete types:
@@ -67,9 +67,10 @@ func (f *HTTPFetcher) Fetch(rawURL string) ([]byte, error) {
 // URL and returns the decompressed HTML.
 //
 // The reader is injected so callers can swap in a fake S3 client for
-// tests. URL normalization uses templatePath — the same normalization
-// Pioneer feeds into snapshot.SnapshotKey on the write side, guaranteeing
-// bit-identical keys across stages (spec Decision 5).
+// tests. URL normalization uses canonicalURL — the same normalization
+// Pioneer feeds into snapshot.SnapshotKey on the write side
+// (pioneer_consumer.go:168), guaranteeing bit-identical keys across
+// stages (spec Decision 5).
 type ObjectStorageFetcher struct {
 	reader snapshot.SnapshotReader
 	now    func() time.Time
@@ -93,13 +94,13 @@ func (f *ObjectStorageFetcher) WithClock(now func() time.Time) *ObjectStorageFet
 }
 
 // Fetch looks up the gzipped snapshot under
-// snapshot.SnapshotKey(templatePath(rawURL), now().UTC()) and returns the
+// snapshot.SnapshotKey(canonicalURL(rawURL), now().UTC()) and returns the
 // decompressed HTML. Any error — ErrSnapshotNotFound, permission, network,
 // internal — propagates unchanged so CompositeFetcher can log the class;
 // the sentinel class is observability-only (spec §5.1) and does NOT
 // change the fallback decision.
 func (f *ObjectStorageFetcher) Fetch(rawURL string) ([]byte, error) {
-	normalized := templatePath(rawURL)
+	normalized := canonicalURL(rawURL)
 	return f.reader.Get(context.Background(), normalized, f.now())
 }
 
