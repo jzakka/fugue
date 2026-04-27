@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -128,12 +127,11 @@ func (s *PGURLScheduler) EnqueueHarvester(rawURL string, snapshotKey string) err
 	if parseErr != nil {
 		return fmt.Errorf("scheduler: EnqueueHarvester parse %q: %w", rawURL, parseErr)
 	}
-	h := sha256.Sum256([]byte(nu))
 	ctx := context.Background()
 	return s.queries.UpsertHarvesterWithSnapshot(ctx, db.UpsertHarvesterWithSnapshotParams{
 		NormalizedUrl: nu,
 		Url:           rawURL,
-		UrlHash:       h[:],
+		UrlHash:       hashKey(nu),
 		Host:          host,
 		SnapshotKey:   sql.NullString{String: snapshotKey, Valid: true},
 	})
@@ -155,8 +153,7 @@ func prepareEnqueueBatch(raws []string) (normalized, rawOut []string, hashes [][
 		}
 		normalized[i] = nu
 		rawOut[i] = r
-		h := sha256.Sum256([]byte(nu))
-		hashes[i] = h[:]
+		hashes[i] = hashKey(nu)
 		hosts[i] = host
 	}
 	return normalized, rawOut, hashes, hosts, nil
@@ -322,7 +319,14 @@ type claimCandidate struct {
 // harvested_at flip back.
 func (s *PGURLScheduler) SetStatus(key string, status Status, pinIDs []uuid.UUID) error {
 	ctx := context.Background()
-	hash := hashKey(key)
+	hash, ok := hashLookupKey(key)
+	if !ok {
+		// Canonicalization yielded an empty URL (empty input or unparseable).
+		// Skip the DB call entirely — Enqueue rejects the same inputs, so
+		// there is no row that could match. Returning nil keeps the worker
+		// alive (spec: "한 URL이 워커를 죽이지 않아야 한다").
+		return nil
+	}
 
 	switch status {
 	case StatusFetched:
