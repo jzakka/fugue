@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"log"
 	"net/http"
@@ -14,6 +15,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	// Decoders registered in media_validator.go cover GIF/PNG/JPEG; the
+	// blank import here mirrors that set so this file's image.DecodeConfig
+	// call resolves without a build dependency on the validator file's
+	// internal init order.
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
@@ -47,6 +56,12 @@ const DefaultImageCacheTTLDays int = 90
 // configured size threshold. It triggers the single fallback path along with
 // download and upload failures.
 var errImageOversize = errors.New("image exceeds size threshold")
+
+// errImageInvalidMedia is returned by cacheImage when the downloaded bytes
+// fail the in-process validity check (decoding or minimum dimensions).
+// Triggers the same fallback path so the canonical key never receives an
+// invalid file (harvester-media-validation design.md D3).
+var errImageInvalidMedia = errors.New("image fails validity check")
 
 // BotDB abstracts the database queries needed by HarvestPipeline.
 type BotDB interface {
@@ -310,6 +325,15 @@ func pickMediaForPin(doc PinDocument) (string, string) {
 }
 
 // downloadAndUpload downloads media from the source URL and uploads it via Storage.
+//
+// Per harvester-media-validation design.md D3, the canonical key MUST NOT
+// receive an invalid image. This path performs in-process validation
+// (header decode + minimum dims + minimum bytes) for image media before
+// upload, mirroring cacheImage()'s temp-buffer-then-upload contract. Video
+// and audio paths still upload streaming (no probe here) because ffprobe
+// is wired into the candidate-stage validator, not this storage path; the
+// candidate-stage validator is the architectural home for type-aware probing
+// (design.md D2).
 func (p *HarvestPipeline) downloadAndUpload(ctx context.Context, mediaURL string, mediaType string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mediaURL, nil)
 	if err != nil {
@@ -330,6 +354,34 @@ func (p *HarvestPipeline) downloadAndUpload(ctx context.Context, mediaURL string
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = inferContentType(mediaType, mediaURL)
+	}
+
+	// For image media: buffer the body, run the same minimum-bytes /
+	// header-decode checks cacheImage() uses, and only upload to the
+	// canonical key when the bytes pass. Non-image types stream straight
+	// through (their integrity is checked at the candidate stage).
+	if mediaType == "image" {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return "", fmt.Errorf("read media body: %w", readErr)
+		}
+		if int64(len(body)) < DefaultImageMinBytes {
+			return "", fmt.Errorf("%w: bytes=%d below min=%d", errImageInvalidMedia, len(body), DefaultImageMinBytes)
+		}
+		cfg, _, decErr := image.DecodeConfig(bytes.NewReader(body))
+		if decErr != nil {
+			return "", fmt.Errorf("%w: decode failed: %v", errImageInvalidMedia, decErr)
+		}
+		if cfg.Width < DefaultImageMinWidth || cfg.Height < DefaultImageMinHeight {
+			return "", fmt.Errorf("%w: dims=%dx%d below min=%dx%d", errImageInvalidMedia, cfg.Width, cfg.Height, DefaultImageMinWidth, DefaultImageMinHeight)
+		}
+		ext := extensionFromURL(mediaURL)
+		filename := fmt.Sprintf("bot/%s%s", uuid.New().String(), ext)
+		uploadedURL, upErr := p.storage.Upload(ctx, filename, contentType, int64(len(body)), bytes.NewReader(body))
+		if upErr != nil {
+			return "", fmt.Errorf("upload media: %w", upErr)
+		}
+		return uploadedURL, nil
 	}
 
 	// Generate a unique filename
@@ -433,6 +485,23 @@ func (p *HarvestPipeline) cacheImage(ctx context.Context, candidateURL string) (
 	}
 
 	contentType := resp.Header.Get("Content-Type")
+
+	// In-process image validation: reject undecodable bytes or sub-threshold
+	// dimensions BEFORE the canonical key receives them. This is the
+	// last-mile safety net for the temp-buffer → canonical-key contract
+	// (harvester-media-validation design.md D3). The body is in memory only;
+	// rejection simply discards it without an Upload call so MinIO/S3 never
+	// sees the placeholder.
+	if int64(len(body)) < DefaultImageMinBytes {
+		return candidateURL, fmt.Errorf("%w: bytes=%d below threshold", errImageInvalidMedia, len(body))
+	}
+	if cfg, _, decErr := image.DecodeConfig(bytes.NewReader(body)); decErr != nil {
+		return candidateURL, fmt.Errorf("%w: decode: %v", errImageInvalidMedia, decErr)
+	} else if cfg.Width < DefaultImageMinWidth || cfg.Height < DefaultImageMinHeight {
+		return candidateURL, fmt.Errorf("%w: %dx%d below %dx%d threshold",
+			errImageInvalidMedia, cfg.Width, cfg.Height, DefaultImageMinWidth, DefaultImageMinHeight)
+	}
+
 	key := buildImageCacheKey(normalized, contentType, p.nowUnix())
 
 	storageURL, err := p.storage.Upload(ctx, key, contentType, int64(len(body)), bytes.NewReader(body))

@@ -322,9 +322,9 @@ func TestPioneerConsumer_CrossSiteEnqueue(t *testing.T) {
 	}
 	got := sched.enqueuePioneer[0]
 	want := map[string]bool{
-		"https://a.example/same":    true,
-		"https://other.example/x":   true,
-		"https://third.example/y":   true,
+		"https://a.example/same":  true,
+		"https://other.example/x": true,
+		"https://third.example/y": true,
 	}
 	if len(got) != len(want) {
 		t.Fatalf("expected %d URLs enqueued, got %d: %v", len(want), len(got), got)

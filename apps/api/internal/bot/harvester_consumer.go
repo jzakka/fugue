@@ -78,6 +78,15 @@ type HarvesterConsumer struct {
 	extractor  genericExtractorIface
 	classifier *Classifier
 	pipeline   DocumentPipeline
+	// validator filters invalid media candidates from PinDocument before
+	// the classifier runs (harvester-media-validation change, design.md D2).
+	// nil means validation is disabled (legacy behavior, retained for tests
+	// that don't need the network round to ffprobe/HTTP).
+	validator MediaValidator
+	// validationMetrics is the process-local counter set fed by the
+	// validator + classifier. nil means metric collection is disabled
+	// (tasks.md §5 — operational guidance, not a spec contract).
+	validationMetrics *MediaValidationMetrics
 	// budget overrides harvesterDequeueBudget for in-process tests only
 	// (spec `harvester-worker-budget`, symmetric with Pioneer's
 	// WorkerBudget test seam). Zero (the default) means "use
@@ -125,6 +134,30 @@ func NewHarvesterConsumer(
 		classifier: classifier,
 		pipeline:   pipeline,
 	}
+}
+
+// WithMediaValidator installs a MediaValidator on the consumer. When set the
+// consumer applies FilterValidMedia between extractDocument and the
+// classifier so invalid candidates (1x1 placeholders, undecodable bytes,
+// sub-threshold video/audio) never reach Pin canonical storage. Pass nil to
+// disable validation (legacy behavior). See harvester-media-validation
+// design.md D2.
+func (h *HarvesterConsumer) WithMediaValidator(v MediaValidator) *HarvesterConsumer {
+	h.validator = v
+	return h
+}
+
+// WithValidationMetrics installs a metrics sink for the validator and
+// classifier signals (tasks.md §5). nil disables collection.
+func (h *HarvesterConsumer) WithValidationMetrics(m *MediaValidationMetrics) *HarvesterConsumer {
+	h.validationMetrics = m
+	return h
+}
+
+// ValidationMetrics returns the metrics sink installed on this consumer or
+// nil when none is wired. Exposed for in-process observability and tests.
+func (h *HarvesterConsumer) ValidationMetrics() *MediaValidationMetrics {
+	return h.validationMetrics
 }
 
 // FetchFailureCount returns the in-memory total of fetch failures
@@ -213,7 +246,7 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 //   - success, Pinnable=true : SetStatus(harvested, pinIDs) — single call
 //   - success, Pinnable=false: SetStatus(harvested, nil)     — single call
 //   - any failure            : SetStatus(harvest_failed, nil) +
-//                              RecordHarvestError(errorKind) — dual call
+//     RecordHarvestError(errorKind) — dual call
 //
 // ctx is threaded to extractDocument and createPins (which carry it into
 // adapter scripts and the DocumentPipeline) but the fetch and scheduler
@@ -249,9 +282,28 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 		log.Printf("harvester_consumer: adapter fell back to generic for url=%q", rawURL)
 	}
 
+	// Filter invalid media candidates BEFORE classification. After this
+	// step, doc.MediaCandidates / doc.ThumbnailURL contain only validated
+	// references; rejection counts/reasons are recorded on
+	// doc.OGData.MediaValidation. The classifier's existing "no_primary_media"
+	// rule (empty thumbnail + empty candidates) then naturally handles
+	// pages where every candidate was invalid. See harvester-media-validation
+	// design.md D2.
+	if h.validator != nil {
+		FilterValidMedia(ctx, h.validator, &doc)
+		if h.validationMetrics != nil && doc.OGData.MediaValidation != nil {
+			for reasonKey, count := range doc.OGData.MediaValidation.Reasons {
+				h.validationMetrics.RecordRejectionN(MediaValidationReason(reasonKey), count)
+			}
+		}
+	}
+
 	linkStats := ComputeLinkStats(body)
 	pinnable, reason := h.classifier.Classify(doc, linkStats)
 	doc.OGData.Classifier = &ClassifierVerdict{Pinnable: pinnable, Reason: reason}
+	if h.validationMetrics != nil {
+		h.validationMetrics.RecordClassification(pinnable, reason)
+	}
 
 	if !pinnable {
 		// Pinnable=false: no Pin created, but the URL is still "done".

@@ -276,6 +276,132 @@ priority order defined by harvester_frontier's partial index.`,
 	},
 }
 
+// backfillPlaceholdersCmd implements tasks 6.2 / 6.3 of harvester-media-validation.
+// It reads Pin rows whose media_url matches one of the legacy
+// pre-deployment placeholder shapes documented in
+// db/scripts/backfill_placeholder_media.sql Q1 (creator_id=BotCreatorID +
+// media_url under the legacy `bot/` or `image/` prefix with a `.gif`
+// extension) and re-queues each Pin's canonical URL into harvester_frontier
+// so the new validator path replaces the placeholder with a real candidate
+// (or routes the doc to no_primary_media).
+//
+// Operational contract:
+//   - --dry-run reports the count + first few rows without enqueuing (task 6.3)
+//   - Without --dry-run, each canonical URL is enqueued via URLScheduler.Enqueue.
+//     Per-host rate limiting is enforced server-side at Dequeue time by the
+//     HostRateLimiter wired into the scheduler; this command additionally
+//     paces enqueue-side calls with a small sleep so a large backlog does not
+//     overwhelm the frontier in a single transaction burst.
+var backfillPlaceholdersCmd = &cobra.Command{
+	Use:   "backfill-placeholders",
+	Short: "Re-queue Pins whose media_url is a legacy placeholder GIF",
+	Long: `Identifies Pins where media_url points to one of the legacy
+placeholder shapes (under BotCreatorID, with media_url containing
+either "/bot/" or "/image/" and ending in ".gif") and re-queues each
+canonical URL into harvester_frontier so the new media validator path
+replaces or rejects the candidate.
+
+Use --dry-run first to see how many rows would be affected.`,
+	Args: cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		pacingMs, _ := cmd.Flags().GetInt("pace-ms")
+
+		infra, err := initInfrastructure()
+		if err != nil {
+			return fmt.Errorf("infrastructure initialization failed: %w", err)
+		}
+		defer infra.Close()
+
+		ctx := cmd.Context()
+		if ctx == nil {
+			ctx = context.Background()
+		}
+
+		// Apply env overrides for BotCreatorID before the SQL filter runs.
+		bot.ApplyBotCreatorIDFromEnv()
+		creatorID := bot.BotCreatorID
+
+		// Q1 from db/scripts/backfill_placeholder_media.sql — kept inline so the
+		// CLI does not depend on filesystem layout at runtime. The two ILIKE
+		// predicates cover the QA-reported legacy single-segment "/image/" key
+		// shape with a .gif extension.
+		const selectPlaceholders = `
+SELECT id::text, url, media_url
+FROM pins
+WHERE creator_id = $1
+  AND (media_url ILIKE '%/bot/%' OR media_url ILIKE '%/image/%')
+  AND media_url ILIKE '%.gif'
+ORDER BY created_at DESC`
+
+		rows, err := infra.DB.QueryContext(ctx, selectPlaceholders, creatorID)
+		if err != nil {
+			return fmt.Errorf("query placeholder pins: %w", err)
+		}
+		defer func() { _ = rows.Close() }()
+
+		type pinRow struct {
+			ID, URL, MediaURL string
+		}
+		var pins []pinRow
+		for rows.Next() {
+			var p pinRow
+			if scanErr := rows.Scan(&p.ID, &p.URL, &p.MediaURL); scanErr != nil {
+				return fmt.Errorf("scan placeholder pin: %w", scanErr)
+			}
+			pins = append(pins, p)
+		}
+		if rowsErr := rows.Err(); rowsErr != nil {
+			return fmt.Errorf("iterate placeholder pins: %w", rowsErr)
+		}
+
+		log.Printf("fuguebot: backfill-placeholders: %d pin(s) match placeholder pattern", len(pins))
+
+		// Show a small sample so the operator can sanity-check the pattern
+		// before approving the non-dry-run pass.
+		preview := len(pins)
+		if preview > 5 {
+			preview = 5
+		}
+		for i := 0; i < preview; i++ {
+			log.Printf("  sample[%d]: pin=%s url=%s media_url=%s", i, pins[i].ID, pins[i].URL, pins[i].MediaURL)
+		}
+
+		if dryRun {
+			log.Printf("fuguebot: --dry-run set; not enqueuing. Re-run without --dry-run after operator approval.")
+			return nil
+		}
+
+		if len(pins) == 0 {
+			return nil
+		}
+
+		sched := scheduler.NewPGURLScheduler(infra.DB)
+		enqueued := 0
+		var failures []string
+		for _, p := range pins {
+			if ctx.Err() != nil {
+				log.Printf("fuguebot: context cancelled after %d enqueue(s)", enqueued)
+				break
+			}
+			if enqErr := sched.Enqueue(scheduler.QueueHarvester, p.URL); enqErr != nil {
+				failures = append(failures, fmt.Sprintf("%s: %v", p.ID, enqErr))
+				continue
+			}
+			enqueued++
+			if pacingMs > 0 {
+				time.Sleep(time.Duration(pacingMs) * time.Millisecond)
+			}
+		}
+
+		log.Printf("fuguebot: backfill-placeholders: enqueued %d/%d, failures=%d", enqueued, len(pins), len(failures))
+		for _, f := range failures {
+			log.Printf("  failure: %s", f)
+		}
+		return nil
+	},
+}
+
 var mergeCmd = &cobra.Command{
 	Use:   "merge <site>",
 	Short: "Merge duplicate URL-pattern nodes using Drain analysis",
@@ -321,9 +447,12 @@ var mergeCmd = &cobra.Command{
 
 func init() {
 	mergeCmd.Flags().Int("threshold", bot.DefaultMergeThreshold, "minimum leaf count to trigger merge")
+	backfillPlaceholdersCmd.Flags().Bool("dry-run", false, "report match count without enqueuing")
+	backfillPlaceholdersCmd.Flags().Int("pace-ms", 50, "sleep between enqueues in milliseconds (0 disables)")
 	rootCmd.AddCommand(pioneerCmd)
 	rootCmd.AddCommand(harvesterCmd)
 	rootCmd.AddCommand(mergeCmd)
+	rootCmd.AddCommand(backfillPlaceholdersCmd)
 }
 
 func main() {

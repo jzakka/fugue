@@ -72,6 +72,20 @@ type OGData struct {
 	Author string `json:"author,omitempty"`
 	// PublishedAt is the page publication time when discoverable.
 	PublishedAt *time.Time `json:"published_at,omitempty"`
+	// MediaValidation records media-candidate validation rejections that
+	// were applied before the classifier ran. It satisfies the spec's
+	// "검증 실패 사유의 og_data 기록" requirement: the externally observable
+	// minimum is (a) rejected_count and (b) per-reason counts.
+	MediaValidation *MediaValidationRecord `json:"media_validation,omitempty"`
+}
+
+// MediaValidationRecord aggregates the count and per-reason breakdown of
+// media candidates rejected by the validator. The schema is observable
+// (count + reason map) without locking specific reason strings; reason keys
+// match MediaValidationReason values.
+type MediaValidationRecord struct {
+	RejectedCount int            `json:"rejected_count"`
+	Reasons       map[string]int `json:"reasons,omitempty"`
 }
 
 // ClassifierVerdict is what the content classifier returns and what is
