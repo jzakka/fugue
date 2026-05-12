@@ -798,6 +798,38 @@ func TestHarvesterConsumer_NodeStats_AdapterFallback(t *testing.T) {
 	}
 }
 
+// TestHarvesterConsumer_NodeStats_AdapterFallbackWhenGenericAlsoFails covers
+// the spec Scenario "어댑터 실패 후 generic 실패" (fix-harvester-adapter-
+// fallback-counter): when both the registered adapter AND the generic
+// fallback extractor error, Failed must increment AND AdapterFallback must
+// also increment — the adapter-fallback event happened independently of the
+// extractor outcome. Regression test: before the fix, processOne returned
+// early on extractErr != nil before reaching the `if fellBack` branch, so
+// AdapterFallback stayed 0 in this path.
+func TestHarvesterConsumer_NodeStats_AdapterFallbackWhenGenericAlsoFails(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/p1": pinnableDocHTML()},
+	}
+	registry := NewInMemoryAdapterRegistry()
+	registry.Register(&failingAdapter{domain: "a.example", name: "test-failing"})
+
+	c := NewHarvesterConsumer(sched, fetcher, registry, nil, nil, NewMockPipeline()).
+		withExtractor(&erroringExtractor{})
+	c.processOne(context.Background(), "https://a.example/p1")
+
+	got := c.NodeStats()
+	if got.Failed != 1 {
+		t.Fatalf("Failed = %d, want 1 (adapter and generic both failed)", got.Failed)
+	}
+	if got.AdapterFallback != 1 {
+		t.Fatalf("AdapterFallback = %d, want 1 (adapter fallback happened regardless of generic outcome)", got.AdapterFallback)
+	}
+	if got.PinsCreated != 0 || got.Deduped != 0 || got.Skipped != 0 {
+		t.Fatalf("only Failed and AdapterFallback should fire, got %+v", got)
+	}
+}
+
 // TestHarvesterConsumer_NodeStats_MutualExclusion covers the spec invariant
 // "주 카테고리 4개 합 = 처리 노드 수": after processing N=4 nodes (one in
 // each primary category — created / deduped / skipped / failed), the sum of

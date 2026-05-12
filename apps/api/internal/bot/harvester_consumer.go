@@ -330,16 +330,18 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	// row: HarvestPipeline.ProcessDocument's node parameter is unused in
 	// production (harvest_pipeline.go).
 	doc, fellBack, extractErr := h.extractDocument(ctx, body, rawURL)
+	// spec: harvester "Harvester 노드 단위 통계 정의" — 본문 SHALL 보강
+	// (어댑터 실패가 발생하면 generic 성공/실패와 무관하게 AdapterFallback이
+	// 1 증가) + Scenario "어댑터 실패 후 generic 실패" enforce. 이 분기는
+	// extractErr 조기 반환보다 반드시 앞에 있어야 한다.
+	if fellBack {
+		h.stats.adapterFallback.Add(1)
+		log.Printf("harvester_consumer: adapter fell back to generic for url=%q", rawURL)
+	}
 	if extractErr != nil {
 		h.stats.failed.Add(1)
 		h.reportFailure(rawURL, scheduler.ErrorNetwork, "parse", extractErr)
 		return
-	}
-	if fellBack {
-		// AdapterFallback is independent of the primary category counters
-		// (spec: "AdapterFallback은 주 카테고리와 독립적인 부가 카운터").
-		h.stats.adapterFallback.Add(1)
-		log.Printf("harvester_consumer: adapter fell back to generic for url=%q", rawURL)
 	}
 
 	// Filter invalid media candidates BEFORE classification. After this
