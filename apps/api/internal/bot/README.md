@@ -225,6 +225,38 @@ Pioneer execution history and AI costs
 ### bot_harvest_runs
 Harvester execution history and extraction stats
 
+### Fetcher
+Abstracts page retrieval for Pioneer. Defaults to `fetchHTMLShared` (net/http)
+when no fetcher is configured.
+
+```go
+type Fetcher interface {
+    Fetch(ctx context.Context, url string) (html, finalURL string, err error)
+}
+```
+
+Implementations:
+- `HTTPFetcher` — plain net/http fetch.
+- `PlaywrightFetcher` — headless Chromium via [playwright-go]; required for
+  JS-heavy sites like pixiv.
+- `SavingFetcher` — decorator that writes each response body to a sitemap
+  directory (`<base>/<host>/<path>/index.html`).
+
+Enable via the pioneer CLI:
+
+```bash
+# Install the browser once (requires a Go toolchain to compile the installer)
+go run github.com/playwright-community/playwright-go/cmd/playwright@latest install chromium
+
+# Render with Chromium and snapshot every fetched node to ./sitemap
+fuguebot pioneer pixiv --fetcher playwright --sitemap-dir ./sitemap --max-nodes 50
+```
+
+Numeric path segments are collapsed to `{id}` so that `/artworks/12345` and
+`/artworks/67890` share one snapshot at `sitemap/pixiv.net/artworks/{id}/index.html`.
+
+[playwright-go]: https://github.com/playwright-community/playwright-go
+
 ## Testing
 
 Mock implementations provided for all interfaces:
