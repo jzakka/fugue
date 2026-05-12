@@ -17,7 +17,6 @@ require (
 	github.com/lib/pq v1.12.1
 	github.com/playwright-community/playwright-go v0.5700.1
 	github.com/redis/go-redis/v9 v9.18.0
-	github.com/sashabaranov/go-openai v1.41.2
 	github.com/spf13/cobra v1.10.2
 	github.com/sqlc-dev/pqtype v0.3.0
 	golang.org/x/net v0.52.0

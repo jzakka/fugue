@@ -5,9 +5,9 @@ The bot domain implements a two-process crawling system for discovering and extr
 ## Architecture
 
 ```
-Pioneer (AI-powered, infrequent)
+Pioneer (URLScheduler consumer)
   ↓
-Site Graph + Scripts (persisted)
+pioneer_frontier / harvester_frontier + Snapshots (persisted)
   ↓
 Harvester (rule-based, frequent)
   ↓
@@ -106,15 +106,6 @@ stats, err := harvester.Run(ctx, siteID)
 - `failed`: Encountered fatal error
 
 ## Interfaces
-
-### AIClient
-Abstracts AI model interaction for script generation.
-
-```go
-type AIClient interface {
-    GenerateScript(ctx context.Context, req ScriptRequest) (ScriptResponse, error)
-}
-```
 
 ### ScriptExecutor
 Abstracts script runtime (Node.js, Deno, etc).
@@ -220,7 +211,7 @@ Link relationships between nodes
 Parsing scripts per (site, node_type)
 
 ### bot_pioneer_runs
-Pioneer execution history and AI costs
+Pioneer execution history
 
 ### bot_harvest_runs
 Harvester execution history and extraction stats
@@ -260,7 +251,6 @@ Numeric path segments are collapsed to `{id}` so that `/artworks/12345` and
 ## Testing
 
 Mock implementations provided for all interfaces:
-- `MockAIClient`: Returns dummy scripts
 - `MockScriptExecutor`: Returns dummy items
 
 Run tests:
@@ -322,8 +312,5 @@ is intentionally not provided.
 
 ## Future Work
 
-- HTTP client implementation for fetchHTML
-- Actual AI client integration (Claude/OpenAI)
 - Node.js script executor
-- CLI commands (fuguebot pioneer, fuguebot harvest)
 - Kubernetes CronJob deployment

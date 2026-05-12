@@ -11,32 +11,6 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
-// MockAIClient is a mock implementation of AIClient for testing
-type MockAIClient struct {
-	GenerateScriptFunc func(ctx context.Context, req ScriptRequest) (ScriptResponse, error)
-	CallCount          int
-	LastRequest        *ScriptRequest
-}
-
-func NewMockAIClient() *MockAIClient {
-	return &MockAIClient{
-		GenerateScriptFunc: func(ctx context.Context, req ScriptRequest) (ScriptResponse, error) {
-			// Default mock behavior: return a dummy script
-			return ScriptResponse{
-				ScriptCode: fmt.Sprintf("// Mock script for %s %s", req.Domain, req.NodeType),
-				CostUSD:    0.001,
-				Model:      "mock-model",
-			}, nil
-		},
-	}
-}
-
-func (m *MockAIClient) GenerateScript(ctx context.Context, req ScriptRequest) (ScriptResponse, error) {
-	m.CallCount++
-	m.LastRequest = &req
-	return m.GenerateScriptFunc(ctx, req)
-}
-
 // MockScriptExecutor is a mock implementation of ScriptExecutor for testing
 type MockScriptExecutor struct {
 	ExecuteFunc func(ctx context.Context, script string, html string, url string) ([]RawItem, error)
