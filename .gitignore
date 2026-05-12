@@ -9,3 +9,4 @@ node_modules/
 apps/api/bot
 apps/api/server
 graph*.html
+fuguebot-graph.html

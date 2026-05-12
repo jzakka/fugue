@@ -265,6 +265,13 @@ export default function SearchBar() {
                           src={pin.og_image}
                           alt=""
                           className="w-8 h-8 rounded-[6px] object-cover shrink-0"
+                          onError={(e) => {
+                            // Cached og_image objects may be evicted by the
+                            // harvester image cache TTL; degrade by hiding
+                            // the broken image so the layout doesn't show
+                            // the browser's broken-image glyph.
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-[6px] bg-surface shrink-0 flex items-center justify-center text-text-dim text-xs">

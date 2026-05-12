@@ -17,7 +17,7 @@ func TestHTTPFetcher_Success(t *testing.T) {
 	defer ts.Close()
 
 	fetcher := NewHTTPFetcher(nil)
-	result, err := fetcher.Fetch(context.Background(), ts.URL)
+	result, err := fetcher.Fetch(context.Background(), ts.URL, nil)
 
 	if err != nil {
 		t.Fatalf("Fetch failed: %v", err)
@@ -37,7 +37,7 @@ func TestHTTPFetcher_NotFound(t *testing.T) {
 	defer ts.Close()
 
 	fetcher := NewHTTPFetcher(nil)
-	_, err := fetcher.Fetch(context.Background(), ts.URL)
+	_, err := fetcher.Fetch(context.Background(), ts.URL, nil)
 
 	if err == nil {
 		t.Fatal("Expected error for 404, got nil")
@@ -51,4 +51,25 @@ func TestHTTPFetcher_CustomClient(t *testing.T) {
 	if fetcher.client != customClient {
 		t.Error("Custom client was not used")
 	}
+}
+
+func TestHTTPFetcher_Headers(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Accept-Language"); got != "ko-KR,ko;q=0.9" {
+			t.Fatalf("expected Accept-Language header to be forwarded, got %q", got)
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("<html><body><h1>Test</h1></body></html>"))
+	}))
+	defer ts.Close()
+
+	fetcher := NewHTTPFetcher(nil)
+	result, err := fetcher.Fetch(context.Background(), ts.URL, map[string][]string{
+		"Accept-Language": {"ko-KR,ko;q=0.9"},
+	})
+	if err != nil {
+		t.Fatalf("Fetch failed: %v", err)
+	}
+	defer func() { _ = result.Body.Close() }()
 }

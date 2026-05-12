@@ -25,10 +25,13 @@ func NewHTTPFetcher(client *http.Client) *HTTPFetcher {
 }
 
 // Fetch retrieves a page via HTTP GET request.
-func (f *HTTPFetcher) Fetch(ctx context.Context, url string) (*FetchResult, error) {
+func (f *HTTPFetcher) Fetch(ctx context.Context, url string, headers map[string][]string) (*FetchResult, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
+	}
+	if headers != nil {
+		req.Header = http.Header(headers)
 	}
 
 	resp, err := f.client.Do(req)

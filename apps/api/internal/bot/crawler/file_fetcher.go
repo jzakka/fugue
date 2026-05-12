@@ -24,7 +24,7 @@ func NewFileFetcher(basePath string) *FileFetcher {
 
 // Fetch retrieves a file from the filesystem based on the URL path.
 // The URL is converted to a file path relative to basePath.
-func (f *FileFetcher) Fetch(ctx context.Context, urlStr string) (*FetchResult, error) {
+func (f *FileFetcher) Fetch(ctx context.Context, urlStr string, _ map[string][]string) (*FetchResult, error) {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL: %w", err)

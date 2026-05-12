@@ -60,9 +60,11 @@
 | url | VARCHAR(1000) | 원본 URL (선택) |
 | title | VARCHAR(200) NOT NULL | 제목 |
 | description | VARCHAR(500) | 설명 (선택) |
-| og_image | VARCHAR(1000) | OG 썸네일 URL |
-| og_data | JSONB | OG 메타데이터 전체 |
+| og_image | VARCHAR(1000) | 대표 이미지 URL — `harvester-image-cache` capability에 의해 기록. 캐시 성공 시 object storage URL, 실패 시 원본 후보 URL, 후보 없음 시 NULL |
+| og_data | JSONB | OG 메타데이터 + 추출/분류 증거. 키: `source`(항상 fetch URL), `extractor`(`generic` \| `script:<site_id>` \| `<adapter_name>`), `classifier.{pinnable, reason?}` (reason enum: `listing` \| `empty_body` \| `no_primary_media`), `media_candidates[]`, `lang`, `author`, `published_at`. **키 부재 계약**: `body_text`와 `canonical_url`은 포함되지 않음 — `body_text`는 `description`에, canonical은 `url`에만 저장된다 |
 | created_at | TIMESTAMPTZ | |
+
+**Partial unique index** `pins_url_bot_unique`: 봇 creator_id(`00000000-0000-0000-0000-00000000f096`)가 생성한 Pin에 한해 `url`을 유일 제약으로 강제한다(`harvester-pin-document` change). 일반 사용자는 동일 URL을 중복 핀할 수 있으며 해당 row는 이 인덱스에 포함되지 않는다. PostgreSQL partial index predicate는 IMMUTABLE이어야 하므로 UUID는 하드코딩된 리터럴로 migration 과 `UpsertBotPinByURL` 쿼리 양쪽에 동일하게 존재한다(`apps/api/internal/bot/source.go` IMMUTABLE-sync policy 참고).
 
 ### tags
 사전정의된 태그 목록.
@@ -106,6 +108,57 @@
 | pin_id | UUID FK → pins | ON DELETE CASCADE |
 | created_at | TIMESTAMPTZ | 보드에 추가된 시각 |
 | PK | (board_id, pin_id) | 중복 추가 방지 |
+
+## 크롤러 frontier 테이블
+
+Pioneer/Harvester가 공유하는 영속 URL 큐. 복수 워커로 수평 확장해도 중복 fetch가 발생하지 않도록 Postgres 기반으로 보관한다. 상세한 claim 규약은 `scheduler-claim-api` 도입 이후 정의된다.
+
+### pioneer_frontier
+Pioneer가 fetch 대상 URL을 쌓는 큐. fetch 상태·실패 카운터·재fetch 스케줄을 보관.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | BIGSERIAL PK | 자동 증가 |
+| normalized_url | TEXT NOT NULL | 정규화된 URL |
+| url | TEXT NOT NULL | 원본 URL |
+| url_hash | BYTEA NOT NULL | sha256(normalized_url) 32바이트, UNIQUE + CHECK(octet_length=32) |
+| host | TEXT NOT NULL | 호스트명 (포트 제외, 원본 대소문자/`www.` 유지) |
+| depth | INTEGER NOT NULL DEFAULT 0 | BFS depth |
+| score | DOUBLE PRECISION NOT NULL DEFAULT 0 | 0.0~1.0 우선순위 가중치 |
+| last_fetched_at | TIMESTAMPTZ | 마지막 fetch 성공 시각 |
+| next_fetch_at | TIMESTAMPTZ NOT NULL DEFAULT now() | 다음 fetch 가능 시각 (claim 시 `now()+10m`로 lease marker 겸용) |
+| fetch_error_count | INTEGER NOT NULL DEFAULT 0 | 누적 실패 횟수 (5 도달 시 claim 제외) |
+| last_updated_at | TIMESTAMPTZ NOT NULL DEFAULT now() | application이 매 UPDATE 시 명시 세팅 |
+
+Partial index `pioneer_frontier_claimable_idx`: `(score DESC, next_fetch_at ASC) WHERE fetch_error_count < 5`.
+
+### harvester_frontier
+Pioneer가 fetch에 성공한 URL을 Harvester 소비용으로 fanout해 쌓는 큐. harvest 상태·실패 카운터·snapshot 참조를 보관.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | BIGSERIAL PK | 자동 증가 |
+| normalized_url | TEXT NOT NULL | 정규화된 URL |
+| url | TEXT NOT NULL | 원본 URL |
+| url_hash | BYTEA NOT NULL | sha256(normalized_url) 32바이트, UNIQUE + CHECK(octet_length=32) |
+| host | TEXT NOT NULL | 호스트명 |
+| snapshot_key | TEXT | Pioneer가 저장한 HTML snapshot 참조 키 |
+| score | DOUBLE PRECISION NOT NULL DEFAULT 0 | 우선순위 가중치 |
+| harvested_at | TIMESTAMPTZ | 처리 완료 시각 (NOT NULL이면 partial index 제외) |
+| next_harvest_at | TIMESTAMPTZ NOT NULL DEFAULT now() | 다음 harvest 가능 시각 (claim lease 겸용) |
+| harvest_error_count | INTEGER NOT NULL DEFAULT 0 | 누적 실패 횟수 |
+| last_updated_at | TIMESTAMPTZ NOT NULL DEFAULT now() | application이 매 UPDATE 시 명시 세팅 |
+
+Partial index `harvester_frontier_claimable_idx`: `(score DESC, next_harvest_at ASC) WHERE harvested_at IS NULL AND harvest_error_count < 5`.
+
+### harvester_frontier_pins
+`harvester_frontier` 1 row ↔ 여러 Pin의 조인 테이블. ScriptAdapter가 N개 Pin을 생성할 수 있으므로 1:N.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| frontier_id | BIGINT NOT NULL FK → harvester_frontier | ON DELETE CASCADE |
+| pin_id | UUID NOT NULL FK → pins | ON DELETE CASCADE (pins.id가 UUID) |
+| PK | (frontier_id, pin_id) | 중복 링크 방지 |
 
 ## 이벤트 데이터 (S3)
 

@@ -6,7 +6,7 @@ WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
 .PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester \
-	migrate-up migrate-down migrate-create lint fmt setup
+	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -93,7 +93,7 @@ dev-stop:
 # ============================================================
 test:
 	@echo "🧪 Running Go tests..."
-	@cd $(API_DIR) && go test ./internal/works/... -v
+	@cd $(API_DIR) && go test ./internal/... -v
 	@echo ""
 	@echo "🧪 Running Frontend tests..."
 	@cd $(WEB_DIR) && npm test
@@ -153,3 +153,64 @@ setup:
 	@lefthook install
 	@echo "✅ Git hooks installed"
 
+# ============================================================
+# Fuguebot Scheduler 진행 현황
+# ============================================================
+fuguebot-progress:
+	@printf '\n'
+	@printf '══════════════════════════════════════════════════════════════════\n'
+	@printf '  Fuguebot Pioneer / Harvester Scheduler 진행 현황\n'
+	@printf '══════════════════════════════════════════════════════════════════\n'
+	@printf '\n'
+	@printf '[ 완료 (archive) ]\n'
+	@printf '──────────────────────────────────────────────────────────────────\n'
+	@for dir in openspec/changes/archive/*/; do \
+		name=$$(basename "$$dir"); \
+		case "$$name" in \
+			2026-04-17-*|2026-04-18-*|2026-04-19-*|2026-04-20-*) \
+				printf '  [x] %s\n' "$$name" ;; \
+		esac; \
+	done
+	@printf '\n'
+	@printf '[ 진행 중 (active) ]\n'
+	@printf '──────────────────────────────────────────────────────────────────\n'
+	@total_done=0; total_all=0; \
+	for dir in openspec/changes/*/; do \
+		name=$$(basename "$$dir"); \
+		[ "$$name" = "archive" ] && continue; \
+		tasks_file="$$dir/tasks.md"; \
+		if [ ! -f "$$tasks_file" ]; then \
+			printf '  (!) %-40s tasks.md 없음\n' "$$name"; \
+			continue; \
+		fi; \
+		done_n=$$(grep -e '- \[x\]' -c "$$tasks_file" 2>/dev/null); done_n=$${done_n:-0}; \
+		inp_n=$$(grep -e '- \[~\]' -c "$$tasks_file" 2>/dev/null); inp_n=$${inp_n:-0}; \
+		todo_n=$$(grep -e '- \[ \]' -c "$$tasks_file" 2>/dev/null); todo_n=$${todo_n:-0}; \
+		all_n=$$((done_n + inp_n + todo_n)); \
+		[ "$$all_n" -eq 0 ] && continue; \
+		pct=$$((done_n * 100 / all_n)); \
+		filled=$$((pct * 20 / 100)); empty=$$((20 - filled)); \
+		bar=""; i=0; \
+		while [ "$$i" -lt "$$filled" ]; do bar="$${bar}#"; i=$$((i+1)); done; \
+		while [ "$$i" -lt 20 ]; do bar="$${bar}-"; i=$$((i+1)); done; \
+		if [ "$$inp_n" -gt 0 ]; then st="~"; \
+		elif [ "$$done_n" -eq "$$all_n" ]; then st="x"; \
+		else st=" "; fi; \
+		printf '  [%s] %-40s [%s] %3d%% (%d/%d)\n' "$$st" "$$name" "$$bar" "$$pct" "$$done_n" "$$all_n"; \
+		[ "$$inp_n" -gt 0 ] && printf '            진행중 %d건\n' "$$inp_n"; \
+		total_done=$$((total_done + done_n)); \
+		total_all=$$((total_all + all_n)); \
+	done; \
+	printf '\n'; \
+	printf '──────────────────────────────────────────────────────────────────\n'; \
+	if [ "$$total_all" -gt 0 ]; then \
+		total_pct=$$((total_done * 100 / total_all)); \
+		printf '  전체: %d / %d tasks  (%d%%)\n' "$$total_done" "$$total_all" "$$total_pct"; \
+	fi
+	@$(MAKE) --no-print-directory fuguebot-graph
+
+# ============================================================
+# Fuguebot 의존성 그래프 (HTML 비주얼)
+# ============================================================
+fuguebot-graph:
+	@python3 fuguebot_graph.py

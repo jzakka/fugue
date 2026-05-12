@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/chungsanghwa/fugue/apps/api/internal/urlcanon"
 )
 
 // LinkFilter defines the contract for filtering crawled links.
@@ -43,45 +44,19 @@ func (c *FilterChain) Apply(links []crawler.Link) []crawler.Link {
 
 // --- Helpers ---
 
-// trackingParams lists URL query parameters to strip during canonicalization.
-var trackingParams = map[string]bool{
-	"utm_source":   true,
-	"utm_medium":   true,
-	"utm_campaign": true,
-	"utm_term":     true,
-	"utm_content":  true,
-	"ref":          true,
-	"fbclid":       true,
-	"gclid":        true,
+// canonicalURL is a thin wrapper around urlcanon.Canonical. It exists so
+// existing bot callers don't have to change their import paths. The single
+// source of truth for canonicalization rules is urlcanon (shared with the
+// scheduler so url_hash and snapshot_key stay in lockstep).
+func canonicalURL(urlStr string) string {
+	return urlcanon.Canonical(urlStr)
 }
 
-// canonicalURL normalizes a URL by removing tracking parameters,
-// stripping the www. prefix, and removing trailing slashes.
-func canonicalURL(urlStr string) string {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return urlStr
-	}
-
-	// Remove www. prefix
-	u.Host = strings.TrimPrefix(strings.ToLower(u.Host), "www.")
-
-	// Remove tracking parameters
-	q := u.Query()
-	for param := range trackingParams {
-		q.Del(param)
-	}
-	u.RawQuery = q.Encode()
-
-	// Remove trailing slash (but keep root "/")
-	if u.Path != "/" && strings.HasSuffix(u.Path, "/") {
-		u.Path = strings.TrimSuffix(u.Path, "/")
-	}
-
-	// Remove fragment
-	u.Fragment = ""
-
-	return u.String()
+// stripWWW removes a leading "www." from a host string. Input must already
+// be lowercase. Kept as a local helper because DomainFilter's host-keyword
+// matching wants just the www-stripped hostname, not full canonicalization.
+func stripWWW(host string) string {
+	return strings.TrimPrefix(host, "www.")
 }
 
 // VisitedLink records a link that was already visited, pairing the original
@@ -108,19 +83,63 @@ func semanticPriorityModifier(link crawler.Link) int {
 
 // --- Filter Implementations ---
 
-// DomainFilter keeps only links whose domain matches RootDomain.
+// DomainFilter selects links by substring-matching the link host against
+// AllowKeywords / DenyKeywords. Hosts are normalized (lowercased, "www."
+// stripped) before matching.
+//
+// Deny always wins: a host matched by any DenyKeywords entry is rejected.
+// If AllowKeywords is empty (the default), all non-denied hosts pass —
+// this is the cross-site default-allow mode. If AllowKeywords is
+// non-empty, a host must match at least one Allow entry to pass.
 type DomainFilter struct {
-	RootDomain string
+	AllowKeywords []string
+	DenyKeywords  []string
 }
 
 func (f *DomainFilter) Filter(links []crawler.Link) []crawler.Link {
 	var out []crawler.Link
 	for _, l := range links {
-		if isSameDomain(l.URL, f.RootDomain) {
+		host := normalizedHost(l.URL)
+		if host == "" {
+			// Unparseable or hostless URL: drop.
+			continue
+		}
+		if matchesAnyKeyword(host, f.DenyKeywords) {
+			continue
+		}
+		if len(f.AllowKeywords) == 0 || matchesAnyKeyword(host, f.AllowKeywords) {
 			out = append(out, l)
 		}
 	}
 	return out
+}
+
+// normalizedHost returns the link host lowercased with "www." stripped.
+// Returns "" for URLs that cannot be parsed or have no host.
+func normalizedHost(urlStr string) string {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return ""
+	}
+	h := strings.ToLower(u.Hostname())
+	if h == "" {
+		return ""
+	}
+	return stripWWW(h)
+}
+
+// matchesAnyKeyword returns true if host contains any of keywords as a
+// case-insensitive substring. Empty keywords are skipped.
+func matchesAnyKeyword(host string, keywords []string) bool {
+	for _, kw := range keywords {
+		if kw == "" {
+			continue
+		}
+		if strings.Contains(host, strings.ToLower(kw)) {
+			return true
+		}
+	}
+	return false
 }
 
 // ExtensionFilter removes links with excluded file extensions.

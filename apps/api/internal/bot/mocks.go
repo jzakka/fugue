@@ -78,33 +78,50 @@ func (m *MockScriptExecutor) Execute(ctx context.Context, script string, html st
 	return m.ExecuteFunc(ctx, script, html, url)
 }
 
-// MockPipeline is a mock implementation of Pipeline for testing
+// MockPipeline is a mock implementation of DocumentPipeline for testing.
+// It records each ProcessDocument call and treats canonical URLs seen more
+// than once as dedupes (created=false) so stats match production behavior.
 type MockPipeline struct {
-	ProcessFunc  func(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error)
-	CallCount    int
-	LastItems    []RawItem
-	TotalPins    int
-	TotalDeduped int
-	TotalFailed  int
+	ProcessDocumentFunc func(ctx context.Context, node db.BotGraphNode, doc PinDocument) (created bool, pinID uuid.UUID, err error)
+	MarkSkippedFunc     func(ctx context.Context, node db.BotGraphNode) error
+	CallCount           int
+	LastDoc             PinDocument
+	LastNode            db.BotGraphNode
+	SkippedCount        int
+	TotalCreated        int
+	TotalDeduped        int
+	seenCanonicals      map[string]bool
 }
 
 func NewMockPipeline() *MockPipeline {
-	return &MockPipeline{
-		ProcessFunc: func(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error) {
-			// Default mock behavior: simulate successful processing
-			return len(items), 0, 0, nil
-		},
+	m := &MockPipeline{seenCanonicals: make(map[string]bool)}
+	m.ProcessDocumentFunc = func(_ context.Context, _ db.BotGraphNode, doc PinDocument) (bool, uuid.UUID, error) {
+		inserted := !m.seenCanonicals[doc.CanonicalURL]
+		m.seenCanonicals[doc.CanonicalURL] = true
+		return inserted, uuid.New(), nil
 	}
+	m.MarkSkippedFunc = func(_ context.Context, _ db.BotGraphNode) error { return nil }
+	return m
 }
 
-func (m *MockPipeline) Process(ctx context.Context, items []RawItem) (pinsCreated int, deduped int, failed int, err error) {
+func (m *MockPipeline) ProcessDocument(ctx context.Context, node db.BotGraphNode, doc PinDocument) (bool, uuid.UUID, error) {
 	m.CallCount++
-	m.LastItems = items
-	pinsCreated, deduped, failed, err = m.ProcessFunc(ctx, items)
-	m.TotalPins += pinsCreated
-	m.TotalDeduped += deduped
-	m.TotalFailed += failed
-	return pinsCreated, deduped, failed, err
+	m.LastDoc = doc
+	m.LastNode = node
+	created, pinID, err := m.ProcessDocumentFunc(ctx, node, doc)
+	if err == nil {
+		if created {
+			m.TotalCreated++
+		} else {
+			m.TotalDeduped++
+		}
+	}
+	return created, pinID, err
+}
+
+func (m *MockPipeline) MarkSkipped(ctx context.Context, node db.BotGraphNode) error {
+	m.SkippedCount++
+	return m.MarkSkippedFunc(ctx, node)
 }
 
 // MockGraphRepository is a mock implementation of GraphRepository for testing

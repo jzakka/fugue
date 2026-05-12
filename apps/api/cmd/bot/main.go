@@ -6,17 +6,22 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot"
-	"github.com/chungsanghwa/fugue/apps/api/internal/bot/ai"
+	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
+	"github.com/chungsanghwa/fugue/apps/api/internal/config"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/scheduler"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
 
@@ -121,17 +126,10 @@ Examples:
 var pioneerCmd = &cobra.Command{
 	Use:   "pioneer <site>",
 	Short: "Run Pioneer crawler for a site",
-	Long: `Pioneer explores sites and generates parsing scripts using AI.
-
-Flags:
-  --fetcher       http (default) or playwright. Use playwright for JS-heavy sites.
-  --sitemap-dir   If set, each fetched node's HTML is saved to <dir>/<host>/<path>/index.html.`,
-	Args: cobra.ExactArgs(1),
+	Long:  "Pioneer explores sites and generates parsing scripts using AI.",
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		siteName := args[0]
-		fetcherKind, _ := cmd.Flags().GetString("fetcher")
-		sitemapDir, _ := cmd.Flags().GetString("sitemap-dir")
-		maxNodes, _ := cmd.Flags().GetInt("max-nodes")
 
 		log.Printf("fuguebot: starting pioneer for site: %s", siteName)
 
@@ -159,117 +157,24 @@ Flags:
 
 		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
 
-		// Initialize Pioneer dependencies
-		graphRepo := bot.NewGraphRepo(infra.DB)
-		scriptRepo := bot.NewScriptRepo(infra.DB)
-
-		// Initialize AI client (CLI mode by default, SDK mode with AI_CLIENT_TYPE=sdk)
-		rawAIClient, err := ai.NewFromEnv()
-		if err != nil {
-			return fmt.Errorf("failed to create AI client: %w", err)
-		}
-
-		// Wrap with adapter to implement bot.AIClient interface
-		aiClient := bot.NewAIClientAdapter(rawAIClient)
-
-		// Initialize script executor (GojaExecutor for real script validation)
-		executor := bot.NewGojaExecutor(0)
-
-		// Create Pioneer instance
-		if maxNodes <= 0 {
-			maxNodes = 100
-		}
-		pioneer := bot.NewPioneer(
-			siteRepo,
-			graphRepo,
-			scriptRepo,
-			aiClient,
-			executor,
-			bot.PioneerConfig{
-				MaxNodesPerSite:  maxNodes,
-				RateLimitMs:      500,
-				SuccessThreshold: 0.7,
-			},
-		)
-
-		// Configure fetcher: http (default) or playwright, optionally wrapped
-		// in a SavingFetcher that writes each node's HTML to --sitemap-dir.
-		var fetcher bot.Fetcher
-		switch fetcherKind {
-		case "", "http":
-			if sitemapDir != "" {
-				fetcher = bot.HTTPFetcher{}
-			}
-		case "playwright":
-			log.Println("fuguebot: starting headless chromium via playwright...")
-			pw, pwErr := bot.NewPlaywrightFetcher(bot.PlaywrightFetcherConfig{})
-			if pwErr != nil {
-				return fmt.Errorf("playwright fetcher: %w", pwErr)
-			}
-			defer func() {
-				if cerr := pw.Close(); cerr != nil {
-					log.Printf("fuguebot: playwright close: %v", cerr)
-				}
-			}()
-			fetcher = pw
-		default:
-			return fmt.Errorf("unknown --fetcher value: %q (expected http|playwright)", fetcherKind)
-		}
-		if fetcher != nil && sitemapDir != "" {
-			log.Printf("fuguebot: saving node HTML under %s/", sitemapDir)
-			fetcher = &bot.SavingFetcher{
-				Inner: fetcher,
-				Saver: &bot.FileSaver{BaseDir: sitemapDir},
-			}
-		}
-		if fetcher != nil {
-			pioneer.SetFetcher(fetcher)
-		}
-
-		// Run Pioneer
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-		defer cancel()
-
-		if err := pioneer.Run(ctx, site.ID); err != nil {
-			log.Printf("fuguebot: pioneer failed: %v", err)
-			return err
-		}
-
-		log.Println("fuguebot: pioneer run completed")
-
-		// Post-crawl: drain merge to deduplicate parameterized URL nodes
-		log.Println("fuguebot: running drain merge...")
-		mergeResult, mergeErr := bot.RunDrainMerge(ctx, infra.Queries, site.ID, bot.DefaultMergeThreshold)
-		if mergeErr != nil {
-			log.Printf("fuguebot: drain merge failed: %v", mergeErr)
-			return mergeErr
-		}
-		if mergeResult.MergedPrefixes > 0 {
-			log.Printf("fuguebot: drain merge done — %d prefixes merged, %d nodes removed", mergeResult.MergedPrefixes, mergeResult.RemovedNodes)
-		} else {
-			log.Println("fuguebot: drain merge — no merge targets found")
-		}
-
-		return nil
+		// Pioneer is now a scheduler-backed consumer (pioneer-scheduler-consumer).
+		// The CLI seeds the site's root URL into pioneer_frontier and then
+		// hands control to PioneerConsumer.Run for the lifetime of the process.
+		return runPioneerConsumer(cmd.Context(), infra, site.RootUrl)
 	},
 }
 
 var harvesterCmd = &cobra.Command{
-	Use:   "harvester <site>",
-	Short: "Run Harvester crawler for a site",
-	Long:  "Harvester executes scripts and extracts content from sites.",
-	Args:  cobra.ExactArgs(1),
+	Use:   "harvester",
+	Short: "Run Harvester consumer worker",
+	Long: `Harvester is a URLScheduler consumer: it dequeues URLs from
+harvester_frontier, fetches each via snapshot-first CompositeFetcher,
+extracts a PinDocument, creates Pins, and reports back via SetStatus.
+Takes no site argument — one worker processes URLs across all hosts in
+priority order defined by harvester_frontier's partial index.`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		siteName := args[0]
-
-		log.Printf("fuguebot: starting harvester for site: %s", siteName)
-
-		// Resolve site name to domain
-		domain, err := resolveDomain(siteName)
-		if err != nil {
-			return err
-		}
-		log.Printf("fuguebot: resolved %s → %s", siteName, domain)
+		log.Println("fuguebot: starting harvester consumer worker")
 
 		// Initialize infrastructure
 		infra, err := initInfrastructure()
@@ -278,23 +183,18 @@ var harvesterCmd = &cobra.Command{
 		}
 		defer infra.Close()
 
-		// Get site from database
-		ctx := context.Background()
-		siteRepo := bot.NewSiteRepo(infra.DB)
-		site, err := siteRepo.GetByDomain(ctx, domain)
-		if err != nil {
-			return fmt.Errorf("site not found in database: %s (domain: %s)", siteName, domain)
+		// Choose executor and pipeline based on HARVESTER_MODE. The executor
+		// is consumed only by ScriptAdapter registration; mock executor is
+		// still useful for exercising the consumer without a real goja runtime.
+		ctx := cmd.Context()
+		if ctx == nil {
+			ctx = context.Background()
 		}
-
-		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
-
-		// Initialize Harvester dependencies
-		graphRepo := bot.NewGraphRepo(infra.DB)
+		siteRepo := bot.NewSiteRepo(infra.DB)
 		scriptRepo := bot.NewScriptRepo(infra.DB)
 
-		// Choose executor and pipeline based on HARVESTER_MODE
 		var executor bot.ScriptExecutor
-		var pipeline bot.Pipeline
+		var pipeline bot.DocumentPipeline
 
 		mode := os.Getenv("HARVESTER_MODE")
 		if mode == "real" {
@@ -314,32 +214,191 @@ var harvesterCmd = &cobra.Command{
 			log.Println("fuguebot: using mock executor + pipeline (set HARVESTER_MODE=real for production)")
 		}
 
-		// Create Harvester instance
-		harvester := bot.NewHarvester(
-			siteRepo,
-			graphRepo,
-			scriptRepo,
-			executor,
-			pipeline,
-			bot.HarvesterConfig{
-				RateLimitMs:      500,
-				RetryFailedNodes: false,
-				MaxRetries:       3,
+		// Apply env overrides for BotCreatorID (IMMUTABLE-sync policy
+		// applies — see source.go doc comment).
+		bot.ApplyBotCreatorIDFromEnv()
+
+		// Build the AdapterRegistry and register a ScriptAdapter for every
+		// active site that has at least one (site_id, node_type) script in
+		// the DB. Sites without scripts fall through to the generic
+		// extractor.
+		scriptSites := map[uuid.UUID]bool{}
+		if keys, keysErr := infra.Queries.ListScriptKeysForGraph(ctx); keysErr == nil {
+			for _, k := range keys {
+				scriptSites[k.SiteID] = true
+			}
+		} else {
+			log.Printf("fuguebot: list script keys: %v (continuing with generic only)", keysErr)
+		}
+		registry := bot.NewInMemoryAdapterRegistry()
+		if regErr := bot.RegisterScriptAdaptersForActiveSites(
+			ctx, registry, siteRepo, scriptRepo, executor,
+			func(_ context.Context, siteID uuid.UUID) (bool, error) {
+				return scriptSites[siteID], nil
 			},
-		)
-
-		// Run Harvester
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-		defer cancel()
-
-		stats, err := harvester.Run(ctx, site.ID)
-		if err != nil {
-			log.Printf("fuguebot: harvester failed: %v", err)
-			return err
+		); regErr != nil {
+			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", regErr)
 		}
 
-		log.Printf("fuguebot: harvester completed — nodes: %d, pins created: %d, deduped: %d, failed: %d",
-			stats.NodesProcessed, stats.PinsCreated, stats.Deduped, stats.Failed)
+		// Snapshot-first Fetcher wiring (harvester-snapshot-first-fetch).
+		// CompositeFetcher tries the ObjectStorage snapshot first and falls
+		// back to HTTP on ANY error. The bucket must match the one Pioneer
+		// writes to so keys line up bit-for-bit.
+		harvestBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
+		snapshotReader := snapshot.NewS3Reader(infra.Storage.S3Client(), harvestBucket)
+		compositeFetcher := bot.NewCompositeFetcher(
+			bot.NewObjectStorageFetcher(snapshotReader),
+			bot.NewHTTPFetcher(),
+		)
+
+		// Scheduler boundary: URLs come from harvester_frontier via
+		// Dequeue(QueueHarvester). FOR UPDATE SKIP LOCKED in the scheduler
+		// guarantees no two consumer workers claim the same row even when
+		// this command runs N times concurrently.
+		sched := scheduler.NewPGURLScheduler(infra.DB).
+			WithRateLimiter(buildHostRateLimiter(config.LoadSchedulerHostConfig()))
+
+		consumer := buildHarvesterConsumer(
+			sched,
+			compositeFetcher,
+			registry,
+			bot.NewGenericExtractorFromEnv(),
+			bot.NewClassifierFromEnv(),
+			pipeline,
+		)
+
+		// Wire SIGINT/SIGTERM for clean worker shutdown between URLs.
+		// URLScheduler.Dequeue does not take a context, so a pending Dequeue
+		// may block up to one internal poll interval after cancellation
+		// before Run observes it — documented in postgres_scheduler.go.
+		runCtx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+		defer cancel()
+		return consumer.Run(runCtx)
+	},
+}
+
+// backfillPlaceholdersCmd implements tasks 6.2 / 6.3 of harvester-media-validation.
+// It reads Pin rows whose media_url matches one of the legacy
+// pre-deployment placeholder shapes documented in
+// db/scripts/backfill_placeholder_media.sql Q1 (creator_id=BotCreatorID +
+// media_url under the legacy `bot/` or `image/` prefix with a `.gif`
+// extension) and re-queues each Pin's canonical URL into harvester_frontier
+// so the new validator path replaces the placeholder with a real candidate
+// (or routes the doc to no_primary_media).
+//
+// Operational contract:
+//   - --dry-run reports the count + first few rows without enqueuing (task 6.3)
+//   - Without --dry-run, each canonical URL is enqueued via URLScheduler.Enqueue.
+//     Per-host rate limiting is enforced server-side at Dequeue time by the
+//     HostRateLimiter wired into the scheduler; this command additionally
+//     paces enqueue-side calls with a small sleep so a large backlog does not
+//     overwhelm the frontier in a single transaction burst.
+var backfillPlaceholdersCmd = &cobra.Command{
+	Use:   "backfill-placeholders",
+	Short: "Re-queue Pins whose media_url is a legacy placeholder GIF",
+	Long: `Identifies Pins where media_url points to one of the legacy
+placeholder shapes (under BotCreatorID, with media_url containing
+either "/bot/" or "/image/" and ending in ".gif") and re-queues each
+canonical URL into harvester_frontier so the new media validator path
+replaces or rejects the candidate.
+
+Use --dry-run first to see how many rows would be affected.`,
+	Args: cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		pacingMs, _ := cmd.Flags().GetInt("pace-ms")
+
+		infra, err := initInfrastructure()
+		if err != nil {
+			return fmt.Errorf("infrastructure initialization failed: %w", err)
+		}
+		defer infra.Close()
+
+		ctx := cmd.Context()
+		if ctx == nil {
+			ctx = context.Background()
+		}
+
+		// Apply env overrides for BotCreatorID before the SQL filter runs.
+		bot.ApplyBotCreatorIDFromEnv()
+		creatorID := bot.BotCreatorID
+
+		// Q1 from db/scripts/backfill_placeholder_media.sql — kept inline so the
+		// CLI does not depend on filesystem layout at runtime. The two ILIKE
+		// predicates cover the QA-reported legacy single-segment "/image/" key
+		// shape with a .gif extension.
+		const selectPlaceholders = `
+SELECT id::text, url, media_url
+FROM pins
+WHERE creator_id = $1
+  AND (media_url ILIKE '%/bot/%' OR media_url ILIKE '%/image/%')
+  AND media_url ILIKE '%.gif'
+ORDER BY created_at DESC`
+
+		rows, err := infra.DB.QueryContext(ctx, selectPlaceholders, creatorID)
+		if err != nil {
+			return fmt.Errorf("query placeholder pins: %w", err)
+		}
+		defer func() { _ = rows.Close() }()
+
+		type pinRow struct {
+			ID, URL, MediaURL string
+		}
+		var pins []pinRow
+		for rows.Next() {
+			var p pinRow
+			if scanErr := rows.Scan(&p.ID, &p.URL, &p.MediaURL); scanErr != nil {
+				return fmt.Errorf("scan placeholder pin: %w", scanErr)
+			}
+			pins = append(pins, p)
+		}
+		if rowsErr := rows.Err(); rowsErr != nil {
+			return fmt.Errorf("iterate placeholder pins: %w", rowsErr)
+		}
+
+		log.Printf("fuguebot: backfill-placeholders: %d pin(s) match placeholder pattern", len(pins))
+
+		// Show a small sample so the operator can sanity-check the pattern
+		// before approving the non-dry-run pass.
+		preview := len(pins)
+		if preview > 5 {
+			preview = 5
+		}
+		for i := 0; i < preview; i++ {
+			log.Printf("  sample[%d]: pin=%s url=%s media_url=%s", i, pins[i].ID, pins[i].URL, pins[i].MediaURL)
+		}
+
+		if dryRun {
+			log.Printf("fuguebot: --dry-run set; not enqueuing. Re-run without --dry-run after operator approval.")
+			return nil
+		}
+
+		if len(pins) == 0 {
+			return nil
+		}
+
+		sched := scheduler.NewPGURLScheduler(infra.DB)
+		enqueued := 0
+		var failures []string
+		for _, p := range pins {
+			if ctx.Err() != nil {
+				log.Printf("fuguebot: context cancelled after %d enqueue(s)", enqueued)
+				break
+			}
+			if enqErr := sched.Enqueue(scheduler.QueueHarvester, p.URL); enqErr != nil {
+				failures = append(failures, fmt.Sprintf("%s: %v", p.ID, enqErr))
+				continue
+			}
+			enqueued++
+			if pacingMs > 0 {
+				time.Sleep(time.Duration(pacingMs) * time.Millisecond)
+			}
+		}
+
+		log.Printf("fuguebot: backfill-placeholders: enqueued %d/%d, failures=%d", enqueued, len(pins), len(failures))
+		for _, f := range failures {
+			log.Printf("  failure: %s", f)
+		}
 		return nil
 	},
 }
@@ -388,17 +447,61 @@ var mergeCmd = &cobra.Command{
 }
 
 func init() {
-	pioneerCmd.Flags().String("fetcher", "http", "fetcher backend: http or playwright")
-	pioneerCmd.Flags().String("sitemap-dir", "", "if set, save each node's HTML under <dir>/<host>/<path>/index.html")
-	pioneerCmd.Flags().Int("max-nodes", 100, "maximum nodes to crawl before stopping")
 	mergeCmd.Flags().Int("threshold", bot.DefaultMergeThreshold, "minimum leaf count to trigger merge")
+	backfillPlaceholdersCmd.Flags().Bool("dry-run", false, "report match count without enqueuing")
+	backfillPlaceholdersCmd.Flags().Int("pace-ms", 50, "sleep between enqueues in milliseconds (0 disables)")
 	rootCmd.AddCommand(pioneerCmd)
 	rootCmd.AddCommand(harvesterCmd)
 	rootCmd.AddCommand(mergeCmd)
+	rootCmd.AddCommand(backfillPlaceholdersCmd)
 }
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("fuguebot: %v", err)
 	}
+}
+
+// runPioneerConsumer bootstraps the new scheduler-backed Pioneer loop.
+// Seeds `seedURL` into pioneer_frontier (idempotent via ON CONFLICT DO NOTHING
+// inside EnqueuePioneer) and then blocks in PioneerConsumer.Run. Returns when
+// the consumer's context is cancelled or Run returns a fatal error.
+//
+// Wiring is intentionally minimal: the consumer has no notion of "sites", so
+// the CLI arg (site name) only selects which root URL to seed. Subsequent
+// links discovered via fanout B populate pioneer_frontier organically.
+func runPioneerConsumer(parent context.Context, infra *Infrastructure, seedURL string) error {
+	sched := scheduler.NewPGURLScheduler(infra.DB).
+		WithRateLimiter(buildHostRateLimiter(config.LoadSchedulerHostConfig()))
+
+	snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
+	store := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
+
+	chain := bot.NewFilterChain(
+		&bot.DomainFilter{},
+		&bot.ExtensionFilter{},
+		&bot.PathPatternFilter{},
+		bot.NewRobotsFilter(nil),
+		bot.NewCanonicalDedupFilter(nil),
+	)
+
+	consumer := bot.NewPioneerConsumer(sched, store, chain, bot.NewDefaultConsumerFetcher())
+
+	if err := sched.Enqueue(scheduler.QueuePioneer, seedURL); err != nil {
+		return fmt.Errorf("seed enqueue: %w", err)
+	}
+	log.Printf("fuguebot: seeded pioneer_frontier with %s", seedURL)
+
+	// Wire SIGINT/SIGTERM so operators can stop the consumer cleanly between
+	// URLs, and inherit the cobra command's parent context so ancestor
+	// cancellation also propagates. Note: URLScheduler.Dequeue does not take
+	// a context, so a pending Dequeue call may block up to one internal poll
+	// interval before the cancellation is observed by the Run loop —
+	// acknowledged in postgres_scheduler.go.
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	return consumer.Run(ctx)
 }

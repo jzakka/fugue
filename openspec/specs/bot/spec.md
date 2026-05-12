@@ -1,5 +1,7 @@
-## Requirements
+## Purpose
 
+`bot` capability는 Fugue의 콘텐츠 발견·추출 파이프라인을 정의한다. Pioneer는 사이트 그래프를 BFS로 탐색하며 페이지 템플릿 패턴 단위로 노드/엣지를 저장하고 노드 타입별 파싱 스크립트를 보유한다. Harvester는 그 그래프를 따라 실제 콘텐츠를 추출해 핀으로 적재한다. 본 스펙은 이 두 행위자의 외부 관찰 가능 동작(그래프 정규화 규칙, 스크립트 검증·저장, 페이지 fetch·재시도, 스냅샷 저장, primary 이미지 캐시 TTL/만료)을 행위 계약으로 기술한다.
+## Requirements
 ### Requirement: 그래프 노드와 엣지를 관리한다
 시스템은 크롤링한 페이지를 노드로, 링크를 엣지로 저장하며 중복을 방지해야 한다. 노드는 개별 URL이 아니라 **페이지 템플릿 패턴**을 표현해야 한다(SHALL).
 
@@ -129,19 +131,35 @@
 ---
 
 ### Requirement: DomainFilter가 루트 도메인 링크만 통과시킨다
-DomainFilter는 LinkFilter 인터페이스를 구현하며(SHALL), 루트 도메인과 일치 여부를 판단하여 루트 도메인과 일치하는 링크만 반환해야 한다(SHALL). www 접두어 정규화를 지원해야 한다(SHALL).
+DomainFilter는 단일 루트 도메인 비교가 아니라 **Allow 키워드 리스트**와 **Deny 키워드 리스트**를 받아 링크 호스트에 대한 substring 매칭으로 필터링해야 한다(SHALL). 종전의 "루트 도메인 고정 비교" 정책은 본 요구사항이 대체하며, 교차 사이트 크롤을 기본 허용한다(SHALL).
 
-#### Scenario: 동일 도메인 링크 통과
-- **WHEN** DomainFilter에 루트 도메인 "example.com"이 설정되고, "https://example.com/page" 링크가 입력될 때
+- Deny 리스트에 매칭되는 호스트는 항상 차단한다(SHALL).
+- Allow 리스트가 비어 있으면 Deny에 걸리지 않은 모든 호스트를 통과시킨다(SHALL). 즉 **교차 사이트 크롤을 기본 허용**한다.
+- Allow 리스트가 비어 있지 않으면, Allow 키워드 중 하나라도 매칭되는 호스트만 통과시킨다(SHALL).
+- 매칭 규칙은 호스트 문자열을 lowercased + `www.` 접두어 제거 후 **대소문자 무시 substring** 비교다(SHALL).
+- 국가별 TLD에 대한 특별 처리는 없으며 substring 매칭이 그대로 적용된다(SHALL).
+
+#### Scenario: Allow 비어 있음 - 교차 사이트 기본 허용
+- **WHEN** Allow=[], Deny=[] 이고 seed 호스트와 다른 외부 호스트 링크가 입력될 때
 - **THEN** 해당 링크는 필터를 통과한다
 
-#### Scenario: 외부 도메인 링크 차단
-- **WHEN** DomainFilter에 루트 도메인 "example.com"이 설정되고, "https://other.com/page" 링크가 입력될 때
+#### Scenario: Deny 리스트 매칭 차단
+- **WHEN** Deny 키워드가 "adnetwork"이고 호스트에 "adnetwork"를 포함하는 링크가 입력될 때
 - **THEN** 해당 링크는 필터에서 제거된다
 
-#### Scenario: www 접두어 정규화
-- **WHEN** DomainFilter에 루트 도메인 "example.com"이 설정되고, "https://www.example.com/page" 링크가 입력될 때
-- **THEN** 기존 도메인 비교 로직이 www 접두어를 정규화하므로 링크가 통과한다
+#### Scenario: Allow 리스트가 있으면 화이트리스트 모드
+- **WHEN** Allow 키워드가 "music"이고 호스트가 "music.io"인 링크가 입력될 때
+- **THEN** 해당 링크는 Allow 매칭으로 통과한다
+- **WHEN** 같은 Allow 설정에서 호스트가 "other.net"인 링크가 입력될 때
+- **THEN** 해당 링크는 Allow에 매칭되지 않아 제거된다
+
+#### Scenario: Deny가 Allow보다 우선
+- **WHEN** Allow 키워드 "example.com"과 Deny 키워드 "tracker"가 모두 설정되고, 호스트 "tracker.example.com" 링크가 입력될 때
+- **THEN** Deny 매칭이 우선 적용되어 해당 링크는 제거된다
+
+#### Scenario: www 접두어 및 대소문자 무시
+- **WHEN** Allow 키워드 "example.com"이 설정되고 호스트 "WWW.Example.com" 링크가 입력될 때
+- **THEN** www와 대소문자가 정규화되어 Allow 매칭으로 통과한다
 
 ---
 
@@ -193,19 +211,52 @@ CanonicalDedupFilter는 LinkFilter 인터페이스를 구현하며(SHALL), URL�
 ---
 
 ### Requirement: canonicalURL이 URL을 정규화한다
-`canonicalURL()` 함수는 URL에서 트래킹 파라미터(utm_source, utm_medium, utm_campaign, utm_term, utm_content, ref, fbclid, gclid)를 제거하고(SHALL), www 접두어를 제거하며(SHALL), trailing slash를 통일해야 한다(SHALL).
+URL 정규화는 다음을 **모두** 수행해야 한다(SHALL). 종전 규칙(트래킹 파라미터 제거, www 제거, trailing slash 통일)에 scheme 소문자화, default port 제거, query 파라미터 이름순 정렬, fragment 제거를 추가하여 RFC 3986 수준의 정규화를 달성한다.
 
-#### Scenario: 트래킹 파라미터 제거
-- **WHEN** "https://example.com/page?utm_source=twitter&id=123" URL이 입력될 때
-- **THEN** "https://example.com/page?id=123"으로 정규화된다 (utm_source 제거, id 보존)
+- scheme을 소문자로 변환한다(SHALL).
+- host를 소문자로 변환하고 `www.` 접두어를 제거한다(SHALL).
+- default port를 제거한다: `http`의 `:80`과 `https`의 `:443`(SHALL). non-default 포트는 보존한다(SHALL).
+- fragment(`#...`)를 제거한다(SHALL).
+- 루트가 아닌 경로의 trailing slash를 제거한다(SHALL).
+- 트래킹 파라미터를 제거한다: `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `ref`, `fbclid`, `gclid`(SHALL).
+- 남은 query 파라미터를 이름(key) 오름차순으로 정렬하여 재인코딩한다(SHALL).
+- 경로(path)의 대소문자는 **보존**한다(SHALL).
 
-#### Scenario: www 접두어 제거
-- **WHEN** "https://www.example.com/page" URL이 입력될 때
-- **THEN** "https://example.com/page"로 정규화된다
+#### Scenario: scheme과 host는 소문자, 경로는 보존
+- **WHEN** `HTTPS://Example.COM/Page` 형태의 URL이 입력될 때
+- **THEN** `https://example.com/Page` 로 정규화된다
 
-#### Scenario: trailing slash 통일
-- **WHEN** "https://example.com/page/" URL이 입력될 때
-- **THEN** trailing slash가 제거되어 "https://example.com/page"로 정규화된다
+#### Scenario: default port 제거
+- **WHEN** http 스킴의 URL에 기본 포트(80)가 명시적으로 포함될 때
+- **THEN** 정규화된 URL은 기본 포트를 포함하지 않는다
+- **WHEN** https 스킴의 URL에 기본 포트(443)가 명시적으로 포함될 때
+- **THEN** 정규화된 URL은 기본 포트를 포함하지 않는다
+
+#### Scenario: non-default 포트는 보존
+- **WHEN** URL이 해당 스킴의 기본 포트가 아닌 포트(예: 8080)를 포함할 때
+- **THEN** 정규화된 URL은 해당 포트를 그대로 유지한다
+
+#### Scenario: query 파라미터 이름순 정렬
+- **WHEN** 파라미터가 `b=2&a=1&c=3` 순서로 입력될 때
+- **THEN** 정규화된 URL은 `a=1&b=2&c=3` 순서가 된다
+
+#### Scenario: 트래킹 파라미터 제거 후 정렬
+- **WHEN** `utm_source=twitter&id=123&a=z` 쿼리가 입력될 때
+- **THEN** `utm_source`가 제거되고 남은 파라미터가 `a=z&id=123`로 정렬된다
+
+#### Scenario: fragment 제거
+- **WHEN** URL에 `#section` 등 fragment가 포함될 때
+- **THEN** fragment가 제거된 URL이 반환된다
+
+#### Scenario: trailing slash 통일과 루트 보존
+- **WHEN** 경로가 `/page/`인 URL이 입력될 때
+- **THEN** trailing slash가 제거되어 `/page`가 된다
+- **WHEN** 경로가 루트 `/`인 URL이 입력될 때
+- **THEN** 루트 `/`는 보존된다
+
+#### Scenario: 대표 복합 케이스
+- **WHEN** `http://Example.com:80/path/?b=2&a=1#frag` 가 입력될 때
+- **THEN** `http://example.com/path?a=1&b=2` 로 정규화된다
 
 ---
 
@@ -227,15 +278,28 @@ CanonicalDedupFilter는 LinkFilter 인터페이스를 구현하며(SHALL), URL�
 ---
 
 ### Requirement: 필터 체인이 순서대로 필터를 적용한다
-여러 LinkFilter를 순서대로 체이닝하여 적용할 수 있어야 하며(SHALL), 각 필터의 출력이 다음 필터의 입력이 되어야 한다(SHALL).
+Pioneer의 기본 필터 체인은 다음 고정 순서를 따라야 한다(SHALL): (1) Domain allow/deny, (2) Extension, (3) PathPattern, (4) Robots, (5) Dedup. 각 필터의 출력이 다음 필터의 입력이 되며(SHALL), 이 순서는 값이 싼 필터를 앞에, 네트워크 I/O(Robots)와 공유 맵/DB 조회(Dedup)가 있는 값비싼 필터를 뒤에 배치하기 위해 고정되어야 한다(SHALL).
 
-#### Scenario: 체이닝 순서 보장
-- **WHEN** DomainFilter -> ExtensionFilter -> PathPatternFilter -> CanonicalDedupFilter 순서로 체인이 구성될 때
-- **THEN** 링크 목록이 순서대로 각 필터를 통과하며 최종 결과가 반환된다
+- Domain / Extension / PathPattern은 인메모리 문자열 또는 regex 매칭으로 가장 저렴하다.
+- Robots는 캐시 hit 시 인메모리, miss 시 HTTP GET이 발생하므로 앞 세 필터로 먼저 후보를 줄인 뒤 평가한다.
+- Dedup은 공유 visited 맵 조회와 canonical 해시 계산이 필요하므로 가장 뒤에 배치된다.
+- Robots 필터는 **Enqueue 단계**에서 호출되어 의미적 차단을 담당한다. **Claim 단계**의 host token bucket 체크는 scheduler-host-token-bucket capability가 담당하며 본 스펙과 별개다.
+
+#### Scenario: 기본 체인 구성
+- **WHEN** Pioneer가 필터 체인을 기본 구성으로 초기화할 때
+- **THEN** 체인의 필터 순서는 Domain → Extension → PathPattern → Robots → Dedup이다
+
+#### Scenario: 앞 단계에서 탈락한 링크는 뒤 단계에 도달하지 않는다
+- **WHEN** 어떤 링크가 Extension 또는 PathPattern 필터에서 제거될 때
+- **THEN** 해당 링크는 Robots나 Dedup에 도달하지 않으며, robots.txt 조회 비용을 유발하지 않는다
 
 #### Scenario: 빈 링크 목록 처리
 - **WHEN** 빈 링크 목록이 필터 체인에 입력될 때
-- **THEN** 에러 없이 빈 목록이 반환된다
+- **THEN** 에러 없이 빈 목록이 반환되며 Robots는 robots.txt를 fetch하지 않는다
+
+#### Scenario: Enqueue 단계와 Claim 단계의 책임 분리
+- **WHEN** Pioneer가 링크를 Enqueue하고 scheduler가 해당 URL을 Claim할 때
+- **THEN** Enqueue 단계에서 Robots 필터가 Disallow를 거르고, Claim 단계에서 host token bucket이 속도를 제어한다
 
 ---
 
@@ -293,57 +357,6 @@ CanonicalDedupFilter는 LinkFilter 인터페이스를 구현하며(SHALL), URL�
 
 ---
 
-### Requirement: Pioneer가 DB 기존 노드와 무관하게 BFS 큐를 관리한다
-Pioneer의 BFS 큐에 링크를 넣을지 여부는 오직 `visited` 맵(인메모리, 세션 스코프)으로 결정해야 한다(SHALL). `CreateNode`가 duplicate key를 반환해도 해당 링크를 큐에 넣어야 한다(SHALL).
-
-#### Scenario: DB에 이미 있는 노드의 자식 링크도 큐에 추가
-- **WHEN** 루트 페이지에서 발견된 링크의 `CreateNode`가 duplicate key를 반환할 때
-- **THEN** 해당 링크는 `visited` 맵에 등록되고 BFS 큐에 push된다
-
-#### Scenario: visited 맵에 있는 링크는 큐에 추가하지 않음
-- **WHEN** 이번 세션에서 이미 `visited` 맵에 등록된 링크를 다시 발견할 때
-- **THEN** 해당 링크는 큐에 push되지 않는다 (edge만 생성)
-
-#### Scenario: 재실행 시 depth 1 이상 탐색
-- **WHEN** DB에 이전 크롤 데이터가 있는 상태에서 Pioneer를 재실행할 때
-- **THEN** 루트의 자식 노드가 큐에 들어가고, 그 자식의 자식까지 BFS 탐색이 계속된다
-
----
-
-### Requirement: MaxNodesPerSite는 새로 생성된 노드만 집계한다
-`nodesProcessed` 카운터는 `CreateNode`가 성공하여 새 노드가 생성된 경우에만 증가해야 한다(SHALL). 기존 노드 재방문은 카운트하지 않아야 한다(SHALL).
-
-#### Scenario: 기존 노드 재방문 시 카운터 미증가
-- **WHEN** 큐에서 꺼낸 URL이 이미 DB에 존재하는 노드일 때
-- **THEN** `nodesProcessed` 카운터가 증가하지 않는다
-
-#### Scenario: 새 노드 생성 시 카운터 증가
-- **WHEN** `CreateNode`가 성공하여 새 노드가 DB에 생성될 때
-- **THEN** `nodesProcessed` 카운터가 1 증가한다
-
-#### Scenario: quota가 새 노드 기준으로 동작
-- **WHEN** DB에 기존 노드 50개가 있고 `MaxNodesPerSite=100`으로 재실행할 때
-- **THEN** 기존 50개 재방문 후에도 quota가 남아 새 노드를 최대 100개까지 추가 생성할 수 있다
-
----
-
-### Requirement: 크롤 완료 후 stale edge를 삭제한다
-Pioneer는 크롤 완료 후, 이번 세션에서 방문한 노드의 outgoing edge 중 재확인되지 않은 edge를 삭제해야 한다(SHALL). 미방문 노드의 edge는 삭제하지 않아야 한다(SHALL).
-
-#### Scenario: 사이트에서 링크가 제거된 경우
-- **WHEN** 이전 크롤에서 A→B edge가 존재했으나 이번 크롤에서 A 페이지에 B 링크가 없을 때
-- **THEN** A→B edge가 DB에서 삭제된다
-
-#### Scenario: 방문하지 않은 노드의 edge는 유지
-- **WHEN** `MaxNodesPerSite` 한도로 BFS가 중단되어 노드 C를 방문하지 못했을 때
-- **THEN** 노드 C의 outgoing edge(C→D, C→E)는 삭제되지 않는다
-
-#### Scenario: 재확인된 edge는 유지
-- **WHEN** 이번 크롤에서 A→B edge가 다시 발견될 때 (CreateEdge 성공 또는 duplicate)
-- **THEN** A→B edge는 삭제 대상에서 제외된다
-
----
-
 ### Requirement: URL 패턴으로 페이지 타입을 분류한다
 시스템은 발견한 URL을 키워드 매칭을 통해 타입(list, detail)으로 분류해야 한다(SHALL). 타입 분류 기능은 순수한 타입 분류만 수행하며, 불필요한 URL 제외는 필터링 단계에서 처리해야 한다(SHALL). 정규식 패턴은 패키지 초기화 시 한 번만 컴파일해야 한다(SHALL).
 
@@ -373,47 +386,31 @@ Pioneer는 크롤 완료 후, 이번 세션에서 방문한 노드의 outgoing e
 
 ---
 
-### Requirement: BFS로 사이트를 탐색한다 (Pioneer)
-시스템은 너비 우선 탐색으로 사이트 링크를 순회해야 한다(SHALL). 링크 추출은 DOM 기반 파서를 사용하여 DOM 위치 정보를 함께 추출해야 하며(SHALL), 링크 필터링은 필터 체인을 통해 수행해야 한다(SHALL).
-
-#### Scenario: DOM 기반 링크 추출
-- **WHEN** Pioneer가 HTML 페이지에서 링크를 추출할 때
-- **THEN** DOM 기반 파서를 사용하여 링크 URL과 DOM 위치 정보(태그, ID, 클래스)를 함께 추출한다
-
-#### Scenario: 필터 체인을 통한 링크 필터링
-- **WHEN** 추출된 링크 목록을 필터링할 때
-- **THEN** 도메인, 확장자, 경로 패턴, 중복 필터를 순차적으로 적용한다
-
-#### Scenario: 이미 방문한 링크에 대한 엣지 생성
-- **WHEN** 필터링 과정에서 이미 방문한 링크가 감지되었을 때
-- **THEN** 유효한 노드 ID가 있는 방문 링크에 대해 현재 노드에서 해당 노드로의 엣지를 생성한다
-
-#### Scenario: 복합 우선순위 계산
-- **WHEN** 신규 링크를 BFS 큐에 추가할 때
-- **THEN** 노드 타입 기반 우선순위에 DOM 위치 기반 보정값을 더한 복합 우선순위를 적용한다
-
-#### Scenario: 최대 노드 수 제한 준수
-- **WHEN** Pioneer가 사이트를 탐색할 때
-- **THEN** 사이트당 최대 노드 수 제한을 초과하지 않는다
-
-#### Scenario: 부모 관계 추적 및 엣지 생성
-- **WHEN** 새로운 노드를 발견할 때
-- **THEN** 현재 노드에서 발견된 노드로의 엣지를 생성하여 부모-자식 관계를 추적한다
-
-<!-- 기존 baseline의 Fetcher 인터페이스/FileFetcher/HTTPFetcher 시나리오 3개는 Pioneer가 아닌 crawler.BFSCrawler의 행위이므로 이 requirement에서 제거. crawler 패키지 자체의 spec으로 이관 필요 시 별도 change로 처리. -->
-
----
-
 ### Requirement: Harvester가 실제 HTML을 가져온다
-시스템은 Harvester가 크롤 그래프의 노드 URL에서 실제 HTML을 가져올 수 있어야 한다(SHALL).
 
-#### Scenario: Harvester HTML 가져오기
-- **WHEN** Harvester가 노드의 sample_url 또는 template url로 HTML을 요청할 때
-- **THEN** Pioneer와 동일한 HTTP 설정(사이즈 제한, 리다이렉트 제한, 타임아웃, User-Agent)으로 HTML을 가져온다
+시스템은 Harvester가 크롤 그래프의 노드 URL에서 실제 HTML을 가져올 수 있어야 한다(SHALL). 본 Requirement 블록의 Scenario 집합은 기존 `bot` capability의 동명 Requirement가 보유하던 Scenario 2건을 다음과 같이 대체한다(근거: design.md Decision 1b, 1c). (a) 기존 "Harvester HTML 가져오기" Scenario는 본 블록의 "스냅샷 hit 시 네트워크 호출 없이 로컬 파싱" 및 "출처 무관한 응답 의미론" Scenario로 대체되며, (b) 기존 "Pioneer와 Harvester의 fetch 로직 공유" Scenario는 본 블록의 "Pioneer와 Harvester의 HTTP 경계 설정 공유" Scenario로 **완화 대체**된다(공유 범위가 "동일 fetch 함수"에서 "HTTP 경계 설정 helper"로 축소됨). Harvester는 단일 fetch 진입점에 의존하며, 해당 진입점은 **ObjectStorage 스냅샷을 우선 시도하고 사용 불가 시 HTTP fetch로 폴백**하는 합성 의미론을 제공해야 한다(SHALL). 진입점이 반환하는 바이트열은 출처(스냅샷/HTTP)와 무관하게 동일한 의미의 원본 HTML로 후속 파싱 파이프라인에 전달되어야 한다(SHALL). 참고(informative) — 설계 의사코드: `apps/api/fuguebot_pseudo.go` 라인 97–112. 의사코드의 구체 타입 이름은 구현 세부이며 본 Requirement의 행위 계약 대상이 아니다.
 
-#### Scenario: Pioneer와 Harvester의 fetch 로직 공유
-- **WHEN** Pioneer와 Harvester가 HTML을 가져올 때
-- **THEN** 동일한 공유 함수를 사용하여 중복 구현을 방지한다
+ObjectStorage 조회 시 사용하는 스냅샷 키 포맷과 해시 함수는 본 Requirement에서 자체 정의하지 않고, **동일 `bot` capability 내부의 스냅샷 쓰기 경로(구 `pioneer-snapshot-storage` change에서 확정, 현재는 `bot` capability의 스냅샷 쓰기 Requirement로 존재)가 확정한 공용 키 규약을 그대로 따른다**(SHALL). Harvester 측에서 키 포맷·해시 함수를 재구현해서는 안 된다(MUST NOT).
+
+#### Scenario: 스냅샷 hit 시 네트워크 호출 없이 로컬 파싱
+- **WHEN** Harvester가 노드 URL에 대해 fetch를 요청하고 ObjectStorage에서 유효한 스냅샷이 반환될 때
+- **THEN** Harvester는 외부 사이트로 HTTP 요청을 보내지 않고, ObjectStorage에서 받은 본문만으로 파싱 파이프라인을 진행한다
+
+#### Scenario: 출처 무관한 응답 의미론
+- **WHEN** Harvester가 ObjectStorage 또는 HTTP 어느 쪽에서든 본문을 받을 때
+- **THEN** 후속 파서/스크립트 실행기는 출처를 구분하지 않고 동일한 의미의 원본 HTML 바이트열을 관찰한다. 저장 경로에 적용된 모든 저장 포맷 변환은 fetch 경계 안에서 완결되어야 하며, 호출자에게 저장 포맷의 세부(예: 압축 등)가 노출되지 않는다
+
+#### Scenario: Pioneer와 Harvester의 HTTP 경계 설정 공유
+- **WHEN** Pioneer가 원본을 fetch하거나 Harvester가 스냅샷 사용 불가로 HTTP 폴백 경로로 HTML을 가져올 때(즉 어느 쪽이든 HTTP를 실제로 호출하는 시점)
+- **THEN** 동일한 HTTP 경계 설정(사이즈 제한, 리다이렉트 제한, 타임아웃, User-Agent)을 공유하여 중복 구현과 드리프트를 방지한다. 상위 fetch 인터페이스 시그니처까지 동일해야 하는 것은 아니며, HTTP helper 수준의 공유만을 요구한다
+
+#### Scenario: 스냅샷 키 규약은 동일 capability의 쓰기 경로를 참조한다
+- **WHEN** Harvester의 ObjectStorage 조회가 스냅샷 키를 계산할 때
+- **THEN** 동일 `bot` capability 내부의 스냅샷 쓰기 Requirement가 확정한 공용 키 빌더(normalized URL 해시 기반)를 그대로 사용하며, 본 Requirement에서 키 포맷을 별도로 정의하지 않는다. 또한 키 빌더 입력으로 전달하는 normalized URL은 쓰기 경로가 사용한 URL 정규화 규칙과 동일한 규칙의 결과여야 한다(읽기 키와 쓰기 키가 비트 단위로 일치하도록 보장한다)
+
+#### Scenario: 스냅샷 조회 시간 기준
+- **WHEN** Harvester가 노드 URL에 대해 fetch를 요청할 때
+- **THEN** 스냅샷 키의 시간 세그먼트는 Harvester가 해당 fetch 요청을 수행하는 시점(호출 단위로 관찰되는 현재 UTC 날짜)로 결정되며, 스냅샷 쓰기 경로가 같은 UTC 일자 내에 쓴 스냅샷만 hit 대상이 된다. 그 외(과거 일자에 쓰인 스냅샷 등)는 "사용 불가"로 간주되어 HTTP 폴백 경로로 수렴한다
 
 ---
 
@@ -448,7 +445,7 @@ CLI 클라이언트가 `codex` 명령을 사용할 때, 비인터랙티브 서�
 ---
 
 ### Requirement: JavaScript 파싱 스크립트를 실행하여 콘텐츠 항목을 추출한다
-스크립트 실행기는 DB에 저장된 JavaScript 스크립트를 실행하여 HTML에서 콘텐츠 항목 배열을 반환해야 한다(SHALL). 스크립트 실행 중 에러가 발생하면 빈 배열과 에러를 반환해야 한다(SHALL).
+스크립트 실행기는 DB에 저장된 JavaScript 스크립트를 실행하여 HTML에서 콘텐츠 항목 배열을 반환해야 한다(SHALL). 스크립트 실행 중 에러가 발생하면 빈 배열과 에러를 반환해야 한다(SHALL). **본 경로는 default HTML→Pin 변환 경로가 아니라 per-site override 경로다(SHALL).** Default 변환은 `harvester` capability의 generic HTML→Pin extractor가 담당하며, 스크립트 실행기는 `harvester` capability가 정의한 `PerSiteAdapter` 인터페이스의 한 가지 구현(`ScriptAdapter`)으로만 호출되어야 한다(SHALL). 어떤 사이트에 대해 ScriptAdapter가 등록되어 있지 않거나 실행이 실패하면 시스템은 generic extractor로 fallback해야 한다(SHALL).
 
 #### Scenario: 정상적인 스크립트 실행
 - **WHEN** 유효한 JavaScript 스크립트와 HTML이 주어질 때
@@ -470,10 +467,18 @@ CLI 클라이언트가 `codex` 명령을 사용할 때, 비인터랙티브 서�
 - **WHEN** 스크립트가 지정된 타임아웃을 초과하여 실행될 때
 - **THEN** 실행이 중단되고 빈 배열과 타임아웃 에러를 포함한 error가 반환된다
 
+#### Scenario: 스크립트 경로는 default가 아니라 per-site override
+- **WHEN** 어떤 사이트의 HTML이 default 변환 경로(generic HTML→Pin extractor)로도 처리 가능할 때
+- **THEN** 시스템은 해당 사이트에 대해 `PerSiteAdapter`(예: ScriptAdapter)가 명시적으로 등록되어 있을 때만 스크립트 실행 경로를 사용하고, 그렇지 않으면 generic extractor를 사용한다
+
+#### Scenario: ScriptAdapter 실패 시 generic extractor로 fallback
+- **WHEN** ScriptAdapter로 래핑된 스크립트 실행기가 타임아웃, 구문 에러, 런타임 에러 등 어떤 사유로든 실패하여 빈 배열과 에러를 반환할 때
+- **THEN** Harvester는 같은 HTML에 대해 generic HTML→Pin extractor로 fallback하여 PinDocument 생성을 시도한다
+
 ---
 
 ### Requirement: DOM 헬퍼 함수를 스크립트 런타임에 주입한다
-실행 런타임은 스크립트가 HTML을 탐색할 수 있도록 DOM 유사 API를 제공해야 한다(SHALL). 최소한 querySelectorAll, querySelector, textContent, getAttribute 접근을 지원해야 한다(SHALL).
+실행 런타임은 스크립트가 HTML을 탐색할 수 있도록 DOM 유사 API를 제공해야 한다(SHALL). 최소한 querySelectorAll, querySelector, textContent, getAttribute 접근을 지원해야 한다(SHALL). **본 헬퍼는 `PerSiteAdapter`의 ScriptAdapter 구현 내부에서만 사용되며, default 변환 경로(generic HTML→Pin extractor)는 표준 HTML 파서를 사용해야 한다(SHALL).**
 
 #### Scenario: querySelectorAll로 요소 목록 조회
 - **WHEN** 스크립트가 CSS selector를 인자로 querySelectorAll을 호출할 때
@@ -491,10 +496,14 @@ CLI 클라이언트가 `codex` 명령을 사용할 때, 비인터랙티브 서�
 - **WHEN** 스크립트가 조회된 요소의 getAttribute를 호출할 때
 - **THEN** 해당 속성 값이 반환되거나, 없으면 null이 반환된다
 
+#### Scenario: DOM 헬퍼는 default 경로에서 사용되지 않는다
+- **WHEN** Harvester가 generic HTML→Pin extractor를 통해 페이지를 처리할 때
+- **THEN** 시스템은 JavaScript DOM 헬퍼 런타임을 초기화하지 않고 표준 HTML 파서를 사용한다
+
 ---
 
 ### Requirement: 스크립트 실행 결과를 콘텐츠 항목 배열로 변환한다
-스크립트의 반환값을 콘텐츠 항목 배열로 변환해야 한다(SHALL). 필수 필드(title, mediaURL, mediaType)가 누락된 항목은 건너뛰어야 한다(SHALL). 선택 필드(description, sourceURL)가 빈 문자열이거나 누락된 경우에는 항목을 건너뛰지 않고 정상 처리해야 한다(SHALL).
+스크립트의 반환값을 콘텐츠 항목 배열로 변환해야 한다(SHALL). 필수 필드(title, mediaURL, mediaType)가 누락된 항목은 건너뛰어야 한다(SHALL). 선택 필드(description, sourceURL)가 빈 문자열이거나 누락된 경우에는 항목을 건너뛰지 않고 정상 처리해야 한다(SHALL). **본 변환 결과는 그대로 Pin 다건으로 indexing되지 않는다(SHALL NOT). ScriptAdapter는 N개의 콘텐츠 항목을 `harvester` capability가 정의한 PinDocument 1건으로 축약하여, 첫 번째 항목을 정본 메타로 채택하고 나머지 항목들은 `og_data.media_candidates`에 추가해야 한다(SHALL).**
 
 #### Scenario: 정상적인 결과 변환
 - **WHEN** 스크립트가 title, mediaURL, mediaType 필드를 포함한 객체 배열을 반환할 때
@@ -512,7 +521,13 @@ CLI 클라이언트가 `codex` 명령을 사용할 때, 비인터랙티브 서�
 - **WHEN** 스크립트가 배열이 아닌 값을 반환할 때 (undefined, null, 문자열, 숫자, 단일 객체 등)
 - **THEN** 빈 배열과 에러가 반환된다
 
----
+#### Scenario: N개 항목을 PinDocument 1건으로 축약
+- **WHEN** ScriptAdapter가 한 페이지에 대해 N개의 콘텐츠 항목을 받을 때
+- **THEN** 첫 번째 항목의 title/mediaURL/mediaType이 PinDocument의 정본 메타로 채택되고, 나머지 항목들은 type/url과 함께 `og_data.media_candidates`에 추가되어 노드 1개당 정확히 1건의 PinDocument가 반환된다
+
+#### Scenario: 빈 결과 시 generic으로 fallback
+- **WHEN** 스크립트 실행이 성공했으나 유효한 콘텐츠 항목 0건을 반환할 때
+- **THEN** ScriptAdapter는 에러로 간주하여 generic HTML→Pin extractor로의 fallback이 일어나도록 한다
 
 ### Requirement: 콘텐츠 항목 중복 체크
 처리 파이프라인은 봇이 이미 저장한 콘텐츠와 동일한 sourceURL을 가진 항목을 중복으로 판단하여 건너뛰어야 한다(SHALL). 중복 판단은 봇 계정이 생성한 Pin만을 대상으로 해야 한다(SHALL). 중복 건수를 집계하여 반환해야 한다(SHALL).
@@ -574,30 +589,393 @@ CLI 클라이언트가 `codex` 명령을 사용할 때, 비인터랙티브 서�
 
 ---
 
-### Requirement: Harvester 실행 완료 시 전체 통계를 집계한다
-Harvester는 모든 노드의 처리가 끝난 후, 노드별 파이프라인 결과를 누적하여 전체 통계(총 처리 노드 수, 총 Pin 생성 수, 총 중복 수, 총 실패 수)를 반환해야 한다(SHALL).
+### Requirement: Pioneer는 fetch 성공 시 raw 응답을 object storage에 스냅샷 저장한다
+스냅샷 저장 기능이 운영 토글로 활성화된 상태에서 Pioneer가 URL을 fetch하여 성공적으로 본문을 수신한 경우, 시스템은 해당 raw 응답 바이트를 object storage에 스냅샷으로 업로드해야 한다(SHALL). "fetch 성공"은 HTTP 2xx 응답 수신 및 본문 길이 > 0을 의미한다(SHALL). 운영 토글이 비활성화된 경우 시스템은 어떤 스냅샷도 업로드하지 않아야 한다(SHALL NOT).
 
-#### Scenario: 다수 노드 처리 후 전체 통계
-- **WHEN** 3개 노드를 처리하여 각각 생성=1/중복=2/실패=0, 생성=3/중복=0/실패=1, 생성=0/중복=5/실패=0일 때
-- **THEN** 전체 통계는 노드수=3, 생성=4, 중복=7, 실패=1이 반환된다
+#### Scenario: 2xx 본문 수신 시 스냅샷 업로드
+- **GIVEN** 스냅샷 저장 기능이 활성화되어 있을 때
+- **WHEN** Pioneer가 URL을 fetch하여 HTTP 200 응답과 비어 있지 않은 본문을 수신할 때
+- **THEN** 해당 raw 응답 바이트를 object storage에 업로드한다
+
+#### Scenario: 링크 추출과 별개로 저장 수행
+- **GIVEN** 스냅샷 저장 기능이 활성화되어 있을 때
+- **WHEN** Pioneer가 fetch 성공 후 링크를 추출할 때
+- **THEN** 링크 추출과 무관하게 동일한 raw 바이트가 스냅샷으로 저장된다
+
+#### Scenario: 스냅샷 저장 기능 비활성화 시 업로드 스킵
+- **GIVEN** 스냅샷 저장 기능이 비활성화되어 있을 때
+- **WHEN** Pioneer가 URL을 fetch하여 HTTP 2xx 응답과 비어 있지 않은 본문을 수신할 때
+- **THEN** object storage에 스냅샷이 업로드되지 않으며, 링크 추출과 후속 큐 처리는 정상적으로 수행된다
 
 ---
 
-### Requirement: Harvester CLI가 실제 모드를 지원한다
-Harvester CLI는 설정에 따라 실제 스크립트 실행기와 처리 파이프라인을 사용하는 실제 모드를 지원해야 한다(SHALL). 실제 모드란 mock 대신 프로덕션 스크립트 실행기와 처리 파이프라인을 사용하여 실제 콘텐츠를 추출하고 Pin을 생성하는 모드를 의미한다. 기본 동작은 mock을 유지하여 기존 워크플로우에 영향을 주지 않아야 한다(SHALL). 실행 완료 후 통계를 로그로 출력해야 한다(SHALL).
+### Requirement: 스냅샷은 gzip 압축으로 저장되며 TTL 365일을 따른다
+시스템은 스냅샷을 gzip으로 압축하여 저장해야 한다(SHALL). 스냅샷의 보존 기간은 업로드 시점 기준 365일이며, 이 기간이 지나면 삭제되어야 한다(SHALL).
 
-#### Scenario: 실제 모드로 Harvester 실행
-- **WHEN** 실제 모드가 활성화된 상태에서 Harvester를 실행할 때
-- **THEN** 실제 스크립트 실행기와 처리 파이프라인이 사용되어 스크립트가 실행되고 Pin이 생성된다
+#### Scenario: 압축된 콘텐츠 업로드
+- **WHEN** Pioneer가 raw 응답 바이트를 스냅샷으로 저장할 때
+- **THEN** 바이트는 gzip으로 압축된 상태로 object storage에 업로드된다
 
-#### Scenario: 기본 mock 모드 유지
-- **WHEN** 실제 모드가 명시적으로 활성화되지 않은 상태에서 Harvester를 실행할 때
-- **THEN** 기존과 동일하게 mock이 사용된다
+#### Scenario: 365일 경과 후 만료
+- **WHEN** 스냅샷이 업로드된 지 365일이 지났을 때
+- **THEN** 해당 스냅샷은 object storage에서 삭제된다
 
-#### Scenario: 인식되지 않는 설정 값은 mock으로 동작
-- **WHEN** 실제 모드 설정에 인식할 수 없는 값이 주어질 때
-- **THEN** mock 모드로 동작한다
+---
 
-#### Scenario: 실행 결과 통계 출력
-- **WHEN** Harvester 실행이 완료될 때
-- **THEN** 총 처리 노드 수, 생성된 Pin 수, 중복 스킵 수, 실패 수가 로그에 출력된다
+### Requirement: 스냅샷 키는 normalized URL의 sha256 기반이다
+시스템은 스냅샷 키를 normalized URL의 **sha256** digest(hex 인코딩 64자 소문자)를 기반으로 생성해야 한다(SHALL). 키 형식은 `snapshots/{sha256(normalized_url)}/{yyyymmdd}.html.gz` 이며, `{sha256(normalized_url)}`은 정확히 64자의 hex digest이고 `{yyyymmdd}`는 UTC 기준 fetch 날짜이다(SHALL). 동일한 normalized URL은 동일한 sha256 hex를 산출해야 한다(SHALL).
+
+#### Scenario: 동일 URL은 동일 sha256
+- **WHEN** Pioneer가 normalized 결과가 같은 두 URL을 각각 fetch할 때
+- **THEN** 두 스냅샷 키의 sha256 hex 세그먼트가 동일하다
+
+#### Scenario: 키 형식 준수 (64자 hex + UTC 날짜)
+- **WHEN** Pioneer가 UTC 2026-04-17에 URL을 fetch하여 스냅샷을 저장할 때
+- **THEN** 업로드되는 객체 키는 `snapshots/<64-char-sha256-hex>/20260417.html.gz` 형태이고, hex 세그먼트는 소문자 `[0-9a-f]`로만 구성된 정확히 64자다
+
+#### Scenario: 같은 날 같은 URL 재fetch
+- **WHEN** Pioneer가 같은 UTC 날짜에 동일한 normalized URL을 두 번 fetch하여 저장할 때
+- **THEN** 두 번째 업로드는 첫 번째와 같은 키를 덮어쓴다
+
+---
+
+### Requirement: 동일 키에 대한 동시 쓰기는 last-write-wins이다
+시스템은 동일 키에 대한 동시 PUT을 object storage의 기본 atomic PUT 동작에 위임해야 한다(SHALL). 애플리케이션 레벨의 lock, conditional write, versioning을 사용하지 않아야 한다(SHALL NOT). 마지막에 commit된 PUT이 최종 객체로 남아야 한다(SHALL).
+
+#### Scenario: 동일 URL을 여러 Pioneer 워커가 같은 날 저장
+- **WHEN** 두 개 이상의 Pioneer 워커가 동일한 normalized URL을 같은 UTC 날짜에 각각 fetch하여 스냅샷을 업로드할 때
+- **THEN** 두 PUT 모두 동일 키를 대상으로 수행되며, 마지막으로 commit된 쓰기의 내용이 최종 객체로 유지된다 (last-write-wins)
+
+#### Scenario: 동시 쓰기 시 별도 충돌 에러가 Pioneer에 전파되지 않음
+- **WHEN** 동일 키에 대한 동시 PUT이 발생할 때
+- **THEN** Pioneer는 lock 획득 실패나 version conflict 같은 별도 에러 경로를 거치지 않고, 각자의 PUT 결과(성공/실패)만 일반 업로드 경로로 처리한다
+
+---
+
+### Requirement: fetch 실패 시 스냅샷을 저장하지 않는다
+시스템은 fetch가 실패한 경우 스냅샷을 업로드하지 않아야 한다(SHALL). 실패에는 HTTP 4xx/5xx 응답, 네트워크 오류, 타임아웃, 본문 길이 0이 포함된다(SHALL).
+
+#### Scenario: HTTP 404 응답
+- **WHEN** Pioneer가 fetch한 URL이 HTTP 404를 반환할 때
+- **THEN** object storage에 스냅샷이 업로드되지 않는다
+
+#### Scenario: 네트워크 타임아웃
+- **WHEN** Pioneer가 fetch 중 타임아웃으로 실패할 때
+- **THEN** object storage에 스냅샷이 업로드되지 않는다
+
+#### Scenario: 본문이 비어 있는 성공 응답
+- **WHEN** Pioneer가 HTTP 2xx를 수신했으나 본문 길이가 0일 때
+- **THEN** object storage에 스냅샷이 업로드되지 않는다
+
+---
+
+### Requirement: 스냅샷 저장 실패는 fail-open으로 처리한다
+시스템은 object storage 업로드가 실패하더라도 Pioneer의 크롤 진행을 중단시키지 않아야 한다(SHALL). 업로드 실패는 로그로 기록되어야 하며(SHALL), fetch된 응답으로부터 링크 추출 및 후속 큐 처리는 정상적으로 수행되어야 한다(SHALL).
+
+#### Scenario: 업로드 실패 시 크롤 계속
+- **WHEN** Pioneer가 fetch 성공 후 object storage에 업로드를 시도했으나 업로드가 실패할 때
+- **THEN** Pioneer는 해당 URL의 링크 추출과 다음 URL 처리를 계속한다
+
+#### Scenario: 업로드 실패 로그 기록
+- **WHEN** object storage 업로드가 실패할 때
+- **THEN** 실패 원인이 로그로 남는다
+
+#### Scenario: 업로드 실패가 스케줄러 상태에 영향 없음
+- **WHEN** object storage 업로드만 실패하고 fetch는 성공했을 때
+- **THEN** URLScheduler 상 해당 URL은 fetch 성공으로 취급되어 재시도 큐에 들어가지 않는다
+
+---
+
+### Requirement: Pioneer는 ParseLinks 후 FilterLinks를 거쳐 Enqueue한다
+Pioneer Run 루프에서 프런티어 큐에 Enqueue되는 URL은 **반드시 필터 체인의 최종 출력 집합에 속해야 한다**(SHALL). 필터 체인의 입력 URL은 `fetchHTML`이 반환하는 redirect chain의 **최종 URL**이어야 한다(SHALL).
+
+#### Scenario: Enqueue된 URL은 필터 체인 통과 결과만 포함한다
+- **WHEN** Pioneer가 한 페이지에서 추출한 링크 목록을 필터 체인에 투입하고 그 결과를 큐에 Enqueue한 직후 큐 상태를 관찰할 때
+- **THEN** 해당 페이지로부터 유래한 모든 큐 항목은 필터 체인의 최종 출력 집합에 포함된다
+
+#### Scenario: 빈 결과 처리
+- **WHEN** 필터 체인이 모든 링크를 걸러내어 빈 목록을 반환할 때
+- **THEN** Pioneer는 에러 없이 다음 Dequeue로 진행하며 해당 페이지로부터 Enqueue된 URL은 0건이다
+
+#### Scenario: Redirect chain의 최종 URL만 사용
+- **WHEN** Pioneer가 301/302 리디렉션을 거쳐 최종 페이지에 도달할 때
+- **THEN** 필터 체인과 canonicalization은 최종 URL에만 적용되고 중간 redirect URL은 검사되지 않는다
+
+#### Scenario: 파싱 불가능한 URL은 큐에 포함되지 않는다
+- **WHEN** 추출된 링크 중 URL이 빈 문자열이거나 파싱 불가능하여 호스트를 얻을 수 없는 항목이 포함될 때
+- **THEN** 해당 항목은 필터 체인에서 제거되어 큐에 Enqueue되지 않는다
+
+---
+
+### Requirement: RobotsFilter는 robots.txt를 존중하여 URL을 필터링한다
+RobotsFilter는 필터 체인의 구성 요소로서(SHALL), 각 링크의 호스트에 대한 robots.txt를 조회하여 `FugueBot` User-agent(없으면 `*`)의 Disallow 규칙에 매칭되는 URL을 제거해야 한다(SHALL). User-agent 블록은 `FugueBot` 우선 사용, 없을 때 `*` fallback이며 두 블록을 병합하지 않는다(SHALL).
+
+#### Scenario: Disallow에 매칭되면 차단
+- **WHEN** 링크의 경로가 해당 호스트 robots.txt의 Disallow 규칙에 매칭될 때
+- **THEN** 해당 링크는 필터에서 제거된다
+
+#### Scenario: Allow/Disallow 모두 없으면 통과
+- **WHEN** robots.txt에 `FugueBot` 또는 `*`에 대한 Disallow 규칙이 없을 때
+- **THEN** 해당 링크는 필터를 통과한다
+
+#### Scenario: FugueBot 규칙이 우선, 없으면 `*` fallback
+- **WHEN** robots.txt에 `User-agent: FugueBot` 블록이 존재할 때
+- **THEN** 해당 블록의 규칙을 사용하고 `*` 블록은 무시된다
+- **WHEN** `FugueBot` 블록이 없을 때
+- **THEN** `User-agent: *` 블록의 규칙을 사용한다
+
+---
+
+### Requirement: RobotsFilter는 lazy fetch와 호스트별 24시간 캐시를 사용한다
+RobotsFilter는 호스트별로 robots.txt를 **최초 필요 시점에만 fetch**해야 하며(SHALL), 파싱 결과를 호스트별 인메모리 맵에 캐시해야 한다(SHALL). 캐시 TTL은 **24시간**이어야 하며(SHALL), TTL 경과 후 다음 접근에 재조회해야 한다(SHALL).
+
+#### Scenario: 최초 접근 시 fetch
+- **WHEN** 어떤 호스트에 대한 링크가 RobotsFilter에 처음 도달할 때
+- **THEN** RobotsFilter는 `https://<host>/robots.txt`를 fetch하고 결과를 캐시한다
+
+#### Scenario: 캐시 적중
+- **WHEN** 같은 호스트에 대한 링크가 24시간 이내에 재도달할 때
+- **THEN** RobotsFilter는 새로운 fetch 없이 캐시된 규칙을 사용한다
+
+#### Scenario: TTL 만료 후 재조회
+- **WHEN** 캐시 엔트리가 저장된 지 24시간을 초과한 뒤 같은 호스트의 링크가 도달할 때
+- **THEN** RobotsFilter는 robots.txt를 다시 fetch하여 캐시를 갱신한다
+
+---
+
+### Requirement: RobotsFilter는 fetch 실패 시 fail-open한다
+RobotsFilter는 robots.txt fetch가 네트워크 오류, 타임아웃, 5xx 응답 등으로 실패할 때 **모든 링크를 허용(fail-open)**해야 한다(SHALL). 404 응답은 "robots.txt 없음 = 모두 허용"으로 해석해야 한다(SHALL). 실패 상태 역시 24시간 TTL과 함께 캐시하여 연속 재시도로 인한 폭주를 방지해야 한다(SHALL).
+
+#### Scenario: 네트워크 오류 시 fail-open
+- **WHEN** 호스트의 robots.txt fetch가 타임아웃되거나 네트워크 오류로 실패할 때
+- **THEN** 해당 호스트의 모든 링크는 RobotsFilter를 통과한다
+
+#### Scenario: 404 응답은 규칙 없음으로 해석
+- **WHEN** robots.txt가 404로 응답할 때
+- **THEN** 해당 호스트에는 제한이 없는 것으로 간주하여 모든 링크가 통과한다
+
+#### Scenario: 5xx 응답 시 fail-open 상태 캐시
+- **WHEN** robots.txt가 5xx로 응답할 때
+- **THEN** 해당 호스트는 fail-open 상태로 캐시되며, TTL 이내에는 재시도하지 않는다
+
+#### Scenario: 404·5xx 외 비-2xx 응답은 "규칙 없음"으로 해석한다
+- **WHEN** robots.txt가 404·5xx 이외의 비-2xx 응답(예: 인증 요구 401/403, 비정상 3xx, 429)을 반환할 때
+- **THEN** 해당 호스트는 "규칙 없음"으로 간주되어 모든 링크가 통과하되, fail-open 상태가 아닌 "빈 규칙"으로 캐시된다(실패 상태와 다르게 정책 확대 해석을 하지 않음)
+
+---
+
+### Requirement: RobotsFilter는 Crawl-delay를 호스트 bucket에 반영한다
+RobotsFilter는 robots.txt에서 `Crawl-delay: N` (초) 지시어를 파싱해야 하며(SHALL), 파싱에 성공한 경우 `scheduler-host-token-bucket` capability의 **호스트 rate/burst 설정 동작**을 호출하여 해당 호스트의 rate를 `1/N` req/sec, burst `1`로 갱신해야 한다(SHALL). Crawl-delay가 없거나 파싱에 실패한 경우 호스트 rate/burst 설정 동작을 호출하지 않으며 scheduler의 기본 rate가 유지되어야 한다(SHALL).
+
+#### Scenario: Crawl-delay 파싱 및 호스트 rate 갱신
+- **WHEN** robots.txt에 `Crawl-delay: 5`가 포함될 때
+- **THEN** RobotsFilter는 해당 호스트에 대해 scheduler의 호스트 rate/burst 설정 동작을 호출하여 rate가 초당 0.2 requests, burst가 1로 갱신된다
+
+#### Scenario: Crawl-delay 미지정 시 기본 rate 유지
+- **WHEN** robots.txt에 Crawl-delay가 명시되지 않을 때
+- **THEN** 호스트 rate/burst 설정 동작은 호출되지 않고 scheduler의 기본 rate가 유지된다
+
+#### Scenario: 파싱 불가능한 Crawl-delay 무시
+- **WHEN** Crawl-delay 값이 정수/실수로 파싱되지 않을 때
+- **THEN** 해당 값은 무시되고 호스트 rate/burst 설정 동작은 호출되지 않는다
+
+#### Scenario: 캐시 TTL 내 중복 호출 방지
+- **WHEN** 같은 호스트에 대해 24시간 캐시 TTL 이내에 다수 링크가 필터링될 때
+- **THEN** 호스트 rate/burst 설정 동작은 캐시 갱신 시점(최초 fetch 또는 TTL 만료 재fetch)에만 호출된다
+
+---
+
+### Requirement: Harvester는 Pin 생성 시 primary 이미지를 object storage에 캐시한다
+시스템은 Harvester가 새 Pin을 생성할 때, 해당 페이지에서 추출한 primary 이미지 후보가 있으면 그 이미지를 우리 object storage에 저장하고, 저장 결과에 해당하는 참조 값을 Pin의 **대표 이미지 참조 속성**에 기록해야 한다(SHALL). 이미지 캐싱의 성공/실패는 Pin 생성 자체의 성공/실패에 영향을 주지 않아야 한다(SHALL NOT block Pin creation).
+
+본 requirement는 기존 `bot` capability의 "Harvester는 미디어 파일을 스토리지에 다운로드하여 저장한다" requirement와는 **별개의 데이터 흐름**이며 서로의 실패 정책에 영향을 주지 않는다. 본문 미디어(item의 media 본체) 다운로드 실패는 기존 정책에 따라 item skip을 야기할 수 있으나, primary 이미지 캐시 실패는 본 requirement의 fallback 경로로만 처리되고 Pin 생성을 막지 않는다. Pin의 "대표 이미지 참조 속성"이 저장 스키마의 어느 컬럼에 매핑되는지는 구현 관심사이며 design 문서에서 확정한다(본 change 기준으로는 단일 속성을 사용한다).
+
+본 capability에서 이미지 캐시 동작의 **외부 관찰 가능 행위**는 다음과 같다:
+- **성공**: Pin의 대표 이미지 참조 속성에 object storage 상의 참조가 기록된다.
+- **실패**: 다운로드 실패, 업로드 실패, 크기 초과 중 어느 것이든 **구분 없이** 동일하게 처리되어, 채택된 원본 후보 URL이 대표 이미지 참조 속성의 값으로 기록된다.
+- **후보 없음**: 대표 이미지 참조 속성은 비어 있는(기록되지 않은) 상태로 남는다.
+
+#### Scenario: 이미지 캐시 성공 시 storage 참조를 Pin에 기록
+- **WHEN** Harvester가 페이지에서 primary 이미지 후보 URL을 찾고, 다운로드와 object storage 업로드가 모두 성공할 때
+- **THEN** 시스템은 Pin의 대표 이미지 참조 속성에 object storage 참조를 기록한다
+
+#### Scenario: 이미지 후보가 존재하지 않을 때
+- **WHEN** Harvester가 추출 우선순위에 따른 모든 후보를 시도했지만 유효한 이미지 URL을 찾지 못할 때
+- **THEN** 시스템은 Pin의 대표 이미지 참조 속성을 비워 두고 Pin은 정상 생성한다
+
+#### Scenario: 이미지 캐시 실패해도 Pin 생성은 계속된다
+- **WHEN** 이미지 후보는 찾았지만 다운로드·업로드·크기 초과 중 어느 하나로 캐시가 실패할 때
+- **THEN** 시스템은 Pin 생성을 실패시키지 않고, Pin의 대표 이미지 참조 속성에 원본 후보 URL을 기록하며, 실패 사유는 로그로 관찰 가능하다
+
+---
+
+### Requirement: 이미지 추출은 og:image → twitter:image → article 내 의미 있는 img → JSON-LD image 우선순위를 따른다
+시스템은 Pin의 primary 이미지 후보를 추출할 때 다음 4단계를 위에서 아래로 시도하고, 첫 번째로 유효한 후보를 채택해야 한다(SHALL): (1) `<meta property="og:image">`, (2) `<meta name="twitter:image">` 또는 `<meta property="twitter:image">`, (3) `<article>` 또는 `<main>` 내부의 의미 있는 `<img>`, (4) `<script type="application/ld+json">` 안 schema.org 객체의 `image` 필드. "유효"는 (a) URL이 절대 URL로 resolve 가능, (b) http 또는 https 스킴, (c) `data:` URI가 아님, (d) 명백한 추적 픽셀(1×1 이미지 등)로 의심되지 않음을 모두 만족해야 한다(SHALL).
+
+동일 우선순위 단계에서 여러 후보가 발견될 때(예: 여러 `<script type="application/ld+json">` 블록, 또는 JSON-LD `image` 필드가 배열/객체 형태), 시스템은 **문서 내 등장 순서(DOM 순서)** 기준 첫 번째 유효 후보를 채택해야 한다(SHALL).
+
+#### Scenario: og:image가 존재하면 1순위로 채택
+- **WHEN** 페이지에 `<meta property="og:image" content="https://example.com/cover.jpg">` 가 있고, twitter:image와 article img도 함께 존재할 때
+- **THEN** 시스템은 og:image의 URL을 채택한다
+
+#### Scenario: og:image가 없으면 twitter:image 채택
+- **WHEN** 페이지에 og:image는 없고 `<meta name="twitter:image" content="https://example.com/tw.jpg">` 가 있을 때
+- **THEN** 시스템은 twitter:image의 URL을 채택한다
+
+"article 내 의미 있는 `<img>`"는 다음 기준 중 **어느 하나라도** 만족하는 `<article>`/`<main>` 내부 `<img>` 요소를 의미한다(SHALL): (i) `width` 속성과 `height` 속성이 **둘 다** 100 이상, 또는 (ii) `alt` 속성이 비어 있지 않음. 위 기준을 만족하지 않는 `<img>`(예: width/height 미지정이거나 하나만 지정된 작은 img, alt가 공백)는 본 우선순위 단계에서 후보가 아니다(SHALL NOT).
+
+#### Scenario: og/twitter가 모두 없으면 article 내 의미 있는 img 채택
+- **WHEN** og:image와 twitter:image가 모두 없고, `<article>` 또는 `<main>` 내부에 `width="600" height="400"` 처럼 둘 다 100 이상을 만족하거나 `alt="상품 사진"` 처럼 비어있지 않은 alt를 갖는 `<img>`가 있을 때
+- **THEN** 시스템은 해당 article/main 내부의 DOM 순서상 첫 번째 그러한 `<img>` 의 src를 채택한다
+
+#### Scenario: 크기 기준·alt 기준 어느 쪽도 충족 못하는 img는 article 후보가 아니다
+- **WHEN** `<article>` 내부에 `<img src="icon.png">` 처럼 width/height 속성이 없고 alt도 비어 있는 `<img>`만 있을 때
+- **THEN** 시스템은 해당 img를 후보에서 제외하고 다음 우선순위 단계(JSON-LD)로 진행한다
+
+#### Scenario: 위 셋이 모두 없으면 JSON-LD image 채택
+- **WHEN** og:image, twitter:image, article 내 유효 img가 모두 없고, `<script type="application/ld+json">` 안에 `"image": "https://example.com/ld.jpg"` 또는 `"image": ["https://example.com/ld.jpg", ...]` 또는 `"image": {"url": "https://example.com/ld.jpg"}` 가 있을 때
+- **THEN** 시스템은 DOM 순서상 첫 번째 JSON-LD 블록의 첫 번째 유효 image URL을 채택한다(배열이면 첫 요소, 객체면 `url` 필드)
+
+#### Scenario: 상대 URL 후보는 절대 URL로 해석되어 채택된다
+- **WHEN** 채택된 후보 속성 값이 `/static/cover.jpg` 같은 상대 경로일 때
+- **THEN** 시스템은 페이지 URL을 base로 하여 절대 URL로 해석한 값을 후보로 사용한다
+
+#### Scenario: data: URI는 후보에서 제외된다
+- **WHEN** og:image의 값이 `data:image/png;base64,...` 일 때
+- **THEN** 시스템은 해당 후보를 건너뛰고 다음 우선순위 단계로 진행한다
+
+#### Scenario: 추적 픽셀로 의심되는 후보는 제외된다
+- **WHEN** 후보 URL이 1×1 추적 픽셀로 의심되는 특성(예: 파일명이 추적 픽셀 관례적 패턴을 포함)을 가질 때
+- **THEN** 시스템은 해당 후보를 건너뛰고 다음 후보 또는 다음 우선순위 단계로 진행한다
+
+---
+
+### Requirement: 이미지 캐시 객체는 후보 URL에서 파생된 안정적이고 충돌 회피된 키로 저장된다
+시스템은 캐시할 이미지를 object storage에 저장할 때, 후보 URL과 저장 시점에서 결정적으로 파생되는 키로 저장해야 한다(SHALL). 키 구성은 다음 외부 관찰 가능 조건을 만족해야 한다:
+- 서로 다른 후보 URL은 서로 다른 키로 저장된다(SHALL).
+- 같은 후보 URL을 서로 다른 시점에 캐시하면 서로 다른 키로 저장되어, 이전 객체가 덮어써지지 않는다(SHALL NOT overwrite).
+- 이미지 캐시 저장 네임스페이스는 본문 미디어(item의 media 본체) 저장 네임스페이스와 **분리**되어, 두 경로의 모니터링/lifecycle 정책을 독립적으로 운용할 수 있다(SHALL).
+- 저장 키는 응답 Content-Type에서 파생된 확장자를 포함해야 하며(SHALL), Content-Type이 없거나 매핑되지 않을 때의 fallback 또한 결정적이어야 한다(SHALL).
+
+구체 해시 알고리즘, 타임스탬프 해상도, Content-Type ↔ 확장자 매핑 테이블, 네임스페이스 이름 같은 **키 구성의 내부 알고리즘**은 design 문서에서 확정한다.
+
+단, 스킴과 호스트의 **대소문자 차이만**(RFC 3986상 case-insensitive한 컴포넌트)은 서로 다른 후보로 취급하지 않는다 — 예: `HTTP://Example.com/x` 와 `http://example.com/x` 는 동일 후보로 간주되어 동일 키 공간에 저장된다.
+
+#### Scenario: 서로 다른 후보 URL은 서로 다른 키로 저장된다
+- **WHEN** 두 후보 URL이 정규형(스킴·호스트는 대소문자 동일시, path·query는 문자 그대로) 기준으로 스킴/호스트/경로/쿼리 중 어느 하나라도 다를 때
+- **THEN** 두 객체의 저장 키는 서로 다르다
+
+#### Scenario: 스킴/호스트 대소문자 차이만 있는 두 후보는 동일 후보로 취급된다
+- **WHEN** 두 후보 URL이 `HTTPS://Example.com/a.jpg` 와 `https://example.com/a.jpg` 처럼 스킴과 호스트의 대소문자만 다르고 path·query가 동일할 때
+- **THEN** 두 후보는 동일 후보로 간주되어 저장 키 파생의 관점에서 동일한 키 공간에 매핑된다
+
+#### Scenario: 같은 후보 URL을 다른 시점에 재캐시하면 별도 객체로 저장된다
+- **WHEN** 동일 후보 URL을 서로 다른 시점에 두 번 캐시할 때
+- **THEN** 두 번째 업로드는 첫 번째 객체를 덮어쓰지 않고 별도 키로 저장된다
+
+#### Scenario: 응답 Content-Type에서 확장자가 파생된다
+- **WHEN** 다운로드 응답의 Content-Type이 이미지 타입을 명시할 때
+- **THEN** 저장 키에는 해당 Content-Type에 대응되는 확장자가 포함된다
+
+#### Scenario: Content-Type 확장자 파생이 실패하면 결정적 fallback 확장자가 사용된다
+- **WHEN** 다운로드 응답의 Content-Type이 알려진 이미지 타입 매핑에 없을 때
+- **THEN** 저장 키는 원본 URL의 확장자 또는 사전에 정의된 기본 확장자를 결정적 규칙으로 사용한다
+
+#### Scenario: 이미지 캐시 네임스페이스가 본문 미디어 네임스페이스와 분리된다
+- **WHEN** 시스템이 이미지 캐시 객체와 본문 미디어 객체를 모두 저장할 때
+- **THEN** 두 저장 위치는 분리된 네임스페이스를 가져 서로 prefix 충돌이나 lifecycle 교차가 없다
+
+---
+
+### Requirement: 이미지 캐시 실패는 단일 fallback 경로로 처리된다
+시스템은 후보 URL은 찾았으나 (a) 다운로드 실패, (b) 업로드 실패, (c) 응답 Content-Length 혹은 read 누적이 구현 임계치를 초과 중 **어느 것이든** 발생하면, **구분 없이 동일하게** Pin의 대표 이미지 참조 속성에 채택된 원본 후보 URL을 그대로 기록해야 한다(SHALL). Pin 생성은 성공으로 처리되어야 하며, 부분적으로 다운로드된 바이트는 object storage에 업로드되지 않아야 한다(SHALL NOT upload partial bytes). 업로드 도중 실패로 인해 부분 객체(예: 중단된 멀티파트 업로드 또는 partial commit)가 남을 수 있는 경우, **해당 객체의 정리 책임은 본 capability 외부**(storage lifecycle 또는 후속 GC change)에 위임된다. 실패 사유는 로그로 관찰 가능해야 한다(SHALL).
+
+#### Scenario: 다운로드 실패 시 원본 URL fallback
+- **WHEN** 후보 URL이 다운로드 단계에서 HTTP 403/404/타임아웃 등으로 실패할 때
+- **THEN** 시스템은 Pin의 대표 이미지 참조 속성에 채택된 원본 후보 URL을 기록하고 Pin 생성을 성공시킨다
+
+#### Scenario: 업로드 실패 시 원본 URL fallback
+- **WHEN** 다운로드는 성공했으나 object storage 업로드가 실패할 때
+- **THEN** 시스템은 Pin의 대표 이미지 참조 속성에 원본 후보 URL을 기록하고 Pin 생성을 성공시킨다
+
+#### Scenario: 다운로드 크기가 임계치를 초과하면 fallback 및 부분 데이터 버림
+- **WHEN** 응답 Content-Length 또는 실제 다운로드 바이트가 시스템 임계치를 초과할 때
+- **THEN** 시스템은 다운로드를 즉시 중단하고, 부분 데이터를 storage에 업로드하지 않으며, 원본 URL을 대표 이미지 참조 속성에 기록한다
+
+#### Scenario: 실패는 관찰 가능하다
+- **WHEN** 이미지 캐시가 fallback 경로로 처리될 때
+- **THEN** 시스템은 실패 사유(다운로드/업로드/크기초과)를 식별 가능한 로그로 기록한다
+
+### Requirement: 캐시된 primary 이미지 객체는 설정 가능한 TTL 후 만료 대상이 된다
+시스템은 이미지 캐시 네임스페이스에 저장된 primary 이미지 객체에 대해 **연령 기반 TTL**을 capability 내 계약으로 정의해야 한다(SHALL). 각 캐시 객체는 자신의 작성/최종 쓰기 시점으로부터 TTL이 경과한 시점부터 시스템에 의해 **제거 대상(eligible for removal)** 상태가 되어야 하며(SHALL), TTL 미경과 시점에서는 제거 대상이 아니어야 한다(SHALL NOT remove before TTL). TTL 값은 운영자가 설정 가능해야 한다(SHALL be configurable).
+
+본 requirement는 **primary 이미지 캐시 네임스페이스 한정**이다. 본문 미디어(item의 media 본체) 저장 네임스페이스의 만료 정책은 본 requirement의 범위가 아니다. 제거 대상 여부의 판정 근거와 실제 제거를 수행하는 메커니즘, TTL의 기본값과 설정 키 이름은 **내부 구현 세부**이며 design 문서에서 확정한다.
+
+캐시 객체의 만료는 Pin 생성 경로와 **비동기**이다. 만료 처리의 성공/실패는 Pin 생성의 성공/실패에 영향을 주지 않아야 한다(SHALL NOT block Pin creation). 구체적으로, 기존의 이미지 캐시 실패 fallback 동작(다운로드/업로드/용량 초과 시 원본 후보 URL로 기록), 후보가 없을 때 공란으로 남는 동작, 캐시 성공 시점의 관찰 가능 결과는 TTL 설정 여부 및 만료 처리 상태와 **무관하게 보전**되어야 한다(SHALL preserve existing cache-path observable behavior). 만료로 인한 참조 해소 실패 가능성은 Pin 이후 조회 시점의 사후 현상이며, 그 참조의 해소 결과(예: 404)는 본 capability의 실패로 간주하지 않는다. 이 경우 Pin 자체는 유효하며, 소비자 측 UX가 참조 해소 실패를 허용해야 한다.
+
+동일 후보 URL의 재캐시가 별도 객체로 저장된다는 기존 Requirement("이미지 캐시 객체는 후보 URL에서 파생된 안정적이고 충돌 회피된 키로 저장된다")는 유지된다. 따라서 만료는 **객체 단위**로 평가되며, 같은 후보 URL의 여러 객체가 각각 자신의 작성/최종 쓰기 시점 기준 TTL에 따라 독립적으로 제거 대상이 된다.
+
+#### Scenario: TTL 미경과 객체는 제거 대상이 아니다
+- **WHEN** 이미지 캐시 객체의 작성/최종 쓰기 시점으로부터 TTL이 아직 경과하지 않은 시점에 시스템이 만료 판정을 수행할 때
+- **THEN** 해당 객체는 제거 대상이 아니며 storage에서 제거되지 않는다
+
+#### Scenario: TTL 경과 객체는 제거 대상이 된다
+- **WHEN** 이미지 캐시 객체의 작성/최종 쓰기 시점으로부터 TTL이 경과한 이후 시점에 시스템이 만료 판정을 수행할 때
+- **THEN** 해당 객체는 제거 대상으로 분류되고, 시스템의 제거 메커니즘에 의해 storage에서 삭제된다
+
+#### Scenario: TTL 값은 설정 가능하다
+- **WHEN** 운영자가 TTL 설정 값을 기본값과 다른 값으로 지정할 때
+- **THEN** 모든 이후 캐시 객체의 만료 판정은 지정된 TTL 값을 기준으로 수행된다
+
+#### Scenario: 만료 처리는 Pin 생성을 막지 않는다
+- **WHEN** 만료 처리가 동시에 실행 중이거나 실패한 상태에서 Harvester가 새 Pin을 생성할 때
+- **THEN** Pin 생성은 만료 처리의 상태와 무관하게 기존 이미지 캐시 Requirement의 성공/실패 기준에 따라 독립적으로 처리된다
+
+#### Scenario: 만료된 객체 참조는 capability 실패가 아니다
+- **WHEN** Pin의 대표 이미지 참조 속성이 TTL 경과 이후 시점에 소비자 조회 시 해소되지 않을 때
+- **THEN** 본 capability의 이미지 캐시 Requirement는 여전히 "Pin 생성 시점"의 성공 기준으로 판정되며, 사후 해소 실패는 본 capability의 실패로 집계되지 않는다
+
+#### Scenario: 동일 후보 URL의 두 객체는 각자 TTL을 가진다
+- **WHEN** 같은 후보 URL이 시점 T1과 T2(T2 > T1)에 각각 별도 객체로 캐시되고 T1의 객체만 TTL이 경과한 시점에 판정할 때
+- **THEN** T1 시점에 저장된 객체만 제거 대상이 되고 T2 시점에 저장된 객체는 제거 대상이 아니다
+
+#### Scenario: 만료는 primary 이미지 캐시 네임스페이스에만 적용된다
+- **WHEN** 시스템이 본 capability의 TTL 만료 판정을 수행할 때
+- **THEN** 본문 미디어(item의 media 본체) 저장 네임스페이스의 객체는 판정 대상에 포함되지 않는다
+
+### Requirement: 스냅샷 사용 불가 시 HTTP fetch로 폴백한다
+
+ObjectStorage 조회가 성공하지 못하는 모든 경우(키 없음, 네트워크/권한/내부 에러 등 일체 — TTL 만료는 lifecycle 삭제에 의해 "키 없음"으로 수렴하며 독립 관측 범주가 아니다)를 Harvester는 단일 "사용 불가(miss)"로 취급하여 동일 노드 URL에 대해 HTTP fetch로 폴백해야 한다(SHALL). 실패 유형에 따라 fetch 동작이 달라져서는 안 된다(MUST NOT). 폴백된 HTTP 응답을 ObjectStorage에 재저장할지 여부는 본 요구사항이 정의하지 않으며, 저장 책임은 Pioneer 쓰기 경로에 위임한다.
+
+ObjectStorage 실패 유형 구분은 **로그/메트릭 레벨에서만** 수행되어야 하며(운영 관찰·알람 임계치 산정용), fetch 의사결정(폴백 여부)에는 영향을 주지 않는다(SHALL). 이는 동작(behavior)이 아니라 관측(observability)의 영역이다.
+
+#### Scenario: 스냅샷 miss 시 HTTP 폴백
+- **WHEN** Harvester가 노드 URL에 대해 fetch를 요청했으나 ObjectStorage에 해당 스냅샷이 존재하지 않을 때(신규 미저장, lifecycle rule에 의한 TTL 만료 삭제, 과거 UTC 일자 키 어긋남 등이 모두 이 단일 케이스로 수렴)
+- **THEN** 동일 URL에 대해 HTTP fetch를 수행하여 본문을 획득한 뒤 파싱 파이프라인을 진행한다
+
+#### Scenario: ObjectStorage 에러 시 HTTP 폴백
+- **WHEN** Harvester의 ObjectStorage 조회가 네트워크/권한/내부 에러로 실패할 때
+- **THEN** Harvester는 즉시 실패로 처리하지 않고 동일 URL에 대해 HTTP fetch로 폴백한다
+
+#### Scenario: 실패 유형은 로그로만 구분된다
+- **WHEN** ObjectStorage 조회가 실패할 때
+- **THEN** 운영자가 실패 원인을 로그·메트릭을 통해 판별할 수 있도록 관측 데이터가 남지만, fetch 동작은 모든 케이스에서 동일하게 HTTP fallback으로 수렴한다(실패 유형이 fetch 분기에 영향을 주지 않는다). 관측 라벨의 구체적 문자열 집합은 본 spec의 행위 계약 대상이 아니며 운영 설정에서 관리한다
+
+---
+
+### Requirement: ObjectStorage와 HTTP 모두 실패 시 노드 처리 실패로 집계한다
+
+ObjectStorage 경로와 HTTP 폴백 경로가 모두 본문을 반환하지 못하면, Harvester는 해당 노드 처리를 실패로 분류하고 **Harvester 워커의 실행 통계(in-memory, scheduler의 DB 컬럼과 구분되는 별개 집계)** 의 fetch 실패 카운터가 1 증가하도록 해야 한다(SHALL). 이 실패는 다른 노드의 처리를 중단시키지 않아야 하며(SHALL), 단일 노드 실패가 Harvester 실행 전체를 중단시켜서는 안 된다(MUST NOT). 집계 카운터의 내부 식별자 이름은 본 spec의 행위 계약 대상이 아니며 구현 문서에서 정의한다. `harvester_frontier.harvest_error_count` DB 컬럼 증가는 `harvester-scheduler-consumer` capability의 `RecordHarvestError` 경로가 담당하며, 본 Requirement는 해당 DB 경로에 추가 증가를 요구하지 않는다.
+
+#### Scenario: 이중 실패 시 실행 통계 카운터 증가
+- **WHEN** Harvester가 노드 URL에 대해 fetch를 요청했고 ObjectStorage 조회와 HTTP 폴백이 모두 본문을 반환하지 못할 때
+- **THEN** 해당 노드의 파싱은 수행되지 않고 Harvester 워커 실행 통계의 fetch 실패 카운터가 정확히 1 증가한다
+
+#### Scenario: 노드 단위 실패 격리
+- **WHEN** 특정 노드의 fetch가 이중 실패로 종료될 때
+- **THEN** Harvester는 다음 노드의 처리를 계속 진행하며 단일 노드의 실패가 전체 실행을 중단시키지 않는다
+
+#### Scenario: fetch 출처 및 실패 종류의 관측성
+- **WHEN** Harvester가 fetch를 수행할 때
+- **THEN** 각 호출의 fetch 출처(스냅샷/HTTP) 및 실패 시 ObjectStorage 에러 종류가 로그/메트릭으로 식별 가능하다(운영 관찰용이며 fetch 행위에는 영향을 주지 않는다)
+

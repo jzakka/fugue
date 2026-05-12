@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -26,6 +27,19 @@ type Config struct {
 	S3AccessKey         string
 	S3SecretKey         string
 	S3PublicURL         string
+
+	// Scheduler host token bucket (per scheduler-host-token-bucket spec).
+	SchedulerHostDefaultRatePerSec  float64
+	SchedulerHostDefaultBurst       int
+	SchedulerHostTokenBucketEnabled bool
+
+	// Pioneer snapshot storage (per pioneer-snapshot-storage spec).
+	// PioneerSnapshotEnabled is the operational toggle: when false, no
+	// snapshot uploads are performed (spec: "Scenario: 비활성화 시 업로드 스킵").
+	// PioneerSnapshotBucket selects the destination bucket; defaults to
+	// the existing media bucket so the snapshots/ prefix can co-exist.
+	PioneerSnapshotEnabled bool
+	PioneerSnapshotBucket  string
 }
 
 func Load() (*Config, error) {
@@ -56,6 +70,8 @@ func Load() (*Config, error) {
 	discordID := os.Getenv("DISCORD_CLIENT_ID")
 	discordSecret := os.Getenv("DISCORD_CLIENT_SECRET")
 
+	schedHost := LoadSchedulerHostConfig()
+
 	return &Config{
 		Port:                envOrDefault("PORT", "8080"),
 		DatabaseURL:         envOrDefault("DATABASE_URL", "postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable"),
@@ -75,7 +91,73 @@ func Load() (*Config, error) {
 		S3AccessKey:         envOrDefault("S3_ACCESS_KEY", "fugue"),
 		S3SecretKey:         envOrDefault("S3_SECRET_KEY", "fuguedev123"),
 		S3PublicURL:         envOrDefault("S3_PUBLIC_URL", "http://localhost:9000/fugue-media"),
+
+		SchedulerHostDefaultRatePerSec:  schedHost.DefaultRatePerSec,
+		SchedulerHostDefaultBurst:       schedHost.DefaultBurst,
+		SchedulerHostTokenBucketEnabled: schedHost.Enabled,
+
+		// Default off; staging/prod enable explicitly during rollout.
+		PioneerSnapshotEnabled: envBool("PIONEER_SNAPSHOT_ENABLED", false),
+		PioneerSnapshotBucket:  envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media")),
 	}, nil
+}
+
+// SchedulerHostConfig captures the operator-tunable host rate limiter inputs
+// for `scheduler` capability. The bot worker entrypoint reads this via
+// LoadSchedulerHostConfig without requiring JWT/OAuth env vars that the
+// full Load() call demands.
+type SchedulerHostConfig struct {
+	DefaultRatePerSec float64
+	DefaultBurst      int
+	Enabled           bool
+}
+
+// LoadSchedulerHostConfig reads operator-provided env vars for the host rate
+// limiter and falls back to factory defaults (1 req/sec, burst 5, enabled)
+// when an env var is unset or unparseable. Safe to call from any binary; does
+// not require auth-related env vars.
+func LoadSchedulerHostConfig() SchedulerHostConfig {
+	return SchedulerHostConfig{
+		DefaultRatePerSec: envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
+		DefaultBurst:      envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
+		Enabled:           envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
+	}
+}
+
+func envFloat(key string, fallback float64) float64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return fallback
+	}
+	return f
+}
+
+func envInt(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		return fallback
+	}
+	return n
+}
+
+func envBool(key string, fallback bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return fallback
+	}
+	return b
 }
 
 func (c *Config) IsDevMode() bool {

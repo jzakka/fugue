@@ -344,6 +344,9 @@ export default function PinCreateForm() {
               >
                 이미지 / 오디오 / 비디오
               </div>
+              <div className="text-xs text-text-dim mt-1">
+                업로드 시 자동 최적화가 적용됩니다
+              </div>
             </div>
           ) : optimizing ? (
             <div className="border border-border rounded-[10px] p-6">
