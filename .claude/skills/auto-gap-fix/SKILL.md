@@ -24,8 +24,9 @@ license: MIT
 ## 인자
 
 - `--max-iterations N` (기본 5): 처리할 갭의 최대 개수.
+- `--domain <name>` (선택): 지정한 도메인의 갭만 처리한다. 예: `pin`, `board`, `interaction`, `feed`. 값은 `openspec/specs/<name>/` 디렉토리 이름과 일치해야 한다.
 
-인자가 없으면 기본값으로 시작합니다.
+인자가 없으면 기본값으로 시작하며 모든 도메인을 대상으로 한다.
 
 ---
 
@@ -68,10 +69,11 @@ license: MIT
 
 ### 3단계 - 후보 선정
 
-코드 누락 갭만 남긴 뒤 다음 순서로 정렬한다.
+코드 누락 갭만 남긴 뒤 다음 순서로 처리한다.
 
-1. 도메인 우선순위로 정렬: **pin > board > interaction > feed > 그 외**
-2. 동일 도메인 안에서 의존성 검사. 다음 중 하나라도 해당하면 후보에서 제외:
+1. `--domain` 인자가 주어졌다면, 해당 도메인에 속하지 않는 갭은 모두 제외한다. 필터링 결과 코드 누락 갭이 0건이면 5단계로 점프한다.
+2. 도메인 우선순위로 정렬: **pin > board > interaction > feed > 그 외**. `--domain`이 지정된 경우 정렬은 사실상 무의미하지만 동일 도메인 내 순서는 유지한다.
+3. 동일 도메인 안에서 의존성 검사. 다음 중 하나라도 해당하면 후보에서 제외:
    - 같은 갭 리스트의 다른 코드 누락 갭에 종속된다.
    - 신규 외부 라이브러리·의존성·인프라 도입이 선행되어야 한다. (예: 오디오 WAV/FLAC 압축 변환은 ffmpeg.wasm 또는 서버 ffmpeg 파이프라인 도입 필요)
    - DB 마이그레이션이 선행되어야 한다.
@@ -145,7 +147,7 @@ git switch main
 
 다음 중 하나가 충족되면 루프를 종료하고 6단계로 간다.
 
-- 코드 누락 후보가 0건이다.
+- 코드 누락 후보가 0건이다. (`--domain`이 지정된 경우 해당 도메인 안에서 0건)
 - 누적 반복 수가 `--max-iterations` 도달.
 - 빌드·테스트 실패가 2회 연속 (환경 이슈 가능성).
 - 저장소 루트에 `auto-gap-fix.STOP` 파일이 새로 생겼다. (원격 중단 신호)
@@ -158,6 +160,7 @@ git switch main
 # auto-gap-fix 실행 보고서
 
 실행 시각: <ISO 8601>
+대상 도메인: <전체 | 지정된 도메인 이름>
 반복 횟수: N / max
 종료 사유: <조건>
 
@@ -200,4 +203,6 @@ git switch main
 ```
 /auto-gap-fix
 /auto-gap-fix --max-iterations 3
+/auto-gap-fix --domain pin
+/auto-gap-fix --domain interaction --max-iterations 2
 ```
