@@ -19,6 +19,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
+	"github.com/chungsanghwa/fugue/apps/api/internal/config"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/scheduler"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
@@ -255,7 +256,7 @@ priority order defined by harvester_frontier's partial index.`,
 		// guarantees no two consumer workers claim the same row even when
 		// this command runs N times concurrently.
 		sched := scheduler.NewPGURLScheduler(infra.DB).
-			WithRateLimiter(scheduler.NewHostRateLimiter(scheduler.FactoryDefaultRatePerSec, scheduler.FactoryDefaultBurst, true))
+			WithRateLimiter(buildHostRateLimiter(config.LoadSchedulerHostConfig()))
 
 		consumer := bot.NewHarvesterConsumer(
 			sched,
@@ -471,7 +472,7 @@ func main() {
 // links discovered via fanout B populate pioneer_frontier organically.
 func runPioneerConsumer(parent context.Context, infra *Infrastructure, seedURL string) error {
 	sched := scheduler.NewPGURLScheduler(infra.DB).
-		WithRateLimiter(scheduler.NewHostRateLimiter(scheduler.FactoryDefaultRatePerSec, scheduler.FactoryDefaultBurst, true))
+		WithRateLimiter(buildHostRateLimiter(config.LoadSchedulerHostConfig()))
 
 	snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
 	store := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
