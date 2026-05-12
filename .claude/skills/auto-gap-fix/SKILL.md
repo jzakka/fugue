@@ -103,20 +103,57 @@ git switch -c auto-gap/<change-name> origin/main
 
 선정된 갭의 컨텍스트(도메인, Requirement, Scenario, 분류 근거)를 명시적으로 전달하면서 `/openspec-loop`을 호출한다. `/openspec-loop`이 내부적으로 propose → review → apply → impl-review → archive를 자동 수행한다.
 
-**d. 테스트 코드 강제 검증**
+**d. 스펙 일치 검증 (구현 완료 기준)**
 
-apply 완료 후 다음을 모두 확인한다.
+apply 완료를 "구현됐다"로 인정하는 기준은 **테스트 이름이 존재하는지가 아니라, 실제로 스펙대로 동작하는지**다. 다음을 모두 만족해야 다음 단계로 넘어간다. 하나라도 어긋나면 보완을 한 차례 재시도하고, 재시도 후에도 어긋나면 해당 갭은 즉시 폐기한다. **이름만 보고 통과시키지 않는다. 대충 넘기지 않는다.**
+
+**d-1. 테스트가 실재한다.**
 
 - `openspec/changes/<change-name>/tasks.md` 안에 "테스트", "test", "_test.go", ".test.ts" 중 하나 이상이 명시되어 있다.
-- 실제 커밋된 변경에 신규 테스트 파일 또는 신규 테스트 케이스가 포함되어 있다.
-  - `git diff --name-only main...HEAD` 결과에 `*_test.go` 또는 `*.test.ts(x)` 가 존재한다.
-  - 혹은 기존 테스트 파일에 새 `func Test...` 또는 `it(...)` / `test(...)` 블록이 추가되었다.
+- `git diff --name-only origin/main...HEAD` 결과에 신규 `*_test.go` 또는 `*.test.ts(x)`가 포함되거나, 기존 테스트 파일에 새 `func Test...` / `it(...)` / `test(...)` 블록이 추가되어 있다.
+- 추가된 테스트가 이번 Scenario의 동작을 실제로 assert하는지 짧게 확인한다. (단순 `t.Skip`, `it.todo`, 빈 본문, 단순 컴파일 확인용 케이스는 인정하지 않는다.)
 
-누락 시 `/openspec-loop`을 한 번 더 호출하며 다음 후속 지시를 덧붙인다.
+**d-2. 테스트가 실제로 통과한다.**
 
-> "테스트가 누락되었다. Scenario '<제목>'을 검증하는 테스트를 추가하라. 단위 테스트로 충분하다."
+추가된 테스트를 정확히 지목해 실행하고, exit code 0과 함께 해당 케이스가 실행됐는지 출력에서 확인한다. 이름만 존재하고 실제로는 skip/필터링되어 0건 실행된 경우는 실패로 본다.
 
-재검증해도 누락이면 해당 갭은 폐기한다.
+```bash
+# Go (예시) — 추가된 함수 이름을 정확히 지목
+cd apps/api && go test ./<package> -run '^Test<Name>$' -v -count=1
+
+# Web (예시)
+cd apps/web && npx vitest run <test-file>
+# or
+cd apps/web && npx playwright test <test-file>
+```
+
+**d-3. `/qa-only`로 스펙 동작 일치 검증.**
+
+`/qa-only`를 호출해 이번 Scenario가 요구한 동작을 실제 실행 경로로 검증한다. 호출 시 다음을 명시한다.
+
+- 대상 도메인 / Requirement / Scenario 원문
+- 검증해야 할 관찰 가능한 동작(엔드포인트 응답, 상태 코드, DB row 변경, UI 상의 시각/상호작용 결과 등)
+- 통과 기준: Scenario에 적힌 "Then/Expect" 항목을 한 줄씩 체크
+
+`/qa-only`가 "스펙과 일치"로 결론 내야 통과로 간주한다. "테스트 코드가 존재한다", "함수가 정의돼 있다" 같은 정적 근거만으로는 통과시키지 않는다.
+
+**d-4. 브라우저 동작 확인 (UI/HTTP 경로가 포함될 때 필수).**
+
+다음 중 하나라도 해당하면 브라우저(`/qa-only` 또는 `mcp__claude-in-chrome__*`)로 실제 경로를 한 번 이상 실행해 결과를 눈으로 확인한다.
+
+- Scenario가 사용자 화면, 폼 입력, 네비게이션, 시각적 상태를 직접 언급한다.
+- 변경된 파일에 `apps/web/` 경로의 React 컴포넌트, 라우트, 페이지가 포함된다.
+- 신규/변경된 HTTP 엔드포인트가 있다. (브라우저에서 직접 호출하거나 web 앱에서 실제 호출 경로를 태운다.)
+
+확인 항목: 200/4xx 응답 코드, 응답 바디 핵심 필드, UI에 나타나야 하는 텍스트/요소, Scenario가 금지한 동작이 일어나지 않는지. 콘솔/네트워크 에러가 새로 발생하지 않는지도 본다.
+
+**보완 재시도.**
+
+d-1 ~ d-4 중 어느 것이라도 미충족이면 `/openspec-loop`을 한 번만 더 호출하며 누락된 항목을 구체적으로 지시한다. 예:
+
+> "Scenario '<제목>'에 대한 테스트가 실제로 실행되지 않거나(skip 상태), `/qa-only`가 스펙 불일치를 보고했다. 누락된 동작은 다음과 같다: <항목>. 코드와 테스트를 보완해 d-2, d-3, d-4를 모두 통과시켜라."
+
+재시도 이후에도 d-1 ~ d-4를 모두 통과하지 못하면 해당 갭은 폐기하고 보고서에 어떤 항목이 어디서 실패했는지(예: "d-3: /qa-only 결과 — 응답 코드 불일치") 기록한다.
 
 **e. 빌드·테스트 검증**
 
@@ -193,6 +230,9 @@ worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 
 - fix-pin-something-else
   - 단계: 빌드 검증
   - 사유: `go test ./apps/api/internal/pin` 실패. 자세한 로그는 로컬 브랜치 `auto-gap/fix-pin-something-else`(원격에 push되지 않음) 참조.
+- fix-interaction-record-pin-action
+  - 단계: 스펙 일치 검증 (d-3)
+  - 사유: `/qa-only` 결과 Scenario "<제목>"의 Then 항목 중 "응답 코드 409"가 200으로 반환됨. 재시도 후에도 불일치.
 - fix-board-something-else
   - 단계: main push
   - 사유: `git push origin HEAD:main` 거부 (보호 룰 또는 non-fast-forward). 강제 push 시도하지 않음.
@@ -207,6 +247,7 @@ worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 
 - push는 반드시 fast-forward여야 한다. **`--force`, `--force-with-lease` 등 강제 push 옵션은 어떤 경우에도 사용하지 않는다.** push가 거부되면 그 갭은 폐기한다.
 - 빌드·테스트가 baseline에서 통과하지 않으면 시작 자체를 거부한다.
 - 빌드·테스트(4단계 e)가 실패한 갭은 머지하지 않고 폐기한다. 검증을 우회해 main에 밀어넣지 않는다.
+- 스펙 일치 검증(4단계 d)은 "테스트 이름이 존재한다"로 통과시키지 않는다. d-2 실행 통과, d-3 `/qa-only` 일치, 해당 시 d-4 브라우저 확인까지 모두 충족해야만 다음 단계로 간다. 어떤 단계도 "대충 통과"로 처리하지 않는다.
 - `auto-gap-fix.STOP` 파일이 생기면 진행 중인 갭의 머지까지만 마무리하고 종료한다. (중단 중에 working tree가 더러워지지 않도록)
 - openspec CLI나 git 호출이 비정상 종료하면 즉시 중단하고 보고한다. 절대 강제로 우회하지 않는다.
 
