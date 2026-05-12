@@ -12,12 +12,14 @@ license: MIT
 
 작업을 시작하기 전에 모두 만족해야 합니다. 하나라도 어긋나면 즉시 중단하고 보고서에 사유를 적습니다.
 
-- 현재 브랜치가 main이고 working tree가 clean하다.
+- working tree가 clean하다. (어느 브랜치/worktree에서 시작하든 무방)
 - openspec CLI, gh CLI가 설치되어 있고 인증되어 있다.
 - baseline 빌드가 통과한다.
   - `cd apps/api && go build ./... && go test ./...`
   - `cd apps/web && npm run build && npm test`
 - 저장소 루트에 `auto-gap-fix.STOP` 파일이 없다.
+
+루프 시작 시 현재 브랜치 이름을 기록한다 (`STARTING_BRANCH=$(git branch --show-current)`). 각 갭 처리가 끝나면 이 브랜치로 복귀한다. 이 스킬은 어떤 worktree에서든 실행 가능하며, 사용자가 미리 만들어 둔 worktree 위에서 도는 것을 기본 시나리오로 가정한다.
 
 ---
 
@@ -90,8 +92,11 @@ license: MIT
 
 **b. 새 브랜치 생성**
 
+최신 `origin/main`을 받아서 그 위에서 분기한다. main 자체를 체크아웃하지 않으므로 다른 worktree가 main을 점유 중이어도 충돌하지 않는다.
+
 ```bash
-git switch -c auto-gap/<change-name> main
+git fetch origin main
+git switch -c auto-gap/<change-name> origin/main
 ```
 
 **c. `/openspec-loop` 위임**
@@ -137,11 +142,13 @@ PR 본문에 다음을 포함한다.
 - 추가된 테스트 목록
 - "auto-gap-fix 스킬이 자동 생성한 PR입니다. 머지 전 사람 검토 필수." 문구
 
-**g. main으로 복귀**
+**g. 시작 브랜치로 복귀**
 
 ```bash
-git switch main
+git switch "$STARTING_BRANCH"
 ```
+
+worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 1단계 시작 시 기록한 `STARTING_BRANCH`로 돌아간다.
 
 ### 5단계 - 종료 조건
 
@@ -189,7 +196,7 @@ git switch main
 
 ## 안전장치
 
-- main에 직접 커밋하지 않는다. 모든 변경은 `auto-gap/<change-name>` 브랜치에서만 일어난다.
+- main에 직접 커밋하지 않는다. 모든 변경은 `auto-gap/<change-name>` 브랜치에서만 일어난다. 시작 브랜치(예: worktree의 작업 브랜치)에도 커밋하지 않는다.
 - PR을 자동 머지하지 않는다. 머지는 항상 사람이 한다.
 - 각 PR은 단일 갭만 다룬다. 여러 갭을 묶지 않는다.
 - 빌드·테스트가 baseline에서 통과하지 않으면 시작 자체를 거부한다.
