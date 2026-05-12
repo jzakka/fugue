@@ -656,8 +656,6 @@ ObjectStorage 조회 실패 종류(키 없음 / 만료 / 네트워크 / 권한 /
 - **WHEN** 스냅샷 조회 또는 HTTP fallback이 ctx 취소/deadline으로 종료될 때
 - **THEN** 이는 "스냅샷 경로 내부 실패 흡수"의 대상이 아니라 fetch 단 진입점이 반환하는 `errorKind = "timeout"`로 분류되며, 두 요구(`ObjectStorage 실패 흡수` vs `timeout 분류`)가 경계에서 충돌하지 않는다.
 
----
-
 ### Requirement: 미디어 후보 유효성 검증
 
 시스템은 추출 단계에서 수집된 미디어 후보(이미지/비디오/오디오)를 PinDocument의 `media_candidates` 또는 `thumbnail_url`로 채택하기 전에 외부 관찰 가능한 유효성 기준으로 검증해야 한다(SHALL). 검증을 통과하지 못한 후보는 PinDocument에 채택되지 않아야 한다(SHALL NOT). 유효성 기준은 (a) 선언된 타입의 미디어로 디코딩 가능할 것, (b) 미디어가 의미 있는 콘텐츠 크기를 가질 것이다. 구체 임계값과 측정 축은 운영 학습으로 조정 가능한 구현 파라미터이며 본 스펙의 행위 계약 일부가 아니다.
