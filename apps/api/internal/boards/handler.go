@@ -264,7 +264,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if current.CreatorID != creatorID {
-		writeError(w, http.StatusNotFound, "보드를 찾을 수 없습니다")
+		writeError(w, http.StatusForbidden, "보드를 수정할 권한이 없습니다")
 		return
 	}
 
@@ -496,13 +496,18 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ON CONFLICT DO NOTHING makes this idempotent
-	if err := q.AddPinToBoard(r.Context(), db.AddPinToBoardParams{
+	rowsAffected, err := q.AddPinToBoard(r.Context(), db.AddPinToBoardParams{
 		BoardID: boardID,
 		PinID:   workID,
-	}); err != nil {
+	})
+	if err != nil {
 		log.Printf("boards.AddPin: DB error: %v", err)
 		writeError(w, http.StatusInternalServerError, "핀을 추가할 수 없습니다")
+		return
+	}
+
+	if rowsAffected == 0 {
+		writeError(w, http.StatusConflict, "이미 보드에 추가된 핀입니다")
 		return
 	}
 
