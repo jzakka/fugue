@@ -20,7 +20,7 @@ import (
 // the spec is being violated.
 func buildHarvesterConsumer(
 	sched scheduler.URLScheduler,
-	fetcher bot.Fetcher,
+	fetcher bot.SnapshotFirstFetch,
 	registry bot.AdapterRegistry,
 	extractor *bot.GenericExtractor,
 	classifier *bot.Classifier,

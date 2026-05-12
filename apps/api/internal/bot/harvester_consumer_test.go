@@ -104,62 +104,6 @@ func listingDocHTML() []byte {
 	return []byte(sb.String())
 }
 
-// --- classifyHarvestFetchError unit tests (tasks §3.4) ---
-
-func TestClassifyHarvestFetchError_HTTP4xx(t *testing.T) {
-	err := fmt.Errorf("HTTP error: status code 404")
-	if got := classifyHarvestFetchError(err); got != scheduler.ErrorHTTP4xx {
-		t.Fatalf("expected http_4xx, got %q", got)
-	}
-}
-
-func TestClassifyHarvestFetchError_HTTP5xx(t *testing.T) {
-	err := fmt.Errorf("HTTP error: status code 503")
-	if got := classifyHarvestFetchError(err); got != scheduler.ErrorHTTP5xx {
-		t.Fatalf("expected http_5xx, got %q", got)
-	}
-}
-
-func TestClassifyHarvestFetchError_Network(t *testing.T) {
-	err := errors.New("dial tcp: connection refused")
-	if got := classifyHarvestFetchError(err); got != scheduler.ErrorNetwork {
-		t.Fatalf("expected network, got %q", got)
-	}
-}
-
-func TestClassifyHarvestFetchError_Timeout(t *testing.T) {
-	if got := classifyHarvestFetchError(timeoutErr{}); got != scheduler.ErrorTimeout {
-		t.Fatalf("expected timeout, got %q", got)
-	}
-}
-
-// TestClassifyHarvestFetchError_OnlyReturnsSchedulerEnum verifies the
-// contract in tasks §3.4: the helper MUST only return one of the four
-// scheduler enum values. A value outside the enum would cause
-// scheduler.RecordHarvestError to return ErrUnknownErrorKind and leave the
-// row unchanged (stuck until lease expiry).
-func TestClassifyHarvestFetchError_OnlyReturnsSchedulerEnum(t *testing.T) {
-	cases := []error{
-		nil,
-		errors.New("some random error"),
-		fmt.Errorf("HTTP error: status code 204"), // 2xx (outside 4xx/5xx bands)
-		fmt.Errorf("HTTP error: status code 399"), // 3xx
-		timeoutErr{},
-	}
-	allowed := map[scheduler.ErrorKind]bool{
-		scheduler.ErrorHTTP4xx: true,
-		scheduler.ErrorHTTP5xx: true,
-		scheduler.ErrorNetwork: true,
-		scheduler.ErrorTimeout: true,
-	}
-	for _, e := range cases {
-		got := classifyHarvestFetchError(e)
-		if !allowed[got] {
-			t.Errorf("classifyHarvestFetchError(%v) = %q — outside scheduler enum", e, got)
-		}
-	}
-}
-
 // --- processOne integration-style tests ---
 
 // TestHarvesterConsumer_SuccessPath covers tasks §8.1: the full happy path
@@ -228,7 +172,8 @@ func TestHarvesterConsumer_SnapshotHitPath(t *testing.T) {
 func TestHarvesterConsumer_FetchFailure_HTTP4xx(t *testing.T) {
 	sched := &fakeHarvestScheduler{}
 	fetcher := newMapFetcher()
-	fetcher.errs["https://a.example/missing"] = fmt.Errorf("HTTP error: status code 404")
+	fetcher.errs["https://a.example/missing"] = &HTTPStatusError{Code: 404}
+	fetcher.kinds["https://a.example/missing"] = scheduler.ErrorHTTP4xx
 	pipeline := NewMockPipeline()
 
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
@@ -251,7 +196,8 @@ func TestHarvesterConsumer_FetchFailure_HTTP4xx(t *testing.T) {
 func TestHarvesterConsumer_FetchFailure_HTTP5xx(t *testing.T) {
 	sched := &fakeHarvestScheduler{}
 	fetcher := newMapFetcher()
-	fetcher.errs["https://a.example/oops"] = fmt.Errorf("HTTP error: status code 502")
+	fetcher.errs["https://a.example/oops"] = &HTTPStatusError{Code: 502}
+	fetcher.kinds["https://a.example/oops"] = scheduler.ErrorHTTP5xx
 
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
 	c.processOne(context.Background(), "https://a.example/oops")
@@ -428,7 +374,8 @@ func TestHarvesterConsumer_DualCallEvenIfSetStatusFails(t *testing.T) {
 		setStatusErr:         errors.New("setStatus boom"),
 	}
 	fetcher := newMapFetcher()
-	fetcher.errs["https://a.example/x"] = fmt.Errorf("HTTP error: status code 500")
+	fetcher.errs["https://a.example/x"] = &HTTPStatusError{Code: 500}
+	fetcher.kinds["https://a.example/x"] = scheduler.ErrorHTTP5xx
 
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
 	c.processOne(context.Background(), "https://a.example/x")
@@ -495,7 +442,7 @@ func TestHarvesterConsumer_SnapshotHit_NoHTTPCall(t *testing.T) {
 
 	snap := &unitFetcher{body: pinnableDocHTML()}
 	httpSpy := &unitFetcher{body: []byte("<html>should-not-be-seen</html>")}
-	composite := NewCompositeFetcher(snap, httpSpy)
+	composite := NewSnapshotFirstFetcher(snap, httpSpy)
 
 	c := NewHarvesterConsumer(sched, composite, nil, nil, nil, pipeline)
 	c.processOne(context.Background(), "https://a.example/snap")
@@ -574,12 +521,17 @@ func TestHarvesterConsumer_FetchFailureCounter_IsolatesPerNode(t *testing.T) {
 
 // --- test doubles that can't live with the test where they're used ---
 
-// mapFetcher implements bot.Fetcher by looking up a URL in bodies for the
-// success path and in errs for the failure path. Counts fetches per URL
-// so tests can assert snapshot-hit behavior (exactly one Fetch per URL).
+// mapFetcher implements SnapshotFirstFetch by looking up a URL in bodies
+// for the success path and in errs/kinds for the failure path. It is the
+// test-side counterpart of the production SnapshotFirstFetcher: tests
+// register the (body) on success or (kind, err) on failure directly,
+// matching the 3-tuple return contract spec L591-605 defines. Counts
+// fetches per URL so tests can assert snapshot-hit behavior (exactly one
+// Fetch per URL).
 type mapFetcher struct {
 	bodies map[string][]byte
 	errs   map[string]error
+	kinds  map[string]scheduler.ErrorKind
 	calls  map[string]int
 }
 
@@ -587,29 +539,43 @@ func newMapFetcher() *mapFetcher {
 	return &mapFetcher{
 		bodies: make(map[string][]byte),
 		errs:   make(map[string]error),
+		kinds:  make(map[string]scheduler.ErrorKind),
 		calls:  make(map[string]int),
 	}
 }
 
-func (m *mapFetcher) Fetch(rawURL string) ([]byte, error) {
+// Fetch satisfies SnapshotFirstFetch. On the failure path the test-supplied
+// kind is returned verbatim; the test is responsible for using one of the
+// four scheduler.ErrorKind values defined by spec "fetch 단 errorKind는
+// 4종으로 한정된다". An unspecified kind defaults to ErrorNetwork so tests
+// that only register errs[] (and don't care about the exact kind) keep a
+// predictable behavior.
+func (m *mapFetcher) Fetch(_ context.Context, rawURL string) ([]byte, scheduler.ErrorKind, error) {
 	if m.calls == nil {
 		m.calls = make(map[string]int)
 	}
 	m.calls[rawURL]++
 	if err, ok := m.errs[rawURL]; ok {
-		return nil, err
+		kind := m.kinds[rawURL]
+		if kind == "" {
+			kind = scheduler.ErrorNetwork
+		}
+		return nil, kind, err
 	}
 	if body, ok := m.bodies[rawURL]; ok {
-		return body, nil
+		return body, "", nil
 	}
-	return nil, fmt.Errorf("mapFetcher: no body/err registered for %q", rawURL)
+	return nil, scheduler.ErrorNetwork, fmt.Errorf("mapFetcher: no body/err registered for %q", rawURL)
 }
 
-// timeoutFetcher returns a net.Error with Timeout()==true, driving the
-// classifyHarvestFetchError timeout branch.
+// timeoutFetcher always returns a fetch failure mapped to errorKind = timeout.
+// Used by tests that exercise the consumer's RecordHarvestError(timeout)
+// path.
 type timeoutFetcher struct{}
 
-func (timeoutFetcher) Fetch(string) ([]byte, error) { return nil, timeoutErr{} }
+func (timeoutFetcher) Fetch(_ context.Context, _ string) ([]byte, scheduler.ErrorKind, error) {
+	return nil, scheduler.ErrorTimeout, timeoutErr{}
+}
 
 // dualCallFakeScheduler overrides SetStatus to return an error on demand so
 // tests can verify that RecordHarvestError still fires (dual-call
@@ -908,7 +874,7 @@ func (f *failingAdapter) Extract(context.Context, []byte, string) (PinDocument, 
 // Production callers go through NewHarvesterConsumer and inherit
 // harvesterDequeueBudget; the budget field is package-private precisely
 // because the spec forbids runtime exposure.
-func newBudgetHarvester(t *testing.T, sched scheduler.URLScheduler, fetcher Fetcher, pipeline DocumentPipeline, budget int) *HarvesterConsumer {
+func newBudgetHarvester(t *testing.T, sched scheduler.URLScheduler, fetcher SnapshotFirstFetch, pipeline DocumentPipeline, budget int) *HarvesterConsumer {
 	t.Helper()
 	if pipeline == nil {
 		pipeline = NewMockPipeline()
@@ -1145,7 +1111,8 @@ func TestHarvesterConsumer_Run_BudgetExhaustionOnFetchFailure(t *testing.T) {
 		dequeueQueue: []string{"https://a.example/will-404"},
 	}
 	fetcher := newMapFetcher()
-	fetcher.errs["https://a.example/will-404"] = fmt.Errorf("HTTP error: status code 404")
+	fetcher.errs["https://a.example/will-404"] = &HTTPStatusError{Code: 404}
+	fetcher.kinds["https://a.example/will-404"] = scheduler.ErrorHTTP4xx
 	c := newBudgetHarvester(t, sched, fetcher, nil, 1)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

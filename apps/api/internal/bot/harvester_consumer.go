@@ -20,12 +20,8 @@ package bot
 
 import (
 	"context"
-	"errors"
 	"log"
-	"net"
 	"net/url"
-	"regexp"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"unicode/utf8"
@@ -72,9 +68,13 @@ const harvesterDequeueBudget = 100
 // change. It holds only the dependencies needed by that loop and carries no
 // site-scoped in-memory state.
 type HarvesterConsumer struct {
-	scheduler  scheduler.URLScheduler
-	fetcher    Fetcher
-	registry   AdapterRegistry
+	scheduler scheduler.URLScheduler
+	// fetcher is the snapshot-first fetch entry point. The consumer is
+	// forbidden from calling the low-level Fetcher interface directly
+	// (spec "Consumer는 snapshot-first 진입점만 경유하여 fetch를 수행한다"),
+	// so the field type is the entry-point interface, not Fetcher.
+	fetcher  SnapshotFirstFetch
+	registry AdapterRegistry
 	extractor  genericExtractorIface
 	classifier *Classifier
 	pipeline   DocumentPipeline
@@ -158,7 +158,7 @@ func (h *HarvesterConsumer) NodeStats() NodeStatsSnapshot {
 // and tests can construct a usable consumer without threading every knob.
 func NewHarvesterConsumer(
 	sched scheduler.URLScheduler,
-	fetcher Fetcher,
+	fetcher SnapshotFirstFetch,
 	registry AdapterRegistry,
 	extractor *GenericExtractor,
 	classifier *Classifier,
@@ -310,16 +310,15 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 // graceful-shutdown requirement that the in-flight URL completes its final
 // status transition before Run returns.
 func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
-	body, fetchErr := h.fetcher.Fetch(rawURL)
+	// spec: harvester "Consumer는 snapshot-first 진입점만 경유하여 fetch를
+	// 수행한다" + "fetch 단 errorKind는 4종으로 한정된다" — consumer passes
+	// the entry point's ctx and rawURL through unchanged (Dequeue URL) and
+	// uses the returned kind verbatim; no re-classification on this side.
+	body, fetchKind, fetchErr := h.fetcher.Fetch(ctx, rawURL)
 	if fetchErr != nil {
-		// Fetch failure here means the injected Fetcher (typically
-		// CompositeFetcher) already exhausted its ObjectStorage → HTTP
-		// chain; count it once per node in the in-memory worker stat
-		// (tasks §3.2 / Decision 3).
 		h.fetchFailureCount.Add(1)
 		h.stats.failed.Add(1)
-		kind := classifyHarvestFetchError(fetchErr)
-		h.reportFailure(rawURL, kind, "fetch", fetchErr)
+		h.reportFailure(rawURL, fetchKind, "fetch", fetchErr)
 		return
 	}
 
@@ -475,55 +474,6 @@ func (h *HarvesterConsumer) reportFailure(rawURL string, kind scheduler.ErrorKin
 	if err := h.scheduler.RecordHarvestError(rawURL, kind); err != nil {
 		log.Printf("WARN harvester_consumer: record_harvest_error url=%q kind=%q err=%v", rawURL, string(kind), err)
 	}
-}
-
-// classifyHarvestFetchError maps a Fetcher.Fetch error to scheduler's
-// ErrorKind enum. Restricted to the 4 values scheduler accepts (spec
-// Decision 6): http_4xx, http_5xx, network, timeout. Callers MUST NOT pass
-// any other string to RecordHarvestError — scheduler returns
-// ErrUnknownErrorKind and the row is not updated, which leaves the URL
-// stuck until lease expiry.
-//
-// The structural patterns mirror pioneer_consumer.classifyFetchError but
-// are kept separate because Fetcher.Fetch does not expose an HTTP
-// statusCode separately; we recover it from the error message via regex.
-func classifyHarvestFetchError(err error) scheduler.ErrorKind {
-	if err == nil {
-		return scheduler.ErrorNetwork
-	}
-	var netErr net.Error
-	if errors.As(err, &netErr) && netErr.Timeout() {
-		return scheduler.ErrorTimeout
-	}
-	statusCode := harvestStatusCodeFromErr(err)
-	switch {
-	case statusCode >= 400 && statusCode < 500:
-		return scheduler.ErrorHTTP4xx
-	case statusCode >= 500 && statusCode < 600:
-		return scheduler.ErrorHTTP5xx
-	default:
-		return scheduler.ErrorNetwork
-	}
-}
-
-// harvestHTTPStatusErrorPattern matches fetchHTMLShared's
-// "HTTP error: status code N" phrasing. Tolerant of leading/trailing text
-// because CompositeFetcher's fallback may prepend additional context.
-var harvestHTTPStatusErrorPattern = regexp.MustCompile(`status code (\d{3})`)
-
-func harvestStatusCodeFromErr(err error) int {
-	if err == nil {
-		return 0
-	}
-	m := harvestHTTPStatusErrorPattern.FindStringSubmatch(err.Error())
-	if m == nil {
-		return 0
-	}
-	code, convErr := strconv.Atoi(m[1])
-	if convErr != nil {
-		return 0
-	}
-	return code
 }
 
 // hostnameOf returns the lowercase hostname of rawURL, or "" if invalid.

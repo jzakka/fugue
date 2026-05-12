@@ -240,13 +240,15 @@ priority order defined by harvester_frontier's partial index.`,
 			log.Printf("fuguebot: register script adapters: %v (continuing with generic only)", regErr)
 		}
 
-		// Snapshot-first Fetcher wiring (harvester-snapshot-first-fetch).
-		// CompositeFetcher tries the ObjectStorage snapshot first and falls
-		// back to HTTP on ANY error. The bucket must match the one Pioneer
-		// writes to so keys line up bit-for-bit.
+		// Snapshot-first fetch entry point wiring (harvester spec L563-657).
+		// SnapshotFirstFetcher owns both the ObjectStorage and HTTP Fetcher
+		// implementations so the consumer module never sees either type —
+		// satisfying spec "consumer 모듈에 ObjectStorage/HTTP 클라이언트
+		// 의존 부재". The bucket must match the one Pioneer writes to so
+		// snapshot keys line up bit-for-bit.
 		harvestBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
 		snapshotReader := snapshot.NewS3Reader(infra.Storage.S3Client(), harvestBucket)
-		compositeFetcher := bot.NewCompositeFetcher(
+		snapshotFetcher := bot.NewSnapshotFirstFetcher(
 			bot.NewObjectStorageFetcher(snapshotReader),
 			bot.NewHTTPFetcher(),
 		)
@@ -260,7 +262,7 @@ priority order defined by harvester_frontier's partial index.`,
 
 		consumer := buildHarvesterConsumer(
 			sched,
-			compositeFetcher,
+			snapshotFetcher,
 			registry,
 			bot.NewGenericExtractorFromEnv(),
 			bot.NewClassifierFromEnv(),

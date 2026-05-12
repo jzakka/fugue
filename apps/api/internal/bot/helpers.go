@@ -43,7 +43,10 @@ func fetchHTMLShared(ctx context.Context, rawURL string) (string, string, error)
 	finalURL := resp.Request.URL.String()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", fmt.Errorf("HTTP error: status code %d", resp.StatusCode)
+		// HTTPStatusError is defined in snapshot_first_fetch.go and lets the
+		// harvester entry point classify 4xx/5xx via errors.As without
+		// re-parsing the error message.
+		return "", "", &HTTPStatusError{Code: resp.StatusCode}
 	}
 
 	// Limit response body to 5MB to prevent memory spikes
