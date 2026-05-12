@@ -10,3 +10,6 @@ apps/api/bot
 apps/api/server
 graph*.html
 fuguebot-graph.html
+
+# Claude Code plugin local state (e.g. ralph-loop)
+ralph-loop.local.md
