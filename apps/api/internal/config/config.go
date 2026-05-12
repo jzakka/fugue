@@ -70,6 +70,8 @@ func Load() (*Config, error) {
 	discordID := os.Getenv("DISCORD_CLIENT_ID")
 	discordSecret := os.Getenv("DISCORD_CLIENT_SECRET")
 
+	schedHost := LoadSchedulerHostConfig()
+
 	return &Config{
 		Port:                envOrDefault("PORT", "8080"),
 		DatabaseURL:         envOrDefault("DATABASE_URL", "postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable"),
@@ -90,14 +92,36 @@ func Load() (*Config, error) {
 		S3SecretKey:         envOrDefault("S3_SECRET_KEY", "fuguedev123"),
 		S3PublicURL:         envOrDefault("S3_PUBLIC_URL", "http://localhost:9000/fugue-media"),
 
-		SchedulerHostDefaultRatePerSec:  envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
-		SchedulerHostDefaultBurst:       envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
-		SchedulerHostTokenBucketEnabled: envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
+		SchedulerHostDefaultRatePerSec:  schedHost.DefaultRatePerSec,
+		SchedulerHostDefaultBurst:       schedHost.DefaultBurst,
+		SchedulerHostTokenBucketEnabled: schedHost.Enabled,
 
 		// Default off; staging/prod enable explicitly during rollout.
 		PioneerSnapshotEnabled: envBool("PIONEER_SNAPSHOT_ENABLED", false),
 		PioneerSnapshotBucket:  envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media")),
 	}, nil
+}
+
+// SchedulerHostConfig captures the operator-tunable host rate limiter inputs
+// for `scheduler` capability. The bot worker entrypoint reads this via
+// LoadSchedulerHostConfig without requiring JWT/OAuth env vars that the
+// full Load() call demands.
+type SchedulerHostConfig struct {
+	DefaultRatePerSec float64
+	DefaultBurst      int
+	Enabled           bool
+}
+
+// LoadSchedulerHostConfig reads operator-provided env vars for the host rate
+// limiter and falls back to factory defaults (1 req/sec, burst 5, enabled)
+// when an env var is unset or unparseable. Safe to call from any binary; does
+// not require auth-related env vars.
+func LoadSchedulerHostConfig() SchedulerHostConfig {
+	return SchedulerHostConfig{
+		DefaultRatePerSec: envFloat("SCHEDULER_HOST_DEFAULT_RATE_PER_SEC", 1.0),
+		DefaultBurst:      envInt("SCHEDULER_HOST_DEFAULT_BURST", 5),
+		Enabled:           envBool("SCHEDULER_HOST_TOKEN_BUCKET_ENABLED", true),
+	}
 }
 
 func envFloat(key string, fallback float64) float64 {
