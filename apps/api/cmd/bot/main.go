@@ -257,7 +257,7 @@ priority order defined by harvester_frontier's partial index.`,
 		sched := scheduler.NewPGURLScheduler(infra.DB).
 			WithRateLimiter(scheduler.NewHostRateLimiter(scheduler.FactoryDefaultRatePerSec, scheduler.FactoryDefaultBurst, true))
 
-		consumer := bot.NewHarvesterConsumer(
+		consumer := buildHarvesterConsumer(
 			sched,
 			compositeFetcher,
 			registry,
