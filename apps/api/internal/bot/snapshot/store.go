@@ -53,6 +53,16 @@ func NewS3Store(client S3PutObjectAPI, bucket string) *S3Store {
 	return &S3Store{client: client, bucket: bucket, now: time.Now}
 }
 
+// SetClock overrides the time source used to date-segment the snapshot
+// key on Put. Exposed so cross-package round-trip tests (Pioneer-write
+// paired with Harvester-read in the same test) can pin both sides to the
+// same UTC date without racing the wallclock across midnight.
+func (s *S3Store) SetClock(now func() time.Time) {
+	if now != nil {
+		s.now = now
+	}
+}
+
 // Put gzips body and uploads it under SnapshotKey(normalizedURL, now()).
 // Returns ErrEmptyBody if body is empty (caller should treat as no-op).
 // All other errors propagate so the caller can fail-open at the

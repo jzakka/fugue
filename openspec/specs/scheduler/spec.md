@@ -739,3 +739,76 @@ WHERE 절 조립용 별도 추상(`queryCondition` 타입, 쿼리 빌더 closure
 - **WHEN** 본 change 머지 후 `apps/api/internal/bot/priority_queue.go`를 확인할 때
 - **THEN** 파일은 여전히 존재하며, 본 change에서 삭제되지 않는다(후속 정리 change에서 제거).
 
+---
+
+### Requirement: URLScheduler는 EnqueueHarvester(url, snapshotKey) 메서드를 제공한다
+`URLScheduler` 인터페이스는 다음 메서드를 추가로 제공해야 한다(SHALL):
+
+- `EnqueueHarvester(url string, snapshotKey string) error` — `url`을 `harvester_frontier`에 UPSERT하고, 동일 호출에서 `snapshot_key` 컬럼을 `snapshotKey`로 세팅한다.
+
+본 메서드는 baseline의 `Enqueue(QueueHarvester, urls...)`와 병행 제공되며, 서로 다른 두 가지 호출 상황을 분리한다.
+- `Enqueue(QueueHarvester, urls...)`는 URL만 전달하는 기존 경로로, `snapshot_key`를 건드리지 않는다(baseline 규약 유지).
+- `EnqueueHarvester(url, snapshotKey)`는 Pioneer consumer가 fetch 직후 snapshot을 저장한 뒤 snapshot_key까지 함께 기록해야 하는 상황을 위한 경로다.
+
+UPSERT 동작:
+- **이미 `harvested_at IS NOT NULL`인 row**에 대해서는 no-op으로 동작해야 한다(SHALL). 재harvest를 유발해서는 안 된다(SHALL NOT).
+- **`harvested_at IS NULL`인 row**(신규 또는 미완료)에 대해서는 `snapshot_key`를 `snapshotKey`로 갱신하고, `next_harvest_at`을 재enqueue 시점으로 갱신하며, `harvest_error_count`를 0으로 초기화해야 한다(SHALL).
+- Postgres unique constraint violation을 호출자에게 노출해서는 안 된다(SHALL NOT).
+
+#### Scenario: 미존재 URL에 대한 EnqueueHarvester는 새 row를 생성한다
+- **WHEN** `harvester_frontier`에 해당 `url_hash` row가 없는 상태에서 `EnqueueHarvester(url, snapshotKey)`가 호출될 때
+- **THEN** 새 row가 생성되고 `snapshot_key`는 호출 인자 값으로 세팅되며, `next_harvest_at`은 호출 시각으로 설정된다
+
+#### Scenario: 이미 harvest된 URL은 no-op이다
+- **WHEN** 동일 `url_hash`의 row가 이미 `harvested_at IS NOT NULL`인 상태에서 `EnqueueHarvester(url, snapshotKey)`가 호출될 때
+- **THEN** `snapshot_key` / `next_harvest_at` / `harvest_error_count` 어느 컬럼도 변경되지 않는다 (재harvest 방지 가드)
+
+#### Scenario: 미완료 URL에 대한 EnqueueHarvester는 snapshot_key를 갱신한다
+- **WHEN** 동일 `url_hash`의 row가 존재하고 `harvested_at IS NULL`인 상태에서 `EnqueueHarvester(url, snapshotKey)`가 호출될 때
+- **THEN** 해당 row의 `snapshot_key`는 호출 인자 값으로 갱신되고, `next_harvest_at`이 호출 시각으로 갱신되며, `harvest_error_count`는 0으로 리셋된다
+
+#### Scenario: unique violation 미노출
+- **WHEN** 호출자가 `EnqueueHarvester`를 사용할 때
+- **THEN** Postgres unique constraint violation 에러는 호출자에게 노출되지 않는다
+
+#### Scenario: baseline Enqueue와의 분리
+- **WHEN** 호출자가 `Enqueue(QueueHarvester, url)`를 호출했을 때
+- **THEN** 해당 경로는 `snapshot_key`를 변경하지 않는다 (baseline의 "Enqueue는 snapshot_key를 건드리지 않는다" 규약 유지). snapshot_key 기록이 필요한 호출자는 `EnqueueHarvester`를 사용해야 한다
+
+### Requirement: SetStatus/RecordFetchError/RecordHarvestError lookup은 정규화 일관성을 보장한다
+
+URLScheduler는 `SetStatus(key, ...)`, `RecordFetchError(key, ...)`, `RecordHarvestError(key, ...)` 호출 시 `key` 인자를 `url_hash` 산출 직전에 `Enqueue` 시 적용한 동일 정규화 단계를 거쳐야 한다(SHALL). 다시 말해, 동일한 raw URL 문자열에 대해 다음 두 hash가 항상 일치해야 한다(SHALL):
+
+- `Enqueue(rawURL)` 결과로 frontier row에 저장된 `url_hash`
+- 이후 `SetStatus(rawURL, ...)` / `RecordFetchError(rawURL, ...)` / `RecordHarvestError(rawURL, ...)`가 lookup에 사용하는 hash
+
+이로써 `Dequeue`가 반환한 URL 문자열을 호출자가 그대로 위 세 메서드에 넘기더라도 동일 frontier row가 매치된다(SHALL). 정규화가 URL 형태를 변경하는 입력(예: 호스트의 `www.` 접두 제거, fragment 제거, trailing slash 통일 등) 모두에 대해 이 invariant가 성립해야 한다(SHALL).
+
+#### Scenario: www. 제거 입력에 대한 round-trip
+- **WHEN** 호출자가 `Enqueue(QueuePioneer, "https://www.example.com/")`를 호출하여 frontier에 row가 생성된 후, `Dequeue(QueuePioneer)`가 반환한 URL을 그대로 `SetStatus(returnedURL, "fetched", nil)`에 전달할 때 (정규화기가 `www.`를 제거하여 `normalized_url=https://example.com/`로 저장한다고 가정)
+- **THEN** SetStatus는 동일 frontier row를 매치하고 `last_fetched_at`을 non-NULL로 갱신한다. 이후 lease 만료 시 동일 row가 재-claim되지 않는다.
+
+#### Scenario: fragment 제거 입력에 대한 round-trip
+- **WHEN** 호출자가 `Enqueue(QueuePioneer, "https://example.com/page#section")`로 row를 생성한 후, `Dequeue` 결과를 그대로 `RecordFetchError(returnedURL, "http_5xx")`에 전달할 때 (정규화기가 fragment를 제거하여 `normalized_url=https://example.com/page`로 저장한다고 가정)
+- **THEN** RecordFetchError는 동일 frontier row를 매치하고 `fetch_error_count`를 1로 증가시킨다.
+
+#### Scenario: 이미 정규화된 입력의 멱등 round-trip
+- **WHEN** 호출자가 정규화된 URL `"https://example.com/"`을 Enqueue한 후 동일 URL을 SetStatus에 전달할 때
+- **THEN** SetStatus는 동일 frontier row를 매치한다(이중 정규화로 인한 변형이 발생하지 않음).
+
+#### Scenario: 정규화 불가 입력의 안전한 처리
+- **WHEN** SetStatus / RecordFetchError / RecordHarvestError가 정규화 불가 입력(빈 문자열 또는 파싱 실패 URL)으로 호출될 때
+- **THEN** 호출은 panic하거나 워커 프로세스를 종료시키지 않고 정상 반환하며, 어떤 frontier row도 변경되지 않는다.
+
+### Requirement: EnqueueHarvester lookup도 정규화 일관성을 보장한다
+
+`EnqueueHarvester(rawURL, snapshotKey)`가 내부적으로 `harvester_frontier`의 기존 row를 lookup/UPSERT 하기 위해 `url_hash`를 산출하는 모든 경로는 위와 동일한 정규화 일관성을 따라야 한다(SHALL). 호출자가 `Dequeue`의 raw URL을 그대로 `EnqueueHarvester`에 전달하더라도 정규화가 형태를 변경하는 입력에 대해 무한 INSERT 충돌이나 silent miss가 발생하지 않아야 한다(SHALL).
+
+#### Scenario: 정규화 변형 입력에 대한 EnqueueHarvester round-trip
+- **WHEN** 호출자가 정규화가 형태를 변경하는 raw URL(예: `"https://www.example.com/article"`)로 `EnqueueHarvester`를 호출할 때
+- **THEN** harvester_frontier에 해당 URL에 대응하는 row가 정확히 1개 생성된다.
+
+#### Scenario: 동일 raw URL로 EnqueueHarvester를 두 번 호출
+- **WHEN** 호출자가 동일한 raw URL로 `EnqueueHarvester`를 두 번 연속 호출할 때(정규화 결과가 첫 호출과 동일)
+- **THEN** harvester_frontier에는 해당 URL에 대응하는 row가 여전히 정확히 1개만 존재하고, 두 번째 호출은 에러 없이 정상 반환된다.
+

@@ -2,20 +2,18 @@ package scheduler
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/urlcanon"
 )
 
 // Claim / lease tuning constants. Spec: scheduler-claim-api.
@@ -129,12 +127,11 @@ func (s *PGURLScheduler) EnqueueHarvester(rawURL string, snapshotKey string) err
 	if parseErr != nil {
 		return fmt.Errorf("scheduler: EnqueueHarvester parse %q: %w", rawURL, parseErr)
 	}
-	h := sha256.Sum256([]byte(nu))
 	ctx := context.Background()
 	return s.queries.UpsertHarvesterWithSnapshot(ctx, db.UpsertHarvesterWithSnapshotParams{
 		NormalizedUrl: nu,
 		Url:           rawURL,
-		UrlHash:       h[:],
+		UrlHash:       hashKey(nu),
 		Host:          host,
 		SnapshotKey:   sql.NullString{String: snapshotKey, Valid: true},
 	})
@@ -156,41 +153,20 @@ func prepareEnqueueBatch(raws []string) (normalized, rawOut []string, hashes [][
 		}
 		normalized[i] = nu
 		rawOut[i] = r
-		h := sha256.Sum256([]byte(nu))
-		hashes[i] = h[:]
+		hashes[i] = hashKey(nu)
 		hosts[i] = host
 	}
 	return normalized, rawOut, hashes, hosts, nil
 }
 
-// normalizeURL is the scheduler's own minimal URL normalization — lowercase
-// scheme+host, trim default ports, strip fragment. This is intentionally a
-// thin function: the canonical normalizer lives in the crawler fetcher and
-// will replace this in a follow-up change. For now, the scheduler accepts
-// URLs as-is and only guarantees that two structurally-identical URLs hash
-// the same. Empty or schemeless inputs error out so they cannot sneak into
-// the url_hash index with ambiguous keys.
+// normalizeURL delegates to urlcanon.CanonicalWithHost so the scheduler
+// shares a single canonicalizer with the crawler (pioneer snapshot_key
+// derivation). Any rule divergence here would silently desynchronize
+// url_hash from snapshot_key; the shared package eliminates that failure
+// mode by construction. Empty or schemeless inputs error out so they
+// cannot sneak into the url_hash index with ambiguous keys.
 func normalizeURL(raw string) (normalized, host string, err error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return "", "", errors.New("empty url")
-	}
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", "", err
-	}
-	if u.Scheme == "" || u.Host == "" {
-		return "", "", fmt.Errorf("url missing scheme or host: %q", raw)
-	}
-	u.Scheme = strings.ToLower(u.Scheme)
-	u.Host = strings.ToLower(u.Host)
-	u.Fragment = ""
-	// Strip default ports so http://x:80/ and http://x/ hash the same.
-	if (u.Scheme == "http" && strings.HasSuffix(u.Host, ":80")) ||
-		(u.Scheme == "https" && strings.HasSuffix(u.Host, ":443")) {
-		u.Host = strings.SplitN(u.Host, ":", 2)[0]
-	}
-	return u.String(), u.Hostname(), nil
+	return urlcanon.CanonicalWithHost(raw)
 }
 
 // Dequeue implements URLScheduler. It loops, calling tryClaim until a URL
@@ -343,7 +319,14 @@ type claimCandidate struct {
 // harvested_at flip back.
 func (s *PGURLScheduler) SetStatus(key string, status Status, pinIDs []uuid.UUID) error {
 	ctx := context.Background()
-	hash := hashKey(key)
+	hash, ok := hashLookupKey(key)
+	if !ok {
+		// Canonicalization yielded an empty URL (empty input or unparseable).
+		// Skip the DB call entirely — Enqueue rejects the same inputs, so
+		// there is no row that could match. Returning nil keeps the worker
+		// alive (spec: "한 URL이 워커를 죽이지 않아야 한다").
+		return nil
+	}
 
 	switch status {
 	case StatusFetched:

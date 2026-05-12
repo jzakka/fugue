@@ -116,7 +116,7 @@ Pioneer 또는 Harvester 관련 작업(신규 source 추가, 필터/스케줄러
 
 #### Pioneer 동작 모델 (scheduler consumer)
 
-Pioneer는 `URLScheduler`의 consumer이자 fanout B의 producer다. 한 루프 반복은 다음 순서로 동작한다: **`Dequeue(QueuePioneer)` → fetch → snapshot 저장 → link 추출 → `FilterChain.Apply` → `Enqueue(QueuePioneer, filteredURLs...)` + `EnqueueHarvester(url, snapshotKey)` → `SetStatus(url, "fetched", nil)`**. 인메모리 큐/visited 맵은 보유하지 않으며, URL 중복·우선순위·host 배려는 `URLScheduler`가 `pioneer_frontier` 테이블과 host token bucket으로 처리한다. 롤아웃은 `BOT_PIONEER_SCHEDULER` feature flag(기본 false)로 제어하며 false면 기존 BFS 경로를 유지한다. 관련 스펙: `openspec/specs/pioneer/spec.md`.
+Pioneer는 `URLScheduler`의 consumer이자 fanout B의 producer다. 한 루프 반복은 다음 순서로 동작한다: **`Dequeue(QueuePioneer)` → fetch → snapshot 저장 → link 추출 → `FilterChain.Apply` → `Enqueue(QueuePioneer, filteredURLs...)` + `EnqueueHarvester(url, snapshotKey)` → `SetStatus(url, "fetched", nil)`**. 인메모리 큐/visited 맵은 보유하지 않으며, URL 중복·우선순위·host 배려는 `URLScheduler`가 `pioneer_frontier` 테이블과 host token bucket으로 처리한다. 관련 스펙: `openspec/specs/pioneer/spec.md`.
 
 #### Pioneer 링크 필터 정책
 
@@ -143,5 +143,10 @@ make setup         # Lefthook git hooks 설치
 
 - 커밋 전에 반드시 `/codex` review를 실행할 것
 - Makefile 타겟은 루트에만 추가한다 (`apps/api/Makefile`에 추가하지 말 것)
-- PR을 생성하지 않는다. 변경사항은 main 브랜치에 직접 커밋하고 push한다.
-  - 여기서 "push"는 `git push`로 remote `origin/main`에 머지되는 것을 의미한다 (로컬 커밋만으로는 push 완료가 아니다).
+- **PR을 절대 생성하지 않는다.** `gh pr create`, GitHub UI 등 어떤 방식으로도 PR을 만들지 말 것. 변경사항은 항상 `main` 브랜치에 직접 커밋하고 `git push`로 `origin/main`에 머지한다 (로컬 커밋만으로는 push 완료가 아니다).
+  - 사용자가 "ship", "deploy", "push", "PR 만들어" 등으로 요청해도 PR을 만들지 말고 main에 직접 push한다.
+  - `/ship` 같은 스킬이 PR 생성을 시도하면 중단하고 main 직접 push로 대체한다.
+
+## 배포 정책
+
+로컬 개발만 하므로 상용에서 카나리 배포, 무중단 같은건 고려 안해도 된다.

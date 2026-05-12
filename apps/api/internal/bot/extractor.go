@@ -93,24 +93,24 @@ func (e *GenericExtractor) Extract(htmlBytes []byte, fetchURL string) (PinDocume
 type extractScan struct {
 	base *url.URL
 
-	ogTitle       string
-	ogImage       string
-	ogURL         string
-	ogLocale      string
-	ogPublished   *time.Time
-	ogAuthor      string
-	twTitle       string
-	twImage       string
-	jsonLDTitle   string
-	jsonLDBody    string
-	jsonLDImage   string
-	jsonLDAuthor  string
+	ogTitle         string
+	ogImage         string
+	ogURL           string
+	ogLocale        string
+	ogPublished     *time.Time
+	ogAuthor        string
+	twTitle         string
+	twImage         string
+	jsonLDTitle     string
+	jsonLDBody      string
+	jsonLDImage     string
+	jsonLDAuthor    string
 	jsonLDPublished *time.Time
-	htmlTitle     string
-	htmlLang      string
-	h1            string
-	linkCanonical string
-	timeDatetime  *time.Time
+	htmlTitle       string
+	htmlLang        string
+	h1              string
+	linkCanonical   string
+	timeDatetime    *time.Time
 
 	articleText       string
 	bodyText          string
@@ -121,10 +121,9 @@ type extractScan struct {
 	mediaAudios []MediaCandidate
 
 	// State for body-text and density tracking.
-	inArticle        bool
-	sawArticle       bool
-	articleTextBuf   strings.Builder
-	bodyTextBuf      strings.Builder
+	sawArticle     bool
+	articleTextBuf strings.Builder
+	bodyTextBuf    strings.Builder
 }
 
 func newExtractScan(base *url.URL) *extractScan {

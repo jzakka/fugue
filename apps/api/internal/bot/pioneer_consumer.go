@@ -212,6 +212,14 @@ func (p *PioneerConsumer) processOne(ctx context.Context, rawURL string) {
 	}
 
 	if err := p.scheduler.SetStatus(rawURL, scheduler.StatusFetched, nil); err != nil {
+		// Note: SetStatus(fetched) failure is NOT routed through reportFailure.
+		// The dual-call contract (SetStatus + RecordFetchError) applies to
+		// fetch failures, not to a bookkeeping failure after a successful
+		// fetch. If this write fails the row's next_fetch_at is not advanced,
+		// so the scheduler's 10-min lease expiry naturally re-claims the URL
+		// and the whole pipeline re-runs. EnqueueHarvester and snapshotStore.Put
+		// are both idempotent (url_hash dedup + same-key overwrite), so the
+		// retry is safe. Log is sufficient observability here.
 		log.Printf("WARN pioneer_consumer: set_status_fetched url=%q err=%v", rawURL, err)
 	}
 }
@@ -244,6 +252,13 @@ func linkURLs(links []crawler.Link) []string {
 // wrapped in a url.Error still satisfies net.Error.Timeout(), and we want
 // "timeout" rather than the generic "network" in that case. Per spec tasks
 // §3.7: 4xx → http_4xx, 5xx → http_5xx, timeout → timeout, else network.
+//
+// Note on "HTTP 2xx + empty body" (pioneer spec scenario, tasks §5.9): the
+// DefaultConsumerFetcher already returns err != nil for zero-byte 2xx
+// responses (fetcher.go). That error carries statusCode=200, which falls
+// through both the 4xx and 5xx branches and lands in the default case →
+// ErrorNetwork. This matches the spec: empty-body 2xx is classified
+// "network" without needing a dedicated branch here.
 func classifyFetchError(err error, statusCode int) scheduler.ErrorKind {
 	if err == nil {
 		return scheduler.ErrorNetwork

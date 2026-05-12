@@ -712,6 +712,230 @@ func TestUnit_NormalizeURL(t *testing.T) {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// pioneer-scheduler-key-contract regression tests. These exercise the lookup-
+// side normalization invariant: SetStatus / RecordFetchError / EnqueueHarvester
+// MUST produce the same url_hash that Enqueue stored, even when the caller
+// passes a raw URL whose canonical form differs (www. stripped, fragment
+// removed, trailing slash, etc.). Pre-fix, these tests would fail because
+// hashKey(rawURL) != hashKey(canonicalURL).
+// ---------------------------------------------------------------------------
+
+// TestIntegration_SetStatus_FetchedNormalizesKey covers the www.-stripping
+// round-trip: Enqueue("https://www.<host>/") stores url_hash =
+// sha256("https://<host>/"), and the same raw URL passed back to SetStatus
+// (per the URLScheduler contract that Dequeue returns the raw `url` column,
+// which equals the Enqueue input) must canonicalize before hashing so the
+// lookup hits the same row.
+//
+// We bypass Dequeue here because the shared TEST_DATABASE_URL contains rows
+// from other tests; the contract under test is the SetStatus-side hash
+// derivation, not Dequeue's claim ordering.
+func TestIntegration_SetStatus_FetchedNormalizesKey(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	host := uniqHost(t)
+	rawURL := "https://www." + host + "/"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+	mustEnqueue(t, s, QueuePioneer, rawURL)
+
+	if err := s.SetStatus(rawURL, StatusFetched, nil); err != nil {
+		t.Fatalf("SetStatus: %v", err)
+	}
+
+	// Hash must match the canonical form (www-stripped) since that's what
+	// Enqueue stored. Reading by canonical-url-hash proves SetStatus updated
+	// the right row.
+	canonical := "https://" + host + "/"
+	h := sha256.Sum256([]byte(canonical))
+	var lastFetched sql.NullTime
+	if err := sqlDB.QueryRow(
+		`SELECT last_fetched_at FROM pioneer_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&lastFetched); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if !lastFetched.Valid {
+		t.Errorf("last_fetched_at is NULL — SetStatus did not match the canonicalized row")
+	}
+}
+
+// TestIntegration_SetStatus_FetchedNormalizesKey_FragmentStripped covers the
+// fragment-removal round-trip. Same invariant as the www. case but exercises
+// a different canonicalization rule.
+func TestIntegration_SetStatus_FetchedNormalizesKey_FragmentStripped(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	host := uniqHost(t)
+	rawURL := "https://" + host + "/page#section"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+	mustEnqueue(t, s, QueuePioneer, rawURL)
+
+	if err := s.SetStatus(rawURL, StatusFetched, nil); err != nil {
+		t.Fatalf("SetStatus: %v", err)
+	}
+
+	canonical := "https://" + host + "/page"
+	h := sha256.Sum256([]byte(canonical))
+	var lastFetched sql.NullTime
+	if err := sqlDB.QueryRow(
+		`SELECT last_fetched_at FROM pioneer_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&lastFetched); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if !lastFetched.Valid {
+		t.Errorf("last_fetched_at is NULL — SetStatus did not match the canonicalized row after fragment strip")
+	}
+}
+
+// TestIntegration_RecordFetchError_NormalizesKey verifies that the failure
+// path also canonicalizes before hashing. With a www.-prefixed raw URL,
+// RecordFetchError must increment fetch_error_count on the row whose hash
+// was derived from the canonical (www.-stripped) form.
+func TestIntegration_RecordFetchError_NormalizesKey(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	host := uniqHost(t)
+	rawURL := "https://www." + host + "/article"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+	mustEnqueue(t, s, QueuePioneer, rawURL)
+
+	if err := s.RecordFetchError(rawURL, ErrorHTTP5xx); err != nil {
+		t.Fatalf("RecordFetchError: %v", err)
+	}
+
+	canonical := "https://" + host + "/article"
+	h := sha256.Sum256([]byte(canonical))
+	var count int32
+	if err := sqlDB.QueryRow(
+		`SELECT fetch_error_count FROM pioneer_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&count); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if count != 1 {
+		t.Errorf("fetch_error_count = %d, want 1 — RecordFetchError did not match the canonicalized row", count)
+	}
+}
+
+// TestIntegration_SetStatus_AlreadyCanonicalIdempotent covers the idempotency
+// invariant: when the caller passes an already-canonical URL (the case that
+// pre-fix worked), SetStatus must still match the row. This guards against a
+// regression where double-canonicalization mutates the URL.
+func TestIntegration_SetStatus_AlreadyCanonicalIdempotent(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	host := uniqHost(t)
+	canonical := "https://" + host + "/"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+	mustEnqueue(t, s, QueuePioneer, canonical)
+
+	if err := s.SetStatus(canonical, StatusFetched, nil); err != nil {
+		t.Fatalf("SetStatus: %v", err)
+	}
+
+	h := sha256.Sum256([]byte(canonical))
+	var lastFetched sql.NullTime
+	if err := sqlDB.QueryRow(
+		`SELECT last_fetched_at FROM pioneer_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&lastFetched); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if !lastFetched.Valid {
+		t.Errorf("last_fetched_at is NULL — already-canonical input did not match (double-canonicalization regression?)")
+	}
+}
+
+// TestIntegration_SetStatus_UncanonicalizableInputIsSafe covers the safety
+// path: empty or unparseable input must not panic, must not error, and must
+// not mutate any frontier row. Spec: "한 URL이 워커를 죽이지 않아야 한다".
+func TestIntegration_SetStatus_UncanonicalizableInputIsSafe(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	// Seed a known row so we can later verify it stayed untouched.
+	host := uniqHost(t)
+	url := "https://" + host + "/sentinel"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+	mustEnqueue(t, s, QueuePioneer, url)
+
+	for _, badKey := range []string{""} {
+		if err := s.SetStatus(badKey, StatusFetched, nil); err != nil {
+			t.Errorf("SetStatus(%q) returned error: %v", badKey, err)
+		}
+		if err := s.SetStatus(badKey, StatusHarvested, nil); err != nil {
+			t.Errorf("SetStatus(%q, harvested) returned error: %v", badKey, err)
+		}
+		if err := s.RecordFetchError(badKey, ErrorHTTP5xx); err != nil {
+			t.Errorf("RecordFetchError(%q) returned error: %v", badKey, err)
+		}
+		if err := s.RecordHarvestError(badKey, ErrorHTTP5xx); err != nil {
+			t.Errorf("RecordHarvestError(%q) returned error: %v", badKey, err)
+		}
+	}
+
+	// Sentinel row must be untouched (last_fetched_at NULL, error count 0).
+	h := sha256.Sum256([]byte(url))
+	var lastFetched sql.NullTime
+	var count int32
+	if err := sqlDB.QueryRow(
+		`SELECT last_fetched_at, fetch_error_count FROM pioneer_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&lastFetched, &count); err != nil {
+		t.Fatalf("read sentinel: %v", err)
+	}
+	if lastFetched.Valid {
+		t.Errorf("sentinel row's last_fetched_at was set despite uncanonicalizable input")
+	}
+	if count != 0 {
+		t.Errorf("sentinel row's fetch_error_count = %d, want 0 (uncanonicalizable input must not mutate any row)", count)
+	}
+}
+
+// TestIntegration_EnqueueHarvester_NormalizesKey covers task 5.1: passing a
+// raw URL whose canonical form differs (www.-prefixed) must produce exactly
+// one harvester_frontier row and a second call with the same raw URL must
+// be a no-op (UPSERT short-circuits via url_hash uniqueness).
+func TestIntegration_EnqueueHarvester_NormalizesKey(t *testing.T) {
+	sqlDB := openTestDB(t)
+	s := NewPGURLScheduler(sqlDB).WithRateLimiter(allowAll{})
+
+	host := uniqHost(t)
+	rawURL := "https://www." + host + "/article"
+	t.Cleanup(func() { purgeByHost(t, sqlDB, host) })
+
+	if err := s.EnqueueHarvester(rawURL, "snap-key-1"); err != nil {
+		t.Fatalf("EnqueueHarvester (1st): %v", err)
+	}
+	if err := s.EnqueueHarvester(rawURL, "snap-key-1"); err != nil {
+		t.Fatalf("EnqueueHarvester (2nd): %v", err)
+	}
+
+	var rowCount int
+	if err := sqlDB.QueryRow(
+		`SELECT count(*) FROM harvester_frontier WHERE host = $1`, host,
+	).Scan(&rowCount); err != nil {
+		t.Fatalf("count: %v", err)
+	}
+	if rowCount != 1 {
+		t.Errorf("harvester_frontier row count = %d, want 1 (raw URL → canonical UPSERT must dedup)", rowCount)
+	}
+
+	// Verify the row's url_hash matches the canonical form (not the raw).
+	canonical := "https://" + host + "/article"
+	h := sha256.Sum256([]byte(canonical))
+	var matchCount int
+	if err := sqlDB.QueryRow(
+		`SELECT count(*) FROM harvester_frontier WHERE url_hash = $1`, h[:],
+	).Scan(&matchCount); err != nil {
+		t.Fatalf("hash match query: %v", err)
+	}
+	if matchCount != 1 {
+		t.Errorf("expected 1 row keyed by canonical hash, got %d", matchCount)
+	}
+}
+
 // Assert that *PGURLScheduler satisfies the URLScheduler interface at compile
 // time. If a future refactor drops a method, this line fails the build
 // immediately rather than surfacing as a runtime type-assertion panic.

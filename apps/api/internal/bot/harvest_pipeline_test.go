@@ -1,9 +1,13 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +19,27 @@ import (
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// harvestTestPNG returns a deterministic noise-filled PNG of the given
+// dimensions. Used by image-cache tests so the validation that
+// harvester-media-validation added rejects fake byte strings while still
+// allowing real images through the cacheImage path.
+func harvestTestPNG(w, h int) []byte {
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	seed := uint32(987654321)
+	next := func() uint8 {
+		seed = seed*1664525 + 1013904223
+		return uint8(seed >> 24)
+	}
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, color.RGBA{R: next(), G: next(), B: next(), A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, img)
+	return buf.Bytes()
+}
 
 // MockBotDB implements BotDB for testing.
 type MockBotDB struct {
@@ -62,16 +87,7 @@ func (m *MockBotDB) UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinBy
 	url := arg.Url.String
 	inserted := !m.ExistingURLs[url]
 	m.ExistingURLs[url] = true
-	m.CreatedPins = append(m.CreatedPins, db.CreatePinParams{
-		CreatorID:   arg.CreatorID,
-		MediaUrl:    arg.MediaUrl,
-		MediaType:   arg.MediaType,
-		Url:         arg.Url,
-		Title:       arg.Title,
-		Description: arg.Description,
-		OgImage:     arg.OgImage,
-		OgData:      arg.OgData,
-	})
+	m.CreatedPins = append(m.CreatedPins, db.CreatePinParams(arg))
 	return db.UpsertBotPinByURLRow{
 		ID:          uuid.New(),
 		CreatorID:   arg.CreatorID,
@@ -87,10 +103,14 @@ func (m *MockBotDB) UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinBy
 }
 
 func TestHarvestPipeline_NewItems(t *testing.T) {
-	// Set up a mock media server
+	// Set up a mock media server. After harvester-media-validation,
+	// downloadAndUpload validates image bytes before upload, so the
+	// fixture serves a real noise PNG that satisfies the minimum-bytes
+	// and minimum-dim thresholds.
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "image/jpeg")
-		_, _ = w.Write([]byte("fake-image-data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -153,8 +173,10 @@ func TestHarvestPipeline_NewItems(t *testing.T) {
 }
 
 func TestHarvestPipeline_DBDedup(t *testing.T) {
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -186,8 +208,10 @@ func TestHarvestPipeline_DBDedup(t *testing.T) {
 }
 
 func TestHarvestPipeline_BatchDedup(t *testing.T) {
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -246,8 +270,10 @@ func TestHarvestPipeline_DownloadFailure(t *testing.T) {
 }
 
 func TestHarvestPipeline_UploadFailure(t *testing.T) {
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -276,8 +302,10 @@ func TestHarvestPipeline_UploadFailure(t *testing.T) {
 }
 
 func TestHarvestPipeline_DBCreateError(t *testing.T) {
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -327,12 +355,14 @@ func TestHarvestPipeline_DBDedupError(t *testing.T) {
 
 func TestHarvestPipeline_MixedResults(t *testing.T) {
 	// 5 items: 2 dedup (1 DB + 1 batch), 1 download failure, 2 new
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/missing.jpg" {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 
@@ -368,20 +398,24 @@ func TestHarvestPipeline_MixedResults(t *testing.T) {
 // --- Section 5 of harvester-image-cache: primary image cache integration ---
 
 // imageCacheTestServer returns a httptest server that serves
-//   - /media   → 200 body "media-data" with Content-Type image/jpeg
-//   - /image.jpg → 200 body "image-bytes" with Content-Type image/jpeg
+//   - /media   → 200 body real noise PNG (after harvester-media-validation
+//     downloadAndUpload validates image bytes before upload, so a real PNG
+//     is required for the legacy Process() path to succeed)
+//   - /image.jpg → 200 body real noise PNG (≥1024 bytes, ≥32x32) so the
+//     harvester-media-validation check passes
 //   - /notfound-image.jpg → 404
 //   - /huge.jpg → 200 with Content-Length > threshold
 //   - /stream-huge.jpg → 200 with no Content-Length but streamed body > threshold
 func imageCacheTestServer(threshold int) *httptest.Server {
+	validPNG := harvestTestPNG(64, 64)
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/media":
-			w.Header().Set("Content-Type", "image/jpeg")
-			_, _ = w.Write([]byte("media-data"))
+			w.Header().Set("Content-Type", "image/png")
+			_, _ = w.Write(validPNG)
 		case "/image.jpg":
-			w.Header().Set("Content-Type", "image/jpeg")
-			_, _ = w.Write([]byte("image-bytes"))
+			w.Header().Set("Content-Type", "image/png")
+			_, _ = w.Write(validPNG)
 		case "/notfound-image.jpg":
 			w.WriteHeader(http.StatusNotFound)
 		case "/huge.jpg":
@@ -458,9 +492,11 @@ func TestHarvestPipeline_ImageCache_Success(t *testing.T) {
 	if imageUploadKey == "" {
 		t.Errorf("expected storage.Upload called with images/ prefix key")
 	}
-	// Key format: images/<hash>/<ts>.jpg
+	// Key format: images/<hash>/<ts>.png (real PNG payload after the
+	// harvester-media-validation change replaced the fake "image-bytes"
+	// fixture with a synthesized noise PNG).
 	parts := strings.Split(imageUploadKey, "/")
-	if len(parts) != 3 || parts[0] != "images" || len(parts[1]) != 64 || !strings.HasSuffix(parts[2], ".jpg") {
+	if len(parts) != 3 || parts[0] != "images" || len(parts[1]) != 64 || !strings.HasSuffix(parts[2], ".png") {
 		t.Errorf("unexpected key format: %q", imageUploadKey)
 	}
 }
@@ -631,8 +667,10 @@ func TestHarvestPipeline_ImageCache_UploadFail_FallbackToOriginalURL(t *testing.
 }
 
 func TestHarvestPipeline_EmptyDescription(t *testing.T) {
+	pngBytes := harvestTestPNG(64, 64)
 	mediaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("data"))
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(pngBytes)
 	}))
 	defer mediaServer.Close()
 

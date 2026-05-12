@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/urlcanon"
 )
 
 // QueueType selects which frontier table (pioneer vs harvester) an
@@ -234,10 +235,38 @@ var recordErrorOpsHarvest = recordErrorOps{
 }
 
 // hashKey returns sha256(key) as the BYTEA argument expected by the frontier
-// queries. `key` is the normalized_url.
+// queries. The caller MUST pass an already-canonicalized URL — this is the
+// enqueue path's hashing primitive (see prepareEnqueueBatch / EnqueueHarvester
+// where `urlcanon.CanonicalWithHost` runs immediately upstream). Lookup paths
+// (SetStatus / RecordFetchError / RecordHarvestError) instead receive a raw
+// URL straight from a Dequeue return value or external caller, so they MUST
+// use `hashLookupKey` which canonicalizes internally before hashing.
 func hashKey(key string) []byte {
 	h := sha256.Sum256([]byte(key))
 	return h[:]
+}
+
+// hashLookupKey returns (sha256(canonical(rawKey)), true) when rawKey
+// canonicalizes to a non-empty URL, and (nil, false) when canonicalization
+// yields an empty string. The bool signals "skip the DB call" so callers can
+// short-circuit gracefully without a DB roundtrip and without panicking.
+//
+// Why canonicalize here: the spec contract for SetStatus/RecordFetchError/
+// RecordHarvestError says the lookup hash MUST equal the hash that Enqueue
+// stored. Enqueue runs `urlcanon.CanonicalWithHost(raw)` then sha256s the
+// normalized result; lookup paths receive a raw URL (typically the Dequeue
+// return value) so they must apply the same canonicalization before hashing
+// or hash mismatch silently misses the row.
+//
+// `urlcanon.Canonical` is idempotent — applying it to already-canonical input
+// is a no-op — so callers may pass either raw or normalized URLs safely.
+func hashLookupKey(rawKey string) ([]byte, bool) {
+	canonical := urlcanon.Canonical(rawKey)
+	if canonical == "" {
+		return nil, false
+	}
+	h := sha256.Sum256([]byte(canonical))
+	return h[:], true
 }
 
 // recordError is the shared implementation for RecordFetchError and
@@ -255,7 +284,12 @@ func (s *PGURLScheduler) recordError(key string, errorKind ErrorKind, ops record
 		return err
 	}
 	ctx := context.Background()
-	hash := hashKey(key)
+	hash, ok := hashLookupKey(key)
+	if !ok {
+		// Canonicalization yielded an empty URL — skip the DB call. See the
+		// matching short-circuit in SetStatus for the rationale.
+		return nil
+	}
 
 	if errorKind == ErrorHTTP4xx {
 		rows, err := ops.dead(ctx, s.queries, hash)

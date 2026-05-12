@@ -40,31 +40,19 @@ c := crawler.NewBFSCrawler(fetcher)
 result, err := c.Crawl(ctx, "http://example.com/", 2)
 ```
 
-### Pioneer
-**Purpose:** Explore sites using BFS, generate parsing scripts with AI
+### Pioneer (PioneerConsumer)
+**Purpose:** Explore sites by consuming the `pioneer_frontier` queue, snapshot raw HTML, and fan out discovered links to both `pioneer_frontier` (new URLs) and `harvester_frontier` (original URL + snapshot key).
 
 **Key Features:**
-- Priority-based BFS traversal (listing pages first)
-- URL classification (listing, gallery, category, detail, skip)
-- Strict domain validation (no subdomains)
-- AI-powered script generation
-- Script validation (70% threshold)
-- Script reuse to minimize AI costs
-
-**Configuration:**
-```go
-PioneerConfig{
-    MaxDepth:        5,
-    MaxNodesPerSite: 500,
-    RateLimitMs:     2000,
-    SuccessThreshold: 0.7, // 70%
-}
-```
+- `URLScheduler`-backed loop: `Dequeue → fetch → snapshot → extract → filter → Enqueue(pioneer) + EnqueueHarvester → SetStatus(fetched)`
+- No in-memory queue, no visited map: all dedup/ordering owned by the scheduler (`FOR UPDATE SKIP LOCKED`)
+- Multiple instances may run concurrently against the same scheduler
+- Composable filter chain: `DomainFilter`, `ExtensionFilter`, `PathPatternFilter`, `RobotsFilter`, `CanonicalDedupFilter`
 
 **Usage:**
 ```go
-pioneer := bot.NewPioneer(siteRepo, graphRepo, scriptRepo, runRepo, aiClient, executor, config)
-err := pioneer.Run(ctx, siteID)
+consumer := bot.NewPioneerConsumer(scheduler, snapshotStore, filterChain, fetcher)
+err := consumer.Run(ctx)
 ```
 
 ### Harvester
@@ -252,30 +240,31 @@ go test ./internal/bot/...
 
 Harvester caches the primary image of each new Pin to our object storage so Pin views are decoupled from upstream availability. Candidates are extracted from the item's page HTML in priority order — `<meta property="og:image">` → `<meta name|property="twitter:image">` → `<article>`/`<main>` 내 의미 있는 `<img>` (width·height 모두 ≥100 이거나 비어있지 않은 `alt`) → `<script type="application/ld+json">`의 `image` 필드 — 그리고 첫 번째 유효 후보(절대 URL, http/https, data: 아님, 1×1 추적 픽셀 아님)가 채택된다. 채택된 URL은 정규화(fragment 제거, scheme/host 소문자, path·query 보존) 후 `images/<sha256>/<unix_ts>.<ext>` 키로 저장되며, 확장자는 Content-Type → URL path → `.bin` fallback 순으로 결정된다. 성공 시 storage URL이, 실패(다운로드·업로드·20 MiB 임계 초과 중 어느 것이든) 시 원본 후보 URL이, 후보 없음 시 NULL이 단일 컬럼 `pin.og_image`에 기록된다. 이미지 캐시 실패는 Pin 생성을 차단하지 않는다.
 
-## Worker Lifecycle (PioneerConsumer)
+## Worker Lifecycle (Pioneer & Harvester)
 
-When `BOT_PIONEER_SCHEDULER=true` is set, `fuguebot pioneer` runs the
-new scheduler-backed consumer instead of the legacy BFS Pioneer. The
-consumer processes URLs from `pioneer_frontier` until it has handled
-exactly 100 successful Dequeues, then logs `reason=budget_exhausted` and
-exits 0. **A supervisor is required** — without one the worker process
-terminates after ~100 URLs and crawling stops.
+Both `fuguebot pioneer` (PioneerConsumer) and `fuguebot harvester`
+(HarvesterConsumer) run with an identical work-budget lifecycle: each
+worker process handles exactly 100 successful `URLScheduler.Dequeue`
+calls (empty results and errors are not counted, ctx cancel exits
+early), then logs `reason=budget_exhausted` in the shared key=value
+format and exits 0. **A supervisor is required** — without one the
+worker process terminates after ~100 URLs and crawling stops.
 
-Same policy applies to the harvester worker (`harvester-worker-budget`);
-both workers share an identical mental model so operators can configure
-one restart strategy for both.
+The policy is defined symmetrically by the `pioneer-worker-budget` and
+`harvester-worker-budget` OpenSpec changes so operators configure one
+restart strategy for both workers.
 
-Local example (shell loop):
+Local examples (shell loop):
 
 ```sh
-while true; do BOT_PIONEER_SCHEDULER=true fuguebot pioneer <site> || break; done
+while true; do fuguebot pioneer <site> || break; done
+while true; do fuguebot harvester || break; done
 ```
 
 systemd:
 
 ```ini
 [Service]
-Environment=BOT_PIONEER_SCHEDULER=true
 ExecStart=/usr/local/bin/fuguebot pioneer <site>
 Restart=always
 ```
@@ -287,8 +276,10 @@ services:
   pioneer:
     image: fugue-bot:latest
     command: ["pioneer", "<site>"]
-    environment:
-      BOT_PIONEER_SCHEDULER: "true"
+    restart: always
+  harvester:
+    image: fugue-bot:latest
+    command: ["harvester"]
     restart: always
 ```
 
