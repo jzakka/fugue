@@ -103,6 +103,53 @@ type HarvesterConsumer struct {
 	// (CompositeFetcher dual-miss: ObjectStorage + HTTP both failed) for
 	// worker-level observability.
 	fetchFailureCount atomic.Uint64
+
+	// stats holds the 5 per-node category counters defined by harvester spec
+	// "Harvester 노드 단위 통계 정의" (PinsCreated/Deduped/Skipped/Failed/
+	// AdapterFallback). Incremented exclusively at processOne exit paths so
+	// the "exactly one primary category per node" invariant is enforced in
+	// one place (fix-harvester-node-stats design Decision 3).
+	stats nodeStats
+}
+
+// nodeStats holds the 5 per-node category counters required by harvester
+// spec. Each counter is updated independently via atomic.Add; the 5-tuple
+// snapshot is NOT atomic (see NodeStats doc).
+type nodeStats struct {
+	pinsCreated     atomic.Uint64
+	deduped         atomic.Uint64
+	skipped         atomic.Uint64
+	failed          atomic.Uint64
+	adapterFallback atomic.Uint64
+}
+
+// NodeStatsSnapshot is a plain-value view of nodeStats at a moment in time.
+// The snapshot is NOT atomic: each field is read with an independent
+// atomic.Load, so a concurrent counter increment can leave the snapshot
+// internally inconsistent (e.g. PinsCreated reflects the increment but
+// AdapterFallback does not). This is acceptable because node-level stats
+// are for trend observation, not exact invariants.
+type NodeStatsSnapshot struct {
+	PinsCreated     uint64
+	Deduped         uint64
+	Skipped         uint64
+	Failed          uint64
+	AdapterFallback uint64
+}
+
+// NodeStats returns a snapshot of the 5 per-node category counters for this
+// consumer instance. The snapshot is non-atomic (see NodeStatsSnapshot doc).
+// Counters are process-local and zero at construction time; they are
+// discarded on worker exit and not shared across workers (spec
+// "Dequeue 카운터는 워커 간 공유 상태가 아니다").
+func (h *HarvesterConsumer) NodeStats() NodeStatsSnapshot {
+	return NodeStatsSnapshot{
+		PinsCreated:     h.stats.pinsCreated.Load(),
+		Deduped:         h.stats.deduped.Load(),
+		Skipped:         h.stats.skipped.Load(),
+		Failed:          h.stats.failed.Load(),
+		AdapterFallback: h.stats.adapterFallback.Load(),
+	}
 }
 
 // NewHarvesterConsumer wires the consumer with the five mandatory
@@ -262,6 +309,7 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 		// chain; count it once per node in the in-memory worker stat
 		// (tasks §3.2 / Decision 3).
 		h.fetchFailureCount.Add(1)
+		h.stats.failed.Add(1)
 		kind := classifyHarvestFetchError(fetchErr)
 		h.reportFailure(rawURL, kind, "fetch", fetchErr)
 		return
@@ -275,10 +323,14 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	// production (harvest_pipeline.go).
 	doc, fellBack, extractErr := h.extractDocument(ctx, body, rawURL)
 	if extractErr != nil {
+		h.stats.failed.Add(1)
 		h.reportFailure(rawURL, scheduler.ErrorNetwork, "parse", extractErr)
 		return
 	}
 	if fellBack {
+		// AdapterFallback is independent of the primary category counters
+		// (spec: "AdapterFallback은 주 카테고리와 독립적인 부가 카운터").
+		h.stats.adapterFallback.Add(1)
 		log.Printf("harvester_consumer: adapter fell back to generic for url=%q", rawURL)
 	}
 
@@ -309,6 +361,7 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 		// Pinnable=false: no Pin created, but the URL is still "done".
 		// SetStatus marks harvested_at and resets harvest_error_count to 0
 		// (scheduler Decision 5) so the row exits the partial index.
+		h.stats.skipped.Add(1)
 		if err := h.scheduler.SetStatus(rawURL, scheduler.StatusHarvested, nil); err != nil {
 			log.Printf("WARN harvester_consumer: set_status_harvested_skipped url=%q err=%v", rawURL, err)
 		}
@@ -319,11 +372,17 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	// before ProcessDocument because the pipeline writes BodyText verbatim.
 	doc.BodyText = truncateRunes(doc.BodyText, 500)
 
-	pinIDs, createErr := h.createPins(ctx, doc)
+	pinIDs, created, createErr := h.createPins(ctx, doc)
 	if createErr != nil {
 		// Pipeline persistence failure — retriable per Decision 6.
+		h.stats.failed.Add(1)
 		h.reportFailure(rawURL, scheduler.ErrorNetwork, "pin_create", createErr)
 		return
+	}
+	if created {
+		h.stats.pinsCreated.Add(1)
+	} else {
+		h.stats.deduped.Add(1)
 	}
 
 	// Success path: harvested_at UPDATE + harvest_error_count=0 reset +
@@ -376,17 +435,21 @@ func (h *HarvesterConsumer) extractDocument(ctx context.Context, body []byte, fe
 }
 
 // createPins persists the PinDocument as one or more Pin rows and returns
-// the resulting pin IDs. The current DocumentPipeline.ProcessDocument
-// contract returns a single pinID per document (one URL → one Pin), so the
-// slice always has length 1 on success. Keeping the return as []uuid.UUID
-// matches scheduler.SetStatus and leaves room for a future N-Pin fanout
-// without changing the loop shape (spec design.md Decision 4).
-func (h *HarvesterConsumer) createPins(ctx context.Context, doc PinDocument) ([]uuid.UUID, error) {
-	_, pinID, err := h.pipeline.ProcessDocument(ctx, db.BotGraphNode{}, doc)
+// the resulting pin IDs along with the pipeline's `created` flag (true =
+// new insert, false = idempotent update). The current
+// DocumentPipeline.ProcessDocument contract returns a single pinID per
+// document (one URL → one Pin), so the slice always has length 1 on
+// success. Keeping the return as []uuid.UUID matches scheduler.SetStatus
+// and leaves room for a future N-Pin fanout without changing the loop
+// shape (spec design.md Decision 4). The `created` bool is surfaced so
+// processOne can split the success path into PinsCreated vs Deduped
+// counters (fix-harvester-node-stats design Decision 4).
+func (h *HarvesterConsumer) createPins(ctx context.Context, doc PinDocument) ([]uuid.UUID, bool, error) {
+	created, pinID, err := h.pipeline.ProcessDocument(ctx, db.BotGraphNode{}, doc)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return []uuid.UUID{pinID}, nil
+	return []uuid.UUID{pinID}, created, nil
 }
 
 // reportFailure is the spec-mandated dual call site (Decision 6):

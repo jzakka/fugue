@@ -636,6 +636,239 @@ func (erroringExtractor) Extract([]byte, string) (PinDocument, error) {
 	return PinDocument{}, errors.New("extractor boom")
 }
 
+// --- fix-harvester-node-stats: per-node category counter tests ---
+
+// TestHarvesterConsumer_NodeStats_PinsCreated covers the success + new
+// insert path: a pinnable document persisted as a fresh Pin must increment
+// PinsCreated by exactly 1; the other 4 counters must stay at 0.
+func TestHarvesterConsumer_NodeStats_PinsCreated(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/p1": pinnableDocHTML()},
+	}
+	pipeline := NewMockPipeline()
+
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+	c.processOne(context.Background(), "https://a.example/p1")
+
+	got := c.NodeStats()
+	if got.PinsCreated != 1 {
+		t.Fatalf("PinsCreated = %d, want 1", got.PinsCreated)
+	}
+	if got.Deduped != 0 || got.Skipped != 0 || got.Failed != 0 || got.AdapterFallback != 0 {
+		t.Fatalf("only PinsCreated should be 1, got %+v", got)
+	}
+}
+
+// TestHarvesterConsumer_NodeStats_Deduped covers the success + existing
+// update path: when the pipeline returns created=false (canonical URL
+// already seen), Deduped++ and PinsCreated stays at 0.
+func TestHarvesterConsumer_NodeStats_Deduped(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/p1": pinnableDocHTML()},
+	}
+	pipeline := NewMockPipeline()
+	// Force created=false on every call to simulate an idempotent update.
+	pipeline.ProcessDocumentFunc = func(_ context.Context, _ db.BotGraphNode, _ PinDocument) (bool, uuid.UUID, error) {
+		return false, uuid.New(), nil
+	}
+
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+	c.processOne(context.Background(), "https://a.example/p1")
+
+	got := c.NodeStats()
+	if got.Deduped != 1 {
+		t.Fatalf("Deduped = %d, want 1", got.Deduped)
+	}
+	if got.PinsCreated != 0 || got.Skipped != 0 || got.Failed != 0 || got.AdapterFallback != 0 {
+		t.Fatalf("only Deduped should be 1, got %+v", got)
+	}
+}
+
+// TestHarvesterConsumer_NodeStats_Skipped covers the classifier
+// pinnable=false branch: Skipped++ and the other 4 counters stay at 0.
+// listingDocHTML is rejected by the classifier on link-density grounds.
+func TestHarvesterConsumer_NodeStats_Skipped(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/list": listingDocHTML()},
+	}
+	pipeline := NewMockPipeline()
+
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+	c.processOne(context.Background(), "https://a.example/list")
+
+	got := c.NodeStats()
+	if got.Skipped != 1 {
+		t.Fatalf("Skipped = %d, want 1", got.Skipped)
+	}
+	if got.PinsCreated != 0 || got.Deduped != 0 || got.Failed != 0 || got.AdapterFallback != 0 {
+		t.Fatalf("only Skipped should be 1, got %+v", got)
+	}
+}
+
+// TestHarvesterConsumer_NodeStats_Failed covers all three failure paths
+// (fetch / parse / pin_create) in sub-cases. Each sub-case must increment
+// Failed by exactly 1 and leave the other 4 counters at 0.
+func TestHarvesterConsumer_NodeStats_Failed(t *testing.T) {
+	t.Run("fetch", func(t *testing.T) {
+		sched := &fakeHarvestScheduler{}
+		fetcher := newMapFetcher()
+		fetcher.errs["https://a.example/dead"] = fmt.Errorf("HTTP error: status code 404")
+
+		c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
+		c.processOne(context.Background(), "https://a.example/dead")
+
+		got := c.NodeStats()
+		if got.Failed != 1 {
+			t.Fatalf("Failed = %d, want 1", got.Failed)
+		}
+		if got.PinsCreated != 0 || got.Deduped != 0 || got.Skipped != 0 || got.AdapterFallback != 0 {
+			t.Fatalf("only Failed should be 1, got %+v", got)
+		}
+	})
+
+	t.Run("parse", func(t *testing.T) {
+		sched := &fakeHarvestScheduler{}
+		fetcher := &mapFetcher{
+			bodies: map[string][]byte{"https://a.example/bad": pinnableDocHTML()},
+		}
+		c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline()).
+			withExtractor(&erroringExtractor{})
+		c.processOne(context.Background(), "https://a.example/bad")
+
+		got := c.NodeStats()
+		if got.Failed != 1 {
+			t.Fatalf("Failed = %d, want 1", got.Failed)
+		}
+		if got.PinsCreated != 0 || got.Deduped != 0 || got.Skipped != 0 || got.AdapterFallback != 0 {
+			t.Fatalf("only Failed should be 1, got %+v", got)
+		}
+	})
+
+	t.Run("pin_create", func(t *testing.T) {
+		sched := &fakeHarvestScheduler{}
+		fetcher := &mapFetcher{
+			bodies: map[string][]byte{"https://a.example/p": pinnableDocHTML()},
+		}
+		pipeline := NewMockPipeline()
+		pipeline.ProcessDocumentFunc = func(context.Context, db.BotGraphNode, PinDocument) (bool, uuid.UUID, error) {
+			return false, uuid.Nil, errors.New("db down")
+		}
+
+		c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+		c.processOne(context.Background(), "https://a.example/p")
+
+		got := c.NodeStats()
+		if got.Failed != 1 {
+			t.Fatalf("Failed = %d, want 1", got.Failed)
+		}
+		if got.PinsCreated != 0 || got.Deduped != 0 || got.Skipped != 0 || got.AdapterFallback != 0 {
+			t.Fatalf("only Failed should be 1, got %+v", got)
+		}
+	})
+}
+
+// TestHarvesterConsumer_NodeStats_AdapterFallback covers the spec scenario
+// "어댑터 실패가 발생한 경우에 한해 AdapterFallback이 함께 1 증가": when the
+// registered adapter errors and the generic fallback succeeds, both
+// PinsCreated AND AdapterFallback must each increment by 1 — the two
+// counters are independent per design.md Decision 3.
+func TestHarvesterConsumer_NodeStats_AdapterFallback(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := &mapFetcher{
+		bodies: map[string][]byte{"https://a.example/p1": pinnableDocHTML()},
+	}
+	registry := NewInMemoryAdapterRegistry()
+	registry.Register(&failingAdapter{domain: "a.example", name: "test-failing"})
+
+	c := NewHarvesterConsumer(sched, fetcher, registry, nil, nil, NewMockPipeline())
+	c.processOne(context.Background(), "https://a.example/p1")
+
+	got := c.NodeStats()
+	if got.PinsCreated != 1 {
+		t.Fatalf("PinsCreated = %d, want 1 (generic fallback succeeded)", got.PinsCreated)
+	}
+	if got.AdapterFallback != 1 {
+		t.Fatalf("AdapterFallback = %d, want 1", got.AdapterFallback)
+	}
+	if got.Deduped != 0 || got.Skipped != 0 || got.Failed != 0 {
+		t.Fatalf("only PinsCreated and AdapterFallback should fire, got %+v", got)
+	}
+}
+
+// TestHarvesterConsumer_NodeStats_MutualExclusion covers the spec invariant
+// "주 카테고리 4개 합 = 처리 노드 수": after processing N=4 nodes (one in
+// each primary category — created / deduped / skipped / failed), the sum of
+// the 4 primary counters equals N=4 and each is exactly 1. AdapterFallback
+// is independent and is not part of the sum.
+func TestHarvesterConsumer_NodeStats_MutualExclusion(t *testing.T) {
+	sched := &fakeHarvestScheduler{}
+	fetcher := newMapFetcher()
+	// Node 1: success path → PinsCreated.
+	fetcher.bodies["https://a.example/created"] = pinnableDocHTML()
+	// Node 2: success path with forced dedupe.
+	fetcher.bodies["https://a.example/deduped"] = pinnableDocHTML()
+	// Node 3: classifier rejects (listing) → Skipped.
+	fetcher.bodies["https://a.example/listing"] = listingDocHTML()
+	// Node 4: fetch error → Failed.
+	fetcher.errs["https://a.example/fail"] = errors.New("dial tcp: refused")
+
+	pipeline := NewMockPipeline()
+	originalFunc := pipeline.ProcessDocumentFunc
+	pipeline.ProcessDocumentFunc = func(ctx context.Context, node db.BotGraphNode, doc PinDocument) (bool, uuid.UUID, error) {
+		// Force the "/deduped" canonical URL to return created=false so the
+		// Deduped branch is exercised even though the mock would otherwise
+		// see it as a first-time canonical.
+		if strings.Contains(doc.CanonicalURL, "/deduped") {
+			return false, uuid.New(), nil
+		}
+		return originalFunc(ctx, node, doc)
+	}
+
+	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
+	c.processOne(context.Background(), "https://a.example/created")
+	c.processOne(context.Background(), "https://a.example/deduped")
+	c.processOne(context.Background(), "https://a.example/listing")
+	c.processOne(context.Background(), "https://a.example/fail")
+
+	got := c.NodeStats()
+	if got.PinsCreated != 1 {
+		t.Errorf("PinsCreated = %d, want 1", got.PinsCreated)
+	}
+	if got.Deduped != 1 {
+		t.Errorf("Deduped = %d, want 1", got.Deduped)
+	}
+	if got.Skipped != 1 {
+		t.Errorf("Skipped = %d, want 1", got.Skipped)
+	}
+	if got.Failed != 1 {
+		t.Errorf("Failed = %d, want 1", got.Failed)
+	}
+	sum := got.PinsCreated + got.Deduped + got.Skipped + got.Failed
+	if sum != 4 {
+		t.Fatalf("primary category sum = %d, want 4 (N=4 nodes processed)", sum)
+	}
+	if got.AdapterFallback != 0 {
+		t.Errorf("AdapterFallback = %d, want 0 (no adapter registered)", got.AdapterFallback)
+	}
+}
+
+// failingAdapter is a PerSiteAdapter stub that always returns an error from
+// Extract, driving the consumer's adapter → generic fallback path. Used by
+// the AdapterFallback test.
+type failingAdapter struct {
+	domain string
+	name   string
+}
+
+func (f *failingAdapter) Domain() string { return f.domain }
+func (f *failingAdapter) Name() string   { return f.name }
+func (f *failingAdapter) Extract(context.Context, []byte, string) (PinDocument, error) {
+	return PinDocument{}, errors.New("adapter boom")
+}
+
 // --- harvester-worker-budget: Run loop budget tests ---
 
 // newBudgetHarvester wires a HarvesterConsumer with a small budget so loop
