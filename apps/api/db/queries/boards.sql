@@ -30,7 +30,7 @@ SELECT * FROM boards
 WHERE creator_id = $1 AND is_public = true
 ORDER BY updated_at DESC;
 
--- name: AddPinToBoard :exec
+-- name: AddPinToBoard :execrows
 INSERT INTO board_pins (board_id, pin_id)
 VALUES ($1, $2)
 ON CONFLICT DO NOTHING;

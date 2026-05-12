@@ -14,7 +14,7 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-const addPinToBoard = `-- name: AddPinToBoard :exec
+const addPinToBoard = `-- name: AddPinToBoard :execrows
 INSERT INTO board_pins (board_id, pin_id)
 VALUES ($1, $2)
 ON CONFLICT DO NOTHING
@@ -25,9 +25,12 @@ type AddPinToBoardParams struct {
 	PinID   uuid.UUID
 }
 
-func (q *Queries) AddPinToBoard(ctx context.Context, arg AddPinToBoardParams) error {
-	_, err := q.db.ExecContext(ctx, addPinToBoard, arg.BoardID, arg.PinID)
-	return err
+func (q *Queries) AddPinToBoard(ctx context.Context, arg AddPinToBoardParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, addPinToBoard, arg.BoardID, arg.PinID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const countBoardPins = `-- name: CountBoardPins :one
