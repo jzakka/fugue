@@ -1,10 +1,10 @@
 ---
 name: auto-gap-fix
-description: OpenSpec 스펙과 코드 사이의 갭을 발견하여 "코드 누락" 유형만 자동으로 별도 브랜치/PR로 채웁니다. 사용자가 자리를 비운 동안 무인으로 도는 갭 채우기 루프입니다.
+description: OpenSpec 스펙과 코드 사이의 갭을 발견하여 "코드 누락" 유형만 자동으로 별도 브랜치에서 채운 뒤 main에 직접 머지합니다. 사용자가 자리를 비운 동안 무인으로 도는 갭 채우기 루프입니다.
 license: MIT
 ---
 
-스펙 갭을 자동으로 채우는 무인 루프 스킬입니다. `/openspec-features`로 갭을 발견하고, "코드 누락" 유형만 선별해 `/openspec-loop`에 위임하여 단일 갭 단위 PR을 생성합니다. "의도된 제거"와 "스펙 충돌" 유형은 자동 수정하지 않고 보고서에만 기록합니다.
+스펙 갭을 자동으로 채우는 무인 루프 스킬입니다. `/openspec-features`로 갭을 발견하고, "코드 누락" 유형만 선별해 `/openspec-loop`에 위임하여 단일 갭 단위 브랜치를 만든 뒤 빌드·테스트가 통과하면 origin/main에 직접 머지(push)합니다. "의도된 제거"와 "스펙 충돌" 유형은 자동 수정하지 않고 보고서에만 기록합니다.
 
 ---
 
@@ -13,7 +13,7 @@ license: MIT
 작업을 시작하기 전에 모두 만족해야 합니다. 하나라도 어긋나면 즉시 중단하고 보고서에 사유를 적습니다.
 
 - working tree가 clean하다. (어느 브랜치/worktree에서 시작하든 무방)
-- openspec CLI, gh CLI가 설치되어 있고 인증되어 있다.
+- openspec CLI, git CLI가 설치되어 있고 인증되어 있다. (origin/main 직접 push 권한 필요)
 - baseline 빌드가 통과한다.
   - `cd apps/api && go build ./... && go test ./...`
   - `cd apps/web && npm run build && npm test`
@@ -127,28 +127,31 @@ cd apps/web && npm run build && npm test
 
 실패 시 브랜치를 폐기하고 보고서에 실패 사유를 적는다.
 
-**f. PR 생성**
+**f. main에 직접 머지 (push)**
+
+PR을 만들지 않는다. 현재 브랜치는 `origin/main`에서 분기했으므로 fast-forward로 직접 push한다.
 
 ```bash
-gh pr create --base main \
-  --title "fix(<domain>): <scenario summary>" \
-  --body "<...>"
+git fetch origin main
+# 분기 이후 origin/main이 앞서갔다면 rebase로 fast-forward 가능 상태로 맞춘다.
+git rebase origin/main
+git push origin HEAD:main
 ```
 
-PR 본문에 다음을 포함한다.
+push가 거부되면 (보호 룰, non-fast-forward 등) 머지를 시도하지 않고 해당 갭을 폐기한 뒤 보고서에 "main push 거부"로 기록한다. **강제 push는 절대 시도하지 않는다.**
 
-- 처리한 갭의 도메인 + Requirement + Scenario
-- 변경된 파일 목록
-- 추가된 테스트 목록
-- "auto-gap-fix 스킬이 자동 생성한 PR입니다. 머지 전 사람 검토 필수." 문구
+머지 후 원격 작업 브랜치는 더 이상 필요 없으므로 생성하지 않는다 (애초에 push한 적 없음). 로컬 `auto-gap/<change-name>` 브랜치는 다음 단계에서 정리한다.
 
-**g. 시작 브랜치로 복귀**
+머지 커밋(=push된 HEAD SHA)을 갭 메타데이터에 기록한다. 보고서에서 PR 번호 대신 이 SHA를 인용한다.
+
+**g. 시작 브랜치로 복귀 및 정리**
 
 ```bash
 git switch "$STARTING_BRANCH"
+git branch -D auto-gap/<change-name>
 ```
 
-worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 1단계 시작 시 기록한 `STARTING_BRANCH`로 돌아간다.
+worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 1단계 시작 시 기록한 `STARTING_BRANCH`로 돌아간다. 로컬 `auto-gap/<change-name>` 브랜치는 머지가 끝나 더 필요 없으므로 삭제한다.
 
 ### 5단계 - 종료 조건
 
@@ -171,9 +174,9 @@ worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 
 반복 횟수: N / max
 종료 사유: <조건>
 
-## 처리 완료
-- [PR #123] fix(interaction): pin 인터랙션 기록 누락
-- [PR #124] fix(board): 중복 핀 추가 시 오류 반환
+## 처리 완료 (main에 머지됨)
+- `<merge SHA>` fix(interaction): pin 인터랙션 기록 누락
+- `<merge SHA>` fix(board): 중복 핀 추가 시 오류 반환
 
 ## 스킵 - 의도된 제거
 - pin / 오디오 WAV/FLAC 압축 변환
@@ -189,19 +192,23 @@ worktree 환경에서 main을 직접 체크아웃하지 못할 수 있으므로 
 ## 실패
 - fix-pin-something-else
   - 단계: 빌드 검증
-  - 사유: `go test ./apps/api/internal/pin` 실패. 자세한 로그는 PR 브랜치 `auto-gap/fix-pin-something-else` 참조.
+  - 사유: `go test ./apps/api/internal/pin` 실패. 자세한 로그는 로컬 브랜치 `auto-gap/fix-pin-something-else`(원격에 push되지 않음) 참조.
+- fix-board-something-else
+  - 단계: main push
+  - 사유: `git push origin HEAD:main` 거부 (보호 룰 또는 non-fast-forward). 강제 push 시도하지 않음.
 ```
 
 ---
 
 ## 안전장치
 
-- main에 직접 커밋하지 않는다. 모든 변경은 `auto-gap/<change-name>` 브랜치에서만 일어난다. 시작 브랜치(예: worktree의 작업 브랜치)에도 커밋하지 않는다.
-- PR을 자동 머지하지 않는다. 머지는 항상 사람이 한다.
-- 각 PR은 단일 갭만 다룬다. 여러 갭을 묶지 않는다.
+- 로컬에서 main 브랜치에 직접 커밋하거나 체크아웃하지 않는다. 모든 작업은 `auto-gap/<change-name>` 브랜치에서 이뤄지고, 결과만 `git push origin HEAD:main`으로 원격 main에 fast-forward push한다. 시작 브랜치(예: worktree의 작업 브랜치)에도 커밋하지 않는다.
+- 각 머지는 단일 갭만 다룬다. 여러 갭을 묶지 않는다.
+- push는 반드시 fast-forward여야 한다. **`--force`, `--force-with-lease` 등 강제 push 옵션은 어떤 경우에도 사용하지 않는다.** push가 거부되면 그 갭은 폐기한다.
 - 빌드·테스트가 baseline에서 통과하지 않으면 시작 자체를 거부한다.
-- `auto-gap-fix.STOP` 파일이 생기면 진행 중인 갭의 PR 생성까지만 마무리하고 종료한다. (중단 중에 working tree가 더러워지지 않도록)
-- openspec CLI나 gh CLI 호출이 비정상 종료하면 즉시 중단하고 보고한다. 절대 강제로 우회하지 않는다.
+- 빌드·테스트(4단계 e)가 실패한 갭은 머지하지 않고 폐기한다. 검증을 우회해 main에 밀어넣지 않는다.
+- `auto-gap-fix.STOP` 파일이 생기면 진행 중인 갭의 머지까지만 마무리하고 종료한다. (중단 중에 working tree가 더러워지지 않도록)
+- openspec CLI나 git 호출이 비정상 종료하면 즉시 중단하고 보고한다. 절대 강제로 우회하지 않는다.
 
 ---
 

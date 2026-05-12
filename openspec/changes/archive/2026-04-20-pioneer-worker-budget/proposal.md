@@ -15,6 +15,8 @@ Pioneer 워커는 URLScheduler consumer로서 Dequeue 루프를 장시간 돌리
 
 **의존**: 본 change는 `pioneer-scheduler-consumer`(이미 아카이브됨)가 신설한 베이스라인 `pioneer` capability를 전제로 하며, 해당 capability의 기존 요구사항에 work budget 관련 Requirement 추가 및 메인 루프 Requirement 수정(MODIFIED) 을 적용한다. `harvester-worker-budget`과는 상호 독립적이지만 두 change의 스펙·로그 포맷 일치는 `harvester-worker-budget` 아카이브 시점에 교차 검증한다.
 
+**의존**: 본 change는 `pioneer` capability를 신설하는 `pioneer-scheduler-consumer`가 먼저 아카이브된 뒤에 적용/아카이브된다. 적용 순서가 어긋나면 베이스라인에 `pioneer` capability가 없어 Modified Capabilities 선언이 무효가 된다.
+
 ## Capabilities
 
 ### New Capabilities

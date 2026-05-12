@@ -194,6 +194,14 @@ func (h *HarvesterConsumer) WithMediaValidator(v MediaValidator) *HarvesterConsu
 	return h
 }
 
+// HasMediaValidator reports whether a MediaValidator has been installed on the
+// consumer. Used by bootstrap regression tests to assert that production
+// wiring did not silently drop the validator. See
+// fix-harvester-wire-media-validator design.md D2.
+func (h *HarvesterConsumer) HasMediaValidator() bool {
+	return h.validator != nil
+}
+
 // WithValidationMetrics installs a metrics sink for the validator and
 // classifier signals (tasks.md §5). nil disables collection.
 func (h *HarvesterConsumer) WithValidationMetrics(m *MediaValidationMetrics) *HarvesterConsumer {

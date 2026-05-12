@@ -1,0 +1,396 @@
+<!DOCTYPE html><html lang="ja"><head><title>pixiv - 媒体資料ダウンロード・広告掲載について</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/favicon20250122.ico" type="image/vnd.microsoft.icon"><style>
+body {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    font-family: "Helvetica Neue","arial","Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+}
+
+.main-content h1 {font-size: 20px}
+.main-content h2 {font-size: 18px}
+.main-content h3 {font-size: 16px}
+.main-content h4 {font-size: 14px}
+</style><style>
+header {
+    border-bottom: solid #d6dee5 1px;
+}
+
+footer {
+    padding: 1em;
+}
+
+footer .content address {
+    float: right;
+}
+
+.logo {
+    height:25px;
+    margin-top:10px;
+    margin-bottom:5px;
+}
+
+@media screen and (min-width: 970px) {
+    .container .content {
+        width: 970px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body {
+        background-color: #e4e7ee;
+    }
+
+    header {
+        background-color: white;
+        margin-bottom: 10px;
+    }
+}
+
+.main-content {
+    box-sizing: border-box;
+    padding: 1em;
+    background-color: white;
+}
+
+@media screen and (min-width: 970px) {
+    .main-content {
+        border-radius: 5px;
+        border: solid #d6dee5 1px;
+    }
+}
+ol.paragraph-item{
+    padding:0 0 0 2em;
+    margin:0;
+}
+
+ol.paragraph-item li{
+    list-style-type:none;
+    list-style-position:inside;
+    counter-increment: cnt;
+}
+.paragraph-item li:before{
+    display: marker;
+    content: "(" counter(cnt) ") ";
+}
+
+</style><style>
+@media screen and (min-width: 970px) {
+    .main-content .terms {
+        padding-left: 10em;
+        padding-right: 10em;
+    }
+}
+</style><style>
+.press-kit-section .button {
+    padding-right: 24px;
+    padding-left: 24px;
+    -webkit-transition: color .2s cubic-bezier(.42,0,.58,1),background-color .2s cubic-bezier(.42,0,.58,1);
+    transition: color .2s cubic-bezier(.42,0,.58,1),background-color .2s cubic-bezier(.42,0,.58,1);
+
+    position: relative;
+    top: 0;
+    left: 0;
+    border: 1px solid #009cff;
+    background: #fff;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+    padding: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: #009cff;
+    width: 208px;
+    margin: 0 auto;
+}
+
+.press-kit-section .button:hover {
+    background-color: #009cff;
+    color: #fff;
+}
+
+.press-kit-section .button:before {
+    content: "＞";
+    position: absolute;
+    top: 50%;
+    right: 4.89297%;
+    font-size: 10px;
+    line-height: 1;
+    vertical-align: middle;
+    width: 10px;
+    height: 10px;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.press-kit-section p img{
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
+.press-kit-section .show-pc {
+    display: none;
+}
+
+.press-kit-section .show-sp {
+    display: block;
+}
+
+@media screen and (min-width: 970px) {
+    .press-kit-section .show-pc {
+        display: block;
+    }
+
+    .press-kit-section .show-sp {
+        display: none;
+    }
+}
+</style><script type="text/javascript" async="" src="https://stats.g.doubleclick.net/dc.js"></script><script>
+    var _gaq = _gaq || [];
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    _gaq.push(['_setAccount', 'UA-1830249-3']);_gaq.push(['_setDomainName', 'pixiv.net']);
+    if (window.pixiv) {
+        if (pixiv.user && pixiv.user.loggedIn) {
+            _gaq.push(['_setCustomVar', 1, 'login', 'yes', 3]);
+            _gaq.push(['_setCustomVar', 3, 'plan', pixiv.user.premium ? 'premium' : 'normal', 1]);
+            _gaq.push(['_setCustomVar', 5, 'gender', pixiv.user.gender, 1]);
+            _gaq.push(['_setCustomVar', 6, 'user_id', pixiv.user.id, 1]);
+            _gaq.push(['_setCustomVar', 12, 'illustup_flg', pixiv.user.illustup_flg ? 'uploaded' : 'not_uploaded', 3]);
+            _gaq.push(['_setCustomVar', 13, 'user_id_per_pv', pixiv.user.id, 3]);
+        } else {
+            _gaq.push(['_setCustomVar', 1, 'login', 'no', 3]);
+        }
+
+        _gaq.push(['_setCustomVar', 25, 'first_visit_datetime_pc', "2026-04-16 12:16:33", 3]);
+
+        (function() {
+            // クッキーあれば、一回でもログインした人とみなす
+            if (pixiv.user && window.colon && colon.storage) {
+                var cookie_name = 'login_ever';
+
+                if (colon.storage.cookie(cookie_name)) {// 一度でもログインしたことある
+                    _gaq.push(['_setCustomVar', 2, 'login ever', 'yes', 1]);
+
+                } else if (pixiv.user.loggedIn) { // ログインしてる
+                    colon.storage.cookie(cookie_name, 'yes', {
+                        expires: 1000 * 60 * 60 * 24 * 365 * 5, // 5 years
+                        domain: location.hostname
+                    });
+                    _gaq.push(['_setCustomVar', 2, 'login ever', 'yes', 1]);
+
+                } else { // ログインしたこと無いし、ログインしてもない
+                    _gaq.push(['_setCustomVar', 2, 'login ever', 'no', 1]);
+                }
+
+                
+                var p_ab_id = colon.storage.cookie('p_ab_id');
+                var p_ab_id_2 = colon.storage.cookie('p_ab_id_2');
+                _gaq.push(['_setCustomVar', 9, 'p_ab_id', p_ab_id, 1]);
+                _gaq.push(['_setCustomVar', 10, 'p_ab_id_2', p_ab_id_2, 1]);
+
+                var p_ab_d_id = colon.storage.cookie('p_ab_d_id');
+                _gaq.push(['_setCustomVar', 27, 'p_ab_d_id', p_ab_d_id, 3]);
+            }
+        } ())
+
+        _gaq.push(['_setCustomVar', 11, 'lang', "ja", 1]);
+    }
+    _gaq.push(['_setCustomVar', 29, 'default_service_is_touch', 'no', 3]);
+        _gaq.push(['_setSiteSpeedSampleRate', 20]);
+    _gaq.push(['_trackPageview']);</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=AW-996000095"></script><script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-996000095');
+    </script></head><body><header class="container"><div class="content"><a href="/"><img class="logo" src="https://s.pximg.net/www/images/brand_terms20250128.svg"></a></div></header><section class="container"><div class="content main-content"><style type="text/css">
+body {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+}
+.status {
+    background-color: #7bc831;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    color: #fff;
+}
+.status.error {
+    background-color: #fb254f;
+    display: block;
+    text-decoration: none;
+    color: #fff;
+}
+h1 {
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 16px;
+    font-weight: bold;
+}
+h2 {
+    margin: 40px 0 20px;
+    font-size: 20px;
+    color: #000;
+}
+.images {
+    text-align: center;
+}
+.images img {
+    max-width: 100%;
+}
+#device-images img {
+    width: 450px;
+}
+#demog-images img {
+    width: 310px;
+}
+.download-links {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0 -12px;
+}
+.download-links a {
+    order: 10;
+    width: 100%;
+    padding: 34px;
+    box-sizing: border-box;
+    vertical-align: top;
+    background-color: #f1f6f8;
+    border: solid 12px #fff;
+    min-height: 220px;
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.6);
+}
+.download-links a:hover {
+    background-color: #e1e6e8;
+}
+.download-links .title {
+    display: block;
+    font-weight: bold;
+    color: #009cff;
+    font-size: 20px;
+    margin-bottom: 24px;
+}
+@media screen and (min-width: 600px) {
+    .download-links a {
+        width: 50%;
+    }
+}
+
+form {
+    margin: 0 auto;
+}
+form label {
+    display: block;
+    margin: 10px 0;
+    padding-top: 40px;
+    position: relative;
+}
+
+label.mandatory::before {
+    content: '*';
+    position: absolute;
+    color: #fb254f;
+    font-size: 24px;
+    font-weight: bold;
+    right: 100%;
+    top: 9px;
+    padding-right: 5px;
+}
+label.mandatory input:placeholder-shown,
+label.mandatory textarea:placeholder-shown {
+    background-color: rgba(255, 67, 38, 0.1);
+}
+label.missing::after {
+    content: '入力必須です。';
+    color: #fb254f;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+    display: inline-block;
+}
+label span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    line-height: 40px;
+    color: #2c333c;
+    font-weight: bold;
+}
+input[type=text], textarea {
+    width: 100%;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    line-height: 20px;
+    padding: 8px;
+    box-sizing: border-box;
+    border: none;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+}
+textarea {
+    height: 320px;
+}
+@media screen and (min-width: 720px) {
+    form {
+        width: 720px;
+    }
+    label span {
+        width: 260px;
+    }
+    form label {
+        padding-left: 260px;
+        padding-top: 0;
+    }
+}
+
+hr {
+    border: solid 1px #eee;
+    border-width: 1px 0 0 0;
+    margin: 30px 0;
+}
+
+input[type=submit] {
+    height: 40px;
+    line-height: 40px;
+    color: #fff;
+    background-color: #009cff;
+    border-radius: 4px;
+    padding: 0 20px;
+    border: none;
+    margin: 40px 0;
+    font-size: 14px;
+}
+.disclaimer {
+    text-align: center;
+}
+.captcha {
+    margin: 30px 0 0;
+    display: flex;
+    justify-content: center;
+}
+input::placeholder,
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.recruit {
+    margin: 40px 10px;
+    text-align: center;
+}
+.recruit img {
+    max-width: 100%;
+}
+</style><h1>広告掲載について</h1><h2>pixivについて</h2><p>月間利用者数のべ4000万人を超える創作活動（イラスト・漫画・小説）を中心としたSNSです。</p><p>創作活動に興味のあるユーザーが世界中から集まっており、1日に約3万人が新規登録しています。</p><div class="images" id="device-images"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-device-1.jpg"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-device-2.jpg"></div><h2>pixivのユーザー属性</h2><div class="images" id="demog-images"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-demog-1.jpg"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-demog-2.jpg"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-demog-3.jpg"></div><h2>資料ダウンロード</h2><p>各資料のダウンロードはこちらから</p><div class="download-links"><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=js&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=3674&amp;zone_id=click"><div class="title">pixiv Business Guide</div>pixivの月間PV・UU、ユーザー属性など、媒体の基本情報に関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=js&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=3675&amp;zone_id=click"><div class="title">pixiv広告資料</div>pixiv、および関連サービス（pixivコミック・ピクシブ百科事典）の広告枠に関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=js&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=3676&amp;zone_id=click"><div class="title">pixivイラストコンテストタイアップ資料</div>pixivでのイラストコンテストタイアップに関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=html&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=17770&amp;zone_id=click"><div class="title">pixivイラストコンテストタイアップ資料(ゲーム系)</div>ゲーム系クライアント様向けイラストコンテストタイアップに関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=html&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=16283&amp;zone_id=click"><div class="title">pixiv Sketchイラストコンテストタイアップ資料</div>pixiv Sketchでのイラストコンテストタイアップに関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=js&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=3677&amp;zone_id=click"><div class="title">pixivision 記事タイアップ資料</div>pixivisionでの記事タイアップに関する資料です。</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=html&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=23414&amp;zone_id=click"><div class="title">[English ver.] pixiv Business Guide</div>pixiv's monthly PV/UU. Includes data on user demographics and basic media information.</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=html&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=27473&amp;zone_id=click"><div class="title">[English ver.] pixiv Advertising Guide</div>Learn about advertising spaces on pixiv.</a><a target="_blank" rel="noopener" href="https://pixon.ads-pixiv.net/click?format=html&amp;ad_group_id=2270&amp;campaign_id=182&amp;creative_id=27474&amp;zone_id=click"><div class="title">[English ver.] [For Game Clients] pixiv Illustration Contest Tie-In Guide</div>Learn more about tie-in illustration contests for video game-related clients.</a></div><h2>ピクシブの運用型広告について</h2><p><a target="_blank" rel="noopener" href="https://ads.pixiv.net/lp"><img src="https://s.pximg.net/www/images/corporate/corporate-ad-pixiv-ads.png" width="456" alt="pixiv Ads 特設サイト"></a></p><p>pixiv Adsへの出稿や詳細については、<a target="_blank" rel="noopener" href="https://ads.pixiv.net/lp">pixiv Ads特設サイト</a>をご覧ください。</p><h2>広告出稿・公式イラストコンテストに関するお問い合わせ</h2><p>pixivへの広告出稿・公式イラストコンテストにご興味をお持ちいただき、誠にありがとうございます。</p><p>必要事項を記入の上、お問い合わせをお願いします。</p><p>なお、本お問い合わせは法人様に限定させていただいておりますので、予めご了承ください。</p><form id="mail-form" method="POST"><input type="hidden" name="tt" value="8b29dad234fcf6e12cd843f60294d683"><input type="hidden" name="mode" value="send"><label class="mandatory "><span>会社名</span><input type="text" name="company_name" placeholder="ピクシブ株式会社" value=""></label><label><span>サイトのURL</span><input type="text" name="site_url" placeholder="https://www.example.co.jp" value=""></label><label><span>プロモーション予定のページURL</span><input type="text" name="promotion_url" placeholder="https://www.example.co.jp/promotion" value=""></label><label class="mandatory "><span>担当者お名前</span><input type="text" name="representative_name" placeholder="ピクシブたろう" value=""></label><label class="mandatory "><span>メールアドレス</span><input type="text" name="mail_address" placeholder="email@example.co.jp" value=""></label><label class="mandatory "><span>電話番号</span><input type="text" name="phone_number" placeholder="0312345678" value=""></label><label class="mandatory "><span>お問い合わせ内容</span><textarea name="message" placeholder="お問い合わせ内容をご記入ください。"></textarea></label><hr><div class="disclaimer">内容ご確認の上、よろしければ「メッセージを送信する」をクリックして下さい。<br><a href="https://www.pixiv.net/">pixiv</a>のご利用方法等に関しては <a href="https://www.pixiv.net/support">こちら</a> よりお問い合わせください。<br><div class="captcha"><script src="https://www.recaptcha.net/recaptcha/enterprise.js" async="" defer=""></script>
+<div class="g-recaptcha" data-sitekey="6LejidcZAAAAAE0-BHUjuY_1yIR478OolN4akKyy"></div></div><input type="submit" value="メッセージを送信する"></div></form></div></section><footer class="container"><div class="content"><a href="https://www.pixiv.co.jp/">運営会社</a>｜<a href="https://policies.pixiv.net/ja/privacy_policy.html">プライバシーポリシー</a><address>© pixiv</address></div></footer><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ed0082c3cafeaa2',t:'MTc3NjMwOTM5Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe></body></html>
