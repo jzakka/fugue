@@ -5,14 +5,14 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester \
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop migrate test show-map pioneer harvester \
 	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph \
 	ensure-infra crawl-status
 
 # ============================================================
 # 한 방에 전부 띄우기
 # ============================================================
-dev: dev-kill dev-infra migrate seed dev-api dev-web
+dev: dev-kill dev-infra migrate dev-api dev-web
 	@echo ""
 	@echo "🐡 Fugue is running!"
 	@echo "   Frontend: http://localhost:3000"
@@ -55,12 +55,6 @@ migrate:
 	if [ $$EXIT -ne 0 ]; then \
 		echo "❌ Migration failed (exit $$EXIT). Check database connection and migration files."; exit 1; \
 	fi
-
-seed:
-	@echo "🌱 Seeding tags..."
-	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed_tags.sql > /dev/null
-	@echo "🌱 Seeding data..."
-	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed.sql > /dev/null
 
 # ============================================================
 # Go API 서버 (백그라운드)
@@ -113,7 +107,7 @@ show-map:
 # ============================================================
 # 크롤러 부트스트랩 (Pioneer/Harvester 가 자동으로 호출)
 # - localhost:5432 에 Postgres 가 떠있는지 검사 (워크트리 외부 컨테이너 포함)
-# - 없으면 워크트리 compose 로 dev-infra + migrate + seed
+# - 없으면 워크트리 compose 로 dev-infra + migrate
 # - 있으면 migrate 만 빠르게 멱등 적용 (이미 적용된 것은 no-op)
 # - 마지막으로 bot_sites 시드 적용 (멱등, ON CONFLICT DO NOTHING)
 # ============================================================
@@ -123,7 +117,6 @@ ensure-infra:
 		echo "🐘 Postgres not running — bootstrapping infrastructure..."; \
 		$(MAKE) --no-print-directory dev-infra; \
 		$(MAKE) --no-print-directory migrate; \
-		$(MAKE) --no-print-directory seed; \
 		PG_CONTAINER=$$(docker ps --filter "publish=5432" --format '{{.Names}}' | head -n1); \
 	else \
 		echo "🐘 Reusing existing Postgres container: $$PG_CONTAINER"; \
