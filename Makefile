@@ -7,7 +7,7 @@ DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
 .PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop migrate test show-map pioneer harvester \
 	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph \
-	ensure-infra crawl-status
+	ensure-infra crawl-status crawl
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -142,6 +142,36 @@ harvester: ensure-infra
 	@echo "🌾 Running Harvester worker (all sites)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
 		HARVESTER_MODE=real GOWORK=off go run ./cmd/bot harvester
+
+# ============================================================
+# 지속 크롤링 — DURATION 동안 Pioneer/Harvester 를 무한 루프로 돌림
+# - 잡 본체는 100건 처리 후 자체 종료(worker budget) → 루프가 즉시 새 잡 시작
+# - DURATION 경과 시 SIGTERM 으로 두 루프 + 자식 워커 모두 종료
+# - DURATION 포맷: 30s / 5m / 1h (BSD/GNU date 차이 회피 위해 직접 초 계산)
+# - 사용: make crawl SITE=<unsplash|fma|pixiv> [DURATION=10m]
+# ============================================================
+DURATION ?= 5m
+
+crawl: ensure-infra
+	@if [ -z "$(SITE)" ]; then echo "Usage: make crawl SITE=<unsplash|fma|pixiv> [DURATION=10m]"; exit 1; fi
+	@echo "🐡 Crawling SITE=$(SITE) for $(DURATION)..."
+	@DUR=$(DURATION); \
+	 case "$$DUR" in \
+	   *s) secs=$${DUR%s} ;; \
+	   *m) secs=$$(( $${DUR%m} * 60 )) ;; \
+	   *h) secs=$$(( $${DUR%h} * 3600 )) ;; \
+	   *)  secs=$$DUR ;; \
+	 esac; \
+	 end=$$(( $$(date +%s) + secs )); \
+	 stop_workers='pkill -TERM -f "bot pioneer" 2>/dev/null; pkill -TERM -f "bot harvester" 2>/dev/null; sleep 2; pkill -KILL -f "bot pioneer" 2>/dev/null; pkill -KILL -f "bot harvester" 2>/dev/null'; \
+	 trap "$$stop_workers" INT TERM EXIT; \
+	 ( while [ $$(date +%s) -lt $$end ]; do $(MAKE) --no-print-directory pioneer   SITE=$(SITE) || true; done ) & \
+	 ( while [ $$(date +%s) -lt $$end ]; do $(MAKE) --no-print-directory harvester             || true; done ) & \
+	 while [ $$(date +%s) -lt $$end ]; do sleep 5; done; \
+	 eval "$$stop_workers"; \
+	 wait 2>/dev/null || true
+	@echo "🛑 Stopped after $(DURATION)."
+	@$(MAKE) --no-print-directory crawl-status
 
 # ============================================================
 # 현재 크롤링 상태 (한 번 보고 종료)
