@@ -176,15 +176,22 @@ func (s *extractScan) walk(n *html.Node, inArticle bool) {
 			return
 		case "img":
 			if src := getAttr(n, "src"); src != "" {
-				cand := MediaCandidate{
-					Type:   "image",
-					URL:    src,
-					Width:  parseIntAttr(getAttr(n, "width")),
-					Height: parseIntAttr(getAttr(n, "height")),
-				}
-				s.mediaImages = append(s.mediaImages, cand)
-				if inArticle && s.firstArticleImage == "" {
-					s.firstArticleImage = src
+				w := parseIntAttr(getAttr(n, "width"))
+				h := parseIntAttr(getAttr(n, "height"))
+				alt := strings.TrimSpace(getAttr(n, "alt"))
+				// Skip UI/button/icon images: only keep <img> that looks like
+				// content. Same gate as image_picker.go buildArticleImgCandidate:
+				// width and height both ≥ 100, OR non-empty alt.
+				if (w >= 100 && h >= 100) || alt != "" {
+					s.mediaImages = append(s.mediaImages, MediaCandidate{
+						Type:   "image",
+						URL:    src,
+						Width:  w,
+						Height: h,
+					})
+					if inArticle && s.firstArticleImage == "" {
+						s.firstArticleImage = src
+					}
 				}
 			}
 		case "video":
