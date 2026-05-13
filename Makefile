@@ -6,7 +6,8 @@ WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
 .PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop seed migrate test show-map pioneer harvester \
-	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph
+	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph \
+	ensure-infra crawl-status
 
 # ============================================================
 # 한 방에 전부 띄우기
@@ -110,19 +111,71 @@ show-map:
 	@echo "   Tip: Use -filter-site=<domain> to show only one site"
 
 # ============================================================
-# Bot Crawlers (Pioneer/Harvester)
+# 크롤러 부트스트랩 (Pioneer/Harvester 가 자동으로 호출)
+# - postgres 컨테이너가 떠있는지 검사 → 없으면 dev-infra + migrate + seed
+# - 떠있으면 migrate 만 빠르게 멱등 적용 (이미 적용된 것은 no-op)
+# - 마지막으로 bot_sites 시드 적용 (멱등, ON CONFLICT DO NOTHING)
 # ============================================================
-pioneer:
-	@if [ -z "$(SITE)" ]; then echo "Usage: make pioneer SITE=<site>"; exit 1; fi
+ensure-infra:
+	@if ! docker-compose ps --services --filter "status=running" 2>/dev/null | grep -q '^postgres$$'; then \
+		echo "🐘 Postgres not running — bootstrapping infrastructure..."; \
+		$(MAKE) --no-print-directory dev-infra; \
+		$(MAKE) --no-print-directory migrate; \
+		$(MAKE) --no-print-directory seed; \
+	else \
+		cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up >/dev/null 2>&1 || true; \
+	fi
+	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 \
+		< $(API_DIR)/db/seed_bot_sites.sql > /dev/null
+	@echo "✅ Infra ready (bot_sites seeded)"
+
+# ============================================================
+# Bot Crawlers (Pioneer/Harvester)
+# - 인프라가 안 떠있으면 ensure-infra 가 알아서 띄움
+# - Pioneer 는 SITE 별칭 필수 (unsplash | fma | pixiv)
+# - Harvester 는 모든 사이트의 URL을 한 워커가 우선순위 순으로 소비
+# ============================================================
+pioneer: ensure-infra
+	@if [ -z "$(SITE)" ]; then echo "Usage: make pioneer SITE=<unsplash|fma|pixiv>"; exit 1; fi
 	@echo "🔍 Running Pioneer for $(SITE)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
-		go run cmd/bot/main.go pioneer $(SITE)
+		go run ./cmd/bot pioneer $(SITE)
 
-harvester:
-	@if [ -z "$(SITE)" ]; then echo "Usage: make harvester SITE=<site>"; exit 1; fi
-	@echo "🌾 Running Harvester for $(SITE)..."
+harvester: ensure-infra
+	@echo "🌾 Running Harvester worker (all sites)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
-		HARVESTER_MODE=real go run cmd/bot/main.go harvester $(SITE)
+		HARVESTER_MODE=real go run ./cmd/bot harvester
+
+# ============================================================
+# 현재 크롤링 상태 (한 번 보고 종료)
+# - 큐별 pending / done / dead 카운트
+# - 누적 봇 Pin 수 + 최근 생성된 Pin 5개
+# ============================================================
+crawl-status:
+	@echo ""
+	@echo "🐡 Crawl Status"
+	@echo "═══════════════════════════════════════════════════════════════"
+	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+SELECT 'pioneer'   AS queue, \
+       COUNT(*) FILTER (WHERE fetched_at IS NULL AND fetch_error_count < 5) AS pending, \
+       COUNT(*) FILTER (WHERE fetched_at IS NOT NULL)                       AS done, \
+       COUNT(*) FILTER (WHERE fetch_error_count >= 5)                       AS dead \
+  FROM pioneer_frontier \
+UNION ALL \
+SELECT 'harvester', \
+       COUNT(*) FILTER (WHERE harvested_at IS NULL AND harvest_error_count < 5), \
+       COUNT(*) FILTER (WHERE harvested_at IS NOT NULL), \
+       COUNT(*) FILTER (WHERE harvest_error_count >= 5) \
+  FROM harvester_frontier;"
+	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+SELECT COUNT(*) AS bot_pins, MAX(created_at) AS last_pin_at \
+  FROM pins \
+ WHERE creator_id = (SELECT id FROM creators WHERE nickname='fuguebot' LIMIT 1);"
+	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+SELECT LEFT(id::text, 8) AS id, LEFT(title, 40) AS title, media_type, created_at \
+  FROM pins \
+ WHERE creator_id = (SELECT id FROM creators WHERE nickname='fuguebot' LIMIT 1) \
+ ORDER BY created_at DESC LIMIT 5;"
 
 # ============================================================
 # DB 마이그레이션 (개별 제어)

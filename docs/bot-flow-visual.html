@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fugue Bot — Pioneer · Harvester · Scheduler 동작 흐름</title>
+<style>
+  :root {
+    --bg: #0C0C0C;
+    --surface: #161616;
+    --surface-el: #1E1E1E;
+    --surface-hi: #232323;
+    --border: #2A2A2A;
+    --border-strong: #3A3A3A;
+    --accent: #E85A2A;
+    --accent-hover: #FF6B3D;
+    --accent-subtle: rgba(232, 90, 42, 0.12);
+    --text: #E8E8E8;
+    --text-muted: #888888;
+    --text-dim: #555555;
+    --success: #34C759;
+    --warning: #FFB800;
+    --info: #5AC8FA;
+    --pioneer: #5AC8FA;
+    --harvester: #34C759;
+    --scheduler: #E85A2A;
+    --storage: #B98AFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.7;
+    padding: 56px 24px 96px;
+    max-width: 1240px;
+    margin: 0 auto;
+    font-size: 15px;
+  }
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  h1 .accent { color: var(--accent); }
+  .lede {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 48px;
+    max-width: 780px;
+  }
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 64px 0 20px;
+    letter-spacing: -0.01em;
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; color: var(--text); }
+  p.muted { color: var(--text-muted); }
+  code {
+    font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+    background: var(--surface-el);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--accent-hover);
+    border: 1px solid var(--border);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 24px 0 8px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* Stage diagrams */
+  .stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .stage-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stage-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .stage-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .stage-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Pipeline (vertical step flow) */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .step {
+    position: relative;
+    padding: 14px 18px 14px 56px;
+    background: var(--surface-el);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 30px;
+    bottom: -10px;
+    width: 2px;
+    height: 10px;
+    background: var(--border-strong);
+    z-index: 1;
+  }
+  .step-num {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-hi);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .step-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .step-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .step.success .step-num { color: var(--success); border-color: var(--success); }
+  .step.fail .step-num { color: var(--warning); border-color: var(--warning); }
+  .step.scheduler .step-num { color: var(--scheduler); border-color: var(--scheduler); }
+
+  /* Big architecture grid */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 18px;
+    align-items: stretch;
+    margin: 24px 0;
+  }
+  .arch-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+  }
+  .arch-col.pioneer { border-top: 3px solid var(--pioneer); }
+  .arch-col.scheduler { border-top: 3px solid var(--scheduler); }
+  .arch-col.harvester { border-top: 3px solid var(--harvester); }
+  .arch-col h4 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .arch-col .role {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .arch-col ul {
+    list-style: none;
+    padding: 0;
+  }
+  .arch-col li {
+    padding: 8px 10px;
+    background: var(--surface-el);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .arch-col li .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .tag.read { background: rgba(90,200,250,0.18); color: var(--info); }
+  .tag.write { background: rgba(232,90,42,0.18); color: var(--accent-hover); }
+  .tag.fanout { background: rgba(185,138,255,0.18); color: var(--storage); }
+
+  /* Big horizontal flow */
+  .big-flow {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr 60px 1fr;
+    gap: 0;
+    align-items: center;
+    margin: 32px 0;
+  }
+  .flow-box {
+    background: var(--surface-el);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 160px;
+    text-align: center;
+  }
+  .flow-box.pioneer { border: 1px solid rgba(90,200,250,0.4); background: linear-gradient(180deg, rgba(90,200,250,0.06), transparent); }
+  .flow-box.scheduler { border: 1px solid rgba(232,90,42,0.4); background: linear-gradient(180deg, rgba(232,90,42,0.06), transparent); }
+  .flow-box.harvester { border: 1px solid rgba(52,199,89,0.4); background: linear-gradient(180deg, rgba(52,199,89,0.06), transparent); }
+  .flow-box-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .flow-box-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .flow-box-actions {
+    font-size: 12px;
+    color: var(--text);
+    text-align: left;
+    line-height: 1.65;
+  }
+  .flow-box-actions span {
+    display: block;
+    padding: 4px 0;
+  }
+  .arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 24px;
+    position: relative;
+  }
+  .arrow-label {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .arrow-label.bottom {
+    top: auto;
+    bottom: -28px;
+  }
+
+  /* Two-queue diagram */
+  .queue-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+  .queue-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .queue-row:last-child { margin-bottom: 0; }
+  .actor {
+    text-align: center;
+    padding: 18px;
+    border-radius: 10px;
+    background: var(--surface-el);
+    border: 1px solid var(--border);
+  }
+  .actor.pioneer { border-color: rgba(90,200,250,0.4); }
+  .actor.harvester { border-color: rgba(52,199,89,0.4); }
+  .actor-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .actor-role {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .queue-pipe {
+    background: var(--surface-el);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 14px 18px;
+    position: relative;
+    text-align: center;
+  }
+  .queue-pipe.pioneer-q { border-color: rgba(90,200,250,0.5); }
+  .queue-pipe.harvester-q { border-color: rgba(52,199,89,0.5); }
+  .queue-pipe-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .queue-pipe-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .queue-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 18px;
+  }
+  .queue-arrow.left { left: -16px; }
+  .queue-arrow.right { right: -16px; }
+
+  /* Failure table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface-el);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.kind {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-hover);
+    font-weight: 600;
+  }
+  td.action {
+    color: var(--text);
+  }
+
+  /* Callout */
+  .callout {
+    background: var(--accent-subtle);
+    border: 1px solid rgba(232,90,42,0.3);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+  }
+  .callout .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .callout p {
+    font-size: 13px;
+    margin: 0;
+    color: var(--text);
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .arch-grid { grid-template-columns: 1fr; }
+    .big-flow { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); padding: 12px 0; }
+    .queue-row { grid-template-columns: 1fr; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<h1><span class="accent">Pioneer · Harvester · Scheduler</span> 동작 흐름</h1>
+<p class="lede">
+  Fugue의 콘텐츠 크롤러는 세 개의 독립된 역할로 분리되어 있습니다.
+  외부 사이트를 탐색하는 <strong>탐색자(Pioneer)</strong>, 콘텐츠를 추출해 Pin으로 적재하는 <strong>수확자(Harvester)</strong>,
+  그리고 두 일꾼이 다룰 URL의 순서·재시도·속도를 책임지는 <strong>스케줄러(Scheduler)</strong>입니다.
+  세 모듈은 직접 호출하지 않고 두 개의 URL 큐(<code>pioneer_frontier</code> / <code>harvester_frontier</code>)를 통해서만 이어집니다.
+</p>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background: var(--pioneer);"></span>탐색자 (Pioneer)</div>
+  <div class="legend-item"><span class="legend-dot" style="background: var(--scheduler);"></span>스케줄러 (Scheduler / URL 큐)</div>
+  <div class="legend-item"><span class="legend-dot" style="background: var(--harvester);"></span>수확자 (Harvester)</div>
+  <div class="legend-item"><span class="legend-dot" style="background: var(--storage);"></span>스냅샷 저장소 (S3)</div>
+</div>
+
+<h2>1. 전체 구도 — 두 일꾼, 두 큐</h2>
+
+<p>
+  스케줄러는 단순히 "다음에 처리할 URL을 꺼내주는 곳"이 아니라, <strong>큐 자체와 그 큐의 규약을 함께 책임지는 경계</strong>입니다.
+  탐색자와 수확자는 자기 메모리에 어떤 큐도 보관하지 않고, 매 사이클 스케줄러에게 "한 건 줘"라고 요청해서 받은 한 건만 처리합니다.
+</p>
+
+<div class="big-flow">
+  <div class="flow-box pioneer">
+    <div class="flow-box-title">탐색자 (Pioneer)</div>
+    <div class="flow-box-sub">사이트 구조 탐사 워커</div>
+    <div class="flow-box-actions">
+      <span>· 한 URL을 받아 페이지 가져오기</span>
+      <span>· 새로 발견한 링크들 큐에 추가</span>
+      <span>· 본문 스냅샷을 저장소에 보관</span>
+      <span>· 같은 URL을 수확자 큐로 넘김</span>
+    </div>
+  </div>
+  <div class="arrow">
+    <span class="arrow-label">URL · 결과 보고</span>
+    ⟷
+  </div>
+  <div class="flow-box scheduler">
+    <div class="flow-box-title">스케줄러 (URL 큐 경계)</div>
+    <div class="flow-box-sub">Postgres 기반 frontier 테이블 2종</div>
+    <div class="flow-box-actions">
+      <span>· 다음에 처리할 URL을 한 건씩 분배</span>
+      <span>· 같은 URL을 두 워커가 동시에 잡지 않도록 잠금</span>
+      <span>· 호스트별 요청 속도 제한 적용</span>
+      <span>· 실패 시 다음 재시도 시각 계산 · 보관</span>
+      <span>· 5회 실패하면 더 이상 꺼내지 않음 (dead)</span>
+    </div>
+  </div>
+  <div class="arrow">
+    <span class="arrow-label">URL · 결과 보고</span>
+    ⟷
+  </div>
+  <div class="flow-box harvester">
+    <div class="flow-box-title">수확자 (Harvester)</div>
+    <div class="flow-box-sub">콘텐츠 추출 워커</div>
+    <div class="flow-box-actions">
+      <span>· 스냅샷에서 본문 우선 가져오기</span>
+      <span>· 없으면 실시간 HTTP 재요청 (fallback)</span>
+      <span>· 제목 · 미디어 · 태그 추출</span>
+      <span>· 유효한 미디어만 Pin으로 적재</span>
+    </div>
+  </div>
+</div>
+
+<div class="callout">
+  <div class="label">핵심 원칙</div>
+  <p>
+    탐색자와 수확자는 <strong>서로의 존재를 모릅니다</strong>. 둘은 같은 코드를 공유하지 않고, 같은 메모리도 공유하지 않습니다.
+    오직 스케줄러가 들고 있는 두 개의 큐를 통해서만 일감이 흘러갑니다.
+    덕분에 한쪽 워커가 죽거나 늘어나도 다른 쪽에는 영향이 없고, 같은 종류의 워커를 여러 개 띄워도 큐가 알아서 분배합니다.
+  </p>
+</div>
+
+<h2>2. 역할 분담</h2>
+
+<div class="arch-grid">
+  <div class="arch-col pioneer">
+    <h4 style="color: var(--pioneer);">탐색자 (Pioneer)</h4>
+    <div class="role">사이트 지도를 그리는 일꾼</div>
+    <ul>
+      <li><span class="tag read">읽기</span>탐색자 큐에서 URL 한 건 받기</li>
+      <li><span class="tag read">읽기</span>해당 페이지를 실제로 다운로드</li>
+      <li><span class="tag fanout">보관</span>받은 본문을 스냅샷 저장소에 업로드</li>
+      <li><span class="tag write">쓰기</span>본문에서 찾은 새 링크를 탐색자 큐에 추가</li>
+      <li><span class="tag write">쓰기</span>원래 URL을 수확자 큐로 전달 (스냅샷 위치 함께)</li>
+      <li><span class="tag write">쓰기</span>스케줄러에 "이 URL 처리 끝났다" 보고</li>
+    </ul>
+  </div>
+  <div class="arch-col scheduler">
+    <h4 style="color: var(--scheduler);">스케줄러 (URL 큐)</h4>
+    <div class="role">일감 분배 · 재시도 · 속도 제어</div>
+    <ul>
+      <li><span class="tag read">분배</span>큐에서 가장 우선순위 높은 URL 한 건 잠그고 반환</li>
+      <li><span class="tag read">분배</span>같은 호스트로의 요청은 초당 1건으로 제한</li>
+      <li><span class="tag write">기록</span>처리 중 표시 — 10분간 다른 워커가 못 꺼냄</li>
+      <li><span class="tag write">기록</span>성공 보고 받으면 큐에서 제외</li>
+      <li><span class="tag write">기록</span>실패 종류별로 다음 재시도 시각 계산</li>
+      <li><span class="tag write">기록</span>5번 연속 실패하면 영구 제외 (dead)</li>
+    </ul>
+  </div>
+  <div class="arch-col harvester">
+    <h4 style="color: var(--harvester);">수확자 (Harvester)</h4>
+    <div class="role">콘텐츠를 Pin으로 만드는 일꾼</div>
+    <ul>
+      <li><span class="tag read">읽기</span>수확자 큐에서 URL 한 건 받기</li>
+      <li><span class="tag read">읽기</span>스냅샷 저장소에서 본문 먼저 시도</li>
+      <li><span class="tag read">읽기</span>스냅샷이 없으면 실시간 HTTP로 재요청</li>
+      <li><span class="tag fanout">처리</span>본문에서 제목 · 미디어 · 태그 뽑기</li>
+      <li><span class="tag fanout">처리</span>이미지 · 동영상이 실제 유효한지 검증</li>
+      <li><span class="tag write">쓰기</span>유효하면 Pin 생성 (또는 중복으로 건너뛰기)</li>
+      <li><span class="tag write">쓰기</span>스케줄러에 "이 URL 처리 끝났다" 보고</li>
+    </ul>
+  </div>
+</div>
+
+<h2>3. URL 한 건이 흘러가는 길</h2>
+
+<p>
+  하나의 URL이 새로 발견되어 최종적으로 Pin이 되기까지의 시퀀스입니다.
+  세 모듈이 어떻게 한 번씩 손을 댔다 놓는지를 보여줍니다.
+</p>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-icon" style="background: rgba(90,200,250,0.2); color: var(--pioneer);">P</div>
+    <div>
+      <div class="stage-title">탐색자가 한 URL을 처리하는 사이클</div>
+      <div class="stage-sub">한 워커는 100건을 처리한 뒤 종료하고, 운영자가 다시 띄웁니다.</div>
+    </div>
+  </div>
+  <div class="pipeline">
+    <div class="step scheduler">
+      <div class="step-num">1</div>
+      <div class="step-title">스케줄러에 "탐색용 URL 한 건 줘" 요청</div>
+      <div class="step-desc">큐가 비어 있으면 1초 후 다시 시도. 호스트별 속도 제한에 걸리면 다른 호스트의 URL을 우선 분배.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">받은 URL의 페이지를 실제로 다운로드</div>
+      <div class="step-desc">10초 타임아웃, 최대 5MB, 리다이렉트 5번까지 허용.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">받은 본문을 그대로 스냅샷 저장소에 업로드</div>
+      <div class="step-desc">키 패턴은 "URL 해시 + UTC 날짜". gzip 압축하여 보관. 같은 날 다시 받으면 덮어씀.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-title">본문에서 발견한 새 링크를 탐색자 큐에 추가</div>
+      <div class="step-desc">같은 사이트 · 허용 규칙을 통과한 링크만. 이미 큐에 있는 링크는 자동으로 무시됨.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-title">원래 URL을 수확자 큐로 넘김 (스냅샷 위치 동봉)</div>
+      <div class="step-desc">수확자는 이 정보 덕에 같은 페이지를 다시 다운로드하지 않고 저장된 본문을 재사용할 수 있음.</div>
+    </div>
+    <div class="step success">
+      <div class="step-num">6</div>
+      <div class="step-title">스케줄러에 "이 URL은 fetched 완료" 보고</div>
+      <div class="step-desc">스케줄러는 이 URL의 실패 카운터를 0으로 리셋하고 큐의 활성 목록에서 제외.</div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-icon" style="background: rgba(52,199,89,0.2); color: var(--harvester);">H</div>
+    <div>
+      <div class="stage-title">수확자가 한 URL을 처리하는 사이클</div>
+      <div class="stage-sub">탐색자가 넘긴 URL을 받아 실제 Pin으로 만드는 단계.</div>
+    </div>
+  </div>
+  <div class="pipeline">
+    <div class="step scheduler">
+      <div class="step-num">1</div>
+      <div class="step-title">스케줄러에 "수확용 URL 한 건 줘" 요청</div>
+      <div class="step-desc">탐색자 큐와는 다른 별도 큐에서 꺼냄. 두 큐는 서로 독립적으로 우선순위가 매겨짐.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">먼저 스냅샷 저장소에서 본문을 찾음</div>
+      <div class="step-desc">탐색자가 같은 날 저장해 둔 본문이 있으면 이걸 사용 → 외부 사이트에 부담 없음.</div>
+    </div>
+    <div class="step fail">
+      <div class="step-num">2a</div>
+      <div class="step-title">스냅샷이 없거나 손상됐으면 실시간 HTTP로 재요청</div>
+      <div class="step-desc">이 경우의 실패 사유는 스케줄러에 노출되지 않음 — "스냅샷 미스"는 운영 로그에만 남음.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">사이트별 어댑터 또는 범용 추출기로 콘텐츠 뽑기</div>
+      <div class="step-desc">제목, 본문, 썸네일, 미디어 후보(이미지/오디오/비디오), OG 메타데이터 등.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-title">미디어 후보가 진짜로 유효한지 검증</div>
+      <div class="step-desc">1×1 placeholder 이미지, 너무 짧은 비디오 등은 걸러냄. 살아남은 후보로 Pin 적격성을 판정.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-title">적격하면 Pin 생성 (혹은 이미 있으면 중복 처리)</div>
+      <div class="step-desc">미디어 파일은 S3에 업로드, 메타데이터는 DB에 저장, 태그 자동 매칭.</div>
+    </div>
+    <div class="step success">
+      <div class="step-num">6</div>
+      <div class="step-title">스케줄러에 "이 URL은 harvested 완료, 생성된 Pin 목록 첨부" 보고</div>
+      <div class="step-desc">한 트랜잭션 안에서 큐 상태 갱신 + URL↔Pin 연결 테이블 기록이 함께 이루어짐.</div>
+    </div>
+  </div>
+</div>
+
+<h2>4. 두 큐 사이의 fanout</h2>
+
+<p>
+  같은 URL을 두 번 다루는 것이 아닙니다. 탐색자는 자기가 처리한 URL을 <strong>다른 큐로 넘겨</strong> 수확자가 이어받게 합니다.
+  이걸 fanout이라고 부릅니다.
+</p>
+
+<div class="queue-diagram">
+  <div class="queue-row">
+    <div class="actor pioneer">
+      <div class="actor-name">탐색자 워커</div>
+      <div class="actor-role">N개 인스턴스</div>
+    </div>
+    <div class="queue-pipe pioneer-q">
+      <span class="queue-arrow left">→</span>
+      <div class="queue-pipe-name">pioneer_frontier</div>
+      <div class="queue-pipe-desc">탐색 대기 URL · 우선순위 높은 순으로 분배</div>
+      <span class="queue-arrow right">→</span>
+    </div>
+    <div class="actor pioneer">
+      <div class="actor-name">탐색자 워커</div>
+      <div class="actor-role">같은 큐를 공유</div>
+    </div>
+  </div>
+
+  <div style="text-align:center; padding: 10px 0; color: var(--text-muted); font-size: 13px;">
+    ↓ 탐색 성공 시 같은 URL을 아래 큐로 넘김 (스냅샷 위치와 함께)
+  </div>
+
+  <div class="queue-row">
+    <div class="actor harvester">
+      <div class="actor-name">수확자 워커</div>
+      <div class="actor-role">N개 인스턴스</div>
+    </div>
+    <div class="queue-pipe harvester-q">
+      <span class="queue-arrow left">→</span>
+      <div class="queue-pipe-name">harvester_frontier</div>
+      <div class="queue-pipe-desc">수확 대기 URL · 스냅샷 키 포함</div>
+      <span class="queue-arrow right">→</span>
+    </div>
+    <div class="actor harvester">
+      <div class="actor-name">수확자 워커</div>
+      <div class="actor-role">같은 큐를 공유</div>
+    </div>
+  </div>
+</div>
+
+<p class="muted">
+  탐색자 큐로 들어가는 새 링크는 중복이면 자동으로 무시됩니다. 수확자 큐로 들어갈 때는 "이미 수확 완료된 URL"은 건드리지 않고,
+  아직 처리 전이라면 스냅샷 위치와 다음 시도 시각만 갱신됩니다.
+</p>
+
+<h2>5. 스케줄러가 일감을 나눠주는 방식</h2>
+
+<p>
+  스케줄러는 단순히 "큐에서 하나 빼서 주기"가 아닙니다. 같은 URL이 두 워커에게 동시에 가지 않도록,
+  그리고 외부 사이트가 우리 트래픽 때문에 막히지 않도록 두 가지 규약을 같이 적용합니다.
+</p>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-icon" style="background: rgba(232,90,42,0.2); color: var(--scheduler);">S</div>
+    <div>
+      <div class="stage-title">한 건의 URL을 분배할 때</div>
+      <div class="stage-sub">워커가 "한 건 줘"를 호출했을 때 내부에서 일어나는 일</div>
+    </div>
+  </div>
+  <div class="pipeline">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">우선순위가 높고 재시도 시각이 지난 URL 후보 N개 골라보기</div>
+      <div class="step-desc">DB 안에서 같은 행을 다른 트랜잭션이 들고 있으면 건너뜀 — 동시에 두 워커가 같은 URL을 잡을 수 없음.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">후보별로 호스트 토큰 검사</div>
+      <div class="step-desc">호스트별로 "초당 몇 건까지 허용"을 따져, 토큰이 남은 첫 후보를 선택. 모두 막히면 1초 쉬고 재시도.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">선택된 URL에 10분짜리 처리 중 표시</div>
+      <div class="step-desc">"다음 시도 시각"을 현재 시각 + 10분으로 밀어두기. 워커가 죽어도 10분 뒤 자연히 다른 워커가 다시 잡아감.</div>
+    </div>
+    <div class="step success">
+      <div class="step-num">4</div>
+      <div class="step-title">URL 문자열을 워커에게 반환</div>
+      <div class="step-desc">워커가 이걸 받아 자기 파이프라인을 돌림.</div>
+    </div>
+  </div>
+</div>
+
+<h2>6. 실패와 재시도 정책</h2>
+
+<p>
+  워커가 어떤 이유로 처리에 실패하면, 어떤 종류의 실패인지를 함께 보고합니다.
+  스케줄러는 종류에 따라 다음 시도 시각을 다르게 잡습니다.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>실패 종류</th>
+      <th>예시</th>
+      <th>스케줄러의 대응</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="kind">http_4xx</td>
+      <td>404, 410, 401, 403</td>
+      <td class="action">즉시 실패 카운터 5로 올림 → 다시는 꺼내지 않음 (재시도 불가능한 상태로 판단)</td>
+    </tr>
+    <tr>
+      <td class="kind">http_5xx</td>
+      <td>500, 502, 503</td>
+      <td class="action">카운터 +1, 30초 → 1분 → 2분 → 4분 → 8분 순으로 지수 backoff 후 재시도</td>
+    </tr>
+    <tr>
+      <td class="kind">network</td>
+      <td>DNS 실패, 연결 끊김, 본문 없음</td>
+      <td class="action">위와 동일한 지수 backoff 적용</td>
+    </tr>
+    <tr>
+      <td class="kind">timeout</td>
+      <td>10초 안에 응답 없음, ctx 취소</td>
+      <td class="action">위와 동일한 지수 backoff 적용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="muted">
+  지수 backoff에는 ±10% 무작위 흔들기(jitter)가 더해집니다. 동시에 많은 URL이 같은 시각에 재시도되어 외부 사이트를 다시 두드리는
+  "thundering herd"를 방지하기 위해서입니다. 5번 연속 실패하면 그 URL은 영구 제외(dead)되며,
+  되살리려면 운영자가 직접 DB에서 카운터를 0으로 되돌려야 합니다.
+</p>
+
+<h2>7. 왜 이렇게 갈라놓았나</h2>
+
+<div class="callout">
+  <div class="label">설계 결정 — 큐 분리</div>
+  <p>
+    탐색은 무겁고(전체 사이트 BFS) 자주 안 돌아도 되며, 수확은 가볍고 자주 돌아야 합니다.
+    두 작업의 리듬이 다르므로 같은 큐에 섞으면 한쪽이 다른 쪽을 굶깁니다.
+    그래서 탐색 대기 URL과 수확 대기 URL을 따로 보관하고, 각자의 워커 풀이 자기 큐만 신경 쓰게 했습니다.
+  </p>
+</div>
+
+<div class="callout">
+  <div class="label">설계 결정 — 스냅샷 우선</div>
+  <p>
+    탐색자가 이미 받아온 본문을 수확자가 다시 받지 않도록, 받은 본문을 그대로 객체 저장소에 보관합니다.
+    수확자는 항상 저장소를 먼저 보고, 거기에 없을 때만 실시간 HTTP로 가져옵니다.
+    그 결과 외부 사이트로의 요청 수가 절반 가까이 줄고, 같은 URL의 추출 결과가 시점에 따라 흔들리는 일도 줄어듭니다.
+  </p>
+</div>
+
+<div class="callout">
+  <div class="label">설계 결정 — 메모리에 큐를 두지 않음</div>
+  <p>
+    예전 버전은 탐색자 안에 in-memory BFS 큐를 들고 있어서, 워커가 죽으면 그동안 발견한 링크가 모두 휘발됐습니다.
+    지금은 큐가 Postgres에 있으므로 워커가 죽어도 진행 상태가 그대로 남고, 같은 큐를 여러 워커가 동시에 빨아 쓸 수 있습니다.
+    워커 한 대는 100건만 처리하고 스스로 종료해, 메모리 누수나 누적 상태 문제를 원천적으로 피합니다.
+  </p>
+</div>
+
+<footer>
+  Fugue · Pioneer–Harvester–Scheduler 동작 흐름 · 외부 관측자 관점 정리
+</footer>
+
+</body>
+</html>
