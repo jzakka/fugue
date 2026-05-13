@@ -112,20 +112,24 @@ show-map:
 
 # ============================================================
 # 크롤러 부트스트랩 (Pioneer/Harvester 가 자동으로 호출)
-# - postgres 컨테이너가 떠있는지 검사 → 없으면 dev-infra + migrate + seed
-# - 떠있으면 migrate 만 빠르게 멱등 적용 (이미 적용된 것은 no-op)
+# - localhost:5432 에 Postgres 가 떠있는지 검사 (워크트리 외부 컨테이너 포함)
+# - 없으면 워크트리 compose 로 dev-infra + migrate + seed
+# - 있으면 migrate 만 빠르게 멱등 적용 (이미 적용된 것은 no-op)
 # - 마지막으로 bot_sites 시드 적용 (멱등, ON CONFLICT DO NOTHING)
 # ============================================================
 ensure-infra:
-	@if ! docker-compose ps --services --filter "status=running" 2>/dev/null | grep -q '^postgres$$'; then \
+	@PG_CONTAINER=$$(docker ps --filter "publish=5432" --format '{{.Names}}' | head -n1); \
+	if [ -z "$$PG_CONTAINER" ]; then \
 		echo "🐘 Postgres not running — bootstrapping infrastructure..."; \
 		$(MAKE) --no-print-directory dev-infra; \
 		$(MAKE) --no-print-directory migrate; \
 		$(MAKE) --no-print-directory seed; \
+		PG_CONTAINER=$$(docker ps --filter "publish=5432" --format '{{.Names}}' | head -n1); \
 	else \
-		cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up >/dev/null 2>&1 || true; \
-	fi
-	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 \
+		echo "🐘 Reusing existing Postgres container: $$PG_CONTAINER"; \
+		(cd $(API_DIR) && migrate -path db/migrations -database "$(DB_URL)" up >/dev/null 2>&1 || true); \
+	fi; \
+	docker exec -i $$PG_CONTAINER psql -U fugue -d fugue -v ON_ERROR_STOP=1 \
 		< $(API_DIR)/db/seed_bot_sites.sql > /dev/null
 	@echo "✅ Infra ready (bot_sites seeded)"
 
@@ -139,12 +143,12 @@ pioneer: ensure-infra
 	@if [ -z "$(SITE)" ]; then echo "Usage: make pioneer SITE=<unsplash|fma|pixiv>"; exit 1; fi
 	@echo "🔍 Running Pioneer for $(SITE)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
-		go run ./cmd/bot pioneer $(SITE)
+		GOWORK=off go run ./cmd/bot pioneer $(SITE)
 
 harvester: ensure-infra
 	@echo "🌾 Running Harvester worker (all sites)..."
 	@cd $(API_DIR) && export $$(grep -v '^\#' $$([ -f .env ] && echo .env || echo .env.dev) | xargs) && \
-		HARVESTER_MODE=real go run ./cmd/bot harvester
+		HARVESTER_MODE=real GOWORK=off go run ./cmd/bot harvester
 
 # ============================================================
 # 현재 크롤링 상태 (한 번 보고 종료)
@@ -155,23 +159,25 @@ crawl-status:
 	@echo ""
 	@echo "🐡 Crawl Status"
 	@echo "═══════════════════════════════════════════════════════════════"
-	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+	@PG_CONTAINER=$$(docker ps --filter "publish=5432" --format '{{.Names}}' | head -n1); \
+	if [ -z "$$PG_CONTAINER" ]; then echo "(Postgres not running — run \`make pioneer\` or \`make harvester\` to bootstrap)"; exit 0; fi; \
+	docker exec -i $$PG_CONTAINER psql -U fugue -d fugue -c "\
 SELECT 'pioneer'   AS queue, \
-       COUNT(*) FILTER (WHERE fetched_at IS NULL AND fetch_error_count < 5) AS pending, \
-       COUNT(*) FILTER (WHERE fetched_at IS NOT NULL)                       AS done, \
-       COUNT(*) FILTER (WHERE fetch_error_count >= 5)                       AS dead \
+       COUNT(*) FILTER (WHERE last_fetched_at IS NULL AND fetch_error_count < 5) AS pending, \
+       COUNT(*) FILTER (WHERE last_fetched_at IS NOT NULL)                       AS done, \
+       COUNT(*) FILTER (WHERE fetch_error_count >= 5)                            AS dead \
   FROM pioneer_frontier \
 UNION ALL \
 SELECT 'harvester', \
        COUNT(*) FILTER (WHERE harvested_at IS NULL AND harvest_error_count < 5), \
        COUNT(*) FILTER (WHERE harvested_at IS NOT NULL), \
        COUNT(*) FILTER (WHERE harvest_error_count >= 5) \
-  FROM harvester_frontier;"
-	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+  FROM harvester_frontier;"; \
+	docker exec -i $$PG_CONTAINER psql -U fugue -d fugue -c "\
 SELECT COUNT(*) AS bot_pins, MAX(created_at) AS last_pin_at \
   FROM pins \
- WHERE creator_id = (SELECT id FROM creators WHERE nickname='fuguebot' LIMIT 1);"
-	@docker-compose exec -T postgres psql -U fugue -d fugue -c "\
+ WHERE creator_id = (SELECT id FROM creators WHERE nickname='fuguebot' LIMIT 1);"; \
+	docker exec -i $$PG_CONTAINER psql -U fugue -d fugue -c "\
 SELECT LEFT(id::text, 8) AS id, LEFT(title, 40) AS title, media_type, created_at \
   FROM pins \
  WHERE creator_id = (SELECT id FROM creators WHERE nickname='fuguebot' LIMIT 1) \
