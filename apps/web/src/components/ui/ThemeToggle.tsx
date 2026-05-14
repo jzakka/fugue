@@ -9,6 +9,9 @@ export default function ThemeToggle() {
     const saved = localStorage.getItem("fugue-theme");
     if (saved === "light") {
       document.documentElement.classList.add("light");
+      // Initial state must default to false on SSR to avoid hydration
+      // mismatch; reading localStorage is only safe after mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLight(true);
     }
   }, []);

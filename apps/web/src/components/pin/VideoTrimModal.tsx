@@ -40,6 +40,10 @@ export default function VideoTrimModal({
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
+    // URL.createObjectURL must be paired with revokeObjectURL on cleanup,
+    // which only useEffect can express. The setState here is required to
+    // surface the URL to render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVideoUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);

@@ -168,7 +168,7 @@ func TestExtractor_ReturnsNonNilOnEmptyInput(t *testing.T) {
 
 func TestExtractor_MediaCandidatesCollectsTypes(t *testing.T) {
 	page := `<html><body>
-<img src="https://cdn.example.com/a.jpg">
+<img src="https://cdn.example.com/a.jpg" alt="a">
 <video src="https://cdn.example.com/b.mp4"></video>
 <audio src="https://cdn.example.com/c.mp3"></audio>
 </body></html>`
@@ -189,7 +189,7 @@ func TestExtractor_MediaCandidatesLimit(t *testing.T) {
 	for i := 0; i < 60; i++ {
 		b.WriteString(`<img src="https://cdn.example.com/`)
 		b.WriteString(strings.Repeat("a", i+1))
-		b.WriteString(`.jpg">`)
+		b.WriteString(`.jpg" alt="x">`)
 	}
 	b.WriteString("</body></html>")
 
