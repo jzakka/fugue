@@ -73,8 +73,8 @@ type HarvesterConsumer struct {
 	// forbidden from calling the low-level Fetcher interface directly
 	// (spec "Consumer는 snapshot-first 진입점만 경유하여 fetch를 수행한다"),
 	// so the field type is the entry-point interface, not Fetcher.
-	fetcher  SnapshotFirstFetch
-	registry AdapterRegistry
+	fetcher    SnapshotFirstFetch
+	registry   AdapterRegistry
 	extractor  genericExtractorIface
 	classifier *Classifier
 	pipeline   DocumentPipeline

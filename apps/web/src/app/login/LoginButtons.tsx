@@ -59,7 +59,7 @@ export default function LoginButtons({ redirectTo }: { redirectTo: string }) {
   function handleClick(providerId: string) {
     setLoading(providerId);
     const params = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : "";
-    window.location.href = `/api/auth/${providerId}/login${params}`;
+    window.location.assign(`/api/auth/${providerId}/login${params}`);
   }
 
   return (
