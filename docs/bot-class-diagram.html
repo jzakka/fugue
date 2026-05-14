@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Fugue Bot — Class Diagram (Pioneer / URLScheduler / Harvester)</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a21;
+    --line: #2a3140;
+    --text: #e6e8ee;
+    --muted: #9aa3b2;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, "Apple SD Gothic Neo", sans-serif;
+  }
+  header { padding: 24px 28px 6px; }
+  header h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: 0.2px; }
+  header p  { margin: 0; color: var(--muted); font-size: 13px; }
+  header code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; color: #d2dcef; background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 4px; }
+
+  .legend {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    padding: 8px 28px 18px;
+    font-size: 12px; color: var(--muted);
+  }
+  .legend .chip {
+    padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--panel);
+  }
+
+  .canvas {
+    margin: 0 28px 28px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    overflow: auto;
+  }
+  .mermaid {
+    background: transparent;
+    min-width: 1100px;
+  }
+
+  .footer { margin: 0 28px 32px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fugue Bot — 클래스 다이어그램</h1>
+  <p>
+    <code>apps/api/internal/bot/*.go</code> ·
+    <code>apps/api/internal/scheduler/*.go</code> ·
+    <code>apps/api/internal/bot/snapshot/store.go</code>
+  </p>
+</header>
+
+<div class="legend">
+  <span class="chip">▷ 점선 화살표 = 인터페이스 실현(implements)</span>
+  <span class="chip">→ 실선 화살표 = 의존(uses) / 보유(has-a)</span>
+  <span class="chip">◇ 다이아 = 컴포지션 / 컬렉션</span>
+</div>
+
+<div class="canvas">
+  <pre class="mermaid">
+classDiagram
+  direction LR
+
+  %% ───────────────── Interfaces ─────────────────
+  class URLScheduler {
+    <<interface>>
+    +Enqueue(queueType, urls...) error
+    +EnqueueHarvester(url, snapshotKey) error
+    +Dequeue(queueType) (string, error)
+    +SetStatus(key, status, pinIDs) error
+    +RecordFetchError(key, errorKind) error
+    +RecordHarvestError(key, errorKind) error
+  }
+  class HostRateLimiterIface {
+    <<interface>>
+    +Allow(host) bool
+  }
+  class ConsumerFetcher {
+    <<interface>>
+    +Fetch(ctx, rawURL) (body, finalURL, status, error)
+  }
+  class SnapshotStore {
+    <<interface>>
+    +Put(ctx, normalizedURL, body) error
+  }
+  class SnapshotFirstFetch {
+    <<interface>>
+    +Fetch(ctx, url) (html, kind, error)
+  }
+  class Fetcher {
+    <<interface>>
+    +Fetch(url) (body, error)
+  }
+  class LinkFilter {
+    <<interface>>
+    +Filter(links) []Link
+  }
+  class DocumentPipeline {
+    <<interface>>
+    +ProcessDocument(ctx, node, doc) (created, pinID, error)
+    +MarkSkipped(ctx, node) error
+  }
+  class MediaValidator {
+    <<interface>>
+    +Validate(ctx, url, declaredType) MediaValidationResult
+  }
+  class PerSiteAdapter {
+    <<interface>>
+    +Domain() string
+    +Name() string
+    +Extract(ctx, html, fetchURL) PinDocument
+  }
+  class AdapterRegistry {
+    <<interface>>
+    +Resolve(domain) (PerSiteAdapter, bool)
+    +Register(adapter)
+  }
+
+  %% ───────────────── Workers ─────────────────
+  class PioneerConsumer {
+    -scheduler URLScheduler
+    -snapshotStore SnapshotStore
+    -filterChain *FilterChain
+    -fetcher ConsumerFetcher
+    -now func() time.Time
+    -budget int
+    +NewPioneerConsumer(sched, store, chain, fetcher)
+    +WithClock(now)
+    +Run(ctx) error
+    -processOne(ctx, rawURL)
+    -reportFailure(rawURL, kind)
+  }
+
+  class HarvesterConsumer {
+    -scheduler URLScheduler
+    -fetcher SnapshotFirstFetch
+    -registry AdapterRegistry
+    -extractor genericExtractorIface
+    -classifier *Classifier
+    -pipeline DocumentPipeline
+    -validator MediaValidator
+    -validationMetrics *MediaValidationMetrics
+    -stats nodeStats
+    -fetchFailureCount atomic.Uint64
+    -budget int
+    +NewHarvesterConsumer(sched, fetcher, reg, ext, cls, pipe)
+    +WithMediaValidator(v)
+    +WithValidationMetrics(m)
+    +NodeStats() NodeStatsSnapshot
+    +Run(ctx) error
+    -processOne(ctx, rawURL)
+    -extractDocument(ctx, body, url) (PinDocument, bool, error)
+    -createPins(ctx, doc) ([]uuid.UUID, bool, error)
+    -reportFailure(rawURL, kind, stage, cause)
+  }
+
+  class nodeStats {
+    -pinsCreated atomic.Uint64
+    -deduped atomic.Uint64
+    -skipped atomic.Uint64
+    -failed atomic.Uint64
+    -adapterFallback atomic.Uint64
+  }
+
+  %% ───────────────── Scheduler impls ─────────────────
+  class PGURLScheduler {
+    -db *sql.DB
+    -queries *db.Queries
+    -clock Clock
+    -jitter Jitterer
+    -rateLimiter HostRateLimiterIface
+    -lease time.Duration
+    -pollInterval time.Duration
+    -candidateN int32
+    +NewPGURLScheduler(sqlDB)
+    +WithRateLimiter(r)
+    +WithLease(d)
+    +WithPollInterval(d)
+    +Enqueue(...) error
+    +EnqueueHarvester(...) error
+    +Dequeue(...) (string, error)
+    +SetStatus(...) error
+    +RecordFetchError(...) error
+    +RecordHarvestError(...) error
+  }
+
+  class HostRateLimiter {
+    -limiters map~string,*rate.Limiter~
+    -defaultRate float64
+    -defaultBurst int
+    -enabled bool
+    +Allow(host) bool
+    +SetHostRate(host, rate, burst)
+  }
+
+  %% ───────────────── Fetchers / Store impls ─────────────────
+  class DefaultConsumerFetcher {
+    -client *http.Client
+    -maxBody int64
+    +Fetch(ctx, rawURL) (body, finalURL, status, error)
+  }
+
+  class SnapshotFirstFetcher {
+    -objectStorage Fetcher
+    -http Fetcher
+    +Fetch(ctx, url) (html, kind, error)
+  }
+
+  class S3Store {
+    -client S3PutObjectAPI
+    -bucket string
+    -now func() time.Time
+    +Put(ctx, normalizedURL, body) error
+    +SetClock(now)
+  }
+
+  %% ───────────────── Filter chain ─────────────────
+  class FilterChain {
+    -filters []LinkFilter
+    +NewFilterChain(filters...)
+    +Apply(links) []Link
+  }
+  class DomainFilter
+  class ExtensionFilter
+  class PathPatternFilter
+  class RobotsFilter
+  class CanonicalDedupFilter
+
+  %% ───────────────── Extract / classify / persist ─────────────────
+  class GenericExtractor {
+    -mediaCandidatesLimit int
+    +Extract(html, fetchURL) PinDocument
+  }
+  class InMemoryAdapterRegistry {
+    -exact map~string,PerSiteAdapter~
+    -wildcard map~string,PerSiteAdapter~
+    +Register(adapter)
+    +Resolve(domain) (PerSiteAdapter, bool)
+  }
+  class Classifier {
+    -bodyTextMinBytes int
+    -linkDensityThreshold float64
+    +Classify(doc, stats) (pinnable, reason)
+  }
+  class DefaultMediaValidator {
+    +Validate(ctx, url, declaredType) MediaValidationResult
+  }
+  class HarvestPipeline {
+    -db BotDB
+    -storage Storage
+    +ProcessDocument(ctx, node, doc) (created, pinID, error)
+    +MarkSkipped(ctx, node) error
+    +Process(ctx, items) (created, deduped, failed, error)
+  }
+
+  %% ───────────────── Realizations (impl) ─────────────────
+  PGURLScheduler           ..|> URLScheduler
+  HostRateLimiter          ..|> HostRateLimiterIface
+  DefaultConsumerFetcher   ..|> ConsumerFetcher
+  S3Store                  ..|> SnapshotStore
+  SnapshotFirstFetcher     ..|> SnapshotFirstFetch
+  InMemoryAdapterRegistry  ..|> AdapterRegistry
+  DefaultMediaValidator    ..|> MediaValidator
+  HarvestPipeline          ..|> DocumentPipeline
+  DomainFilter             ..|> LinkFilter
+  ExtensionFilter          ..|> LinkFilter
+  PathPatternFilter        ..|> LinkFilter
+  RobotsFilter             ..|> LinkFilter
+  CanonicalDedupFilter     ..|> LinkFilter
+
+  %% ───────────────── Associations ─────────────────
+  PioneerConsumer   --> URLScheduler        : scheduler
+  PioneerConsumer   --> SnapshotStore       : snapshotStore
+  PioneerConsumer   --> FilterChain         : filterChain
+  PioneerConsumer   --> ConsumerFetcher     : fetcher
+
+  HarvesterConsumer --> URLScheduler        : scheduler
+  HarvesterConsumer --> SnapshotFirstFetch  : fetcher
+  HarvesterConsumer --> AdapterRegistry     : registry
+  HarvesterConsumer --> GenericExtractor    : extractor
+  HarvesterConsumer --> Classifier          : classifier
+  HarvesterConsumer --> DocumentPipeline    : pipeline
+  HarvesterConsumer --> MediaValidator      : validator (optional)
+  HarvesterConsumer *-- nodeStats           : stats
+
+  PGURLScheduler --> HostRateLimiterIface   : rateLimiter
+  SnapshotFirstFetcher --> Fetcher          : objectStorage + http (2x)
+
+  FilterChain o-- LinkFilter                : filters[]
+  InMemoryAdapterRegistry o-- PerSiteAdapter : exact + wildcard
+  </pre>
+</div>
+
+<div class="footer">
+  <p>
+    <strong>Pioneer</strong> 와 <strong>Harvester</strong> 는 동일한 <code>URLScheduler</code> 인터페이스를 통해
+    Postgres frontier (<code>PGURLScheduler</code>) 위에서 분리된 큐를 소비합니다.
+    Pioneer 의 fetch 경로는 <code>ConsumerFetcher</code>, Harvester 의 fetch 경로는
+    스냅샷 우선 합성 <code>SnapshotFirstFetcher</code> (ObjectStorage + HTTP 두 <code>Fetcher</code>) 로 분리됩니다.
+    추출/분류/영속화 책임은 <code>AdapterRegistry · GenericExtractor · Classifier · MediaValidator · DocumentPipeline</code> 로
+    인터페이스 단위로 쪼개져 있습니다.
+  </p>
+</div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    themeVariables: {
+      background: "#161a21",
+      primaryColor: "#1d2330",
+      primaryTextColor: "#e6e8ee",
+      primaryBorderColor: "#2a3140",
+      lineColor: "#9aa3b2",
+      secondaryColor: "#243046",
+      tertiaryColor: "#1d2330",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
+    },
+    flowchart: { htmlLabels: true }
+  });
+</script>
+
+</body>
+</html>

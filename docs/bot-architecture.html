@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Fugue Bot — Pioneer / URLScheduler / Harvester</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a21;
+    --panel-2: #1d2330;
+    --line: #2a3140;
+    --text: #e6e8ee;
+    --muted: #9aa3b2;
+    --accent-pioneer: #6aa6ff;
+    --accent-sched:   #f0b35a;
+    --accent-harv:    #7ed29a;
+    --accent-store:   #c78bff;
+    --accent-pins:    #ff9ec4;
+    --danger: #ff7a7a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, "Apple SD Gothic Neo", sans-serif;
+  }
+  header {
+    padding: 28px 32px 8px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: 0.2px; }
+  header p  { margin: 0; color: var(--muted); font-size: 13px; }
+
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    padding: 10px 32px 24px;
+    font-size: 12px; color: var(--muted);
+  }
+  .legend .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--panel);
+  }
+  .legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  .canvas {
+    position: relative;
+    margin: 0 32px 32px;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(106,166,255,0.06), transparent 60%),
+      radial-gradient(900px 500px at 90% 100%, rgba(126,210,154,0.05), transparent 60%),
+      var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+
+  svg.wires {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .grid {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 28px 36px;
+    align-items: stretch;
+  }
+
+  .node {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    position: relative;
+    min-height: 120px;
+  }
+  .node h3 {
+    margin: 0 0 4px;
+    font-size: 14px; letter-spacing: 0.2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .node h3 .badge {
+    font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    background: rgba(255,255,255,0.06); color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .node .sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  .node ul { margin: 0; padding-left: 16px; }
+  .node li { margin: 2px 0; font-size: 12.5px; }
+  .node code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; color: #d2dcef; background: rgba(255,255,255,0.04); padding: 1px 5px; border-radius: 4px; }
+
+  .pioneer  { border-color: rgba(106,166,255,0.45); box-shadow: 0 0 0 1px rgba(106,166,255,0.12) inset; }
+  .scheduler{ border-color: rgba(240,179,90,0.5);  box-shadow: 0 0 0 1px rgba(240,179,90,0.12) inset; }
+  .harvester{ border-color: rgba(126,210,154,0.5); box-shadow: 0 0 0 1px rgba(126,210,154,0.12) inset; }
+  .store    { border-color: rgba(199,139,255,0.5); box-shadow: 0 0 0 1px rgba(199,139,255,0.12) inset; }
+  .pins     { border-color: rgba(255,158,196,0.5); box-shadow: 0 0 0 1px rgba(255,158,196,0.12) inset; }
+  .web      { border-color: var(--line); background: var(--panel); }
+
+  .lane-label {
+    grid-column: 1 / -1;
+    font-size: 11px; letter-spacing: 1.5px; color: var(--muted);
+    text-transform: uppercase;
+    border-top: 1px dashed var(--line);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+
+  .pill {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: 999px; margin-right: 6px; margin-top: 6px;
+    border: 1px solid var(--line); color: var(--muted);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .footer {
+    margin: 0 32px 40px;
+    color: var(--muted); font-size: 12px;
+  }
+  .footer code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; color: #d2dcef; background: rgba(255,255,255,0.04); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fugue Bot — Pioneer · URLScheduler · Harvester</h1>
+  <p>
+    <code>apps/api/internal/bot/{pioneer_consumer,harvester_consumer,snapshot_first_fetch}.go</code> ·
+    <code>apps/api/internal/scheduler/{url_scheduler,postgres_scheduler}.go</code>
+  </p>
+</header>
+
+<div class="legend">
+  <span class="chip"><span class="dot" style="background:var(--accent-pioneer)"></span>Pioneer 워커</span>
+  <span class="chip"><span class="dot" style="background:var(--accent-sched)"></span>URLScheduler (Postgres)</span>
+  <span class="chip"><span class="dot" style="background:var(--accent-harv)"></span>Harvester 워커</span>
+  <span class="chip"><span class="dot" style="background:var(--accent-store)"></span>Snapshot ObjectStorage</span>
+  <span class="chip"><span class="dot" style="background:var(--accent-pins)"></span>Pins DB</span>
+  <span class="chip">실선 = 동기 호출 · 점선 = 비동기/저장</span>
+</div>
+
+<div class="canvas">
+
+  <!-- SVG wires (lines + arrows) -->
+  <svg class="wires" viewBox="0 0 1200 760" preserveAspectRatio="none">
+    <defs>
+      <marker id="arrow-blue"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#6aa6ff"/>
+      </marker>
+      <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#f0b35a"/>
+      </marker>
+      <marker id="arrow-green"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7ed29a"/>
+      </marker>
+      <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#c78bff"/>
+      </marker>
+      <marker id="arrow-pink"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#ff9ec4"/>
+      </marker>
+    </defs>
+
+    <!-- Web → Pioneer (HTTP fetch) -->
+    <path d="M 200,110 C 200,160 200,170 200,210"
+          fill="none" stroke="#6aa6ff" stroke-width="1.6" stroke-dasharray="4 4"
+          marker-end="url(#arrow-blue)"/>
+    <text x="208" y="170" fill="#9aa3b2" font-size="11">HTTP GET</text>
+
+    <!-- Pioneer → Scheduler (Dequeue pioneer / Enqueue x2 / SetStatus) -->
+    <path d="M 290,290 C 430,290 470,290 530,290"
+          fill="none" stroke="#f0b35a" stroke-width="1.8"
+          marker-end="url(#arrow-orange)"/>
+    <text x="345" y="282" fill="#9aa3b2" font-size="11">Enqueue / SetStatus / RecordFetchError</text>
+
+    <path d="M 530,330 C 470,330 430,330 290,330"
+          fill="none" stroke="#f0b35a" stroke-width="1.8"
+          marker-end="url(#arrow-orange)"/>
+    <text x="345" y="346" fill="#9aa3b2" font-size="11">Dequeue(pioneer)</text>
+
+    <!-- Scheduler → Harvester -->
+    <path d="M 910,290 C 850,290 810,290 720,290"
+          fill="none" stroke="#f0b35a" stroke-width="1.8"
+          marker-end="url(#arrow-orange)" transform="translate(0,0)"/>
+    <text x="755" y="282" fill="#9aa3b2" font-size="11">Dequeue(harvester)</text>
+
+    <path d="M 720,330 C 810,330 850,330 910,330"
+          fill="none" stroke="#f0b35a" stroke-width="1.8"
+          marker-end="url(#arrow-orange)"/>
+    <text x="745" y="346" fill="#9aa3b2" font-size="11">SetStatus(harvested, pinIDs) / RecordHarvestError</text>
+
+    <!-- Pioneer → Snapshot store (write) -->
+    <path d="M 200,370 C 200,470 200,500 200,540"
+          fill="none" stroke="#c78bff" stroke-width="1.6" stroke-dasharray="4 4"
+          marker-end="url(#arrow-purple)"/>
+    <text x="208" y="470" fill="#9aa3b2" font-size="11">PUT raw HTML (snapshot_key)</text>
+
+    <!-- Snapshot store → Harvester (read) -->
+    <path d="M 360,580 C 600,580 760,580 980,580"
+          fill="none" stroke="#c78bff" stroke-width="1.6" stroke-dasharray="4 4"
+          marker-end="url(#arrow-purple)"/>
+    <text x="600" y="572" fill="#9aa3b2" font-size="11">GET snapshot (SnapshotFirstFetch: ObjectStorage → HTTP fallback)</text>
+
+    <!-- Harvester → Pins -->
+    <path d="M 1000,370 C 1000,470 1000,500 1000,540"
+          fill="none" stroke="#ff9ec4" stroke-width="1.6"
+          marker-end="url(#arrow-pink)"/>
+    <text x="1008" y="470" fill="#9aa3b2" font-size="11">UpsertBotPinByURL</text>
+  </svg>
+
+  <!-- Logical grid (3 columns × 2 rows + lane label + 1 row) -->
+  <div class="grid">
+
+    <!-- Row 1: outside world -->
+    <div class="node web" style="grid-column: 1 / 2;">
+      <h3>외부 사이트 <span class="badge">WEB</span></h3>
+      <p class="sub">대상 도메인의 HTML 응답. <code>FugueBot/1.0</code> User-Agent.</p>
+      <ul>
+        <li>5MB 본문 한도 · 5회 리다이렉트 한도</li>
+        <li>10초 타임아웃</li>
+      </ul>
+    </div>
+    <div class="node web" style="grid-column: 2 / 3;">
+      <h3>운영자 / 슈퍼바이저 <span class="badge">OPS</span></h3>
+      <p class="sub">두 워커 모두 100 URL 소비 후 종료. <code>restart=always</code> 가 필수.</p>
+      <ul>
+        <li><code>while true; do fuguebot pioneer &lt;site&gt; || break; done</code></li>
+        <li><code>while true; do fuguebot harvester || break; done</code></li>
+      </ul>
+    </div>
+    <div class="node web" style="grid-column: 3 / 4;">
+      <h3>외부 사이트 (재요청) <span class="badge">WEB</span></h3>
+      <p class="sub">Snapshot miss 시 Harvester가 직접 HTTP fallback.</p>
+      <ul>
+        <li>ObjectStorage 실패 종류는 consumer에 노출되지 않음</li>
+        <li>ctx 취소·deadline은 <code>timeout</code> 으로 귀결</li>
+      </ul>
+    </div>
+
+    <!-- Row 2: the three core components -->
+    <div class="node pioneer">
+      <h3>Pioneer <span class="badge">PioneerConsumer.Run</span></h3>
+      <p class="sub">탐험 워커. 인메모리 BFS/visited 없음 — 모든 dedup·순서는 스케줄러가 보유.</p>
+      <ul>
+        <li><code>Dequeue(QueuePioneer)</code></li>
+        <li>HTTP <code>Fetch</code> → <code>SnapshotStore.Put</code></li>
+        <li><code>ExtractLinksWithSelectors</code> + <code>FilterChain</code></li>
+        <li><code>Enqueue(QueuePioneer, newURLs…)</code></li>
+        <li><code>EnqueueHarvester(url, snapshotKey)</code></li>
+        <li><code>SetStatus(fetched)</code> / 실패 시 <code>SetStatus(fetch_failed)</code> + <code>RecordFetchError(kind)</code></li>
+      </ul>
+      <span class="pill">FilterChain: Domain / Extension / PathPattern / Robots / CanonicalDedup</span>
+      <span class="pill">WorkerBudget = 100</span>
+    </div>
+
+    <div class="node scheduler">
+      <h3>URLScheduler <span class="badge">PGURLScheduler (Postgres)</span></h3>
+      <p class="sub">두 워커의 유일한 작업 경계. <code>FOR UPDATE SKIP LOCKED</code> 로 N-워커 동시성 보장.</p>
+      <ul>
+        <li>테이블: <code>pioneer_frontier</code> / <code>harvester_frontier</code> / <code>harvester_frontier_pins</code></li>
+        <li>키: <code>url_hash = sha256(canonical(url))</code></li>
+        <li>10분 리스 · 1초 빈큐 폴링</li>
+        <li><code>HostRateLimiter.Allow(host)</code> 호스트 정중성 체크</li>
+        <li>실패 4종 (<code>http_4xx</code>/<code>http_5xx</code>/<code>network</code>/<code>timeout</code>) → backoff (5단계, jitter)</li>
+        <li><code>http_4xx</code> 는 즉시 dead (count=5)</li>
+        <li><code>SetStatus(harvested, pinIDs)</code> 는 동일 트랜잭션에서 <code>harvester_frontier_pins</code> 벌크 INSERT</li>
+      </ul>
+      <span class="pill">Enqueue / EnqueueHarvester / Dequeue / SetStatus / RecordFetchError / RecordHarvestError</span>
+    </div>
+
+    <div class="node harvester">
+      <h3>Harvester <span class="badge">HarvesterConsumer.Run</span></h3>
+      <p class="sub">수확 워커. 사이트 스코프 인메모리 상태 없음. 1 URL → 1 PinDocument → 1 Pin.</p>
+      <ul>
+        <li><code>Dequeue(QueueHarvester)</code></li>
+        <li><code>SnapshotFirstFetch.Fetch</code> (ObjectStorage → HTTP fallback)</li>
+        <li><code>AdapterRegistry</code> (도메인별) → 실패 시 <code>GenericExtractor</code> 폴백 (<code>AdapterFallback++</code>)</li>
+        <li><code>MediaValidator.FilterValidMedia</code></li>
+        <li><code>Classifier.Classify</code> → <code>listing</code>/<code>empty_body</code>/<code>no_primary_media</code></li>
+        <li><code>DocumentPipeline.ProcessDocument</code> → Upsert on canonical URL</li>
+        <li><code>SetStatus(harvested, pinIDs)</code> / 실패 시 <code>SetStatus(harvest_failed)</code> + <code>RecordHarvestError(kind)</code></li>
+      </ul>
+      <span class="pill">stats: PinsCreated / Deduped / Skipped / Failed / AdapterFallback</span>
+      <span class="pill">harvesterDequeueBudget = 100</span>
+    </div>
+
+    <!-- Row 3: storage layer -->
+    <div class="lane-label">Storage layer</div>
+
+    <div class="node store" style="grid-column: 1 / 3;">
+      <h3>SnapshotStore <span class="badge">ObjectStorage</span></h3>
+      <p class="sub">Pioneer 가 쓰고 Harvester 가 읽는 공유 스냅샷 저장소. 키는 <code>snapshot.SnapshotKey(canonical, now)</code>.</p>
+      <ul>
+        <li>Pioneer 단계에서 원본 HTML 그대로 저장 → 재현 가능한 추출</li>
+        <li>Harvester 의 1차 fetch 경로. miss/네트워크/권한 실패는 모두 HTTP fallback 으로 흡수</li>
+        <li>스냅샷 키는 <code>EnqueueHarvester(url, snapshotKey)</code> 로 frontier 행에 함께 기록</li>
+      </ul>
+    </div>
+
+    <div class="node pins" style="grid-column: 3 / 4;">
+      <h3>Pins DB <span class="badge">Postgres</span></h3>
+      <p class="sub">봇 Pin 의 정규형 저장소. canonical URL 단위 upsert.</p>
+      <ul>
+        <li><code>pins_url_bot_unique</code> partial unique index</li>
+        <li><code>creator_id = bot UUID</code> 술어 IMMUTABLE 매칭</li>
+        <li><code>xmax=0</code> → <code>PinsCreated</code>, 아니면 <code>Deduped</code></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <p>
+    파이프라인 한 줄 요약 —
+    <strong>Pioneer</strong> 가 사이트를 탐색하며 HTML 스냅샷을 남기고 발견 링크와 함께
+    <code>harvester_frontier</code> 에 적재한다.
+    <strong>URLScheduler</strong> 가 두 큐의 dedup·순서·리스·백오프·호스트 레이트리밋을 단독 소유한다.
+    <strong>Harvester</strong> 는 스냅샷을 먼저 읽어 추출·분류·검증을 거쳐 Pin 으로 영속화한다.
+    두 워커 모두 <em>100 URL = 1 프로세스</em> 정책이며 외부 슈퍼바이저가 재시작을 책임진다.
+  </p>
+</div>
+
+</body>
+</html>
