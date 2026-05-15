@@ -113,6 +113,10 @@ func (m *mockQuerier) GetTagsForPins(_ context.Context, _ []uuid.UUID) ([]db.Get
 	return m.tagsForPins, nil
 }
 
+func (m *mockQuerier) CreateInteraction(_ context.Context, _ db.CreateInteractionParams) error {
+	return nil
+}
+
 func sampleRow() db.ListPinsWithCreatorRow {
 	return db.ListPinsWithCreatorRow{
 		ID:               uuid.MustParse("20000000-0000-0000-0000-000000000001"),

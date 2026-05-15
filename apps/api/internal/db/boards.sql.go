@@ -295,6 +295,49 @@ func (q *Queries) ListPublicBoardsByCreator(ctx context.Context, creatorID uuid.
 	return items, nil
 }
 
+const listPublicBoardsByCreatorLimited = `-- name: ListPublicBoardsByCreatorLimited :many
+SELECT id, creator_id, name, description, is_public, created_at, updated_at FROM boards
+WHERE creator_id = $1 AND is_public = true
+ORDER BY updated_at DESC
+LIMIT $2
+`
+
+type ListPublicBoardsByCreatorLimitedParams struct {
+	CreatorID uuid.UUID
+	Limit     int32
+}
+
+func (q *Queries) ListPublicBoardsByCreatorLimited(ctx context.Context, arg ListPublicBoardsByCreatorLimitedParams) ([]Board, error) {
+	rows, err := q.db.QueryContext(ctx, listPublicBoardsByCreatorLimited, arg.CreatorID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Board
+	for rows.Next() {
+		var i Board
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Name,
+			&i.Description,
+			&i.IsPublic,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPublicBoardsByPin = `-- name: ListPublicBoardsByPin :many
 SELECT b.id, b.name, b.creator_id, c.nickname AS creator_nickname
 FROM board_pins bp

@@ -18,6 +18,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
 	"github.com/chungsanghwa/fugue/apps/api/internal/storage"
 )
 
@@ -39,6 +40,7 @@ type PinQuerier interface {
 	FallbackRelatedByMediaType(ctx context.Context, arg db.FallbackRelatedByMediaTypeParams) ([]db.FallbackRelatedByMediaTypeRow, error)
 	FallbackRelatedLatest(ctx context.Context, arg db.FallbackRelatedLatestParams) ([]db.FallbackRelatedLatestRow, error)
 	GetTagsByIDs(ctx context.Context, ids []uuid.UUID) ([]db.Tag, error)
+	CreateInteraction(ctx context.Context, arg db.CreateInteractionParams) error
 }
 
 type Handler struct {
@@ -305,6 +307,9 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// spec: interaction `인증된 호출자의 핀 조회·핀 생성·보드 추가에 interaction row가 piggyback된다`
+	interaction.Record(r.Context(), h.q, creatorID, p.ID, "pin")
+
 	writeJSON(w, http.StatusCreated, toCreatedResponse(p))
 }
 
@@ -330,6 +335,11 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	resp := toPinDetailResponse(row)
 	resp.Tags = h.loadPinTags(r.Context(), id)
+
+	// spec: interaction `미인증 호출자의 핀 조회에는 interaction이 기록되지 않는다`
+	if creatorID, ok := auth.CreatorIDFromContext(r.Context()); ok {
+		interaction.Record(r.Context(), h.q, creatorID, id, "view")
+	}
 
 	writeJSON(w, http.StatusOK, resp)
 }

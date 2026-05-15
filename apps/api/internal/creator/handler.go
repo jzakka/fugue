@@ -16,10 +16,24 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
+// maxPublicProfileBoards is the upper bound on the number of public boards
+// included in the public profile response's `boards` array.
+//
+// spec: profile `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다` — "상한이 존재한다"
+const maxPublicProfileBoards = 20
+
+// maxPublicProfileRecentPins is the upper bound on the number of recent pins
+// included in the public profile response's `pins` array.
+//
+// spec: profile `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다` — "상한이 존재한다"
+const maxPublicProfileRecentPins = 12
+
 type CreatorQuerier interface {
 	GetCreator(ctx context.Context, id uuid.UUID) (db.Creator, error)
 	UpdateCreator(ctx context.Context, arg db.UpdateCreatorParams) (db.Creator, error)
 	CountPinsByCreator(ctx context.Context, creatorID uuid.UUID) (int64, error)
+	ListPublicBoardsByCreatorLimited(ctx context.Context, arg db.ListPublicBoardsByCreatorLimitedParams) ([]db.Board, error)
+	ListPinsByCreator(ctx context.Context, arg db.ListPinsByCreatorParams) ([]db.ListPinsByCreatorRow, error)
 }
 
 type Handler struct {
@@ -60,7 +74,43 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, toPublicDTO(creator, workCount))
+	// spec: profile `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다`
+	// Public profile response must include the creator's public boards and
+	// recent pins. Private boards are intentionally not surfaced here regardless
+	// of caller identity — see design.md Decision 2.
+	boardRows, err := h.q.ListPublicBoardsByCreatorLimited(r.Context(), db.ListPublicBoardsByCreatorLimitedParams{
+		CreatorID: id,
+		Limit:     maxPublicProfileBoards,
+	})
+	if err != nil {
+		log.Printf("creator.GetByID: list boards error: %v (id=%s)", err, idStr)
+		writeError(w, http.StatusInternalServerError, "크리에이터 정보를 불러올 수 없습니다")
+		return
+	}
+
+	pinRows, err := h.q.ListPinsByCreator(r.Context(), db.ListPinsByCreatorParams{
+		CreatorID: id,
+		Column2:   "",
+		Column3:   nil,
+		Limit:     maxPublicProfileRecentPins,
+		Offset:    0,
+	})
+	if err != nil {
+		log.Printf("creator.GetByID: list pins error: %v (id=%s)", err, idStr)
+		writeError(w, http.StatusInternalServerError, "크리에이터 정보를 불러올 수 없습니다")
+		return
+	}
+
+	boards := make([]BoardSummary, 0, len(boardRows))
+	for _, b := range boardRows {
+		boards = append(boards, toBoardSummary(b))
+	}
+	pins := make([]PinSummary, 0, len(pinRows))
+	for _, p := range pinRows {
+		pins = append(pins, toPinSummary(p))
+	}
+
+	writeJSON(w, http.StatusOK, toPublicDTO(creator, workCount, boards, pins))
 }
 
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {

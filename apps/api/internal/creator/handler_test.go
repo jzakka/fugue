@@ -26,6 +26,15 @@ type mockQuerier struct {
 	workCount  int64
 	countErr   error
 	lastUpdate db.UpdateCreatorParams
+
+	publicBoards     []db.Board
+	publicBoardsErr  error
+	creatorPins      []db.ListPinsByCreatorRow
+	creatorPinsErr   error
+	lastBoardsParams db.ListPublicBoardsByCreatorLimitedParams
+	lastPinsParams   db.ListPinsByCreatorParams
+	boardsCalls      int
+	pinsCalls        int
 }
 
 func (m *mockQuerier) GetCreator(_ context.Context, _ uuid.UUID) (db.Creator, error) {
@@ -39,6 +48,18 @@ func (m *mockQuerier) UpdateCreator(_ context.Context, arg db.UpdateCreatorParam
 
 func (m *mockQuerier) CountPinsByCreator(_ context.Context, _ uuid.UUID) (int64, error) {
 	return m.workCount, m.countErr
+}
+
+func (m *mockQuerier) ListPublicBoardsByCreatorLimited(_ context.Context, arg db.ListPublicBoardsByCreatorLimitedParams) ([]db.Board, error) {
+	m.lastBoardsParams = arg
+	m.boardsCalls++
+	return m.publicBoards, m.publicBoardsErr
+}
+
+func (m *mockQuerier) ListPinsByCreator(_ context.Context, arg db.ListPinsByCreatorParams) ([]db.ListPinsByCreatorRow, error) {
+	m.lastPinsParams = arg
+	m.pinsCalls++
+	return m.creatorPins, m.creatorPinsErr
 }
 
 var testCreatorID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
@@ -225,5 +246,196 @@ func TestUpdateMe_Unauthorized(t *testing.T) {
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", rec.Code)
+	}
+}
+
+// The following tests pin the public-profile payload invariants enforced by:
+//   profile `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다`
+//
+// They assert that GET /api/creators/{id} responses always include the boards
+// and pins arrays, normalize empty results to [] rather than null, apply the
+// system-side upper bounds via the SQL LIMIT parameters, and surface query
+// errors as 500 while skipping the two additional fetches when the creator
+// itself is not found.
+
+func sampleBoard(id uuid.UUID, name string, isPublic bool) db.Board {
+	return db.Board{
+		ID:        id,
+		CreatorID: testCreatorID,
+		Name:      name,
+		IsPublic:  isPublic,
+		CreatedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+	}
+}
+
+func samplePinRow(id uuid.UUID, title string) db.ListPinsByCreatorRow {
+	return db.ListPinsByCreatorRow{
+		ID:               id,
+		CreatorID:        testCreatorID,
+		MediaUrl:         "https://example.com/" + title + ".jpg",
+		MediaType:        "image",
+		Title:            title,
+		CreatedAt:        time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+		CreatorIDRef:     testCreatorID,
+		CreatorNickname:  "하루",
+		CreatorAvatarUrl: sql.NullString{String: "https://example.com/avatar.jpg", Valid: true},
+	}
+}
+
+func TestGetByID_ReturnsBoardsAndPins(t *testing.T) {
+	boardIDs := []uuid.UUID{uuid.New(), uuid.New(), uuid.New()}
+	pinIDs := []uuid.UUID{uuid.New(), uuid.New(), uuid.New(), uuid.New(), uuid.New()}
+	mock := &mockQuerier{
+		creator:   sampleCreator(),
+		workCount: 5,
+		publicBoards: []db.Board{
+			sampleBoard(boardIDs[0], "노을 모음", true),
+			sampleBoard(boardIDs[1], "스튜디오 사진", true),
+			sampleBoard(boardIDs[2], "음악 큐레이션", true),
+		},
+		creatorPins: []db.ListPinsByCreatorRow{
+			samplePinRow(pinIDs[0], "p1"),
+			samplePinRow(pinIDs[1], "p2"),
+			samplePinRow(pinIDs[2], "p3"),
+			samplePinRow(pinIDs[3], "p4"),
+			samplePinRow(pinIDs[4], "p5"),
+		},
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	var resp CreatorPublicDTO
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(resp.Boards) != 3 {
+		t.Fatalf("expected 3 boards in response, got %d", len(resp.Boards))
+	}
+	if len(resp.Pins) != 5 {
+		t.Fatalf("expected 5 pins in response, got %d", len(resp.Pins))
+	}
+	if resp.Boards[0].Name != "노을 모음" {
+		t.Errorf("unexpected first board name: %s", resp.Boards[0].Name)
+	}
+	if resp.Pins[0].Title != "p1" {
+		t.Errorf("unexpected first pin title: %s", resp.Pins[0].Title)
+	}
+}
+
+func TestGetByID_EmptyBoardsAndPinsSerializeAsArrays(t *testing.T) {
+	mock := &mockQuerier{creator: sampleCreator(), workCount: 0}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	// Raw JSON check: spec requires the keys to serialize as [], not null.
+	body := rec.Body.String()
+	if !bytes.Contains([]byte(body), []byte(`"boards":[]`)) {
+		t.Errorf("expected boards key to serialize as [], body=%s", body)
+	}
+	if !bytes.Contains([]byte(body), []byte(`"pins":[]`)) {
+		t.Errorf("expected pins key to serialize as [], body=%s", body)
+	}
+}
+
+func TestGetByID_AppliesUpperBoundsToBoardsAndPinsQueries(t *testing.T) {
+	mock := &mockQuerier{creator: sampleCreator(), workCount: 0}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if mock.lastBoardsParams.Limit != maxPublicProfileBoards {
+		t.Errorf("expected boards LIMIT %d, got %d", maxPublicProfileBoards, mock.lastBoardsParams.Limit)
+	}
+	if mock.lastBoardsParams.CreatorID != testCreatorID {
+		t.Errorf("expected boards CreatorID %s, got %s", testCreatorID, mock.lastBoardsParams.CreatorID)
+	}
+	if mock.lastPinsParams.Limit != maxPublicProfileRecentPins {
+		t.Errorf("expected pins LIMIT %d, got %d", maxPublicProfileRecentPins, mock.lastPinsParams.Limit)
+	}
+	if mock.lastPinsParams.Offset != 0 {
+		t.Errorf("expected pins OFFSET 0, got %d", mock.lastPinsParams.Offset)
+	}
+}
+
+func TestGetByID_BoardsQueryErrorReturns500(t *testing.T) {
+	mock := &mockQuerier{
+		creator:         sampleCreator(),
+		workCount:       0,
+		publicBoardsErr: errors.New("boards query failed"),
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", rec.Code)
+	}
+}
+
+func TestGetByID_PinsQueryErrorReturns500(t *testing.T) {
+	mock := &mockQuerier{
+		creator:        sampleCreator(),
+		workCount:      0,
+		creatorPinsErr: errors.New("pins query failed"),
+	}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", rec.Code)
+	}
+}
+
+func TestGetByID_NotFoundSkipsBoardsAndPinsFetch(t *testing.T) {
+	mock := &mockQuerier{getErr: sql.ErrNoRows}
+	h := NewHandlerWithQuerier(mock)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/creators/"+testCreatorID.String(), nil)
+	req = withChiParam(req, "id", testCreatorID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", rec.Code)
+	}
+	if mock.boardsCalls != 0 {
+		t.Errorf("expected boards fetch to be skipped on 404, got %d calls", mock.boardsCalls)
+	}
+	if mock.pinsCalls != 0 {
+		t.Errorf("expected pins fetch to be skipped on 404, got %d calls", mock.pinsCalls)
 	}
 }

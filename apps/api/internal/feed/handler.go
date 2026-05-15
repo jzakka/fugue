@@ -18,13 +18,30 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
+// FeedQuerier is the subset of db.Queries the feed handler depends on. Tests
+// substitute it to exercise pagination wiring without a live Postgres.
+type FeedQuerier interface {
+	CountUserPins(ctx context.Context, creatorID uuid.UUID) (int64, error)
+	GetUserTagFrequency(ctx context.Context, arg db.GetUserTagFrequencyParams) ([]db.GetUserTagFrequencyRow, error)
+	GetUserMediaTypeFrequency(ctx context.Context, arg db.GetUserMediaTypeFrequencyParams) ([]db.GetUserMediaTypeFrequencyRow, error)
+	RecommendByTags(ctx context.Context, arg db.RecommendByTagsParams) ([]db.RecommendByTagsRow, error)
+	RecommendByMediaType(ctx context.Context, arg db.RecommendByMediaTypeParams) ([]db.RecommendByMediaTypeRow, error)
+	ListPinsWithCreator(ctx context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error)
+}
+
 type Handler struct {
-	database *sql.DB
-	rdb      *redis.Client
+	q   FeedQuerier
+	rdb *redis.Client
 }
 
 func NewHandler(database *sql.DB, rdb *redis.Client) *Handler {
-	return &Handler{database: database, rdb: rdb}
+	return &Handler{q: db.New(database), rdb: rdb}
+}
+
+// NewHandlerWithQuerier constructs a Handler bound to a custom FeedQuerier. It
+// is used by tests that exercise pagination wiring with a fake querier.
+func NewHandlerWithQuerier(q FeedQuerier, rdb *redis.Client) *Handler {
+	return &Handler{q: q, rdb: rdb}
 }
 
 type FeedResponse struct {
@@ -67,11 +84,10 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	q := db.New(h.database)
 	var resp FeedResponse
 
 	if authenticated {
-		pinCount, err := q.CountUserPins(r.Context(), creatorID)
+		pinCount, err := h.q.CountUserPins(r.Context(), creatorID)
 		if err != nil {
 			log.Printf("feed.GetFeed: CountUserPins error: %v (user=%s)", err, creatorID)
 			writeError(w, http.StatusInternalServerError, "피드를 불러올 수 없습니다")
@@ -79,14 +95,15 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if pinCount < 10 {
-			resp, err = h.buildLatestFeed(r.Context(), q, limit, offset)
+			resp, err = h.buildLatestFeed(r.Context(), limit, offset)
 			if err != nil {
 				log.Printf("feed.GetFeed: buildLatestFeed error: %v", err)
 				writeError(w, http.StatusInternalServerError, "피드를 불러올 수 없습니다")
 				return
 			}
 		} else {
-			resp, err = h.buildPersonalizedFeed(r.Context(), q, creatorID, limit, offset)
+			// spec: feed `개인화 피드의 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다`
+			resp, err = h.buildPersonalizedFeed(r.Context(), creatorID, limit, offset)
 			if err != nil {
 				log.Printf("feed.GetFeed: buildPersonalizedFeed error: %v (user=%s)", err, creatorID)
 				writeError(w, http.StatusInternalServerError, "피드를 불러올 수 없습니다")
@@ -100,7 +117,7 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		var err error
-		resp, err = h.buildLatestFeed(r.Context(), q, limit, offset)
+		resp, err = h.buildLatestFeed(r.Context(), limit, offset)
 		if err != nil {
 			log.Printf("feed.GetFeed: buildLatestFeed error: %v", err)
 			writeError(w, http.StatusInternalServerError, "피드를 불러올 수 없습니다")
@@ -111,8 +128,8 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-func (h *Handler) buildLatestFeed(ctx context.Context, q *db.Queries, limit, offset int) (FeedResponse, error) {
-	rows, err := q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
+func (h *Handler) buildLatestFeed(ctx context.Context, limit, offset int) (FeedResponse, error) {
+	rows, err := h.q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
 		Column1: "",
 		Column2: nil,
 		Limit:   int32(limit),
@@ -133,9 +150,17 @@ func (h *Handler) buildLatestFeed(ctx context.Context, q *db.Queries, limit, off
 	}, nil
 }
 
-func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, creatorID uuid.UUID, limit, offset int) (FeedResponse, error) {
+// buildPersonalizedFeed assembles a personalized feed page for an authenticated
+// caller whose pin count crosses the cold-start threshold. The `offset` argument
+// is the page position decoded from the cursor; it is propagated to every
+// underlying source so consecutive pages return disjoint pin id sets.
+//
+// spec: feed `개인화 피드의 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다` —
+// "cursor가 표현하는 페이지 위치(offset)는 응답을 만들 때 사용되는 모든 underlying
+// 쿼리에 일관되게 전파되어야 한다"
+func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID, limit, offset int) (FeedResponse, error) {
 	// Get user's top tag IDs
-	tagRows, err := q.GetUserTagFrequency(ctx, db.GetUserTagFrequencyParams{
+	tagRows, err := h.q.GetUserTagFrequency(ctx, db.GetUserTagFrequencyParams{
 		CreatorID: creatorID,
 		Limit:     10,
 	})
@@ -152,10 +177,11 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 	var recRows []db.RecommendByTagsRow
 
 	if len(tagIDs) > 0 {
-		recRows, err = q.RecommendByTags(ctx, db.RecommendByTagsParams{
+		recRows, err = h.q.RecommendByTags(ctx, db.RecommendByTagsParams{
 			Column1:   tagIDs,
 			CreatorID: creatorID,
 			Limit:     int32(recLimit),
+			Offset:    int32(offset),
 		})
 		if err != nil {
 			return FeedResponse{}, fmt.Errorf("RecommendByTags: %w", err)
@@ -164,7 +190,7 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 
 	// Fallback: if tags produced insufficient results, try media-type-based
 	if len(recRows) < recLimit {
-		mtRows, err := q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
+		mtRows, err := h.q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
 			CreatorID: creatorID,
 			Limit:     3,
 		})
@@ -174,10 +200,11 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 				types = append(types, mr.MediaType)
 			}
 			deficit := int32(recLimit - len(recRows))
-			mtRecs, err := q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
+			mtRecs, err := h.q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
 				Column1:   types,
 				CreatorID: creatorID,
 				Limit:     deficit,
+				Offset:    int32(offset),
 			})
 			if err == nil {
 				for _, mr := range mtRecs {
@@ -189,18 +216,18 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 
 	// If still nothing, fall back to latest
 	if len(recRows) == 0 {
-		return h.buildLatestFeed(ctx, q, limit, offset)
+		return h.buildLatestFeed(ctx, limit, offset)
 	}
 
 	latestLimit := limit / 2
 	if latestLimit < 1 {
 		latestLimit = 1
 	}
-	latestRows, err := q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
+	latestRows, err := h.q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
 		Column1: "",
 		Column2: nil,
 		Limit:   int32(latestLimit),
-		Offset:  0,
+		Offset:  int32(offset),
 	})
 	if err != nil {
 		return FeedResponse{}, fmt.Errorf("ListPinsWithCreator: %w", err)
@@ -220,11 +247,11 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, q *db.Queries, crea
 
 	if len(pins) < limit {
 		deficit := limit - len(pins)
-		extraRows, err := q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
+		extraRows, err := h.q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
 			Column1: "",
 			Column2: nil,
 			Limit:   int32(deficit),
-			Offset:  int32(len(latestRows)),
+			Offset:  int32(offset + len(latestRows)),
 		})
 		if err != nil {
 			return FeedResponse{}, fmt.Errorf("ListPinsWithCreator (fill): %w", err)

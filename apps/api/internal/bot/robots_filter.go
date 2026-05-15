@@ -79,6 +79,14 @@ func NewRobotsFilter(rateSetter HostRateSetter) *RobotsFilter {
 	}
 }
 
+// RateSetter exposes the wired HostRateSetter for wiring-level assertions in
+// bootstrap regression tests (spec: "Pioneer 부트스트랩은 RobotsFilter에
+// HostRateLimiter를 wire한다"). Production code MUST NOT depend on this
+// accessor; rate propagation flows through the internal refresh path only.
+func (f *RobotsFilter) RateSetter() HostRateSetter {
+	return f.rateSetter
+}
+
 // Filter returns only the links whose host either fails-open or is not
 // Disallowed by the parsed robots.txt rules for the preferred User-agent.
 func (f *RobotsFilter) Filter(links []crawler.Link) []crawler.Link {
