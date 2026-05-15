@@ -93,13 +93,13 @@ func makeRecRow(seed int) db.RecommendByTagsRow {
 	id := uuid.New()
 	creatorID := uuid.New()
 	return db.RecommendByTagsRow{
-		ID:               id,
-		CreatorID:        creatorID,
-		MediaUrl:         fmt.Sprintf("https://example.test/rec/%d", seed),
-		MediaType:        "image",
-		Title:            fmt.Sprintf("rec-%d", seed),
-		CreatorIDRef:     creatorID,
-		CreatorNickname:  fmt.Sprintf("creator-%d", seed),
+		ID:              id,
+		CreatorID:       creatorID,
+		MediaUrl:        fmt.Sprintf("https://example.test/rec/%d", seed),
+		MediaType:       "image",
+		Title:           fmt.Sprintf("rec-%d", seed),
+		CreatorIDRef:    creatorID,
+		CreatorNickname: fmt.Sprintf("creator-%d", seed),
 	}
 }
 
@@ -107,13 +107,13 @@ func makeLatestRow(seed int) db.ListPinsWithCreatorRow {
 	id := uuid.New()
 	creatorID := uuid.New()
 	return db.ListPinsWithCreatorRow{
-		ID:               id,
-		CreatorID:        creatorID,
-		MediaUrl:         fmt.Sprintf("https://example.test/latest/%d", seed),
-		MediaType:        "image",
-		Title:            fmt.Sprintf("latest-%d", seed),
-		CreatorIDRef:     creatorID,
-		CreatorNickname:  fmt.Sprintf("creator-%d", seed),
+		ID:              id,
+		CreatorID:       creatorID,
+		MediaUrl:        fmt.Sprintf("https://example.test/latest/%d", seed),
+		MediaType:       "image",
+		Title:           fmt.Sprintf("latest-%d", seed),
+		CreatorIDRef:    creatorID,
+		CreatorNickname: fmt.Sprintf("creator-%d", seed),
 	}
 }
 
@@ -288,13 +288,13 @@ func TestPersonalizedFeed_FallbackToMediaTypeAlsoReceivesOffset(t *testing.T) {
 	allMT := make([]db.RecommendByMediaTypeRow, 40)
 	for i := range allMT {
 		row := db.RecommendByMediaTypeRow{
-			ID:               uuid.New(),
-			CreatorID:        uuid.New(),
-			MediaUrl:         fmt.Sprintf("https://example.test/mt/%d", i),
-			MediaType:        "image",
-			Title:            fmt.Sprintf("mt-%d", i),
-			CreatorIDRef:     uuid.New(),
-			CreatorNickname:  fmt.Sprintf("creator-mt-%d", i),
+			ID:              uuid.New(),
+			CreatorID:       uuid.New(),
+			MediaUrl:        fmt.Sprintf("https://example.test/mt/%d", i),
+			MediaType:       "image",
+			Title:           fmt.Sprintf("mt-%d", i),
+			CreatorIDRef:    uuid.New(),
+			CreatorNickname: fmt.Sprintf("creator-mt-%d", i),
 		}
 		allMT[i] = row
 	}

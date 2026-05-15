@@ -17,9 +17,9 @@ type recordingHostRateSetter struct {
 }
 
 type hostRateCall struct {
-	host        string
-	ratePerSec  float64
-	burst       int
+	host       string
+	ratePerSec float64
+	burst      int
 }
 
 func (r *recordingHostRateSetter) SetHostRate(host string, ratePerSec float64, burst int) {
