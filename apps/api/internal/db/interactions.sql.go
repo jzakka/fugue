@@ -139,14 +139,15 @@ FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE p.media_type = ANY($1::text[])
   AND p.creator_id != $2
-ORDER BY p.created_at DESC
-LIMIT $3
+ORDER BY p.created_at DESC, p.id DESC
+LIMIT $3 OFFSET $4
 `
 
 type RecommendByMediaTypeParams struct {
 	Column1   []string
 	CreatorID uuid.UUID
 	Limit     int32
+	Offset    int32
 }
 
 type RecommendByMediaTypeRow struct {
@@ -166,7 +167,12 @@ type RecommendByMediaTypeRow struct {
 }
 
 func (q *Queries) RecommendByMediaType(ctx context.Context, arg RecommendByMediaTypeParams) ([]RecommendByMediaTypeRow, error) {
-	rows, err := q.db.QueryContext(ctx, recommendByMediaType, pq.Array(arg.Column1), arg.CreatorID, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, recommendByMediaType,
+		pq.Array(arg.Column1),
+		arg.CreatorID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -217,14 +223,16 @@ WHERE EXISTS (
   AND p.creator_id != $2
 ORDER BY
     (SELECT count(*) FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($1::uuid[])) DESC,
-    p.created_at DESC
-LIMIT $3
+    p.created_at DESC,
+    p.id DESC
+LIMIT $3 OFFSET $4
 `
 
 type RecommendByTagsParams struct {
 	Column1   []uuid.UUID
 	CreatorID uuid.UUID
 	Limit     int32
+	Offset    int32
 }
 
 type RecommendByTagsRow struct {
@@ -244,7 +252,12 @@ type RecommendByTagsRow struct {
 }
 
 func (q *Queries) RecommendByTags(ctx context.Context, arg RecommendByTagsParams) ([]RecommendByTagsRow, error) {
-	rows, err := q.db.QueryContext(ctx, recommendByTags, pq.Array(arg.Column1), arg.CreatorID, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, recommendByTags,
+		pq.Array(arg.Column1),
+		arg.CreatorID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

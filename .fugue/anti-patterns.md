@@ -12,4 +12,4 @@
 
 ## 항목
 
-(비어 있음)
+- [system] 배포 매니페스트(helm/terraform/docker-compose)의 완성도·args·wiring 결함은 결함으로 다루지 않는다: 이전 worker-budget archive notes(2026-04-20 §4.2, 2026-04-23 §3.1)가 "실제 배포 매체가 추가되는 시점에 그 배포 change의 책임"으로 명시적 보류. 인프라 deployment change가 사용자에 의해 명시적으로 propose되기 전까지는 사이클 후보로 올리지 않는다 (cycle 29 rejected_self).

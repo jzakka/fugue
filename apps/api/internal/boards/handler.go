@@ -15,6 +15,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
 )
 
 // ---------------------------------------------------------------------------
@@ -510,6 +511,9 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "이미 보드에 추가된 핀입니다")
 		return
 	}
+
+	// spec: interaction `인증된 호출자의 핀 조회·핀 생성·보드 추가에 interaction row가 piggyback된다`
+	interaction.Record(r.Context(), q, creatorID, workID, "board_add")
 
 	w.WriteHeader(http.StatusCreated)
 }

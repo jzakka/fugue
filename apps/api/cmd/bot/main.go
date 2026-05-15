@@ -473,21 +473,13 @@ func main() {
 // the CLI arg (site name) only selects which root URL to seed. Subsequent
 // links discovered via fanout B populate pioneer_frontier organically.
 func runPioneerConsumer(parent context.Context, infra *Infrastructure, seedURL string) error {
-	sched := scheduler.NewPGURLScheduler(infra.DB).
-		WithRateLimiter(buildHostRateLimiter(config.LoadSchedulerHostConfig()))
+	rl := buildHostRateLimiter(config.LoadSchedulerHostConfig())
+	sched := scheduler.NewPGURLScheduler(infra.DB).WithRateLimiter(rl)
 
 	snapshotBucket := envOrDefault("PIONEER_SNAPSHOT_BUCKET", envOrDefault("S3_BUCKET", "fugue-media"))
 	store := snapshot.NewS3Store(infra.Storage.S3Client(), snapshotBucket)
 
-	chain := bot.NewFilterChain(
-		&bot.DomainFilter{},
-		&bot.ExtensionFilter{},
-		&bot.PathPatternFilter{},
-		bot.NewRobotsFilter(nil),
-		bot.NewCanonicalDedupFilter(nil),
-	)
-
-	consumer := bot.NewPioneerConsumer(sched, store, chain, bot.NewDefaultConsumerFetcher())
+	consumer, _ := buildPioneerConsumer(sched, store, rl)
 
 	if err := sched.Enqueue(scheduler.QueuePioneer, seedURL); err != nil {
 		return fmt.Errorf("seed enqueue: %w", err)
