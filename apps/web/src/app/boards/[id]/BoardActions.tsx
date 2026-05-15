@@ -96,7 +96,7 @@ export default function BoardActions({
               setError(null);
             }}
             disabled={saving}
-            className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+            className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
           >
             취소
           </button>

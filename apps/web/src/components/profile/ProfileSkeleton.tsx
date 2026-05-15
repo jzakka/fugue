@@ -1,6 +1,6 @@
 export default function ProfileSkeleton() {
   return (
-    <div className="animate-pulse space-y-6">
+    <div className="skeleton-shimmer space-y-6">
       {/* Header skeleton */}
       <div className="bg-surface rounded-[16px] p-6 sm:p-8 border border-border">
         <div className="flex flex-col sm:flex-row gap-6">

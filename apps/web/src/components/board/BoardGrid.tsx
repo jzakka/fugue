@@ -11,10 +11,7 @@ export default function BoardGrid({ boards }: { boards: Board[] }) {
 
   return (
     <div>
-      <h2
-        className="text-lg font-bold tracking-tight mb-4"
-        style={{ fontFamily: "'General Sans', sans-serif" }}
-      >
+      <h2 className="text-lg font-bold tracking-tight mb-4 font-display">
         보드
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -22,17 +19,14 @@ export default function BoardGrid({ boards }: { boards: Board[] }) {
           <Link
             key={board.id}
             href={`/boards/${board.id}`}
-            className="group"
+            className="group block transition-transform duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none"
           >
             <BoardCover images={board.cover_images} />
             <div className="mt-2">
               <div className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors truncate">
                 {board.name}
               </div>
-              <div
-                className="text-xs text-text-dim"
-                style={{ fontFamily: "'Geist Mono', monospace" }}
-              >
+              <div className="text-xs text-text-dim font-mono">
                 {board.pin_count} pins
               </div>
             </div>

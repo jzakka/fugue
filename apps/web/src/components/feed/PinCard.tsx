@@ -61,7 +61,10 @@ function AudioSection({ pin }: { pin: Pin }) {
       <div className="relative">
         <AudioWaveform seed={pin.id} />
         <div className="flex items-center gap-3">
-          <button className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0">
+          <button
+            aria-label="재생"
+            className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0"
+          >
             ▶
           </button>
           <div className="flex-1 min-w-0">
@@ -112,6 +115,7 @@ function ExternalLinkIcon({ url }: { url: string }) {
       }}
       className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle transition-colors shrink-0 cursor-pointer"
       title="원본 보기"
+      aria-label="원본 보기"
     >
       <svg
         width="12"
@@ -139,7 +143,7 @@ export default function PinCard({ pin }: { pin: Pin }) {
   return (
     <Link
       href={`/pins/${pin.id}`}
-      className="block bg-surface rounded-[10px] overflow-hidden cursor-pointer transition-all duration-200 border border-transparent hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-accent"
+      className="block bg-surface rounded-[10px] overflow-hidden cursor-pointer transition-all duration-200 border border-transparent hover:-translate-y-0.5 hover:shadow-card-hover hover:border-accent focus-visible:-translate-y-0.5 focus-visible:shadow-card-hover focus-visible:border-accent focus-visible:outline-none"
     >
       {/* Media section by type */}
       {cardType === "audio" && <AudioSection pin={pin} />}
@@ -164,12 +168,19 @@ export default function PinCard({ pin }: { pin: Pin }) {
                 }}
               />
             )}
-            <div
-              className="w-5 h-5 rounded-full shrink-0"
-              style={{
-                background: `linear-gradient(135deg, var(--accent), #FF8A5C)`,
-              }}
-            />
+            {pin.creator.avatar_url ? (
+              <img
+                src={pin.creator.avatar_url}
+                alt=""
+                loading="lazy"
+                className="w-5 h-5 rounded-full shrink-0 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-accent to-accent-hover" />
+            )}
             <span className="text-xs text-text-muted truncate">
               {pin.creator.nickname}
             </span>
@@ -183,8 +194,7 @@ export default function PinCard({ pin }: { pin: Pin }) {
           {pin.tags.slice(0, 3).map((tag) => (
             <span
               key={tag.id}
-              className="text-[10px] text-text-dim bg-accent-subtle px-2 py-0.5 rounded-full"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
+              className="text-3xs text-text-dim bg-accent-subtle px-2 py-0.5 rounded-full font-mono"
             >
               {tag.name}
             </span>

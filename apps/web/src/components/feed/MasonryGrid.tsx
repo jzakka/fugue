@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 
 const BREAKPOINT_COLUMNS = {
   default: 4,
-  1200: 4,
-  800: 3,
-  500: 2,
+  1199: 3,
+  799: 2,
+  499: 1,
 };
 
 export default function MasonryGrid({ children }: { children: ReactNode }) {

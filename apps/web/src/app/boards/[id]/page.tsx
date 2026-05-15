@@ -5,6 +5,7 @@ import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import BoardActions from "./BoardActions";
 import LoadMorePins from "./LoadMorePins";
+import EmptyState from "@/components/feed/EmptyState";
 import type { Metadata } from "next";
 
 type Props = {
@@ -52,10 +53,7 @@ export default async function BoardDetailPage({ params }: Props) {
         <div className="bg-surface rounded-[16px] border border-border p-6 sm:p-8 mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h1
-                className="text-2xl sm:text-3xl font-bold tracking-tight"
-                style={{ fontFamily: "'General Sans', sans-serif" }}
-              >
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display">
                 {board.name}
               </h1>
               {board.description && (
@@ -64,7 +62,7 @@ export default async function BoardDetailPage({ params }: Props) {
                 </p>
               )}
               <div className="mt-3 flex items-center gap-3 text-sm text-text-dim">
-                <span style={{ fontFamily: "'Geist Mono', monospace" }}>
+                <span className="font-mono">
                   {board.pin_count} pins
                 </span>
                 {!board.is_public && (
@@ -91,32 +89,10 @@ export default async function BoardDetailPage({ params }: Props) {
             )}
           </MasonryGrid>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-surface-elevated flex items-center justify-center mb-4">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-text-dim"
-              >
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-              </svg>
-            </div>
-            <p className="text-text-muted text-sm mb-1">
-              아직 보드에 추가된 작품이 없습니다
-            </p>
-            <p className="text-text-dim text-xs">
-              피드에서 마음에 드는 작품을 추가해보세요
-            </p>
-          </div>
+          <EmptyState
+            message="아직 보드에 추가된 작품이 없습니다"
+            description="피드에서 마음에 드는 작품을 추가해보세요"
+          />
         )}
       </main>
     </>

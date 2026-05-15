@@ -19,4 +19,643 @@
 #   status:     pending | in_progress | done | rejected_self | rejected_impl | needs_decision | skip
 #   note:       (선택) 자유 메모
 
-items: []
+items:
+  - id: "design-20260515-general-sans-not-loaded"
+    title: "General Sans 폰트가 로드되지 않아 디스플레이/히어로 타이포가 시스템 sans-serif로 폴백된다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/layout.tsx:14-25"
+        - "apps/web/src/app/pins/[id]/page.tsx:140"
+        - "apps/web/src/app/pins/[id]/page.tsx:258"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:316"
+        - "apps/web/src/app/search/SearchClient.tsx:233"
+        - "apps/web/src/app/boards/[id]/page.tsx:57"
+        - "apps/web/src/components/board/BoardGrid.tsx:16"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:208"
+        - "apps/web/src/components/profile/MyPageClient.tsx:68"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700 — 기하학적이면서 개성 있음.' / L22-25 폰트 로딩 명세에 General Sans 포함"
+      repro: "어느 페이지든 General Sans inline 스타일이 걸린 헤딩 요소를 DevTools Computed Font로 검사하면 'General Sans'가 아닌 시스템 sans-serif가 사용되고 있음을 확인할 수 있다 (layout.tsx에서 General Sans CSS를 로드하지 않기 때문)."
+    impact: 5
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 25.0
+    status: done
+    note: "2026-05-15 처리 완료. Fontshare CDN으로 500/700 weight 로드. OpenSpec change: archive/2026-05-15-load-general-sans-font."
+  - id: "design-20260515-semantic-hex-literal"
+    title: "AddToBoardButton 피드백 박스가 semantic 토큰 대신 raw hex(#34C759 / #FF3B30)를 사용한다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:235-239"
+      cite: "DESIGN.md L50 — 'Semantic: success #34C759, warning #FFB800, error #FF3B30, info #5AC8FA' (토큰으로 명시). globals.css L19-22, L49-51에서 --color-success/--color-error를 @theme inline으로 노출 중이라 `bg-success`, `text-error` 등 토큰 클래스가 이미 사용 가능."
+      repro: "AddToBoardButton에서 보드에 핀 추가 후 노출되는 피드백 박스 코드 인스펙트."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: done
+    note: "2026-05-15 처리 완료. OpenSpec change: archive/2026-05-15-replace-semantic-hex-with-tokens."
+  - id: "design-20260515-avatar-gradient-orange-400"
+    title: "아바타 폴백 그라디언트가 토큰 외 색(`orange-400`, `#FF8A5C`)을 사용한다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:46"
+        - "apps/web/src/components/feed/PinCard.tsx:168-172"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:24"
+        - "apps/web/src/components/nav/SearchBar.tsx:322"
+        - "apps/web/src/app/pins/[id]/page.tsx:214"
+        - "apps/web/src/app/search/SearchClient.tsx:325"
+      cite: "DESIGN.md L37-49 — 색 팔레트 명시. accent 계열은 #E85A2A / #FF6B3D / accent-subtle 세 가지로 한정. Tailwind 기본 orange-400(#FB923C) 및 #FF8A5C는 정의된 토큰 어디에도 없음. L38 'Restrained — 액센트는 사용자 액션에만 써서 작품과 경쟁하지 않는다' 위반(아바타 폴백은 사용자 액션 아님)."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: done
+    note: "2026-05-15 처리 완료. 6개 위치 모두 to-accent-hover 토큰으로 통일. PinCard inline style은 className으로 일관화. OpenSpec change: archive/2026-05-15-unify-avatar-gradient-tokens."
+  - id: "design-20260515-typography-scale-unmapped"
+    title: "타이포그래피 스케일이 @theme에 미정의되어 컴포넌트가 Tailwind 기본값(text-sm=14px)을 그대로 사용한다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:38-54"
+        - "apps/web/src/components/feed/PinCard.tsx:152"
+        - "apps/web/src/components/feed/EmptyState.tsx:11"
+        - "apps/web/src/components/nav/NavBar.tsx:32"
+        - "apps/web/src/components/nav/NavBar.tsx:48"
+      cite: "DESIGN.md L26-35 — 타이포 스케일 명시: '3xl: 42px / 2xl: 32px / xl: 24px / lg: 18px / md: 15px / sm: 13px / xs: 12px / 2xs: 11px / 3xs: 10px'. globals.css의 @theme inline에 --text-* 토큰이 전혀 정의되지 않아 Tailwind v4 기본(sm=14px, base=16px)이 그대로 적용됨."
+    impact: 4
+    confidence: 4
+    effort: 3
+    risk: 3
+    score: 1.78
+    status: rejected_self
+    note: "2026-05-15 처리 시도 → rejected_self. 측정 결과 충돌 사용처 84건+ (text-sm 74, text-3xl 5, text-xl 2, text-base 3). 자동 머지 시 시각 회귀 위험이 발견 단계 risk=3 추정을 초과(실제 ≥5). effort 추정도 ≥2x 부정확. 발견 단계에서 '토큰 추가'와 '기존 클래스 의미 덮어쓰기'를 분리해 재발견 필요."
+  - id: "design-20260515-board-card-no-hover"
+    title: "BoardGrid 카드 아이템에 DESIGN.md 명시 카드 hover state(translateY/box-shadow/accent border)가 없다"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/board/BoardGrid.tsx:22-39"
+        - "apps/web/src/components/feed/PinCard.tsx:142"
+      cite: "DESIGN.md L86 — 'Hover state: translateY(-2px) + box-shadow 확대 + accent border. 150ms ease.' (Card System 섹션). Board는 BoardCover가 카드 외형(L73 'rounded-[10px]'의 정사각형 그리드 카드)을 가진 동일한 카드 단위. PinCard.tsx:142가 동일 스펙을 이미 구현."
+      repro: "보드 목록 페이지에서 보드 카드에 마우스를 올리면 hover시 텍스트 색만 accent로 바뀌고 카드 자체는 위로 뜨거나 그림자가 확대되거나 accent border가 그려지지 않는다. PinCard와 비교."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    note: "2026-05-15 처리 완료. BoardCover 두 분기에 group-hover:border-accent + shadow + transition-all duration-200 추가, BoardGrid·MyPageClient의 Link에 hover:-translate-y-0.5 추가. OpenSpec change: archive/2026-05-15-add-board-card-hover-state."
+  - id: "design-20260515-skeleton-pulse-not-shimmer"
+    title: "스켈레톤 로딩이 shimmer가 아닌 animate-pulse(opacity 점멸)로 구현되어 있다"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/feed/CardSkeleton.tsx:3"
+        - "apps/web/src/components/profile/ProfileSkeleton.tsx:3"
+      cite: "DESIGN.md L94 — 'Skeleton loading: 카드 자리에 shimmer 효과'. Tailwind `animate-pulse`는 opacity 점멸 애니메이션이며 shimmer(슬라이딩 그라디언트 하이라이트)와 시각적으로 구분되는 별개 패턴."
+      repro: "피드/마이페이지 진입 직후 또는 슬로 네트워크에서 카드 자리 점멸이 확인됨. shimmer 슬라이드 효과는 없음."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: done
+    note: "2026-05-15 처리 완료. globals.css에 --shimmer-highlight 토큰(dark/light) + @keyframes + .skeleton-shimmer 자식 셀렉터 추가. CardSkeleton/ProfileSkeleton 외곽 div의 animate-pulse → skeleton-shimmer. OpenSpec change: archive/2026-05-15-replace-skeleton-pulse-with-shimmer."
+    note: "토큰만 추가하고 기존 클래스명을 유지하면 디자인 의도에 맞춰 자동 정렬되지만, 모든 화면의 글자 크기가 1~2px 변하므로 회귀 위험. 처리 시 시각 회귀 스냅샷 확보 권장."
+  - id: "design-20260515-empty-state-mascot-inconsistent"
+    title: "빈 상태(empty state)가 컴포넌트별로 마스코트 활용에서 일관되지 않음"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/feed/EmptyState.tsx:9-21"
+        - "apps/web/src/app/search/SearchClient.tsx:407-415"
+        - "apps/web/src/components/profile/PinsGrid.tsx:121-124"
+        - "apps/web/src/components/profile/MyPageClient.tsx:123-126"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:251-254"
+        - "apps/web/src/app/boards/[id]/page.tsx:99-119"
+      cite: "DESIGN.md L14 — '마스코트: 헤드셋 끼고 붓 든 복어 (Fugue ≈ Fugu). 로고/빈 상태/온보딩에서 활용.' 빈 상태 6곳 중 2곳(EmptyState/SearchClient)만 🐡 이모지를 시도하고, 3곳(PinsGrid/MyPageClient/AddToBoardButton)은 텍스트만, 1곳(boards/[id])은 grid SVG 아이콘을 마스코트 자리에 사용. 메시지 사이즈도 sm/lg 혼재."
+      repro: "feed/search/profile/board 페이지를 빈 상태로 진입(예: 보드 미생성 계정의 마이페이지)하면 페이지마다 빈 상태 시각 요소가 다름."
+    impact: 3
+    confidence: 4
+    effort: 3
+    risk: 2
+    score: 2.0
+    status: done
+    note: "2026-05-15 처리 완료. EmptyState를 props 기반 공통 컴포넌트로 일반화(🐡 + sm 메시지 + xs 부연 + 액션 children). 6곳 빈 상태 마크업을 <EmptyState> 사용으로 교체. boards[id] grid SVG는 마스코트로 대체. OpenSpec change: archive/2026-05-15-unify-empty-state-with-mascot."
+  - id: "design-20260515-video-trim-modal-radius"
+    title: "VideoTrimModal 모달 컨테이너가 rounded-[12px]로 DESIGN.md modal radius(16px) 위반"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:121"
+      cite: "DESIGN.md L73-77 — 'Border radius: sm: 6px (inputs, alerts) / md: 10px (cards) / lg: 16px (modals, panels) / full: 9999px'. AddToBoardButton.tsx:203의 모달 패널이 rounded-[16px]로 동일 스펙을 따르고 있어 비교 가능."
+      repro: "비디오 핀 업로드 시 노출되는 트림 모달 외곽 모서리가 다른 모달(보드에 추가, 프로필 편집 등)보다 살짝 더 각짐."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: done
+    note: "2026-05-15 처리 완료. VideoTrimModal.tsx:121 rounded-[12px] → rounded-[16px]. OpenSpec change: archive/2026-05-15-fix-video-trim-modal-radius."
+  - id: "design-20260515-login-logo-radius-non-spec"
+    title: "로그인 페이지 로고 박스가 rounded-xl(12px)로 DESIGN.md radius scale 외 값 사용"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/login/page.tsx:38"
+      cite: "DESIGN.md L73-77 — radius scale은 sm:6px / md:10px / lg:16px / full 네 단계로 한정. Tailwind 기본 rounded-xl(12px)은 스펙 어디에도 없음. 동일 페이지 L35의 로그인 카드는 rounded-2xl(16px)로 modal/panel 16px와 매칭되지만, L38의 64px 로고 박스만 12px로 어긋남."
+      repro: "/login 진입 시 가운데 카드 안의 🐡 로고 박스 모서리가 카드 자체(16px)와 일관되지 않음."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: rejected_self
+    note: "2026-05-15 자체 리뷰에서 rejected_self. DESIGN.md L73-77은 radius scale 네 등급(sm/md/lg/full)을 명시하지만 64×64 마스코트 로고 박스가 어느 등급(card 10px / panel 16px / avatar full)에 속하는지 직접 명시하지 않음. 단일 라인 교체에서 등급 선택이 자의적 해석이 되어 reject 조건 #2 해당. 후속: '로고/아이콘 박스 radius 등급 매핑'을 DESIGN.md에 추가하거나 사용자 결정 후 재발견 필요."
+  - id: "design-20260515-masonry-columns-off-by-one"
+    title: "MasonryGrid 컬럼 매핑이 DESIGN.md L70(4/3/2/1) 명세와 어긋남 — small mobile에서 2 column, tablet에서 4 column"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/components/feed/MasonryGrid.tsx:6-11"
+      cite: "DESIGN.md L67-70 — 'Approach: Masonry grid', 'Grid: 4 columns (desktop), 3 (tablet), 2 (mobile), 1 (small mobile)', 'Breakpoints: sm: 500px, md: 800px, lg: 1200px'. react-masonry-css의 breakpointCols 키는 max-width 임계이므로 `1200: 4`는 viewport≤1200에서 4 columns 유지를 의미 → tablet(800~1199)에서 3이 아닌 4 columns. `500: 2`는 small mobile(<500)에서도 2 columns → 1 columns 명세 위반."
+      repro: "Chrome DevTools에서 viewport를 900px(tablet)·400px(small mobile)로 설정하고 피드 페이지(/) 열기. 명세는 각각 3·1 column, 실제는 4·2 column."
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: done
+    note: "2026-05-15 처리 완료. BREAKPOINT_COLUMNS를 default:4/1199:3/799:2/499:1로 교체. react-masonry-css의 max-width inclusive 키 의미에 맞춰 -1 offset 사용. OpenSpec change: archive/2026-05-15-fix-masonry-columns-mapping."
+  - id: "design-20260515-pin-duration-display-missing"
+    title: "Audio/Video 카드에 재생시간/길이 표시 누락 — Pin 타입에 duration 필드 부재"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:57-75"
+        - "apps/web/src/components/feed/PinCard.tsx:77-102"
+        - "apps/web/src/lib/api.ts"
+      cite: "DESIGN.md L83 — 'Audio card: 웨이브폼 시각화 + 미묘한 그라디언트 배경 + 재생 버튼 + 트랙 제목/아티스트 + 재생시간.' L85 — 'Video card: 썸네일 + 재생 아이콘 오버레이 + 길이 표시.' 현재 PinCard의 AudioSection/VideoSection은 재생시간/길이를 표시하지 않으며, apps/web/src/lib/api.ts의 Pin 타입에 duration 필드 자체가 없다(grep 결과 0건)."
+      repro: "오디오/비디오 핀이 포함된 피드를 보면 카드에 재생시간 정보가 없음. PinDetailPage에서도 동일."
+    impact: 3
+    confidence: 5
+    effort: 4
+    risk: 2
+    score: 1.875
+    status: needs_decision
+    note: "디자인 트랙 단독 처리 불가. 처리하려면 apps/api 영역에서 (1) Pin 모델에 duration 필드 추가, (2) 비디오/오디오 harvester가 ffprobe 등으로 duration 측정·저장, (3) Pin DTO 응답에 포함이 선행되어야 함. 디자인 루프 경계(apps/web 한정) 위반이라 사용자 결정 또는 백엔드 변경 후 재발견 대상."
+  - id: "design-20260515-search-dropdown-keyboard-inaccessible"
+    title: "SearchBar 드롭다운 결과 4종(recent/pin/creator/board)이 div onClick으로 키보드 접근 불가"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:185-191"
+        - "apps/web/src/components/nav/SearchBar.tsx:254-261"
+        - "apps/web/src/components/nav/SearchBar.tsx:306-313"
+        - "apps/web/src/components/nav/SearchBar.tsx:336-343"
+      cite: "루프 정체성(prompts/loop-design.md L7) — 'apps/web/ 안의 UI/UX, 디자인 시스템 일관성, 타이포그래피, 색/여백, 인터랙션, 접근성, 빈 상태, 에러 표시만 본다' → 접근성 명시. HTML/WAI-ARIA 표준상 인터랙티브 콘텐츠는 button/a로 마크업해야 키보드 Tab 도달과 스크린리더 시맨틱이 가능. 같은 파일 L212-229는 삭제 버튼을 정상적으로 button으로 마크업하고 있어 부분적으로만 적용된 패턴."
+      repro: "헤더 검색창에 포커스 → 검색어 입력 → Tab 키로 드롭다운 결과 아이템 도달 시도. 입력 필드 다음으로 도달 가능한 인터랙티브 요소가 없어 결과를 키보드로 활성화 불가."
+    impact: 4
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 4.0
+    status: done
+    note: "2026-05-15 처리 완료. SearchBar 드롭다운 5종(recent/pin/creator/board/전체결과보기)을 의미에 맞는 button/Link로 교체. 최근 검색은 button-in-button 회피를 위해 외곽 div + 검색어 button + 삭제 sibling button 구조. import Link from next/link 추가. OpenSpec change: archive/2026-05-15-search-dropdown-keyboard-a11y."
+  - id: "design-20260515-font-family-token-missing"
+    title: "Display/Mono 폰트 토큰이 @theme inline에 정의되지 않아 9곳이 inline style로 fontFamily를 직접 박아넣음"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:40-56"
+        - "apps/web/src/app/pins/[id]/page.tsx:140"
+        - "apps/web/src/app/pins/[id]/page.tsx:258"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:316"
+        - "apps/web/src/app/search/SearchClient.tsx:234"
+        - "apps/web/src/app/boards/[id]/page.tsx:58"
+        - "apps/web/src/components/board/BoardGrid.tsx:16"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:209"
+        - "apps/web/src/components/profile/MyPageClient.tsx:69"
+        - "apps/web/src/components/feed/PinCard.tsx:182"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700', L20 — 'Data/Tags: Geist Mono'. globals.css @theme inline(L40-56)은 색·border만 토큰화하고 폰트 패밀리는 정의 없음. 결과적으로 8개 파일이 inline style={{ fontFamily: \"'General Sans', sans-serif\" }}, 1개 파일이 inline style={{ fontFamily: \"'Geist Mono', monospace\" }}로 직접 박아넣고 있어 폰트 변경 시 9곳 동시 수정 필요. 디자인 시스템 토큰화 결여."
+      repro: "grep -rn \"fontFamily.*General Sans\\|fontFamily.*Geist Mono\" apps/web/src --include=\"*.tsx\" 결과 9건."
+    impact: 3
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 3.75
+    status: done
+    note: "2026-05-15 처리 완료. globals.css @theme inline에 --font-display: 'General Sans', sans-serif 추가 + 8개 헤딩(pins/[id] x2, PinCreateForm, SearchClient, boards/[id], BoardGrid, AddToBoardButton, MyPageClient)의 inline style 제거 후 font-display 클래스 적용. grep으로 fontFamily.*General Sans 0건 확인. Geist Mono(PinCard.tsx:182) 한 곳은 Tailwind 기본 font-mono 의미 덮어쓰기 가능성으로 별도 후보로 분리. OpenSpec change: archive/2026-05-15-token-display-font-family."
+  - id: "design-20260515-profile-header-h1-display-font-missing"
+    title: "ProfileHeader 닉네임 <h1>이 동일 위계 헤딩 중 유일하게 font-display 누락"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileHeader.tsx:32"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700'. 사이클 20에서 처리한 8개 헤딩(pins/[id] x2, PinCreateForm, SearchClient, boards/[id], BoardGrid, AddToBoardButton, MyPageClient)은 모두 `text-2xl sm:text-3xl font-bold tracking-tight` 패턴에 font-display를 적용 받았으나 ProfileHeader.tsx:32만 같은 패턴인데도 font-display 누락. 크리에이터 프로필 페이지 최상단 닉네임 h1이 시스템 sans-serif로 렌더링되어 페이지 전체 디스플레이 위계의 단일 예외점이 됨."
+      repro: "특정 크리에이터 프로필 페이지 방문 → 닉네임 헤딩이 다른 페이지의 동일 위계 헤딩과 폰트 패밀리가 다름. grep으로 'font-display'가 없는 'text-2xl sm:text-3xl font-bold tracking-tight' 헤딩 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: "2026-05-15 처리 완료. ProfileHeader.tsx:32 <h1> className에 font-display 추가. grep으로 'font-display' 없는 동일 패턴(text-2xl sm:text-3xl font-bold tracking-tight) 0건 확인. OpenSpec change: archive/2026-05-15-profile-header-display-font."
+  - id: "design-20260515-tags-mono-font-token-missing"
+    title: "Tags/Data 폰트('Geist Mono') 토큰이 @theme inline에 없어 13개 파일 23곳에 inline style로 산재"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:40-57"
+        - "apps/web/src/app/pins/[id]/page.tsx:132,156"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:340,393,400,409,507,536,597"
+        - "apps/web/src/app/search/SearchClient.tsx:267,331,388"
+        - "apps/web/src/app/boards/[id]/page.tsx:65"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:146,207"
+        - "apps/web/src/components/board/BoardGrid.tsx:31"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:292"
+        - "apps/web/src/components/profile/MyPageClient.tsx:138"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:50"
+        - "apps/web/src/components/feed/PinCard.tsx:182"
+        - "apps/web/src/components/feed/TagFilter.tsx:49,65"
+        - "apps/web/src/components/nav/SearchBar.tsx:294"
+      cite: "DESIGN.md L20 — 'Data/Tags: Geist Mono — 태그, 메타데이터, 수치에 기술적 느낌 (tabular-nums 지원)', L21 — 'Code: Geist Mono'. globals.css @theme inline은 색·border·--font-display만 토큰화하고 mono 토큰 정의 없음. 결과적으로 13개 파일 23곳이 inline style={{ fontFamily: \"'Geist Mono', monospace\" }} 형태로 동일 값 반복. grep 결과: 23건."
+      repro: "grep -rnE 'fontFamily.*Geist Mono' apps/web/src --include=\"*.tsx\" 결과 23건."
+    impact: 3
+    confidence: 5
+    effort: 3
+    risk: 2
+    score: 2.5
+    status: done
+    note: "2026-05-15 처리 완료. 옵션 (B) Tailwind 기본 font-mono 토큰 덮어쓰기 선택. 사전 grep `\\bfont-mono\\b` 0건이라 anti-pattern L15 적용 대상(회귀 위험) 없음 — 별도 신규 토큰 없이 통합. globals.css `@theme inline`에 `--font-mono: 'Geist Mono', monospace` 추가 + 12개 컴포넌트 23개 inline style을 font-mono className으로 치환. 사후 grep `fontFamily.*Geist Mono` 0건 확인. OpenSpec change: archive/2026-05-15-token-mono-font-family."
+  - id: "design-20260515-mono-tabular-nums-missing"
+    title: "Geist Mono(font-mono) 사용처에 tabular-nums가 활성화되지 않아 DESIGN.md L20 '수치에 기술적 느낌 (tabular-nums 지원)' 명세 미충족"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:40-58"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:144,202"
+        - "apps/web/src/components/board/BoardGrid.tsx:29"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:290"
+        - "apps/web/src/components/profile/MyPageClient.tsx:136"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:48"
+        - "apps/web/src/app/boards/[id]/page.tsx:65"
+        - "apps/web/src/app/search/SearchClient.tsx:328"
+      cite: "DESIGN.md L20 — 'Data/Tags: Geist Mono — 태그, 메타데이터, 수치에 기술적 느낌 (tabular-nums 지원)'. 직전 archive change `2026-05-15-token-mono-font-family`로 23곳 font-mono 사용처가 정렬됐으나 globals.css에 font-variant-numeric 규칙이 없어 숫자가 비례 폭(proportional)으로 렌더링됨. grep `tabular-nums|font-variant-numeric` 결과 0건."
+      repro: "grep -rnE 'tabular-nums|font-variant-numeric' apps/web/src 결과 0건. font-mono 사용처 중 숫자 표시: pin_count(BoardGrid/AddToBoardButton/MyPageClient/ProfileHeader/boards[id]), 시간(VideoTrimModal), 날짜(SearchClient)."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 2
+    score: 7.5
+    status: done
+    note: "2026-05-15 처리 완료. 옵션 (A) 채택. globals.css `@theme inline` 다음에 `.font-mono { font-variant-numeric: tabular-nums; }` 블록 추가. anti-pattern L15 적용 대상 아님(새 토큰 추가 아님, 보조 속성만 부착). 사후 grep `font-variant-numeric|tabular-nums` 결과 globals.css 1건 확인. OpenSpec change: archive/2026-05-15-font-mono-tabular-nums."
+  - id: "design-20260515-text-scale-tokens-missing"
+    title: "DESIGN.md L34-35 정의 폰트 스케일 2xs(11px)·3xs(10px)이 @theme inline 토큰 미정의 → text-2xs 클래스 2건이 무효 + text-[10px] 매직값 2건 산재"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:40-58"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:144,202"
+        - "apps/web/src/components/feed/PinCard.tsx:181"
+        - "apps/web/src/components/nav/SearchBar.tsx:292"
+      cite: "DESIGN.md L34 — '2xs: 11px / 0.6875rem (timestamps, duration)', L35 — '3xs: 10px / 0.625rem (tags, category labels)'. globals.css @theme inline은 color·border·--font-display·--font-mono만 토큰화하고 --text-2xs/--text-3xs 미정의. Tailwind 기본 스케일에도 이 두 단계가 없어 `text-2xs`는 노옵(no-op) 클래스이고, 의도된 11px가 실제로는 부모 폰트 크기로 폴백됨."
+      repro: "grep -rnE '\\btext-2xs\\b' apps/web/src 결과 VideoTrimModal 2곳. grep -rnE 'text-\\[10px\\]' apps/web/src 결과 PinCard L181·SearchBar L292 두 곳. globals.css 인라인 grep `--text-2xs|--text-3xs` 결과 0건."
+    impact: 2
+    confidence: 5
+    effort: 2
+    risk: 1
+    score: 5.0
+    status: done
+    note: "2026-05-15 처리 완료. globals.css `@theme inline`에 `--text-2xs: 0.6875rem;`/`--text-3xs: 0.625rem;` 두 줄 추가 + PinCard L181·SearchBar L292 `text-[10px]` → `text-3xs` 치환. VideoTrimModal 2건은 토큰 정의만으로 자동 활성화. 사후 grep `text-\\[10px\\]` 0건, `text-2xs` 2건(VideoTrimModal), `text-3xs` 2건(PinCard/SearchBar) 확인. anti-pattern L15 적용 대상 아님(신규 토큰 추가). OpenSpec change: archive/2026-05-15-text-scale-tokens-2xs-3xs."
+  - id: "design-20260515-icon-only-buttons-no-accessible-name"
+    title: "아이콘 전용 버튼 4곳에 accessible name(aria-label)이 없어 스크린리더가 'button' 또는 글리프 이름만 읽는다"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:210-227"
+        - "apps/web/src/components/nav/SearchBar.tsx:216-234"
+        - "apps/web/src/components/feed/PinCard.tsx:63-66"
+        - "apps/web/src/components/feed/PinCard.tsx:104-132"
+      cite: "루프 정체성(prompts/loop-design.md L7) — 'apps/web/ 안의 UI/UX, 디자인 시스템 일관성, 타이포그래피, 색/여백, 인터랙션, 접근성, 빈 상태, 에러 표시만 본다' → 접근성 명시. WAI-ARIA / WCAG 4.1.2 'Name, Role, Value' — 모든 인터랙티브 컨트롤은 접근 이름을 가져야 한다. 사이클 18에서 처리한 SearchBar 드롭다운 a11y 조정과 동일 트랙."
+      repro: "스크린리더(VoiceOver Cmd+F5)로 (1) 핀 상세→보드에 추가→모달 닫기 X 버튼, (2) 헤더 검색창→최근 검색 hover→삭제 X 버튼, (3) 오디오 핀 카드 ▶ 재생 버튼, (4) 핀 카드 푸터 외부 링크 아이콘에 포커스를 가져가면 각각 'button', 'button', 'black right-pointing triangle button', 또는 (4)는 title 폴백으로 '원본 보기'가 일부 AT에서만 읽힘. grep `<button` 결과 PinCreateForm 태그 칩 등 다른 버튼은 모두 visible text 라벨이 함께 있어 영향 없음."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    note: "2026-05-15 처리 완료. AddToBoardButton.tsx:212 `aria-label=\"닫기\"`, SearchBar.tsx:219 `aria-label=\"최근 검색에서 제거\"`, PinCard.tsx:65 `aria-label=\"재생\"`, PinCard.tsx:118 `aria-label=\"원본 보기\"`(title 유지). 3개 파일, 4단어 추가. anti-pattern L15/L16 적용 대상 아님. OpenSpec change: archive/2026-05-15-icon-only-button-aria-label."
+  - id: "design-20260515-card-focus-visible-parity"
+    title: "카드 5종(Pin/Board×2/검색결과×2)의 hover state가 키보드 포커스 시 미러링되지 않음 — DESIGN.md L86 카드 hover 명세를 focus-visible에 동등 적용 누락"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:146"
+        - "apps/web/src/components/board/BoardGrid.tsx:22"
+        - "apps/web/src/components/board/BoardCover.tsx:6"
+        - "apps/web/src/components/board/BoardCover.tsx:30"
+        - "apps/web/src/components/profile/MyPageClient.tsx:129"
+        - "apps/web/src/app/search/SearchClient.tsx:313"
+        - "apps/web/src/app/search/SearchClient.tsx:351"
+      cite: "DESIGN.md L86 — 'Hover state: translateY(-2px) + box-shadow 확대 + accent border. 150ms ease.' (Card System 섹션). 루프 정체성(prompts/loop-design.md L7) — '접근성 (대비, 키보드 포커스, aria)'. 5종 카드(PinCard / BoardGrid 보드 카드 / MyPageClient 보드 카드 / SearchClient 크리에이터·보드 결과 카드)는 모두 `<Link>`로 키보드 포커스 가능. hover className은 7곳 정의되지만 focus-visible 대응 0건. 키보드 사용자는 브라우저 기본 outline만 보고 디자인 의도(translateY + shadow + accent border)를 받지 못함."
+      repro: "Tab으로 피드 페이지 카드에 포커스 이동. 마우스 hover 시와 동일한 시각 피드백(위로 뜨기 + 그림자 + accent 테두리)이 발생하지 않고 브라우저 기본 outline만 보임. grep `hover:-translate-y` 결과 5건, `focus-visible|group-focus-visible` 결과 0건."
+    impact: 3
+    confidence: 3
+    effort: 2
+    risk: 1
+    score: 4.5
+    status: done
+    note: "2026-05-15 처리 완료. Pattern A(Link 단일 요소에 hover 3효과 일체) PinCard.tsx:146·SearchClient.tsx:313,351 Link className에 `focus-visible:-translate-y-0.5 focus-visible:shadow-[0_8px_32px_rgba(0,0,0,0.3)] focus-visible:border-accent focus-visible:outline-none` 4토큰 추가. Pattern B(Link translate + 자식 BoardCover shadow/border) BoardGrid.tsx:22·MyPageClient.tsx:129 Link에 `focus-visible:-translate-y-0.5 focus-visible:outline-none`, BoardCover.tsx:6,30 두 분기 div에 `group-focus-visible:border-accent group-focus-visible:shadow-[0_8px_32px_rgba(0,0,0,0.3)]` 추가. 사후 grep으로 5개 파일 7곳 모두 확인. anti-pattern L15/L16 적용 대상 아님(새 스타일 추가). OpenSpec change: archive/2026-05-15-card-focus-visible-parity."
+  - id: "design-20260515-feedcontainer-error-pattern-outlier"
+    title: "FeedContainer 피드 로드 에러 박스가 다른 5곳 에러 박스 표준 패턴에서 이탈 + 무효 Tailwind 클래스(border-l-3) 사용"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:185"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:319"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:65"
+        - "apps/web/src/components/profile/MyPageClient.tsx:81"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:55"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:237"
+      cite: "DESIGN.md L50 — 'Semantic: success #34C759, warning #FFB800, error #FF3B30, info #5AC8FA' (semantic 토큰 정의). DESIGN.md L74 — 'sm: 6px (inputs, alerts)' (alert radius 명시). 5개 사이트(PinCreateForm L319 / BoardActions L65 / MyPageClient L81 / ProfileEditForm L55 / AddToBoardButton L237)는 모두 `bg-error/10 border border-error/30 rounded-[6px] text-error` 표준 패턴 사용. FeedContainer L185만 `bg-surface rounded-md border-l-3 border-error`로 이탈 — 텍스트가 text-error 아니라 default text 색으로 렌더, border-l-3은 Tailwind v4 기본 스케일에 없는 무효 유틸리티라 좌측 보더가 그려지지 않음, bg-surface는 에러 톤 배경 없음."
+      repro: "grep -rnE 'border-l-3' apps/web/src 결과 단일 건(FeedContainer.tsx:185). grep `bg-error/10 border border-error/30` 결과 5건 모두 일관. `text-error` 미적용으로 시각적으로 에러로 인지되지 않음."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    note: "2026-05-15 처리 완료. FeedContainer.tsx:185 div className 단일 교체. 사후 grep: border-l-3 0건, rounded-md 1건(NavBar 로고만 남음), `bg-error/10 border border-error/30` 6건(5→6 증가). NavBar 로고의 rounded-md는 본 후보 범위 밖(L16 anti-pattern: 등급 매핑 모호 컴포넌트). OpenSpec change: archive/2026-05-15-align-feedcontainer-error-pattern."
+  - id: "design-20260515-modal-dialog-role-missing"
+    title: "모달 2곳 패널 컨테이너에 `role=\"dialog\"`/`aria-modal`/`aria-labelledby` 부재 — 스크린리더가 모달 진입/제목을 시맨틱으로 안내 못 함"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:119-129"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:192-209"
+      cite: "루프 정체성(prompts/loop-design.md L7) — '접근성(대비, 키보드 포커스, aria)' in-scope. WAI-ARIA Authoring Practices Guide 'Dialog (Modal) Pattern' — 모달 dialog는 (1) `role=\"dialog\"`, (2) `aria-modal=\"true\"` (백그라운드 비활성화 안내), (3) `aria-labelledby`로 dialog 제목과 연결의 3속성 트리플이 표준. WCAG 4.1.2 Name, Role, Value Level A."
+      repro: "grep `role=\"dialog\"|aria-modal|aria-labelledby` apps/web/src 결과 0건. VoiceOver/NVDA로 (1) 비디오 핀 업로드 → 트림 모달 진입 또는 (2) 핀 상세 → '보드에 추가' 버튼 → 모달 진입 시 스크린리더가 '대화 상자, 비디오 구간 선택' 또는 '대화 상자, 보드에 추가'로 안내하지 않고 일반 region/region-of-page로 처리. h2 제목은 페이지 일반 헤딩으로 읽혀 dialog 컨텍스트 누락."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: "2026-05-15 처리 완료. VideoTrimModal.tsx:121 패널 + L123 h2 (id=video-trim-modal-title), AddToBoardButton.tsx:201 패널 + L207 h2 (id=add-to-board-modal-title) 총 8개 속성 추가(role/aria-modal/aria-labelledby × 2 + id × 2). 사후 grep: role=\"dialog\" 2건, aria-modal=\"true\" 2건, aria-labelledby 2건, 각 id 1건씩 확인. ESC 처리/focus trap/initial focus는 별도 후보로 분리. anti-pattern L15/L16 적용 대상 아님. OpenSpec change: archive/2026-05-15-modal-dialog-role-attributes."
+  - id: "design-20260515-form-label-htmlfor-missing"
+    title: "폼 직접 페어 5곳의 `<label>`이 `htmlFor`을, 짝꿍 `<input>`/`<textarea>`이 `id`를 갖지 않아 라벨-컨트롤 프로그래밍 연결이 없다 (WCAG 1.3.1 / 4.1.2)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:435-446"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:450-458"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:462-471"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:62-69"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:74-83"
+      cite: "루프 정체성(prompts/loop-design.md L7) — 'apps/web/ 안의 ... 접근성(대비, 키보드 포커스, aria)' in-scope. WCAG 2.1 Success Criterion 1.3.1 Info and Relationships + 4.1.2 Name, Role, Value — 폼 컨트롤은 그 시맨틱 라벨과 프로그래밍 방식으로 연결되어야 한다. HTML 표준: `<label for=\"x\">`와 `<input id=\"x\">` 페어 또는 `<label>` 내부에 input을 중첩한 implicit association. 본 후보는 5곳 모두 sibling 구조(`<div><label>...</label><input/></div>`)이면서 `htmlFor`/`id` 없음."
+      repro: "VoiceOver/NVDA로 새 핀 만들기(/pin/new) 또는 프로필 편집(/mypage 후 편집 진입) 폼 입력 필드에 Tab 도달 시, 일부 AT은 입력 필드 옆 라벨을 추론으로 읽을 수도 있지만 표준 보장 없음. 라벨 텍스트('제목'/'설명'/'원본 URL'/'닉네임'/'아바타 URL') 클릭 시 짝꿍 input으로 포커스 이동이 발생하지 않음을 마우스로도 확인 가능. grep `htmlFor` apps/web/src/app/pin/new/PinCreateForm.tsx /apps/web/src/components/profile/ProfileEditForm.tsx 결과 0건."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: "2026-05-15 처리 완료. PinCreateForm 3쌍(pin-title/pin-description/pin-url) + ProfileEditForm 2쌍(profile-nickname/profile-avatar-url) 총 10개 속성 추가. grep `htmlFor` 5건, grep `id=\"(pin|profile)-` 5건, 각 페어 값 일치 확인. 그룹 라벨 3곳은 별도 a11y 패턴(fieldset/legend) 대상으로 본 후보에서 제외. OpenSpec change: archive/2026-05-15-form-label-htmlfor-pairing."
+  - id: "design-20260515-pincard-avatar-url-ignored"
+    title: "PinCard 카드 푸터가 `creator.avatar_url`을 무시하고 항상 폴백 그라디언트 원만 렌더 — 다른 5곳은 모두 조건부 avatar 패턴 사용 중"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:159-175"
+        - "apps/web/src/components/nav/NavBar.tsx:39-47"
+        - "apps/web/src/components/nav/SearchBar.tsx:314-322"
+        - "apps/web/src/app/search/SearchClient.tsx:315-323"
+        - "apps/web/src/app/pins/[id]/page.tsx:200-208"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:17-22"
+      cite: "DESIGN.md L82 — 'Image card: og_image 썸네일 + 제목 + 크리에이터 아바타/이름 + 태그'. apps/web/src/lib/api.ts L1-5 `CreatorSummary { id, nickname, avatar_url: string | null }`. 5곳 패턴: `{creator.avatar_url ? <img src=... /> : <div bg-gradient-to-br from-accent to-accent-hover />}` (NavBar w-9/SearchBar w-7/SearchClient w-12/pins[id] w-10/ProfileHeader). PinCard.tsx:171 단일 라인은 무조건 `<div className=\"w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-accent to-accent-hover\" />`만 렌더 — `pin.creator.avatar_url` 참조 0건(grep `creator\\.` 결과 nickname 2건만)."
+      repro: "아바타가 업로드된 크리에이터(예: /mypage에서 본인 아바타 확인 가능한 계정)가 발행한 핀이 피드(/)에 노출될 때, 카드 푸터의 작은 원이 본인 아바타가 아닌 항상 동일한 accent 그라디언트로 렌더링됨. 동일 핀을 클릭해 /pins/{id} 상세 페이지에 들어가면 거기서는 실제 아바타가 표시됨(동일 데이터, 다른 표현)."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: "2026-05-15 처리 완료. PinCard.tsx:171 단일 그라디언트 div를 조건부 JSX(`{pin.creator.avatar_url ? <img onError=hide /> : <div gradient />}`)로 교체. 사이즈/shrink-0/rounded-full 동일 유지로 레이아웃 시프트 0. onError로 이미지 로드 실패 시 그라디언트 자연 폴백. anti-pattern L15/L16 적용 대상 아님. OpenSpec change: archive/2026-05-15-pincard-avatar-url-conditional."
+  - id: "design-20260515-home-page-h1-missing"
+    title: "메인 피드 페이지(`/`)에 h1 헤딩이 없음 — 다른 7개 페이지는 모두 h1을 갖는 outlier 패턴"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/page.tsx:62-100"
+        - "apps/web/src/components/feed/FeedContainer.tsx"
+        - "apps/web/src/components/feed/FieldFilter.tsx"
+        - "apps/web/src/components/feed/TagFilter.tsx"
+        - "apps/web/src/components/nav/NavBar.tsx"
+      cite: "루프 정체성(prompts/loop-design.md L7) — 'apps/web/ 안의 ... 접근성(대비, 키보드 포커스, aria)' in-scope. WCAG 2.1 SC 2.4.6 Headings and Labels (Level AA) — 'Headings and labels describe topic or purpose'. WAI-ARIA Authoring Practices — 각 페이지는 페이지 주제를 식별하는 h1을 가져야 한다(권장). 코드베이스 측정: pins/[id](L135 작품 제목), boards/[id](L56 보드 이름), search(SearchClient.tsx L232 '검색 결과'), pin/new(PinCreateForm.tsx L314 '새 핀 만들기'), mypage·creators/[id](ProfileHeader.tsx L32 닉네임), login(L41 '로그인') — 7개 페이지가 페이지 단위 h1 보유. `/` 피드 페이지는 HomePage.tsx + 자식 컴포넌트(NavBar/FieldFilter/TagFilter/FeedContainer) 어디에도 h1 0건."
+      repro: "VoiceOver 'Web Item Rotor → Headings'로 / 진입 시 페이지 주제를 식별하는 h1이 안내되지 않고 NavBar 자식 요소부터 나열됨. grep `<h1` apps/web/src/app/page.tsx 결과 0건, FeedContainer/FieldFilter/TagFilter/NavBar 모두 0건."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 1
+    score: 6.0
+    status: done
+    note: "2026-05-15 처리 완료. page.tsx `<main>` 첫 자식으로 `<h1 className=\"sr-only\">작품 피드</h1>` 1줄 추가. 사후 grep: page.tsx에 h1 1건, sr-only.*작품 피드 1건, 코드베이스 전체 h1 6→7건 확인. 시각 변경 0. 다른 7개 페이지 h1은 그대로 유지(전체 h1 사용처 7건 = 기존 6 + 신규 1). h1 텍스트로 '작품 피드' 선택 근거: NavBar 로고 'Fugue' 중복 회피 + 시간순+필터 조합 피드라 '추천 작품'보다 정확 + 다른 페이지의 페이지 주제 명사 패턴 부합. anti-pattern L15/L16 적용 대상 아님. OpenSpec change: archive/2026-05-15-home-page-h1-heading."
+  - id: "design-20260515-cancel-button-disabled-style-missing"
+    title: "취소 버튼 3곳이 `disabled` prop을 받지만 `disabled:opacity-50` 클래스가 없어 saving 중 시각적으로 비활성화되지 않음 (짝꿍 submit 버튼과 비대칭)"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:600-601"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:98-99"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:103-104"
+      cite: "루프 정체성(prompts/loop-design.md L7) — '디자인 시스템 일관성' in-scope. DESIGN.md L88-94 Motion 섹션 — 'Minimal-functional — 작품 감상을 방해하지 않는 선' 일관 처리 원칙. 코드베이스의 `disabled` prop 가진 버튼 13개 중 10개(submit/저장/생성/삭제 등)는 `disabled:opacity-50` 클래스를 갖지만 3개 취소 버튼(PinCreateForm `취소` L601 / BoardActions `취소` L99 / ProfileEditForm `취소` L104)만 누락. 동일 화면의 짝꿍 submit 버튼은 모두 `disabled:opacity-50` 있어 saving 중 한쪽만 페이드되는 비대칭 상태."
+      repro: "프로필 편집 화면에서 저장 버튼을 누르면 saving=true가 되어 짝꿍 취소 버튼도 disabled가 되지만 시각적으로 평소와 동일. 사용자는 취소를 다시 누르려고 하지만 무반응. 동일 패턴이 PinCreateForm 새 핀 만들기 페이지·BoardActions 보드 편집 폼에서 발생. grep `disabled=\\{` apps/web/src 결과 16건, 그 중 `cursor-pointer disabled:opacity-50` 없는 라인은 3건(취소 버튼)."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: done
+    note: "2026-05-15 처리 완료. PinCreateForm.tsx:601·BoardActions.tsx:99·ProfileEditForm.tsx:104 각 className 끝에 `disabled:opacity-50` 추가. 사후 grep으로 disabled:opacity-50 총 12→15건 +3 증가, 각 cancel/submit 쌍이 모두 동일한 disabled 페이드 갖는 상태 확인. `disabled:cursor-not-allowed` 및 `opacity-40 vs 50` 일관성 별도 후보 후속. OpenSpec change: archive/2026-05-15-cancel-button-disabled-opacity."
+  - id: "design-20260515-card-hover-shadow-magic-value"
+    title: "카드 hover/focus-visible 그림자가 토큰 미정의 매직값 `shadow-[0_8px_32px_rgba(0,0,0,0.3)]`로 5개 파일 10곳 중복 — DESIGN.md L86 '카드 hover box-shadow 확대'의 구체값이 SSoT 없이 산재"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:146"
+        - "apps/web/src/app/search/SearchClient.tsx:313"
+        - "apps/web/src/app/search/SearchClient.tsx:351"
+        - "apps/web/src/components/board/BoardCover.tsx:6"
+        - "apps/web/src/components/board/BoardCover.tsx:30"
+      cite: "DESIGN.md L86 — 'Hover state: translateY(-2px) + box-shadow 확대 + accent border. 150ms ease.' (Card System 섹션). 구체적인 shadow 값은 DESIGN.md에 명시되지 않았으나, 사이클 28(archive/2026-05-15-card-focus-visible-parity)에서 5개 카드 파일이 동일 매직값 `0 8px 32px rgba(0,0,0,0.3)`을 hover와 focus-visible 각각에 박아 총 10곳 중복. globals.css `@theme inline`에 shadow 토큰 미정의(grep `--shadow` 0건). 동일 값이 5개 파일에 분산되면 카드 hover 톤 조정 시 5곳 동시 수정 필요."
+      repro: "grep -rn 'shadow-\\[0_8px_32px_rgba(0,0,0,0.3)\\]' apps/web/src 결과 5개 파일 10건. grep `--shadow` apps/web/src/app/globals.css 결과 0건."
+    impact: 2
+    confidence: 4
+    effort: 2
+    risk: 1
+    score: 4.0
+    status: done
+    note: "2026-05-15 처리 완료. globals.css `@theme inline`에 `--shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.3)` 토큰 추가. PinCard.tsx:146(2건)·SearchClient.tsx:313,351(각 2건)·BoardCover.tsx:6,30(각 2건) 총 10건의 `shadow-[0_8px_32px_rgba(0,0,0,0.3)]` → `shadow-card-hover` 치환. 사후 grep: 매직값 0건, `shadow-card-hover` 11건(globals 1 + 사용처 10) 확인. 시각 변경 0. anti-pattern L15/L16 적용 대상 아님. OpenSpec change: archive/2026-05-15-token-card-hover-shadow."
+  - id: "design-20260515-tailwind-breakpoints-mismatch"
+    title: "Tailwind v4 기본 breakpoint(sm:640/md:768/lg:1024)가 DESIGN.md L70 명세(sm:500/md:800/lg:1200)와 어긋남 — 10개 파일 28건의 sm:/md: 프리픽스가 의도된 임계가 아닌 픽셀에서 발동"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:40-60"
+        - "apps/web/src/app/pins/[id]/page.tsx"
+        - "apps/web/src/app/boards/[id]/page.tsx"
+        - "apps/web/src/app/search/SearchClient.tsx"
+        - "apps/web/src/components/board/BoardGrid.tsx"
+        - "apps/web/src/components/nav/NavBar.tsx"
+        - "apps/web/src/components/profile/MyPageClient.tsx"
+        - "apps/web/src/components/profile/PinsGrid.tsx"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx"
+        - "apps/web/src/components/profile/ProfileHeader.tsx"
+        - "apps/web/src/components/profile/ProfileSkeleton.tsx"
+      cite: "DESIGN.md L70 — 'Breakpoints: sm: 500px, md: 800px, lg: 1200px'. globals.css `@theme inline`에 `--breakpoint-sm/--breakpoint-md/--breakpoint-lg` 정의 없음(grep 0건). Tailwind v4 기본 컨벤션은 sm=640/md=768/lg=1024이라 26곳의 `sm:` 프리픽스(분포: sm:p-8 5건, sm:grid-cols-2 5건, sm:w-24 3건, sm:h-24 3건, sm:text-3xl 3건, sm:text-base 2건, sm:grid-cols-3 2건, sm:flex-row 2건, sm:block 1건)와 2곳의 `md:grid-cols-3`이 모두 의도된 픽셀이 아닌 곳에서 발동. mobile portrait 500~639px 구간에서 DESIGN.md가 의도한 sm 임계 효과가 누락."
+      repro: "Chrome DevTools에서 viewport 520px(500≤w<640)으로 설정하고 `/`·`/search`·`/mypage` 진입 시 stack→row(ProfileHeader)·1→2 columns(PinsGrid)·24→32 size 아바타(ProfileHeader)·작은 패딩→큰 패딩(boards[id]) 전환이 DESIGN.md 명세(sm=500)에서는 발동해야 하지만 실제 Tailwind 기본(sm=640)이라 발동 안 함. grep `--breakpoint-` apps/web/src/app/globals.css 결과 0건."
+    impact: 4
+    confidence: 5
+    effort: 3
+    risk: 5
+    score: 1.333
+    status: needs_decision
+    note: "처리 전 사용자 결정 필요. 옵션 A: globals.css `@theme inline`에 `--breakpoint-sm: 500px; --breakpoint-md: 800px; --breakpoint-lg: 1200px` 추가 → Tailwind v4 기본 sm/md/lg 의미를 덮어쓰는 변경(anti-pattern L15 직격). 26곳 sm:·2곳 md: 사용처 모두 임계 시프트로 시각 회귀 위험. 옵션 B: 새 토큰명(`mobile-500`/`tablet-800`/`desktop-1200`) 추가 + 기존 sm/md/lg 사용처 점진적 마이그레이션 → DESIGN.md L70이 명시한 `sm`/`md`/`lg` 이름과 어긋남. 옵션 C: DESIGN.md L70을 Tailwind 기본(640/768/1024)에 맞춰 수정 → 디자인 시스템을 코드에 맞추는 역방향 정렬. 어느 옵션도 단일 변경으로 결정 가능하지 않아 needs_decision 분류. anti-pattern L15에 정확히 부합하는 케이스로, 처리 모드 진입 시 자체 리뷰 reject 조건 #2(자의적 해석) 또는 effort/risk 2배 차이 발동 예상."
+  - id: "design-20260515-mascot-asset-missing"
+    title: "DESIGN.md L14 명세 마스코트('헤드셋 끼고 붓 든 복어')의 시각 표현 자산이 없어 NavBar/login 로고 2곳·EmptyState 6곳이 일반 복어 이모지 🐡로 우회"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:14-17"
+        - "apps/web/src/app/login/page.tsx:38-40"
+        - "apps/web/src/components/feed/EmptyState.tsx"
+      cite: "DESIGN.md L14 — 'Mascot: 헤드셋 끼고 붓 든 복어 (Fugue ≈ Fugu). 로고/빈 상태/온보딩에서 활용.' 현재 NavBar L15 `<div className=\"w-8 h-8 bg-accent rounded-md ... text-lg\">🐡</div>`, login L38 `<div className=\"w-16 h-16 bg-accent rounded-xl ... text-3xl\">🐡</div>` 두 로고가 일반 복어 이모지(헤드셋·붓 없음)를 accent 배경 박스에 띄움. EmptyState 6곳도 동일 🐡 이모지 사용(사이클 13 archive 메모). DESIGN.md가 명세한 '헤드셋 끼고 붓 든' 마스코트의 시각 표현이 코드베이스에 존재하지 않음. archive/2026-05-15-unify-empty-state-with-mascot 결정 메모: '일러스트 자산 도입(헤드셋·붓 복어 SVG)은 별도 후보로 미등록 상태'."
+      repro: "find apps/web -name '*.svg' -path '*mascot*' 또는 '*fugu*' 결과 0건. grep '🐡' apps/web/src 결과 8건. NavBar/login의 로고 박스 inspect 시 emoji `🐡` U+1F421이 텍스트로 렌더링 — OS별 emoji 폰트(Apple Color Emoji / Noto Color Emoji)에 의존해 시각 일관성도 불확정."
+    impact: 4
+    confidence: 5
+    effort: 5
+    risk: 1
+    score: 4.0
+    status: needs_decision
+    note: "디자인 트랙 단독 처리 불가. 처리하려면 (1) 일러스트 자산 디자인(헤드셋·붓 든 복어 SVG/PNG 사이즈 변주 16/32/64/96px) 또는 (2) DESIGN.md L14를 '🐡 emoji'로 명세 완화 결정이 선행되어야 함. 옵션 A(자산 도입): 자산 import 경로·라이선스·다크모드 대비 결정 + EmptyState 컴포넌트 mascotSize prop 또는 별도 `<Mascot size>` 컴포넌트 도입 + 8곳 🐡 이모지 치환 + accent 배경 박스 유지/제거 결정. 옵션 B(명세 완화): DESIGN.md L14 '헤드셋 끼고 붓 든 복어' → '🐡 이모지'로 수정. archive/2026-05-15-unify-empty-state-with-mascot에서 '별도 후보로 미등록 상태'로 미루어 둔 결정 사항을 명시화."
+  - id: "design-20260515-h2-display-font-tracking-missing"
+    title: "h2 섹션/모달 헤딩 9곳 중 5곳이 `font-display + tracking-tight` 누락 — 표준 패턴은 코드 SSoT 4곳이 정의"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:292"
+        - "apps/web/src/app/search/SearchClient.tsx:306"
+        - "apps/web/src/app/search/SearchClient.tsx:344"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:128"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:52"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700'. 사이클 21(archive/2026-05-15-token-display-font-family) + 사이클 24(archive/2026-05-15-profile-header-display-font)에서 페이지 h1·일부 h2를 display 카테고리에 포함시키는 결정이 코드 SSoT로 정착(4곳 h2: pins/[id] L249, BoardGrid L14, AddToBoardButton L210, MyPageClient L67가 `text-lg font-bold tracking-tight font-display` 표준 패턴 사용). 그러나 SearchClient h2 3곳(`text-lg font-semibold mb-4`, weight outlier 포함)·VideoTrimModal h2(`text-lg font-bold text-text-primary`)·ProfileEditForm h2(`text-xl font-bold`, 사이즈 outlier 포함)가 `font-display + tracking-tight` 누락. 9건 중 4:5 비율로 누락이 더 많은 상태."
+      repro: "grep -rnE '<h2[^>]*className=' apps/web/src 결과 9건. 그 중 'font-display'와 'tracking-tight'를 모두 가진 라인 4건, 둘 다 또는 하나라도 없는 라인 5건. font-display 누락된 5건은 OS sans-serif 폴백으로 렌더링되어 display 위계 페이지 일관성 깨짐."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    note: "처리 범위는 font-display + tracking-tight 두 클래스 추가만으로 한정. weight 정렬(SearchClient `font-semibold` → `font-bold`)·사이즈 정렬(ProfileEditForm `text-xl` → `text-lg`)은 별도 후보로 분리(코드 SSoT 근거가 더 약함). anti-pattern L15 적용 안됨(`font-display`는 이미 정의된 `--font-display` 토큰, 기본 의미 덮어쓰기 아님). anti-pattern L16 적용 안됨(헤딩 컴포넌트군 단일). 처리 결과: 사이클 48에서 5건 적용, archive/2026-05-15-h2-display-font-tracking. 사후 grep h2 9건 모두 font-display + tracking-tight 보유 확인."
+  - id: "design-20260515-login-panel-radius-tailwind-utility-outlier"
+    title: "로그인 카드 panel radius가 코드 SSoT 패턴 `rounded-[16px]`(8건)에서 `rounded-2xl`(1건) outlier"
+    area: token-consistency
+    evidence:
+      files:
+        - "apps/web/src/app/login/page.tsx:35"
+      cite: "DESIGN.md L73-77 — 'Border radius: sm: 6px (inputs, alerts) / md: 10px (cards) / lg: 16px (modals, panels) / full: 9999px (buttons, chips, avatars, search bar)'. 로그인 페이지의 `<main>` 중앙 카드는 폼을 담는 패널 컨테이너로 DESIGN.md L74 'lg: 16px (modals, panels)' 매핑 대상. 코드 SSoT 패턴은 모달/패널 8곳(VideoTrimModal:125, AddToBoardButton:202, VideoTrimModal video preview 제외 모달 외곽, 기타) 모두 `rounded-[16px]`를 사용 중이고, 로그인 panel만 `rounded-2xl` 사용. Tailwind v4 기본 `rounded-2xl` = 1rem = 16px로 렌더 결과는 동일하나 SSoT 일관성 깨짐."
+      repro: "grep -rnE 'rounded-2xl' apps/web/src --include='*.tsx' 결과 단일 라인 `apps/web/src/app/login/page.tsx:35`. grep -rnE 'rounded-\\[16px\\]' apps/web/src --include='*.tsx' 결과 8건(모달/패널 외곽). 로그인 페이지는 모달이 아닌 panel 카테고리지만 DESIGN.md L74가 'modals, panels'로 같은 tier에 매핑."
+    impact: 1
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 4.0
+    status: done
+    note: "렌더 값 동일(rounded-2xl = 16px = rounded-[16px])이므로 시각 변경 0건. 코드 SSoT 일관성과 향후 Tailwind 기본값 변동 시 silent regression 방지가 주 가치. 처리 범위는 `rounded-2xl` → `rounded-[16px]` 단일 토큰 치환 1건으로 한정. anti-pattern L15 적용 안됨(`rounded-2xl`은 기본 의미 덮어쓰기 대상이 아니고 단순 한 자리 치환). anti-pattern L16 적용 안됨(login 카드는 폼 panel로 DESIGN.md L74 명시 매핑 대상). 결정 로그 L100의 `2026-05-15-login-logo-radius-non-spec` rejected_self와 별개 사안 — 그쪽은 64×64 마스코트 박스가 어느 tier인지 모호한 케이스였고, 본 후보는 panel-급 컨테이너로 매핑이 분명. 처리 결과: 사이클 50에서 1건 치환, archive/2026-05-15-login-panel-radius-token. 사후 grep `rounded-2xl` 0건, `rounded-[16px]` 9건(기존 8 + 신규 1) 확인."
+  - id: "design-20260515-login-h1-display-font-missing"
+    title: "로그인 페이지 h1 '작품으로 만나다'가 `font-display` 누락 — h1 6건 중 유일 outlier"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/app/login/page.tsx:41"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700 — 기하학적이면서 개성 있음'. 사이클 21(archive/2026-05-15-token-display-font-family) + 사이클 24(archive/2026-05-15-profile-header-display-font)에서 페이지 단위 h1을 display 카테고리에 포함시키는 결정이 코드 SSoT로 정착. 현재 visible h1 6건(sr-only 1건 제외) 중 5건(`pins/[id]:135`, `PinCreateForm:314`, `SearchClient:232`, `boards/[id]:56`, `ProfileHeader:32`)이 `text-2xl[ sm:text-3xl] font-bold tracking-tight font-display` 표준 패턴 사용 중. 로그인 페이지 h1만 `text-2xl font-bold text-text-primary tracking-tight`로 font-display가 빠져 시스템 sans-serif 폴백 렌더링. 사이클 24가 ProfileHeader h1를 동일 사유로 보강했던 직접 선례."
+      repro: "grep -rnE '<h1' apps/web/src 결과 7건(sr-only 포함). visible 6건 중 font-display 보유 5건 vs 미보유 1건(login). 사이클 21 archive `2026-05-15-token-display-font-family`가 inline `fontFamily` 사용 헤딩 8곳만 잡아 처리했고, login h1는 처음부터 inline fontFamily가 없어 그 grep 그물을 빠져나간 잔여 갭(ProfileHeader와 동일 케이스)."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: "처리 범위는 login/page.tsx:41 단일 라인 className에 `font-display` 1단어 추가만으로 한정. 사이클 24와 정확히 동일한 형태(ProfileHeader h1 보강). anti-pattern L15 적용 안됨(`font-display`는 정의된 `--font-display` 토큰, 기본 의미 덮어쓰기 아님). anti-pattern L16 적용 안됨(h1 페이지 헤딩군 단일). h2 헤딩 5건 보강(사이클 48)과 별개로 본 사이클에서 발견된 h1 outlier. 처리 결과: 사이클 52에서 1건 적용, archive/2026-05-15-login-h1-display-font. 사후 grep visible h1 6건 모두 `font-display` 보유 확인."
+  - id: "design-20260515-search-h2-weight-bold-outlier"
+    title: "검색 결과 섹션 h2 3곳 `font-semibold` vs 코드 SSoT `font-bold` weight outlier"
+    area: typography
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:292"
+        - "apps/web/src/app/search/SearchClient.tsx:306"
+        - "apps/web/src/app/search/SearchClient.tsx:344"
+      cite: "DESIGN.md L17 — 'Display/Hero: General Sans 700 — 기하학적이면서 개성 있음'(700 = bold). 사이클 48 archive/2026-05-15-h2-display-font-tracking이 h2 5곳 `font-display + tracking-tight` 보강 시 'weight 정렬(SearchClient `font-semibold` → `font-bold`)은 코드 SSoT 근거가 더 약해 별도 후보로 분리'라고 decision-log L33에서 명시한 잔여 갭. 코드 SSoT 측정: 다른 h2 5건(pins/[id]:249, VideoTrimModal:128, BoardGrid:14, AddToBoardButton:210, MyPageClient:67) 모두 `font-bold`, 페이지 h1 6건도 모두 `font-bold`. 헤딩 전반 14건 중 11건이 `font-bold` 표준 패턴이고 SearchClient 검색 결과 섹션 헤딩 3건만 `font-semibold` outlier."
+      repro: "grep -rnE '<h2[^>]*className=' apps/web/src --include='*.tsx' 결과 9건(visible 8 + sr-only 1). font-semibold 보유 3건 = SearchClient.tsx:292/306/344. font-bold 보유 5건 = pins/[id]:249, VideoTrimModal:128, BoardGrid:14, AddToBoardButton:210, MyPageClient:67. grep -rnE '<h1[^>]*className=' 결과 visible 6건 모두 font-bold. 헤딩 14건 중 11/14 = 79%가 font-bold 표준이고 SearchClient 3/3이 outlier."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: done
+    note: "처리 범위는 SearchClient.tsx 3개 라인 className의 `font-semibold` → `font-bold` 단일 토큰 치환 3건으로 한정. anti-pattern L15 적용 안됨(`font-bold`는 Tailwind 기본 의미와 일치하는 정상 사용, 덮어쓰기 아님). anti-pattern L16 적용 안됨(헤딩 카테고리는 DESIGN.md L17에서 weight 700 명시). DESIGN.md가 weight를 직접 명시하지 않는 'section heading vs data group label' 카테고리 해석 여지는 있으나, 코드 SSoT가 다른 8개 visible h2를 모두 `font-bold`로 정착시켰고 SearchClient 검색 결과 섹션도 의미상 동일한 페이지 섹션 헤딩(MyPageClient '보드', BoardGrid '보드'와 같은 패턴 — 데이터 카테고리 그룹 라벨)이라 자체 리뷰 #2(자의적 해석) 해당 가능성 낮음. ProfileEditForm:52 `text-xl` 사이즈 outlier 1건은 'section title vs card title' 매핑이 DESIGN.md L29/L30에서 직접 명시되지 않아 anti-pattern L16에 걸려 본 후보에서 제외(별도 처리 후보로 등록도 보류). 처리 결과: 사이클 54에서 3건 치환, archive/2026-05-15-search-h2-weight-bold. 사후 grep visible h2 9건 모두 `font-bold` 보유 확인, `font-semibold` h2 0건."
+  - id: "design-20260515-video-trim-modal-esc-dismiss"
+    title: "VideoTrimModal ESC 닫기 누락 — AddToBoardButton 대비 모달 dismiss 키보드 경로 비대칭"
+    area: accessibility
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx"
+      cite: "WAI-ARIA Authoring Practices Guide Dialog (Modal) Pattern — 'ESC closes the dialog'은 modal dialog의 표준 키보드 인터랙션. WCAG 2.1.1 Keyboard (Level A). 코드 SSoT 직접 선례: `apps/web/src/components/board/AddToBoardButton.tsx:124-131`이 동일 패턴 구현(`useEffect`로 `window.addEventListener('keydown', e => e.key === 'Escape' && onClose())` + cleanup). 사이클 25 archive/2026-05-15-modal-dialog-role-attributes의 decision-log L48 'ESC 처리/focus trap/initial focus 같은 keyboard interaction 항목은 별도 후보로 분리'라고 미래 처리 예약한 잔여 갭의 후속 처리. 두 모달 모두 role=dialog 트리플은 사이클 25에서 부여 완료, dismiss 키보드 경로만 VideoTrimModal에 누락."
+      repro: "grep -rn 'key === \"Escape\"' apps/web/src 결과 2건(AddToBoardButton:127 모달, SearchBar:169 드롭다운). VideoTrimModal 내부 ESC 핸들러 0건. 결과적으로 키보드 사용자는 VideoTrimModal에서 빠져나가려면 Tab으로 '취소' 버튼(L214)까지 도달한 뒤 Enter/Space 눌러야 함."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: done
+    note: "처리 범위는 VideoTrimModal.tsx에 ESC 핸들러 useEffect 한 블록 추가만으로 한정. 패턴은 AddToBoardButton L124-131 1:1 복제(`window.addEventListener('keydown', handleKeyDown)` + cleanup). drag 가드 필수: 슬라이더 핸들 드래그 진행 중(`drag !== null`)일 때 ESC가 작업을 손실시키지 않도록 `if (e.key === 'Escape' && !drag) onCancel()` 조건 적용. drag 가드는 onPointerUp 핸들러(L113)의 정신과 일치(드래그 미완료 상태에서 외부 이벤트로 인한 강제 종료 방지). anti-pattern L15 적용 안됨(ESC 핸들러는 토큰/유틸리티 영역 아닌 동작 추가). anti-pattern L16 적용 안됨(DESIGN.md radius scale 영역 아님). body scroll lock(AddToBoardButton L116-122)·overlay click 닫기(L141-145 + DOM 구조 변경) 보강은 별도 후보로 분리 — 본 후보는 키보드 dismiss 단일 경로만 처리. Initial focus·Focus trap은 더 큰 effort/risk 영역으로 별도 분리. 처리 결과: 사이클 56에서 VideoTrimModal.tsx:57-62 useEffect 1블록 추가, archive/2026-05-15-video-trim-modal-esc-dismiss. 사후 grep `key === \"Escape\"` 3건(VideoTrimModal:59 신규·AddToBoardButton:127·SearchBar:169) 확인."
+
+  - id: "design-20260515-video-trim-modal-scroll-lock"
+    title: "VideoTrimModal body scroll lock 누락 — AddToBoardButton 대비 모달 배경 스크롤 잠금 비대칭 [done @ archive/2026-05-15-video-trim-modal-scroll-lock]"
+    area: accessibility
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx"
+      cite: "WAI-ARIA Authoring Practices Guide Dialog (Modal) Pattern — modal dialog가 열려 있을 때 배경 콘텐츠는 비활성화되어야 하며, 그 일환으로 body scroll이 차단되는 것이 표준. 코드 SSoT 직접 선례: `apps/web/src/components/board/AddToBoardButton.tsx:116-122`이 동일 패턴 구현(`useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, [])`). 사이클 56(VideoTrimModal ESC 닫기 추가)의 note L628 'body scroll lock(AddToBoardButton L116-122)·overlay click 닫기 보강은 별도 후보로 분리'에서 명시적으로 본 후보를 예약함."
+      repro: "grep -n 'body.style' apps/web/src/components/pin/VideoTrimModal.tsx 결과 0건. grep -n 'body.style' apps/web/src/components/board/AddToBoardButton.tsx 결과 2건(L118 lock·L120 cleanup). 결과적으로 VideoTrimModal이 열려 있는 동안 사용자가 wheel/trackpad로 스크롤하면 모달 뒤 페이지(/pin/new 폼)가 스크롤되어 모달의 강제 포커스 의도와 충돌. 모바일에서는 본문 body 스크롤이 모달 위로 떠 있는 키보드/터치 인터랙션을 가리는 시각적 글리치까지 동반."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: done
+    note: "처리 범위는 VideoTrimModal.tsx에 body scroll lock useEffect 한 블록 추가만으로 한정. 패턴은 AddToBoardButton L116-122 1:1 복제(`useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, [])`). deps `[]`(modal mount 시점에 lock, unmount 시 cleanup). anti-pattern L15 적용 안됨(인라인 스타일 mutation은 토큰/유틸리티 영역 아님). anti-pattern L16 적용 안됨(DESIGN.md radius scale 영역 아님). overlay click 닫기·Focus trap·initial focus는 더 큰 effort/risk 영역으로 별도 분리(본 후보 범위 밖). 사이클 56 archive note에서 '별도 후보' 선포한 잔여 갭의 후속 처리. 처리 결과: 사이클 57에서 VideoTrimModal.tsx:65-70 useEffect 1블록 추가, archive/2026-05-15-video-trim-modal-scroll-lock. 사후 grep `body.style.overflow` 4건(VideoTrimModal:66 신규 lock·:68 신규 cleanup·AddToBoardButton:118 기존 lock·:120 기존 cleanup) 확인."
+
+  - id: "design-20260515-navbar-wordmark-display-font-missing"
+    title: "NavBar 'Fugue' 워드마크에 `font-display` 누락 — `tracking-tight` 단독 사용 outlier [done @ archive/2026-05-15-navbar-wordmark-display-font]"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:18"
+      cite: "DESIGN.md L17 'Display/Hero: General Sans 700'이 브랜드/디스플레이 카테고리에 General Sans 700 = font-display를 직접 명시. 코드 SSoT 정착 사이클 21(archive/2026-05-15-token-display-font-family) + 사이클 24(archive/2026-05-15-profile-header-display-font) + 사이클 46(archive/2026-05-15-h2-display-font-tracking) + 사이클 52(archive/2026-05-15-login-h1-display-font)로 display 카테고리 헤딩·브랜드 텍스트는 `font-display tracking-tight` 페어로 표기되는 게 표준 패턴. NavBar L18 'Fugue' 워드마크는 헤더 브랜드 텍스트로 display 카테고리에 해당."
+      repro: "grep -rn 'tracking-tight' apps/web/src 중 `font-display` 미포함 결과 1건 → NavBar.tsx:18 단일 outlier. 동일 grep 다른 모든 `tracking-tight` 사용처는 모두 `font-display`와 페어. 결과적으로 NavBar 'Fugue' 워드마크가 sticky 헤더에서 매 페이지마다 OS sans-serif(Inter fallback)로 렌더되는 반면 같은 페이지의 h1/h2 디스플레이 헤딩은 General Sans 700으로 렌더되는 시각 위계 비대칭."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    note: "처리 범위는 NavBar.tsx:18 `<span>` className에 `font-display` 1단어 추가만으로 한정. 기존 `text-xl font-bold tracking-tight text-text-primary` 뒤 또는 사이 위치. anti-pattern L15 적용 안됨(font-display는 사이클 21에서 정의된 신규 토큰, Tailwind 기본 의미 덮어쓰기 아님). anti-pattern L16 적용 안됨(DESIGN.md radius scale 영역 아님). NavBar L15 로고 박스(`rounded-md`)·L46 그라디언트 폴백 아바타·L60 로그인 버튼 텍스트 위계 등 인접 항목은 본 후보 범위 밖(별도 사안). 시각 변경: 'Fugue' 글꼴이 OS sans-serif → General Sans 700, weight는 그대로 700 유지(font-bold 클래스 이미 있음). letter-spacing 그대로 `tracking-tight` 유지. 처리 결과: 사이클 59에서 NavBar.tsx:18 className 끝에 `font-display` 1단어 추가, archive/2026-05-15-navbar-wordmark-display-font. 사후 grep `tracking-tight` 사용처 중 `font-display` 미포함 0건 확인(이전 1건 → 신규 0건)."
+

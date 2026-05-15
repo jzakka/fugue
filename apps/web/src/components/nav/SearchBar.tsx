@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import type { SearchResult } from "@/lib/api";
 import { fetchSearch } from "@/lib/api";
 import { getMediaTypeLabel } from "@/lib/card-type";
@@ -184,13 +185,16 @@ export default function SearchBar() {
               {recentSearches.map((q) => (
                 <div
                   key={q}
-                  onClick={() => {
-                    setQuery(q);
-                    handleSubmit(q);
-                  }}
-                  className="flex items-center justify-between px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer group transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-[10px] hover:bg-surface-hover group transition-colors"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery(q);
+                      handleSubmit(q);
+                    }}
+                    className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
+                  >
                     <svg
                       width="14"
                       height="14"
@@ -208,9 +212,11 @@ export default function SearchBar() {
                     <span className="text-sm text-text-primary truncate">
                       {q}
                     </span>
-                  </div>
+                  </button>
                   <button
+                    type="button"
                     onClick={(e) => handleDeleteRecent(q, e)}
+                    aria-label="최근 검색에서 제거"
                     className="opacity-0 group-hover:opacity-100 text-text-dim hover:text-text-primary transition-opacity p-1 cursor-pointer"
                   >
                     <svg
@@ -252,12 +258,10 @@ export default function SearchBar() {
                 <div className="mb-2">
                   <div className="text-xs text-text-dim mb-1 px-1">핀</div>
                   {results!.pins!.slice(0, 3).map((pin) => (
-                    <div
+                    <Link
                       key={pin.id}
-                      onClick={() => {
-                        setOpen(false);
-                        router.push(`/pins/${pin.id}`);
-                      }}
+                      href={`/pins/${pin.id}`}
+                      onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
                     >
                       {pin.og_image ? (
@@ -286,13 +290,10 @@ export default function SearchBar() {
                           {pin.creator_nickname}
                         </div>
                       </div>
-                      <span
-                        className="text-[10px] px-2 py-0.5 rounded-full bg-accent-subtle text-text-dim shrink-0"
-                        style={{ fontFamily: "'Geist Mono', monospace" }}
-                      >
+                      <span className="text-3xs px-2 py-0.5 rounded-full bg-accent-subtle text-text-dim shrink-0 font-mono">
                         {getMediaTypeLabel(pin.media_type)}
                       </span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -304,12 +305,10 @@ export default function SearchBar() {
                     크리에이터
                   </div>
                   {results!.creators!.slice(0, 1).map((creator) => (
-                    <div
+                    <Link
                       key={creator.id}
-                      onClick={() => {
-                        setOpen(false);
-                        router.push(`/creators/${creator.id}`);
-                      }}
+                      href={`/creators/${creator.id}`}
+                      onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
                     >
                       {creator.avatar_url ? (
@@ -319,12 +318,12 @@ export default function SearchBar() {
                           className="w-7 h-7 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-orange-400 shrink-0" />
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-accent-hover shrink-0" />
                       )}
                       <span className="text-sm text-text-primary truncate">
                         {creator.nickname}
                       </span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -334,12 +333,10 @@ export default function SearchBar() {
                 <div>
                   <div className="text-xs text-text-dim mb-1 px-1">보드</div>
                   {results!.boards!.slice(0, 1).map((board) => (
-                    <div
+                    <Link
                       key={board.id}
-                      onClick={() => {
-                        setOpen(false);
-                        router.push(`/boards/${board.id}`);
-                      }}
+                      href={`/boards/${board.id}`}
+                      onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
                     >
                       <div className="w-7 h-7 rounded-[6px] bg-surface shrink-0 flex items-center justify-center">
@@ -368,19 +365,20 @@ export default function SearchBar() {
                           {board.creator_nickname}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
 
               {/* View all results link */}
               {hasAnyResults && (
-                <div
+                <button
+                  type="button"
                   onClick={() => handleSubmit()}
-                  className="mt-2 pt-2 border-t border-border text-center text-sm text-accent hover:text-accent-hover cursor-pointer py-2 transition-colors"
+                  className="block w-full mt-2 pt-2 border-t border-border text-center text-sm text-accent hover:text-accent-hover cursor-pointer py-2 transition-colors"
                 >
                   전체 결과 보기
-                </div>
+                </button>
               )}
             </div>
           )}

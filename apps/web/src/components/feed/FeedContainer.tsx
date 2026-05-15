@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Pin, PopularTag } from "@/lib/api";
 import { fetchPins } from "@/lib/api";
 import MasonryGrid from "./MasonryGrid";
@@ -26,6 +26,7 @@ export default function FeedContainer({
   initialError?: boolean;
   popularTags?: PopularTag[];
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const mediaType = searchParams.get("media_type") || "";
   const tagsParam = searchParams.get("tags") || "";
@@ -160,7 +161,16 @@ export default function FeedContainer({
   }
 
   if (!loading && pins.length === 0 && !error) {
-    return <EmptyState />;
+    return (
+      <EmptyState message="이 분야의 작품이 아직 없어요">
+        <button
+          onClick={() => router.push("/", { scroll: false })}
+          className="text-accent text-sm hover:underline cursor-pointer"
+        >
+          전체 보기
+        </button>
+      </EmptyState>
+    );
   }
 
   // Build noscript href preserving both media_type and tags
@@ -172,7 +182,7 @@ export default function FeedContainer({
   return (
     <div className="px-6">
       {error && (
-        <div className="mb-4 p-4 bg-surface rounded-md border-l-3 border-error text-sm">
+        <div className="mb-4 p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
           {error}
           <button
             onClick={() => {

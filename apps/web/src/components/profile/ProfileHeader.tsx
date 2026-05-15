@@ -21,7 +21,7 @@ export default function ProfileHeader({
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-border object-cover"
             />
           ) : (
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-accent to-orange-400 border-2 border-border" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border" />
           )}
         </div>
 
@@ -29,7 +29,7 @@ export default function ProfileHeader({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display">
                 {creator.nickname}
               </h1>
             </div>
@@ -45,10 +45,7 @@ export default function ProfileHeader({
 
           {/* Pin count */}
           <div className="mt-4 text-sm text-text-muted">
-            <span
-              className="font-medium"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <span className="font-medium font-mono">
               {creator.pin_count} pins
             </span>
           </div>

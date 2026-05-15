@@ -5,6 +5,7 @@ import type { Pin } from "@/lib/api";
 import { fetchPins } from "@/lib/api";
 import PinCard from "@/components/feed/PinCard";
 import CardSkeleton from "@/components/feed/CardSkeleton";
+import EmptyState from "@/components/feed/EmptyState";
 
 const PAGE_SIZE = 20;
 const MEDIA_TYPES = [
@@ -119,9 +120,7 @@ export default function PinsGrid({
           ))}
         </div>
       ) : pins.length === 0 ? (
-        <div className="text-center py-16 text-text-dim">
-          <p className="text-lg">아직 등록된 작품이 없습니다</p>
-        </div>
+        <EmptyState message="아직 등록된 작품이 없습니다" />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {pins.map((pin) => (

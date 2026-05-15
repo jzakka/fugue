@@ -54,6 +54,21 @@ export default function VideoTrimModal({
     }
   }, [start, drag]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !drag) onCancel();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drag, onCancel]);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const pxToTime = useCallback(
     (clientX: number) => {
       if (!trackRef.current) return 0;
@@ -118,9 +133,14 @@ export default function VideoTrimModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-surface-elevated border border-border rounded-[12px] w-full max-w-xl mx-4 overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="video-trim-modal-title"
+        className="bg-surface-elevated border border-border rounded-[16px] w-full max-w-xl mx-4 overflow-hidden"
+      >
         <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-lg font-bold text-text-primary">
+          <h2 id="video-trim-modal-title" className="text-lg font-bold text-text-primary font-display tracking-tight">
             비디오 구간 선택
           </h2>
           <p className="text-xs text-text-muted mt-1">
@@ -141,10 +161,7 @@ export default function VideoTrimModal({
           )}
 
           <div className="mt-4 px-1">
-            <div
-              className="flex justify-between items-center text-2xs text-text-dim mb-2"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <div className="flex justify-between items-center text-2xs text-text-dim mb-2 font-mono">
               <span>{fmt(start)}</span>
               <span className="text-accent font-semibold">{clip.toFixed(1)}초 / {MAX_CLIP}초</span>
               <span>{fmt(end)}</span>
@@ -202,10 +219,7 @@ export default function VideoTrimModal({
               </div>
             </div>
 
-            <div
-              className="text-right mt-1 text-2xs text-text-dim"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <div className="text-right mt-1 text-2xs text-text-dim font-mono">
               전체 {fmt(videoDuration)}
             </div>
           </div>

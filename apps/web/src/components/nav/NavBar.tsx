@@ -15,7 +15,7 @@ export default async function NavBar() {
           <div className="w-8 h-8 bg-accent rounded-md flex items-center justify-center text-lg">
             🐡
           </div>
-          <span className="text-xl font-bold tracking-tight text-text-primary">
+          <span className="text-xl font-bold tracking-tight text-text-primary font-display">
             Fugue
           </span>
         </Link>
@@ -43,7 +43,7 @@ export default async function NavBar() {
                       className="w-9 h-9 rounded-full border-2 border-border object-cover"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-orange-400 border-2 border-border" />
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border" />
                   )}
                   <span className="text-sm text-text-primary hidden sm:block">
                     {user.nickname}
