@@ -1,0 +1,22 @@
+# Fugue 시스템 트랙 백로그
+#
+# 루프(`prompts/loop-system.md`)가 발견 모드에서 채우고 처리 모드에서 비운다.
+# 사람이 직접 편집해도 된다. status를 `skip`으로 바꾸면 루프가 영구 스킵한다.
+#
+# 스키마:
+#   id:         "system-<yyyymmdd>-<short>"  발견 시 자동 부여
+#   title:      한 줄 요약
+#   area:       integrity | errors | concurrency | security | bot | openspec-gap | infra
+#   evidence:
+#     files:    ["apps/api/path/to/file.go:LSTART-LEND", ...]
+#     cite:     "AGENTS.md / docs/architecture.md / openspec/specs/... — 인용"
+#     repro:    재현 시나리오 (동시성/보안은 필수)
+#   impact:     1..5  장애·데이터 손상·보안 가능성, 운영 비용
+#   confidence: 1..5  "진짜 결함"의 확신도 (< 3 이면 자동 폐기)
+#   effort:    1..5  수정에 드는 변경 폭
+#   risk:       1..5  회귀·마이그레이션 사고 위험
+#   score:      impact * confidence / (effort * risk)
+#   status:     pending | in_progress | done | rejected_self | rejected_impl | needs_decision | skip
+#   note:       (선택) 자유 메모
+
+items: []
