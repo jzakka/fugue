@@ -84,6 +84,7 @@ export default async function HomePage({
         <TagFilter tags={popularTags} />
       </Suspense>
       <main className="flex-1 pb-12">
+        <h1 className="sr-only">작품 피드</h1>
         <Suspense>
           <FeedContainer
             initialPins={pins}

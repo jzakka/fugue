@@ -1,22 +1,24 @@
-"use client";
+import type { ReactNode } from "react";
 
-import { useRouter } from "next/navigation";
+type EmptyStateProps = {
+  message: string;
+  description?: string;
+  children?: ReactNode;
+};
 
-export default function EmptyState() {
-  const router = useRouter();
-
+export default function EmptyState({
+  message,
+  description,
+  children,
+}: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
+    <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="text-5xl mb-4">🐡</div>
-      <p className="text-text-muted text-sm mb-4">
-        이 분야의 작품이 아직 없어요
-      </p>
-      <button
-        onClick={() => router.push("/", { scroll: false })}
-        className="text-accent text-sm hover:underline cursor-pointer"
-      >
-        전체 보기
-      </button>
+      <p className="text-text-muted text-sm mb-1">{message}</p>
+      {description && (
+        <p className="text-text-dim text-xs">{description}</p>
+      )}
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }

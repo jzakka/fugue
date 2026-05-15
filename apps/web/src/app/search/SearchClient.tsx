@@ -13,6 +13,7 @@ import { fetchSearch } from "@/lib/api";
 import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import CardSkeleton from "@/components/feed/CardSkeleton";
+import EmptyState from "@/components/feed/EmptyState";
 import Link from "next/link";
 
 const TABS = [
@@ -228,10 +229,7 @@ export default function SearchClient({
   return (
     <div className="max-w-5xl mx-auto w-full px-6 py-6">
       {/* Search query display */}
-      <h1
-        className="text-2xl font-bold tracking-tight mb-6"
-        style={{ fontFamily: "'General Sans', sans-serif" }}
-      >
+      <h1 className="text-2xl font-bold tracking-tight mb-6 font-display">
         &ldquo;{query}&rdquo; 검색 결과
       </h1>
 
@@ -261,12 +259,11 @@ export default function SearchClient({
               <button
                 key={tag.id}
                 onClick={() => handleTagToggle(tag.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer font-mono ${
                   selected
                     ? "bg-accent text-white"
                     : "bg-accent-subtle text-text-muted hover:bg-accent/20"
                 }`}
-                style={{ fontFamily: "'Geist Mono', monospace" }}
               >
                 {tag.name}
                 <span className="ml-1 opacity-60">{tag.count}</span>
@@ -292,7 +289,7 @@ export default function SearchClient({
           {showPins && pins.length > 0 && (
             <section className="mb-8">
               {activeType === "all" && (
-                <h2 className="text-lg font-semibold mb-4">핀</h2>
+                <h2 className="text-lg font-bold mb-4 font-display tracking-tight">핀</h2>
               )}
               <MasonryGrid>
                 {pins.map((pin) => (
@@ -306,14 +303,14 @@ export default function SearchClient({
           {showCreators && creators.length > 0 && (
             <section className="mb-8">
               {activeType === "all" && (
-                <h2 className="text-lg font-semibold mb-4">크리에이터</h2>
+                <h2 className="text-lg font-bold mb-4 font-display tracking-tight">크리에이터</h2>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {creators.map((creator) => (
                   <Link
                     key={creator.id}
                     href={`/creators/${creator.id}`}
-                    className="flex items-center gap-4 p-4 bg-surface rounded-[10px] border border-transparent hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-accent transition-all duration-200"
+                    className="flex items-center gap-4 p-4 bg-surface rounded-[10px] border border-transparent hover:-translate-y-0.5 hover:shadow-card-hover hover:border-accent focus-visible:-translate-y-0.5 focus-visible:shadow-card-hover focus-visible:border-accent focus-visible:outline-none transition-all duration-200"
                   >
                     {creator.avatar_url ? (
                       <img
@@ -322,16 +319,13 @@ export default function SearchClient({
                         className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-border"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-orange-400 shrink-0 border-2 border-border" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-hover shrink-0 border-2 border-border" />
                     )}
                     <div className="min-w-0">
                       <div className="text-sm font-semibold text-text-primary truncate">
                         {creator.nickname}
                       </div>
-                      <div
-                        className="text-xs text-text-dim"
-                        style={{ fontFamily: "'Geist Mono', monospace" }}
-                      >
+                      <div className="text-xs text-text-dim font-mono">
                         {new Date(creator.created_at).toLocaleDateString(
                           "ko-KR"
                         )}
@@ -347,14 +341,14 @@ export default function SearchClient({
           {showBoards && boards.length > 0 && (
             <section className="mb-8">
               {activeType === "all" && (
-                <h2 className="text-lg font-semibold mb-4">보드</h2>
+                <h2 className="text-lg font-bold mb-4 font-display tracking-tight">보드</h2>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {boards.map((board) => (
                   <Link
                     key={board.id}
                     href={`/boards/${board.id}`}
-                    className="block p-4 bg-surface rounded-[10px] border border-transparent hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-accent transition-all duration-200"
+                    className="block p-4 bg-surface rounded-[10px] border border-transparent hover:-translate-y-0.5 hover:shadow-card-hover hover:border-accent focus-visible:-translate-y-0.5 focus-visible:shadow-card-hover focus-visible:border-accent focus-visible:outline-none transition-all duration-200"
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-[6px] bg-surface-elevated flex items-center justify-center shrink-0">
@@ -384,12 +378,7 @@ export default function SearchClient({
                             {board.description}
                           </div>
                         )}
-                        <div
-                          className="text-xs text-text-dim mt-1"
-                          style={{
-                            fontFamily: "'Geist Mono', monospace",
-                          }}
-                        >
+                        <div className="text-xs text-text-dim mt-1 font-mono">
                           {board.creator_nickname}
                         </div>
                       </div>
@@ -404,15 +393,10 @@ export default function SearchClient({
           {pins.length === 0 &&
             creators.length === 0 &&
             boards.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="text-5xl mb-4">🐡</div>
-                <p className="text-text-muted text-sm mb-1">
-                  &ldquo;{query}&rdquo;에 대한 검색 결과가 없습니다
-                </p>
-                <p className="text-text-dim text-xs">
-                  다른 키워드로 검색해보세요
-                </p>
-              </div>
+              <EmptyState
+                message={`“${query}”에 대한 검색 결과가 없습니다`}
+                description="다른 키워드로 검색해보세요"
+              />
             )}
 
           {/* Load more */}

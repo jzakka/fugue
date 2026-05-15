@@ -311,10 +311,7 @@ export default function PinCreateForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <h1
-          className="text-2xl font-bold tracking-tight"
-          style={{ fontFamily: "'General Sans', sans-serif" }}
-        >
+        <h1 className="text-2xl font-bold tracking-tight font-display">
           핀 생성
         </h1>
 
@@ -338,10 +335,7 @@ export default function PinCreateForm() {
               <div className="text-sm text-text-muted">
                 클릭하여 파일을 선택하세요
               </div>
-              <div
-                className="text-xs text-text-dim mt-1"
-                style={{ fontFamily: "'Geist Mono', monospace" }}
-              >
+              <div className="text-xs text-text-dim mt-1 font-mono">
                 이미지 / 오디오 / 비디오
               </div>
               <div className="text-xs text-text-dim mt-1">
@@ -391,26 +385,17 @@ export default function PinCreateForm() {
               <div className="px-4 py-3 flex items-center justify-between bg-surface">
                 <div className="text-xs text-text-muted flex items-center gap-2">
                   {file!.name}
-                  <span
-                    className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full"
-                    style={{ fontFamily: "'Geist Mono', monospace" }}
-                  >
+                  <span className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full font-mono">
                     {mediaType}
                   </span>
                   {trimStart != null && trimEnd != null && (
-                    <span
-                      className="text-text-dim"
-                      style={{ fontFamily: "'Geist Mono', monospace" }}
-                    >
+                    <span className="text-text-dim font-mono">
                       {trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s ({(trimEnd - trimStart).toFixed(1)}초)
                     </span>
                   )}
                   {optimizeResult &&
                     optimizeResult.originalSize !== optimizeResult.optimizedSize && (
-                      <span
-                        className="text-text-dim"
-                        style={{ fontFamily: "'Geist Mono', monospace" }}
-                      >
+                      <span className="text-text-dim font-mono">
                         {formatSize(optimizeResult.originalSize)} →{" "}
                         {formatSize(optimizeResult.optimizedSize)}
                       </span>
@@ -447,10 +432,11 @@ export default function PinCreateForm() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm text-text-muted mb-2">
+          <label htmlFor="pin-title" className="block text-sm text-text-muted mb-2">
             제목 <span className="text-error">*</span>
           </label>
           <input
+            id="pin-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -462,8 +448,9 @@ export default function PinCreateForm() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm text-text-muted mb-2">설명</label>
+          <label htmlFor="pin-description" className="block text-sm text-text-muted mb-2">설명</label>
           <textarea
+            id="pin-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="작품에 대한 설명"
@@ -474,10 +461,11 @@ export default function PinCreateForm() {
 
         {/* URL (optional) */}
         <div>
-          <label className="block text-sm text-text-muted mb-2">
+          <label htmlFor="pin-url" className="block text-sm text-text-muted mb-2">
             원본 URL <span className="text-text-dim">(선택)</span>
           </label>
           <input
+            id="pin-url"
             type="url"
             value={url}
             onChange={(e) => handleUrlChange(e.target.value)}
@@ -505,10 +493,7 @@ export default function PinCreateForm() {
               </div>
             )}
             <div className="p-3">
-              <div
-                className="text-xs text-text-dim"
-                style={{ fontFamily: "'Geist Mono', monospace" }}
-              >
+              <div className="text-xs text-text-dim font-mono">
                 {ogData.site_name || (url ? new URL(url).hostname : "")}
               </div>
               <div className="text-sm font-semibold text-text-primary">
@@ -535,8 +520,7 @@ export default function PinCreateForm() {
                     key={id}
                     type="button"
                     onClick={() => toggleTag(id)}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer"
-                    style={{ fontFamily: "'Geist Mono', monospace" }}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer font-mono"
                   >
                     {tag.name}
                     <span className="ml-0.5">×</span>
@@ -592,12 +576,11 @@ export default function PinCreateForm() {
                     type="button"
                     onClick={() => toggleTag(tag.id)}
                     disabled={!selected && selectedTagIds.size >= TAG_MAX_COUNT}
-                    className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                    className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors font-mono ${
                       selected
                         ? "bg-accent text-white"
                         : "bg-accent-subtle text-text-muted hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
                     }`}
-                    style={{ fontFamily: "'Geist Mono', monospace" }}
                   >
                     {tag.name}
                   </button>
@@ -618,7 +601,7 @@ export default function PinCreateForm() {
             type="button"
             onClick={() => router.back()}
             disabled={isDisabled}
-            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
           >
             취소
           </button>
