@@ -121,6 +121,11 @@ function BoardSelectModal({
     };
   }, []);
 
+  // Initial focus to dialog container (WAI-ARIA Dialog Pattern)
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
+
   // ESC to close
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -203,6 +208,7 @@ function BoardSelectModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-to-board-modal-title"
+        tabIndex={-1}
         className="relative bg-surface-elevated border border-border rounded-[16px] w-full max-w-sm mx-4 max-h-[80vh] flex flex-col"
       >
         {/* Header */}

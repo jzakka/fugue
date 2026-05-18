@@ -323,7 +323,7 @@ export default function PinCreateForm() {
 
         {/* Media Upload */}
         <div>
-          <label className="block text-sm text-text-muted mb-2">
+          <label className="block text-sm text-text-muted mb-2 font-medium">
             미디어 파일 <span className="text-error">*</span>
           </label>
           {!file && !optimizing ? (
@@ -385,7 +385,7 @@ export default function PinCreateForm() {
               <div className="px-4 py-3 flex items-center justify-between bg-surface">
                 <div className="text-xs text-text-muted flex items-center gap-2">
                   {file!.name}
-                  <span className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full font-mono">
+                  <span className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full font-mono text-3xs">
                     {mediaType}
                   </span>
                   {trimStart != null && trimEnd != null && (
@@ -432,7 +432,7 @@ export default function PinCreateForm() {
 
         {/* Title */}
         <div>
-          <label htmlFor="pin-title" className="block text-sm text-text-muted mb-2">
+          <label htmlFor="pin-title" className="block text-sm text-text-muted mb-2 font-medium">
             제목 <span className="text-error">*</span>
           </label>
           <input
@@ -448,7 +448,7 @@ export default function PinCreateForm() {
 
         {/* Description */}
         <div>
-          <label htmlFor="pin-description" className="block text-sm text-text-muted mb-2">설명</label>
+          <label htmlFor="pin-description" className="block text-sm text-text-muted mb-2 font-medium">설명</label>
           <textarea
             id="pin-description"
             value={description}
@@ -461,7 +461,7 @@ export default function PinCreateForm() {
 
         {/* URL (optional) */}
         <div>
-          <label htmlFor="pin-url" className="block text-sm text-text-muted mb-2">
+          <label htmlFor="pin-url" className="block text-sm text-text-muted mb-2 font-medium">
             원본 URL <span className="text-text-dim">(선택)</span>
           </label>
           <input
@@ -505,7 +505,7 @@ export default function PinCreateForm() {
 
         {/* Tag Selection */}
         <div>
-          <label className="block text-sm text-text-muted mb-2">
+          <label className="block text-sm text-text-muted mb-2 font-medium">
             태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
             <span className="text-text-dim">(선택)</span>
           </label>

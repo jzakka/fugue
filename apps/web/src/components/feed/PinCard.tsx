@@ -29,7 +29,7 @@ function seededBars(seed: string): number[] {
 function AudioWaveform({ seed }: { seed: string }) {
   const bars = seededBars(seed);
   return (
-    <div className="flex items-end gap-[2px] h-12 mb-4">
+    <div className="flex items-end gap-0.5 h-12 mb-4">
       {bars.map((h, i) => (
         <div
           key={i}
