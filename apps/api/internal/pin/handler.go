@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -24,6 +25,15 @@ import (
 
 const maxVideoDurationSeconds = 15
 const maxBytes int64 = 100 << 20 // 100MB server-side video size limit
+
+// requestBodyCap is the per-request body upper bound for POST /api/pins.
+// spec: pin `서버가 본문을 디스크에 스풀하기 전에 본문 상한으로 거절한다` — the
+// multipart body is wrapped with http.MaxBytesReader before ParseMultipartForm
+// so abusive bodies are rejected before any bytes spool to disk.
+// Declared as var (not const) so unit tests can lower the cap to a small value
+// that exercises the rejection path without allocating cap-sized buffers;
+// production code never mutates this value.
+var requestBodyCap int64 = 500 << 20
 
 type PinQuerier interface {
 	ListPinsWithCreator(ctx context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error)
@@ -64,8 +74,17 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse multipart: max 500MB (video originals before server-side trim)
-	if err := r.ParseMultipartForm(500 << 20); err != nil {
+	// Parse multipart: max 500MB (video originals before server-side trim).
+	// spec: pin `서버가 본문을 디스크에 스풀하기 전에 본문 상한으로 거절한다` — wrap r.Body
+	// with MaxBytesReader so the multipart parser cannot spool unlimited bytes to disk
+	// when client validation is bypassed.
+	r.Body = http.MaxBytesReader(w, r.Body, requestBodyCap)
+	if err := r.ParseMultipartForm(requestBodyCap); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "파일 크기가 제한을 초과했습니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}
