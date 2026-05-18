@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import EmptyState from "@/components/feed/EmptyState";
 import NavBar from "@/components/nav/NavBar";
 import { fetchSearch } from "@/lib/api";
 import type { SearchResult } from "@/lib/api";
@@ -69,15 +70,10 @@ export default async function SearchPage({ searchParams }: Props) {
             />
           </Suspense>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-5xl mb-4">🐡</div>
-            <p className="text-text-muted text-sm mb-1">
-              검색어를 입력해주세요
-            </p>
-            <p className="text-text-dim text-xs">
-              작품, 크리에이터, 보드를 검색할 수 있습니다
-            </p>
-          </div>
+          <EmptyState
+            message="검색어를 입력해주세요"
+            description="작품, 크리에이터, 보드를 검색할 수 있습니다"
+          />
         )}
       </main>
     </>
