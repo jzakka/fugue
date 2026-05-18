@@ -611,3 +611,55 @@ items:
       (cap 상수값·digital body over cap·malformed multipart preserved generic error). archive 진행 중
       pin/spec.md의 `## Purpose` 누락 사전 드리프트 1회 보수 동반. 운영 시 `storage.go`의 메모리
       `io.ReadAll` 압박과 글로벌 미들웨어 도입은 본 change 범위 밖으로 명시.
+
+  - id: system-20260518-pin-video-no-trim-probe-fail-bypass
+    title: "POST /api/pins의 no-trim 비디오 업로드가 probeDuration 실패 시 `15초 초과 비디오는 거부` SHALL을 침묵 우회한다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:222-228"
+        - "apps/api/internal/pin/handler.go:681-694"
+      cite: |
+        openspec/specs/pin/spec.md Requirement `서버에서 비디오를 트리밍한다`
+        - Scenario "구간 정보 없이 15초 초과 비디오 업로드":
+            WHEN 트리밍 구간 정보 없이 15초 초과 비디오가 업로드되면
+            THEN 서버가 업로드를 거부하고 트리밍 필요 에러를 반환한다
+
+        SHALL은 "거부"를 명시하며 probe 실패에 대한 carve-out이 없다. 동일 spec L138은
+        "15초 초과 비디오가 선택되면 트리밍 구간 선택 모달을 표시해야 한다(SHALL)"로
+        클라이언트 측 SHALL을 두지만, 서버 측은 마지막 방어선으로 위 거부 SHALL을 둔다.
+      repro: |
+        1. 인증된 유저가 60초짜리 비디오 파일을 trim_start/trim_end 폼 필드 없이
+           POST /api/pins로 업로드한다(handler.go:222 else 분기, "No trim params" 경로).
+        2. ffprobe 호출이 실패한다. 현실 시나리오:
+           - 운영 컨테이너 이미지에 ffmpeg 패키지가 빠진 채 배포된 경우 exec.LookPath 실패
+             → `exec.Command("ffprobe", ...).Output()`가 ("", &exec.Error{Err: ErrNotFound})
+           - ffprobe 바이너리는 있으나 비디오 컨테이너의 메타데이터가 malformed해
+             ffprobe가 non-zero exit
+           - 임시 디스크 I/O 일시 오류로 ffprobe가 입력을 읽지 못함
+        3. handler.go:691 `probeDuration`이 (0, err)를 반환.
+        4. handler.go:225 `if probeErr == nil && duration > float64(maxVideoDurationSeconds)`
+           가드는 `probeErr != nil`로 false. 거부 분기에 진입하지 않는다.
+        5. 핸들러가 else 블록을 빠져나가 `uploadPath := origTmpPath` 그대로 storage.Upload로
+           진행. 60초(또는 임의 길이) 비디오가 그대로 저장된다.
+        6. 결과: Scenario "구간 정보 없이 15초 초과 비디오 업로드"의 SHALL "서버가
+           업로드를 거부" 위반.
+
+        보강 관찰: handler.go:163 `duration, _ := probeDuration(origTmpPath)`도 같은
+        패턴이지만 trim 경로는 클라이언트 trim_end가 trimDuration > 15.5s 가드(L165)로
+        걸러지므로 서버 결과물은 ≤ 15s가 보장된다. SHALL 직접 위반은 no-trim 경로 한정.
+
+        고정형 수정안 후보(propose에서 결정):
+        - 옵션 A: probeErr != nil 시 400/422 + "비디오 길이를 확인할 수 없습니다"로 fail-closed.
+        - 옵션 B: spec에 "probe 실패 시 거부" 명시 SHALL을 추가하고 옵션 A 구현.
+        - 옵션 C: probeErr != nil 시 ffprobe retry (1~2회) 후 그래도 실패면 거부.
+        spec SHALL이 "거부"만 명시하므로 옵션 A가 최소 수정. CLAUDE.md(project)의
+        "ffprobe/ffmpeg: 비디오 업로드 시 서버 사이드 duration 검증에 필요"가 ffprobe
+        존재를 deployment 전제로 만들지만, 실제 운영에서 누락된 경우 silent bypass가
+        매우 가시화되기 어렵다(로그만 남고 응답은 200).
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
