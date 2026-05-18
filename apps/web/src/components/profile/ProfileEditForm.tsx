@@ -59,7 +59,7 @@ export default function ProfileEditForm({
 
       {/* Nickname */}
       <div>
-        <label htmlFor="profile-nickname" className="block text-sm text-text-muted mb-2">닉네임</label>
+        <label htmlFor="profile-nickname" className="block text-sm text-text-muted mb-2 font-medium">닉네임</label>
         <input
           id="profile-nickname"
           type="text"
@@ -72,7 +72,7 @@ export default function ProfileEditForm({
 
       {/* Avatar URL */}
       <div>
-        <label htmlFor="profile-avatar-url" className="block text-sm text-text-muted mb-2">
+        <label htmlFor="profile-avatar-url" className="block text-sm text-text-muted mb-2 font-medium">
           아바타 URL
         </label>
         <input

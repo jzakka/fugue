@@ -28,6 +28,7 @@ export default function VideoTrimModal({
 }: VideoTrimModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const initEnd = Math.min(videoDuration, MAX_CLIP);
@@ -67,6 +68,10 @@ export default function VideoTrimModal({
     return () => {
       document.body.style.overflow = "";
     };
+  }, []);
+
+  useEffect(() => {
+    panelRef.current?.focus();
   }, []);
 
   const pxToTime = useCallback(
@@ -127,16 +132,28 @@ export default function VideoTrimModal({
 
   const onUp = useCallback(() => setDrag(null), []);
 
+  function handleOverlayClick(e: React.MouseEvent) {
+    if (drag) return;
+    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      onCancel();
+    }
+  }
+
   const startPct = (start / videoDuration) * 100;
   const endPct = (end / videoDuration) * 100;
   const widthPct = endPct - startPct;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={handleOverlayClick}
+    >
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="video-trim-modal-title"
+        tabIndex={-1}
         className="bg-surface-elevated border border-border rounded-[16px] w-full max-w-xl mx-4 overflow-hidden"
       >
         <div className="px-5 py-4 border-b border-border">

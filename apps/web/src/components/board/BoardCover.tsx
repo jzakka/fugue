@@ -27,7 +27,7 @@ export default function BoardCover({ images }: { images: string[] }) {
   const slots = images.slice(0, 4);
 
   return (
-    <div className="w-full aspect-square rounded-[10px] overflow-hidden grid grid-cols-2 grid-rows-2 gap-[2px] border border-transparent group-hover:border-accent group-hover:shadow-card-hover group-focus-visible:border-accent group-focus-visible:shadow-card-hover transition-all duration-200">
+    <div className="w-full aspect-square rounded-[10px] overflow-hidden grid grid-cols-2 grid-rows-2 gap-0.5 border border-transparent group-hover:border-accent group-hover:shadow-card-hover group-focus-visible:border-accent group-focus-visible:shadow-card-hover transition-all duration-200">
       {slots.map((img, i) => (
         <div key={i} className="overflow-hidden bg-surface-elevated">
           <img

@@ -127,7 +127,7 @@ export default async function PinDetailPage({ params }: Props) {
           {/* Content */}
           <div className="p-6 sm:p-8 space-y-5">
             {/* Media Type Badge */}
-            <span className="inline-block px-3 py-1 bg-accent-subtle text-accent rounded-full text-xs font-medium font-mono">
+            <span className="inline-block px-3 py-1 bg-accent-subtle text-accent rounded-full text-3xs font-medium font-mono">
               {getMediaTypeLabel(pin.media_type)}
             </span>
 
@@ -149,7 +149,7 @@ export default async function PinDetailPage({ params }: Props) {
                 {pin.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="px-2.5 py-1 bg-accent-subtle text-text-muted rounded-full text-xs font-mono"
+                    className="px-2.5 py-1 bg-accent-subtle text-text-muted rounded-full text-3xs font-mono"
                   >
                     {tag.name}
                   </span>

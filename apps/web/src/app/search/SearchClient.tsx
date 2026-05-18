@@ -325,7 +325,7 @@ export default function SearchClient({
                       <div className="text-sm font-semibold text-text-primary truncate">
                         {creator.nickname}
                       </div>
-                      <div className="text-xs text-text-dim font-mono">
+                      <div className="text-2xs text-text-dim font-mono">
                         {new Date(creator.created_at).toLocaleDateString(
                           "ko-KR"
                         )}
