@@ -1,10 +1,12 @@
 package pin
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 
+	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
@@ -540,5 +543,94 @@ func TestDurationValidation_ThresholdLogic(t *testing.T) {
 		if shouldReject != tt.reject {
 			t.Errorf("duration=%.3f: expected reject=%v, got %v", tt.duration, tt.reject, shouldReject)
 		}
+	}
+}
+
+// --- Request body cap tests (spec: pin `서버가 본문을 디스크에 스풀하기 전에 본문 상한으로 거절한다`) ---
+
+// TestRequestBodyCapConstant pins the request body cap value so that an
+// accidental shrink to a value smaller than the storage video limit (100 MiB
+// before trim) is caught.
+func TestRequestBodyCapConstant(t *testing.T) {
+	if requestBodyCap != 500<<20 {
+		t.Errorf("requestBodyCap = %d, want %d", requestBodyCap, int64(500)<<20)
+	}
+	// The cap must be at least the largest accepted media file (video 100 MiB)
+	// plus reasonable headroom for the multipart envelope, thumbnail, and form
+	// fields. Without this slack a normal video upload would be rejected by
+	// the body cap before it ever reaches the storage size check.
+	if requestBodyCap <= maxBytes {
+		t.Errorf("requestBodyCap (%d) must exceed maxBytes (%d) so trimmed-video paths are not blocked", requestBodyCap, maxBytes)
+	}
+}
+
+// TestCreate_RejectsBodyOverCapBeforeDiskSpool verifies that a multipart body
+// exceeding requestBodyCap is rejected by MaxBytesReader before ParseMultipartForm
+// can spool it to disk, and that the handler maps the resulting MaxBytesError to
+// the same size-limit error response used by storage-side rejection.
+func TestCreate_RejectsBodyOverCapBeforeDiskSpool(t *testing.T) {
+	// Temporarily lower the cap so the test exercises the rejection path without
+	// allocating cap-sized buffers. The production default is asserted by
+	// TestRequestBodyCapConstant.
+	origCap := requestBodyCap
+	requestBodyCap = 1 << 10 // 1 KiB
+	t.Cleanup(func() { requestBodyCap = origCap })
+
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	// Build a well-formed multipart envelope around a single file part whose
+	// content (zeros) far exceeds the lowered cap. MaxBytesReader must trip while
+	// the parser is still reading the file body, before any bytes are spooled to
+	// disk.
+	header := []byte("--xxxxxx\r\n" +
+		"Content-Disposition: form-data; name=\"media\"; filename=\"a.bin\"\r\n" +
+		"Content-Type: application/octet-stream\r\n\r\n")
+	overflow := bytes.Repeat([]byte{0}, int(requestBodyCap)*4)
+	trailer := []byte("\r\n--xxxxxx--\r\n")
+	body := io.MultiReader(
+		bytes.NewReader(header),
+		bytes.NewReader(overflow),
+		bytes.NewReader(trailer),
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", `multipart/form-data; boundary=xxxxxx`)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "파일 크기가 제한을 초과했습니다") {
+		t.Fatalf("expected size-limit error, got: %q", rec.Body.String())
+	}
+}
+
+// TestCreate_PreservesGenericMultipartErrorMessage verifies that multipart
+// parse errors unrelated to the body cap (e.g. malformed body without the
+// declared boundary) keep returning the generic 400 message rather than the
+// size-limit message.
+func TestCreate_PreservesGenericMultipartErrorMessage(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	// Body is well under cap and contains no boundary marker. ParseMultipartForm
+	// should fail with a parse error (not MaxBytesError).
+	body := bytes.NewReader([]byte("not a multipart body, just plain bytes"))
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", `multipart/form-data; boundary=xxxxxx`)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "파일 크기가 제한을 초과했습니다") {
+		t.Fatalf("non-cap multipart error should NOT use size-limit message, got: %q", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "잘못된 요청 형식입니다") {
+		t.Fatalf("expected generic format error, got: %q", rec.Body.String())
 	}
 }

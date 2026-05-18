@@ -601,7 +601,16 @@ items:
     effort: 1
     risk: 2
     score: 8.0
-    status: pending
+    status: done
+    note: |
+      archived as openspec/changes/archive/2026-05-18-fix-pin-create-request-body-cap.
+      pin capability의 기존 Requirement `미디어 파일을 업로드한다`에 신규 Scenario `서버가 본문을
+      디스크에 스풀하기 전에 본문 상한으로 거절한다` 추가. `apps/api/internal/pin/handler.go`에
+      `requestBodyCap = 500 << 20` 변수 추가, `pin.Create` 진입부에서 `r.Body = http.MaxBytesReader(...)`
+      한 줄 + `errors.As(err, &maxBytesErr)` 분기로 디스크 스풀 이전 거절을 enforce. 3개 단위 테스트
+      (cap 상수값·digital body over cap·malformed multipart preserved generic error). archive 진행 중
+      pin/spec.md의 `## Purpose` 누락 사전 드리프트 1회 보수 동반. 운영 시 `storage.go`의 메모리
+      `io.ReadAll` 압박과 글로벌 미들웨어 도입은 본 change 범위 밖으로 명시.
 
   - id: system-20260518-pin-video-no-trim-probe-fail-bypass
     title: "POST /api/pins의 no-trim 비디오 업로드가 probeDuration 실패 시 `15초 초과 비디오는 거부` SHALL을 침묵 우회한다"
