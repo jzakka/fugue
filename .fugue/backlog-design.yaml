@@ -1003,5 +1003,7 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 32
+    note: "처리 완료. PinCard.tsx:98 (video card play overlay 부모 div) · pins/[id]/page.tsx:54 (audio MediaPlayer header div) · PinCreateForm.tsx:381 (audio file preview span) · SearchBar.tsx:282 (search result fallback icon div) 4 컨테이너에 `aria-hidden=\"true\"` 1단어씩 추가(4 파일 각 1줄, 총 diff 4 lines). 네 위치 모두 같은 컨테이너 또는 부모 안에 visible text(pin.title · creator.nickname · file.name · getMediaTypeLabel)가 있어 WAI-ARIA APG decorative icon 패턴에 해당. PinCard.tsx L65-69 audio play button(▶ + aria-label=\"재생\")은 ARIA override로 SR이 라벨만 읽어 정상이므로 본 범위 밖. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep ▶♪◻ 5건 중 audio button override 1건 제외 4건 모두 aria-hidden 부모 정렬, diff 4 lines · 모두 attribute 1개 추가)으로 대체. PR #32 squash merge(45ac085). WCAG 2.1 SC 1.1.1 Level A · WAI-ARIA APG decorative icon 정렬."
 
