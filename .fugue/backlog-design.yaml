@@ -1041,5 +1041,24 @@ items:
     effort: 1
     risk: 1
     score: 12.0
+    status: done
+    pr: 34
+    note: "처리 완료. PinCreateForm.tsx L436 visible `*` span 에 `aria-hidden=\"true\"` 1 attribute 추가 + L445 input element 에 `aria-required=\"true\"` 1 attribute 추가(2 파일 diff +2 -1, backlog YAML 상태 갱신 1줄). visible '*' 그대로 렌더(시각 변화 0) + HTML `required` 미사용으로 browser native validation popup 미트리거(기존 handleSubmit L253 `!title.trim()` 커스텀 validation 경로 유지) + SR 에 input 의 'required' 상태 안내 + 'star' 발음 회피. 미디어 파일 case(L327)는 `<label htmlFor>` 미연결 + dropzone div(button 시맨틱 아님) + hidden file input 패턴으로 단일 cycle 범위 초과라 본 변경 범위 밖(별도 후보로 분리). 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `aria-required\\|aria-hidden\\|pin-title` 4건 — L381 audio file preview / L436 visible '*' / L439 input id / L445 input aria-required — 모두 의도대로 부착) 으로 대체. PR #34 squash merge. WAI-ARIA APG Form Properties · WCAG 2.1 SC 1.3.1 Level A 정렬."
+
+  - id: "design-20260519-pin-create-form-dropzone-keyboard-inoperable"
+    title: "PinCreateForm 미디어 파일 dropzone div onClick 이 키보드로 작동 불가 — WAI-ARIA APG Button Pattern · WCAG 2.1 SC 2.1.1 Keyboard (Level A) 위반"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:329-344"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:414-420"
+      cite: "WAI-ARIA Authoring Practices Guide § Button Pattern: '버튼이 아닌 HTML 요소(예: `<div>`)가 버튼으로 사용되는 경우 (1) `role=\"button\"` 추가, (2) accessible name 제공(contents 또는 `aria-label`), (3) Enter/Space 키 이벤트 핸들러 구현, (4) tab 순서에 포함되도록 `tabindex` 설정해야 한다.' WCAG 2.1 SC 2.1.1 Keyboard (Level A): 'All functionality of the content is operable through a keyboard interface without requiring specific timings for individual keystrokes.' DESIGN.md L11 'Decoration level: Minimal' 및 루프 정체성 L7 '접근성 (대비, 키보드 포커스, aria)' 영역 정합. In-codebase precedent: archive/2026-05-15-search-dropdown-keyboard-a11y(SearchBar 5종 시맨틱 정렬) 동일 라인업의 폼 영역 확장. `grep -rEn -B1 'onClick=' apps/web/src --include='*.tsx' | grep -E '<div|<span'` 결과 본 단일 케이스만 매칭(코드베이스 내 div onClick 유일 — 다른 곳은 button 또는 Link 시맨틱 사용)."
+      repro: "1) /pin/new 진입 후 Tab 키만으로 미디어 파일 dropzone 영역에 도달 시도 → 도달 불가(dropzone div 는 tabIndex 없음). 2) 키보드만 사용하는 사용자는 핀 생성 자체가 완전 불가능(미디어 업로드 시작 점이 키보드 비접근). 3) SR 이 dropzone 영역에 도달해도 'clickable region' 형태로 button 시맨틱 인식 안 함. 4) 처리: L330-333 `<div onClick={...}>` 에 `role=\"button\"` · `tabIndex={0}` · `aria-label=\"미디어 파일 선택\"` · `onKeyDown` 핸들러(Enter/Space 시 `e.preventDefault()` + `fileInputRef.current?.click()`) 4 attribute 추가. className(border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors) 그대로 유지. 자식 div 3개(📁 / '클릭하여 파일을 선택하세요' / '이미지 / 오디오 / 비디오' / 부연) 미수정 → 시각 변화 0. focus-visible 시각 표시는 WCAG SC 2.4.7 (Level AA) 별도 후보로 분리(본 변경은 SC 2.1.1 키보드 작동만 충족)."
+    qa_plan: "1) cd apps/web && npm run dev 후 /pin/new 진입 — Tab 키만으로 dropzone 도달 + Enter/Space 키로 file picker 열기 검증. 2) VoiceOver/NVDA 로 dropzone 포커스 시 '미디어 파일 선택, 버튼' 안내되는지 확인. 3) 시각 변화 없음(role/tabIndex/aria-label/onKeyDown 은 모두 비주얼 무관) — 동일 스크린샷 차이 0. 4) 기존 마우스 클릭 onClick 경로 회귀 없는지(마우스로 dropzone 클릭 시 file picker 그대로 열림) 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
     status: in_progress
 
