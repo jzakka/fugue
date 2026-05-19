@@ -1420,3 +1420,86 @@ items:
       `if utf8.RuneCountInString(*req.AvatarURL) > 500 { 400 }` 추가, (b)
       메시지 형식은 L183 "닉네임은 50자를 초과할 수 없습니다"와 정렬, (c)
       단위 테스트는 creator/handler_test.go에 cap+1/cap boundary 2 케이스.
+
+  - id: system-20260519-oauth-create-creator-no-avatar-url-truncation
+    title: "OAuth 로그인 경로가 profile.AvatarURL을 truncateNickname처럼 사전 절단하지 않아 VARCHAR(500) cap 초과 시 첫 로그인 INSERT 결정적 실패"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:111-119"   # findOrCreateWithEmail: truncateNickname OK, AvatarUrl raw
+        - "apps/api/internal/auth/service.go:143-154"   # createNewCreator: 동일 패턴
+        - "apps/api/internal/auth/service.go:292-301"   # truncateNickname 정의 (50 rune cap)
+        - "apps/api/internal/auth/service.go:303-308"   # toNullString — 절단 없음
+        - "apps/api/internal/auth/provider.go:88-94"    # Google: AvatarURL = info.Picture (raw)
+        - "apps/api/db/migrations/000001_create_creators.up.sql:7"  # avatar_url VARCHAR(500)
+      cite: |
+        (a) openspec/specs/auth/spec.md L8-10 Scenario "첫 로그인 시 계정 자동 생성"
+            — "WHEN 처음 로그인하는 유저가 OAuth 인증을 완료하면 / THEN 유저
+            계정이 자동 생성되고, 닉네임은 OAuth 프로필에서 가져온다." 계정
+            자동 생성이 SHALL인데 OAuth provider가 길이 500 초과 avatar URL을
+            반환하면 `creators` INSERT가 PostgreSQL `value too long for type
+            character varying(500)`으로 결정적 실패 → 로그인 자체가 불가능.
+        (b) 같은 service.go에 in-codebase precedent: `truncateNickname`(L292-301)이
+            `creators.nickname VARCHAR(50)` cap을 정확히 50 rune으로 절단해
+            `createNewCreator`(L144)·`findOrCreateWithEmail`(L111) 두 경로
+            모두에서 호출 중. avatar_url만 같은 패턴이 빠진 비대칭.
+        (c) 정책 정합성: decision-log 2026-05-19 cycle 10 entry "bot 경로
+            (harvester `truncateRunes`)와 달리 user-facing 경로는 reject 400
+            (사용자가 입력 수정 가능)." OAuth provider 응답은 user-input이
+            아니라 외부 시스템 데이터 — bot harvester와 같은 카테고리이므로
+            silent truncate 정책 적용이 맞다(reject 불가능: OAuth callback
+            중간에 400 띄울 곳 없음).
+        (d) Google 프로필 사진 URL은 `https://lh3.googleusercontent.com/a/...`
+            base에 size·crop·signature 파라미터(`=s96-c-rg-br100-...`)가 누적
+            되면 300~500+ chars 도달 가능. Discord는 자체 구성 형식이라 안전
+            (provider.go:165 `cdn.discordapp.com/avatars/{id}/{hash}.png`
+            ~80 chars).
+      repro: |
+        1. docker-compose 기동(api+postgres).
+        2. OAuth provider mock 또는 직접 service-level 호출로 profile.AvatarURL
+           = "https://example.com/" + strings.Repeat("A", 480) (총 500+) 전달.
+           → q.CreateCreatorFromOAuth / CreateCreatorFromOAuthOnConflict 호출
+           시 PostgreSQL `pq: value too long for type character varying(500)`.
+        3. handler.go Callback 분기에서 service 에러가 `fmt.Errorf("create
+           creator: %w", err)`로 wrap돼 callback 응답이 500/redirect-fail로
+           실패. 유저는 로그인 자체 불가.
+        4. 정상 길이(~100 chars Google URL)는 영향 없음(현재 production 통상값).
+      attack_surface: |
+        - 인증 안 된 외부 OAuth provider 응답 의존 — 자연 발생 가능. 악의적
+          공격 surface는 없음(provider가 신뢰 가능). 운영 정상성 결함.
+        - 영향 받는 유저는 로그인 자체 불가 → 사용자 손실 직결.
+        - Google 프로필 사진 URL이 향후 더 길어지면(이미 점진적 증가 추세)
+          잠재 영향 확대.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, postgres 직접 접속(`docker compose exec postgres
+         psql -U fugue -d fugue`).
+      2. fix 전 재현: service-level 통합 테스트 또는 직접 SQL —
+         `INSERT INTO creators (nickname, avatar_url, email) VALUES ('t',
+         repeat('A', 501), 't@x.com')` → `value too long ...` 에러 확인.
+      3. fix 적용 후: 동일 SQL → `truncateAvatarURL` 미경유면 동일 에러. 그러나
+         service.go에서 호출 전 절단되므로 실제 OAuth 흐름에서는 통과.
+      4. 통합 테스트(또는 mock provider): profile.AvatarURL = 600 char URL
+         넘긴 OAuth callback flow → 200 redirect + DB row INSERT 성공 +
+         `SELECT length(avatar_url) FROM creators WHERE nickname='t'` = 500.
+      5. 회귀: AvatarURL = 100 char 정상 URL → 무손실(절단 미발동) 확인.
+      6. AvatarURL = "" → toNullString이 sql.NullString{} 반환(L304-306), DB
+         NULL 저장 정상.
+      7. 한국어 멀티바이트: 가\*501 rune URL(현실성 낮으나 cap 단위 검증) →
+         500 rune로 절단 + DB length(avatar_url) ≤ 500 byte보다 큰 1500
+         byte 저장 가능(PostgreSQL VARCHAR(N)은 rune-count cap이라 정상).
+    impact: 3
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 9.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — cycles 7-10 user-facing input validation 패턴의
+      외부 ingress 짝(OAuth provider 응답 → DB VARCHAR cap). Processing 모드
+      진입 시 (a) service.go에 `truncateAvatarURL(s string) string` 추가
+      (truncateNickname 패턴 그대로, rune cap 500), (b) `findOrCreateWithEmail`
+      L114·`createNewCreator` L149 두 곳에서 `toNullString(truncateAvatarURL(
+      profile.AvatarURL))` 호출. email truncation은 RFC 5321(254) 내라 별도
+      후보. 단위 테스트: service_test.go 또는 신규 truncate_test.go에 cap+1/
+      cap/공백/한국어 멀티바이트 케이스.
