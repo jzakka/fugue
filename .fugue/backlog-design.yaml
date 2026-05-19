@@ -986,3 +986,22 @@ items:
     pr: 31
     note: "처리 완료. ProfileHeader.tsx:20 · SearchClient.tsx:318 · pins/[id]/page.tsx:203 의 `alt={...nickname}` → `alt=\"\"` (3 파일 각 1단어 변경, 총 diff 3 lines). 세 위치 모두 같은 컨테이너 안 visible nickname text 가 항상 표시되므로 W3C alt 결정 트리상 장식 이미지에 해당. PinCard.tsx L171-186 in-codebase precedent에 정렬. NavBar L42는 visible nickname span이 `hidden sm:block`이라 모바일에서 alt가 유일한 Link 접근 이름 — 본 후보 범위 밖(별도 cycle에서 Link aria-label 추가 패턴 필요). 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(diff 3 lines, 모두 attribute 값 단순화)으로 대체. PR #31 squash merge(35e91d0). WCAG 2.1 SC 1.1.1 Level A · WAI-ARIA APG Image Pattern decorative 정렬."
 
+  - id: "design-20260519-decorative-unicode-symbols-no-aria-hidden"
+    title: "장식적 유니코드 심볼(▶/♪/◻)이 인접 visible text가 있는 컨테이너에서 aria-hidden 없이 노출 — WCAG 1.1.1 Level A · WAI-ARIA APG decorative icon 위반"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:98-102"
+        - "apps/web/src/app/pins/[id]/page.tsx:54-56"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:381"
+        - "apps/web/src/components/nav/SearchBar.tsx:282-284"
+      cite: "WAI-ARIA Authoring Practices Guide — '아이콘이 visible text label과 함께 표시되는 경우 아이콘에 aria-hidden=\"true\"를 적용해 보조 기술이 텍스트만 읽도록 한다.' WCAG 2.1 SC 1.1.1 Non-text Content (Level A): '순수 장식 요소는 보조 기술이 무시할 수 있어야 한다.' DESIGN.md L11 'Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다'와 L13 'Reference sites: SoundCloud (audio card patterns)' 정합(아이콘은 미디어 타입의 시각 단서). 본 4곳 모두 같은 컨테이너에 visible text(pin.title · creator.nickname · file.name · getMediaTypeLabel 등)가 동반되어 SR이 'right-pointing triangle' / 'musical note' / 'square' 등 심볼 이름을 추가로 안내함. In-codebase precedent: PinCard.tsx L65-69 `aria-label=\"재생\"`이 부착된 button 안의 ▶는 ARIA override로 SR이 무시(정상). PinCard.tsx L160-169 favicon img의 `alt=\"\"`는 동일한 '장식 + 인접 텍스트' 패턴(L184-186 nickname span)에 SSoT."
+      repro: "1) grep -rn '▶\\|♪\\|◻' apps/web/src --include='*.tsx' → 7건(테스트 파일 제외 5건, PinCard L68 audio button은 aria-label로 override되어 본 후보 범위 밖 → 4건). 2) VoiceOver/NVDA로 (a) 피드 video card 포커스, (b) /pins/<audio-id> 상세 페이지 진입, (c) /pin/new 오디오 파일 업로드 후 미리보기, (d) NavBar 검색 드롭다운에서 og_image 없는 결과 — 4 곳에서 SR이 'black right-pointing triangle' / 'musical note' / 'white square' 형태의 심볼 이름을 visible text 외에 추가 안내함. 3) 처리: 4 컨테이너에 `aria-hidden=\"true\"` 1 단어씩 추가(div/span 1단어 추가). 시각 변화 0. PinCard L66-67 audio play button(aria-label=\"재생\")은 ARIA override로 이미 정상이라 본 후보 범위 밖."
+    qa_plan: "1) cd apps/web && npm run dev 후 (a) /feed video pin card, (b) /pins/<audio-pin-id>, (c) /pin/new 오디오 업로드 후 미리보기, (d) NavBar 검색에서 og_image 없는 pin 결과 — 4 화면 VoiceOver/NVDA로 심볼 이름 안내가 사라지고 visible text만 안내되는지 확인. 2) 시각 변화 없음(aria-hidden은 비주얼 렌더와 무관) — 동일 스크린샷 차이 0. 3) DevTools Accessibility 트리에서 ▶/♪/◻ 노드가 'aria-hidden=true'로 마킹되어 트리에서 제외됨을 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
