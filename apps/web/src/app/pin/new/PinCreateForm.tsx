@@ -329,6 +329,15 @@ export default function PinCreateForm() {
           {!file && !optimizing ? (
             <div
               onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="미디어 파일 선택"
               className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
             >
               <div className="text-3xl mb-2">📁</div>
