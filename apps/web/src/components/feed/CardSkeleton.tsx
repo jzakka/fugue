@@ -1,6 +1,6 @@
 export default function CardSkeleton() {
   return (
-    <div className="bg-surface rounded-[10px] overflow-hidden animate-pulse">
+    <div className="bg-surface rounded-[10px] overflow-hidden skeleton-shimmer">
       <div className="h-48 bg-surface-elevated" />
       <div className="p-3 space-y-2">
         <div className="h-4 bg-surface-elevated rounded w-3/4" />

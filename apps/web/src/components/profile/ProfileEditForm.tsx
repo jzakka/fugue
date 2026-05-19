@@ -49,7 +49,7 @@ export default function ProfileEditForm({
       onSubmit={handleSubmit}
       className="bg-surface rounded-[16px] p-6 sm:p-8 border border-border space-y-6"
     >
-      <h2 className="text-xl font-bold">프로필 편집</h2>
+      <h2 className="text-xl font-bold font-display tracking-tight">프로필 편집</h2>
 
       {error && (
         <div className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
@@ -59,8 +59,9 @@ export default function ProfileEditForm({
 
       {/* Nickname */}
       <div>
-        <label className="block text-sm text-text-muted mb-2">닉네임</label>
+        <label htmlFor="profile-nickname" className="block text-sm text-text-muted mb-2 font-medium">닉네임</label>
         <input
+          id="profile-nickname"
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
@@ -71,10 +72,11 @@ export default function ProfileEditForm({
 
       {/* Avatar URL */}
       <div>
-        <label className="block text-sm text-text-muted mb-2">
+        <label htmlFor="profile-avatar-url" className="block text-sm text-text-muted mb-2 font-medium">
           아바타 URL
         </label>
         <input
+          id="profile-avatar-url"
           type="url"
           value={avatarUrl}
           onChange={(e) => setAvatarUrl(e.target.value)}
@@ -101,7 +103,7 @@ export default function ProfileEditForm({
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+          className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
         >
           취소
         </button>

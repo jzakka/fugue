@@ -24,4 +24,647 @@
 #   pr:         (done/rejected_ci 시) PR 번호
 #   note:       (선택) 자유 메모
 
-items: []
+items:
+  - id: system-20260515-feed-optional-jwt
+    title: "/api/feed 라우트에 JWT 미들웨어가 없어 개인화 피드 분기가 도달 불가"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/cmd/server/main.go:169"
+        - "apps/api/internal/feed/handler.go:54-112"
+        - "apps/api/internal/auth/middleware.go:17-52"
+      cite: |
+        openspec/specs/feed/spec.md "개인화된 추천 피드를 제공한다"
+        - Scenario "충분한 핀이 있는 유저": 10개 이상의 핀 → 개인화 추천 + 최신 혼합
+        - Scenario "핀이 부족한 유저(콜드 스타트)": 10개 미만 → 최신순
+        - Scenario "비인증 유저": 비인증 → 최신순
+        세 시나리오 모두 사용자의 인증/핀 카운트에 따라 분기되어야 한다.
+      repro: |
+        1. JWT 쿠키(`fugue_access`) 또는 Authorization Bearer 헤더를 갖춘 인증 유저가
+           `/api/feed`를 호출한다.
+        2. apps/api/cmd/server/main.go:169 `r.Get("/api/feed", feedHandler.GetFeed)` 에
+           JWT 미들웨어가 부착되어 있지 않다(주변 인증 라우트들과 달리). 그래서
+           `r.Context()`에 `creatorIDKey` 값이 세팅되지 않는다.
+        3. handler.go:57 `auth.CreatorIDFromContext(r.Context())`가 항상 (uuid.Nil, false)
+           를 반환한다. `authenticated == false`.
+        4. handler.go:73 `if authenticated { ... }` 분기가 실행되지 않고
+           `buildLatestFeed`만 실행된다.
+        5. 결과: 10개 이상의 핀을 가진 인증 유저도 `RecommendByTags` /
+           `RecommendByMediaType` / `CountUserPins` 어느 것도 호출되지 않고
+           모든 유저가 비인증 유저와 동일한 최신 피드를 받는다 = Scenario "충분한
+           핀이 있는 유저" SHALL 위반.
+
+        현행 `auth.JWTMiddleware`는 토큰 부재 시 401을 반환하므로 그대로 부착하면
+        Scenario "비인증 유저"가 깨진다. 토큰이 있으면 컨텍스트에 세팅, 없으면
+        그대로 통과하는 보조 미들웨어가 필요하다.
+    impact: 5
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 6.25
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-feed-route-optional-jwt. auth `토큰이 존재할 때 선택적으로 인증 컨텍스트를 노출한다` + feed `피드 라우트는 선택적 인증 미들웨어로 보호된다` 두 Requirement가 main spec에 머지됨."
+
+  - id: system-20260515-boards-public-get-optional-jwt
+    title: "GET /api/boards/{id}·/api/boards 라우트가 미들웨어 없이 owner 분기를 호출해 비공개 보드 소유자가 자신의 보드를 볼 수 없음"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/cmd/server/main.go:156"
+        - "apps/api/cmd/server/main.go:158"
+        - "apps/api/internal/boards/handler.go:144-170"
+        - "apps/api/internal/boards/handler.go:364-405"
+      cite: |
+        openspec/specs/board/spec.md
+        - Requirement `보드를 조회한다` Scenario "소유자는 비공개 보드 조회 가능":
+            WHEN 소유자가 자신의 비공개 보드를 조회하면 THEN 보드 정보와 핀 목록이 반환된다.
+        - Requirement `유저의 보드 목록을 조회한다` Scenario "본인의 보드 목록":
+            WHEN 인증된 유저가 자신의 보드 목록을 조회하면 THEN 공개 + 비공개 모든 보드가 반환된다.
+      repro: |
+        1. 인증된 유저 A가 비공개 보드 B를 보유하고 있다(`is_public=false`).
+        2. A가 JWT 쿠키를 제시하며 `GET /api/boards/{B.id}`를 호출한다.
+        3. main.go:158 `r.Get("/{id}", boardsHandler.GetByID)`는 JWT/Optional JWT
+           미들웨어를 부착하고 있지 않다. 그래서 `r.Context()`에 `creatorIDKey`가
+           세팅되지 않는다.
+        4. boards/handler.go:165 `auth.CreatorIDFromContext`가 (uuid.Nil, false)를
+           반환한다. L166 `if !ok || callerID != board.CreatorID`가 참이 되어
+           404가 반환된다 = Scenario "소유자는 비공개 보드 조회 가능" SHALL 위반.
+
+        같은 패턴으로 `GET /api/boards?creator_id=<자기 자신>` (main.go:156)도
+        `auth.CreatorIDFromContext`가 false를 반환해 `ListPublicBoardsByCreator`로
+        분기, 본인의 비공개 보드가 응답에서 누락 = Scenario "본인의 보드 목록"
+        SHALL 위반.
+
+        직전 사이클에서 도입한 `auth.OptionalJWTMiddleware`를 두 라우트에 동일한
+        방식으로 부착하면 두 SHALL이 모두 만족된다(feed wiring과 같은 패턴).
+    impact: 4
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 5.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-boards-public-get-optional-jwt. board `공개 보드 조회 라우트는 선택적 인증 미들웨어로 보호된다` Requirement가 main spec에 머지됨. 핸들러 본문 변경 없이 라우트 wiring 두 줄만 교체."
+
+  - id: system-20260515-ratelimit-incr-expire-race
+    title: "RateLimiter의 INCR + 별도 EXPIRE 비원자성으로 한 번의 EXPIRE 누락 시 (IP, path) 키가 영구 throttle된다"
+    area: concurrency
+    evidence:
+      files:
+        - "apps/api/internal/auth/ratelimit.go:33-42"
+        - "apps/api/cmd/server/main.go:97-100"
+        - "apps/api/cmd/server/main.go:138"
+        - "apps/api/cmd/server/main.go:145"
+        - "apps/api/cmd/server/main.go:177-180"
+      cite: |
+        docs/architecture.md "### Rate Limit"
+        - "핀 생성: 30/분/유저"
+        - "OG fetch: 20/분/IP"
+        두 SHALL은 카운터가 매 분(window) 후 0으로 리셋되는 fixed-window 의미를 전제한다.
+
+        `apps/api/internal/auth/ratelimit.go:27-52` `RateLimiter.Middleware`:
+        - 33행 `count, err := rl.rdb.Incr(ctx, key).Result()` INCR.
+        - 40-42행 `if count == 1 { rl.rdb.Expire(ctx, key, rl.window) }` —
+          첫 INCR일 때만 EXPIRE를 발행하며, EXPIRE 결과(`.Err()`)는 무시.
+          INCR과 EXPIRE는 별개의 Redis 왕복이라 원자성이 없다.
+      repro: |
+        1. 동일 (IP, path) 쌍의 첫 요청이 들어와 INCR이 성공해 count=1을 받는다.
+        2. 그 다음 EXPIRE 호출 시점에 네트워크 일시 단절·redis pool 재연결·서버 프로세스
+           재시작 중 어느 것이라도 발생해 EXPIRE가 적용되지 않는다.
+        3. 키는 TTL=-1(persist) 상태로 Redis에 남고 INCR된 count는 1.
+        4. 후속 요청들은 INCR로 count=2,3,...로 누적하지만 `count == 1` 분기가 다시
+           실행되지 않아 EXPIRE는 영원히 재호출되지 않는다.
+        5. count > limit가 되는 순간부터 그 (IP, path) 쌍은 영구 429를 받는다
+           (`Retry-After`만 받아도 키 자체가 자연 만료되지 않으므로 무한 throttle).
+        6. 영향 라우트: `/api/pins`(pinRL 30/min), `/api/og/fetch`(ogRL 20/min),
+           `/api/auth/{provider}/login` + `/api/auth/logout`(authRL 10/min),
+           `/api/auth/{provider}/callback`(callbackRL 5/min) — 모두 한 번의
+           EXPIRE 미적용으로 해당 IP가 영구 차단될 수 있다.
+
+        고정형 수정안: INCR과 EXPIRE를 단일 원자 단위로 묶는다.
+        - 옵션 A: `EVAL`로 `local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n` 실행.
+        - 옵션 B: pipeline로 INCR+EXPIRE를 한 왕복에 보내되 모든 요청에서 EXPIRE를 재발행(슬라이딩이 아닌 sliding-floor 동작으로 의미가 약간 달라짐 → 옵션 A 권장).
+    impact: 4
+    confidence: 3
+    effort: 1
+    risk: 2
+    score: 6.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-ratelimit-incr-expire-atomicity. 신규 ratelimit capability에 Requirement `HTTP 요청 빈도 제한 카운터는 단일 원자 단위로 증가·만료 설정된다` 추가. ratelimit.go의 INCR+EXPIRE 두 왕복을 redis.NewScript의 단일 Lua EVAL로 교체. miniredis 기반 단위 테스트 6개로 fixed-window·fail-open·키 분리 회귀 방지."
+
+  - id: system-20260515-pin-ratelimit-keyed-by-ip-not-user
+    title: "POST /api/pins의 `pinRL`이 IP+path로 키를 만들어 `docs/architecture.md`의 `핀 생성: 30/분/유저` SHALL을 IP 기반 30/분/IP로 잘못 enforce한다"
+    area: security
+    evidence:
+      files:
+        - "apps/api/cmd/server/main.go:100"
+        - "apps/api/cmd/server/main.go:138"
+        - "apps/api/internal/auth/ratelimit.go:48-69"
+      cite: |
+        docs/architecture.md "### Rate Limit"
+        - "핀 생성: 30/분/유저"
+        - "OG fetch: 20/분/IP"
+        두 SHALL은 enforce 범위(per-user vs per-IP)까지 명시한다. `/api/pins POST`는 `유저` 단위,
+        `/api/og/fetch`는 `IP` 단위로 키가 잡혀야 fixed-window가 의도대로 동작한다.
+
+        `apps/api/internal/auth/ratelimit.go:50-51` `RateLimiter.Middleware`는
+        `key := fmt.Sprintf("%s%s:%s", rlPrefix, r.URL.Path, ip)`로 path+IP만 키에 포함한다.
+        creator/유저 식별자는 키 구성에 사용되지 않으며, 미들웨어는 `auth.CreatorIDFromContext`를
+        호출하지도 않는다.
+      repro: |
+        1. 인증된 유저 A·B 두 사람이 같은 NAT(공유 wifi, 사내망, 모바일 캐리어 grade NAT)
+           뒤에 있어 외부에서 본 클라이언트 IP가 동일하다.
+        2. A가 1분 안에 핀 30개를 생성한다. `apps/api/cmd/server/main.go:138`의 미들웨어 체인은
+           `JWTMiddleware → pinRL.Middleware → pinHandler.Create` 순서로 실행되어
+           `pinRL`은 키 `rl:/api/pins:<공유IP>`를 30까지 채운다.
+        3. 같은 분 안에 B가 자신의 첫 핀 1개를 생성하려 한다. 미들웨어는 같은 키를 INCR해
+           count=31이 되고 429 응답을 반환한다.
+        4. 결과: B는 자신의 30/min 쿼터를 한 번도 쓰지 않았는데 throttle된다 =
+           `docs/architecture.md`의 SHALL `핀 생성: 30/분/유저` 위반 (per-user 쿼터가
+           per-IP 쿼터로 둔갑).
+
+        대칭 반례: 한 유저 A가 Wi-Fi → 카페 → 모바일로 IP를 바꾸며 각각 30개씩 핀 생성 시
+        총 90개를 분당 만들 수 있어, 같은 SHALL이 per-user 상한도 enforce하지 못한다.
+
+        직전 사이클(ratelimit capability)에서 도입한 fixed-window 원자성 Requirement는
+        "limit 값·윈도우 길이·라우트 적용 매트릭스는 본 Requirement의 범위 밖이며
+        `docs/architecture.md`의 Rate Limit 섹션이 계속 소유한다"고 명시하므로,
+        본 결함은 ratelimit capability의 invariant가 아니라 architecture.md SHALL에서 곧장
+        파생되는 별개 결함이다.
+
+        고정형 수정안: `pinRL`에 한해 키 생성 함수를 `auth.CreatorIDFromContext`로 추출한
+        유저 ID 기반으로 바꾼다. JWTMiddleware가 선행 보장되므로 미인증 요청은 도달하지 않는다
+        (현재 라우트는 `r.With(JWTMiddleware, pinRL.Middleware)` 순서). `ogRL`/`authRL`/`callbackRL`은
+        per-IP 의도 그대로 유지.
+    impact: 4
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 5.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-pin-ratelimit-key-by-creator-id. ratelimit capability에 Requirement `유저 단위 빈도 제한 surface를 노출한다` 추가. `apps/api/internal/auth/ratelimit.go`에 `MiddlewareByCreatorID` surface 신설(공유 `middleware(next, bucketKeyFn)` 헬퍼로 IP·creator 두 경로의 fixed-window 원자성 invariant 공유), `/api/pins POST`만 wiring 교체. miniredis 기반 단위 테스트 4개로 creator 분리·IP 공유·unauth IP fallback·IP surface 회귀 방지."
+
+  - id: system-20260515-creator-public-profile-missing-boards-pins
+    title: "GET /api/creators/{id} 응답이 spec의 `보드 목록, 핀 목록`을 반환하지 않아 `공개 프로필 조회` SHALL을 위반한다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/creator/handler.go:37-64"
+        - "apps/api/internal/creator/dto.go:9-15"
+        - "apps/api/internal/creator/dto.go:26-38"
+        - "apps/api/cmd/server/main.go:150-154"
+      cite: |
+        openspec/specs/profile/spec.md Requirement `유저 프로필을 조회한다`
+        - Scenario "공개 프로필 조회":
+            WHEN 유저 ID로 프로필을 조회하면
+            THEN 닉네임, 아바타, 보드 목록, 핀 목록이 반환된다
+
+        Scenario의 THEN 절은 네 종류의 데이터(`닉네임`, `아바타`, `보드 목록`, `핀 목록`)가
+        프로필 조회 응답 페이로드 안에 함께 반환되어야 한다고 명시한다. 별도 endpoint들의
+        조합으로 분산해 채우는 형태는 명시되어 있지 않다.
+      repro: |
+        1. 임의의 유효한 creator ID로 `GET /api/creators/{id}`를 호출한다
+           (main.go:153 `r.Get("/{id}", creatorHandler.GetByID)`, 미들웨어 없음).
+        2. creator/handler.go:37-64 `GetByID`는 `h.q.GetCreator` + `h.q.CountPinsByCreator`만
+           조회하고 `toPublicDTO(creator, workCount)`를 직렬화한다.
+        3. dto.go:9-15 `CreatorPublicDTO` 구조체는 `id`, `nickname`, `avatar_url`,
+           `pin_count`, `created_at` 다섯 필드만 가진다. `boards`·`pins` 키는 없다.
+        4. 결과: 응답 페이로드에 보드 목록·핀 목록이 부재 = Scenario "공개 프로필 조회"
+           THEN 절의 `보드 목록, 핀 목록이 반환된다` SHALL 위반.
+
+        고정형 수정안 후보:
+        - 옵션 A: profile spec을 갱신해 보드/핀 목록은 별도 endpoint
+          (`GET /api/boards?creator_id=...`, `GET /api/pins?creator_id=...`)로 분리되어
+          제공된다는 것을 명시. 단, 이 옵션은 spec text 변경이 필요해 design 결정으로 다뤄야 한다.
+        - 옵션 B: `CreatorPublicDTO`에 `boards`(공개 보드 요약)와 `pins`(최근 핀 요약)
+          필드를 추가하고 `GetByID`에서 함께 채워 반환. sqlc 쿼리 2개 추가
+          (`ListPublicBoardsByCreator`는 이미 존재, 핀 요약은 `ListPinsByCreator` 일부 활용).
+          이 옵션은 페이지네이션 처리·캐시 무효화 정책을 새로 정의해야 해 effort가 늘어난다.
+
+        본 항목은 결함을 가시화하는 데 목적이 있고, A·B 중 어느 쪽을 채택할지는
+        propose 단계의 design 결정에 위임한다.
+    impact: 3
+    confidence: 4
+    effort: 3
+    risk: 2
+    score: 2.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-creator-public-profile-include-boards-pins. profile capability에 Requirement `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다` 추가(5 Scenarios). `CreatorPublicDTO`에 `boards`/`pins` 키 추가(빈 경우 빈 배열, 공개 보드만, 상한 20/12). 새 sqlc 쿼리 `ListPublicBoardsByCreatorLimited` 추가, 기존 `ListPinsByCreator` 재사용. `CreatorQuerier` 인터페이스 2개 메서드 확장. 6개 단위 테스트(응답 shape·빈 배열 직렬화·LIMIT 전파·boards 500·pins 500·404 skip)."
+
+  - id: system-20260515-feed-personalized-pagination-returns-duplicates
+    title: "개인화 피드의 페이지네이션이 페이지 간 동일한 작품을 반복 반환해 `이전 페이지에 포함되지 않은 작품` SHALL을 위반한다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/feed/handler.go:136-241"
+        - "apps/api/internal/feed/handler.go:199-204"
+        - "apps/api/internal/feed/handler.go:223-228"
+        - "apps/api/internal/feed/handler.go:284-292"
+        - "apps/api/db/queries/interactions.sql:26-42"
+        - "apps/api/db/queries/interactions.sql:44-56"
+      cite: |
+        openspec/specs/feed/spec.md Requirement `개인화된 추천 피드를 제공한다`
+        - Scenario "피드 페이지네이션":
+            WHEN 피드의 다음 페이지를 요청하면
+            THEN 이전 페이지에 포함되지 않은 작품이 반환된다
+
+        Scenario의 THEN 절은 다음 페이지가 이전 페이지의 작품을 포함하지 않을 것을 요구한다.
+        개인화 분기(authenticated 유저, pinCount >= 10)는 이 SHALL을 enforce해야 한다.
+      repro: |
+        1. 보유 핀 수가 10개 이상이며 태그 빈도가 산출되는 유저 토큰으로
+           `GET /api/feed?limit=20`을 호출한다(handler.go:54-112, `buildPersonalizedFeed` 분기).
+        2. 응답의 `next_cursor`(`buildNextCursor(0, 20, 20)`)를 디코드해 offset=20을
+           포함한 새 cursor를 받아 `GET /api/feed?limit=20&cursor=<next>`를 호출한다.
+        3. 두 응답의 `pins[].id` 집합을 비교한다.
+
+        실제 동작:
+        - `RecommendByTags`(interactions.sql:26-42, handler.go:155-159)는 LIMIT만 받고
+          offset 파라미터가 없다 → 페이지 1·2 모두 동일한 상위 recLimit개 태그 매칭 핀 반환.
+        - `RecommendByMediaType`(interactions.sql:44-56, handler.go:177-181)도 LIMIT만 받음.
+        - `ListPinsWithCreator` for latest(handler.go:199-204)는 `Offset: 0` 하드코딩.
+        - fill-gap의 `ListPinsWithCreator`(handler.go:223-228)는 `Offset: int32(len(latestRows))`
+          를 사용 — 이는 페이지 offset이 아니라 latestRows 길이(보통 10)이므로 페이지가
+          바뀌어도 동일한 offset 10에서 시작한다.
+        - `buildNextCursor`(handler.go:284-292)는 offset만 누적하지만 어떤 underlying
+          쿼리에도 그 offset이 전달되지 않는다.
+
+        결과: 두 응답의 `pins[].id`가 대부분 동일 = Scenario "피드 페이지네이션"의
+        SHALL "이전 페이지에 포함되지 않은 작품이 반환된다" 위반.
+
+        cold-start/unauth 분기는 `buildLatestFeed`에서 `Offset: int32(offset)`를 정상
+        전달하므로(handler.go:114-134) 영향받지 않는다. 본 결함은 개인화 분기(authenticated
+        + pinCount >= 10)에만 발생한다.
+
+        고정형 수정안 후보:
+        - 옵션 A: `RecommendByTags`·`RecommendByMediaType` 쿼리에 OFFSET 파라미터를
+          추가하고 `buildPersonalizedFeed`에서 페이지 offset을 그대로 전달.
+          recommended·latest·fill-gap 세 갈래 모두 페이지 offset을 일관되게 사용해야 한다.
+        - 옵션 B: cursor 모델을 offset 기반에서 seen-id 기반(추천 후보에서 이미 본 ID 제외)으로
+          전환. 더 정확하지만 cursor payload 크기와 캐시 키 설계가 복잡해진다.
+        A·B 중 어느 쪽을 채택할지는 propose 단계의 design 결정에 위임한다.
+    impact: 4
+    confidence: 4
+    effort: 3
+    risk: 2
+    score: 2.67
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-feed-personalized-pagination-no-cross-page-duplicates. feed capability에 Requirement `개인화 피드의 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다` 추가(3 Scenarios). `RecommendByTags`·`RecommendByMediaType` SQL에 OFFSET 파라미터 + `p.id DESC` tiebreaker 추가, sqlc 재생성. `buildPersonalizedFeed`가 페이지 offset을 태그 추천·미디어 타입 추천·최신 보충·fill-gap 네 갈래 모두에 일관되게 전파. `FeedQuerier` 인터페이스 + `NewHandlerWithQuerier` 도입으로 mockable. `auth.WithCreatorID` 공개 헬퍼 추가. 3개 페이지네이션 단위 테스트(페이지 간 disjoint·offset 전파·media-type fallback offset 전파)."
+
+  - id: system-20260515-interaction-implicit-recording-not-piggybacked
+    title: "유저의 작품 조회·핀 생성·보드 추가 행위에 interaction 기록이 piggyback되지 않아 interaction Scenarios의 SHALL을 위반한다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:58-310"
+        - "apps/api/internal/pin/handler.go:312-337"
+        - "apps/api/internal/boards/handler.go:456-520"
+        - "apps/api/internal/interaction/handler.go:1-91"
+      cite: |
+        openspec/specs/interaction/spec.md Requirement `유저 행동을 기록한다`
+        - Scenario "작품 조회 기록":
+            WHEN 유저가 작품 상세 페이지를 열면
+            THEN 조회 행동이 기록된다
+        - Scenario "핀 생성 기록":
+            WHEN 유저가 작품을 핀하면
+            THEN 핀 행동이 기록된다
+        - Scenario "보드 추가 기록":
+            WHEN 유저가 핀을 보드에 추가하면
+            THEN 보드 추가 행동이 기록된다
+        - Scenario "미인증 유저는 기록하지 않는다":
+            WHEN 미인증 유저가 작품을 조회하면
+            THEN 행동이 기록되지 않는다
+        - Scenario "기록 실패가 유저 경험에 영향을 주지 않는다":
+            WHEN 행동 기록이 실패하면
+            THEN 유저의 원래 요청(조회, 핀, 보드 추가)은 정상적으로 처리된다
+
+        AGENTS.md (도메인 표):
+          | `interaction` | 암묵적 행동 기록 (view, pin, board_add) |
+
+        "암묵적"·"원래 요청"·"유저의 원래 요청은 정상적으로 처리된다"
+        세 표현이 일관되게 "원래 요청(조회/핀/보드추가) 핸들러가 기록을 부수효과로 함께 처리"
+        하는 모델을 가정한다. 별도 explicit endpoint 모델로는 "원래 요청"이라는
+        표현이 성립하지 않는다.
+      repro: |
+        1. 인증된 유저 토큰으로 `GET /api/pins/{id}`를 호출한다(pin/handler.go:312-337
+           `GetByID`). 응답은 200이며 핀 데이터만 반환.
+           실제: interactions 테이블에 `(user_id, pin_id, type='view')` row 미생성.
+           기대: Scenario "작품 조회 기록" SHALL "조회 행동이 기록된다"가 만족되어야 함.
+
+        2. 인증된 유저 토큰으로 `POST /api/pins`(pin/handler.go:58-310 `Create`)를
+           호출해 새 핀을 만든다. 응답은 201이며 핀이 생성된다.
+           실제: interactions 테이블에 `(user_id, pin_id=새핀ID, type='pin')` row 미생성.
+           기대: Scenario "핀 생성 기록" SHALL "핀 행동이 기록된다"가 만족되어야 함.
+
+        3. 인증된 유저 토큰으로 `POST /api/boards/{boardID}/pins`
+           (boards/handler.go:456-520 `AddPin`)를 호출한다. 응답은 200/201.
+           실제: interactions 테이블에 `(user_id, pin_id, type='board_add')` row 미생성.
+           기대: Scenario "보드 추가 기록" SHALL "보드 추가 행동이 기록된다"가 만족되어야 함.
+
+        4. `grep -rn "CreateInteraction" apps/api/internal/ --include="*.go"`로
+           호출자 검색 시 `internal/interaction/handler.go:55`(POST /api/interactions
+           endpoint)가 유일한 호출자이다. pin·boards 핸들러는 호출하지 않는다.
+
+        cold-start/비인증 분기 영향:
+        - 미인증 호출자는 `auth.CreatorIDFromContext`가 false를 반환하므로 기록 분기를
+          진입하지 않게 가드해야 한다(Scenario "미인증 유저는 기록하지 않는다" 보존).
+        - 기록 실패는 best-effort(원래 요청 응답은 영향 없음)로 처리해야 한다
+          (Scenario "기록 실패가 유저 경험에 영향을 주지 않는다" 보존).
+
+        설계 옵션 후보(propose에서 결정):
+        - 옵션 A: pin.Create·pin.GetByID·boards.AddPin 세 핸들러에서 기존
+          `CreateInteraction` sqlc 쿼리를 best-effort로 호출(인증된 호출자에만,
+          에러는 log만). 별도 endpoint(POST /api/interactions)는 유지 또는 deprecate.
+        - 옵션 B: docs/architecture.md의 이벤트 파이프라인(Go channel → Event Worker)을
+          도입해 비동기 발행. 더 큰 변경 범위. 본 결함의 최소 해결로는 과한 범위.
+        A·B 중 어느 쪽을 채택할지는 propose 단계의 design 결정에 위임한다.
+    impact: 3
+    confidence: 4
+    effort: 3
+    risk: 2
+    score: 2.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-interaction-piggyback-on-pin-and-board-actions. interaction capability에 Requirement `시스템은 핀 조회·핀 생성·보드 추가 핸들러 진입 시 인증된 호출자에 한해 interaction 행동을 best-effort로 기록한다`(3 Scenarios) 추가. `internal/interaction/recorder.go` 신규(`Recorder` interface + `Record` best-effort 헬퍼, 잘못된 type은 INSERT 전 short-circuit, DB 에러는 log만). `pin.PinQuerier` interface에 `CreateInteraction` 추가, `pin.Create`(인증 보장)와 `pin.GetByID`(인증 분기 후) 응답 직전에 `interaction.Record` 호출. `boards.AddPin`(인증 보장)도 동일하게 호출. `GET /api/pins/{id}` 라우트에 `OptionalJWTMiddleware` 부착. 4개 헬퍼 단위 테스트(happy path·3 known types·DB error best-effort·invalid type short-circuit). archive 진행 중 `interaction/spec.md`의 사전 헤더 드리프트(`## ADDED Requirements`/`## Purpose`/`## Requirements` 누락) 최소 복구 동반."
+
+  - id: system-20260515-pioneer-robots-filter-nil-rate-setter
+    title: "Pioneer 부트스트랩이 RobotsFilter에 nil HostRateSetter를 전달해 `RobotsFilter는 Crawl-delay를 호스트 bucket에 반영한다` SHALL이 production에서 enforce되지 않는다"
+    area: bot
+    evidence:
+      files:
+        - "apps/api/cmd/bot/main.go:476-490"
+        - "apps/api/cmd/bot/main.go:486"
+        - "apps/api/internal/bot/robots_filter.go:50-53"
+        - "apps/api/internal/bot/robots_filter.go:159-164"
+      cite: |
+        openspec/specs/bot/spec.md Requirement `RobotsFilter는 Crawl-delay를 호스트 bucket에 반영한다` (L750-768)
+        - "RobotsFilter는 robots.txt에서 `Crawl-delay: N` (초) 지시어를 파싱해야 하며(SHALL),
+           파싱에 성공한 경우 `scheduler-host-token-bucket` capability의
+           **호스트 rate/burst 설정 동작**을 호출하여 해당 호스트의 rate를 `1/N` req/sec,
+           burst `1`로 갱신해야 한다(SHALL)"
+        - Scenario "Crawl-delay 파싱 및 호스트 rate 갱신":
+            WHEN robots.txt에 `Crawl-delay: 5`가 포함될 때
+            THEN RobotsFilter는 해당 호스트에 대해 scheduler의 호스트 rate/burst 설정 동작을
+                 호출하여 rate가 초당 0.2 requests, burst가 1로 갱신된다
+
+        openspec/specs/scheduler/spec.md Requirement
+        `robots.txt Crawl-delay를 호스트 rate로 반영한다` (L297-306)
+        - "robots.txt 파싱과 호스트 rate/burst 설정 동작 호출 타이밍은
+           `pioneer-link-filter-policy` capability의 책임이다"
+
+        두 SHALL이 일관되게 RobotsFilter → HostRateLimiter의 SetHostRate 호출을 요구하며,
+        그 호출 책임을 pioneer 측에 할당한다.
+      repro: |
+        1. Pioneer 워커 부팅 시 `apps/api/cmd/bot/main.go:475` `runPioneerConsumer`가 호출된다.
+        2. L476-477에서 `sched := scheduler.NewPGURLScheduler(infra.DB).WithRateLimiter(buildHostRateLimiter(...))`로
+           HostRateLimiter를 받은 PGURLScheduler를 만든다.
+        3. L486에서 FilterChain을 구성할 때 `bot.NewRobotsFilter(nil)`로 호출 —
+           `rateSetter HostRateSetter` 인자가 명시적으로 nil이다.
+        4. Pioneer가 새 호스트에 도달해 FilterChain이 RobotsFilter.Filter를 호출하면
+           내부에서 robots.txt를 fetch·파싱한다(`robots_filter.go:fetch`/`parseRobotsTxt`).
+           `Crawl-delay: 5`가 정상 파싱되어 `entry.crawlDelay = 5.0`이 cache에 저장된다.
+        5. `robots_filter.go:161` `if entry.crawlDelay != nil && *entry.crawlDelay > 0 && f.rateSetter != nil`
+           가드에서 `f.rateSetter == nil`이라 SetHostRate가 **호출되지 않는다**.
+        6. scheduler의 HostRateLimiter는 그 호스트에 대해 lazy 생성된 기본 bucket(1 req/sec, burst 5)을
+           계속 사용한다 = Scenario "Crawl-delay 파싱 및 호스트 rate 갱신"의 THEN
+           "rate가 초당 0.2 requests, burst가 1로 갱신된다" SHALL 위반.
+
+        해당 SHALL은 RobotsFilter의 외부 관찰 가능 행위(HostRateLimiter에 대한
+        SetHostRate 호출)로 정의되므로, production wiring이 nil rateSetter로
+        RobotsFilter를 생성하는 한 enforce될 수 없다.
+
+        harvester 부트스트랩(main.go:260-261)은 RobotsFilter를 별도로 wire하지 않으며
+        본 SHALL은 `pioneer-link-filter-policy` capability 책임이라 명시되므로,
+        본 결함은 pioneer 부트스트랩에 한정된다.
+
+        고정형 수정안 후보:
+        - 옵션 A: `runPioneerConsumer`에서 `buildHostRateLimiter(config.LoadSchedulerHostConfig())`
+          결과를 지역 변수 `rl`로 추출한 뒤, `sched.WithRateLimiter(rl)`와 `bot.NewRobotsFilter(rl)`에
+          둘 다 전달. 두 곳이 같은 인스턴스를 공유해야 SetHostRate가 그 호스트의 dequeue 시점에 enforce된다.
+        - 옵션 B: `PGURLScheduler`에 HostRateLimiter getter surface를 추가하고 RobotsFilter가 그것을 받음.
+          간접성이 증가해 옵션 A 권장.
+        A·B 중 어느 쪽을 채택할지는 propose 단계의 design 결정에 위임한다.
+
+        진행 중인 별개 change `fix-scheduler-host-rate-limiter-config-wiring`는 NewHostRateLimiter에
+        Config 값을 전달하는 것에 한정되며, RobotsFilter wiring과는 범위가 다르므로 중복 아님.
+    impact: 4
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 5.0
+    status: done
+    note: "archived as openspec/changes/archive/2026-05-15-fix-pioneer-robots-filter-host-rate-setter-wiring. bot capability에 보조 Requirement `Pioneer 부트스트랩은 RobotsFilter에 HostRateLimiter를 wire한다`(2 Scenarios) 추가. `apps/api/cmd/bot/main.go`의 `runPioneerConsumer`가 `buildHostRateLimiter(...)` 결과를 지역 변수 `rl`로 추출해 `sched.WithRateLimiter(rl)`와 신규 `buildPioneerConsumer(sched, store, rl)` 두 곳에 동일 인스턴스를 전달하도록 wiring 교체(`bot.NewRobotsFilter(nil)` 직접 호출 제거). `apps/api/cmd/bot/pioneer_consumer_builder.go` 신규(`(*bot.PioneerConsumer, *bot.RobotsFilter)` 반환으로 결정적 wiring 검증 surface 노출). `apps/api/internal/bot/robots_filter.go`에 read-only accessor `RateSetter() HostRateSetter` 1개 추가(시그니처·인터페이스·nil 허용 계약 미변경). 2개 cmd/bot 회귀 단위 테스트(fake `HostRateSetter`로 동일 인스턴스 전파·nil 미허용 wiring 검증). go test ./... 467 통과(회귀 없음)."
+
+  - id: system-20260515-helm-cronjob-bot-missing-args
+    title: "helm cronjob-bot.yaml에 args/command가 부재해 fuguebot CronJob이 어떤 서브커맨드(pioneer/harvester)도 실행하지 않고 즉시 종료된다"
+    area: infra
+    evidence:
+      files:
+        - "helm/fugue/templates/cronjob-bot.yaml:24-27"
+        - "apps/api/Dockerfile.bot:17"
+        - "apps/api/cmd/bot/main.go:115-130"
+        - "apps/api/cmd/bot/main.go:126-131"
+        - "apps/api/cmd/bot/main.go:167-176"
+      cite: |
+        apps/api/Dockerfile.bot L17: `ENTRYPOINT ["/usr/local/bin/fuguebot"]` (args 미지정).
+        apps/api/cmd/bot/main.go L115-124: rootCmd `fuguebot`는 `Run`/`RunE`을 정의하지 않으므로
+          서브커맨드 없이 호출되면 cobra 기본 동작에 따라 도움말만 출력하고 종료한다.
+        apps/api/cmd/bot/main.go L126-130: `pioneerCmd Use: "pioneer <site>"`, `Args: cobra.ExactArgs(1)` —
+          반드시 site 인자가 필요하다.
+        apps/api/cmd/bot/main.go L167-175: `harvesterCmd Use: "harvester"`, `Args: cobra.NoArgs`.
+
+        docs/architecture.md L385-393 (pioneer-snapshot-storage 운영 토글·롤백 절차):
+        - "helm: `cronjob-bot.yaml`에 두 변수를 `optional: true`로 노출."
+        - "**롤아웃**: 스테이징에 flag on → 24시간 모니터링(...) → 운영에 점진적으로 on."
+        - "**롤백**: ConfigMap에서 `pioneer-snapshot-enabled`를 제거하거나 `\"false\"`로
+           설정 → 다음 CronJob 실행부터 업로드 즉시 중단."
+        세 표현 모두 cronjob-bot이 실제로 **무엇인가를 fetch/upload하면서** 주기적으로
+        실행된다는 가정을 만든다. CronJob이 도움말만 출력하고 즉시 종료한다면 어떤
+        snapshot도 업로드되지 않으며, 운영 토글의 "다음 CronJob 실행부터 업로드 즉시 중단"
+        SHALL을 enforce할 surface 자체가 존재하지 않는다.
+      repro: |
+        1. helm/fugue/templates/cronjob-bot.yaml의 containers[0]을 확인한다 (L24-27).
+           name/image/imagePullPolicy/env/resources 외에 `command` 또는 `args` 키가 없다.
+        2. Kubernetes CronJob이 trigger되면 Pod가 생성되어 `/usr/local/bin/fuguebot`
+           (Dockerfile.bot L17 ENTRYPOINT)가 추가 args 없이 실행된다.
+        3. cobra `fuguebot` rootCmd는 `Run`/`RunE`이 미정의이므로 도움말을 stdout에 출력하고
+           exit 0으로 종료한다. pioneer/harvester 서브커맨드 어느 것도 호출되지 않는다.
+        4. 결과: `successfulJobsHistoryLimit: 3`로 인해 매번 "성공"한 것처럼 보이는 Pod가
+           기록되지만 실제로는 어떤 URL도 fetch되지 않고 어떤 snapshot도 업로드되지 않는다.
+
+        보조 관찰: helm/fugue/ 하위에 Chart.yaml / values.yaml / templates/_helpers.tpl이
+        부재하다 (`fugue.fullname` · `fugue.labels` · `fugue.selectorLabels` · `.Values.bot.image.*`
+        참조가 해소되지 않음). cronjob-bot.yaml 단독으로는 `helm install`이 결정적으로 실패한다.
+        다만 본 결함의 핵심은 "args 부재로 진입점이 무동작"이라는 점이며, chart 자체의
+        incomplete state는 동반 결함으로 함께 다루는 것이 효율적이다.
+
+        고정형 수정안 후보:
+        - 옵션 A (minimal): cronjob-bot.yaml의 컨테이너 spec에 `args` 키를 추가하고
+          `["harvester"]` 또는 `["pioneer", "<site>"]`을 values.yaml로 외부화. cobra가
+          site 인자를 검증하므로 ExactArgs(1) 위반은 즉시 Pod fail로 가시화된다.
+        - 옵션 B: pioneer는 site별로 cronjob template을 분리(values.yaml에 sites 리스트로
+          노출, range로 생성), harvester는 단일 cronjob 유지. snapshot 토글의 운영 절차가
+          host 단위 일관성을 갖도록 한다.
+        propose 단계에서 결정. Chart.yaml/values.yaml/_helpers.tpl이 함께 추가되어야
+        cronjob template이 실제로 render된다.
+    impact: 3
+    confidence: 5
+    effort: 3
+    risk: 2
+    score: 2.5
+    status: rejected_self
+    note: |
+      `/opsx:review` self-rejected (cycle 29). 두 archive 노트가 명시적으로 본 결함을
+      별도 deployment change의 책임으로 보류해 둔다 — 사용자가 decision-log에서
+      다르게 결정한 사안.
+        - openspec/changes/archive/2026-04-23-harvester-worker-budget/tasks.md §3.1:
+          "helm/fugue/templates/ 하위는 cronjob-bot.yaml 단독. ... 본 change 범위에서는
+          매니페스트 수정 대상 없음 — 배포 change(Deployment/CronJob 설계)에서
+          ... 정책을 함께 도입한다"
+        - openspec/changes/archive/2026-04-20-pioneer-worker-budget/tasks.md §4.2:
+          "helm/ 및 terraform/ 경로에도 Pioneer 워커 리소스가 선언되지 않아
+          조치 대상 manifest 부재. 실제 배포 매체가 추가되는 시점에 ... 해당
+          배포 change의 책임 범위이다"
+      또한 인용한 SHALL이 약하다. `openspec/changes/archive/2026-04-07-fuguebot/spec.md`
+      L48 "cron 또는 K8s CronJob으로 스케줄링한다"는 deploy 매체 가이드일 뿐 args
+      형태에 대한 SHALL을 만들지 않으며, `docs/architecture.md` L385-393은 cronjob-bot.yaml을
+      pioneer-snapshot-storage 토글 변수 노출 surface로만 언급한다. "cronjob이 무동작"이라는
+      관찰은 정확하지만, 그것을 "스펙 위반"으로 해석하는 건 자의적이다 — 사용자가
+      배포 매체 자체를 아직 도입하지 않는다고 결정해 두었기 때문이다.
+      anti-patterns.md에 추상 패턴 추가.
+
+  - id: system-20260515-pin-create-no-request-body-cap
+    title: "POST /api/pins가 요청 본문 상한을 두지 않아 멀티파트 디스크 소진 DoS surface가 열려 있다"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:67-69"
+        - "apps/api/internal/storage/storage.go:120-167"
+        - "apps/api/cmd/server/main.go:113-138"
+      cite: |
+        Go `net/http`의 `Request.ParseMultipartForm(maxMemory)`는 maxMemory를
+        **메모리 vs 디스크 임계값**으로만 사용한다. 표준 문서(`pkg/net/http`)는
+        "There is no limit on the total size of the request body or the number of files.
+        To enforce limits on those, you should wrap the request body using
+        http.MaxBytesReader before calling ParseMultipartForm"라고 명시한다.
+
+        `internal/pin/handler.go` Create의 진입부 L67-69:
+        ```
+        // Parse multipart: max 500MB (video originals before server-side trim)
+        if err := r.ParseMultipartForm(500 << 20); err != nil {
+            writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
+            return
+        }
+        ```
+        주석 "max 500MB"는 개발자가 이 인자를 본문 상한으로 오해했음을 보여 준다.
+        실제로는 500MB까지만 메모리에 보관하고 그 이상은 `os.TempDir()`에 무제한으로
+        스풀한다. 핸들러 본문 어디에도 `http.MaxBytesReader` wrap이 없고,
+        `cmd/server/main.go` L113-138의 router 미들웨어 체인에도 본문 상한 미들웨어가
+        없다 (`grep -rn "MaxBytesReader" internal/ cmd/` → 0건).
+
+        `internal/storage/storage.go` Upload는 L142-144에서 `size > limit` 검사를
+        수행하지만, 이 `size`는 호출 시점에 이미 디스크에 스풀된 multipart part의
+        실제 크기(`header.Size`)이거나 client 신고치이다. 즉 디스크 소비가 끝난
+        뒤에야 거절된다. 같은 함수 L152-156은 `io.ReadAll(body)` + `append`로 전체
+        본문을 메모리에 다시 로드하므로, multipart 파서가 디스크로 스풀해 메모리를
+        절약한 효과를 무효화한다(부수적, 본 결함의 핵심은 아님).
+
+        `docs/architecture.md`에 명시적 본문 상한 SHALL은 없으나, `openspec/specs/pin/spec.md`
+        L122-134는 "서버 크기 제한"을 전제로 "재압축 후에도 크기 초과 시 에러 반환"
+        SHALL을 만든다. 디스크가 소진되어 핸들러 자체가 도달 불가능해지면 해당
+        SHALL을 enforce할 surface가 사라진다.
+      repro: |
+        1. 인증된 유저(JWT 보유)가 `POST /api/pins`에 `multipart/form-data` 요청을 보낸다.
+           Body는 의도적으로 50GB(또는 디스크 여유 이상)로 구성하고 `media` 파트에
+           쓰레기 바이트를 채운다.
+        2. Go 표준 multipart 파서가 `os.CreateTemp`로 임시 파일을 만들고 50GB를
+           순차적으로 디스크에 기록한다. `r.ParseMultipartForm(500 << 20)`는 메모리
+           500MB만 사용하므로 정상 진행된다.
+        3. 디스크가 소진되거나, `header.Size > maxBytes` 검증에 도달하기 전에 OS가
+           write 실패를 반환할 수 있다. 어느 경로든 `/tmp` 또는 multipart temp dir가
+           full이 되어 같은 노드의 다른 서비스/요청에 영향을 준다.
+        4. 30/min/유저 rate limit(2026-05-15 ratelimit-by-creator)이 적용되어 있어도
+           단일 유저가 30 × 50GB = 1.5TB/분을 디스크에 스풀할 수 있다. 다중 유저
+           조합 시 amplification은 선형.
+
+        보조 시나리오 (concurrent upload memory pressure):
+        - `storage.Upload`의 `io.ReadAll(body) + append` 패턴은 multipart가 디스크로
+          잘 스풀해 둔 파일도 처리 시점에 전부 메모리로 다시 올린다. 100MB 비디오
+          × 동시 50건 = 5GB 메모리 추가 사용. 본 결함과 동반 수정 후보지만 별도
+          backlog로 분리 가능.
+
+        고정형 수정안 후보:
+        - 옵션 A (minimum): `pin.Create` 진입 직후 `r.Body = http.MaxBytesReader(w, r.Body, 500<<20)`
+          한 줄 추가. 본문이 상한을 넘으면 ParseMultipartForm이 즉시 ErrLargeBody
+          반환. 핵심 multipart 영역만 보호.
+        - 옵션 B: 글로벌 chi 미들웨어로 모든 라우트에 본문 상한(예: 600MB) 부착.
+          /api/og/fetch · /api/auth/* 등 작은 본문 라우트에는 별도로 더 작은
+          상한을 두는 surface 분기를 추가.
+        - 옵션 C: streaming upload — `storage.Upload`를 `io.ReadAll` 제거 + `s3.PutObject`
+          Body로 multipart part Reader 직접 전달. ContentLength는 multipart part Size
+          를 신뢰. 메모리 부수 결함도 함께 해소되지만 변경 폭이 커진다.
+        propose 단계에서 결정. confidence는 표준 문서 인용 + grep 결과 0건으로 ≥ 4.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 8.0
+    status: done
+    note: |
+      archived as openspec/changes/archive/2026-05-18-fix-pin-create-request-body-cap.
+      pin capability의 기존 Requirement `미디어 파일을 업로드한다`에 신규 Scenario `서버가 본문을
+      디스크에 스풀하기 전에 본문 상한으로 거절한다` 추가. `apps/api/internal/pin/handler.go`에
+      `requestBodyCap = 500 << 20` 변수 추가, `pin.Create` 진입부에서 `r.Body = http.MaxBytesReader(...)`
+      한 줄 + `errors.As(err, &maxBytesErr)` 분기로 디스크 스풀 이전 거절을 enforce. 3개 단위 테스트
+      (cap 상수값·digital body over cap·malformed multipart preserved generic error). archive 진행 중
+      pin/spec.md의 `## Purpose` 누락 사전 드리프트 1회 보수 동반. 운영 시 `storage.go`의 메모리
+      `io.ReadAll` 압박과 글로벌 미들웨어 도입은 본 change 범위 밖으로 명시.
+
+  - id: system-20260518-pin-video-no-trim-probe-fail-bypass
+    title: "POST /api/pins의 no-trim 비디오 업로드가 probeDuration 실패 시 `15초 초과 비디오는 거부` SHALL을 침묵 우회한다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:222-228"
+        - "apps/api/internal/pin/handler.go:681-694"
+      cite: |
+        openspec/specs/pin/spec.md Requirement `서버에서 비디오를 트리밍한다`
+        - Scenario "구간 정보 없이 15초 초과 비디오 업로드":
+            WHEN 트리밍 구간 정보 없이 15초 초과 비디오가 업로드되면
+            THEN 서버가 업로드를 거부하고 트리밍 필요 에러를 반환한다
+
+        SHALL은 "거부"를 명시하며 probe 실패에 대한 carve-out이 없다. 동일 spec L138은
+        "15초 초과 비디오가 선택되면 트리밍 구간 선택 모달을 표시해야 한다(SHALL)"로
+        클라이언트 측 SHALL을 두지만, 서버 측은 마지막 방어선으로 위 거부 SHALL을 둔다.
+      repro: |
+        1. 인증된 유저가 60초짜리 비디오 파일을 trim_start/trim_end 폼 필드 없이
+           POST /api/pins로 업로드한다(handler.go:222 else 분기, "No trim params" 경로).
+        2. ffprobe 호출이 실패한다. 현실 시나리오:
+           - 운영 컨테이너 이미지에 ffmpeg 패키지가 빠진 채 배포된 경우 exec.LookPath 실패
+             → `exec.Command("ffprobe", ...).Output()`가 ("", &exec.Error{Err: ErrNotFound})
+           - ffprobe 바이너리는 있으나 비디오 컨테이너의 메타데이터가 malformed해
+             ffprobe가 non-zero exit
+           - 임시 디스크 I/O 일시 오류로 ffprobe가 입력을 읽지 못함
+        3. handler.go:691 `probeDuration`이 (0, err)를 반환.
+        4. handler.go:225 `if probeErr == nil && duration > float64(maxVideoDurationSeconds)`
+           가드는 `probeErr != nil`로 false. 거부 분기에 진입하지 않는다.
+        5. 핸들러가 else 블록을 빠져나가 `uploadPath := origTmpPath` 그대로 storage.Upload로
+           진행. 60초(또는 임의 길이) 비디오가 그대로 저장된다.
+        6. 결과: Scenario "구간 정보 없이 15초 초과 비디오 업로드"의 SHALL "서버가
+           업로드를 거부" 위반.
+
+        보강 관찰: handler.go:163 `duration, _ := probeDuration(origTmpPath)`도 같은
+        패턴이지만 trim 경로는 클라이언트 trim_end가 trimDuration > 15.5s 가드(L165)로
+        걸러지므로 서버 결과물은 ≤ 15s가 보장된다. SHALL 직접 위반은 no-trim 경로 한정.
+
+        고정형 수정안 후보(propose에서 결정):
+        - 옵션 A: probeErr != nil 시 400/422 + "비디오 길이를 확인할 수 없습니다"로 fail-closed.
+        - 옵션 B: spec에 "probe 실패 시 거부" 명시 SHALL을 추가하고 옵션 A 구현.
+        - 옵션 C: probeErr != nil 시 ffprobe retry (1~2회) 후 그래도 실패면 거부.
+        spec SHALL이 "거부"만 명시하므로 옵션 A가 최소 수정. CLAUDE.md(project)의
+        "ffprobe/ffmpeg: 비디오 업로드 시 서버 사이드 duration 검증에 필요"가 ffprobe
+        존재를 deployment 전제로 만들지만, 실제 운영에서 누락된 경우 silent bypass가
+        매우 가시화되기 어렵다(로그만 남고 응답은 200).
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending

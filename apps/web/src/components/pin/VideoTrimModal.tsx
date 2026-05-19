@@ -28,6 +28,7 @@ export default function VideoTrimModal({
 }: VideoTrimModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const initEnd = Math.min(videoDuration, MAX_CLIP);
@@ -53,6 +54,25 @@ export default function VideoTrimModal({
       videoRef.current.currentTime = start;
     }
   }, [start, drag]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !drag) onCancel();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drag, onCancel]);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
 
   const pxToTime = useCallback(
     (clientX: number) => {
@@ -112,15 +132,32 @@ export default function VideoTrimModal({
 
   const onUp = useCallback(() => setDrag(null), []);
 
+  function handleOverlayClick(e: React.MouseEvent) {
+    if (drag) return;
+    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      onCancel();
+    }
+  }
+
   const startPct = (start / videoDuration) * 100;
   const endPct = (end / videoDuration) * 100;
   const widthPct = endPct - startPct;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-surface-elevated border border-border rounded-[12px] w-full max-w-xl mx-4 overflow-hidden">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={handleOverlayClick}
+    >
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="video-trim-modal-title"
+        tabIndex={-1}
+        className="bg-surface-elevated border border-border rounded-[16px] w-full max-w-xl mx-4 overflow-hidden"
+      >
         <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-lg font-bold text-text-primary">
+          <h2 id="video-trim-modal-title" className="text-lg font-bold text-text-primary font-display tracking-tight">
             비디오 구간 선택
           </h2>
           <p className="text-xs text-text-muted mt-1">
@@ -141,10 +178,7 @@ export default function VideoTrimModal({
           )}
 
           <div className="mt-4 px-1">
-            <div
-              className="flex justify-between items-center text-2xs text-text-dim mb-2"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <div className="flex justify-between items-center text-2xs text-text-dim mb-2 font-mono">
               <span>{fmt(start)}</span>
               <span className="text-accent font-semibold">{clip.toFixed(1)}초 / {MAX_CLIP}초</span>
               <span>{fmt(end)}</span>
@@ -202,10 +236,7 @@ export default function VideoTrimModal({
               </div>
             </div>
 
-            <div
-              className="text-right mt-1 text-2xs text-text-dim"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <div className="text-right mt-1 text-2xs text-text-dim font-mono">
               전체 {fmt(videoDuration)}
             </div>
           </div>

@@ -135,8 +135,12 @@ func main() {
 
 	// Pin routes
 	r.Get("/api/pins", pinHandler.List)
-	r.With(auth.JWTMiddleware(jwtSvc), pinRL.Middleware).Post("/api/pins", pinHandler.Create)
-	r.Get("/api/pins/{id}", pinHandler.GetByID)
+	// spec: docs/architecture.md Rate Limit "핀 생성: 30/분/유저" — per-creator, not per-IP.
+	// spec: ratelimit `유저 단위 빈도 제한 surface를 노출한다`
+	r.With(auth.JWTMiddleware(jwtSvc), pinRL.MiddlewareByCreatorID).Post("/api/pins", pinHandler.Create)
+	// spec: interaction `미인증 호출자의 핀 조회에는 interaction이 기록되지 않는다`
+	// OptionalJWTMiddleware exposes auth context when present so GetByID can piggyback view interaction.
+	r.With(auth.OptionalJWTMiddleware(jwtSvc)).Get("/api/pins/{id}", pinHandler.GetByID)
 	r.With(auth.JWTMiddleware(jwtSvc)).Delete("/api/pins/{id}", pinHandler.Delete)
 	r.Get("/api/pins/{id}/related", pinHandler.Related)
 	r.Get("/api/pins/{id}/boards", boardsHandler.ListByPin)
@@ -153,9 +157,11 @@ func main() {
 
 	// Board routes
 	r.Route("/api/boards", func(r chi.Router) {
-		r.Get("/", boardsHandler.ListByCreator)
+		// spec: board `공개 보드 조회 라우트는 선택적 인증 미들웨어로 보호된다`
+		r.With(auth.OptionalJWTMiddleware(jwtSvc)).Get("/", boardsHandler.ListByCreator)
 		r.With(auth.JWTMiddleware(jwtSvc)).Post("/", boardsHandler.Create)
-		r.Get("/{id}", boardsHandler.GetByID)
+		// spec: board `공개 보드 조회 라우트는 선택적 인증 미들웨어로 보호된다`
+		r.With(auth.OptionalJWTMiddleware(jwtSvc)).Get("/{id}", boardsHandler.GetByID)
 		r.With(auth.JWTMiddleware(jwtSvc)).Put("/{id}", boardsHandler.Update)
 		r.With(auth.JWTMiddleware(jwtSvc)).Delete("/{id}", boardsHandler.Delete)
 		r.With(auth.JWTMiddleware(jwtSvc)).Post("/{id}/pins", boardsHandler.AddPin)
@@ -166,7 +172,8 @@ func main() {
 	r.With(auth.JWTMiddleware(jwtSvc)).Post("/api/interactions", interactionHandler.Create)
 
 	// Feed (personalized)
-	r.Get("/api/feed", feedHandler.GetFeed)
+	// spec: feed `피드 라우트는 선택적 인증 미들웨어로 보호된다`
+	r.With(auth.OptionalJWTMiddleware(jwtSvc)).Get("/api/feed", feedHandler.GetFeed)
 
 	// Auth routes
 	r.Route("/api/auth", func(r chi.Router) {

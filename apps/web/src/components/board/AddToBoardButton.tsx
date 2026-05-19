@@ -10,6 +10,7 @@ import {
 } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import EmptyState from "@/components/feed/EmptyState";
 
 interface AddToBoardButtonProps {
   pinId: string;
@@ -120,6 +121,11 @@ function BoardSelectModal({
     };
   }, []);
 
+  // Initial focus to dialog container (WAI-ARIA Dialog Pattern)
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
+
   // ESC to close
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -199,18 +205,20 @@ function BoardSelectModal({
       {/* Panel */}
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-to-board-modal-title"
+        tabIndex={-1}
         className="relative bg-surface-elevated border border-border rounded-[16px] w-full max-w-sm mx-4 max-h-[80vh] flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
-          <h2
-            className="text-lg font-bold tracking-tight"
-            style={{ fontFamily: "'General Sans', sans-serif" }}
-          >
+          <h2 id="add-to-board-modal-title" className="text-lg font-bold tracking-tight font-display">
             보드에 추가
           </h2>
           <button
             onClick={onClose}
+            aria-label="닫기"
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-text-muted hover:text-text-primary cursor-pointer"
           >
             <svg
@@ -234,8 +242,8 @@ function BoardSelectModal({
           <div
             className={`mx-6 mt-4 px-3 py-2 rounded-[6px] text-xs ${
               feedback.type === "success"
-                ? "bg-[#34C759]/10 border border-[#34C759]/30 text-[#34C759]"
-                : "bg-[#FF3B30]/10 border border-[#FF3B30]/30 text-[#FF3B30]"
+                ? "bg-success/10 border border-success/30 text-success"
+                : "bg-error/10 border border-error/30 text-error"
             }`}
           >
             {feedback.message}
@@ -249,9 +257,7 @@ function BoardSelectModal({
               <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : boards.length === 0 && !showCreate ? (
-            <div className="text-center py-8 text-text-dim text-sm">
-              아직 생성된 보드가 없습니다
-            </div>
+            <EmptyState message="아직 생성된 보드가 없습니다" />
           ) : (
             boards.map((board) => (
               <button
@@ -291,10 +297,7 @@ function BoardSelectModal({
                   <div className="text-sm font-medium text-text-primary truncate">
                     {board.name}
                   </div>
-                  <div
-                    className="text-xs text-text-dim"
-                    style={{ fontFamily: "'Geist Mono', monospace" }}
-                  >
+                  <div className="text-xs text-text-dim font-mono">
                     {board.pin_count} pins
                   </div>
                 </div>

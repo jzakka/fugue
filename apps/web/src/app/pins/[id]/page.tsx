@@ -127,18 +127,12 @@ export default async function PinDetailPage({ params }: Props) {
           {/* Content */}
           <div className="p-6 sm:p-8 space-y-5">
             {/* Media Type Badge */}
-            <span
-              className="inline-block px-3 py-1 bg-accent-subtle text-accent rounded-full text-xs font-medium"
-              style={{ fontFamily: "'Geist Mono', monospace" }}
-            >
+            <span className="inline-block px-3 py-1 bg-accent-subtle text-accent rounded-full text-3xs font-medium font-mono">
               {getMediaTypeLabel(pin.media_type)}
             </span>
 
             {/* Title */}
-            <h1
-              className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight"
-              style={{ fontFamily: "'General Sans', sans-serif" }}
-            >
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight font-display">
               {pin.title}
             </h1>
 
@@ -155,8 +149,7 @@ export default async function PinDetailPage({ params }: Props) {
                 {pin.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="px-2.5 py-1 bg-accent-subtle text-text-muted rounded-full text-xs"
-                    style={{ fontFamily: "'Geist Mono', monospace" }}
+                    className="px-2.5 py-1 bg-accent-subtle text-text-muted rounded-full text-3xs font-mono"
                   >
                     {tag.name}
                   </span>
@@ -211,7 +204,7 @@ export default async function PinDetailPage({ params }: Props) {
                     className="w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent transition-colors"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-orange-400 border-2 border-border group-hover:border-accent transition-colors" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border group-hover:border-accent transition-colors" />
                 )}
                 <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">
                   {pin.creator.nickname}
@@ -253,10 +246,7 @@ export default async function PinDetailPage({ params }: Props) {
         {/* Related Pins */}
         {relatedPins.length > 0 && (
           <section className="mt-12">
-            <h2
-              className="text-lg font-bold tracking-tight mb-6"
-              style={{ fontFamily: "'General Sans', sans-serif" }}
-            >
+            <h2 className="text-lg font-bold tracking-tight mb-6 font-display">
               관련 작품
             </h2>
             <MasonryGrid>

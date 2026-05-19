@@ -38,8 +38,9 @@ WHERE EXISTS (
   AND p.creator_id != $2
 ORDER BY
     (SELECT count(*) FROM pin_tags pt WHERE pt.pin_id = p.id AND pt.tag_id = ANY($1::uuid[])) DESC,
-    p.created_at DESC
-LIMIT $3;
+    p.created_at DESC,
+    p.id DESC
+LIMIT $3 OFFSET $4;
 
 -- name: RecommendByMediaType :many
 SELECT
@@ -52,5 +53,5 @@ FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE p.media_type = ANY($1::text[])
   AND p.creator_id != $2
-ORDER BY p.created_at DESC
-LIMIT $3;
+ORDER BY p.created_at DESC, p.id DESC
+LIMIT $3 OFFSET $4;

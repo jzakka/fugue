@@ -21,6 +21,7 @@
   --error: #FF3B30;
   --info: #5AC8FA;
   --border: #2A2A2A;
+  --shimmer-highlight: rgba(255, 255, 255, 0.06);
 }
 
 .light {
@@ -29,10 +30,11 @@
   --surface-elevated: #FAFAFA;
   --surface-hover: #F0F0F0;
   --text-primary: #1A1A1A;
-  --text-muted: #666666;
-  --text-dim: #999999;
-  --accent-subtle: rgba(232, 90, 42, 0.08);
-  --border: #D0D0D0;
+  --text-muted: #777777;
+  --text-dim: #AAAAAA;
+  --accent-subtle: rgba(232, 90, 42, 0.12);
+  --border: #E0E0E0;
+  --shimmer-highlight: rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
@@ -51,6 +53,15 @@
   --color-error: var(--error);
   --color-info: var(--info);
   --color-border: var(--border);
+  --font-display: 'General Sans', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --text-2xs: 0.6875rem;
+  --text-3xs: 0.625rem;
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.font-mono {
+  font-variant-numeric: tabular-nums;
 }
 
 body {
@@ -76,4 +87,25 @@ body {
 
 .masonry-grid_column > * {
   margin-bottom: 16px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer .bg-surface-elevated {
+  background-image: linear-gradient(90deg, transparent 0%, var(--shimmer-highlight) 50%, transparent 100%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.5s linear infinite;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

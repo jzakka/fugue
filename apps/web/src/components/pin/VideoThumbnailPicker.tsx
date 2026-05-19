@@ -124,7 +124,7 @@ export default function VideoThumbnailPicker({
 
   return (
     <div>
-      <label className="block text-sm text-text-muted mb-2">
+      <label className="block text-sm text-text-muted mb-2 font-medium">
         썸네일 선택
       </label>
       <div className="flex gap-2">

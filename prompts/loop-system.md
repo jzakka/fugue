@@ -11,6 +11,15 @@
 - 과거에 false positive로 분류된 패턴은 `.fugue/anti-patterns.md`에 있다. 발견 단계에서 이걸 먼저 읽고, 같은 패턴은 후보로 올리지 않는다.
 - **사용자에게 질문하지 않는다.** 결정이 필요하면 항목을 `needs_decision`으로 두고 사이클 종료.
 
+## 0. 워크트리 sync (사이클의 첫 동작, skip 금지)
+
+매 사이클 시작 시 가장 먼저 실행한다. 이 단계를 건너뛰면 stale한 `prompts/loop-system.md`를 읽어 이후 절차(특히 step 8 커밋+PR / step 9 머지)를 통째로 빠뜨릴 수 있다.
+
+1. `git diff --quiet && git diff --cached --quiet`로 worktree clean 여부 확인. uncommitted 변경이 있으면 직전 사이클이 step 8을 완수하지 못한 것이므로 즉시 사이클 종료(사용자가 정리하도록 둔다).
+2. `git fetch origin main`으로 원격 최신 ref 수신.
+3. `git merge --ff-only origin/main`으로 worktree 브랜치를 fast-forward. ff-only가 실패하면(worktree 브랜치가 origin/main과 분기됨) 즉시 사이클 종료.
+4. sync 결과 `prompts/loop-system.md`가 변경됐다면 이 파일을 다시 Read 하고 변경된 내용을 이 사이클의 지시로 삼는다.
+
 ## 사이클 시작 전 필수 읽기
 
 1. `AGENTS.md` 백엔드/인프라/봇 관련 섹션
@@ -58,7 +67,7 @@
 ### 1. 선택과 브랜치
 - `score` 최고 `pending` 항목. 동점 시 `impact` ↑, `effort` ↓.
 - `in_progress` 표시, 백로그 저장.
-- `git checkout -b loop/system/<id>`.
+- `git checkout -b loop-system/<id>`.
 
 ### 2. 제안 (`/opsx:propose`)
 - `evidence`, 인용 문서/스펙, 변경 범위, 회귀/마이그레이션 위험, 롤백 절차, `qa_plan` 포함.
@@ -108,7 +117,7 @@
 
 ### 8. 커밋 & PR
 - 커밋 메시지: 프로젝트 컨벤션(scope) 사용. 예: `fix(bot extractor): retry on 429`.
-- `git push -u origin loop/system/<id>`.
+- `git push -u origin loop-system/<id>`.
 - `gh pr create` — PR 본문에 `evidence`, 인용, QA 결과(어떤 명령으로 무엇을 호출/조회했고 어떤 응답·DB 상태를 봤는지 그대로) 포함.
 
 ### 9. CI 통과 후 머지 (`merge-on-green <PR번호>`)

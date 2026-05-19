@@ -11,6 +11,15 @@
 - 과거에 false positive로 분류된 패턴은 `.fugue/anti-patterns.md`에 있다. 발견 단계에서 이걸 먼저 읽고, 같은 패턴은 후보로 올리지 않는다.
 - **사용자에게 질문하지 않는다.** 결정이 필요하면 항목을 `needs_decision`으로 두고 사이클 종료.
 
+## 0. 워크트리 sync (사이클의 첫 동작, skip 금지)
+
+매 사이클 시작 시 가장 먼저 실행한다. 이 단계를 건너뛰면 stale한 `prompts/loop-design.md`를 읽어 이후 절차(특히 step 8 커밋+PR / step 9 머지)를 통째로 빠뜨릴 수 있다.
+
+1. `git diff --quiet && git diff --cached --quiet`로 worktree clean 여부 확인. uncommitted 변경이 있으면 직전 사이클이 step 8을 완수하지 못한 것이므로 즉시 사이클 종료(사용자가 정리하도록 둔다).
+2. `git fetch origin main`으로 원격 최신 ref 수신.
+3. `git merge --ff-only origin/main`으로 worktree 브랜치를 fast-forward. ff-only가 실패하면(worktree 브랜치가 origin/main과 분기됨) 즉시 사이클 종료.
+4. sync 결과 `prompts/loop-design.md`가 변경됐다면 이 파일을 다시 Read 하고 변경된 내용을 이 사이클의 지시로 삼는다.
+
 ## 사이클 시작 전 필수 읽기
 
 매 사이클 시작 시 아래를 순서대로 읽는다. 하나라도 건너뛰면 false positive가 늘어난다.
@@ -61,13 +70,13 @@
 ### 1. 선택과 브랜치
 - `score`가 가장 높은 `pending` 항목 1개. 동점이면 `confidence` ↑, 그다음 `effort` ↓.
 - 항목을 `in_progress`로 표시하고 백로그 저장.
-- 브랜치 생성: `git checkout -b loop/design/<항목 id>`.
+- 브랜치 생성: `git checkout -b loop-design/<항목 id>`.
 
 ### 2. 제안 (`/opsx:propose`)
 - 변경 제안에 `evidence`, `DESIGN.md` 인용, 변경 범위, 사용자 영향, 롤백 절차, `qa_plan`을 모두 포함.
 
 ### 3. 자체 리뷰 (`/opsx:review`)
-- 다음 중 하나라도 해당되면 즉시 `rejected_self`로 옮기고 `.fugue/anti-patterns.md`에 패턴 1줄 추가 후 브랜치 폐기(`git checkout main && git branch -D loop/design/<id>` 금지 — 대신 그냥 두고 사이클 종료, 다음 반복에서 무시).
+- 다음 중 하나라도 해당되면 즉시 `rejected_self`로 옮기고 `.fugue/anti-patterns.md`에 패턴 1줄 추가 후 브랜치 폐기(`git checkout main && git branch -D loop-design/<id>` 금지 — 대신 그냥 두고 사이클 종료, 다음 반복에서 무시).
    - 변경 범위가 `apps/web/` 밖을 건드림
    - `DESIGN.md` 인용이 모호하거나 자의적
    - `decision-log`에서 사용자가 다르게 결정한 사안
@@ -101,7 +110,7 @@
 
 ### 8. 커밋 & PR
 - 커밋 메시지: 프로젝트 컨벤션(scope 사용) 따라 작성. 예: `fix(web): align card padding to DESIGN.md`.
-- `git push -u origin loop/design/<id>`.
+- `git push -u origin loop-design/<id>`.
 - `gh pr create` — PR 본문에 `evidence`, `DESIGN.md` 인용, QA 결과(어떤 도구로 무엇을 검증했는지)를 포함.
 
 ### 9. CI 통과 후 머지 (`merge-on-green <PR번호>`)

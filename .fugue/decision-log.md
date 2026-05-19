@@ -17,4 +17,267 @@
 
 ## 항목
 
-(비어 있음)
+## 2026-05-18 — [system] 핀 생성 라우트에 본문 상한(http.MaxBytesReader) 적용
+결정/변경: `apps/api/internal/pin/handler.go`에 패키지 변수 `requestBodyCap int64 = 500 << 20`을 도입하고 `Create` 진입 직후 `r.Body = http.MaxBytesReader(w, r.Body, requestBodyCap)`로 본문을 감싼 뒤 `r.ParseMultipartForm(requestBodyCap)` 결과를 `errors.As(err, &*http.MaxBytesError)`로 분기해 400 + "파일 크기가 제한을 초과했습니다" 응답을 추가. `requestBodyCap`은 단위 테스트가 cap-크기 버퍼 할당 없이 거절 경로를 검증할 수 있도록 const 대신 var로 선언(production에서는 mutate 안 함). OpenSpec change `fix-pin-create-request-body-cap` 머지(아카이브 `2026-05-18-fix-pin-create-request-body-cap`), `pin` capability의 기존 Requirement `미디어 파일을 업로드한다`에 Scenario `서버가 본문을 디스크에 스풀하기 전에 본문 상한으로 거절한다`를 추가.
+이유: `pin/spec.md` L26-28 "이중 검증 체계의 서버 방어선"이 디스크 스풀 이전 단계에서 발동해야 하지만, 기존 핸들러는 `r.ParseMultipartForm(500 << 20)`만 호출해 Go stdlib 문서가 명시한 대로 maxMemory(메모리/디스크 스풀 임계)만 설정할 뿐 본문 상한을 적용하지 않았다. 그 결과 클라이언트 검증을 우회한 50GB 본문이 디스크에 스풀된 뒤에야 storage.go의 크기 검사로 거절되어 디스크 자원 고갈 DoS 경로가 열려 있었다. `grep -rn "MaxBytesReader" apps/api/` 결과가 0건이라는 사실로 gap 확인.
+영향 범위: `POST /api/pins` 한 라우트 진입점만 wiring. 다른 multipart 라우트는 존재하지 않으므로 chi 글로벌 미들웨어 도입은 본 change 범위 밖(design.md Decision 1). cap=500 MiB는 maxBytes(100MB 비디오) > 100MB이므로 trim된 비디오 경로는 영향 없음. storage.go의 메모리 기반 크기 검사는 본 change 이후에도 보존(이중 방어선). archive 진행 중 `openspec/specs/pin/spec.md`의 `## Purpose` 누락 사전 드리프트 최소 보수 동반(직전 `fix-creator-public-profile-include-boards-pins` cycle 선례). 3개 단위 테스트(cap 상수 invariant·cap 초과 본문 거절·cap 이하 malformed 본문 generic 메시지 보존) 추가, 전체 `go test ./...` 470개 통과.
+
+## 2026-05-18 — [design] 모달 dialog Initial focus 패턴 추가 (VideoTrimModal · AddToBoardButton)
+결정/변경: 두 modal panel div에 `tabIndex={-1}` 추가 + 각 컴포넌트 본문에 `useEffect(() => { panelRef.current?.focus(); }, []);` 한 블록 추가. `apps/web/src/components/pin/VideoTrimModal.tsx`(+5 라인: useEffect L73-75 + tabIndex L156) / `apps/web/src/components/board/AddToBoardButton.tsx`(+6 라인: useEffect L124-127 + tabIndex L211). OpenSpec change `modal-initial-focus-20260518` 머지(아카이브 `2026-05-18-modal-initial-focus-20260518`).
+이유: WAI-ARIA Authoring Practices Guide Dialog (Modal) Pattern "When a dialog opens, focus moves to an element contained in the dialog" 표준. 두 modal 모두 cycle 25(role=dialog 트리플)·cycle 56(Escape + body scroll lock)·cycle 70(overlay click 닫기)을 누적 받았으나 modal 열린 직후 키보드 포커스가 dialog 내부로 이동하지 않아 Tab 흐름이 modal 바깥으로 이탈 가능했음. cycle 70 archive note에서 "Initial focus·Focus trap은 별도 후보로 분리 유지"로 명시한 잔여 2건 중 단발 처리 가능한 Initial focus만 본 사이클에서 처리.
+영향 범위: 두 파일에 panel div `tabIndex={-1}` 1단어 + 신규 useEffect 1블록 각각 추가. 기존 ref={panelRef} · role=dialog · aria-modal · aria-labelledby · className · 기타 useEffect(Escape · body scroll lock · overlay click 닫기 · drag state) 모두 미수정으로 회귀 0. AddToBoardButton L316 conditional input `autoFocus`는 "새 보드 생성" 폼 펼침 시점에만 mount되어 modal 열림 시점의 panel focus와 시간상 분리(상호 비간섭). 잔여 Focus trap은 effort/risk가 단발 사이클 패턴 초과로 본 사이클 범위 밖.
+
+## 2026-05-18 — [design] VideoTrimModal에 overlay 클릭 닫기 추가
+결정/변경: `apps/web/src/components/pin/VideoTrimModal.tsx`에 `panelRef = useRef<HTMLDivElement>(null)` 선언, 내부 dialog div에 `ref={panelRef}` 부착, `handleOverlayClick(e: React.MouseEvent)` 함수 추가(`if (drag) return; if (panelRef.current && !panelRef.current.contains(e.target as Node)) onCancel();`), overlay div에 `onClick={handleOverlayClick}` 부착. 4단계 변경 +13 -1. OpenSpec change `video-trim-modal-overlay-click-close-20260518` 머지(아카이브 `2026-05-18-video-trim-modal-overlay-click-close-20260518`).
+이유: AddToBoardButton(`apps/web/src/components/board/AddToBoardButton.tsx:99/141-145/195`)은 `panelRef + handleOverlayClick + onClick` 패턴으로 마우스 사용자 닫기 경로를 표준화했는데, 동일 dialog 구조의 VideoTrimModal만 overlay div onClick 누락한 outlier였음. 사이클 56 archive(`2026-05-15-video-trim-modal-scroll-lock`)의 decision-log note "overlay click 닫기·Initial focus·Focus trap은 별도 후보로 분리 유지"에서 명시적 후속 잔여로 분리 보류된 항목의 처리. WAI-ARIA Dialog Pattern 권장.
+영향 범위: 단일 파일 4단계 변경. inner dialog의 role=dialog/aria-modal/aria-labelledby/className 유지, Escape 처리(L57-63)·body scroll lock(L65-70)·drag state·pxToTime/onMove/onUp 핸들러 미수정으로 회귀 0. drag 가드(`if (drag) return`)는 Escape 처리 L59 `!drag` 가드와 동일 정책으로 드래그 중 우발 닫힘 차단. Initial focus·Focus trap은 별도 잔여 후보로 보류.
+
+## 2026-05-18 — [design] 핀 생성 폼 미디어 타입 배지 글자 크기를 3xs(10px)로 정렬
+결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx:388` 미디어 타입 배지 `<span>` className 끝에 `text-3xs` 1단어 추가. 자식 자체 utility로 부모 L386 div `text-xs` 상속을 끊고 배지만 10px 적용. OpenSpec change `pin-create-form-media-type-badge-text-3xs-20260518` 머지(아카이브 `2026-05-18-pin-create-form-media-type-badge-text-3xs-20260518`).
+이유: DESIGN.md L35 `3xs: 10px (tags, category labels)` 직접 매핑. `mediaType` 변수(L289-297)가 "이미지/오디오/비디오/(원본 mime)" 한국어 카테고리 라벨을 반환해 'category labels' 카테고리에 속함. archive/2026-05-18-pin-detail-media-type-badge-text-3xs-20260518가 동일 카테고리(미디어 타입 배지)를 `pins/[id]/page.tsx:130`에서 정렬한 후속 잔여 1건.
+영향 범위: L388 한 줄 +1 utility 추가. 부모 L386 div utility 및 자식(L387 파일명 / L391-395 trim / L396-402 사이즈) 미수정 → 부모 영역 회귀 0. 동일 파일 L523/L579 인터랙티브 button 태그 픽커는 UI labels 카테고리로 본 변경 범위 밖.
+
+## 2026-05-18 — [design] gap-[2px] 매직값 2곳을 Tailwind 기본 gap-0.5 토큰으로 회수
+결정/변경: `apps/web/src/components/board/BoardCover.tsx:30`(보드 cover 2x2 미니어처 그리드 셀 간 gap)과 `apps/web/src/components/feed/PinCard.tsx:32`(오디오 카드 waveform 12개 바 사이 gap) 두 곳 className에서 `gap-[2px]` → `gap-0.5` 1단어 교체. OpenSpec change `gap-2px-magic-value-to-tailwind-default-20260518` 머지(아카이브 `2026-05-18-gap-2px-magic-value-to-tailwind-default-20260518`).
+이유: DESIGN.md L58 Spacing 스케일 '2xs: 2px' 카테고리 직접 매핑. Tailwind v4 기본 spacing scale의 `0.5` 단계가 0.5 × 0.25rem = 0.125rem = 2px로 매직값과 동일 CSS 값을 생성하므로 매직 리터럴 회수로 SSoT 정합성 회복. anti-pattern L15(Tailwind 기본 클래스 의미 덮어쓰기) 미해당 — `gap-0.5`는 표준 토큰.
+영향 범위: 두 컴포넌트 className만 변경. 시각 결과 동일(2px 간격). globals.css `@theme inline` 및 Tailwind 설정 미변경. DESIGN.md 다른 spacing 카테고리(`xs: 4px ~ 3xl: 64px`)나 radius 카테고리(`rounded-[16px]` 등) 일괄 회수는 본 사이클 범위 밖(별도 사이클 필요).
+
+## 2026-05-15 — [system] Pioneer 부트스트랩이 RobotsFilter에 HostRateLimiter 인스턴스를 wire하도록 교체
+결정/변경: `apps/api/cmd/bot/main.go`의 `runPioneerConsumer`가 `buildHostRateLimiter(config.LoadSchedulerHostConfig())` 결과를 지역 변수 `rl`로 추출해 `sched.WithRateLimiter(rl)`와 신규 `buildPioneerConsumer(sched, store, rl)` 두 곳에 동일 인스턴스를 전달하도록 변경(`bot.NewRobotsFilter(nil)` 직접 호출 제거). `apps/api/cmd/bot/pioneer_consumer_builder.go` 신규(`(*bot.PioneerConsumer, *bot.RobotsFilter)` 반환으로 결정적 wiring 검증 surface 노출). `apps/api/internal/bot/robots_filter.go`에 read-only accessor `RateSetter() HostRateSetter` 1개 추가(시그니처·인터페이스·nil 허용 계약 미변경). OpenSpec change `fix-pioneer-robots-filter-host-rate-setter-wiring` 머지(아카이브 `2026-05-15-fix-pioneer-robots-filter-host-rate-setter-wiring`), `bot` capability에 보조 Requirement `Pioneer 부트스트랩은 RobotsFilter에 HostRateLimiter를 wire한다`(2 Scenarios) 추가.
+이유: 기존 Requirement `RobotsFilter는 Crawl-delay를 호스트 bucket에 반영한다`(L750-768)의 SHALL과 Scenario "Crawl-delay 파싱 및 호스트 rate 갱신"이 production pioneer 워커에서 enforce되지 않았다. `runPioneerConsumer`가 `bot.NewRobotsFilter(nil)`을 호출해 RobotsFilter의 `rateSetter == nil` 가드 분기로 빠지면서 SetHostRate가 한 번도 호출되지 않아, robots.txt에 `Crawl-delay: N`이 명시된 호스트도 scheduler의 기본 bucket(1 req/sec, burst 5)을 그대로 사용했다. `scheduler` capability의 `robots.txt Crawl-delay를 호스트 rate로 반영한다`(L297-306)는 호출 책임을 `pioneer-link-filter-policy`에 할당하므로 본 결함은 pioneer 부트스트랩의 wiring 결함으로 한정된다.
+영향 범위: `runPioneerConsumer`/`buildPioneerConsumer` 한 경로만 wiring 교체. harvester 부트스트랩(`buildHarvesterConsumer`)·`SetHostRate`의 입력 검증·`HostRateLimiter` 동작·robots.txt 캐시 TTL 24h·single-flight 정책은 변경하지 않음. `NewRobotsFilter`의 nil rateSetter 허용 계약은 기존 단위 테스트 호환을 위해 보존(design Non-Goals D4). 2개 cmd/bot 회귀 단위 테스트(fake `HostRateSetter`로 동일 인스턴스 전파·nil 미허용 wiring 검증). 진행 중 별개 change `fix-scheduler-host-rate-limiter-config-wiring`(`buildHostRateLimiter`에 Config 전달 영역)와는 범위가 분리되어 충돌 없음.
+
+## 2026-05-15 — [system] 핀 조회·핀 생성·보드 추가 핸들러에 interaction piggyback 기록 wiring
+결정/변경: `apps/api/internal/interaction/recorder.go` 신규 — `Recorder` 인터페이스(`CreateInteraction`만 노출, `*db.Queries`가 자동 만족) + `Record(ctx, r, userID, pinID, kind)` best-effort 헬퍼(잘못된 type은 INSERT 전 short-circuit, DB 에러는 log만). `pin.PinQuerier` 인터페이스에 `CreateInteraction` 추가, `pin.Create`(인증 보장 후)와 `pin.GetByID`(인증 분기 후) 응답 직전 `interaction.Record(...)` 호출. `boards.AddPin`(인증 보장 후) 동일 호출. `apps/api/cmd/server/main.go`의 `GET /api/pins/{id}` 라우트에 `auth.OptionalJWTMiddleware` 부착(미인증 401 회피 + 인증 context 노출 동시 달성). OpenSpec change `fix-interaction-piggyback-on-pin-and-board-actions` 머지(아카이브 `2026-05-15-fix-interaction-piggyback-on-pin-and-board-actions`), `interaction` capability에 Requirement `시스템은 핀 조회·핀 생성·보드 추가 핸들러 진입 시 인증된 호출자에 한해 interaction 행동을 best-effort로 기록한다`(3 Scenarios) 추가. archive 진행 중 main `interaction/spec.md`의 사전 드리프트(`## ADDED Requirements`로 시작, `## Purpose`/`## Requirements` 누락) 최소 복구 동반.
+이유: 기존 Requirement `유저 행동을 기록한다`의 4개 Scenarios SHALL("조회/핀/보드추가 시 기록", "원래 요청은 정상 처리")이 production에서 enforce되지 않았다. `CreateInteraction`의 유일한 호출자는 별도 endpoint `POST /api/interactions`(`internal/interaction/handler.go:55`)였고, pin/board 핸들러 어디서도 호출하지 않았다. AGENTS.md "interaction: 암묵적 행동 기록"과 spec "유저의 원래 요청(조회, 핀, 보드 추가)은 정상적으로 처리된다" 표현이 일관되게 piggyback 모델을 가정. design.md Decision 1로 동기 best-effort INSERT 모델 채택(architecture.md의 비동기 이벤트 파이프라인은 본 결함의 최소 해결 범위 밖).
+영향 범위: `GET /api/pins/{id}`·`POST /api/pins`·`POST /api/boards/{id}/pins` 세 라우트만 piggyback wiring. 별도 endpoint `POST /api/interactions`는 변경하지 않음(Decision 6). `interactions` 테이블 스키마·인덱스·sqlc 쿼리·`db.Queries` 코드 변경 없음. 미인증 호출자는 `OptionalJWTMiddleware`로 401을 받지 않으면서 동시에 piggyback 분기에도 진입하지 않음(Scenario "미인증 유저는 기록하지 않는다" 보존). best-effort라 DB 에러가 원래 요청 응답을 변경하지 않음(Scenario "기록 실패가 유저 경험에 영향을 주지 않는다" 보존). 4개 헬퍼 단위 테스트(happy path·3 known types·DB error best-effort·invalid type short-circuit). 핸들러 측 통합 테스트는 별도 surface refactor가 필요해 후속 change로 미룸(design.md Decision 7).
+
+## 2026-05-15 — [system] 개인화 피드 페이지네이션이 페이지 간 작품 중복 반환하던 버그 수정
+결정/변경: `apps/api/db/queries/interactions.sql`의 `RecommendByTags`·`RecommendByMediaType`에 OFFSET 파라미터와 `p.id DESC` tiebreaker 추가, sqlc 재생성. `apps/api/internal/feed/handler.go` `buildPersonalizedFeed`가 cursor의 페이지 offset을 태그 추천·미디어 타입 추천·최신 보충·fill-gap 네 갈래 모두에 일관되게 전파. 테스트 가능성 확보를 위해 `FeedQuerier` 인터페이스 + `NewHandlerWithQuerier` 생성자 도입, `auth.WithCreatorID` 공개 헬퍼 추가. OpenSpec change `fix-feed-personalized-pagination-no-cross-page-duplicates` 머지(아카이브 `2026-05-15-fix-feed-personalized-pagination-no-cross-page-duplicates`), `feed` capability에 Requirement `개인화 피드의 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다`(3 Scenarios) 추가.
+이유: 기존 Requirement `개인화된 추천 피드를 제공한다` Scenario "피드 페이지네이션" THEN "이전 페이지에 포함되지 않은 작품이 반환된다" SHALL이 production에서 enforce되지 않았다. 개인화 분기의 `RecommendByTags`·`RecommendByMediaType`는 OFFSET 파라미터 자체가 없었고 최신 보충의 `ListPinsWithCreator`도 `Offset: 0` 하드코딩, fill-gap도 페이지 offset이 아닌 `len(latestRows)`만 사용해 페이지 1과 2가 동일한 상위 결과를 반환했다. design.md Decision 1로 cursor 모델은 기존 offset 기반을 유지하고 underlying 쿼리 전파만 수정.
+영향 범위: 개인화 분기(authenticated + pinCount >= 콜드스타트 임계)에만 wiring 변경. cold-start/비인증 분기는 기존 `buildLatestFeed` 동작 그대로 유지. cache 키 포맷·cursor payload 포맷은 변경하지 않음(Decision 5). within-page 중복(추천 후보와 최신 후보 간 같은 id 등장) 제거는 본 change 범위 밖이며 별도 backlog 후보로 둠(Decision 4). 3개 페이지네이션 단위 테스트(페이지 간 disjoint·offset 전파·media-type fallback offset 전파)와 기존 feed 테스트 회귀 없음.
+
+## 2026-05-15 — [system] 공개 프로필 응답에 보드·핀 요약 포함
+결정/변경: `apps/api/internal/creator/dto.go` `CreatorPublicDTO`에 `boards`/`pins` 키 추가, `handler.go` `GetByID`가 `ListPublicBoardsByCreatorLimited`(신규 sqlc 쿼리, LIMIT=20)와 기존 `ListPinsByCreator`(LIMIT=12)를 추가 호출해 페이로드를 채우도록 wiring. OpenSpec change `fix-creator-public-profile-include-boards-pins` 머지(아카이브 `2026-05-15-fix-creator-public-profile-include-boards-pins`), `profile` capability에 Requirement `공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다`(5 Scenarios) 추가. archive 중 `openspec/specs/profile/spec.md`의 `## ADDED Requirements` 사전 드리프트를 `## Purpose` + `## Requirements` 정상 헤더로 1회 보수.
+이유: 기존 Scenario "공개 프로필 조회" THEN 절이 "닉네임, 아바타, 보드 목록, 핀 목록이 반환된다"를 명시하지만 `CreatorPublicDTO`는 5개 스칼라 필드만 가져 `보드 목록`·`핀 목록` SHALL이 production에서 enforce되지 않았다. 별도 엔드포인트 분리 방식은 spec text가 "반환된다"로 묶고 있어 채택하지 않고, 응답 페이로드에 요약 두 배열을 함께 포함하는 방향을 design.md Decision 1·5로 확정.
+영향 범위: `GET /api/creators/{id}` 응답만 변경. `boards`는 호출자 인증 여부와 무관하게 공개 보드만 포함(비공개 보드는 `GET /api/boards?creator_id=...` 본인 분기 책임), `pins`는 기존 `ListPinsByCreator`를 LIMIT=12로 재사용해 sqlc 쿼리 확산 억제. 상한 20/12는 spec이 아닌 `handler.go` 패키지 상수로 둠. `GetMe`/`UpdateMe`는 변경하지 않음. 6개 단위 테스트(응답 shape·빈 배열 직렬화·LIMIT 전파·boards 500·pins 500·404 skip)로 회귀 방지.
+
+## 2026-05-15 — [system] /api/pins 빈도 제한을 유저 단위 surface로 교체
+결정/변경: `apps/api/internal/auth/ratelimit.go`에 `MiddlewareByCreatorID` surface를 추가하고(공유 `middleware(next, bucketKeyFn)` 헬퍼로 fixed-window 원자성 invariant 그대로 공유), `apps/api/cmd/server/main.go:138`의 `/api/pins POST` wiring을 `pinRL.Middleware` → `pinRL.MiddlewareByCreatorID`로 교체. OpenSpec change `fix-pin-ratelimit-key-by-creator-id` 머지(아카이브 `2026-05-15-fix-pin-ratelimit-key-by-creator-id`), 기존 `ratelimit` capability에 Requirement `유저 단위 빈도 제한 surface를 노출한다` 1건 추가.
+이유: `docs/architecture.md`의 SHALL "핀 생성: 30/분/유저"는 enforce 단위를 명시하지만 기존 미들웨어가 `path+IP`만으로 키를 만들어 (a) 공유 NAT 뒤 다른 유저들이 한 명의 30/min 쿼터를 공유, (b) 한 유저가 IP를 바꿔 per-user 상한을 우회하는 두 위반이 발생했다. 직전 cycle의 ratelimit 원자성 invariant는 "라우트 적용 매트릭스는 본 Requirement의 범위 밖"이라고 명시하므로 본 결함은 별개 surface 결함.
+영향 범위: `/api/pins POST` 라우트만 surface 교체. `/api/og/fetch`(per-IP 의도), `/api/auth/{provider}/login`·`/api/auth/{provider}/callback`·`/api/auth/logout`(per-IP 의도)은 변경하지 않음. unauth context fallback은 IP 키로 카운트하며 fail-open 하지 않음. miniredis 기반 단위 테스트 4개로 creator 분리·IP 공유·unauth fallback·IP surface 회귀 방지. archive 진행 중 `interaction/pin/profile/spec.md`의 사전 드리프트는 본 change 범위 밖.
+
+## 2026-05-15 — [system] RateLimiter INCR+EXPIRE 원자화
+결정/변경: `apps/api/internal/auth/ratelimit.go`의 두 왕복 INCR+EXPIRE 패턴을 `redis.NewScript`의 단일 Lua EVAL로 교체. OpenSpec change `fix-ratelimit-incr-expire-atomicity` 머지(아카이브 `2026-05-15-fix-ratelimit-incr-expire-atomicity`), 신규 capability `ratelimit` 추가.
+이유: INCR 성공 후 EXPIRE 왕복만 실패하면 키가 TTL=-1로 영구 잔존해 후속 요청이 count를 누적, `count > limit` 이후 그 (IP, path) 쌍이 무한 429를 받는다. `docs/architecture.md`의 "핀 생성: 30/분/유저", "OG fetch: 20/분/IP" SHALL은 fixed-window 카운터 리셋을 전제하므로 영구 throttle은 doc 위반.
+영향 범위: `RateLimiter.Middleware` 본문만 교체. limit 값·윈도우 길이·라우트 적용 매트릭스·fail-open 정책·키 포맷·`extractIP`는 변경하지 않음. miniredis 기반 단위 테스트 6개로 fixed-window·fail-open·키 분리 회귀 방지. archive 진행 중 `interaction/pin/profile/spec.md`의 사전 드리프트는 본 change 범위 밖.
+
+## 2026-05-15 — [system] /api/boards·/api/boards/{id} 선택적 JWT 미들웨어 wiring
+결정/변경: `auth.OptionalJWTMiddleware`를 `apps/api/cmd/server/main.go`의 `GET /api/boards`·`GET /api/boards/{id}` 두 라우트에 부착. OpenSpec change `fix-boards-public-get-optional-jwt` 머지(아카이브 `2026-05-15-fix-boards-public-get-optional-jwt`).
+이유: 두 라우트는 핸들러 본문에서 `auth.CreatorIDFromContext`로 owner 분기를 수행하지만 미들웨어 미부착으로 항상 비인증 분기에 진입했다. board spec `보드를 조회한다` Scenario "소유자는 비공개 보드 조회 가능"·`유저의 보드 목록을 조회한다` Scenario "본인의 보드 목록" 두 SHALL이 production에서 enforce되지 않았다.
+영향 범위: GET 두 라우트만 부착. 기존 JWT 보호 라우트(Create/Update/Delete/AddPin/RemovePin)는 변경하지 않음. archive 진행 중 `openspec/specs/board/spec.md`의 헤더 손상(`## ADDED Requirements`, `## Purpose` 누락) 최소 복구 동반.
+
+## 2026-05-15 — [system] /api/feed 선택적 JWT 미들웨어 wiring
+결정/변경: `OptionalJWTMiddleware`를 `apps/api/internal/auth/middleware.go`에 신설하고 `apps/api/cmd/server/main.go`의 `/api/feed` 라우트에 부착. OpenSpec change `fix-feed-route-optional-jwt` 머지(아카이브 `2026-05-15-fix-feed-route-optional-jwt`).
+이유: 기존 `JWTMiddleware`는 토큰 부재 시 401을 반환하므로 `/api/feed`에 부착할 수 없었고, 미부착 상태에서는 `auth.CreatorIDFromContext`가 항상 false를 반환해 feed spec `개인화된 추천 피드를 제공한다`의 인증 시나리오 두 개가 production에서 enforce되지 않았다. 토큰 만료 통지(X-Token-Expired)는 본 change 범위에서 제외.
+영향 범위: `/api/feed`에만 부착. 다른 라우트에는 적용하지 않음. archive 진행 중 main `openspec/specs/auth/spec.md`·`feed/spec.md`의 헤더 손상(`## ADDED Requirements` 잔류, `## Purpose` 누락)이 archive를 막아 archive 전제로 두 main spec 최소 복구(`## Purpose` 1줄 추가, 헤더 교정)를 동반 수행.
+
+## 2026-05-15 — [design] NavBar 'Fugue' 워드마크에 `font-display` 추가
+결정/변경: `apps/web/src/components/nav/NavBar.tsx:18` 'Fugue' 워드마크 `<span>` className 끝에 `font-display` 1단어 추가. 기존 `text-xl font-bold tracking-tight text-text-primary` → `text-xl font-bold tracking-tight text-text-primary font-display`. OpenSpec change: `archive/2026-05-15-navbar-wordmark-display-font`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700"이 디스플레이/브랜드 카테고리에 General Sans 700을 직접 명시. 코드 SSoT는 사이클 21(`--font-display` 토큰 정의) + 24(ProfileHeader)·46(h2 5건)·52(login h1)에서 display 카테고리 텍스트의 `font-display tracking-tight` 페어 표준을 정착시켰음. 사전 grep 측정 결과 `tracking-tight` 사용처 중 `font-display` 미포함은 NavBar.tsx:18 단일 outlier(다른 모든 사용처는 페어).
+영향 범위: 단일 파일 1라인 1단어. sticky 헤더에 매 페이지마다 노출되는 'Fugue' 워드마크가 OS sans-serif(Inter fallback) → General Sans 700으로 전환. weight 700·tracking-tight·text-xl 동일 유지로 레이아웃 시프트 없음. 사후 grep `tracking-tight` 미페어 0건(이전 1건 → 신규 0건) 확인. NavBar L15 로고 박스(`rounded-md`)·L46 그라디언트 폴백 아바타·L60 로그인 버튼 텍스트 위계는 별도 후보로 분리 유지.
+
+## 2026-05-15 — [design] VideoTrimModal body scroll lock 추가
+결정/변경: `apps/web/src/components/pin/VideoTrimModal.tsx:65-70` body scroll lock useEffect 한 블록 추가. 본문 `document.body.style.overflow = "hidden";` + cleanup `document.body.style.overflow = "";`, deps `[]`. OpenSpec change: `archive/2026-05-15-video-trim-modal-scroll-lock`.
+이유: WAI-ARIA Authoring Practices Guide Dialog Pattern의 "modal이 열려 있을 때 배경 콘텐츠 비활성화" 원칙. 코드 SSoT: AddToBoardButton L116-122이 동일 패턴 직접 구현 중, VideoTrimModal만 body scroll lock 누락한 outlier였음. 사이클 56 decision-log L23 "body scroll lock·overlay click 닫기·Initial focus·Focus trap은 별도 후보로 분리 유지"라고 미래 처리 예약한 잔여 갭의 후속.
+영향 범위: 1개 파일에 6줄 추가. 시각 변경 0. VideoTrimModal이 열려 있는 동안 배경 페이지(`/pin/new` 폼) 스크롤이 차단되어 모달의 격리가 완성됨(이전에는 wheel/trackpad/터치 입력이 배경으로 누설). 모달 unmount 시 cleanup으로 body overflow 원복. 사후 grep `body.style.overflow` 4건(VideoTrimModal:66 신규 lock·:68 신규 cleanup·AddToBoardButton:118 기존·:120 기존) 확인. overlay click 닫기·Initial focus·Focus trap은 별도 후보로 분리 유지.
+
+## 2026-05-15 — [design] VideoTrimModal ESC 닫기 추가
+결정/변경: `apps/web/src/components/pin/VideoTrimModal.tsx:57-62` ESC 핸들러 useEffect 한 블록 추가. 본문 `if (e.key === "Escape" && !drag) onCancel()` + `window.addEventListener('keydown', handleKeyDown)` + cleanup, deps `[drag, onCancel]`. OpenSpec change: `archive/2026-05-15-video-trim-modal-esc-dismiss`.
+이유: WAI-ARIA Authoring Practices Guide Dialog Pattern의 "Escape closes the dialog" + WCAG 2.1.1 Keyboard (Level A). 코드 SSoT: AddToBoardButton L124-131이 동일 패턴 직접 구현 중, VideoTrimModal만 ESC 핸들러 누락한 outlier였음. 사이클 25 archive/2026-05-15-modal-dialog-role-attributes의 decision-log L48 "ESC 처리/focus trap/initial focus 같은 keyboard interaction 항목은 별도 후보로 분리"라고 미래 처리 예약한 잔여 갭의 후속. drag 가드(`!drag`)는 슬라이더 핸들 잡고 있는 동안 의도치 않은 ESC로 작업 데이터를 손실시키지 않기 위한 회귀 방지 — onPointerUp(L113)의 정신과 일치.
+영향 범위: 1개 파일에 7줄 추가. 시각 변경 0. 키보드 사용자가 영상 핀 생성 흐름의 VideoTrimModal을 ESC 1회로 종료 가능(이전에는 Tab으로 '취소' 버튼까지 도달 + Enter/Space). drag 진행 중 ESC 무시로 데이터 보존. 사후 grep `key === "Escape"` 3건(VideoTrimModal:59·AddToBoardButton:127·SearchBar:169) 확인. body scroll lock·overlay click 닫기·Initial focus·Focus trap은 별도 후보로 분리 유지.
+
+## 2026-05-15 — [design] 검색 결과 섹션 h2 3곳 `font-semibold` → `font-bold` 정렬
+결정/변경: `apps/web/src/app/search/SearchClient.tsx:292,306,344` 검색 결과 페이지 'all' 탭의 세 섹션 헤딩("핀"·"크리에이터"·"보드")의 className `font-semibold` → `font-bold` 단어 치환 3건. OpenSpec change: `archive/2026-05-15-search-h2-weight-bold`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700"이 display 카테고리 헤딩의 weight를 700(=bold)으로 직접 명시. 코드 SSoT 측정 결과 다른 h2 5건(pins/[id]:249, VideoTrimModal:128, BoardGrid:14, AddToBoardButton:210, MyPageClient:67) 모두 `font-bold` + 페이지 h1 6건도 모두 `font-bold`로 헤딩 14건 중 11/14=79%가 `font-bold` 표준 패턴. SearchClient 검색 결과 섹션 3건만 `font-semibold` outlier였음. 사이클 48 decision-log L33에서 "weight 정렬은 코드 SSoT 근거가 더 약해 별도 후보로 분리"라고 미래 처리를 예약해둔 잔여 갭의 후속 처리.
+영향 범위: 1개 파일 3라인. 검색 페이지 'all' 탭 섹션 헤딩 글자 굵기가 600 → 700으로 강해짐. 헤딩 한 줄당 1~3글자라 레이아웃 시프트 없음. 페이지 내부 h1("'{query}' 검색 결과")과 weight 일치 + 화면 간 h2 일관성 회복. 사후 grep visible h2 9건 모두 `font-bold` 보유 확인, `font-semibold` h2 0건. ProfileEditForm:52 `text-xl` 사이즈 outlier는 anti-pattern L16(DESIGN.md가 section/card title 매핑을 직접 명시하지 않음)에 걸려 별개 사안으로 분리 유지.
+
+## 2026-05-15 — [design] 로그인 페이지 h1 `font-display` 보강
+결정/변경: `apps/web/src/app/login/page.tsx:41` 로그인 페이지 h1 "작품으로 만나다" className에 `font-display` 1단어 추가. OpenSpec change: `archive/2026-05-15-login-h1-display-font`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700" + 사이클 21(archive/2026-05-15-token-display-font-family) + 사이클 24(archive/2026-05-15-profile-header-display-font)에서 페이지 단위 h1을 display 카테고리로 분류한 코드 SSoT가 정착. 본 사이클에서 grep `<h1` 측정 결과 visible 6건 중 5건이 `font-display` 보유, 로그인 페이지만 누락 outlier(사이클 24 ProfileHeader와 동일한 잔여 갭 — 처음부터 inline fontFamily가 없어 사이클 21 grep 그물을 빠져나갔음).
+영향 범위: 단일 파일 1라인 1단어. 로그인 페이지 진입 시 헤딩이 시스템 sans-serif → General Sans로 전환. 사후 grep visible h1 6건 모두 `font-display` 보유 확인.
+
+## 2026-05-15 — [design] 로그인 panel radius를 `rounded-[16px]`로 SSoT 정렬
+결정/변경: `apps/web/src/app/login/page.tsx:35` `<main>` 로그인 카드 컨테이너의 className `rounded-2xl` → `rounded-[16px]` 단일 토큰 치환. OpenSpec change: `archive/2026-05-15-login-panel-radius-token`.
+이유: DESIGN.md L74 'Border radius: lg: 16px (modals, panels)'가 modals와 panels를 동일 tier로 묶고 있고, 코드 SSoT는 모달/패널 외곽 8곳(pins/[id]:123, boards/[id]:53, VideoTrimModal:125, AddToBoardButton:206, ProfileSkeleton:5, ProfileEditForm:50, ProfileHeader:13, SearchBar 드롭다운:180) 모두 `rounded-[16px]`로 일관 사용 중. 로그인 panel만 `rounded-2xl` 단일 outlier였음. Tailwind v4 기본 `rounded-2xl` = 1rem = 16px이라 렌더는 동일하나 SSoT 표기가 분리되어 향후 Tailwind 기본값 변동 시 silent regression 위험.
+영향 범위: 단일 파일 1라인. 시각 변경 0(픽셀 값 동일). 사후 grep `rounded-2xl` 0건, `rounded-[16px]` 9건(기존 8 + 신규 1) 확인. 같은 파일 L38 마스코트 로고 박스 `rounded-xl`(12px)은 결정 로그 `2026-05-15-login-logo-radius-non-spec` rejected_self 결정에 따라 변경 대상에서 제외.
+
+## 2026-05-15 — [design] h2 헤딩 5곳에 `font-display + tracking-tight` 보강
+결정/변경: `apps/web/src/app/search/SearchClient.tsx:292,306,344`(검색 결과 섹션 헤딩 3건)·`apps/web/src/components/pin/VideoTrimModal.tsx:128`(트림 모달 제목)·`apps/web/src/components/profile/ProfileEditForm.tsx:52`(프로필 편집 헤딩) 5개 `<h2>` className에 `font-display tracking-tight` 두 클래스를 추가. OpenSpec change: `archive/2026-05-15-h2-display-font-tracking`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700" + 사이클 21(archive/2026-05-15-token-display-font-family) + 사이클 24(archive/2026-05-15-profile-header-display-font)가 헤딩 카테고리에 페이지 h1·일부 h2를 포함시키는 코드 SSoT 표준 패턴(`text-lg font-bold tracking-tight font-display`)을 정착시켰음. 사후 grep으로 측정한 h2 9건 중 4건(pins/[id]:249, BoardGrid:14, AddToBoardButton:210, MyPageClient:67)이 표준 패턴, 5건이 `font-display` 또는 `tracking-tight` 누락 outlier였음. 5건 보강으로 display 위계 일관성 회복.
+영향 범위: 3개 파일, 5라인. weight 정렬(SearchClient `font-semibold` → `font-bold`)·사이즈 정렬(ProfileEditForm `text-xl` → `text-lg`)은 코드 SSoT 근거가 더 약해 별도 후보로 분리. 사후 grep `<h2[^>]*className=` 9건 모두 `font-display`와 `tracking-tight` 보유 확인. 시각 변경은 5건 헤딩 글꼴이 OS sans-serif → General Sans + letter-spacing -0.025em.
+
+## 2026-05-15 — [design] 카드 hover/focus-visible 그림자를 `--shadow-card-hover` 토큰화
+결정/변경: `apps/web/src/app/globals.css` `@theme inline` 블록 끝에 `--shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.3);` 한 줄 추가. PinCard.tsx:146(hover/focus-visible 2건)·SearchClient.tsx:313,351(각 2건)·BoardCover.tsx:6,30(각 group-hover/group-focus-visible 2건) 총 10건의 `shadow-[0_8px_32px_rgba(0,0,0,0.3)]` 매직값을 `shadow-card-hover` 유틸리티로 치환. OpenSpec change: `archive/2026-05-15-token-card-hover-shadow`.
+이유: DESIGN.md L86 "Hover state: translateY(-2px) + box-shadow 확대 + accent border. 150ms ease."의 구체 shadow 값이 SSoT 없이 5개 카드 파일에 동일 매직값으로 산재돼 카드 hover 톤 조정 시 5곳 동시 수정 부담. Tailwind v4 `@theme` shadow 토큰 명명 규칙(`--shadow-<name>` → `shadow-<name>` 유틸리티 자동 생성)으로 토큰 1줄 추가가 곧 SSoT 확보. anti-pattern L15(Tailwind 기본 의미 덮어쓰기) 해당 안됨 — `shadow-card-hover`는 신규 명명으로 기본 `shadow-sm/md/lg/xl/2xl` 어느 것과도 충돌하지 않음.
+영향 범위: 4개 파일(globals + PinCard + SearchClient + BoardCover). 시각 변경 0(쉐도우 값 동일). 카드 hover 톤 조정 시 globals.css 1곳만 수정으로 5개 카드 컴포넌트 일괄 반영. 사후 grep: 매직값 0건 + `shadow-card-hover` 11건(globals 1 + 사용처 10) 확인.
+
+## 2026-05-15 — [design] 메인 피드 페이지 h1 sr-only 추가
+결정/변경: `apps/web/src/app/page.tsx`의 `<main>` 첫 자식으로 `<h1 className="sr-only">작품 피드</h1>` 한 줄 추가. OpenSpec change: `archive/2026-05-15-home-page-h1-heading`.
+이유: WCAG 2.4.6 Headings and Labels (Level AA) + WAI-ARIA Heading Hierarchy 권장(페이지마다 페이지 주제를 식별하는 h1 1개). 다른 7개 페이지(pins/[id]·boards/[id]·search·pin/new·mypage·creators/[id]·login)는 모두 페이지 단위 h1 보유하고 `/` 피드 페이지만 grep `<h1` 결과 0건 outlier. h1 텍스트는 다른 페이지 패턴(페이지 주제 명사)에 부합하는 "작품 피드" 선택. NavBar 로고 텍스트("Fugue")와의 중복 회피, 시간순+필터 조합 피드라 "추천 작품"보다 더 정확.
+영향 범위: page.tsx 단일 파일, 1줄 추가. 시각 변경 0(`sr-only`는 Tailwind v4 기본 유틸 `clip:rect(0,0,0,0); position:absolute; ...`로 완전 시각 숨김). DESIGN.md L11 "Minimal — 타이포그래피와 여백" 의도와 충돌 없음. 스크린리더 headings rotor가 페이지 진입 시 "작품 피드"를 첫 헤딩으로 안내. h2/h3 위계 정리·시각적 h1 노출·동적 필터 텍스트는 별도 후보로 분리.
+
+## 2026-05-15 — [design] 모달 dialog ARIA 시맨틱 트리플 부여
+결정/변경: `apps/web/src/components/pin/VideoTrimModal.tsx:121` 패널 div와 `apps/web/src/components/board/AddToBoardButton.tsx:201` 패널 div에 `role="dialog"`, `aria-modal="true"`, `aria-labelledby={titleId}` 3속성 추가. 두 모달의 `<h2>` 제목(VideoTrimModal "비디오 구간 선택" / AddToBoardButton "보드에 추가")에 각각 `id="video-trim-modal-title"`, `id="add-to-board-modal-title"` 부여. 총 8개 속성. OpenSpec change: `archive/2026-05-15-modal-dialog-role-attributes`.
+이유: WAI-ARIA Authoring Practices Guide의 Dialog (Modal) Pattern은 모달 dialog가 (role=dialog, aria-modal=true, aria-labelledby) 3속성 트리플을 갖춰야 한다고 정의. WCAG 4.1.2 Name, Role, Value (Level A). 사전 grep으로 코드베이스 전체에 dialog ARIA 속성 0건 확인. 결과적으로 스크린리더가 모달 진입 시 "대화 상자, [제목]"로 안내하지 못하고 일반 region으로 처리되던 상태였음.
+영향 범위: 2개 모달 컴포넌트, 8개 속성 추가. 시각 변경 0. 행동 변경 0(브라우저 동작 측면). AT 안내 변경(VoiceOver/NVDA에서 모달·제목 명시). ESC 처리/focus trap/initial focus 같은 keyboard interaction 항목은 별도 후보로 분리(scope 한정).
+
+## 2026-05-15 — [design] 폼 라벨-컨트롤 htmlFor 연결
+결정/변경: 직접 label-control 페어 5곳에 `htmlFor`(label) + `id`(input/textarea) 속성 추가. PinCreateForm.tsx의 제목(L435/L439 id="pin-title")·설명(L451/L453 id="pin-description")·원본 URL(L464/L468 id="pin-url"), ProfileEditForm.tsx의 닉네임(L62/L64 id="profile-nickname")·아바타 URL(L75/L79 id="profile-avatar-url"). OpenSpec change: `archive/2026-05-15-form-label-htmlfor-pairing`.
+이유: WCAG 2.1 SC 1.3.1 Info and Relationships + 4.1.2 Name, Role, Value — 폼 컨트롤은 라벨과 프로그래밍 방식으로 연결되어야 한다. 5곳 모두 sibling 구조였고 grep `htmlFor` 0건. 라벨 클릭으로 input 포커스가 가지 않았고, 스크린리더 일부 AT은 라벨-컨트롤 추론에 의존하던 상태. 그룹 라벨 3곳(미디어 파일/태그/썸네일 선택)은 fieldset/legend 또는 aria-labelledby가 적절한 별도 패턴이라 본 후보에서 제외.
+영향 범위: 2개 파일에 5쌍 × 2 속성 = 10개 속성 추가. 시각 변경 0. 마우스 사용자: 라벨 클릭이 짝꿍 input으로 포커스 이동(브라우저 기본). 스크린리더/음성 제어: 접근 이름 보장. ID 명명은 폼 단위 prefix로 페이지 내 고유성 확보.
+
+## 2026-05-15 — [design] PinCard 푸터 아바타 조건부 렌더
+결정/변경: `apps/web/src/components/feed/PinCard.tsx:171`의 단일 폴백 그라디언트 div를 `{pin.creator.avatar_url ? <img src={pin.creator.avatar_url} alt="" loading="lazy" className="w-5 h-5 rounded-full shrink-0 object-cover" onError={hide} /> : <div className="w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-accent to-accent-hover" />}` 조건부 JSX로 교체. OpenSpec change: `archive/2026-05-15-pincard-avatar-url-conditional`.
+이유: DESIGN.md L82 "Image card: og_image 썸네일 + 제목 + 크리에이터 아바타/이름 + 태그" 명시. 코드베이스의 다른 5곳(NavBar/SearchBar/SearchClient/pins[id]/ProfileHeader)은 모두 `{creator.avatar_url ? <img> : <div gradient>}` 조건부 표준 패턴 사용 중인데 PinCard 푸터만 무조건 그라디언트 div만 렌더. 결과적으로 아바타 업로드한 크리에이터의 핀이 피드 카드에서는 항상 동일 accent 그라디언트로 보이고, 같은 핀의 상세 페이지에서는 실제 아바타가 보이는 비대칭(같은 데이터, 다른 표현).
+영향 범위: PinCard.tsx 단일 파일 1개 위치. 사이즈(w-5 h-5)·shrink-0·rounded-full 동일 유지로 레이아웃 시프트 없음. 아바타 미업로드 크리에이터·이미지 로드 실패 시 기존 accent 그라디언트 그대로 폴백.
+
+## 2026-05-15 — [design] 취소 버튼 3곳 disabled 페이드 일관
+결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx:601`·`apps/web/src/app/boards/[id]/BoardActions.tsx:99`·`apps/web/src/components/profile/ProfileEditForm.tsx:104` 세 취소(Cancel) 버튼 className 끝에 `disabled:opacity-50` 토큰을 추가. OpenSpec change: `archive/2026-05-15-cancel-button-disabled-opacity`.
+이유: 세 화면 모두 짝꿍 submit/저장 버튼에 `disabled={saving|isDisabled}` + className `disabled:opacity-50`이 함께 있어 saving 중 페이드되지만, 취소 버튼은 `disabled` prop만 있고 className에 disabled 토큰이 없어 시각이 평소와 동일. 사용자가 폼이 in-flight 중인지 알기 어렵고 짝꿍 submit과 비대칭(둘 다 비활성인데 한쪽만 페이드). 코드베이스 측정 결과 `disabled` prop을 가진 16개 버튼 중 13개가 `disabled:opacity-50/40`을 갖고 있어 측정 가능한 패턴 outlier.
+영향 범위: 3개 파일 각 1줄 1토큰 추가. saving=false 평상시 시각 변경 없음. saving=true(저장 in-flight) 동안 취소 버튼이 submit과 동일하게 페이드. 클릭 동작 변화 없음(이미 disabled prop으로 차단).
+
+## 2026-05-15 — [design] FeedContainer 에러 박스 표준 패턴 정렬
+결정/변경: `apps/web/src/components/feed/FeedContainer.tsx:185` 피드 로드 에러 박스 div className을 `mb-4 p-4 bg-surface rounded-md border-l-3 border-error text-sm` → `mb-4 p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error`로 교체. OpenSpec change: `archive/2026-05-15-align-feedcontainer-error-pattern`.
+이유: DESIGN.md L50 semantic 토큰 + L74 'sm: 6px (inputs, alerts)' 명시. 코드베이스 5개 에러 박스(PinCreateForm/BoardActions/MyPageClient/ProfileEditForm/AddToBoardButton)가 모두 `bg-error/10 border border-error/30 rounded-[6px] text-error` 표준 패턴 사용 중인데 FeedContainer만 외톨이였고, 사용된 `border-l-3`은 Tailwind v4 기본 스케일에 없는 무효 유틸리티라 좌측 보더가 실제로는 렌더되지 않던 상태였음. `text-error` 미적용으로 메시지 텍스트가 default 색이라 시각적 에러 신호도 부재.
+영향 범위: FeedContainer 단일 파일 1줄. 피드 페이지 에러 노출 시(페이지네이션·태그 필터 실패 등) 다른 5곳과 동일한 시각 톤으로 정렬. "다시 시도" 버튼·로직은 유지.
+
+## 2026-05-15 — [design] 카드 5종 focus-visible: hover 미러링
+결정/변경: 카드 hover 3효과(translateY -2px + box-shadow + accent border)와 동치인 `focus-visible:` 상태를 5개 카드 사용처에 부여. Pattern A(Link 단일 요소에 hover 3효과 일체)는 `apps/web/src/components/feed/PinCard.tsx:146`·`apps/web/src/app/search/SearchClient.tsx:313`·`apps/web/src/app/search/SearchClient.tsx:351` Link className에 `focus-visible:-translate-y-0.5 focus-visible:shadow-[0_8px_32px_rgba(0,0,0,0.3)] focus-visible:border-accent focus-visible:outline-none` 추가. Pattern B(Link는 translateY만, 그림자/보더는 자식 BoardCover)는 `apps/web/src/components/board/BoardGrid.tsx:22`·`apps/web/src/components/profile/MyPageClient.tsx:129` Link에 `focus-visible:-translate-y-0.5 focus-visible:outline-none`, `apps/web/src/components/board/BoardCover.tsx:6,30` 두 분기 div에 `group-focus-visible:border-accent group-focus-visible:shadow-[0_8px_32px_rgba(0,0,0,0.3)]` 추가. OpenSpec change: `archive/2026-05-15-card-focus-visible-parity`.
+이유: DESIGN.md L86 'Hover state: translateY(-2px) + box-shadow 확대 + accent border' 명세가 마우스 hover에는 갖춰져 있으나 키보드 focus 도달 시에는 동치 시각 신호가 없어 키보드 사용자에게 현재 활성 카드가 보이지 않음(WCAG 2.4.7 Focus Visible). `focus-visible:` (mouse-click focus 제외)을 사용해 마우스 사용자의 클릭 후 잔류 효과 회귀 방지.
+영향 범위: 카드 5종 모든 키보드 포커스 상태가 hover와 동일 시각 신호를 갖는다. 마우스 hover 동작·시각 변경 없음. 베이스 `border-transparent`가 이미 깔려 있어 레이아웃 시프트 없음.
+
+## 2026-05-15 — [design] 아이콘 전용 버튼 4곳 aria-label 부여
+결정/변경: 아이콘만 가진 4개 `<button>`에 `aria-label` 속성을 추가. `apps/web/src/components/board/AddToBoardButton.tsx:212` 모달 닫기 X = "닫기", `apps/web/src/components/nav/SearchBar.tsx:219` 최근 검색 삭제 X = "최근 검색에서 제거", `apps/web/src/components/feed/PinCard.tsx:65` 오디오 재생 ▶ = "재생", `apps/web/src/components/feed/PinCard.tsx:118` ExternalLinkIcon = "원본 보기"(`title`도 유지). OpenSpec change: `archive/2026-05-15-icon-only-button-aria-label`.
+이유: 루프 정체성(prompts/loop-design.md L7)에 "접근성" 명시 in-scope + WCAG 4.1.2 'Name, Role, Value' 표준. 사이클 18 `2026-05-15-search-dropdown-keyboard-a11y`가 SearchBar 드롭다운 5종 아이템 마크업을 a11y 정렬했을 때 button-in-button 회피 구조의 sibling으로 분리된 삭제 X 버튼 한 곳은 aria-label이 부여되지 않은 잔여 갭이었음. PinCard 오디오 재생 ▶은 Unicode 글리프(BLACK RIGHT-POINTING TRIANGLE)가 접근 이름으로 읽히던 상태.
+영향 범위: 3개 파일, 4단어 추가. 시각·행동 변경 없음. 스크린리더 사용자에게 4개 버튼의 정체가 명시적으로 안내됨. 다른 컴포넌트 영향 없음.
+
+## 2026-05-15 — [design] 폰트 스케일 2xs/3xs 토큰화 + 매직값 회수
+결정/변경: `apps/web/src/app/globals.css`의 `@theme inline` 블록에 `--text-2xs: 0.6875rem;`와 `--text-3xs: 0.625rem;` 두 줄 추가. `PinCard.tsx:181` 및 `SearchBar.tsx:292`의 `text-[10px]` 매직값을 `text-3xs`로 치환. OpenSpec change: `archive/2026-05-15-text-scale-tokens-2xs-3xs`.
+이유: DESIGN.md L34 `2xs: 11px / 0.6875rem (timestamps, duration)`, L35 `3xs: 10px / 0.625rem (tags, category labels)` 정의가 토큰화되지 않아 VideoTrimModal `text-2xs` 클래스 2건이 무효(부모 폰트 폴백)였고 PinCard/SearchBar는 매직값으로 표현. anti-pattern L15는 Tailwind 기본 스케일에 없는 신규 단계라 적용 대상 아님. `text-sm/base/3xl` 기본값 덮어쓰기 항목은 분리 유지(decision-log rejected_self 가이드 일치).
+영향 범위: globals.css + 2개 컴포넌트. VideoTrimModal 시간 라벨이 의도된 11px로 축소되어 보이고, PinCard/SearchBar 배지는 10px 동일하나 매직값 회수. 토큰 명칭(text-2xs/3xs) 일관성 확보.
+
+## 2026-05-15 — [design] font-mono 사용처에 tabular-nums 일괄 활성화
+결정/변경: `apps/web/src/app/globals.css`의 `@theme inline` 블록 다음에 `.font-mono { font-variant-numeric: tabular-nums; }` 룰 한 블록 추가. OpenSpec change: `archive/2026-05-15-font-mono-tabular-nums`.
+이유: DESIGN.md L20 'Data/Tags: Geist Mono — ... (tabular-nums 지원)' 명세에서 괄호 안 'tabular-nums 지원' 부분이 직전 archive change `2026-05-15-token-mono-font-family`로 23곳 font-mono 정렬 시 누락. pin_count·시간·날짜 등 숫자 표시가 비례 폭으로 렌더링되던 상태를 해소. 토큰(@theme) 시스템 밖에 두는 이유는 Tailwind v4가 `--font-*` 토큰으로는 `font-family`만 매핑하기 때문.
+영향 범위: globals.css 단일 파일, 4줄. font-mono 사용처 23곳 모두에 균등 폭 숫자 적용. 비숫자 사용처(태그 칩 한글) 시각 변화 없음.
+
+## 2026-05-15 — [design] Mono 폰트 패밀리를 @theme inline 토큰화
+결정/변경: `apps/web/src/app/globals.css`의 `@theme inline` 블록에 `--font-mono: 'Geist Mono', monospace;` 한 줄을 `--font-display` 다음에 추가. Tailwind v4가 자동 생성하는 `font-mono` 유틸리티로 12개 컴포넌트(`pins/[id]/page.tsx`, `pin/new/PinCreateForm.tsx`, `search/SearchClient.tsx`, `boards/[id]/page.tsx`, `VideoTrimModal.tsx`, `BoardGrid.tsx`, `AddToBoardButton.tsx`, `MyPageClient.tsx`, `ProfileHeader.tsx`, `PinCard.tsx`, `TagFilter.tsx`, `SearchBar.tsx`)의 inline `style={{ fontFamily: "'Geist Mono', monospace" }}` 23개 제거 + className에 `font-mono` 추가. OpenSpec change: `archive/2026-05-15-token-mono-font-family`.
+이유: DESIGN.md L23 "Data/Tags: Geist Mono 500/600"이 정의한 모노 폰트 패밀리가 토큰화되지 않아 13개 파일 23곳에서 inline style 반복. anti-pattern L15(Tailwind 기본 클래스 의미 덮어쓰기) 적용 대상이지만 사전 grep `\bfont-mono\b`가 0건이라 회귀 위험이 없어 별도 토큰(`--font-tags`) 분리 없이 통합 처리.
+영향 범위: globals.css + 12개 컴포넌트. 시각 변화 없음(폰트 값 동일). Tailwind 기본 `font-mono` 토큰을 'Geist Mono'로 덮어쓰지만 신규 사용처 모두 Geist Mono 의도이므로 의미 충돌 없음.
+
+## 2026-05-15 — [design] ProfileHeader 닉네임 헤딩 font-display 보강
+결정/변경: `apps/web/src/components/profile/ProfileHeader.tsx:32` `<h1>` className에 `font-display` 한 단어 추가. OpenSpec change: `archive/2026-05-15-profile-header-display-font`.
+이유: 직전 archive change `2026-05-15-token-display-font-family`가 동일 패턴(`text-2xl sm:text-3xl font-bold tracking-tight`) 헤딩 8곳을 token 화했지만, ProfileHeader는 처음부터 inline `fontFamily` 자체가 없어 그 grep에 잡히지 않아 누락. 크리에이터 프로필 페이지 최상단 닉네임만 시스템 sans로 폴백되던 상태를 해소.
+영향 범위: ProfileHeader.tsx 단일 파일, 1단어. 크리에이터 프로필 페이지 닉네임 헤딩이 사이트 다른 디스플레이 헤딩과 동일한 General Sans로 렌더링됨.
+
+## 2026-05-15 — [design] Display 폰트 패밀리를 @theme inline 토큰화
+결정/변경: `apps/web/src/app/globals.css`의 `@theme inline` 블록 끝에 `--font-display: 'General Sans', sans-serif;` 한 줄 추가. Tailwind v4가 자동 생성하는 `font-display` 유틸리티로 8개 헤딩(`pins/[id]/page.tsx` x2, `pin/new/PinCreateForm.tsx`, `search/SearchClient.tsx`, `boards/[id]/page.tsx`, `BoardGrid.tsx`, `AddToBoardButton.tsx`, `MyPageClient.tsx`)의 inline `style={{ fontFamily: "'General Sans', sans-serif" }}` 제거 + className에 `font-display` 추가. OpenSpec change: `archive/2026-05-15-token-display-font-family`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700"이 정의한 디스플레이 폰트 패밀리가 `@theme inline` 토큰화되지 않아 8곳에서 inline style로 동일 값이 반복됨. globals.css가 디자인 토큰 단일 진실 원천(SSoT) 역할을 하도록 정렬.
+영향 범위: globals.css + 8개 헤딩 컴포넌트. 시각 변화 없음(폰트 값 동일). Geist Mono(PinCard.tsx:182 한 곳)는 Tailwind 기본 `font-mono` 의미 덮어쓰기 가능성으로 anti-pattern L15 검토 필요해 별도 후보로 분리.
+
+## 2026-05-15 — [design] SearchBar 드롭다운 키보드 a11y 정렬
+결정/변경: `apps/web/src/components/nav/SearchBar.tsx`의 드롭다운 5종 아이템 마크업을 시맨틱 요소로 교체. 핀/크리에이터/보드 결과는 `<Link href onClick={setOpen(false)}>`로, 최근 검색은 외곽 div(hover group 컨테이너) + 검색어 영역 `<button>` + 삭제 sibling `<button>` 구조로(button-in-button 회피), 전체 결과 보기는 `<button type="button" onClick={handleSubmit}>`(block w-full)로. `Link from "next/link"` import 추가. OpenSpec change: `archive/2026-05-15-search-dropdown-keyboard-a11y`.
+이유: 5종 div onClick은 Tab 키 도달 불가 + 스크린리더 시맨틱 누락. 같은 파일 L212 삭제 X 버튼은 이미 button을 정상 사용해 부분 적용 패턴이었음. 루프 정체성에 "접근성" 영역 명시.
+영향 범위: SearchBar 단일 파일. 마우스 동작·시각 변경 없음(클래스 동일). 키보드/스크린리더 사용자는 결과 도달/활성화·시맨틱 안내 회복. 다른 컴포넌트 영향 없음.
+
+## 2026-05-15 — [design] MasonryGrid 컬럼 매핑을 DESIGN.md L67-70 명세에 맞춤
+결정/변경: `apps/web/src/components/feed/MasonryGrid.tsx:6-11`의 `BREAKPOINT_COLUMNS`를 `{ default: 4, 1200: 4, 800: 3, 500: 2 }` → `{ default: 4, 1199: 3, 799: 2, 499: 1 }`로 교체. OpenSpec change: `archive/2026-05-15-fix-masonry-columns-mapping`.
+이유: react-masonry-css는 키를 max-width inclusive로 해석하므로 기존 매핑은 모든 영역이 한 단계씩 어긋났음(tablet에서 4 column, mobile에서 3, small mobile에서 2 + 1 column 분기 누락). DESIGN.md L69 "4/3/2/1 columns @ desktop/tablet/mobile/small mobile" + L70 "Breakpoints: sm 500 / md 800 / lg 1200" 명세 정렬.
+영향 범위: MasonryGrid를 사용하는 4개 페이지(feed, search, board detail, pin detail related). desktop(≥1200) 컬럼 수 동일. 인터페이스 변경 없어 호출부 수정 불필요.
+
+## 2026-05-15 — [reject] 로그인 페이지 로고 박스 radius 교체 반려(rejected_self)
+결정/변경: `design-20260515-login-logo-radius-non-spec` 항목을 자체 리뷰에서 `rejected_self`로 종료.
+이유: DESIGN.md L73-77 radius scale 외 값(rounded-xl=12px)이라는 발견 자체는 맞으나, 64×64 마스코트 로고 박스가 card(10px)/panel(16px)/avatar(full) 중 어느 등급인지 DESIGN.md가 직접 명시하지 않아 단일 라인 교체가 자의적 등급 매핑이 됨. 자체 리뷰 reject 조건 #2(자의적 해석) 해당.
+영향 범위: 변경 없음(코드 수정 0). anti-pattern에 "radius 등급 매핑이 DESIGN.md에 없는 컴포넌트는 단일 교체 후보 등록 금지" 패턴 누적.
+
+## 2026-05-15 — [design] VideoTrimModal 외곽 모달 radius를 16px로 정렬
+결정/변경: `apps/web/src/components/pin/VideoTrimModal.tsx:121` 외곽 div className `rounded-[12px]` → `rounded-[16px]`. OpenSpec change: `archive/2026-05-15-fix-video-trim-modal-radius`.
+이유: DESIGN.md L73-77 radius 스펙 'lg: 16px (modals, panels)' 명시 위반. AddToBoardButton.tsx:203 등 다른 모달 패널은 이미 rounded-[16px]로 일관 사용 중이라 트림 모달만 어긋났음.
+영향 범위: 비디오 핀 업로드 시 트림 모달 외곽 모서리만 4px 더 둥글어짐. 내부 video preview/track/handle radius는 별도 범위로 남김.
+
+## 2026-05-15 — [design] 빈 상태 6곳을 EmptyState 공통 컴포넌트로 통합 + 마스코트 일관 적용
+결정/변경: `EmptyState.tsx`를 `{ message, description?, children? }` props 기반으로 재설계(🐡 마스코트 + sm 메시지 + xs 부연 + 액션 슬롯). useRouter 제거. FeedContainer/SearchClient/PinsGrid/MyPageClient/AddToBoardButton/boards[id]/page 6곳의 인라인 빈 상태 마크업을 `<EmptyState>` 사용으로 교체. boards[id] grid SVG 아이콘은 마스코트로 대체. OpenSpec change: `archive/2026-05-15-unify-empty-state-with-mascot`.
+이유: DESIGN.md L14 "마스코트: 헤드셋 끼고 붓 든 복어. 로고/빈 상태/온보딩에서 활용"을 빈 상태 전 위치에 일관 적용. 메시지 사이즈도 sm으로 통일.
+영향 범위: 빈 상태 6곳. 사용자는 비어 있는 화면을 만났을 때 일관된 마스코트/위계를 본다. 일러스트 자산 도입(헤드셋·붓 복어 SVG)은 별도 후보로 미등록 상태.
+
+## 2026-05-15 — [design] 스켈레톤 로딩을 animate-pulse에서 shimmer로 교체
+결정/변경: `globals.css`에 `--shimmer-highlight` 토큰(dark/light) + `@keyframes shimmer` + `.skeleton-shimmer .bg-surface-elevated` 자식 셀렉터 추가. `CardSkeleton.tsx:3`·`ProfileSkeleton.tsx:3` 외곽 div className `animate-pulse` → `skeleton-shimmer`. OpenSpec change: `archive/2026-05-15-replace-skeleton-pulse-with-shimmer`.
+이유: DESIGN.md L94 "Skeleton loading: 카드 자리에 shimmer 효과"를 정확히 구현. animate-pulse는 opacity 점멸로 shimmer와 다른 패턴.
+영향 범위: 두 스켈레톤 컴포넌트만. 자식 셀렉터는 `.skeleton-shimmer` 부모 안에서만 작동하므로 다른 곳의 `bg-surface-elevated` 사용에 영향 없음.
+
+## 2026-05-15 — [design] 보드 카드 hover state 추가
+결정/변경: `BoardCover.tsx` 두 분기 외곽 div에 `border border-transparent group-hover:border-accent group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-200` 부여. `BoardGrid.tsx:25`·`MyPageClient.tsx:133`의 Link className `"group"` → `"group block transition-transform duration-200 hover:-translate-y-0.5"`. OpenSpec change: `archive/2026-05-15-add-board-card-hover-state`.
+이유: DESIGN.md L86 'Hover state: translateY(-2px) + box-shadow 확대 + accent border'를 PinCard만 구현하고 BoardGrid/MyPageClient의 보드 카드는 누락했음. translateY는 Link 전체에, shadow/border는 BoardCover에만 적용해 라벨까지 그림자가 번지지 않게 분리.
+영향 범위: 보드 카드 두 사용처(BoardGrid·MyPageClient). PinCard는 변경 없음. 베이스 `border-transparent`로 레이아웃 시프트 없음.
+
+## 2026-05-15 — [reject] 타이포 스케일 일괄 등록 변경 반려(rejected_self)
+결정/변경: `design-20260515-typography-scale-unmapped` 항목을 자체 리뷰에서 `rejected_self`로 종료. 제안 디렉터리 제거.
+이유: 측정 결과 충돌 사용처가 `text-sm` 74곳·`text-3xl` 5곳·`text-xl` 2곳·`text-base` 3곳 등 84+로 발견 단계 effort=3·risk=3 추정의 2배 이상. 자동 머지 시 광범위 시각 회귀 위험. self-review 기준 "effort 추정이 실제와 2배 이상 차이남" 발동.
+영향 범위: 변경 없음(코드 수정 0). 후속: 발견 단계에서 "신규 토큰 추가(text-2xs/3xs/md)"와 "Tailwind 기본 의미 덮어쓰기(text-sm/base/3xl)" 두 항목으로 분리 재발견 필요.
+
+## 2026-05-15 — [design] 아바타 폴백 그라디언트를 accent 토큰 쌍으로 통일
+결정/변경: 6개 위치(NavBar / SearchBar / ProfileHeader / PinCard / pins[id]/page / SearchClient)의 아바타 폴백 그라디언트 두 번째 stop을 `orange-400`·`#FF8A5C` → `accent-hover` 토큰으로 교체. PinCard의 inline `style` 그라디언트도 className(`bg-gradient-to-br from-accent to-accent-hover`)으로 일관화. OpenSpec change: `archive/2026-05-15-unify-avatar-gradient-tokens`.
+이유: DESIGN.md L37-49가 accent 계열을 `--accent` / `--accent-hover` / `--accent-subtle` 세 토큰으로 한정. 팔레트 밖 색 사용을 회수.
+영향 범위: 아바타 폴백 6곳. 색 거리 작아 시각 차이 미미. 아바타에 accent를 쓸지 자체에 대한 논점은 별도 후보로 분리(현재 미등록).
+
+## 2026-05-15 — [design] AddToBoardButton 피드백 박스 semantic 토큰화
+결정/변경: `apps/web/src/components/board/AddToBoardButton.tsx` L237-238의 raw hex 리터럴(`#34C759`, `#FF3B30`)을 토큰 클래스(`bg-success/10`, `border-success/30`, `text-success`, `bg-error/10`, `border-error/30`, `text-error`)로 교체. OpenSpec change: `archive/2026-05-15-replace-semantic-hex-with-tokens`.
+이유: DESIGN.md L50 semantic 토큰 정의를 토큰 클래스 경로로 일관화. globals.css `@theme inline`이 이미 `--color-success`/`--color-error`를 노출하므로 즉시 사용 가능.
+영향 범위: AddToBoardButton 피드백 박스 한 곳. 색 값은 동일.
+
+## 2026-05-15 — [design] General Sans 폰트 글로벌 로드 추가
+결정/변경: `apps/web/src/app/layout.tsx`의 `<head>`에 Fontshare CDN으로 General Sans 500/700 weight를 로드하는 `<link>` 추가. OpenSpec change: `archive/2026-05-15-load-general-sans-font`.
+이유: DESIGN.md L17 "Display/Hero: General Sans 700" 및 L22-25 폰트 로딩 명세를 충족시키기 위함. 인라인 `fontFamily: "'General Sans', sans-serif"` 사용처 8건이 그동안 시스템 sans-serif로 폴백되고 있었음. Google Fonts에 General Sans가 없어 Fontshare(공식 1차 배포처)로 self-host 대용 CDN을 사용.
+영향 범위: 헤딩 8건의 디스플레이 타이포만 변경. 본문(Pretendard) / 모노(Geist Mono) / 한글(Pretendard 폴백) 영역은 영향 없음.
+
+## 2026-05-18 — [design] UI/Labels 카테고리 weight 500 코드 SSoT 반영
+결정/변경: 3개 파일 8개 `<label>` HTML 요소(PinCreateForm 5·VideoThumbnailPicker 1·ProfileEditForm 2) className 끝에 `font-medium` 1단어 추가. weight 400(body 기본 폴백) → 500(DESIGN.md L19 'UI/Labels' 카테고리 명시). OpenSpec change: `archive/2026-05-18-ui-labels-font-medium-20260518`.
+이유: DESIGN.md L19가 라벨 카테고리에 weight 500을 직접 명시하지만 `<label>` 요소 8곳이 모두 weight를 지정하지 않아 본문(L18 weight 미명시=400) 기본값으로 렌더링되며 라벨/본문 위계가 동급으로 약화. 사이클 21(display)·사이클 23(data) 카테고리 토큰화 정착 패턴과 동일하게 라벨 카테고리(L19) 잔여 갭을 코드 SSoT에 반영.
+영향 범위: 폼 라벨 8곳의 stroke weight 100 단계 증가. font-family·크기·색상은 그대로 Pretendard Variable / text-sm / text-text-muted 유지. `<label>` 외 텍스트(aria-label·메뉴 라벨·버튼 텍스트·태그/카테고리 칩 등)는 광의 'UI labels' 해석 회피를 위해 본 변경 범위 밖.
+
+## 2026-05-18 — [design] 크리에이터 카드 가입일 timestamp 카테고리 정렬
+결정/변경: `apps/web/src/app/search/SearchClient.tsx:328` 크리에이터 검색 카드 가입일 div className `text-xs text-text-dim font-mono` → `text-2xs text-text-dim font-mono`. 글자 크기 12px(meta 카테고리) → 11px(timestamps 카테고리). OpenSpec change: `archive/2026-05-18-creator-card-timestamp-text-2xs-20260518`.
+이유: DESIGN.md L34 '2xs (11px): timestamps + duration' 명시 매핑이지만 가입일(`creator.created_at`)이 xs(12px / creator name·meta) 카테고리로 렌더링되어 카테고리 어긋남. `--text-2xs: 0.6875rem` 토큰은 archive/2026-05-15-text-scale-tokens-2xs-3xs에서 globals.css `@theme inline`에 정의되어 즉시 사용 가능. VideoTrimModal L164/L222에서 동일 토큰 사용 중인 정합.
+영향 범위: 크리에이터 검색 결과 카드 가입일 1곳. font-mono / text-text-dim 유지. 닉네임(`text-sm`, secondary text 카테고리)·메타(`text-xs`, creator name·meta 카테고리)와 위계 분리 강화. 광의 timestamps 해석(created_at 외 모든 날짜/시간 데이터 일괄 적용)은 자의성 회피를 위해 본 변경 범위 밖.
+
+## 2026-05-18 — [design] Light mode 색상 토큰 4건 DESIGN.md SSoT 정렬
+결정/변경: `apps/web/src/app/globals.css` `.light` 블록 4줄 값 교체. `--text-muted: #666666` → `#777777`(L48), `--text-dim: #999999` → `#AAAAAA`(L49), `--accent-subtle: rgba(232, 90, 42, 0.08)` → `rgba(232, 90, 42, 0.12)`(L41 단일 값), `--border: #D0D0D0` → `#E0E0E0`(L46). OpenSpec change: `archive/2026-05-18-light-mode-color-tokens-design-md-spec`.
+이유: DESIGN.md L37-50 Color 섹션이 dark/light 두 모드 명세값을 슬래시로 분리 명시. Dark mode 토큰 15건(:root 블록)은 모두 명세 일치하나 light mode 4건만 잔여 어긋남. ThemeToggle 컴포넌트가 `.light` 클래스를 실제로 활성화하므로 light mode 사용자 영향 있음. 사이클 28(아바타 그라디언트)·사이클 29(semantic hex 토큰화) 토큰 SSoT 정렬 패턴과 동일.
+영향 범위: globals.css 단일 파일 ±4 라인. light mode 토글 시 본문 보조 텍스트(text-muted) 미세 흐려짐, 부차 보조 텍스트(text-dim) 미세 흐려짐, 태그 배경/선택 상태(accent-subtle) opacity 50% 증가로 가시성 ↑, 카드/입력 경계(border) 미세 흐려짐. Dark mode(:root 블록)는 git diff에서 미수정 확인되어 변경 없음. 컴포넌트 코드 변경 0.
+
+## 2026-05-18 — [design] 핀 상세 페이지 태그 칩 3xs 카테고리 정렬
+결정/변경: `apps/web/src/app/pins/[id]/page.tsx:152` 정적 태그 칩 `<span>` className `text-xs` → `text-3xs` 1단어 교체. 글자 크기 12px(creator name·meta 카테고리) → 10px(tags+category labels 카테고리). OpenSpec change: `archive/2026-05-18-pin-detail-tag-chip-text-3xs-20260518`.
+이유: DESIGN.md L35 '3xs (10px): tags, category labels' 명시 매핑이지만 핀 상세 페이지 태그 칩이 xs(12px / creator name·meta) 카테고리로 렌더링되어 카테고리 어긋남. `PinCard.tsx:197`은 archive/2026-05-15-text-scale-tokens-2xs-3xs에서 동일 카테고리로 이미 정렬되었고 핀 상세 페이지가 잔여 1건. `--text-3xs: 0.625rem` 토큰은 globals.css `@theme inline`에 이미 정의되어 즉시 사용 가능.
+영향 범위: 핀 상세 페이지 태그 칩 1곳. font-mono / text-text-muted / bg-accent-subtle / rounded-full / px-2.5 py-1 모두 그대로 유지. PinCard(`px-2 py-0.5`)와 핀 상세(`px-2.5 py-1`) padding 차이는 본 변경 범위 외(별도 후보).
+
+## 2026-05-18 — [design] 검색 페이지 검색어 빈 상태를 EmptyState SSoT 경유로 정렬
+결정/변경: `apps/web/src/app/search/page.tsx` L72-80 인라인 빈 상태 9라인을 `<EmptyState message="검색어를 입력해주세요" description="작품, 크리에이터, 보드를 검색할 수 있습니다" />` 1줄로 교체 + import 섹션에 `import EmptyState from "@/components/feed/EmptyState";` 1줄 추가. OpenSpec change: `archive/2026-05-18-search-page-empty-state-mascot-ssot-20260518`.
+이유: DESIGN.md L14 '마스코트: 빈 상태/온보딩 활용' SSoT 일관성. archive/2026-05-15-unify-empty-state-with-mascot이 6곳 인라인 빈 상태를 EmptyState 공통 컴포넌트로 통일했으나 `search/page.tsx` `q.length === 0` 분기(L72-80)는 그 정렬에서 누락되어 인라인 마크업으로 EmptyState 구조(컨테이너 flex/center + 🐡 text-5xl + 메시지 + 부연)를 복제 중이었음. `grep -rln 'text-5xl' apps/web/src --include='*.tsx'`가 EmptyState.tsx 외 search/page.tsx 1곳만 매칭되던 잔여 갭. 변경 후 grep 결과 EmptyState.tsx 1곳으로 정리.
+영향 범위: 검색 페이지 단일 파일 +5 -9. 검색어 미입력 상태 vertical padding `py-20`(80px) → EmptyState 기본 `py-16`(64px)로 -16px 감소. 마스코트(🐡 text-5xl) · 메시지(text-text-muted text-sm) · 부연(text-text-dim text-xs) 구조는 그대로 유지. 다른 6곳 빈 상태와 vertical padding 일관성 회복.
+
+## 2026-05-18 — [design] `scrollbar-hide` utility globals.css 정의 추가
+결정/변경: `apps/web/src/app/globals.css` 끝부분(L104-111)에 `.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .scrollbar-hide::-webkit-scrollbar { display: none; }` 2개 plain CSS rule 블록 추가. OpenSpec change: `archive/2026-05-18-scrollbar-hide-utility-globals-css-20260518`.
+이유: DESIGN.md L11 'Decoration level: Minimal' SSoT 정합. `scrollbar-hide` className이 5곳 가로 스크롤 영역(FieldFilter L31·TagFilter L44·SearchClient L237/L255·PinCreateForm L541)에 작성자 의도(OS 기본 가로 스크롤바 숨김)로 부여되어 있었으나 globals.css 미정의 + `tailwindcss-scrollbar-hide` 등 플러그인 미설치 + Tailwind v4 코어 미포함이라 무효 상태. 3중 점검(globals.css grep + postcss.config.mjs + package.json)으로 미정의 확인 후 plain CSS rule로 정의. 3개 property(`-ms-overflow-style`·`scrollbar-width`·`::-webkit-scrollbar`)로 Chrome·Safari·Firefox·Edge 모두 커버. anti-pattern L15(기본 클래스 의미 덮어쓰기) 미해당 — Tailwind v4 코어에 `scrollbar-*` 없어 신규 정의이지 덮어쓰기 아님.
+영향 범위: globals.css 단일 파일 +9 -0. `@theme inline` 블록(L40-61) 미수정, 사용처 5곳 코드 미수정. 5곳 가로 스크롤 영역에서 OS 기본 가로 스크롤바가 모든 주요 브라우저에서 숨겨짐, 가로 스크롤 자체 동작(터치 스와이프·휠·키보드 화살표)은 유지. dev 서버 시각 검증은 Ralph 루프 환경 제약으로 미수행 — 코드 검증(grep 2건 globals.css 정의 + grep 5건 사용처 유지)으로 정합성 확인.
+
+## 2026-05-18 — [design] LoadMorePins 더보기 버튼 manual-click 로딩을 spinner 패턴으로 정렬
+결정/변경: `apps/web/src/app/boards/[id]/LoadMorePins.tsx:46` 버튼 자식 표현 `{loading ? "불러오는 중..." : "더보기"}`를 `{loading ? <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" /> : "더보기"}` 1줄 교체. OpenSpec change: `archive/2026-05-18-load-more-spinner-pattern-loadmorepins-20260518`.
+이유: 페이지네이션 로딩 표시 4곳 중 3곳 spinner(FeedContainer L212 auto-load · PinsGrid L135 auto-load · SearchClient L411 manual-click) vs 1곳 텍스트(LoadMorePins L46) 75% outlier 정렬. 같은 manual-click 카테고리 안에서도 SearchClient는 spinner, LoadMorePins는 텍스트로 비대칭. archive/2026-05-15-cancel-button-disabled-opacity(16곳 중 13곳 적용·3곳 잔여 disabled:opacity-50 정렬) 동일 논리 적용. SearchClient L411 패턴(`w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto`)을 정렬 기준으로 차용 — 같은 manual-click 카테고리라 시각 정합 비교 정확. 전체 코드베이스 spinner 11건 모두 동일 패턴(border-2 border-accent border-t-transparent rounded-full animate-spin)으로 추가 정합성 강화.
+영향 범위: LoadMorePins.tsx 단일 파일 1줄 변경. 버튼 className(px-6 py-2.5 border border-border rounded-full text-sm 등)/`disabled={loading}` 동작 미변경. 보드 상세 페이지 "더보기" 버튼 클릭 후 로딩 in-flight 표시가 "불러오는 중..." 텍스트 → 20px accent spinner로 교체. dev 서버 시각 검증은 Ralph 루프 환경 제약으로 미수행 — 코드 검증(grep 3건: 더보기 1건/불러오는 중 0건/animate-spin 4건+) + SearchClient L411 동일 패턴 적용 사실로 정합성 확인.
+
+## 2026-05-18 — [design] 핀 상세 페이지 미디어 타입 배지 3xs 카테고리 정렬
+결정/변경: `apps/web/src/app/pins/[id]/page.tsx:130` 미디어 타입 배지 `<span>` className `text-xs` → `text-3xs` 1단어 교체. 글자 크기 12px(creator name·meta 카테고리) → 10px(tags+category labels 카테고리). OpenSpec change: `archive/2026-05-18-pin-detail-media-type-badge-text-3xs-20260518`.
+이유: DESIGN.md L35 '3xs (10px): tags, category labels' 명시 매핑이지만 미디어 타입 배지(`getMediaTypeLabel(pin.media_type)` 반환 — 작품의 미디어 카테고리 분류 라벨)가 xs(12px / creator name·meta 카테고리)로 렌더링되어 카테고리 어긋남. archive/2026-05-18-pin-detail-tag-chip-text-3xs-20260518가 동일 파일 L152 태그 칩을 3xs로 정렬한 후속 잔여 1건. `--text-3xs: 0.625rem` 토큰은 archive/2026-05-15-text-scale-tokens-2xs-3xs에서 globals.css `@theme inline`에 정의되어 즉시 사용 가능.
+영향 범위: 핀 상세 페이지 미디어 타입 배지 1곳. font-mono / text-accent / bg-accent-subtle / rounded-full / px-3 py-1 / font-medium 모두 유지. PinCreateForm.tsx:388(부모 text-xs 상속 — 독립 변경 시 부모 영역 회귀)·boards/[id]/page.tsx:69('비공개' 상태 라벨 — category labels 매핑 자의적)는 본 변경 범위 외. 같은 파일 L130 미디어 카테고리 라벨과 L152 태그 칩이 모두 3xs로 정렬되어 핀 상세 페이지 'tags, category labels' 카테고리 시각 위계 일관성 회복. dev 서버 시각 검증은 Ralph 루프 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep 1건 L130 `text-3xs`, 다른 utility 모두 유지)으로 정합성 확인.
