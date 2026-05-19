@@ -37,6 +37,27 @@ var allowedMIME = map[string]MediaType{
 	"video/webm": MediaVideo,
 }
 
+// mimeAliases maps common client-side variants to the canonical MIME used by
+// http.DetectContentType. Keys must be lowercase.
+var mimeAliases = map[string]string{
+	"image/jpg":    "image/jpeg",
+	"image/pjpeg":  "image/jpeg",
+	"audio/x-wav":  "audio/wav",
+	"audio/wave":   "audio/wav",
+	"audio/mp3":    "audio/mpeg",
+	"audio/x-flac": "audio/flac",
+}
+
+// normalizeMIME lowercases and resolves known client-side aliases so that
+// declared and sniffed content types can be compared on equal footing.
+func normalizeMIME(mime string) string {
+	lower := strings.ToLower(strings.TrimSpace(mime))
+	if canonical, ok := mimeAliases[lower]; ok {
+		return canonical
+	}
+	return lower
+}
+
 // MaxBytes per media type.
 var maxBytes = map[MediaType]int64{
 	MediaImage: 10 << 20,  // 10 MB
@@ -126,11 +147,22 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 	}
 	detected := http.DetectContentType(buf[:n])
 
+	// spec: pin `MIME 타입 위조 방지는 storage 레이어에서 declared와 sniff의 불일치 거부로 enforce된다`
+	// 클라이언트가 표기한 Content-Type(declared)이 실제 파일 sniff 결과와 다르면 외부 저장소
+	// 쓰기 전에 거부한다. declared가 비어 있거나 generic octet-stream이면 비교를 skip.
+	if contentType != "" && contentType != "application/octet-stream" &&
+		normalizeMIME(contentType) != normalizeMIME(detected) {
+		return nil, fmt.Errorf("storage: unsupported file type: content type mismatch (declared=%q sniffed=%q)", contentType, detected)
+	}
+
 	// Normalize: use detected type, but if it's generic octet-stream
-	// fall back to the declared content-type.
-	mime := detected
+	// fall back to the declared content-type. Resolve client-side aliases
+	// (e.g. http.DetectContentType returns "audio/wave" for WAV files,
+	// but the allowlist canonical form is "audio/wav") so the allowlist
+	// lookup operates on canonical MIME strings.
+	mime := normalizeMIME(detected)
 	if mime == "application/octet-stream" && contentType != "" {
-		mime = contentType
+		mime = normalizeMIME(contentType)
 	}
 
 	mt, ok := allowedMIME[mime]
