@@ -948,3 +948,21 @@ items:
     pr: 29
     note: "처리 완료. 6 input에 `aria-label` 추가 (SearchBar L175 '검색' / BoardActions L74 '보드 이름' · L82 '보드 설명' / MyPageClient L90 '새 보드 이름' / AddToBoardButton L321 '새 보드 이름' / PinCreateForm L538 '태그 검색'). placeholder/className/maxLength/autoFocus 미수정 → 시각 영향 없음. 검증: grep aria-label 6 파일 신규 6건 확인. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증으로 대체. PR #29 squash merge(2b8793d). cycle 17 form-label-htmlfor 페어 SSoT 정렬 + visible label 없는 standalone input 보강."
 
+  - id: "design-20260519-font-display-korean-fallback"
+    title: "--font-display 토큰에 한글 fallback 누락 — DESIGN.md L17 '한글 대체: Pretendard Bold' 위반"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:56"
+      cite: "DESIGN.md L17 'Display/Hero: General Sans 700 — 기하학적이면서 개성 있음. 한글 대체: Pretendard Bold' 직접 인용. 현재 토큰 정의 `--font-display: 'General Sans', sans-serif;`에 한글 fallback 누락. General Sans는 라틴 글리프만 제공(Fontshare api L27 layout.tsx `general-sans@500,700`)하므로 한글 텍스트가 `font-display` 클래스를 받을 때 라틴은 General Sans, 한글은 시스템 sans-serif로 떨어짐. layout.tsx L23 Pretendard Variable이 이미 로딩되어 있어 별도 폰트 로딩 추가 없이 fallback 체인만 보강하면 됨. decision-log 2026-05-15 NavBar 'Fugue' 워드마크는 라틴이라 무해했으나, `font-display` 적용된 한글 h1(예: `boards/[id]/page.tsx:56` board.name · `creators/[id]` creator.nickname · `mypage` ProfileHeader L32 creator.nickname)이 모두 영향."
+      repro: "globals.css L56 현재값 `--font-display: 'General Sans', sans-serif;` → `--font-display: 'General Sans', 'Pretendard Variable', sans-serif;`로 변경(1 단어 추가). 라틴은 General Sans 우선 유지, 한글은 Pretendard Variable로 자동 폴백(가변 폰트라 weight 700 그대로 적용). 검증: 브라우저 DevTools Computed 'font-family'에서 한글 글리프가 Pretendard Variable로 매핑되는지 확인."
+    qa_plan: "1) cd apps/web && npm run dev 후 (a) /boards/<id> 페이지 헤더 한글 board.name (b) /creators/<id> 한글 nickname (c) /mypage ProfileHeader 한글 nickname (d) NavBar 'Fugue' 워드마크 라틴 — 4 화면에서 DevTools Computed font-family 확인: 한글은 Pretendard Variable, 라틴은 General Sans 매핑. 2) 시각적으로 한글 글리프가 시스템 폰트(Apple SD Gothic 등)에서 Pretendard Bold로 교체된 차이 확인(스크린샷). 3) `font-display` 사용처 grep으로 회귀 점검(NavBar·페이지 헤더·검색 결과 헤더 등 visible 영역 1개씩)."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    pr: 30
+    note: "처리 완료. globals.css L56 `--font-display: 'General Sans', sans-serif;` → `--font-display: 'General Sans', 'Pretendard Variable', sans-serif;`로 변경(1 단어 추가). Latin 우선순위 보존, 한글은 Pretendard Variable로 자연 분기(가변 폰트라 weight 700 그대로 적용). Pretendard Variable은 layout.tsx L23에서 이미 로딩 중이라 추가 네트워크 비용 없음. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(diff 1 line, 영향 범위 token 1개)으로 대체. PR #30 squash merge(e590665). DESIGN.md L17 'Display/Hero: General Sans 700 ... 한글 대체: Pretendard Bold' SSoT 정렬."
+
