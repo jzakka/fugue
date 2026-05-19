@@ -607,6 +607,54 @@ func TestCreate_RejectsBodyOverCapBeforeDiskSpool(t *testing.T) {
 	}
 }
 
+// TestCreate_RejectsNoTrimVideoWhenProbeDurationFails verifies that a no-trim
+// video upload whose duration cannot be determined (probeDuration error) is
+// rejected with a 400 + "비디오 길이를 확인할 수 없습니다" response, ensuring
+// the "구간 정보 없이 15초 초과 비디오 업로드 → 거부" SHALL of
+// pin/spec.md is not silently bypassed when ffprobe fails (missing binary,
+// malformed input, or transient I/O error).
+//
+// The test feeds a video/mp4-typed multipart part whose body is plain text
+// — ffprobe (or its absence) reliably returns a non-nil error for this input,
+// so the no-trim else branch enters the fail-closed path regardless of
+// whether ffprobe is installed on the test host.
+func TestCreate_RejectsNoTrimVideoWhenProbeDurationFails(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	// Build a multipart body with a single "media" part labelled as video/mp4
+	// but containing plain text. No trim_start/trim_end fields are supplied,
+	// so the handler enters the no-trim branch where probeDuration is invoked.
+	const boundary = "yyyyyy"
+	body := bytes.NewBufferString(
+		"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"title\"\r\n\r\n" +
+			"probe-fail-test\r\n" +
+			"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"media\"; filename=\"a.mp4\"\r\n" +
+			"Content-Type: video/mp4\r\n\r\n" +
+			"not actually a video, ffprobe will fail to read this as a media container\r\n" +
+			"--" + boundary + "--\r\n",
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+boundary)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "비디오 길이를 확인할 수 없습니다") {
+		t.Fatalf("expected duration-unknown error, got: %q", rec.Body.String())
+	}
+	// The fail-closed branch must not be mistaken for the >15s rejection, which
+	// has a distinct message reserved for cases where duration is known.
+	if strings.Contains(rec.Body.String(), "15초 초과") {
+		t.Fatalf("probe-fail rejection must use the duration-unknown message, not the >15s message, got: %q", rec.Body.String())
+	}
+}
+
 // TestCreate_PreservesGenericMultipartErrorMessage verifies that multipart
 // parse errors unrelated to the body cap (e.g. malformed body without the
 // declared boundary) keep returning the generic 400 message rather than the
