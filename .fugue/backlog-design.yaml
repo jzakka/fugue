@@ -982,6 +982,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: in_progress
     note: "PinCard.tsx L171-186 in-codebase precedent(아바타 img + 인접 nickname text 에서 alt=\"\")를 SearchClient·ProfileHeader·pins/[id] 세 outlier에 정렬. NavBar L42는 nickname이 `hidden sm:block`이라 모바일에서 Link 접근 이름이 사라지는 회귀 우려로 본 후보 범위 밖 — 별도 cycle에서 Link aria-label 패턴 추가 필요."
 

@@ -315,7 +315,7 @@ export default function SearchClient({
                     {creator.avatar_url ? (
                       <img
                         src={creator.avatar_url}
-                        alt={creator.nickname}
+                        alt=""
                         className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-border"
                       />
                     ) : (

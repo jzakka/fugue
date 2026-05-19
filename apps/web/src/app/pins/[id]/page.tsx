@@ -200,7 +200,7 @@ export default async function PinDetailPage({ params }: Props) {
                 {pin.creator.avatar_url ? (
                   <img
                     src={pin.creator.avatar_url}
-                    alt={pin.creator.nickname}
+                    alt=""
                     className="w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent transition-colors"
                   />
                 ) : (
