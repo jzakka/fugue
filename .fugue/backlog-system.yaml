@@ -1037,3 +1037,113 @@ items:
       경유한다" Requirement 5 Scenarios ADDED. og/service.go의 SSRF
       dialer를 신규 httpclient 패키지로 마이그레이션하는 작업은 본 사이클
       범위 밖으로 두고 후속 backlog 후보로 남김(중복 구현 정리 목적).
+
+  - id: system-20260519-harvest-pipeline-title-no-truncate
+    title: "HarvestPipeline이 doc.Title을 VARCHAR(200) cap 없이 그대로 INSERT → 긴 외부 title 페이지에서 PostgreSQL value-too-long 에러로 Pin 영구 실패 + 5회 fetch retry 비용 누수"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/db/migrations/000003_create_works.up.sql:5"   # title VARCHAR(200) NOT NULL
+        - "apps/api/internal/bot/harvest_pipeline.go:293"          # Title: doc.Title (truncate 없이)
+        - "apps/api/internal/bot/harvester_consumer.go:380-382"    # BodyText만 truncateRunes(500), Title은 없음
+        - "apps/api/internal/bot/pin_document.go:37-38"            # "BodyText is raw text BEFORE the description-length cut; the Harvester is responsible for the rune-safe truncation when persisting." — Title에 대한 동일 책임 부재(비대칭 디자인)
+        - "apps/api/internal/bot/extractor.go:69"                  # doc.Title = pickFirstNonEmpty(ogTitle, twTitle, jsonLDTitle, h1, htmlTitle) — 길이 cap 없음
+        - "apps/api/internal/bot/script_adapter.go:112"            # Title: primary.Title — 동일 패턴
+      cite: |
+        직접 인용 가능한 OpenSpec SHALL은 부재하나, 다음 사실로 결함성이
+        명백하다:
+        (a) `apps/api/db/migrations/000003_create_works.up.sql:5`이
+            `title VARCHAR(200) NOT NULL`로 DB-level 길이 cap을 강제.
+            이후 migration 어디에도 ALTER가 없어 production 스키마와
+            일치.
+        (b) 같은 파일 `harvester_consumer.go:382`이 `doc.BodyText =
+            truncateRunes(doc.BodyText, 500)`로 description의 VARCHAR(500)
+            cap에 맞춘 사전 rune-truncate를 명시적으로 수행. 즉
+            "pipeline write 직전에 컬럼 cap에 맞춰 자른다"가 이미 합의된
+            로컬 패턴.
+        (c) `pin_document.go:37-38`은 BodyText에 대해 truncate 책임을
+            문서로 명시(`Harvester is responsible for the rune-safe
+            truncation`). 그러나 Title은 같은 PinDocument 안에 있고
+            DB cap이 더 작은(200 < 500) 컬럼에 매핑되는데 truncate
+            책임이 어디에도 위임되지 않은 비대칭 결함.
+        (d) `openspec/specs/harvester/spec.md:190` Pin upsert SHALL:
+            "INSERT ... ON CONFLICT DO UPDATE를 통해 기존 Pin의 title
+            ... 을 새 값으로 갱신한다". 200자 초과 title이면 PostgreSQL
+            `ERROR: value too long for type character varying(200)`로
+            INSERT 자체가 실패하므로 이 SHALL이 비결정적으로 깨짐.
+      repro: |
+        1. 어떤 외부 사이트가 `<title>` 또는 `<h1>` 또는 `og:title` 메타
+           태그에 201자 이상의 문자열을 가지고 있다고 가정(SEO 키워드
+           stuffing이나 자동 생성 페이지에서 흔함).
+           예: `<title>A Comprehensive Review of Every Single Variant
+           of the Phenomenon ... (continues for 250 chars)</title>`
+        2. Pioneer가 이 페이지를 fetch + snapshot → HarvesterFrontier에
+           enqueue.
+        3. HarvesterConsumer가 dequeue → extractor.extract() →
+           doc.Title = "A Comprehensive Review ... (250 chars)".
+        4. `doc.BodyText = truncateRunes(doc.BodyText, 500)` 실행
+           (Title은 손대지 않음).
+        5. `pipeline.ProcessDocument(ctx, node, doc)` →
+           `UpsertBotPinByURL{Title: doc.Title}` →
+           PostgreSQL: `pq: value too long for type character varying(200)`.
+        6. createPins가 에러 반환 → h.stats.failed.Add(1) →
+           `h.reportFailure(rawURL, scheduler.ErrorNetwork, "pin_create",
+           createErr)` → scheduler가 retry 스케줄 등록.
+        7. 다음 fetch cycle에서 같은 URL이 다시 잡혀 같은 에러로 실패
+           (title은 변하지 않음). harvest_error_count가 5에 도달할
+           때까지 같은 비용 반복(snapshot fetch + extract + DB INSERT
+           attempt 모두). 5에 도달하면 partial index 제외로 영구 누락.
+        결과: 긴 title을 가진 모든 외부 페이지의 Pin이 영구적으로 생성
+        되지 않고, 그동안 5회의 무의미한 retry 비용 누수.
+      attack_surface: |
+        - 자기 도메인 컨트롤이 없는 외부 사이트의 자유 입력(title 메타).
+          공격이라기보다 운영 정상성 문제이지만, 누군가가 특정 도메인을
+          타깃해 200자 초과 title을 가진 페이지를 다수 만들어두면
+          harvester worker 시간/네트워크 비용을 의도적으로 낭비시킬
+          수 있음(amplification: 1 PR한 페이지 → 5회 fetch).
+        - 더 직접적 영향은 정상 외부 사이트(blog post title, news article
+          subhead, JSON-LD headline 등)에서 200자 초과가 자주 발생하여
+          정상 컨텐츠 일부가 누락되는 정합성 결함.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+postgres 기동.
+      2. 호스트에서 `python3 -m http.server 8090`로 다음 HTML 페이지를
+         serve:
+         ```html
+         <html><head><title>A test title that is exactly two hundred and
+         ten characters long to exceed the VARCHAR(200) cap and prove
+         the bug ... (210 chars total)</title></head>
+         <body><article><p>본문이 200자 넘게...</p></article></body></html>
+         ```
+      3. `psql`로 pioneer_frontier에 이 URL을 enqueue:
+         `INSERT INTO pioneer_frontier (normalized_url, url, url_hash, host)
+          VALUES ('http://localhost:8090/long.html', ...);`
+      4. Pioneer 1회 → snapshot이 harvester_frontier로 fanout 확인.
+      5. Harvester 1회 → 로그에서 `pq: value too long for type character
+         varying(200)`이 fix 전에는 나오는지 확인(재현),
+         fix 적용 후엔 사라지고 Pin이 정상 생성되는지 확인.
+      6. `psql`로 `SELECT title, length(title) FROM pins WHERE url=
+         'http://localhost:8090/long.html';` → title 길이가 ≤200인지
+         확인. rune-truncate가 마지막 글자를 안전하게 자르는지(멀티
+         바이트 글자 보존) 한국어 케이스(예: 한글 한 글자가 200번째에
+         걸치는 경우) 한 번 더 검증.
+      7. 회귀: 정상(50자) title 페이지를 같은 절차로 처리 → Pin 정상
+         생성, title이 입력값과 동일한지 확인.
+      8. ScriptAdapter 경로도 동일 패턴이 있는지 short script 한
+         site에 등록해 동일 절차 1회 더 수행.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 영역: 정합성(ERD/DB schema ↔ Go 코드).
+      Processing 모드 진입 시 첫 단계는 (a) `harvester_consumer.go:382`
+      바로 뒤에 `doc.Title = truncateRunes(doc.Title, 200)` 한 줄을
+      대칭으로 추가, (b) `pin_document.go:37-48`의 PinDocument doc
+      comment에 Title도 truncate 책임 명시, (c) harvester/spec.md에
+      "Pin upsert 전 title은 DB cap(200 runes)에 맞춰 rune-safe
+      truncate된다"를 ADDED Scenario로 추가. ScriptAdapter 경로도
+      동일 truncate 적용(consumer level 단일 지점으로도 충분 — Script
+      → consumer → pipeline 순서이므로 consumer가 단일 진입점).
