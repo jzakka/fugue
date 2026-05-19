@@ -239,9 +239,18 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			log.Printf("pin.Create: trimmed video %.1fs-%.1fs, size %d -> %d bytes",
 				trimStart, trimEnd, header.Size, uploadSize)
 		} else {
-			// No trim params: reject if > 15s (server defense)
+			// No trim params: reject if > 15s (server defense).
+			// spec: pin `구간 정보 없이 15초 초과 비디오 업로드` 는 거부 SHALL을 명시하며
+			// `구간 정보 없이 비디오 길이를 확인할 수 없는 경우` 도 거부 SHALL을 명시한다 —
+			// probe 실패 시 fail-closed 로 처리해 15초 초과 거부 SHALL이 길이 측정 실패라는
+			// 우연으로 침묵 우회되지 않게 한다.
 			duration, probeErr := probeDuration(origTmpPath)
-			if probeErr == nil && duration > float64(maxVideoDurationSeconds) {
+			if probeErr != nil {
+				log.Printf("pin.Create: probe duration failed: %v", probeErr)
+				writeError(w, http.StatusBadRequest, "비디오 길이를 확인할 수 없습니다")
+				return
+			}
+			if duration > float64(maxVideoDurationSeconds) {
 				writeError(w, http.StatusBadRequest, "15초 초과 비디오는 트리밍이 필요합니다")
 				return
 			}
