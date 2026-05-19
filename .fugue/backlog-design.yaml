@@ -1023,5 +1023,7 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 33
+    note: "처리 완료. PinCard.tsx L64-69 `<button aria-label=\"재생\" className=\"...\">▶</button>` → `<span aria-hidden=\"true\" className=\"...\">▶</span>` 1 태그+2 attribute 교체(diff 3 lines = open tag · attribute · close tag). className(w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0) 그대로 유지하여 시각 변화 0. PinCard 안 `<Link>` 자손 위치에 `<button>` 이 오던 WHATWG HTML interactive content model 위반 해소 + onClick 없이 부모 Link 로만 라우팅되던 미스리딩 `aria-label=\"재생\"` 제거. PR #32 video overlay decoration 패턴(L98-102 `<div aria-hidden=\"true\">`)에 정렬. ExternalLinkIcon L107-136 은 실제 preventDefault 핸들러로 별도 클릭 타깃이라 별도 리팩터 사이클로 분리. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `재생` 결과 0건, `aria-label` 결과 'ExternalLinkIcon 원본 보기' 1건만 남음, PinCard.test.tsx L47 `screen.getByText(\"▶\")` 은 tag-agnostic 매칭)으로 대체. PR #33 squash merge(556b710). WHATWG HTML §4.5.1 · WAI-ARIA APG decorative icon 정렬."
 
