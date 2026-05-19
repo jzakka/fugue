@@ -535,6 +535,7 @@ export default function PinCreateForm() {
             value={tagSearch}
             onChange={(e) => setTagSearch(e.target.value)}
             placeholder="태그 검색..."
+            aria-label="태그 검색"
             className="w-full px-4 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors mb-3"
           />
 

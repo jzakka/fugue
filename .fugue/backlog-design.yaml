@@ -925,3 +925,24 @@ items:
     archive_path: "openspec/changes/archive/2026-05-18-modal-initial-focus-20260518"
     note: "처리 완료. VideoTrimModal.tsx +5 라인(useEffect L73-75 + tabIndex={-1} L156) / AddToBoardButton.tsx +6 라인(useEffect L124-127 + tabIndex={-1} L211). 두 modal 모두 `tabIndex={-1}` + `useEffect(() => { panelRef.current?.focus(); }, []);` 패턴 적용. 검증: grep tabIndex 두 파일 각 1건, panelRef.current?.focus 두 파일 각 1건. 기존 ref={panelRef} · role=dialog · aria-modal · aria-labelledby · className 유지, Escape/scroll lock/overlay click 닫기(cycle 70)/drag state 미수정, AddToBoardButton L316 conditional input autoFocus 미수정 확인. dev 서버 시각 검증은 Ralph 루프 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증으로 대체. cycle 56 decision-log 분리 보류 3건 중 두 번째 항목 처리 완료(Focus trap은 잔여)."
 
+  - id: "design-20260519-input-no-accessible-name"
+    title: "텍스트 입력 6곳이 <label>/aria-label 없이 placeholder만으로 라벨링되어 스크린리더 접근 이름이 없다 — WCAG 4.1.2 / 1.3.1 / 2.4.6 Level A"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:158-176"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:69-75"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:76-82"
+        - "apps/web/src/components/profile/MyPageClient.tsx:85-98"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:316-330"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:533-539"
+      cite: "루프 정체성(`prompts/loop-design.md` L7) 접근성 in-scope. WAI-ARIA Authoring Practices Guide — Textbox/Searchbox 패턴: 'The accessible name for the textbox comes from its label.' placeholder 텍스트는 accessible name이 아니다(WCAG 2.1 Understanding SC 4.1.2 Name, Role, Value). WCAG 2.1 SC 1.3.1 Info and Relationships / 2.4.6 Headings and Labels / 4.1.2 Level A 위반. 사이클 17(form-label-htmlfor-pairing)이 visible `<label>` + input 페어를 다뤘으나 visible label이 없는 standalone input(NavBar 검색·인라인 편집 토글·이름 입력)은 미해결 잔여."
+      repro: "grep -n 'aria-label' apps/web/src/components/nav/SearchBar.tsx → 0건. VoiceOver/NVDA로 (1) NavBar 검색창 (2) 보드 상세 편집 모드 이름·설명 두 input (3) MyPage '+ 새 보드' input (4) AddToBoardButton 모달 '새 보드 만들기' input (5) PinCreateForm '태그 검색...' input 포커스 시 접근 이름이 'edit text' 또는 placeholder 그대로만 안내됨. 처리 방식: 각 input에 `aria-label` 추가(visible label 없는 standalone이므로 `<label htmlFor>` 추가는 시각 영향 큼 — aria-label 단일 속성으로 충족). 6곳 × 1줄 = 6단계 변경."
+    qa_plan: "1) cd apps/web && npm run dev 후 5 화면(`/`, `/boards/<id>`, `/me`, AddToBoardButton 모달, `/pin/new`)에서 각 input에 포커스해 DevTools Accessibility 탭 'Name' 채워짐 확인. 2) 시각 변화 없음(border/color/placeholder 유지) 확인. 3) 동일 컴포넌트 사용 인접 화면 1개 회귀 점검."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 1
+    score: 6.0
+    status: in_progress
+
