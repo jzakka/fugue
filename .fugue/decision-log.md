@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] 장식적 유니코드 미디어 타입 심볼(▶/♪/◻)을 보조 기술에서 숨김
+결정/변경: 4 컨테이너에 `aria-hidden="true"` 1단어씩 추가 — `apps/web/src/components/feed/PinCard.tsx:98` (video card play overlay 부모 div) / `apps/web/src/app/pins/[id]/page.tsx:54` (audio MediaPlayer header div) / `apps/web/src/app/pin/new/PinCreateForm.tsx:381` (audio file preview span) / `apps/web/src/components/nav/SearchBar.tsx:282` (search result fallback icon div). PR #32 squash merge(45ac085).
+이유: WAI-ARIA Authoring Practices Guide — decorative icon 패턴 "아이콘이 visible text label과 함께 표시되는 경우 아이콘에 `aria-hidden=\"true\"`를 적용해 보조 기술이 텍스트만 읽도록 한다." WCAG 2.1 SC 1.1.1 Non-text Content (Level A): "순수 장식 요소는 보조 기술이 무시할 수 있어야 한다." 4곳 모두 같은 컨테이너 또는 부모에 visible text(pin.title · creator.nickname · file.name · getMediaTypeLabel)가 있어 ▶/♪/◻ 심볼이 SR에 "right-pointing triangle / musical note / white square"로 추가 안내되던 노이즈 제거. PR #31 (avatar img alt="")이 정렬한 'decorative + 인접 visible text' 패턴을 비-img 컨테이너로 확장.
+영향 범위: 4 파일 각 1줄 `aria-hidden="true"` 속성 추가만. className · DOM 구조 · 자식 콘텐츠 · 부모 Link/button 핸들러 모두 미수정 → 시각 회귀 0. PinCard L65-69 audio play button(▶ + `aria-label="재생"`)은 ARIA override로 SR이 라벨만 읽어 정상이므로 본 변경 범위 밖. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep ▶♪◻ 5건 중 audio button override 1건 제외 4건 모두 부모 컨테이너 aria-hidden 정렬 확인)으로 대체.
+
 ## 2026-05-19 — [design] 프로필 아바타 img 중복 alt 텍스트를 장식(alt="")으로 정렬
 결정/변경: 3 파일의 아바타 `<img>` 태그에서 `alt={...nickname}` → `alt=""` 1단어씩 교체 — `apps/web/src/components/profile/ProfileHeader.tsx:20` / `apps/web/src/app/search/SearchClient.tsx:318` / `apps/web/src/app/pins/[id]/page.tsx:203`. PR #31 squash merge(35e91d0).
 이유: WCAG 2.1 SC 1.1.1 Non-text Content (Level A) "If non-text content is pure decoration ... it is implemented in a way that it can be ignored by assistive technology." WAI-ARIA Authoring Practices Guide — Image Pattern: 장식 이미지는 `alt=""`. W3C alt 결정 트리: 인접 텍스트가 동일 정보를 제공하면 이미지는 장식. 본 3곳 모두 같은 컨테이너 안 visible nickname text(ProfileHeader L32-34 h1 · SearchClient L325-327 div · pins/[id] L209-211 span)가 항상 화면에 표시되어 스크린리더가 nickname을 두 번 읽는 결함. PinCard.tsx L171-186이 동일 패턴(아바타 img + 인접 nickname text)에서 이미 `alt=""`를 사용해 in-codebase precedent 확립.
