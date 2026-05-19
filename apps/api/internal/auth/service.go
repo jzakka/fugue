@@ -111,7 +111,7 @@ func (s *Service) findOrCreateWithEmail(ctx context.Context, profile *UserProfil
 	nickname := truncateNickname(profile.Nickname)
 	newCreator, err := q.CreateCreatorFromOAuthOnConflict(ctx, db.CreateCreatorFromOAuthOnConflictParams{
 		Nickname:  nickname,
-		AvatarUrl: toNullString(profile.AvatarURL),
+		AvatarUrl: toNullString(truncateAvatarURL(profile.AvatarURL)),
 		Email:     toNullString(email),
 	})
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *Service) createNewCreator(ctx context.Context, profile *UserProfile, pr
 	q := db.New(s.db)
 	creator, err := q.CreateCreatorFromOAuth(ctx, db.CreateCreatorFromOAuthParams{
 		Nickname:  nickname,
-		AvatarUrl: toNullString(profile.AvatarURL),
+		AvatarUrl: toNullString(truncateAvatarURL(profile.AvatarURL)),
 		Email:     toNullString(email),
 	})
 	if err != nil {
@@ -296,6 +296,22 @@ func truncateNickname(name string) string {
 	r := []rune(name)
 	if len(r) > 50 {
 		r = r[:50]
+	}
+	return string(r)
+}
+
+// truncateAvatarURL caps profile avatar URLs at 500 runes to match
+// creators.avatar_url VARCHAR(500). OAuth providers (notably Google) can return
+// signed profile picture URLs that grow past 500 chars with accumulated size/
+// crop/signature params; without truncation the creators INSERT fails with
+// `value too long for type character varying(500)` and first-login is blocked
+// for that user. Silent truncation parallels truncateNickname above and the
+// bot harvester's truncateRunes — external-system ingress applies silent
+// truncate per .fugue/decision-log.md 2026-05-19 cycle 10.
+func truncateAvatarURL(url string) string {
+	r := []rune(url)
+	if len(r) > 500 {
+		r = r[:500]
 	}
 	return string(r)
 }
