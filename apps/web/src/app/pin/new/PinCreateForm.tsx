@@ -378,7 +378,7 @@ export default function PinCreateForm() {
               )}
               {file!.type.startsWith("audio/") && (
                 <div className="p-4 bg-surface-elevated flex items-center gap-3">
-                  <span className="text-2xl">♪</span>
+                  <span aria-hidden="true" className="text-2xl">♪</span>
                   <span className="text-sm truncate flex-1">{file!.name}</span>
                 </div>
               )}
