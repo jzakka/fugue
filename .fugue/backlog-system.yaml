@@ -1493,7 +1493,7 @@ items:
     effort: 1
     risk: 1
     score: 9.0
-    status: pending
+    status: done
     note: |
       Discovery 모드 발굴 — cycles 7-10 user-facing input validation 패턴의
       외부 ingress 짝(OAuth provider 응답 → DB VARCHAR cap). Processing 모드
@@ -1503,3 +1503,22 @@ items:
       profile.AvatarURL))` 호출. email truncation은 RFC 5321(254) 내라 별도
       후보. 단위 테스트: service_test.go 또는 신규 truncate_test.go에 cap+1/
       cap/공백/한국어 멀티바이트 케이스.
+    resolution: |
+      2026-05-19 cycle 12 (Processing) 종결. 변경 요약:
+      - apps/api/internal/auth/service.go: `truncateAvatarURL(url string) string`
+        헬퍼 신설(rune cap 500, truncateNickname과 동일한 []rune slice 알고리즘).
+        `findOrCreateWithEmail` L114·`createNewCreator` L149 두 호출부에서
+        `toNullString(truncateAvatarURL(profile.AvatarURL))` 래핑 적용.
+      - apps/api/internal/auth/truncate_test.go(신규): 6 케이스(below cap/at cap/
+        above cap/멀티바이트 above cap/empty/truncateNickname 정책 parity)
+        모두 PASS.
+      - openspec/specs/auth/spec.md SSoT: "OAuth 프로필 필드 길이를 creators
+        컬럼 cap에 맞춰 절단한다" Requirement + 4 Scenario 추가.
+      - openspec/changes/fix-auth-create-creator-avatar-url-truncate/ →
+        openspec/changes/archive/2026-05-19-fix-auth-create-creator-avatar-url-truncate/
+        아카이브.
+      실 환경 QA(throwaway tool로 실 PostgreSQL 대상 6 케이스 실행):
+      T1(raw 600-char raw INSERT reject) OK / T2(600→500 truncated INSERT 성공)
+      OK / T3(500 boundary 무손실) OK / T4(80-char 정상 보존) OK / T5(가×500 rune
+      = 1500 byte 정상 저장) OK / T6(empty → NULL) OK. 인접 엔드포인트(health,
+      providers, login) 회귀 없음. PR & main merge: cycle 12 종료 시 등록.
