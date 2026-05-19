@@ -861,3 +861,96 @@ items:
     status: done
     pr: 43
     note: "archived as openspec/changes/archive/2026-05-19-fix-pin-mime-content-type-spoof. pin capability에 Requirement `MIME 타입 위조 방지는 storage 레이어에서 declared와 sniff의 불일치 거부로 enforce된다` 추가(5 Scenarios). storage.Upload 내부에 normalizeMIME 헬퍼(6쌍 alias + lowercase + trim) + declared vs sniff 비교 분기 신설로 WebM-as-PNG 위조 등 silent bypass route 차단. QA 중 발견된 audio/wave→audio/wav allowlist 미스 회귀도 동일 헬퍼로 sniff 결과 canonical 변환하여 대칭 해소. storage_test.go 12 케이스. 실 환경 QA 8/8 spec 부합 + DB 위조 row 0건."
+
+  - id: system-20260519-snapshot-fail-spec-conflict-bot-vs-pioneer
+    title: "스냅샷 저장 실패 시 fetch 보고 의미가 bot/spec.md(fail-open)와 pioneer/spec.md(fail-closed)에서 정반대 SHALL로 충돌"
+    area: openspec-gap
+    evidence:
+      files:
+        - "openspec/specs/bot/spec.md:655-668"
+        - "openspec/specs/pioneer/spec.md:68-77"
+        - "openspec/specs/pioneer/spec.md:107-109"
+        - "apps/api/internal/bot/pioneer_consumer.go:171-178"
+        - "apps/api/internal/bot/pioneer_consumer.go:227-237"
+      cite: |
+        bot/spec.md L655 Requirement "스냅샷 저장 실패는 fail-open으로 처리한다":
+          "object storage 업로드가 실패하더라도 Pioneer의 크롤 진행을 중단시키지
+           않아야 한다(SHALL). ... URLScheduler 상 해당 URL은 fetch 성공으로
+           취급되어 재시도 큐에 들어가지 않는다" (Scenario L666-668).
+
+        pioneer/spec.md L68 Requirement "Pioneer는 실패 시 SetStatus +
+        RecordFetchError 둘 다 호출한다":
+          Scenario "snapshot 저장 실패도 실패로 보고" (L75-77):
+            "Pioneer가 HTTP fetch에는 성공했으나 snapshot 저장에 실패했을 때
+             THEN scheduler.SetStatus(url, 'fetch_failed', nil) +
+             scheduler.RecordFetchError(url, 'network')를 호출 ... (부분 성공을
+             'fetched'로 보고하지 않는다)"
+          + L107-109 errorKind 분류표 "snapshot 저장 실패 → network".
+
+        같은 openspec/specs/ 디렉터리 안 두 capability 스펙이 동일 시나리오
+        (HTTP fetch 성공 + snapshot put 실패)에 대해 정반대 SHALL을 진술.
+        production 코드는 pioneer/spec.md를 따른다.
+      repro: |
+        1. grep으로 두 SHALL 동시 확인:
+           - `grep -n "fail-open" openspec/specs/bot/spec.md`
+             → L655 Requirement 헤더, L658-668 세 Scenario.
+           - `grep -n "snapshot 저장 실패도 실패로 보고\|snapshot 저장 실패" openspec/specs/pioneer/spec.md`
+             → L75 Scenario, L108 분류표.
+        2. 코드 검증:
+           apps/api/internal/bot/pioneer_consumer.go:171-178 —
+             `if err := p.snapshotStore.Put(...); err != nil {
+                log.Printf("WARN ...snapshot put failed...");
+                p.reportFailure(rawURL, scheduler.ErrorNetwork);
+                return
+              }`
+           즉시 return + reportFailure → pioneer/spec.md 준수, bot/spec.md
+           Scenario "업로드 실패가 스케줄러 상태에 영향 없음" / "업로드 실패 시
+           크롤 계속"(링크 추출·후속 큐 처리 진행) 위반.
+        3. git log -S로 두 Requirement의 commit 시점 확인 (bot: de53c4c
+           2026-04-19, pioneer: 6da4061 2026-04-20). 더 늦은 pioneer 쪽으로
+           코드가 합쳐졌으나 bot/spec.md 측 fail-open 블록은 정리되지 않고
+           잔존 → 두 SHALL이 공존하여 어느 쪽이 SSoT인지 결정 불가.
+        4. 결정 옵션:
+           (A) pioneer/spec.md fail-closed가 SSoT. bot/spec.md L655-668
+               Requirement 통째로 삭제(또는 "pioneer/spec.md로 위임" 한 줄
+               유지). 코드 변경 0건.
+           (B) bot/spec.md fail-open이 SSoT. pioneer/spec.md L75-77 Scenario
+               + L108 errorKind 분류표 1행 삭제. 코드는 pioneer_consumer.go
+               L171-178을 snapshot put 실패 시 reportFailure 대신 WARN 로그만
+               남기고 EnqueueHarvester 단계로 진행하도록 수정 — 단, snapKey
+               없이는 EnqueueHarvester가 불완전 호출이 되므로 별도 설계 필요.
+           (C) 두 분기 구분: 일시 장애(5xx/timeout)는 fail-open, 영구 장애
+               (4xx/credential)는 fail-closed. 두 스펙 모두 부분 개정.
+        루프는 사용자에게 묻지 않으므로 needs_decision으로 두고 종료.
+    qa_plan: |
+      (needs_decision 단계라 본 항목은 QA 대상이 아님. 사용자 결정 후
+       Processing 모드 진입 시 사용할 절차:)
+      옵션 A 채택 시:
+        1. bot/spec.md L655-668 삭제 또는 pointer 한 줄로 축소.
+        2. openspec validate로 spec 정합성 확인.
+        3. 코드 변경 없으므로 회귀 QA는 기존 pioneer 동작 1회 재확인:
+           - localstack/minio Put을 의도적으로 503으로 실패시키고
+             docker-compose 환경에서 Pioneer 1회 실행.
+           - DB `pioneer_frontier`에서 해당 url_hash row의 fetch_error_count
+             가 1 증가, next_fetch_at가 backoff 적용된 미래 시각인지 psql로
+             직접 관찰.
+      옵션 B 채택 시:
+        1. pioneer/spec.md L75-77 Scenario + L108 분류표 행 삭제 + ADDED
+           "snapshot 저장 실패는 fetch 성공으로 취급" Scenario.
+        2. pioneer_consumer.go L171-178을 WARN-only로 변경하고 snapKey 없는
+           상태에서 EnqueueHarvester를 어떻게 호출할지(skip vs sentinel key)
+           재설계 — 사용자 추가 결정 필요.
+        3. 실 환경 QA: Put 실패 후 동일 row가 SetStatus(fetched)로 마감되어
+           365일 backoff 적용되는지 psql 직접 관찰.
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: needs_decision
+    note: |
+      Discovery 모드 단독 산출물. 두 spec.md 동시 인용으로 인용 자체가 모호
+      해지므로 Processing 모드에서 자체 리뷰 reject 조건 #2(인용 스펙/문서가
+      모호·자의적)에 해당 — 사용자 결정 전까지 status를 pending으로 승급하지
+      않는다. 결정이 옵션 A(코드 변경 0)면 spec 정리 change 1건으로 마감
+      가능, 옵션 B/C면 별도 설계 사이클 필요.
