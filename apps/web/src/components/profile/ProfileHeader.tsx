@@ -17,7 +17,7 @@ export default function ProfileHeader({
           {creator.avatar_url ? (
             <img
               src={creator.avatar_url}
-              alt={creator.nickname}
+              alt=""
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-border object-cover"
             />
           ) : (

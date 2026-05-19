@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] 프로필 아바타 img 중복 alt 텍스트를 장식(alt="")으로 정렬
+결정/변경: 3 파일의 아바타 `<img>` 태그에서 `alt={...nickname}` → `alt=""` 1단어씩 교체 — `apps/web/src/components/profile/ProfileHeader.tsx:20` / `apps/web/src/app/search/SearchClient.tsx:318` / `apps/web/src/app/pins/[id]/page.tsx:203`. PR #31 squash merge(35e91d0).
+이유: WCAG 2.1 SC 1.1.1 Non-text Content (Level A) "If non-text content is pure decoration ... it is implemented in a way that it can be ignored by assistive technology." WAI-ARIA Authoring Practices Guide — Image Pattern: 장식 이미지는 `alt=""`. W3C alt 결정 트리: 인접 텍스트가 동일 정보를 제공하면 이미지는 장식. 본 3곳 모두 같은 컨테이너 안 visible nickname text(ProfileHeader L32-34 h1 · SearchClient L325-327 div · pins/[id] L209-211 span)가 항상 화면에 표시되어 스크린리더가 nickname을 두 번 읽는 결함. PinCard.tsx L171-186이 동일 패턴(아바타 img + 인접 nickname text)에서 이미 `alt=""`를 사용해 in-codebase precedent 확립.
+영향 범위: 3 파일 각 1줄 alt 속성 값 변경만. 컨테이너 className · w-h 크기 · border · object-cover · group-hover 동작 모두 미수정 → 시각 회귀 0. NavBar.tsx L42는 visible nickname span이 `hidden sm:block`이라 모바일에서 alt가 유일한 Link 접근 이름 — 본 변경 범위 밖(별도 cycle에서 Link aria-label 추가 패턴 필요). PinCreateForm:490 og preview·PinCard:49/85 main media는 인접 visible title 없거나 콘텐츠 자체 묘사라 본 범위 밖. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(diff 3 lines · grep alt={...nickname} 후 NavBar 1건만 남음)으로 대체.
+
 ## 2026-05-19 — [design] --font-display 토큰에 한글 fallback 추가
 결정/변경: `apps/web/src/app/globals.css:56` `--font-display: 'General Sans', sans-serif;` → `--font-display: 'General Sans', 'Pretendard Variable', sans-serif;`로 1 단어 추가. PR #30 squash merge(e590665).
 이유: DESIGN.md L17 "Display/Hero: General Sans 700 — 기하학적이면서 개성 있음. 한글 대체: Pretendard Bold" SSoT 직접 인용. General Sans는 Fontshare API에서 Latin 글리프만 제공(layout.tsx L27 `general-sans@500,700`)하므로 한글 텍스트가 `font-display` 적용 영역(보드/프로필 헤더 등 h1 한글 nickname·name)에서 시스템 sans-serif로 떨어지고 있었음. Pretendard Variable은 layout.tsx L23에서 이미 로딩 중이라 별도 네트워크 비용 없음(가변 폰트라 weight 700 그대로 적용).
