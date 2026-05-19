@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] PinCreateForm 미디어 파일 dropzone 의 키보드 작동성 회복
+결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` L330-344 dropzone `<div onClick={...}>` 에 4 attribute + onKeyDown 핸들러 추가(diff +9 -0). `role="button"` / `tabIndex={0}` / `aria-label="미디어 파일 선택"` / `onKeyDown`(Enter/Space 시 `e.preventDefault()` + 기존 onClick 과 동일 `fileInputRef.current?.click()` 호출). PR #35 squash merge.
+이유: WAI-ARIA Authoring Practices Guide § Button Pattern — '버튼이 아닌 HTML 요소(예: `<div>`)가 버튼으로 사용되는 경우 (1) `role="button"`, (2) accessible name, (3) Enter/Space 키 핸들러, (4) `tabindex` 모두 구현해야 한다.' WCAG 2.1 SC 2.1.1 Keyboard (Level A) — 'All functionality of the content is operable through a keyboard interface.' 변경 전 dropzone div 는 Tab 도달 불가 + Enter/Space 작동 안 함 + SR 이 button 시맨틱 인식 못함 → 키보드 사용자가 핀 생성 자체가 완전 불가능(미디어 업로드 시작 점이 키보드 비접근)이던 결함. archive/2026-05-15-search-dropdown-keyboard-a11y(SearchBar 드롭다운 5종 시맨틱 정렬) 동일 라인업의 폼 영역 확장.
+영향 범위: PinCreateForm.tsx 단일 파일 9 줄 추가. 기존 onClick 그대로 유지 → 마우스 사용자 회귀 0. className(border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors) 미변경 + 자식 div 3개(📁 / '클릭하여 파일을 선택하세요' / '이미지 / 오디오 / 비디오' / 부연) 미수정 → 시각 회귀 0. focus-visible 시각 표시(WCAG SC 2.4.7 Level AA)는 별도 후보로 분리(본 변경은 SC 2.1.1 Level A 키보드 작동만 충족). 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep 4건 모두 의도대로 부착 + 기존 onClick 미변경 확인)으로 대체. 코드베이스 내 div onClick 패턴은 본 케이스가 유일(grep 결과 다른 곳은 모두 button 또는 Link 시맨틱 사용).
+
 ## 2026-05-19 — [design] PinCreateForm 제목 필수 필드의 'required' 상태를 보조 기술에 노출
 결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` 2 attribute 추가(diff +2 -1) — L436 visible `*` span 에 `aria-hidden="true"`(SR 의 'star' 발음 회피) + L445 input element 에 `aria-required="true"`(SR 에 'required' 안내). PR #34 squash merge.
 이유: WAI-ARIA Authoring Practices Guide § Providing Accessible Names (Forms) — '필수 필드는 `aria-required="true"` 또는 HTML `required` 속성으로 보조 기술에 필수 상태를 노출해야 한다. 시각적 표시기(예: 별표)만 제공하면 시각 사용자에게만 의미가 전달된다.' WCAG 2.1 SC 1.3.1 Info and Relationships (Level A) — '시각적으로 전달된 구조와 관계는 보조 기술이 프로그래밍 방식으로 결정 가능해야 한다.' 변경 전 visible `*` 만으로 필수 표시되어 SR 이 'pin title star, edit text' 형태로 'star' 발음 + 'required' 안내 없음. HTML `required` 대신 `aria-required` 를 선택한 이유는 기존 `handleSubmit` 커스텀 validation(L253 `!title.trim()` → 에러 분기) 경로를 그대로 유지하면서 browser native validation popup 미트리거.
