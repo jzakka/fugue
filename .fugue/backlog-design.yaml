@@ -1007,3 +1007,21 @@ items:
     pr: 32
     note: "처리 완료. PinCard.tsx:98 (video card play overlay 부모 div) · pins/[id]/page.tsx:54 (audio MediaPlayer header div) · PinCreateForm.tsx:381 (audio file preview span) · SearchBar.tsx:282 (search result fallback icon div) 4 컨테이너에 `aria-hidden=\"true\"` 1단어씩 추가(4 파일 각 1줄, 총 diff 4 lines). 네 위치 모두 같은 컨테이너 또는 부모 안에 visible text(pin.title · creator.nickname · file.name · getMediaTypeLabel)가 있어 WAI-ARIA APG decorative icon 패턴에 해당. PinCard.tsx L65-69 audio play button(▶ + aria-label=\"재생\")은 ARIA override로 SR이 라벨만 읽어 정상이므로 본 범위 밖. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep ▶♪◻ 5건 중 audio button override 1건 제외 4건 모두 aria-hidden 부모 정렬, diff 4 lines · 모두 attribute 1개 추가)으로 대체. PR #32 squash merge(45ac085). WCAG 2.1 SC 1.1.1 Level A · WAI-ARIA APG decorative icon 정렬."
 
+  - id: "design-20260519-pincard-audio-button-nested-in-link"
+    title: "PinCard 오디오 카드의 `<button aria-label=\"재생\">▶</button>`이 onClick 없이 `<Link>` 안에 중첩되어 HTML interactive content model 위반 + 오해 소지의 SR 안내"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:64-69"
+        - "apps/web/src/components/feed/PinCard.tsx:144-209 (Link 컨텍스트)"
+        - "apps/web/src/components/feed/PinCard.tsx:98-102 (video overlay 비교 대상)"
+      cite: "WHATWG HTML Living Standard §4.5.1 Anchor element content model: 'Transparent, but there must be no interactive content descendant, a element descendant, or descendant with the tabindex attribute specified.' `<button>`은 interactive content이므로 `<a>` 자손 위치에 올 수 없다. WAI-ARIA APG Button Pattern: '버튼의 accessible name은 그 button이 작동시킬 행동을 정확히 안내해야 한다.' 본 button은 onClick·type 모두 없고 함수형 동작이 부재 — 클릭 시 부모 Link로 이벤트 버블되어 단순히 /pins/<id>로 라우팅되므로 aria-label='재생'은 misleading. In-codebase precedent: PinCard.tsx L98-102 video card play overlay는 동일 '카드 본질을 시각적으로 지시하는 미디어 타입 인디케이터' 패턴이지만 `<div>`로 구현되어 PR #32에서 `aria-hidden=\"true\"` 추가로 SR에서 제외됨. DESIGN.md L83 'Audio card: 웨이브폼 시각화 + 미묘한 그라디언트 배경 + 재생 버튼' SSoT는 '재생 버튼'의 시각 형태만 명시할 뿐 HTML `<button>` 함수형 동작을 강제하지 않음."
+      repro: "1) grep -n '재생' apps/web/src/components/feed/PinCard.tsx → L65 단 1건. 2) PinCard 코드 L64-69 button에 onClick 없음 + L144 Link wraps L149 AudioSection 확인. 3) VoiceOver/NVDA로 오디오 핀 카드 포커스 시 'Test Pin link, 재생 button' 형태로 SR이 '재생 button'을 별도 인터랙티브로 안내하지만, 사용자가 그 button 위에서 Enter 누르면 (button onClick 없음) 부모 Link 동작으로 /pins/<id> 라우팅 → '재생'이 아니라 단순 페이지 이동. 4) HTML validator(W3C Nu Validator)로 PinCard 출력 검사 시 'Element button must not appear as a descendant of element a' 위반. 5) 처리: `<button aria-label=\"재생\" className=\"...\">▶</button>` → `<span aria-hidden=\"true\" className=\"...\">▶</span>` 1 태그+2 attribute 교체. Tailwind className(w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0) 그대로 유지(span에 flex/w-h 적용 가능). 시각 변화 0. 함수형 동작 0(원래도 onClick 없었음). 테스트 파일 PinCard.test.tsx L47 `screen.getByText('▶')`은 태그 무관 텍스트 매칭이라 회귀 없음."
+    qa_plan: "1) cd apps/web && npm run dev 후 /feed 또는 보드 페이지에서 오디오 핀 카드 포커스 — VoiceOver/NVDA로 '재생 button' 별도 안내가 사라지고 Link 한 개만 안내되는지 확인. 2) 시각 변화 없음(button → span 태그 변경 + className 동일 유지) — 동일 스크린샷 차이 0. 3) DevTools Accessibility 트리에서 ▶ 노드가 aria-hidden=true로 마킹되어 트리에서 제외됨을 확인. 4) 키보드 Tab 순서에서 오디오 카드는 Link 1번만 stop받고 button stop이 사라지는지 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
