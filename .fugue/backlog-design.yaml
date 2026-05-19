@@ -944,5 +944,7 @@ items:
     effort: 2
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 29
+    note: "처리 완료. 6 input에 `aria-label` 추가 (SearchBar L175 '검색' / BoardActions L74 '보드 이름' · L82 '보드 설명' / MyPageClient L90 '새 보드 이름' / AddToBoardButton L321 '새 보드 이름' / PinCreateForm L538 '태그 검색'). placeholder/className/maxLength/autoFocus 미수정 → 시각 영향 없음. 검증: grep aria-label 6 파일 신규 6건 확인. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증으로 대체. PR #29 squash merge(2b8793d). cycle 17 form-label-htmlfor 페어 SSoT 정렬 + visible label 없는 standalone input 보강."
 

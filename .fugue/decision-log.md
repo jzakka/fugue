@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] visible label 없는 standalone 텍스트 input 6곳에 aria-label 추가
+결정/변경: 6 input에 `aria-label` 1줄씩 추가 — `apps/web/src/components/nav/SearchBar.tsx:175` "검색" / `apps/web/src/app/boards/[id]/BoardActions.tsx:74,82` "보드 이름"·"보드 설명" / `apps/web/src/components/profile/MyPageClient.tsx:90` "새 보드 이름" / `apps/web/src/components/board/AddToBoardButton.tsx:321` "새 보드 이름" / `apps/web/src/app/pin/new/PinCreateForm.tsx:538` "태그 검색". PR #29 squash merge(2b8793d).
+이유: WAI-ARIA Authoring Practices Guide — Textbox/Searchbox 패턴 "The accessible name for the textbox comes from its label." placeholder 텍스트는 accessible name이 아니다(WCAG 2.1 SC 4.1.2 Name/Role/Value · 1.3.1 Info and Relationships · 2.4.6 Headings and Labels — 모두 Level A). cycle 17(form-label-htmlfor-pairing)은 visible `<label>` + input 페어를 다뤘으나 visible label이 없는 standalone input(NavBar 검색·인라인 편집 토글·이름 입력)은 미해결 잔여였음.
+영향 범위: 6 파일 각 1줄 aria-label 속성 추가만. placeholder · className · maxLength · autoFocus · 기존 ref/onKeyDown/onChange 핸들러 모두 미수정 → 시각 회귀 0. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep aria-label 6 건)으로 대체. cycle 17 visible-label 페어 결정과 상호 보완 관계(중복 없음, scope 분리).
+
 ## 2026-05-18 — [system] 핀 생성 라우트에 본문 상한(http.MaxBytesReader) 적용
 결정/변경: `apps/api/internal/pin/handler.go`에 패키지 변수 `requestBodyCap int64 = 500 << 20`을 도입하고 `Create` 진입 직후 `r.Body = http.MaxBytesReader(w, r.Body, requestBodyCap)`로 본문을 감싼 뒤 `r.ParseMultipartForm(requestBodyCap)` 결과를 `errors.As(err, &*http.MaxBytesError)`로 분기해 400 + "파일 크기가 제한을 초과했습니다" 응답을 추가. `requestBodyCap`은 단위 테스트가 cap-크기 버퍼 할당 없이 거절 경로를 검증할 수 있도록 const 대신 var로 선언(production에서는 mutate 안 함). OpenSpec change `fix-pin-create-request-body-cap` 머지(아카이브 `2026-05-18-fix-pin-create-request-body-cap`), `pin` capability의 기존 Requirement `미디어 파일을 업로드한다`에 Scenario `서버가 본문을 디스크에 스풀하기 전에 본문 상한으로 거절한다`를 추가.
 이유: `pin/spec.md` L26-28 "이중 검증 체계의 서버 방어선"이 디스크 스풀 이전 단계에서 발동해야 하지만, 기존 핸들러는 `r.ParseMultipartForm(500 << 20)`만 호출해 Go stdlib 문서가 명시한 대로 maxMemory(메모리/디스크 스풀 임계)만 설정할 뿐 본문 상한을 적용하지 않았다. 그 결과 클라이언트 검증을 우회한 50GB 본문이 디스크에 스풀된 뒤에야 storage.go의 크기 검사로 거절되어 디스크 자원 고갈 DoS 경로가 열려 있었다. `grep -rn "MaxBytesReader" apps/api/` 결과가 0건이라는 사실로 gap 확인.
