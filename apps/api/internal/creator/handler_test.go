@@ -8,8 +8,10 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -246,6 +248,160 @@ func TestUpdateMe_Unauthorized(t *testing.T) {
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", rec.Code)
+	}
+}
+
+// The following tests pin the ADDED Requirement "avatar_url 입력은
+// creators.avatar_url 컬럼 cap에 맞춰 사전 길이 검증된다" of the change
+// `fix-creator-update-avatar-url-input-length-validation`. They assert
+// that PUT /api/creators/me rejects avatar_url inputs exceeding the
+// VARCHAR(500) rune cap with 400 (UpdateCreator never called), accepts
+// boundary input, preserves the empty-string clear semantics, and
+// preserves the omitted-field merge semantics.
+
+func decodeUpdateMeError(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	var body map[string]string
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode error body: %v (raw=%q)", err, rec.Body.String())
+	}
+	return body["error"]
+}
+
+func TestUpdateMe_RejectsAvatarURLOverRuneCap(t *testing.T) {
+	c := sampleCreator()
+	mock := &mockQuerier{creator: c}
+	h := NewHandlerWithQuerier(mock)
+
+	over := strings.Repeat("A", 501)
+	body, err := json.Marshal(map[string]any{"avatar_url": over})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d, want 400", rec.Code)
+	}
+	if msg := decodeUpdateMeError(t, rec); msg != "아바타 URL은 500자 이내여야 합니다" {
+		t.Fatalf("error message: got %q, want %q", msg, "아바타 URL은 500자 이내여야 합니다")
+	}
+	if (mock.lastUpdate != db.UpdateCreatorParams{}) {
+		t.Fatalf("UpdateCreator must not be called on reject; lastUpdate=%+v", mock.lastUpdate)
+	}
+}
+
+func TestUpdateMe_RejectsAvatarURLOverRuneCapMultibyte(t *testing.T) {
+	// 한국어 501 rune ≈ 1503 byte. byte-count로 cap을 비교하면 정상 입력
+	// (가*167 = 501 byte)을 잘못 거부하거나 본 케이스를 통과시킨다.
+	// rune-count만이 PostgreSQL VARCHAR(500) 규칙과 일치.
+	c := sampleCreator()
+	mock := &mockQuerier{creator: c}
+	h := NewHandlerWithQuerier(mock)
+
+	over := strings.Repeat("가", 501)
+	body, err := json.Marshal(map[string]any{"avatar_url": over})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d, want 400", rec.Code)
+	}
+	if msg := decodeUpdateMeError(t, rec); msg != "아바타 URL은 500자 이내여야 합니다" {
+		t.Fatalf("error message: got %q, want %q", msg, "아바타 URL은 500자 이내여야 합니다")
+	}
+	if (mock.lastUpdate != db.UpdateCreatorParams{}) {
+		t.Fatalf("UpdateCreator must not be called on reject; lastUpdate=%+v", mock.lastUpdate)
+	}
+}
+
+func TestUpdateMe_AcceptsAvatarURLAtRuneCap(t *testing.T) {
+	c := sampleCreator()
+	atCap := strings.Repeat("A", 500)
+	updated := c
+	updated.AvatarUrl = sql.NullString{String: atCap, Valid: true}
+	mock := &mockQuerier{creator: c, updated: updated, workCount: 1}
+	h := NewHandlerWithQuerier(mock)
+
+	body, err := json.Marshal(map[string]any{"avatar_url": atCap})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+	if !mock.lastUpdate.AvatarUrl.Valid {
+		t.Fatalf("AvatarUrl.Valid: got false, want true")
+	}
+	if got := utf8.RuneCountInString(mock.lastUpdate.AvatarUrl.String); got != 500 {
+		t.Fatalf("AvatarUrl rune length: got %d, want 500", got)
+	}
+}
+
+func TestUpdateMe_AcceptsAvatarURLEmptyAsClear(t *testing.T) {
+	c := sampleCreator()
+	updated := c
+	updated.AvatarUrl = sql.NullString{}
+	mock := &mockQuerier{creator: c, updated: updated, workCount: 1}
+	h := NewHandlerWithQuerier(mock)
+
+	body := `{"avatar_url":""}`
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+	if mock.lastUpdate.AvatarUrl.Valid {
+		t.Fatalf("empty-string avatar_url must be cleared (Valid=false); got %+v", mock.lastUpdate.AvatarUrl)
+	}
+}
+
+func TestUpdateMe_AcceptsAvatarURLOmitted(t *testing.T) {
+	c := sampleCreator()
+	mock := &mockQuerier{creator: c, updated: c, workCount: 1}
+	h := NewHandlerWithQuerier(mock)
+
+	body := `{"nickname":"새이름"}`
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+	if mock.lastUpdate.AvatarUrl != c.AvatarUrl {
+		t.Fatalf("omitted avatar_url must preserve current value; got %+v want %+v",
+			mock.lastUpdate.AvatarUrl, c.AvatarUrl)
 	}
 }
 

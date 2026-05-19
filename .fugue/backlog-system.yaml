@@ -1405,7 +1405,15 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    resolution: |
+      cycle 10 (2026-05-19): apps/api/internal/creator/handler.go UpdateMe의
+      `else` 분기(*req.AvatarURL != "")에 `utf8.RuneCountInString > 500 → 400
+      "아바타 URL은 500자 이내여야 합니다"` 추가. 빈 문자열 clear semantics와
+      avatar_url 누락 시 기존 값 보존 분기는 무영향. handler_test.go에 5건의
+      신규 unit test 추가(ASCII 501 reject, 한국어 501 reject, 500 boundary,
+      "" clear, 누락 시 보존). 실 환경 QA T1~T7 + T5a/T5b 모두 통과, DB length
+      ≤ 500 검증. PR: fix-creator-update-avatar-url-input-length-validation.
     note: |
       Discovery 모드 발굴 — 같은 area의 마지막 후보. Processing 모드 진입 시
       첫 단계는 (a) creator/handler.go:188 `req.AvatarURL != nil` 분기 안에
