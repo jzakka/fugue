@@ -1255,7 +1255,7 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
     note: |
       Discovery 모드 발굴 — 영역: 정합성(사용자 입력 ↔ DB VARCHAR cap).
       2026-05-19 archive fix-harvest-pipeline-title-truncate의 user-facing
@@ -1267,6 +1267,15 @@ items:
       (d) 기존 nickname/board name 검증(creator/handler.go:182, boards/handler.go:110)
       과 동일 패턴으로 정렬, (e) 단위 테스트는 pin/handler_test.go에 4 케이스
       (각 필드 cap+1, cap boundary 무손실).
+    resolution: |
+      2026-05-19 — apps/api/internal/pin/handler.go에 utf8.RuneCountInString
+      기반 4 필드 length 검증 추가(title 200 / description 500 / url 1000 /
+      og_image 1000), 각각 400 응답. 4 신규 단위 테스트(title ASCII 201/한국어 201
+      reject + ASCII 200/한국어 200 accept boundary)로 회귀 방지. 실 환경 QA:
+      curl로 4 필드 × ASCII/한국어 reject 8건, 4 필드 boundary accept 4건, 일반
+      입력 + GET /api/pins/{id} 회귀 1건씩 모두 통과. DB 확인 length(title)=200,
+      length(description)=500, length(url)=1000, length(og_image)=1000 정확.
+      OpenSpec archive/2026-05-19-fix-pin-create-input-length-validation/.
 
   - id: system-20260519-boards-handler-description-no-length-validation
     title: "POST/PUT /api/boards 핸들러가 description 사용자 입력 길이를 사전 검증하지 않아 VARCHAR(500) cap 초과 시 500 Internal Server Error"

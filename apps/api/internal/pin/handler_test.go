@@ -682,3 +682,120 @@ func TestCreate_PreservesGenericMultipartErrorMessage(t *testing.T) {
 		t.Fatalf("expected generic format error, got: %q", rec.Body.String())
 	}
 }
+
+// --- Input-length validation tests (spec: pin `핀 생성 요청의 텍스트 필드는 pins 컬럼 cap에 맞춰 사전 길이 검증된다`) ---
+//
+// These exercise the title rune-cap branch (handler.go: utf8.RuneCountInString(title) > 200 → 400).
+// The title check sits between the empty-title check and the media-file check, so it
+// rejects before any storage interaction. The accept-path tests verify the cap-boundary
+// input flows past the length check (a downstream "미디어 파일은 필수입니다" 400 confirms it).
+func TestCreate_RejectsTitleOverRuneCap(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	const boundary = "ttttt1"
+	body := bytes.NewBufferString(
+		"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"title\"\r\n\r\n" +
+			strings.Repeat("A", 201) + "\r\n" +
+			"--" + boundary + "--\r\n",
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+boundary)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "제목은 200자 이내여야 합니다") {
+		t.Fatalf("expected title-length error, got: %q", rec.Body.String())
+	}
+}
+
+// 멀티바이트(한국어) 201 rune title은 byte 길이가 603이지만 rune 단위로는 cap(200)을 초과해 거부되어야 한다.
+// utf8.RuneCountInString이 byte가 아닌 rune 단위로 비교한다는 D3 결정이 코드로 enforce되는지 검증한다.
+func TestCreate_RejectsTitleOverRuneCapMultibyte(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	const boundary = "ttttt2"
+	body := bytes.NewBufferString(
+		"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"title\"\r\n\r\n" +
+			strings.Repeat("가", 201) + "\r\n" +
+			"--" + boundary + "--\r\n",
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+boundary)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "제목은 200자 이내여야 합니다") {
+		t.Fatalf("expected title-length error, got: %q", rec.Body.String())
+	}
+}
+
+// title이 정확히 cap(200 rune)일 때는 길이 검증을 통과해야 한다. 통과 여부는 핸들러가 다음 단계인
+// 미디어 파일 검증으로 진행해 "미디어 파일은 필수입니다" 400을 반환하는 것으로 확인한다 — 제목 길이
+// 메시지가 응답에 포함되어 있지 않다면 boundary 비교가 `>`이며 cap 정확값은 무손실 통과한다는 뜻이다.
+func TestCreate_AcceptsTitleAtRuneCap(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	const boundary = "ttttt3"
+	body := bytes.NewBufferString(
+		"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"title\"\r\n\r\n" +
+			strings.Repeat("A", 200) + "\r\n" +
+			"--" + boundary + "--\r\n",
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+boundary)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 (media missing), got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "제목은 200자 이내여야 합니다") {
+		t.Fatalf("title at cap (200 ASCII) must pass length check, got: %q", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "미디어 파일은 필수입니다") {
+		t.Fatalf("expected downstream media-required error, got: %q", rec.Body.String())
+	}
+}
+
+func TestCreate_AcceptsTitleAtRuneCapMultibyte(t *testing.T) {
+	h := NewHandlerWithQuerier(&mockQuerier{})
+
+	const boundary = "ttttt4"
+	body := bytes.NewBufferString(
+		"--" + boundary + "\r\n" +
+			"Content-Disposition: form-data; name=\"title\"\r\n\r\n" +
+			strings.Repeat("가", 200) + "\r\n" +
+			"--" + boundary + "--\r\n",
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/pins", body)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+boundary)
+	req = req.WithContext(auth.WithCreatorID(req.Context(), uuid.New()))
+
+	rec := httptest.NewRecorder()
+	h.Create(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 (media missing), got %d (body=%q)", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "제목은 200자 이내여야 합니다") {
+		t.Fatalf("title at cap (200 한국어 rune ≒ 600 byte) must pass rune-based length check, got: %q", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "미디어 파일은 필수입니다") {
+		t.Fatalf("expected downstream media-required error, got: %q", rec.Body.String())
+	}
+}
