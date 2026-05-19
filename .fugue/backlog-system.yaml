@@ -739,3 +739,123 @@ items:
       docker pause postgres 시 500 응답 + DB error 로그 모두 확인. 단위 테스트는 핸들러가 `*sql.DB`를
       직접 받는 구조라 querier 인터페이스 surface 도입이 별개 카테고리 변경이므로 본 사이클 범위 밖으로
       보류 — 회귀 방지는 실 환경 QA로 대체.
+
+  - id: system-20260519-pin-mime-content-type-spoof-not-rejected
+    title: "POST /api/pins가 multipart 파트의 declared Content-Type과 sniff된 실제 MIME 불일치를 검증하지 않아 `MIME 타입 위조 방지` SHALL이 enforce되지 않는다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:143"
+        - "apps/api/internal/pin/handler.go:148"
+        - "apps/api/internal/pin/handler.go:270"
+        - "apps/api/internal/storage/storage.go:120-139"
+      cite: |
+        openspec/specs/pin/spec.md Requirement `미디어 타입을 자동 감지한다` (L238-247)
+        - Scenario "MIME 타입 기반 자동 분류" (L241-243):
+            WHEN 파일이 업로드되면
+            THEN 업로드된 파일의 실제 형식을 검증하여 미디어 타입(image/audio/video)을 결정한다
+        - Scenario "MIME 타입 위조 방지" (L245-247):
+            WHEN Content-Type과 실제 파일 내용이 일치하지 않으면
+            THEN 유효성 검사 오류가 반환된다
+
+        두 Scenario를 함께 읽으면 SHALL의 의도는 명확하다. 자동 분류는 sniff된 실제 형식으로
+        하고, 그와 별도로 클라이언트가 표기한 Content-Type과 sniff 결과가 불일치하면
+        오류를 반환해야 한다. "유효성 검사 오류"는 silent fallback이 아닌 명시적 거부 응답.
+
+        현재 코드 동작:
+        - `apps/api/internal/pin/handler.go:143` `contentType := header.Header.Get("Content-Type")` —
+          multipart part의 declared Content-Type을 그대로 수신.
+        - L148 `if strings.HasPrefix(contentType, "video/") { ... }` — declared 값을 신뢰해
+          비디오 분기 진입을 결정. sniff 결과와 비교하지 않음.
+        - L270 `h.store.Upload(r.Context(), header.Filename, contentType, uploadSize, uploadBody)` —
+          declared 값을 storage에 그대로 전달.
+        - `apps/api/internal/storage/storage.go:120-139` `Upload`:
+            * L127 `detected := http.DetectContentType(buf[:n])` — 첫 512바이트로 sniff.
+            * L131-134 `mime := detected; if mime == "application/octet-stream" && contentType != "" { mime = contentType }` —
+              octet-stream fallback 시에만 declared를 사용.
+            * L136-139 `mt, ok := allowedMIME[mime]; if !ok { return error }` — sniff 결과만 allowlist 검증.
+            * **declared contentType과 sniff된 detected 값을 비교하는 분기 없음.**
+        - `grep -rn "DetectContentType" apps/api/internal/storage/ apps/api/internal/pin/` →
+          storage.go:127 1건이 유일한 sniff 지점. handler에는 sniff/비교 코드 없음.
+      repro: |
+        직접 위조 케이스 (Scenario "MIME 타입 위조 방지" 직접 위반):
+        1. 인증된 유저가 PNG 이미지 파일을 multipart/form-data로 POST /api/pins에 업로드.
+           media 파트 헤더에 `Content-Type: video/mp4` 위조 표기.
+        2. handler.go L143 `contentType = "video/mp4"`. L148 `strings.HasPrefix(contentType, "video/")`
+           true → 비디오 처리 분기 진입.
+        3. 비디오 분기에서 origTmpPath에 PNG 바이트 그대로 저장. probeDuration(PNG) 호출 →
+           ffprobe 실패. handler.go L248 probeErr fail-closed 가드(2026-05-19-fix-pin-video-no-trim-probe-fail-reject)
+           로 400 반환. **이 경로는 우연히 fail-closed로 막힘.**
+
+        반대 방향 위조 케이스 (15초 초과 거부 SHALL 우회로 더 심각):
+        1. 인증된 유저가 16초짜리 WebM 비디오를 POST /api/pins에 업로드.
+           media 파트 헤더에 `Content-Type: image/png` 위조 표기.
+        2. handler.go L143 `contentType = "image/png"`. L148 false → 비디오 처리 분기 건너뜀.
+           uploadSize=header.Size, uploadBody=raw file 그대로 storage.Upload로 진행.
+        3. storage.go L127 `http.DetectContentType` → "video/webm" sniff. L131 `mime = "video/webm"`.
+           L136 `allowedMIME["video/webm"]` → `MediaVideo`. L142 size check 통과(100MB 이하).
+        4. L158 `s3.PutObject(..., ContentType: aws.String("video/webm"), ...)` — sniff 결과로
+           S3에 video로 저장. result.MediaType = "video". CreatePin에 `MediaType: "video"` 인서트.
+        5. handler.go L312-320 정상 응답 201 + 새 핀(media_type="video"). **15초 초과 비디오가
+           트림 없이 video로 저장됨.** Scenario "구간 정보 없이 15초 초과 비디오 업로드"의
+           거부 SHALL이 declared Content-Type 위조로 우회됨 (no-trim 거부 가드 자체에 도달 못함).
+
+        Audio 동의 케이스도 동일 패턴 가능: WAV 파일을 `Content-Type: image/jpeg`로 표기 →
+        storage에서 audio/wav로 sniff → audio로 저장. spec L99 "WAV/FLAC에서 압축 포맷으로 변환"
+        SHALL이 우회되어 원본 WAV 그대로 저장.
+
+        고정형 수정안 후보(propose에서 결정):
+        - 옵션 A (handler 자체 검증): pin.Create에서 storage.Upload 호출 후 result.MediaType과
+          declared contentType(L143)의 prefix(image/audio/video)를 비교. 불일치 시 핀 INSERT
+          전에 400 반환 + 업로드된 객체 삭제. handler 내부 단발 변경.
+        - 옵션 B (storage 검증): storage.Upload 시그니처에 declaredType 추가. mime != declared(normalized)
+          시 에러 반환. 호출자(pin/handler.go 1곳, 다른 호출자 없음 — `grep "store.Upload" apps/api/`
+          로 확인 필요)에서 declared 전달.
+        - 옵션 C (storage normalization): storage.Upload 내부에서 sniff된 detected와 contentType
+          인자를 비교. 비어 있지 않고 정규화 후 불일치하면 "validation: content type mismatch" 에러.
+          handler는 이미 contentType을 전달하므로 시그니처 변경 0.
+
+        검증 시 normalization 필요(false positive 회피):
+        - 동의 MIME: image/jpg ↔ image/jpeg, audio/x-wav ↔ audio/wav 등.
+        - 비어 있는 declared(브라우저가 표기 안 함, curl raw): skip하거나 sniff에 의존
+          (현재 동작 유지). spec L246은 "일치하지 않으면" 거부를 요구하므로 "표기 안 함"은
+          비교 자체 미실행으로 해석 가능.
+        - octet-stream fallback(storage.go L132-134)은 이미 declared를 신뢰하므로 같은 분기에서
+          mismatch 검증 추가 시 의미 충돌 없음.
+
+        anti-patterns.md 매칭 없음(L15는 helm/terraform/docker-compose 한정). in-progress changes
+        (fix-harvester-*, fix-scheduler-*)와 capability 무관. 직전 archive 두 건
+        (fix-pin-create-request-body-cap, fix-pin-video-no-trim-probe-fail-reject)은 같은 핸들러를
+        만지지만 결함 카테고리(본문 상한·probe fail-closed)와 무관한 별개 SHALL.
+    qa_plan: |
+      실 환경 QA(처리 모드 §7):
+      1. `docker-compose up -d` (DB/Redis/MinIO), `cd apps/api && go run cmd/server/main.go`. 로그인 후 JWT 확보.
+      2. 정상 케이스(회귀 방지):
+         - PNG 업로드 (브라우저처럼 정확한 Content-Type: image/png) → 201 + media_type=image.
+         - MP3 업로드 (Content-Type: audio/mpeg) → 201 + media_type=audio.
+         - 10초 MP4 업로드 (Content-Type: video/mp4) → 201 + media_type=video.
+      3. 위조 거부 케이스(직접 SHALL 검증):
+         - 16초 WebM 파일을 `Content-Type: image/png` 위조 표기로 업로드.
+           `curl -X POST /api/pins -H "Authorization: Bearer $JWT" -F "title=test" \
+              -F "media=@video.webm;type=image/png"` (--form 의 ;type= 으로 위조 가능).
+           현재 동작: 201 + media_type=video (no-trim 거부 우회).
+           수정 후: 400 + "MIME 타입이 일치하지 않습니다" (또는 동등 메시지).
+         - PNG 파일을 `Content-Type: video/mp4` 위조 표기로 업로드.
+           현재 동작: 400 (우연히 probe fail-closed로 막힘, 메시지 "비디오 길이를 확인할 수 없습니다").
+           수정 후: 400 + MIME 불일치 메시지(probe 분기 전에 거부).
+         - WAV 파일을 `Content-Type: image/jpeg` 위조 표기로 업로드.
+           현재 동작: 201 + media_type=audio (audio 변환 SHALL 우회).
+           수정 후: 400 + MIME 불일치 메시지.
+      4. Content-Type 미표기 케이스:
+         - curl raw multipart으로 media 파트에 Content-Type 헤더 미포함 업로드 → declared가 빈 문자열.
+           구현 결정에 따라 결과 다름(skip → 정상 처리 / strict → 400). evidence 옵션 정책 따라 검증.
+      5. DB 상태 확인:
+         - `docker compose exec postgres psql -U fugue -c "SELECT media_type, media_url, COUNT(*) FROM pins GROUP BY media_type, media_url ORDER BY media_type"` →
+           모든 위조 시도가 거부되어 잘못된 mediaType 행이 신규 생성되지 않음.
+      6. 회귀 체크: GET /api/pins/{id} 200 + GET /api/pins 정상 분류.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 6.0
+    status: pending
