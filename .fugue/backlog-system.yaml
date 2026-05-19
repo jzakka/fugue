@@ -858,4 +858,6 @@ items:
     effort: 1
     risk: 2
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 43
+    note: "archived as openspec/changes/archive/2026-05-19-fix-pin-mime-content-type-spoof. pin capability에 Requirement `MIME 타입 위조 방지는 storage 레이어에서 declared와 sniff의 불일치 거부로 enforce된다` 추가(5 Scenarios). storage.Upload 내부에 normalizeMIME 헬퍼(6쌍 alias + lowercase + trim) + declared vs sniff 비교 분기 신설로 WebM-as-PNG 위조 등 silent bypass route 차단. QA 중 발견된 audio/wave→audio/wav allowlist 미스 회귀도 동일 헬퍼로 sniff 결과 canonical 변환하여 대칭 해소. storage_test.go 12 케이스. 실 환경 QA 8/8 spec 부합 + DB 위조 row 0건."
