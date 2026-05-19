@@ -53,7 +53,7 @@
   --color-error: var(--error);
   --color-info: var(--info);
   --color-border: var(--border);
-  --font-display: 'General Sans', sans-serif;
+  --font-display: 'General Sans', 'Pretendard Variable', sans-serif;
   --font-mono: 'Geist Mono', monospace;
   --text-2xs: 0.6875rem;
   --text-3xs: 0.625rem;
