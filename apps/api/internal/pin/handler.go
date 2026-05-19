@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -92,6 +93,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	title := strings.TrimSpace(r.FormValue("title"))
 	if title == "" {
 		writeError(w, http.StatusBadRequest, "제목은 필수입니다")
+		return
+	}
+	if utf8.RuneCountInString(title) > 200 {
+		writeError(w, http.StatusBadRequest, "제목은 200자 이내여야 합니다")
 		return
 	}
 
@@ -285,16 +290,28 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	// Optional fields
 	description := sql.NullString{}
 	if d := strings.TrimSpace(r.FormValue("description")); d != "" {
+		if utf8.RuneCountInString(d) > 500 {
+			writeError(w, http.StatusBadRequest, "설명은 500자 이내여야 합니다")
+			return
+		}
 		description = sql.NullString{String: d, Valid: true}
 	}
 
 	urlField := sql.NullString{}
 	if u := strings.TrimSpace(r.FormValue("url")); u != "" {
+		if utf8.RuneCountInString(u) > 1000 {
+			writeError(w, http.StatusBadRequest, "URL은 1000자 이내여야 합니다")
+			return
+		}
 		urlField = sql.NullString{String: u, Valid: true}
 	}
 
 	ogImage := sql.NullString{}
 	if o := strings.TrimSpace(r.FormValue("og_image")); o != "" {
+		if utf8.RuneCountInString(o) > 1000 {
+			writeError(w, http.StatusBadRequest, "og_image URL은 1000자 이내여야 합니다")
+			return
+		}
 		ogImage = sql.NullString{String: o, Valid: true}
 	}
 
