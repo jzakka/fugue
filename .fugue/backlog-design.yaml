@@ -11,12 +11,16 @@
 #     files:    ["apps/web/path/to/file.tsx:LSTART-LEND", ...]
 #     cite:     "DESIGN.md L?? — 인용 문장"
 #     repro:    (선택) 재현 절차
+#   qa_plan:    한 사이클의 7단계 실 브라우저 QA에서 수행할 검증 시나리오 1~3줄
 #   impact:     1..5  사용자 체감 시각/기능 영향
 #   confidence: 1..5  "진짜 이슈"의 확신도 (< 3 이면 자동 폐기)
 #   effort:    1..5  수정에 드는 변경 폭
 #   risk:       1..5  다른 화면·컴포넌트 회귀 위험
 #   score:      impact * confidence / (effort * risk)   자동 계산
-#   status:     pending | in_progress | done | rejected_self | rejected_impl | needs_decision | skip
+#   status:     pending | in_progress | done
+#               | rejected_self | rejected_impl | rejected_qa | rejected_ci
+#               | needs_decision | skip
+#   pr:         (done/rejected_ci 시) PR 번호
 #   note:       (선택) 자유 메모
 
 items:
