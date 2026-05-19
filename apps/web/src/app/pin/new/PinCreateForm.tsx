@@ -433,7 +433,7 @@ export default function PinCreateForm() {
         {/* Title */}
         <div>
           <label htmlFor="pin-title" className="block text-sm text-text-muted mb-2 font-medium">
-            제목 <span className="text-error">*</span>
+            제목 <span className="text-error" aria-hidden="true">*</span>
           </label>
           <input
             id="pin-title"
@@ -442,6 +442,7 @@ export default function PinCreateForm() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="작품 제목"
             maxLength={200}
+            aria-required="true"
             className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
           />
         </div>
