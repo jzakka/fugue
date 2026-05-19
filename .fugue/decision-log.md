@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] --font-display 토큰에 한글 fallback 추가
+결정/변경: `apps/web/src/app/globals.css:56` `--font-display: 'General Sans', sans-serif;` → `--font-display: 'General Sans', 'Pretendard Variable', sans-serif;`로 1 단어 추가. PR #30 squash merge(e590665).
+이유: DESIGN.md L17 "Display/Hero: General Sans 700 — 기하학적이면서 개성 있음. 한글 대체: Pretendard Bold" SSoT 직접 인용. General Sans는 Fontshare API에서 Latin 글리프만 제공(layout.tsx L27 `general-sans@500,700`)하므로 한글 텍스트가 `font-display` 적용 영역(보드/프로필 헤더 등 h1 한글 nickname·name)에서 시스템 sans-serif로 떨어지고 있었음. Pretendard Variable은 layout.tsx L23에서 이미 로딩 중이라 별도 네트워크 비용 없음(가변 폰트라 weight 700 그대로 적용).
+영향 범위: globals.css 1 라인 토큰 정의만 수정. Latin 우선순위(General Sans first) 보존, 한글만 자연 분기. NavBar 'Fugue' 워드마크는 Latin이라 무영향. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(diff 1 line, 영향 범위 token 1개)으로 대체.
+
 ## 2026-05-19 — [design] visible label 없는 standalone 텍스트 input 6곳에 aria-label 추가
 결정/변경: 6 input에 `aria-label` 1줄씩 추가 — `apps/web/src/components/nav/SearchBar.tsx:175` "검색" / `apps/web/src/app/boards/[id]/BoardActions.tsx:74,82` "보드 이름"·"보드 설명" / `apps/web/src/components/profile/MyPageClient.tsx:90` "새 보드 이름" / `apps/web/src/components/board/AddToBoardButton.tsx:321` "새 보드 이름" / `apps/web/src/app/pin/new/PinCreateForm.tsx:538` "태그 검색". PR #29 squash merge(2b8793d).
 이유: WAI-ARIA Authoring Practices Guide — Textbox/Searchbox 패턴 "The accessible name for the textbox comes from its label." placeholder 텍스트는 accessible name이 아니다(WCAG 2.1 SC 4.1.2 Name/Role/Value · 1.3.1 Info and Relationships · 2.4.6 Headings and Labels — 모두 Level A). cycle 17(form-label-htmlfor-pairing)은 visible `<label>` + input 페어를 다뤘으나 visible label이 없는 standalone input(NavBar 검색·인라인 편집 토글·이름 입력)은 미해결 잔여였음.

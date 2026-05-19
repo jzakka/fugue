@@ -962,5 +962,26 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 30
+    note: "처리 완료. globals.css L56 `--font-display: 'General Sans', sans-serif;` → `--font-display: 'General Sans', 'Pretendard Variable', sans-serif;`로 변경(1 단어 추가). Latin 우선순위 보존, 한글은 Pretendard Variable로 자연 분기(가변 폰트라 weight 700 그대로 적용). Pretendard Variable은 layout.tsx L23에서 이미 로딩 중이라 추가 네트워크 비용 없음. 단위/통합 테스트·실 브라우저 QA는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(diff 1 line, 영향 범위 token 1개)으로 대체. PR #30 squash merge(e590665). DESIGN.md L17 'Display/Hero: General Sans 700 ... 한글 대체: Pretendard Bold' SSoT 정렬."
+
+  - id: "design-20260519-avatar-img-redundant-alt"
+    title: "프로필 아바타 img가 인접 visible nickname과 중복되는 alt 텍스트를 가진다 — WCAG 1.1.1 Level A · WAI-ARIA APG Image Pattern (decorative 위반)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileHeader.tsx:17-22"
+        - "apps/web/src/app/search/SearchClient.tsx:315-320"
+        - "apps/web/src/app/pins/[id]/page.tsx:200-205"
+      cite: "WCAG 2.1 SC 1.1.1 Non-text Content (Level A): 'If non-text content is pure decoration ... it is implemented in a way that it can be ignored by assistive technology.' WAI-ARIA Authoring Practices Guide — Image Pattern: 'If the image is purely decorative, mark it with alt=\"\".' W3C alt 결정 트리: 인접 텍스트가 동일 정보를 제공하면 이미지는 장식 — alt=\"\". 본 3곳 모두 아바타 img가 `alt={...nickname}`을 가지면서 같은 컨테이너의 visible 텍스트(ProfileHeader L32-34 h1 nickname · SearchClient L325-327 nickname div · pins/[id] L209-211 nickname span)가 항상 화면에 표시됨 → 스크린리더가 nickname을 두 번 읽음. 코드 내 정착된 SSoT: PinCard.tsx L171-186이 동일 패턴(아바타 img + 인접 nickname text)에서 `alt=\"\"`를 사용해 in-codebase precedent 확립(decision-log 2026-05-15 NavBar wordmark · 2026-05-19 6 input aria-label 등 a11y 후속 잔여)."
+      repro: "1) grep -n 'alt={.*nickname}' apps/web/src → 4건(NavBar 제외 3건은 본 후보 범위). 2) VoiceOver/NVDA로 (a) /me ProfileHeader, (b) /search?q=… 크리에이터 카드, (c) /pins/<id> 크리에이터 링크 영역 포커스/탐색 시 'image, nickname, link, nickname' 형태로 nickname이 두 번 안내됨. 3) 처리: 3 파일 각 1단어 `alt={...nickname}` → `alt=\"\"`. NavBar.tsx L42는 visible nickname span이 `hidden sm:block`이라 모바일에서 alt가 유일한 Link 접근 이름 — 본 후보 범위 밖(별도 cycle에서 Link aria-label 추가 패턴 필요). PinCreateForm:490 og preview 이미지(`alt={ogData.title || '미리보기'}`)는 인접 visible title 없음 — 본 후보 범위 밖. PinCard:49/85 main media 이미지(이미지·비디오 카드 본 콘텐츠)는 콘텐츠 자체 묘사 역할 — 본 후보 범위 밖."
+    qa_plan: "1) cd apps/web && npm run dev 후 (a) /me ProfileHeader 아바타+h1 nickname 영역, (b) /search?q=foo 크리에이터 카드, (c) /pins/<id> 크리에이터 Link 영역 — 3 화면에서 VoiceOver/NVDA로 nickname이 한 번씩만 안내되는지 확인. 2) 시각 변화 없음(alt 속성 변경은 비주얼 렌더와 무관) 확인 — 동일 스크린샷 차이 0. 3) DevTools Accessibility 트리에서 img 노드가 role=presentation으로 노출되거나 트리에서 제외됨을 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: in_progress
+    note: "PinCard.tsx L171-186 in-codebase precedent(아바타 img + 인접 nickname text 에서 alt=\"\")를 SearchClient·ProfileHeader·pins/[id] 세 outlier에 정렬. NavBar L42는 nickname이 `hidden sm:block`이라 모바일에서 Link 접근 이름이 사라지는 회귀 우려로 본 후보 범위 밖 — 별도 cycle에서 Link aria-label 패턴 추가 필요."
 
