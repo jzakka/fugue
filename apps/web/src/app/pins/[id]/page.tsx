@@ -51,7 +51,7 @@ function MediaPlayer({ pin }: { pin: Pin }) {
       return (
         <div className="p-8 bg-surface-elevated">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-lg bg-accent-subtle flex items-center justify-center text-2xl text-accent">
+            <div aria-hidden="true" className="w-16 h-16 rounded-lg bg-accent-subtle flex items-center justify-center text-2xl text-accent">
               ♪
             </div>
             <div>
