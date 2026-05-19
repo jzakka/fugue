@@ -377,9 +377,11 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 		return
 	}
 
-	// Rune-safe truncation to fit pins.description (500 runes). Must happen
-	// before ProcessDocument because the pipeline writes BodyText verbatim.
+	// Rune-safe truncation to fit pins.description (500 runes) and
+	// pins.title (200 runes). Must happen before ProcessDocument because
+	// the pipeline writes BodyText and Title verbatim.
 	doc.BodyText = truncateRunes(doc.BodyText, 500)
+	doc.Title = truncateRunes(doc.Title, 200)
 
 	pinIDs, created, createErr := h.createPins(ctx, doc)
 	if createErr != nil {
@@ -489,7 +491,8 @@ func hostnameOf(rawURL string) string {
 
 // truncateRunes returns the first n runes of s. Cuts on rune boundaries so
 // multi-byte characters are never split. Used to fit PinDocument.BodyText
-// into the pins.description column's 500-rune limit before persistence.
+// and PinDocument.Title into the pins.description (500) / pins.title (200)
+// column rune limits before persistence.
 func truncateRunes(s string, n int) string {
 	if n <= 0 {
 		return ""

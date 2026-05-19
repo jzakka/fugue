@@ -36,6 +36,8 @@ const (
 //     Harvester can trust this field directly.
 //   - BodyText is raw text BEFORE the description-length cut; the Harvester
 //     is responsible for the rune-safe truncation when persisting.
+//   - Title is raw text BEFORE the title-length cut; the Harvester is
+//     responsible for the rune-safe truncation when persisting.
 type PinDocument struct {
 	Title           string           `json:"title,omitempty"`
 	BodyText        string           `json:"body_text,omitempty"`

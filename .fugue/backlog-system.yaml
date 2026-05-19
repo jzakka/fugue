@@ -1136,7 +1136,7 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: in_progress
     note: |
       Discovery 모드 발굴 — 영역: 정합성(ERD/DB schema ↔ Go 코드).
       Processing 모드 진입 시 첫 단계는 (a) `harvester_consumer.go:382`
