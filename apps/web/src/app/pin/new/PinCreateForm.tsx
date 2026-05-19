@@ -338,7 +338,7 @@ export default function PinCreateForm() {
               role="button"
               tabIndex={0}
               aria-label="미디어 파일 선택"
-              className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent transition-colors"
+              className="border-2 border-dashed border-border rounded-[10px] p-8 text-center cursor-pointer hover:border-accent focus-visible:border-accent focus-visible:outline-none transition-colors"
             >
               <div className="text-3xl mb-2">📁</div>
               <div className="text-sm text-text-muted">

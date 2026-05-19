@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [design] PinCreateForm 미디어 파일 dropzone 의 키보드 포커스 시각 표시 추가
+결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` L341 dropzone div className 끝에 `focus-visible:border-accent focus-visible:outline-none` 2 utility 추가(diff +1 -1). PR #36 squash merge.
+이유: WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PR #35 가 dropzone 키보드 작동성(WCAG SC 2.1.1 Level A — Tab 도달 + Enter/Space 작동)을 회복한 후속으로 visual focus indication(SC 2.4.7 Level AA)이 잔여 갭으로 명시적으로 분리되어 있었음. hover:border-accent 와 동일 시각 신호 — 키보드 포커스 시 점선 색이 border-accent 로 변경. In-codebase 5 개 컴포넌트(PinCard L146 / SearchClient L313+L351 / BoardGrid L22 / MyPageClient L130 / BoardCover L6+L30) 일관 패턴 적용 사실로 패턴 정합성 확보.
+영향 범위: PinCreateForm.tsx 단일 파일 1 줄. `focus-visible` 은 `:focus` 와 달리 키보드 navigation(Tab) 시에만 활성 → 마우스 클릭 시 미적용 → 마우스 사용자 회귀 0. PR #35 부착 attribute(role/tabIndex/aria-label/onKeyDown) 미수정 → 키보드 작동성 회귀 0. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `focus-visible` L341 단일 매칭 + PR #35 attribute 미수정 확인)으로 대체.
+
 ## 2026-05-19 — [design] PinCreateForm 미디어 파일 dropzone 의 키보드 작동성 회복
 결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` L330-344 dropzone `<div onClick={...}>` 에 4 attribute + onKeyDown 핸들러 추가(diff +9 -0). `role="button"` / `tabIndex={0}` / `aria-label="미디어 파일 선택"` / `onKeyDown`(Enter/Space 시 `e.preventDefault()` + 기존 onClick 과 동일 `fileInputRef.current?.click()` 호출). PR #35 squash merge.
 이유: WAI-ARIA Authoring Practices Guide § Button Pattern — '버튼이 아닌 HTML 요소(예: `<div>`)가 버튼으로 사용되는 경우 (1) `role="button"`, (2) accessible name, (3) Enter/Space 키 핸들러, (4) `tabindex` 모두 구현해야 한다.' WCAG 2.1 SC 2.1.1 Keyboard (Level A) — 'All functionality of the content is operable through a keyboard interface.' 변경 전 dropzone div 는 Tab 도달 불가 + Enter/Space 작동 안 함 + SR 이 button 시맨틱 인식 못함 → 키보드 사용자가 핀 생성 자체가 완전 불가능(미디어 업로드 시작 점이 키보드 비접근)이던 결함. archive/2026-05-15-search-dropdown-keyboard-a11y(SearchBar 드롭다운 5종 시맨틱 정렬) 동일 라인업의 폼 영역 확장.

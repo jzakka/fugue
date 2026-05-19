@@ -1078,5 +1078,7 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 36
+    note: "처리 완료. PinCreateForm.tsx L341 dropzone div className 끝에 `focus-visible:border-accent focus-visible:outline-none` 2 utility 추가(diff +1 -1). PR #35 가 키보드 작동성(WCAG SC 2.1.1 Level A)을 회복한 후속으로 visual focus indication(SC 2.4.7 Level AA) 잔여 갭을 정렬. hover:border-accent 와 동일한 시각 신호 — 키보드 포커스 시 점선 색이 border-accent 로 변경. `focus-visible` 은 `:focus` 와 달리 키보드 navigation 시에만 활성 → 마우스 클릭 시 미적용 → 마우스 사용자 회귀 0. PR #35 부착 attribute(role/tabIndex/aria-label/onKeyDown) 미수정 → 키보드 작동성 회귀 0. In-codebase 5 개 컴포넌트(PinCard L146 / SearchClient L313+L351 / BoardGrid L22 / MyPageClient L130 / BoardCover L6+L30) 동일 패턴 적용 중이라 패턴 일관성 회복. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `focus-visible` L341 단일 매칭, 의도대로 부착 확인 + PR #35 부착 attribute 미수정 확인)으로 대체. PR #36 squash merge. WCAG 2.1 SC 2.4.7 Level AA 정렬."
 
