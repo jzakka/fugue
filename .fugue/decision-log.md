@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-19 — [system] HarvestPipeline `doc.Title`을 `pins.title` VARCHAR(200) cap에 맞춰 rune-safe 사전 절단
+결정/변경: `apps/api/internal/bot/harvester_consumer.go:382-384`에 `doc.BodyText` 500 rune 절단 직후 `doc.Title = truncateRunes(doc.Title, 200)` 한 줄 추가(BodyText 패턴 대칭). PinDocument doc-comment에 Title도 raw text 보장 + Harvester 절단 책임 명시(BodyText 줄과 대칭). 신규 테스트 `TestTruncateRunes_TitleCap` 5 subtest 추가. PR #50 squash merge + OpenSpec change `archive/2026-05-19-fix-harvest-pipeline-title-truncate/` 이동.
+이유: `apps/api/db/migrations/000003_create_works.up.sql:5` `title VARCHAR(200) NOT NULL` cap에서 201자 이상 title을 가진 외부 페이지가 `value too long for type character varying(200)` 에러로 Pin upsert 결정적 실패 → 5회 fetch retry 후 partial index 영구 누락. 실 환경 QA (PostgreSQL 16.13)에서 ASCII 201자/한국어 201 rune 모두 reject 재현, 200자/한국어 200 rune accept로 fix 양상과 multibyte 안전성 직접 확인. description 500 rune 사전 절단(`harvester_consumer.go:380-382`)의 기존 합의 패턴을 title에도 동일 적용.
+영향 범위: `apps/api/internal/bot/` 4 파일(consumer 1 line + comment 2건 + 신규 test 1건 + PinDocument doc 1줄). ScriptAdapter 경로도 consumer 단일 진입점이라 자동 cover됨. classifier는 절단 전 원본 title 그대로 평가(description 대칭 정책 유지). 회귀 0 — 200 rune 이하 입력은 무손실 보존. 499/499 unit test pass.
+
 ## 2026-05-19 — [design] PinCreateForm 미디어 파일 dropzone 의 키보드 작동성 회복
 결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` L330-344 dropzone `<div onClick={...}>` 에 4 attribute + onKeyDown 핸들러 추가(diff +9 -0). `role="button"` / `tabIndex={0}` / `aria-label="미디어 파일 선택"` / `onKeyDown`(Enter/Space 시 `e.preventDefault()` + 기존 onClick 과 동일 `fileInputRef.current?.click()` 호출). PR #35 squash merge.
 이유: WAI-ARIA Authoring Practices Guide § Button Pattern — '버튼이 아닌 HTML 요소(예: `<div>`)가 버튼으로 사용되는 경우 (1) `role="button"`, (2) accessible name, (3) Enter/Space 키 핸들러, (4) `tabindex` 모두 구현해야 한다.' WCAG 2.1 SC 2.1.1 Keyboard (Level A) — 'All functionality of the content is operable through a keyboard interface.' 변경 전 dropzone div 는 Tab 도달 불가 + Enter/Space 작동 안 함 + SR 이 button 시맨틱 인식 못함 → 키보드 사용자가 핀 생성 자체가 완전 불가능(미디어 업로드 시작 점이 키보드 비접근)이던 결함. archive/2026-05-15-search-dropdown-keyboard-a11y(SearchBar 드롭다운 5종 시맨틱 정렬) 동일 라인업의 폼 영역 확장.

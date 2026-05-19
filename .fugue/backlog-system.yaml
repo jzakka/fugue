@@ -1136,7 +1136,7 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: in_progress
+    status: done
     note: |
       Discovery 모드 발굴 — 영역: 정합성(ERD/DB schema ↔ Go 코드).
       Processing 모드 진입 시 첫 단계는 (a) `harvester_consumer.go:382`
@@ -1147,3 +1147,19 @@ items:
       truncate된다"를 ADDED Scenario로 추가. ScriptAdapter 경로도
       동일 truncate 적용(consumer level 단일 지점으로도 충분 — Script
       → consumer → pipeline 순서이므로 consumer가 단일 진입점).
+    resolution: |
+      PR #50 (2026-05-19 squash-merge). `harvester_consumer.processOne`에
+      `doc.BodyText` 절단 직후 `doc.Title = truncateRunes(doc.Title, 200)`
+      한 줄을 대칭으로 추가. `truncateRunes` doc-comment를 BodyText/Title
+      양쪽 명시로 확장. `pin_document.go`의 PinDocument doc-comment에
+      Title도 raw text 보장 + Harvester truncate 책임 한 줄 추가
+      (BodyText 줄과 대칭). 신규 테스트 `TestTruncateRunes_TitleCap`
+      5 subtest (ASCII 201→200/한국어 201→200/100자 무손실/empty/
+      boundary 200) 통과. `openspec/specs/harvester/spec.md`에 ADDED
+      Requirement "title은 pins.title 컬럼 cap에 맞춰 rune-safe 사전
+      절단된다" + 4 Scenarios. 실 환경 QA (PostgreSQL 16.13): ASCII
+      201자 INSERT는 `value too long for type character varying(200)`
+      에러로 거부(버그 재현), 200자 accept, 한국어 200 rune(600 byte)
+      accept, 한국어 201 rune reject로 fix 양상과 multibyte 안전성
+      모두 확인. OpenSpec change는 `archive/2026-05-19-fix-harvest-
+      pipeline-title-truncate/`로 이동.
