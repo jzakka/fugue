@@ -119,6 +119,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var description sql.NullString
 	if req.Description != nil {
+		if utf8.RuneCountInString(*req.Description) > 500 {
+			writeError(w, http.StatusBadRequest, "보드 설명은 500자 이내여야 합니다")
+			return
+		}
 		description = sql.NullString{String: *req.Description, Valid: true}
 	}
 
@@ -291,6 +295,10 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	description := current.Description
 	if req.Description != nil {
+		if utf8.RuneCountInString(*req.Description) > 500 {
+			writeError(w, http.StatusBadRequest, "보드 설명은 500자 이내여야 합니다")
+			return
+		}
 		description = sql.NullString{String: *req.Description, Valid: true}
 	}
 
