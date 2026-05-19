@@ -1016,7 +1016,7 @@ items:
     effort: 2
     risk: 2
     score: 6.25
-    status: pending
+    status: in_progress
     note: |
       Discovery 모드 발굴. 인용 가능한 OpenSpec 요구사항은 부재하나
       저장소 내부 합의된 SSRF 방어 패턴(og/service.go)이 명백히 존재해
