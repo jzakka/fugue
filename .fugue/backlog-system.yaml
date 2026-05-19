@@ -954,3 +954,76 @@ items:
       모호·자의적)에 해당 — 사용자 결정 전까지 status를 pending으로 승급하지
       않는다. 결정이 옵션 A(코드 변경 0)면 spec 정리 change 1건으로 마감
       가능, 옵션 B/C면 별도 설계 사이클 필요.
+
+  - id: system-20260519-bot-harvest-pipeline-ssrf
+    title: "HarvestPipeline.client이 timeout/SSRF 가드 없는 bare http.Client라 og:image/media URL을 통한 SSRF → 공개 노출 체인 가능"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/bot/harvest_pipeline.go:143-156"
+        - "apps/api/internal/bot/harvest_pipeline.go:337-399"
+        - "apps/api/internal/bot/harvest_pipeline.go:450-513"
+        - "apps/api/internal/og/service.go:54-340"
+      cite: |
+        (직접 인용 가능한 스펙은 부재. 그러나 같은 저장소
+         apps/api/internal/og/service.go L67-340이 동일한 외부 HTTP 호출
+         경로에 대해 per-IP private/reserved range 거부 + CheckRedirect
+         재해소를 이미 구현하고 있으므로 이는 프로젝트 내부 합의된
+         "외부 HTTP fetcher의 SSRF 방어 패턴"이다. Bot의
+         harvest_pipeline.go는 이 패턴을 따르지 않은 채 동일 신뢰 경계
+         (외부에서 가져온 URL을 fetch)에서 동작한다. 또한 OWASP Top-10
+         A10:2021 SSRF에 해당한다.)
+      repro: |
+        1. 외부 사이트 한 곳을 Pioneer가 크롤하도록 frontier에 enqueue.
+        2. 해당 사이트 HTML에
+           `<meta property="og:image" content="http://169.254.169.254/latest/meta-data/iam/security-credentials/<role>">`
+           삽입 (또는 사내 localhost:포트 URL).
+        3. Pioneer가 페이지를 가져오고 PickPrimaryImage가 위 og:image를
+           추출 → snapshot_key와 함께 EnqueueHarvester.
+        4. Harvester가 frontier에서 dequeue → HarvestPipeline.cacheImage
+           가 `p.client.Do(req)`로 169.254.169.254 fetch → 응답 바이트를
+           S3에 PutObject → 결과 URL을 Pin.og_image / media_url에 저장.
+        5. 공개 Pin 조회 API가 해당 storage URL을 그대로 응답하므로
+           AWS IAM 임시 자격증명이 인터넷에 공개됨.
+      attack_surface: |
+        - bare &http.Client{}: timeout 없음 → slow-loris 비용 공격,
+          redirect cap 없음 → metadata 서비스로의 리다이렉트 우회,
+          DialContext 없음 → DNS rebinding/private-IP 직접 연결 모두 가능.
+        - HarvestPipeline.downloadAndUpload (L337-399): media_url 입력
+          경로. Pioneer가 추출한 임의 URL.
+        - HarvestPipeline.cacheImage (L450-513): og:image 입력 경로.
+          외부 HTML에서 메타태그로 자유롭게 지정 가능.
+        - 두 경로 모두 fetch 결과를 S3 객체로 저장하고 그 객체의 공개
+          URL을 Pin row에 적재 → 공개 응답으로 흘러나감(공개-노출 체인).
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+minio+postgres 기동.
+      2. 호스트에서 `python3 -m http.server 8081`로 가짜 metadata 응답
+         JSON을 serve하는 페이지를 띄우고, 그 페이지에
+         `<meta property="og:image" content="http://169.254.169.254/latest/meta-data/iam/security-credentials/test">`
+         삽입한 HTML을 별도 endpoint에 노출.
+      3. pioneer_frontier에 위 페이지 URL을 enqueue한 뒤 1회 Pioneer
+         실행 → harvester 1회 실행.
+      4. minio에 og:image fetch 결과 객체가 생성되지 않는지,
+         apps/api 로그에 SSRF 거부 메시지가 남는지 확인.
+      5. 정상 외부 og:image(예: https://github.githubassets.com/favicon.ico)
+         로 동일 절차 → 정상적으로 minio에 저장되고 Pin.og_image가
+         채워지는지 회귀 확인.
+      6. 동일 절차를 media_url(downloadAndUpload) 경로에 대해서도
+         video URL로 1회 더 수행.
+    impact: 5
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 6.25
+    status: pending
+    note: |
+      Discovery 모드 발굴. 인용 가능한 OpenSpec 요구사항은 부재하나
+      저장소 내부 합의된 SSRF 방어 패턴(og/service.go)이 명백히 존재해
+      "프로젝트 내부 스펙"의 위반으로 간주한다. Processing 모드에서
+      당 항목 채택 시 첫 단계는 (a) og/service.go의 SSRF-safe
+      dialer/CheckRedirect 로직을 공유 helper로 추출, (b) 해당 helper를
+      HarvestPipeline.client에 주입, (c) downloadAndUpload/cacheImage
+      각각에 timeout+redirect cap 명시. 동시에 harvester/spec.md에
+      "외부 미디어 fetch는 private/reserved IP 거부 + N MB 상한 + T초
+      timeout를 enforce한다" Scenario를 ADDED 한다.
