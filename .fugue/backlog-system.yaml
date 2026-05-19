@@ -1163,3 +1163,232 @@ items:
       accept, 한국어 201 rune reject로 fix 양상과 multibyte 안전성
       모두 확인. OpenSpec change는 `archive/2026-05-19-fix-harvest-
       pipeline-title-truncate/`로 이동.
+
+  - id: system-20260519-pin-create-handler-no-input-length-validation
+    title: "POST /api/pins 핸들러가 title/description/url/og_image 사용자 입력 길이를 사전 검증하지 않아 VARCHAR cap 초과 시 PostgreSQL value-too-long → 500 Internal Server Error (의도된 400 Bad Request 우회)"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:92-96"        # title trim + empty check만, length check 부재
+        - "apps/api/internal/pin/handler.go:286-289"      # description: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:291-294"      # url: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:296-299"      # og_image: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:312-325"      # CreatePin INSERT → 길이 오류 시 L321-324가 500 응답
+        - "apps/api/db/migrations/000003_create_works.up.sql:5"  # title VARCHAR(200) NOT NULL
+        - "apps/api/db/migrations/000003_create_works.up.sql:6"  # description VARCHAR(500)
+        - "apps/api/db/migrations/000003_create_works.up.sql:4"  # url VARCHAR(1000) NOT NULL
+        - "apps/api/db/migrations/000003_create_works.up.sql:9"  # og_image VARCHAR(1000)
+      cite: |
+        (a) 직접 인용 가능한 OpenSpec SHALL은 부재하나, 동일 저장소 내부의
+            기존 합의된 패턴이 명확히 존재:
+            - `apps/api/internal/creator/handler.go:178-185`이
+              `if nickname == "" { 400 } if utf8.RuneCountInString(nickname) > 50 { 400 "닉네임은 50자를 초과할 수 없습니다" }`로
+              nickname VARCHAR(50)에 대해 사전 길이 검증.
+            - `apps/api/internal/boards/handler.go:106-113` / `:283-290`이
+              `if utf8.RuneCountInString(name) > 100 { 400 "보드 이름은 100자 이내여야 합니다" }`로
+              boards.name VARCHAR(100)에 대해 사전 길이 검증.
+            즉 "사용자 입력 → VARCHAR 컬럼 INSERT 전 RuneCount cap 검증 + 400 응답"이
+            프로젝트 내부 합의된 input-validation 패턴이다.
+        (b) `apps/api/internal/bot/harvester_consumer.go:380-384`이 bot 경로에서는
+            동일 cap에 대해 truncateRunes로 사전 절단. 이는 무인 best-effort
+            크롤러용 정책이고, 사용자 직접 입력 경로(pin.Create)는 truncate가 아닌
+            reject로 응답해야 사용자가 입력을 수정할 수 있다(2026-05-19 archive
+            fix-harvest-pipeline-title-truncate의 design.md D8 "classifier
+            sees original untruncated" 대칭 정책의 user-facing 변형).
+        (c) `pin.Create`의 handler.go:321-324는 INSERT 오류를 단일 500
+            ("핀 등록에 실패했습니다") 분기로 흡수해 client가 길이 초과를
+            구분할 방법이 없다. spec: pin `클라이언트 검증 우회 시 서버가 본문을
+            거절한다` 의 정신(L77-80 requestBodyCap 적용)이 본 검증에는 미적용된
+            비대칭 결함.
+        (d) PostgreSQL 16 character varying(N)은 rune-count cap이라
+            201 ASCII 또는 201 한국어 rune 모두 `value too long for type
+            character varying(200)` 거부 — 2026-05-19 archive
+            fix-harvest-pipeline-title-truncate 사이클이 실 환경 QA로
+            동일 행동 패턴을 직접 입증.
+      repro: |
+        1. docker-compose로 api+postgres 기동, 로그인 후 access_token 획득.
+        2. 다음 curl 호출:
+           ```
+           curl -X POST http://localhost:8080/api/pins \
+             -H "Authorization: Bearer $TOKEN" \
+             -F "title=$(python3 -c 'print("A"*201)')" \
+             -F "media=@small.jpg"
+           ```
+           → API 응답이 500 "핀 등록에 실패했습니다" (의도된 400 Bad Request 부재).
+           → 서버 로그에 `pin.Create: insert error: pq: value too long for type
+              character varying(200)` 출력.
+        3. description=A*501 / url=A*1001 / og_image=A*1001 각각도 동일한 500.
+        4. 정상 길이는 정상 생성 (회귀 없음 확인).
+        결과: 사용자가 긴 title/description/url을 입력하면(SEO 페이지 자동
+        생성 title 복붙, 분석 파라미터가 많은 URL 복붙 등 흔한 케이스) 핀
+        등록이 실패하는데 에러 메시지가 일반적이어서 사용자가 무엇을 줄여야
+        하는지 알 수 없음. 그리고 5xx 응답이라 클라이언트 retry/sentry alert
+        등에서 일시적 장애로 오분류됨.
+      attack_surface: |
+        - 인증된 모든 호출자가 트리거 가능(보안 사고는 아니나 운영 정상성·
+          UX 결함).
+        - 5xx 응답이라 모니터링 시스템(Sentry/Datadog/CW alarm)이 일시 장애로
+          오분류 → on-call noise. 정상 응답은 400.
+        - description/url/og_image 모두 client-supplied form field — 자동화된
+          fuzz/긴 입력으로 의도적 500 발생 가능. amplification은 낮음
+          (단순 reject)이나 동작 자체가 spec 위반.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+postgres+minio 기동.
+      2. 호스트에서 로그인 후 JWT 획득.
+      3. fix 전: 위 repro 4 케이스(title=A*201/description=A*501/url=A*1001/
+         og_image=A*1001) 각각 호출 → 모두 500 응답 + `value too long for type
+         character varying(N)` 서버 로그 확인.
+      4. fix 적용 후: 동일 4 케이스 호출 → 400 응답 + 각 필드명시 메시지
+         ("제목은 200자 이내여야 합니다" 등) 확인.
+      5. 멀티바이트(한국어) 케이스: title=가*201 → 400 (rune count 기준 정확
+         검증) 확인. PostgreSQL이 rune-count cap이므로 fix도 utf8.RuneCountInString
+         기준으로 일치해야 함.
+      6. 회귀: title=200/description=500/url=1000/og_image=1000 (boundary)
+         → 정상 201 응답. title=A*100 같은 정상 길이 → 정상 201 응답.
+      7. multipart parse 단계(L82 ParseMultipartForm)에서 통과한 form field만
+         핸들러가 보므로 본 검증은 multipart body cap(requestBodyCap=500MB)과
+         독립적으로 동작 — 본문 크기는 작아도 단일 form field가 길면 cap 초과
+         가능 확인.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 영역: 정합성(사용자 입력 ↔ DB VARCHAR cap).
+      2026-05-19 archive fix-harvest-pipeline-title-truncate의 user-facing
+      대칭 변형. 단, 정책 차이: bot 경로는 truncate(무인 best-effort),
+      user-facing 경로는 reject 400(사용자가 입력 수정 가능). Processing
+      모드 진입 시 첫 단계는 (a) pin/handler.go:92 직후에 title length check
+      한 블록, (b) L289/293/298 각 optional 필드 trim 직후 length check
+      한 블록씩, (c) 각각 400 응답 메시지 일관 형식("X는 N자 이내여야 합니다"),
+      (d) 기존 nickname/board name 검증(creator/handler.go:182, boards/handler.go:110)
+      과 동일 패턴으로 정렬, (e) 단위 테스트는 pin/handler_test.go에 4 케이스
+      (각 필드 cap+1, cap boundary 무손실).
+
+  - id: system-20260519-boards-handler-description-no-length-validation
+    title: "POST/PUT /api/boards 핸들러가 description 사용자 입력 길이를 사전 검증하지 않아 VARCHAR(500) cap 초과 시 500 Internal Server Error"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/boards/handler.go:120-123"   # Create: description, FormValue 후 length check 부재
+        - "apps/api/internal/boards/handler.go:292-295"   # Update: 동일 패턴
+        - "apps/api/internal/boards/handler.go:106-113"   # 같은 핸들러 name(VARCHAR(100))는 검증함
+        - "apps/api/internal/boards/handler.go:283-290"   # Update name도 동일 검증
+        - "apps/api/internal/boards/handler.go:132-135"   # CreateBoard INSERT → 500 분기
+        - "apps/api/internal/boards/handler.go:313-316"   # UpdateBoard INSERT → 500 분기
+        - "apps/api/db/migrations/000008_create_boards.up.sql:5"  # description VARCHAR(500)
+      cite: |
+        (a) 동일 boards.Create / boards.Update 핸들러가 name 필드에 대해서는
+            `utf8.RuneCountInString(name) > 100 → 400 "보드 이름은 100자
+            이내여야 합니다"` 패턴을 명시적으로 사용(L110, L287). 같은 핸들러
+            안의 두 VARCHAR 필드(name VARCHAR(100), description VARCHAR(500))가
+            서로 다른 validation policy를 적용받는 것은 비대칭 결함.
+        (b) creator.UpdateMe(handler.go:178-185)가 같은 패턴으로 nickname
+            VARCHAR(50) 검증 — 프로젝트 내부 합의된 input-validation 패턴.
+        (c) PostgreSQL 16 character varying(500)은 rune-count cap이라
+            description 501 rune 입력 시 `value too long for type character
+            varying(500)` 거부 → 핸들러는 L132-135 / L313-316의 일반 500
+            분기로 흡수.
+      repro: |
+        1. docker-compose로 api+postgres 기동, 로그인 후 JWT 획득.
+        2. 다음 curl 호출:
+           ```
+           curl -X POST http://localhost:8080/api/boards \
+             -H "Authorization: Bearer $TOKEN" \
+             -H "Content-Type: application/json" \
+             -d "{\"name\":\"test\",\"description\":\"$(python3 -c 'print("A"*501)')\"}"
+           ```
+           → 응답 500 "보드를 생성할 수 없습니다" (의도된 400 부재).
+           → 서버 로그 `boards.Create: DB error: pq: value too long for type
+              character varying(500)`.
+        3. PUT /api/boards/{id}의 description 필드도 동일 거동.
+      attack_surface: |
+        - 인증된 호출자만 트리거 — 보안 사고 아님. 운영 정상성·UX 결함.
+        - 5xx 응답이라 모니터링 false positive 유발(name은 정상 400으로 응답).
+        - 같은 핸들러 내부 inconsistency라 신규 컨트리뷰터가 디버깅에 혼란.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, JWT 획득.
+      2. fix 전: POST description=A*501 → 500 + DB 에러 로그 재현.
+      3. fix 적용 후: 동일 호출 → 400 "보드 설명은 500자 이내여야 합니다"
+         형식 응답.
+      4. PUT /api/boards/{id} description=가*501(한국어 멀티바이트) → 400.
+      5. 회귀: description=500 boundary → 정상 201/200 응답.
+      6. description=null(생략) → 정상 응답(optional 필드 보존).
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 같은 area(사용자 입력 ↔ VARCHAR cap)의 추가
+      후보. Processing 모드 진입 시 첫 단계는 (a) boards/handler.go:122
+      description 할당 직전에 `utf8.RuneCountInString(*req.Description) > 500`
+      체크 추가, (b) L294도 동일, (c) 메시지 형식은 L111 "보드 이름은
+      100자 이내여야 합니다"와 정렬, (d) 단위 테스트는 boards/handler_test.go에
+      cap+1/cap boundary 2 케이스.
+
+  - id: system-20260519-creator-update-avatar-url-no-length-validation
+    title: "PUT /api/creators/me 핸들러가 avatar_url 사용자 입력 길이를 사전 검증하지 않아 VARCHAR(500) cap 초과 시 500 Internal Server Error"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/creator/handler.go:187-194"  # avatar_url 처리 — length check 부재
+        - "apps/api/internal/creator/handler.go:178-185"  # 같은 핸들러 nickname 검증은 존재
+        - "apps/api/internal/creator/handler.go:196-205"  # UpdateCreator INSERT → 500 분기
+        - "apps/api/db/migrations/000001_create_creators.up.sql:7"  # avatar_url VARCHAR(500)
+      cite: |
+        (a) 같은 UpdateMe 핸들러가 nickname에 대해서는 `if nickname == "" { 400 }`
+            + `if utf8.RuneCountInString(nickname) > 50 { 400 "닉네임은 50자를
+            초과할 수 없습니다" }`로 사전 검증 + clear 400 메시지(L178-185).
+            avatar_url에 같은 검증 없음 — 핸들러 내부 inconsistency.
+        (b) avatar_url은 통상 S3/CDN URL이며 query string(signed token, cache
+            buster, analytics)이 길어지면 500 chars 초과가 발생 가능. spec
+            (docs/architecture.md)이나 ERD가 avatar_url 길이 cap을 명시하지
+            않아 client는 500 cap을 인지하지 못한다.
+        (c) JSON body parse(L157)에는 `http.MaxBytesReader` 미적용 — body size
+            cap도 별도 검토 필요하나 본 후보 범위 밖.
+      repro: |
+        1. docker-compose 기동, JWT 획득.
+        2. ```
+           curl -X PUT http://localhost:8080/api/creators/me \
+             -H "Authorization: Bearer $TOKEN" \
+             -H "Content-Type: application/json" \
+             -d "{\"avatar_url\":\"https://cdn.example.com/$(python3 -c 'print("A"*500)')\"}"
+           ```
+           → 응답 500 "프로필 업데이트에 실패했습니다".
+           → 서버 로그 `creator.UpdateMe: update error: pq: value too long for
+              type character varying(500)`.
+        3. 정상 길이(<=500) → 정상 200.
+      attack_surface: |
+        - 인증된 호출자만 트리거 — 보안 사고 아님. 운영 정상성·UX 결함.
+        - S3 signed URL pre-signed expiry token + tracking params 추가로 자연
+          발생 가능(악의 없는 사용자도 트리거).
+        - 5xx 응답으로 false positive 유발.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, JWT 획득.
+      2. fix 전: avatar_url=A*501 → 500 + DB 에러 재현.
+      3. fix 적용 후: 동일 호출 → 400 "아바타 URL은 500자 이내여야 합니다"
+         형식.
+      4. avatar_url=가*167 (한국어 167 rune * 3 byte = 501 byte → 167 rune은
+         500 미만이라 정상 통과, 167×3=501 byte여도 PostgreSQL cap은 rune이라
+         정상). cap 단위 일치 확인.
+      5. 회귀: avatar_url=500 boundary → 정상 200.
+      6. avatar_url=null/missing(부분 업데이트) → 기존 값 보존(L188-194 분기).
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 같은 area의 마지막 후보. Processing 모드 진입 시
+      첫 단계는 (a) creator/handler.go:188 `req.AvatarURL != nil` 분기 안에
+      `if utf8.RuneCountInString(*req.AvatarURL) > 500 { 400 }` 추가, (b)
+      메시지 형식은 L183 "닉네임은 50자를 초과할 수 없습니다"와 정렬, (c)
+      단위 테스트는 creator/handler_test.go에 cap+1/cap boundary 2 케이스.
