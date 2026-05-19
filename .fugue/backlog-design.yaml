@@ -1041,5 +1041,7 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 34
+    note: "처리 완료. PinCreateForm.tsx L436 visible `*` span 에 `aria-hidden=\"true\"` 1 attribute 추가 + L445 input element 에 `aria-required=\"true\"` 1 attribute 추가(2 파일 diff +2 -1, backlog YAML 상태 갱신 1줄). visible '*' 그대로 렌더(시각 변화 0) + HTML `required` 미사용으로 browser native validation popup 미트리거(기존 handleSubmit L253 `!title.trim()` 커스텀 validation 경로 유지) + SR 에 input 의 'required' 상태 안내 + 'star' 발음 회피. 미디어 파일 case(L327)는 `<label htmlFor>` 미연결 + dropzone div(button 시맨틱 아님) + hidden file input 패턴으로 단일 cycle 범위 초과라 본 변경 범위 밖(별도 후보로 분리). 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `aria-required\\|aria-hidden\\|pin-title` 4건 — L381 audio file preview / L436 visible '*' / L439 input id / L445 input aria-required — 모두 의도대로 부착) 으로 대체. PR #34 squash merge. WAI-ARIA APG Form Properties · WCAG 2.1 SC 1.3.1 Level A 정렬."
 
