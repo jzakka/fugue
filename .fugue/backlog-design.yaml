@@ -1027,3 +1027,19 @@ items:
     pr: 33
     note: "처리 완료. PinCard.tsx L64-69 `<button aria-label=\"재생\" className=\"...\">▶</button>` → `<span aria-hidden=\"true\" className=\"...\">▶</span>` 1 태그+2 attribute 교체(diff 3 lines = open tag · attribute · close tag). className(w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0) 그대로 유지하여 시각 변화 0. PinCard 안 `<Link>` 자손 위치에 `<button>` 이 오던 WHATWG HTML interactive content model 위반 해소 + onClick 없이 부모 Link 로만 라우팅되던 미스리딩 `aria-label=\"재생\"` 제거. PR #32 video overlay decoration 패턴(L98-102 `<div aria-hidden=\"true\">`)에 정렬. ExternalLinkIcon L107-136 은 실제 preventDefault 핸들러로 별도 클릭 타깃이라 별도 리팩터 사이클로 분리. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `재생` 결과 0건, `aria-label` 결과 'ExternalLinkIcon 원본 보기' 1건만 남음, PinCard.test.tsx L47 `screen.getByText(\"▶\")` 은 tag-agnostic 매칭)으로 대체. PR #33 squash merge(556b710). WHATWG HTML §4.5.1 · WAI-ARIA APG decorative icon 정렬."
 
+  - id: "design-20260519-pin-create-form-title-required-aria"
+    title: "PinCreateForm 제목 필수 필드가 visible '*'로만 표시되고 SR(aria-required)에 노출되지 않음 — WAI-ARIA APG Form Properties · WCAG 2.1 SC 1.3.1 위반"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:435-446"
+      cite: "WAI-ARIA Authoring Practices Guide § Providing Accessible Names (Forms): '필수 필드는 `aria-required=\"true\"` 또는 HTML `required` 속성으로 보조 기술에 필수 상태를 노출해야 한다. 시각적 표시기(예: 별표)만 제공하면 시각 사용자에게만 의미가 전달된다.' WCAG 2.1 SC 1.3.1 Info and Relationships (Level A): '시각적으로 전달된 구조와 관계는 보조 기술이 프로그래밍 방식으로 결정 가능해야 한다.' DESIGN.md L11 'Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다' 및 루프 정체성 L7 '접근성 (대비, 키보드 포커스, aria)' 영역 정합. In-codebase precedent: archive/2026-05-15-search-dropdown-keyboard-a11y(SearchBar 드롭다운 5종 시맨틱 정렬) · archive/2026-05-19-pincard-audio-button-aria-hidden(PR #33 decorative button → span) · AddToBoardButton.tsx L321 `aria-label=\"새 보드 이름\"` · BoardActions.tsx L74-82 `aria-label`. 본 후보는 SR에 필수 상태가 전달되지 않는 폼 a11y 잔여 갭. PinCreateForm 본문 visible '*' 2곳 중 제목 input(L436·L438) 만 본 범위 — 미디어 파일 case(L327)는 `<label htmlFor>` 미연결 + dropzone div(button 시맨틱 아님) + hidden file input 패턴으로 단일 cycle 범위 초과(별도 후보로 분리)."
+      repro: "1) grep -n 'text-error\">\\*' apps/web/src/app/pin/new/PinCreateForm.tsx → 2건(L327 미디어 파일 · L436 제목). 2) L438 input element 보면 `id=\"pin-title\"`로 `<label htmlFor=\"pin-title\">`(L435) 연결 정상이지만 `aria-required` / HTML `required` 속성 부재. 3) VoiceOver/NVDA로 /pin/new 진입 후 제목 input 포커스 — SR이 'pin title, edit text'로 안내, '필수' 또는 'required' 안내 없음. visible '*'는 label 텍스트 안에 있어 'pin title star, edit text' 형태로 'star' 발음됨(WAI-ARIA APG 권장 패턴 위반: 시각 단서가 SR에 그대로 노출되어 의미 모호). 4) 처리: L438 input element 에 `aria-required=\"true\"` 1 attribute 추가, L436 visible '*' span에 `aria-hidden=\"true\"` 1 attribute 추가(SR이 'star' 발음 회피). 시각 변화 0(visible '*' 그대로 렌더, input 디자인 미변경). 함수형 동작 0(`required` HTML 속성 미사용으로 browser native validation popup 미트리거, 기존 `handleSubmit` 커스텀 validation 유지). 미디어 파일 case(L327)는 dropzone를 button으로 변환 + `<label htmlFor>` 연결 + hidden input 라벨링 필요해 단일 cycle 범위 초과, 별도 후보로 분리."
+    qa_plan: "1) cd apps/web && npm run dev 후 /pin/new 진입 — VoiceOver/NVDA로 제목 input 포커스 시 'pin title, required, edit text' 형태로 SR이 'required' 안내하는지 확인. visible '*'에서 'star' 발음이 사라지는지(aria-hidden) 확인. 2) 시각 변화 없음(visible '*' 그대로 렌더, input border/padding 미변경) — 동일 스크린샷 차이 0. 3) handleSubmit 커스텀 validation 동작 확인: title 빈 채로 '저장' 버튼 클릭 시 기존 에러 처리 경로 그대로 작동(HTML `required` 미사용이라 browser native popup 미트리거). 4) DevTools Accessibility 트리에서 input element에 `aria-required=\"true\"` 노출 + '*' span이 트리에서 제외됨 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
