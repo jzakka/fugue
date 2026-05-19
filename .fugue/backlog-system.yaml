@@ -728,4 +728,14 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 40
+    note: |
+      archived as openspec/changes/archive/2026-05-19-fix-boards-handler-error-swallow. board capability의
+      기존 Requirement 2개에 보조 Scenario 추가: `보드를 수정한다`에 "수정 후 보드 정보 조회가 실패한 경우",
+      `유저의 보드 목록을 조회한다`에 "목록 내 보조 정보 조회가 실패한 경우". `apps/api/internal/boards/handler.go`
+      Update(L319-320)와 ListByCreator(L398-399)의 두 쿼리 에러 swallow를 GetByID(L173-185) baseline과
+      동일한 log + 500 응답으로 정렬. 실 환경 QA로 정상 경로 200(`pin_count`/`cover_images` 정확) 및
+      docker pause postgres 시 500 응답 + DB error 로그 모두 확인. 단위 테스트는 핸들러가 `*sql.DB`를
+      직접 받는 구조라 querier 인터페이스 surface 도입이 별개 카테고리 변경이므로 본 사이클 범위 밖으로
+      보류 — 회귀 방지는 실 환경 QA로 대체.
