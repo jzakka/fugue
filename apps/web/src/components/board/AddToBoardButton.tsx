@@ -318,6 +318,7 @@ function BoardSelectModal({
                 value={newBoardName}
                 onChange={(e) => setNewBoardName(e.target.value)}
                 placeholder="보드 이름"
+                aria-label="새 보드 이름"
                 maxLength={100}
                 autoFocus
                 className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"

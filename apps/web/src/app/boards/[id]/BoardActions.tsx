@@ -71,6 +71,7 @@ export default function BoardActions({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="보드 이름"
+          aria-label="보드 이름"
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
         />
         <input
@@ -78,6 +79,7 @@ export default function BoardActions({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="보드 설명 (선택)"
+          aria-label="보드 설명"
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
         />
         <div className="flex gap-2">

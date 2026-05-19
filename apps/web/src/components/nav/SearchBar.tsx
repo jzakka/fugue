@@ -172,6 +172,7 @@ export default function SearchBar() {
           }
         }}
         placeholder="작품, 크리에이터, 태그 검색..."
+        aria-label="검색"
         className="w-full py-2.5 pl-10 pr-4 bg-surface border border-border rounded-full text-sm text-text-primary placeholder:text-text-dim outline-none focus:border-accent transition-colors"
       />
 
