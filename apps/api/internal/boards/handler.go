@@ -316,8 +316,18 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pinCount, _ := q.CountBoardPins(r.Context(), boardID)
-	images, _ := q.ListBoardPinImages(r.Context(), boardID)
+	pinCount, err := q.CountBoardPins(r.Context(), boardID)
+	if err != nil {
+		log.Printf("boards.Update: count pins error: %v", err)
+		writeError(w, http.StatusInternalServerError, "보드 정보를 불러올 수 없습니다")
+		return
+	}
+	images, err := q.ListBoardPinImages(r.Context(), boardID)
+	if err != nil {
+		log.Printf("boards.Update: list images error: %v", err)
+		writeError(w, http.StatusInternalServerError, "보드 정보를 불러올 수 없습니다")
+		return
+	}
 
 	writeJSON(w, http.StatusOK, toBoardResponse(updated, pinCount, images))
 }
@@ -395,8 +405,18 @@ func (h *Handler) ListByCreator(w http.ResponseWriter, r *http.Request) {
 
 	results := make([]BoardResponse, 0, len(boards))
 	for _, b := range boards {
-		pinCount, _ := q.CountBoardPins(r.Context(), b.ID)
-		images, _ := q.ListBoardPinImages(r.Context(), b.ID)
+		pinCount, err := q.CountBoardPins(r.Context(), b.ID)
+		if err != nil {
+			log.Printf("boards.ListByCreator: count pins error: %v (board=%s)", err, b.ID)
+			writeError(w, http.StatusInternalServerError, "보드 목록을 불러올 수 없습니다")
+			return
+		}
+		images, err := q.ListBoardPinImages(r.Context(), b.ID)
+		if err != nil {
+			log.Printf("boards.ListByCreator: list images error: %v (board=%s)", err, b.ID)
+			writeError(w, http.StatusInternalServerError, "보드 목록을 불러올 수 없습니다")
+			return
+		}
 		results = append(results, toBoardResponse(b, pinCount, images))
 	}
 
