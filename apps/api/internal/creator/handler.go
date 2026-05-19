@@ -189,6 +189,10 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		if *req.AvatarURL == "" {
 			avatarURL = sql.NullString{}
 		} else {
+			if utf8.RuneCountInString(*req.AvatarURL) > 500 {
+				writeError(w, http.StatusBadRequest, "아바타 URL은 500자 이내여야 합니다")
+				return
+			}
 			avatarURL = sql.NullString{String: *req.AvatarURL, Valid: true}
 		}
 	}
