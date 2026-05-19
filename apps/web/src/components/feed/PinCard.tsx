@@ -61,12 +61,12 @@ function AudioSection({ pin }: { pin: Pin }) {
       <div className="relative">
         <AudioWaveform seed={pin.id} />
         <div className="flex items-center gap-3">
-          <button
-            aria-label="재생"
+          <span
+            aria-hidden="true"
             className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm shrink-0"
           >
             ▶
-          </button>
+          </span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold truncate">{pin.title}</div>
             <div className="text-xs text-text-muted">{pin.creator.nickname}</div>
