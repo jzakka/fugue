@@ -1016,7 +1016,7 @@ items:
     effort: 2
     risk: 2
     score: 6.25
-    status: in_progress
+    status: done
     note: |
       Discovery 모드 발굴. 인용 가능한 OpenSpec 요구사항은 부재하나
       저장소 내부 합의된 SSRF 방어 패턴(og/service.go)이 명백히 존재해
@@ -1027,3 +1027,13 @@ items:
       각각에 timeout+redirect cap 명시. 동시에 harvester/spec.md에
       "외부 미디어 fetch는 private/reserved IP 거부 + N MB 상한 + T초
       timeout를 enforce한다" Scenario를 ADDED 한다.
+    resolution: |
+      2026-05-19 PR #47 (d51c944) 머지로 완료. apps/api/internal/httpclient
+      신규 패키지에 SSRF-safe HTTP client (per-IP private/reserved 거부 +
+      CheckRedirect 재해소 + non-http 스킴 거부 + 5s/60s/5-redirect cap)를
+      추가하고 HarvestPipeline.client에 주입. downloadAndUpload의 streaming
+      branch는 io.LimitReader(200 MiB)로 Content-Length lie 차단.
+      harvester/spec.md에 "외부 미디어 fetch는 SSRF-safe HTTP client를
+      경유한다" Requirement 5 Scenarios ADDED. og/service.go의 SSRF
+      dialer를 신규 httpclient 패키지로 마이그레이션하는 작업은 본 사이클
+      범위 밖으로 두고 후속 backlog 후보로 남김(중복 구현 정리 목적).
