@@ -321,3 +321,8 @@
 결정/변경: `apps/api/internal/pin/handler.go` no-trim else 블록 L241-248 단일 가드 `if probeErr == nil && duration > 15`를 두 갈래로 분리. probe 실패 시 400 + "비디오 길이를 확인할 수 없습니다" + return, 길이 초과 시 기존 400 + "15초 초과 비디오는 트리밍이 필요합니다" + return. `handler_test.go`에 회귀 방지 테스트 `TestCreate_RejectsNoTrimVideoWhenProbeDurationFails` 추가. OpenSpec change: `archive/2026-05-19-fix-pin-video-no-trim-probe-fail-reject`. PR #28.
 이유: `openspec/specs/pin/spec.md` Scenario `구간 정보 없이 15초 초과 비디오 업로드` 의 거부 SHALL 이 probe 실패라는 우연으로 침묵 우회되는 결함. 변경 전에는 ffprobe 부재·malformed 입력·일시적 I/O 오류 중 어느 하나라도 발생하면 임의 길이 비디오가 storage 까지 진행. spec text 가 "거부"만 명시하므로 fail-closed (옵션 A)가 가장 단순한 충실 구현. ADDED Scenario `구간 정보 없이 비디오 길이를 확인할 수 없는 경우` 를 추가해 행위 계약을 명시. 트림 경로(`trim_start`/`trim_end` 동시 제공)는 클라이언트 trim_end 가드로 결과물 ≤15s 가 보장되어 본 change 범위 밖.
 QA 4 케이스 모두 통과: (1) probe 실패 multipart(`video/mp4` + plain-text 본문) → 400 + 길이 확인 불가 문구 (2) PNG 이미지 회귀 → 201 (3) 5s 비디오 회귀 → 201 (4) 16s 비디오 → 400 + 기존 메시지 보존. 사이드 worktree 의 fugue docker compose 스택 재사용, 응답·DB pins 행 모두 직접 관찰.
+
+## 2026-05-19 — [system] 시스템 루프 prompt를 워크트리 환경에 맞게 수정
+결정/변경: `prompts/loop-system.md` step 10의 `git checkout main && git pull` 제거, step 1의 브랜치 생성을 `git checkout -B loop-system/<id> origin/main`(origin/main 기준 강제 재생성)으로 변경, step 0 §3의 ff-only 검사 제거. PR #37.
+이유: 이 디렉터리는 git worktree라 부모 체크아웃이 main을 점유 → step 10이 원천적으로 실행 불가능. 그 결과 직전 사이클의 squash-merge 후 워크트리가 stale 상태로 남고 다음 사이클 step 0 §3의 ff-only가 영구 실패 → 무한 종료 stall. 사용자가 옵션 A로 해결안 결정.
+영향 범위: 시스템 루프 절차 6줄 변경. 디자인 루프(별도 prompt)는 영향 없음. 이후 모든 시스템 사이클이 origin/main 기준 클린 시작.
