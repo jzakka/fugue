@@ -95,7 +95,7 @@ function VideoSection({ pin }: { pin: Pin }) {
           e.currentTarget.style.display = "none";
         }}
       />
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
         <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center text-white text-lg">
           ▶
         </div>

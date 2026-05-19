@@ -279,7 +279,7 @@ export default function SearchBar() {
                           }}
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-[6px] bg-surface shrink-0 flex items-center justify-center text-text-dim text-xs">
+                        <div aria-hidden="true" className="w-8 h-8 rounded-[6px] bg-surface shrink-0 flex items-center justify-center text-text-dim text-xs">
                           {pin.media_type === "audio" ? "♪" : pin.media_type === "video" ? "▶" : "◻"}
                         </div>
                       )}
