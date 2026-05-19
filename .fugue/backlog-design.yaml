@@ -1064,3 +1064,19 @@ items:
     pr: 35
     note: "처리 완료. PinCreateForm.tsx L330-344 dropzone `<div onClick={...}>` 에 4 attribute + onKeyDown 핸들러 추가(diff +9 -0): `role=\"button\"`(SR 이 button 시맨틱 인식) · `tabIndex={0}`(Tab 순서 포함) · `aria-label=\"미디어 파일 선택\"`(accessible name) · `onKeyDown`(Enter/Space 시 `e.preventDefault()` + 기존 onClick 과 동일 `fileInputRef.current?.click()` 호출). 기존 onClick 미변경(마우스 사용자 회귀 0). className 의 border / cursor-pointer / hover:border-accent 미변경 → 시각 변화 0. 자식 div 3개 미수정. focus-visible 시각 표시(WCAG SC 2.4.7 Level AA)는 별도 후보로 분리(본 변경은 SC 2.1.1 Level A 키보드 작동만 충족). 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `role=\"button\"|tabIndex|onKeyDown|aria-label=\"미디어` 4건 — L332/L338/L339/L340 모두 의도대로 부착, 기존 onClick L331 미변경 확인)으로 대체. PR #35 squash merge. WAI-ARIA APG Button Pattern · WCAG 2.1 SC 2.1.1 Level A 정렬."
 
+  - id: "design-20260519-pin-create-form-dropzone-focus-visible"
+    title: "PinCreateForm 미디어 파일 dropzone 에 키보드 포커스 시각 표시(focus-visible) 누락 — WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 위반"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:329-344"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA): 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' DESIGN.md L11 'Decoration level: Minimal' 및 루프 정체성 L7 '접근성 (대비, 키보드 포커스, aria)' 영역 정합. In-codebase precedent: `grep -rn 'focus-visible' apps/web/src --include='*.tsx'` → 5개 컴포넌트(PinCard.tsx:146 / SearchClient.tsx:313+L351 / BoardGrid.tsx:22 / MyPageClient.tsx:130 / BoardCover.tsx:6+L30)가 일관된 `focus-visible:border-accent focus-visible:outline-none` 패턴 적용 중. PR #35 가 dropzone 키보드 작동성(SC 2.1.1 Level A)을 회복했으나 visual focus indication(SC 2.4.7 Level AA)이 잔여 갭으로 명시적으로 분리됨. PR #35 작업 노트 'focus-visible 시각 표시는 별도 후보로 분리'."
+      repro: "1) PR #35 머지 후 /pin/new 진입, Tab 키만으로 dropzone 영역에 도달 → role/tabIndex 부여로 도달은 가능하지만 어디에 포커스 있는지 시각 표시 없음(기본 outline 도 `outline-none` 패턴 일관성 위해 명시 제거 예정). 2) 같은 페이지 다른 Link/button(PinCard 등)은 focus 시 border 색 accent 로 명확히 변경되어 비대칭. 3) 처리: dropzone div className 끝에 `focus-visible:border-accent focus-visible:outline-none` 1 className 추가(2 utility). hover:border-accent 와 동일 시각 신호 — 키보드 포커스에서 점선 색이 border-accent 로 변경. 다른 컴포넌트(PinCard L146 등)의 hover/focus-visible 통합 패턴과 시각 일관성 회복. 마우스 클릭에는 focus-visible 가 미적용이라 회귀 0(focus-visible 은 :focus 와 달리 키보드 navigation 시에만 활성)."
+    qa_plan: "1) cd apps/web && npm run dev 후 /pin/new 진입 — Tab 키만으로 dropzone 도달 시 border 색이 border-accent 로 변경되는 시각 표시 확인. 2) 마우스로 dropzone 클릭 시 focus-visible 미적용 → 기존 마우스 사용자 경험 회귀 0 확인. 3) PinCard 와 동일한 focus-visible 패턴(hover/focus-visible 같은 border-accent 신호)이 적용되는지 시각 일관성 확인. 4) dropzone 의 hover:border-accent 와 focus-visible:border-accent 모두 작동(마우스 hover 시 border-accent · 키보드 포커스 시 border-accent) 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
