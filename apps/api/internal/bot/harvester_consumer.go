@@ -359,6 +359,22 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 		}
 	}
 
+	// Pre-block media URL candidates that overflow pins.media_url's
+	// VARCHAR(500) column cap (migration 000012_pivot_pins_media.up.sql L2).
+	// ProcessDocument feeds the picked media URL directly to UpsertBotPinByURL
+	// without any cap, so an overlong ThumbnailURL or first MediaCandidate.URL
+	// fails the INSERT with PostgreSQL `value too long for type character
+	// varying(500)`, which the consumer treats as a generic pin_create error
+	// and retries up to 5 times before partial-index permanent omission. Title
+	// (cycle 8 PR #50) was pre-truncated to fit pins.title(200); media_url is
+	// the symmetric remaining gap. URLs can't be rune-truncated without
+	// destroying semantics, so the fix is skip-not-truncate: drop overlong
+	// candidates so pickMediaForPin's existing fallback chain selects the
+	// next valid candidate, and if every candidate is overlong the classifier's
+	// no_primary_media verdict naturally short-circuits to skipped+harvested
+	// (no retry burn).
+	filterOverlongMediaURLs(&doc, rawURL)
+
 	linkStats := ComputeLinkStats(body)
 	pinnable, reason := h.classifier.Classify(doc, linkStats)
 	doc.OGData.Classifier = &ClassifierVerdict{Pinnable: pinnable, Reason: reason}
@@ -487,6 +503,51 @@ func hostnameOf(rawURL string) string {
 		return ""
 	}
 	return strings.ToLower(u.Hostname())
+}
+
+// pinsMediaURLRuneCap mirrors the pins.media_url column type
+// `VARCHAR(500)` from migration 000012_pivot_pins_media.up.sql. Kept as
+// a named constant so the filter, spec citations, and tests share a single
+// source of truth.
+const pinsMediaURLRuneCap = 500
+
+// filterOverlongMediaURLs drops media URL candidates from doc whose rune
+// length exceeds pinsMediaURLRuneCap, so that ProcessDocument never feeds an
+// overlong URL to pins.media_url (VARCHAR(500)). doc is mutated in place:
+//   - doc.ThumbnailURL is cleared if it exceeds the cap.
+//   - doc.MediaCandidates is in-place filtered to keep only entries whose
+//     URL is within the cap (preserving order so pickMediaForPin's "first
+//     non-empty candidate" semantics are unchanged for surviving entries).
+//
+// Each skip is logged with the rawURL (source page) + candidate URL + rune
+// count so operators can correlate overlong-URL sources without inflating
+// the happy path with any output. sourceURL is the harvester input URL
+// (the page being harvested), not the candidate; it is included for
+// correlation with reportFailure log lines.
+func filterOverlongMediaURLs(doc *PinDocument, sourceURL string) {
+	if doc == nil {
+		return
+	}
+	if doc.ThumbnailURL != "" {
+		if n := utf8.RuneCountInString(doc.ThumbnailURL); n > pinsMediaURLRuneCap {
+			log.Printf("harvest: media URL exceeds %d runes, skipping thumbnail (source=%q url=%q len=%d)",
+				pinsMediaURLRuneCap, sourceURL, doc.ThumbnailURL, n)
+			doc.ThumbnailURL = ""
+		}
+	}
+	if len(doc.MediaCandidates) == 0 {
+		return
+	}
+	kept := doc.MediaCandidates[:0]
+	for _, c := range doc.MediaCandidates {
+		if n := utf8.RuneCountInString(c.URL); n > pinsMediaURLRuneCap {
+			log.Printf("harvest: media URL exceeds %d runes, skipping candidate (source=%q url=%q type=%q len=%d)",
+				pinsMediaURLRuneCap, sourceURL, c.URL, c.Type, n)
+			continue
+		}
+		kept = append(kept, c)
+	}
+	doc.MediaCandidates = kept
 }
 
 // truncateRunes returns the first n runes of s. Cuts on rune boundaries so
