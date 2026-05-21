@@ -1453,7 +1453,9 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: pending
+    status: done
+    pr: 127
+    note: "2026-05-21 PR #127 — FieldFilter.tsx:39 non-selected variant className 의 `hover:border-text-muted hover:text-text-primary` 뒤에 `focus-visible:border-text-muted focus-visible:text-text-primary` 2 utility 삽입(diff +1 -1, 단일 className 분기 안 utility 추가). MEDIA_TYPES.map 4 button(전체/이미지/음악/영상) non-selected variant 가 키보드 Tab 포커스 도달 시 hover 와 동일한 border-text-muted + text-text-primary 미러링. 홈/피드 페이지(/) 컨텐츠 미디어 타입 1차 필터 — 모든 사용자 시각 진입점. selected variant L38 `bg-text-primary text-bg` 은 hover 도 없어 보수 결정으로 미변경. in-codebase focus-visible 16 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins · BoardActions) → 17 파일로 확장. JSX 구조 · onClick(handleClick → router.push) · MEDIA_TYPES 배열 · key · useRouter · useSearchParams · params 처리 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #124(BoardActions) · PR #120(LoadMorePins) · PR #118(LogoutButton) · PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 2 utility 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-tag-filter-focus-visible-missing"
     title: "TagFilter 의 초기화 button(L46-51) 과 non-selected tag button(L56-68)이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 홈/피드 페이지 태그 필터 키보드 포커스 가시화 누락(in-codebase focus-visible 16 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
