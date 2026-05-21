@@ -2164,5 +2164,25 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 111
+    qa_note: |
+      PR #111 (2026-05-21 cycle L). 코드: auth/service.go RevokeAllTokens 본문에 3건 로그
+      (SMembers err 캡처+log+early return / per-jti Del .Err() 캡처+log / idx Del .Err() 캡처+log)
+      추가 + doc 주석 13줄(실패 모드별 의미 + cycle C/F/G/I/K 패턴 동일성 + void 시그니처 보존
+      근거). 실 환경 QA: 임시 apps/api/cmd/qarevoke/main.go (QA 후 삭제) 가 auth 패키지를 직접
+      import 하여 real docker Redis(peppy-juggling-token-redis-1) 에 시드+호출.
+      T1 happy (SAdd + SET ×2 시드 → RevokeAllTokens → EXISTS rt:jti1=0 rt:jti2=0
+      rt_index:<sub>=0 + 0 auth.RevokeAllTokens: 로그). T2 SMembers fail (docker pause →
+      "auth.RevokeAllTokens: SMembers error: i/o timeout (sub=15c26216-...)" 1줄 + 후속 Del
+      로그 0건, early-return 검증). T2 recovery (unpause → 0 신규 로그 + 키 모두 삭제).
+      T3 empty (시드 없이 호출 → SMembers 빈 리스트 → per-jti Del 미실행 → 0 로그).
+      회귀: /api/auth/providers 200, /api/auth/logout(no cookies) 200, /api/auth/refresh(no
+      cookies) 401, /api/feed(no auth) 200. 단위 테스트 531 → 533 pass in 23 packages
+      (TestRevokeAllTokens_NoLogOnSuccess + TestRevokeAllTokens_LogsOnSMembersFailure 신설).
+      per-jti Del / idx Del 실패 path 로그는 cycle I/K 동일 한계로 패턴 동일성 + 실 환경 QA
+      로 보강. `grep -rn "rdb\\." apps/api/internal/auth | grep -v ".Err()" | grep -v ".Result()"`
+      매칭 0건 도달 (auth 패키지 Redis silent-swallow 잔여 0).
+      CI 1차 실패(golangci-lint errcheck on mr.Set seed) → 1줄 if-err+t.Fatalf 추가 후 재push
+      → main BEHIND(origin advance) → rebase --force-with-lease → 재 merge-on-green 성공.
 
