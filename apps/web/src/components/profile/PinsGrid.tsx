@@ -101,6 +101,7 @@ export default function PinsGrid({
           <button
             key={mt.value}
             onClick={() => handleTypeChange(mt.value)}
+            aria-pressed={activeType === mt.value}
             className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
               activeType === mt.value
                 ? "bg-accent text-white"
