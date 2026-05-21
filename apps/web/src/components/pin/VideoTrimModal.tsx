@@ -272,7 +272,7 @@ export default function VideoTrimModal({
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer"
           >
             취소
           </button>
@@ -280,7 +280,7 @@ export default function VideoTrimModal({
             type="button"
             onClick={() => onConfirm(start, end)}
             disabled={clip < MIN_CLIP || clip > MAX_CLIP + 0.5}
-            className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
           >
             선택 완료
           </button>
