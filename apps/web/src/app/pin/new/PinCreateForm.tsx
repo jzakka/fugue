@@ -620,14 +620,14 @@ export default function PinCreateForm() {
             type="button"
             onClick={() => router.back()}
             disabled={isDisabled}
-            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
           >
             취소
           </button>
           <button
             type="submit"
             disabled={isDisabled}
-            className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
           >
             {submitting ? "등록 중..." : optimizing ? "처리 중..." : "등록하기"}
           </button>
