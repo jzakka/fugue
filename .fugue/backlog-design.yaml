@@ -1178,3 +1178,19 @@ items:
     pr: TBD
     note: "2026-05-21 PR #TBD — NavBar.tsx 마이페이지 Link 에 `aria-label={user.nickname}` 추가(L40) + img alt `{user.nickname}` → `\"\"` 변경(L46). diff +5 -3(Link 단일 라인 → 멀티라인 prop 분리 + 1 attribute 추가 + 1 attribute 값 변경). WCAG 2.1 SC 2.4.4 Link Purpose (In Context) Level A 정렬. PR #31 decision-log 'NavBar.tsx L42 ... 별도 cycle에서 Link aria-label 추가 패턴 필요' follow-up 종결. WAI-ARIA naming hierarchy 로 aria-label 이 SR 우선 → desktop(visible nickname span sm:block)·mobile(nickname hidden)·avatar img·fallback div 4 조합 모두 'nickname, link' 안내 통일. img alt=\"\" 는 PR #31 의 3개 아바타 img(ProfileHeader/SearchClient/pins/[id]) 패턴과 정렬 — 인접 텍스트(aria-label 의 nickname)가 동일 정보 제공 → 장식 이미지. 시각 회귀 0(className · src · 컨테이너 미수정). 인접 Link(Logo L14, 핀 생성 L30-35, 로그인 L58) 접근 이름 미변경. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — JSX 단일 컴포넌트 2 attribute 변경 단위라 코드 검증으로 대체."
 
+  - id: "design-20260521-logout-button-loading-text-non-descriptive"
+    title: "LogoutButton 로딩 상태 텍스트 '...' 가 다른 모든 로딩 패턴(중...)과 비대칭 — SR/사용자에게 진행 단계 불명"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/auth/LogoutButton.tsx:29"
+      cite: "코드베이스 내 로딩 상태 텍스트 5건 — LoginButtons.tsx:77 '리다이렉트 중...', ProfileEditForm.tsx:119 '저장 중...', PinCreateForm.tsx:363 '파일 처리 중...', :492 '미리보기를 불러오는 중...', :628 '등록 중...' 모두 '{동작} 중...' 패턴. LogoutButton.tsx:29 만 `\"...\"` (3 dot)으로 동작명 누락. WAI-ARIA APG § Button — 상태 변경 시 'visible label should describe current action'. WCAG 2.1 SC 4.1.3 Status Messages — 진행 상태는 SR이 이해 가능해야. SR이 '...' 또는 'ellipsis' 로 읽음."
+      repro: "1) 로그인 상태로 / 접속 → NavBar 우측 '로그아웃' 버튼 클릭. 2) `fetch('/api/auth/logout')` 진행 동안 button 텍스트 '로그아웃' → '...' 변경. 3) SR(VoiceOver/NVDA)가 '...' 또는 'horizontal ellipsis' 로 읽어 어떤 동작이 진행 중인지 불명. 4) 사이트 5개 다른 로딩 패턴('저장 중...' 등)과 비대칭. 5) 처리: L29 `{loading ? \"...\" : error ? \"재시도\" : \"로그아웃\"}` 중 첫 분기를 `\"로그아웃 중...\"` 로 변경(diff +0 chars actually 1 string literal +6 chars). disabled 동작·error 분기·hover transition·className 미변경."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 상태 → '로그아웃' 클릭 → DevTools Network 탭에서 /api/auth/logout 응답 대기 동안 button 텍스트 '로그아웃 중...' 확인. 3) DevTools Accessibility tree 에서 button name 이 '로그아웃 중...' 으로 노출. 4) error 분기 시뮬레이션(/api/auth/logout 503 mock)으로 button '재시도' 변경 무영향 확인. 5) 인접 회귀: ProfileEditForm 저장 버튼 L119 '저장 중...' · LoginButtons L77 '리다이렉트 중...' 패턴 무변경 확인."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
