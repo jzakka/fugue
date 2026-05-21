@@ -1140,3 +1140,21 @@ items:
     pr: 62
     note: "2026-05-21 PR #62 squash merge — AddToBoardButton.tsx 에 focus trap useEffect 1 블록 추가(diff +27 -0). panel keydown 에서 e.key === 'Tab' 시 panel.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\"-1\"])') 매 keydown 재계산(modal focusable 셋이 loading/showCreate 토글/feedback 등장으로 동적). first/last wrap. Shift+Tab on first 또는 panel → last, Tab on last → first (e.preventDefault() + target.focus()). WAI-ARIA APG Dialog Pattern · WCAG 2.1 SC 2.4.3 Focus Order Level A 정렬. cycle 30(Initial focus) 잔여 Focus trap 두 modal 중 두 번째(PR #61 이 VideoTrimModal 처리). JSX/className/role/aria-* 미변경 → 시각 회귀 0. 기존 useEffect(L112 loadBoards · L117 body scroll lock · L125 Initial focus · L130 Escape · L139 auto-close) 미수정 → 회귀 0. autoFocus on showCreate input(L325) 시간상 분리되어 무간섭. 마우스 사용자 회귀 0. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 코드 검증(grep 결과 새 useEffect L139-164 의도대로 부착, 기존 useEffect/JSX 미수정 확인)으로 대체."
 
+  - id: "design-20260521-skeleton-shimmer-prefers-reduced-motion"
+    title: "skeleton-shimmer infinite 애니메이션이 prefers-reduced-motion 사용자 OS 설정을 무시"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:92-102"
+        - "apps/web/src/components/feed/CardSkeleton.tsx:3"
+        - "apps/web/src/components/profile/ProfileSkeleton.tsx:3"
+      cite: "W3C CSS Media Queries Level 5 § 11.1 prefers-reduced-motion — 'Indicates that the user prefers the page to use minimal animation or motion.' MDN Web Docs § prefers-reduced-motion — '@media (prefers-reduced-motion: reduce) { /* disable non-essential animation */ }'. DESIGN.md L89 'Motion · Approach: Minimal-functional — 작품 감상을 방해하지 않는 선' 정신과 정렬 — OS 설정으로 motion 감소를 선택한 사용자는 '작품 감상 방해' 정의가 더 엄격함. 코드베이스 grep `prefers-reduced-motion` 0 매칭으로 갭 확인."
+      repro: "1) macOS 시스템 설정 → 손쉬운 사용 → 디스플레이 → '동작 줄이기' 토글 ON (또는 Chrome DevTools → Rendering → Emulate CSS media feature prefers-reduced-motion: reduce). 2) 피드 첫 로드 시 CardSkeleton 또는 프로필 첫 로드 시 ProfileSkeleton 표시 → .skeleton-shimmer .bg-surface-elevated 가 background-position 1.5s linear infinite 로 좌→우 이동 애니메이션 계속 진행 → 사용자의 motion 감소 선호 무시. 3) 처리: globals.css L92-102 다음에 `@media (prefers-reduced-motion: reduce) { .skeleton-shimmer .bg-surface-elevated { animation: none; } }` 1 블록 추가(2-3 라인). animation 만 비활성 — background-image/size/repeat 정적 그라디언트는 유지되어 skeleton 시각 형태(어두운 배경 위에 미묘한 highlight 줄) 그대로. animate-spin 13곳은 essential progress indication 으로 별도 후보(본 cycle 미포함)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) Chrome DevTools → Cmd+Shift+P → 'Show Rendering' → Emulate CSS media feature prefers-reduced-motion: reduce. 3) 피드 로드(/) → CardSkeleton 렌더 시 shimmer 멈춤 확인(정적 그라디언트는 보존). 4) 프로필 로드(/me 또는 /creators/[id]) → ProfileSkeleton 동일 확인. 5) Emulate 해제 → shimmer 애니메이션 정상 재시작. 6) animate-spin 들(MyPageClient L59, AddToBoardButton L286 등)은 본 변경 범위 밖이므로 reduce 모드에서도 계속 동작해야 함 — 인접 회귀 확인."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: in_progress
+
