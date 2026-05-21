@@ -256,6 +256,80 @@ func TestList_InvalidCreatorID(t *testing.T) {
 	}
 }
 
+// Pins the tag_ids count cap on /api/pins. The endpoint is
+// unauthenticated and not rate-limited and the array feeds into
+// ListPinsWithCreator + CountPins (or ListPinsByCreator +
+// CountPinsByCreatorFiltered on the creator_id path). The Count
+// query has no LIMIT/OFFSET so `tag_id = ANY($N::uuid[])` is
+// evaluated against the full `pins` table. The cap mirrors the
+// sibling search.Search at internal/search/handler.go:115 so
+// the two handlers reject the same input shape with the same
+// 400 message.
+
+func TestList_TagIDsTooMany(t *testing.T) {
+	mock := &mockQuerier{}
+	h := NewHandlerWithQuerier(mock)
+
+	tagIDs := "00000000-0000-0000-0000-000000000001," +
+		"00000000-0000-0000-0000-000000000002," +
+		"00000000-0000-0000-0000-000000000003," +
+		"00000000-0000-0000-0000-000000000004," +
+		"00000000-0000-0000-0000-000000000005," +
+		"00000000-0000-0000-0000-000000000006"
+	rec := doRequest(t, h, "/api/pins?tag_ids="+tagIDs)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for >5 tag_ids, got %d; body=%s", rec.Code, rec.Body.String())
+	}
+	var body map[string]string
+	_ = json.NewDecoder(rec.Body).Decode(&body)
+	if !strings.Contains(body["error"], "5개") {
+		t.Errorf("error message should reference the 5-tag cap (sibling search.Search convention), got %q", body["error"])
+	}
+}
+
+// Pins the tag_ids creator_id path: the cap fires before listByCreator
+// dispatch so CountPinsByCreatorFiltered (UN-paginated, same EXISTS
+// shape as CountPins) is never reached with an over-cap array.
+func TestList_TagIDsTooMany_CreatorIDPath(t *testing.T) {
+	mock := &mockQuerier{}
+	h := NewHandlerWithQuerier(mock)
+
+	tagIDs := "00000000-0000-0000-0000-000000000001," +
+		"00000000-0000-0000-0000-000000000002," +
+		"00000000-0000-0000-0000-000000000003," +
+		"00000000-0000-0000-0000-000000000004," +
+		"00000000-0000-0000-0000-000000000005," +
+		"00000000-0000-0000-0000-000000000006"
+	rec := doRequest(t, h, "/api/pins?creator_id=00000000-0000-0000-0000-000000000001&tag_ids="+tagIDs)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for >5 tag_ids on creator_id path, got %d; body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+// Boundary: exactly 5 tag_ids must pass the cap guard and reach the
+// query layer (200 with empty list since the mock returns no rows).
+// The cap is inclusive at 5 to match search.Search:115.
+func TestList_TagIDsAtMaxCount(t *testing.T) {
+	mock := &mockQuerier{listRows: nil, countVal: 0}
+	h := NewHandlerWithQuerier(mock)
+
+	tagIDs := "00000000-0000-0000-0000-000000000001," +
+		"00000000-0000-0000-0000-000000000002," +
+		"00000000-0000-0000-0000-000000000003," +
+		"00000000-0000-0000-0000-000000000004," +
+		"00000000-0000-0000-0000-000000000005"
+	rec := doRequest(t, h, "/api/pins?tag_ids="+tagIDs)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("5 tag_ids (= cap) must NOT trip the count-cap 400; got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if len(mock.lastListP.Column2) != 5 {
+		t.Errorf("expected all 5 tag_ids forwarded to ListPinsWithCreator, got %d", len(mock.lastListP.Column2))
+	}
+}
+
 // --- Related handler tests ---
 
 var (
