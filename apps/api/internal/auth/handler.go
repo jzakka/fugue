@@ -74,9 +74,13 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check for provider error (user denied, etc.)
+	// errMsg is already percent-decoded by r.URL.Query().Get; QueryEscape
+	// re-encodes so attacker-supplied `&`/`=`/`#` cannot smuggle extra query
+	// params (e.g. `?error=foo%26next%3Dhttps%3A%2F%2Fattacker`) into the
+	// redirect Location. All other error branches use literal constants.
 	if errMsg := r.URL.Query().Get("error"); errMsg != "" {
 		LogAuthEvent(r, "auth_login_failure", providerName, uuid.Nil, nil)
-		http.Redirect(w, r, h.frontend+"/login?error="+errMsg, http.StatusFound)
+		http.Redirect(w, r, h.frontend+"/login?error="+url.QueryEscape(errMsg), http.StatusFound)
 		return
 	}
 
