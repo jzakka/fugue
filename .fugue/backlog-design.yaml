@@ -1306,3 +1306,19 @@ items:
     status: done
     pr: 96
     note: "2026-05-21 PR #96 (a24d094) — NavBar.tsx 단일 파일 2 className 변경(diff +2 -2): L32 핀 생성 Link className `hover:bg-accent-hover` 뒤에 `focus-visible:bg-accent-hover` + L64 로그인 Link className `hover:border-accent` 뒤에 `focus-visible:border-accent`. 키보드 Tab 포커스 도달 시 hover 와 동일한 bg-accent-hover #FF6B3D / border-accent #E85A2A 미러링 → in-codebase focus-visible 라인업 8 파일(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle) 표준 패턴 정합. JSX 구조 · href · aria-label · 인접 Link(Logo · 마이페이지) · ThemeToggle · LogoutButton · SearchBar · 다른 utility 모두 무변경 → 시각 회귀 0, 마우스 사용자 회귀 0. NavBar 는 sticky top-0 글로벌 nav 라 모든 페이지에서 보임. decision-log 2026-05-21 PR #91(ThemeToggle hover→focus-visible) follow-up. 머지 직전 BEHIND → git rebase origin/main + force push 후 재머지. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-profile-header-edit-button-focus-visible-missing"
+    title: "ProfileHeader 의 편집 button(L37-43) 이 `hover:text-text-primary hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 키보드 포커스 도달 시 hover 시각 변화 미러링 누락(in-codebase focus-visible 9 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileHeader.tsx:37-43"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' ProfileHeader.tsx:39 편집 button className `shrink-0 px-4 py-2 bg-surface-elevated border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(text-text-primary + border-accent) 미러링 0. native browser focus ring(outline) 만 그려져 in-codebase focus-visible 9 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64 신규) 의 'hover 와 focus-visible 시각 동일 미러링' 표준 패턴과 비대칭. decision-log 2026-05-21 PR #96(NavBar 핀 생성·로그인 Link focus-visible 미러링) · PR #91(ThemeToggle focus-visible) · PR #86(SearchBar 최근 검색 삭제 focus-visible) 의 a11y 키보드 가시성 라인업 follow-up. 편집 button 은 마이페이지 진입 사용자(소유자)에게 항상 보이는 프로필 수정 진입점으로 키보드 사용자 빈도 높음. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, 마크업/JSX 구조 미수정, 단일 파일 1 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입(자기 프로필) → ProfileHeader 의 편집 button(L37-43) 확인. 3) 마우스 hover → text-text-primary #E8E8E8 + border-accent #E85A2A 적용 확인. 4) Tab 으로 편집 button 에 포커스 → text-text-muted #888888 + border-border #2A2A2A 유지(hover 시각 미적용) + native outline 만. 5) 처리: L39 className `hover:text-text-primary hover:border-accent` 뒤에 ` focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). JSX 구조 · onClick · isOwner 조건 · onEdit prop · 인접 ProfileHeader Avatar(L18-25) · h1(L32-34) · pin_count(L47-51) 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입(자기 프로필) → ProfileHeader 편집 button(L37-43) 확인. 3) Tab 으로 편집 button 에 포커스 → text-text-primary + border-accent 적용 확인. Enter/Space 로 onEdit 콜백 호출 동작 정상(ProfileEditForm 등장). 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0(hover/focus-visible 동일 미러링). 5) 인접 회귀: ProfileHeader Avatar(L18-25) · h1(L32-34) · pin_count(L47-51) 무변경. ProfileEditForm(L107 취소 button, L114 저장 button) hover/focus 상태 무변경. 6) /creators/[id] 다른 사용자 페이지 → isOwner=false 분기에서 편집 button 미렌더 확인. 7) light mode 동일 확인(--color-text-primary · --color-accent · --color-text-muted · --color-border 토큰 단일 값 유지)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
