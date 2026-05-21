@@ -2067,3 +2067,102 @@ items:
       + TestGetFeed_LogsOnCacheSetFailure 신설). `grep -rn '_ = .*\.Err\b' apps/api/internal`
       매칭 0건 도달.
 
+  - id: system-20260521-auth-revokealltokens-redis-silent-swallow
+    title: "auth.RevokeAllTokens 의 Redis SMembers/Del 결과를 silent-discard — 캡처/로그 없이 early return 및 명령 결과 무시 (auth 패키지의 마지막 Redis silent-swallow 잔여)"
+    area: error-handling
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:321-332"
+        - "apps/api/internal/auth/service.go:324 (SMembers err 캡처 후 무로그 early return)"
+        - "apps/api/internal/auth/service.go:329 (per-jti Del .Err() 미캡처)"
+        - "apps/api/internal/auth/service.go:331 (idx Del .Err() 미캡처)"
+        - "docs/designs/oauth-login.md:219-224 (compromise-detection sweep 설계 — `Read rt_index:{creator_id}` / `Delete each rt:{jti}` / `Delete rt_index:{creator_id}` 가 RevokeAllTokens 구현 대상)"
+        - ".fugue/decision-log.md (2026-05-21 cycle C RevokeRefreshToken Del/SRem PR #70, cycle F RotateRefreshToken grace mark Set/SRem PR #81, cycle G RateLimiter fail-open PR #85, cycle I StoreRefreshToken Expire PR #92, cycle K feed.GetFeed cache Set PR #101 — auth/feed 패키지의 동일 silent-swallow 패턴 모두 로깅화된 이후의 마지막 auth 잔여)"
+      cite: |
+        (a) 현재 코드 (auth/service.go:321-332):
+              // RevokeAllTokens revokes all refresh tokens for a creator (compromise detection).
+              func (s *Service) RevokeAllTokens(ctx context.Context, creatorID uuid.UUID) {
+                  idxKey := rtIdxPrefix + creatorID.String()
+                  jtis, err := s.rdb.SMembers(ctx, idxKey).Result()
+                  if err != nil {
+                      return
+                  }
+                  for _, jti := range jtis {
+                      s.rdb.Del(ctx, rtPrefix+jti)
+                  }
+                  s.rdb.Del(ctx, idxKey)
+              }
+            3 silent 지점:
+              L324 SMembers: err 캡처는 하지만 무로그 early return — Redis read 실패 시
+                    sweep 자체가 no-op 으로 끝나며 운영자에게 단서 0건.
+              L329 per-jti Del: `*redis.IntCmd` 반환을 무시. err 캡처 자체가 없음.
+              L331 idx Del: 동일하게 `.Err()` 미캡처.
+
+        (b) Spec/Design: docs/designs/oauth-login.md:219-224 가 compromise-detection sweep 의
+            3단계(rt_index 읽기 → 각 rt:{jti} 삭제 → rt_index:{sub} 삭제 → auth_event 로그 →
+            401 응답) 를 명시. RevokeAllTokens 가 1-3 단계의 구현체. 4 단계 (auth_event 구조화
+            로그) 와 본 항목이 추가하려는 운영자 additive log 는 서로 다른 관측 레이어 (전자는
+            event 추적, 후자는 Redis 실패 진단) 이므로 충돌 없음.
+
+        (c) 현 상태: RevokeAllTokens 는 export 되어 있으나 호출자 0건 (grep 결과: 자기 자신 1건 +
+            doc comment 참조 2건). RotateRefreshToken 의 post-grace expiry 분기 (service.go:227-233)
+            가 현재 compromise detection 으로 분기하지 않고 simple 401 반환 — 이 wiring 갭은
+            본 사이클 범위 밖 (별도 OpenSpec change 필요). 본 항목은 함수 본문의 silent-swallow
+            만 cycle C/F/G/I/K 패턴에 정렬.
+
+        (d) 인접 패턴: 같은 service.go 안에서 RevokeRefreshToken(L304-318) / RotateRefreshToken
+            (L275-290) / StoreRefreshToken(L184-204) 가 모두 `.Err()` capture + log.Printf
+            "auth.<Func>: <op> error: %v (<ctx>=...)" 로 정착. RevokeAllTokens 만 누락.
+            `grep -rn "rdb\." apps/api/internal/auth | grep -v ".Err()" | grep -v ".Result()"` 결과
+            본 함수의 L329/L331 두 줄이 auth 패키지 전체 유일 매칭.
+
+        (e) 운영 충격 (호출자 추가 시): future compromise-detection wiring 이 활성화되어
+            RevokeAllTokens 가 호출될 때, Redis 가 OOM/MISCONF/replica failover 상태면 sweep
+            이 no-op 으로 끝나고 운영자는 401 응답만 보게 되어 "탈취된 토큰이 여전히 회전 가능한
+            상태로 남았는지" 검증 불가. 현재는 호출자 0건이므로 즉시 운영 충격 0 — 본 cycle 의
+            목적은 향후 wiring 사이클이 행동 변경 없이 안전하게 의존할 수 있는 관측 기반을
+            선반영하는 것 (cycle C/F/G/I/K 와 동일한 additive 보강 성격).
+
+        (f) confidence 4 (명시적 silent-discard 는 textbook + (d) 인접 5건 동일 패턴 정착 →
+            자의적 해석 위험 없음; 다만 호출자 0 인 상태라 runtime 충격이 현재는 잠재적이라는
+            점에서 5 가 아닌 4 로 보수 조정).
+      repro: |
+        호출자 0 이므로 HTTP 경로 재현 불가. 처리 모드 step 7 에서 사용할 직접 호출 시나리오:
+        1. docker-compose up -d (Redis: peppy-juggling-token-redis-1).
+        2. 임시 Go 프로그램 (/tmp/fugue-revoke/main.go) 작성: auth 패키지 import +
+           real *redis.Client + dummy jwtSvc 로 *Service 구성 →
+           SADD rt_index:<UUID> jti1 jti2; SET rt:jti1 ...; SET rt:jti2 ... 시드 →
+           s.RevokeAllTokens(ctx, creatorUUID) 호출 →
+           `redis-cli exists rt:jti1 rt:jti2 rt_index:<UUID>` 로 sweep 결과 검증.
+        3. 현재 상태 (결함): happy path 0 로그 / Redis paused 시에도 0 로그 (silent).
+        4. fix 적용 후: happy 0 로그 + Redis paused 시 각 실패 지점마다 timestamped 로그 출력
+           ("auth.RevokeAllTokens: SMembers error: ... (sub=...)"
+           "auth.RevokeAllTokens: Del rt:{jti} error: ... (jti=... sub=...)"
+           "auth.RevokeAllTokens: Del rt_index error: ... (sub=...)").
+      qa_plan: |
+        실 환경 QA (처리 모드 step 7 에서 수행):
+        T1 happy path: docker-compose up -d → /tmp/fugue-revoke/main.go 로 시드 SADD + SET ×2 →
+          RevokeAllTokens 호출 → `redis-cli exists rt:jti1 rt:jti2 rt_index:<UUID>` = 0 0 0 +
+          신규 `auth.RevokeAllTokens:` 로그 0건.
+        T2 SMembers 실패: docker pause peppy-juggling-token-redis-1 → RevokeAllTokens 호출 →
+          함수 즉시 return + 1× `auth.RevokeAllTokens: SMembers error: i/o timeout (sub=<UUID>)`
+          로그. docker unpause.
+        T3 per-jti Del 실패: 시드 + happy path 1회 → 다시 시드 → SMembers 직후 docker pause →
+          RevokeAllTokens 호출 → 시나리오 상 Del 실패도 로그 출력 검증 (실제로 SMembers 가
+          먼저 실패하므로 T3 은 단위 테스트로 보강 — miniredis 의 SetError 패턴 또는 SMembers
+          만 성공 후 Close 한 상태에서 Del 호출).
+        T4 단위 테스트: captureLog 헬퍼(revoke_refresh_test.go:30) 재사용. miniredis happy
+          (0 로그 + 키 삭제 검증) + miniredis.Close() 후 호출 (각 단계별 로그 검증). 신규
+          파일: apps/api/internal/auth/revoke_all_log_test.go.
+        회귀: /api/auth/logout (RevokeRefreshToken 호출) 회귀 없음, /api/auth/refresh
+          (RotateRefreshToken 호출) 회귀 없음, RevokeAllTokens 자체는 호출자 0건이므로 응답
+          코드 회귀 영향 0. `grep -rn "rdb\\." apps/api/internal/auth | grep -v ".Err()" | grep -v ".Result()"`
+          매칭 0건 도달 (auth 패키지 Redis silent-swallow 잔여 0).
+        단위 테스트 531+/531+ pass.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
