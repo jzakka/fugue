@@ -1642,3 +1642,51 @@ items:
     status: done
     pr: 154
     note: "2026-05-21 PR #154 — apps/web/src/components/board/AddToBoardButton.tsx L282-287 spinner 영역에 `role=\"status\" aria-label=\"보드 목록 로딩 중\"` 2 prop 추가(diff +5 -1, 단일 div 분기 1개 — 단행 ternary 의 spinner 분기 자식을 다행 JSX 로 재작성하면서 외곽 컨테이너 div 에 role/aria-label 부여, 내부 spinning div 분리). 보드 선택 dialog 진입 직후 fetchBoards 진행 동안 SR 사용자가 (1) role=status 의 implicit aria-live=polite + (2) `aria-label=\"보드 목록 로딩 중\"` 으로 dialog 진입과 동시에 로딩 상태를 announce 받음. 기존: spinner 단독 div 만 렌더되어 dialog 열림 직후 SR 사용자에게 알림 0건 → 무한 빈 상태로 인지될 위험. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 정합. 코드베이스 내부 정합 근거: 같은 컴포넌트 L270 feedback 영역이 이미 `role=\"status\" aria-live=\"polite\"` 사용 — 동일 모달 내부 a11y 패턴 일관성 회복. PR #147(SearchClient 더보기 button) · PR #151(LoadMorePins 더보기 button) 과 동일 status-message 패턴 — '더보기 + spinner status' 외에 '모달 진입 + 보드 목록 로딩 status' 까지 확장. role=status 라인업: SearchBar L253 'no results' · AddToBoardButton L270 feedback · SearchClient L412 spinner(PR #147) · LoadMorePins L50 spinner(PR #151) → AddToBoardButton L282 spinner 추가(in-codebase 5 라인업). 시각 동작 0(spinner w-6 h-6 · border-2 · border-accent · border-t-transparent · animate-spin · flex justify-center py-8 모두 유지, 컨테이너 div className 도 동일) · 마우스 사용자 회귀 0(loading 분기 외 boards.length === 0 / showCreate / boards.map 분기 미변경) · 인접 영역(L195-272 dialog header/feedback · L290-380 보드 목록/생성 폼 · handleClose · fetchBoards · handleAddPin · handleCreateBoard 모두 미수정). decision-log 2026-05-21 PR #151(LoadMorePins archive) · PR #147(SearchClient fix) · PR #146(Discovery 3 spinner a11y candidates) follow-up — Discovery cycle 45 가 식별한 3개 spinner status-message 후보 중 3번째(마지막) 항목 완료, 백로그 pending 잔여 0건 → 다음 사이클 Discovery Mode. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — aria 속성 추가만 변경 단위라 코드 검증(grep `role=\"status\"` L283 + `aria-label=\"보드 목록 로딩 중\"` L284 매칭 + 내부 spinning div className 미변경 확인)으로 대체."
+
+  - id: "design-20260521-a11y-fieldfilter-toggle-aria-pressed-missing"
+    title: "FieldFilter 홈 피드 미디어 타입 필터 4 button(전체/이미지/음악/영상) 의 토글 button 상태가 `aria-pressed` 부재 — SR 사용자에게 현재 선택된 미디어 타입 미알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FieldFilter.tsx:32-44"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) — 'For all user interface components ... the name and role can be programmatically determined; states, properties, and values that can be set by the user can be programmatically determined; and notification of changes to these items is available to user agents, including assistive technologies.' FieldFilter L33-43 button 4개: `<button onClick={() => handleClick(mt.value)} className={current === mt.value ? 'bg-text-primary text-bg' : 'bg-transparent border border-border text-text-muted ...'}>{mt.label}</button>` — selected 상태(`current === mt.value`)가 시각으로만 표현(bg/text 색 반전), `aria-pressed`/`aria-selected`/`aria-checked` 0건. SR 사용자는 'button, 전체' / 'button, 이미지' 만 듣고 현재 어느 필터가 활성인지 인지 불가. W3C ARIA Authoring Practices 의 toggle button 패턴은 `aria-pressed=\"true|false\"` 명시. 코드베이스 전반 `aria-pressed`/`aria-selected`/`aria-checked` 사용 0건(grep 검증) — 이번 후보가 첫 적용 사례, 향후 PinsGrid/TagFilter/SearchClient tab/PinCreateForm 카테고리·태그 토글로 확장 가능. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 button 에 `aria-pressed` 1 prop 추가만(map 안 분기는 `current === mt.value` 가 이미 boolean 이므로 그대로 활용)."
+      repro: "1) cd apps/web && npm run dev. 2) 홈(/) 진입 → 상단 피드 영역 위에 FieldFilter 4 button 노출. 3) SR(VoiceOver) 활성화 후 Tab 으로 button 순회 → 각 button 이 'button, 전체' / 'button, 이미지' 만 announce, 현재 선택된 상태 미인지. 4) 다른 button 클릭하여 selected 변경 → 시각만 변하고 SR announce 0건. 5) 처리: 4 button 각각에 `aria-pressed={current === mt.value}` 1 prop 추가(diff +1 -0, 단일 className 직전 라인 추가)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 홈 / 진입 → FieldFilter 4 button 시각 동일 확인(bg-text-primary 활성 · border-border 비활성). 3) SR 으로 Tab 순회 시 selected button 이 'button, 전체, pressed' 같이 announce 되는지 확인. 4) handleClick 으로 선택 변경 시 SR announce 변화 확인. 5) light mode 동일 확인. 6) 인접 컴포넌트(FeedContainer · TagFilter · MasonryGrid) 회귀 0 확인."
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+
+  - id: "design-20260521-a11y-tagfilter-toggle-aria-pressed-missing"
+    title: "TagFilter 홈 피드 PopularTag 토글 button 들의 다중 선택 상태가 `aria-pressed` 부재 — SR 사용자에게 현재 선택된 태그들 미알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/TagFilter.tsx:53-69"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) — '컴포넌트의 상태(state)는 프로그래밍적으로 결정 가능해야 한다'. TagFilter L56-68 button N개(인기 태그 동적 개수): `<button onClick={() => handleToggle(tag.slug)} className={selected ? 'bg-accent text-white' : 'bg-accent-subtle text-text-muted ...'}>{tag.name}<span ...>{tag.pin_count}</span></button>` — `selected` 상태가 시각으로만 표현(bg/text 색 반전), `aria-pressed` 부재. 다중 선택 패턴(여러 태그 동시 활성 가능)이라 W3C ARIA Authoring Practices 의 'toggle button' 패턴(`aria-pressed=\"true|false\"`) 적용이 표준 — radio 그룹 아님(다중 선택). 코드베이스 전반 `aria-pressed`/`aria-selected`/`aria-checked` 사용 0건. handleReset 'X 초기화' button(L46-51) 은 단순 액션이라 aria-pressed 미필요(이 변경에 미포함). 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, button 내 `aria-pressed={selected}` 1 prop 추가만(map 안 변수 selected 가 이미 boolean 이므로 그대로 활용)."
+      repro: "1) cd apps/web && npm run dev. 2) 홈(/) 진입 → FieldFilter 아래 TagFilter 인기 태그 button 노출(태그 1개 이상 클릭 후 새로고침). 3) SR(VoiceOver) 활성화 후 Tab 으로 태그 button 순회 → 각 button 이 'button, {태그명} {수}' 만 announce, 현재 선택된 상태 미인지. 4) 태그 button 클릭 → 시각만 변하고 SR announce 0건. 5) 처리: map 안 button 에 `aria-pressed={selected}` 1 prop 추가(diff +1 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 홈 / 진입 → 인기 태그 button 시각 동일 확인(bg-accent 선택 · bg-accent-subtle 비선택). 3) SR 으로 Tab 순회 시 selected button 이 'button, {태그명}, pressed' announce 확인. 4) handleToggle 로 선택 변경 시 SR announce 변화 확인. 5) handleReset 동작 시 모든 button 의 pressed 상태가 false 로 전환되는지 확인. 6) light mode 동일 확인. 7) 인접 컴포넌트(FieldFilter · FeedContainer · MasonryGrid) 회귀 0 확인."
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+
+  - id: "design-20260521-a11y-pinsgrid-toggle-aria-pressed-missing"
+    title: "PinsGrid 마이페이지 미디어 타입 필터 4 button(전체/이미지/음악/영상) 의 토글 button 상태가 `aria-pressed` 부재 — SR 사용자에게 현재 선택된 미디어 타입 미알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:100-112"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) — '컴포넌트의 상태(state)는 프로그래밍적으로 결정 가능해야 한다'. PinsGrid L101-111 button 4개: `<button onClick={() => handleTypeChange(mt.value)} className={activeType === mt.value ? 'bg-accent text-white' : 'bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent'}>{mt.label}</button>` — selected 상태(`activeType === mt.value`)가 시각으로만 표현, `aria-pressed` 부재. 마이페이지(/mypage) 인증 사용자의 자기 핀 콜렉션 필터로 fetchUserPins(activeType, ...) 트리거. focus-visible 은 PR #131(decision-log 2026-05-21 PinsGrid) 에서 이미 추가됐지만 aria-pressed 갭은 별개. 코드베이스 전반 `aria-pressed`/`aria-selected`/`aria-checked` 사용 0건. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, button 에 `aria-pressed={activeType === mt.value}` 1 prop 추가만."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → 보드 영역 아래 PinsGrid 4 button 노출. 3) SR(VoiceOver) 활성화 후 Tab 으로 button 순회 → 각 button 이 'button, 전체' 만 announce. 4) handleTypeChange 로 선택 변경 시 SR announce 0건. 5) 처리: 4 button 에 `aria-pressed={activeType === mt.value}` 1 prop 추가(diff +1 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → PinsGrid 4 button 시각 동일 확인(bg-accent 선택 · bg-surface 비선택). 3) SR 으로 Tab 순회 시 selected button 이 'button, 전체, pressed' announce 확인. 4) handleTypeChange 시 SR announce 변화 확인. 5) loading/CardSkeleton 분기 시각 미변경 확인. 6) light mode 동일 확인. 7) 인접 컴포넌트(BoardGrid · ProfileHeader · MyPageClient) 회귀 0 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
