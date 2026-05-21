@@ -2665,3 +2665,164 @@ items:
 
       anti-pattern 매칭 없음 — DoS 입력 검증은 신규 영역. 인프라 anti-pattern
       (L15) 과 무관 (apps/api 핸들러 코드 단일 라인 가드).
+
+  - id: system-20260521-pin-list-tag-ids-no-count-cap
+    title: "/api/pins 의 tag_ids 파라미터 개수 상한 없음 — 같은 파라미터를 쓰는 search.Search 는 5개로 cap 하면서 pin.List 는 unbounded. 미인증·미rate-limit 엔드포인트가 user-supplied UUID 배열을 `pt.tag_id = ANY($2::uuid[])` 의 ListPinsWithCreator + CountPins 2 쿼리(/api/pins?creator_id=... 경로면 ListPinsByCreator + CountPinsByCreatorFiltered) 에 그대로 흘려보내는 DB 부하 amplification 표면"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:531-540"   # List: tag_ids CSV split → []uuid.UUID, 개수 cap 없음
+        - "apps/api/internal/pin/handler.go:562"       # listByCreator 로 tagIDs 전달 (동일 미검증)
+        - "apps/api/internal/pin/handler.go:566-586"   # ListPinsWithCreator + CountPins 2 쿼리 모두 tagIDs 사용
+        - "apps/api/internal/pin/handler.go:602-625"   # listByCreator: ListPinsByCreator + CountPinsByCreatorFiltered 2 쿼리 동일 패턴
+        - "apps/api/db/queries/pins.sql:66-70"         # ListPinsWithCreator: `pt.tag_id = ANY($2::uuid[])` EXISTS
+        - "apps/api/db/queries/pins.sql:73-77"         # CountPins: 동일 EXISTS — paginate 안 됨, 전체 pins scan
+        - "apps/api/db/queries/pins.sql:79-94"         # ListPinsByCreator: 동일 ANY($3) EXISTS
+        - "apps/api/db/queries/pins.sql:96-102"        # CountPinsByCreatorFiltered: paginate 안 됨, 전체 scan
+        - "apps/api/cmd/server/main.go:137"            # r.Get("/api/pins", ...) — JWT 없음, rate limiter 없음
+        - "apps/api/internal/search/handler.go:111-118" # 자매 핸들러: tag_ids `len(parts) > 5 → 400` cap (cycle 정립)
+        - "apps/api/internal/pin/handler.go:111-114"   # 같은 패키지 pin.Create: tag_ids `len(tagIDs) > 10 → 400` cap
+      quote: |
+        L531-540 (pin/handler.go List):
+        ```
+        var tagIDs []uuid.UUID
+        if tagsParam := r.URL.Query().Get("tag_ids"); tagsParam != "" {
+            for _, s := range strings.Split(tagsParam, ",") {
+                id, err := uuid.Parse(strings.TrimSpace(s))
+                if err != nil { continue }
+                tagIDs = append(tagIDs, id)
+            }
+        }
+        ```
+        — strings.Split 결과 길이 검사 없음. invalid UUID 는 `continue`
+        로 skip 만 하고 400 도 안 반환 (search 와도 비대칭).
+        L111-118 (search/handler.go Search):
+        ```
+        parts := strings.Split(tagParam, ",")
+        if len(parts) > 5 {
+            writeError(w, http.StatusBadRequest, "태그 필터는 최대 5개까지 가능합니다")
+            return
+        }
+        ```
+        — 같은 GET 파라미터 이름(tag_ids), 같은 CSV split, 다른 결정.
+        L111-114 (pin/handler.go Create):
+        ```
+        if len(tagIDs) > 10 {
+            writeError(w, http.StatusBadRequest, "태그는 최대 10개까지 추가할 수 있습니다")
+            return
+        }
+        ```
+        — 같은 핸들러 파일의 Create 는 10 cap 적용. List 만 빠짐.
+        L137 (cmd/server/main.go):
+        ```
+        r.Get("/api/pins", pinHandler.List)
+        ```
+        — JWT 미들웨어 / rate limiter 미적용 (Create 는 JWT + pinRL).
+        pins.sql:66-70, 73-77 (ListPinsWithCreator + CountPins):
+        ```
+        AND ($2::uuid[] IS NULL OR EXISTS (
+            SELECT 1 FROM pin_tags pt
+            WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+        ))
+        ```
+        — EXISTS subquery 가 candidate pin 마다 ANY 평가. CountPins 는
+        LIMIT/OFFSET 없이 전체 pins 에 대해 동일 평가.
+      reasoning: |
+        같은 파라미터(`tag_ids`) 에 대한 3중 일관성 위배:
+        - search.Search: GET `?tag_ids=` → 5개 cap (400)
+        - pin.Create:   POST tag_ids → 10개 cap (400)
+        - pin.List:     GET `?tag_ids=` → cap 없음 ← 갭
+
+        영향 모델:
+        - `tag_id = ANY($N::uuid[])` 의 비용은 array 크기 N_tags 에 선형.
+          pin_tags 의 인덱스가 있어도 EXISTS subquery 는 candidate pin
+          마다 ANY 평가 (planner 가 BitmapOr 또는 hash 로 최적화하지만
+          parse + planner 비용은 N_tags 비례).
+        - ListPinsWithCreator 는 LIMIT 50 으로 paginated 평가 — N_pins_eval
+          ≈ 50 + buffer.
+        - CountPins / CountPinsByCreatorFiltered 는 LIMIT/OFFSET 없음 —
+          모든 pins 에 대해 EXISTS 평가. pins 가 1M, tag_ids 가 10K 면
+          worst-case probe 횟수가 amplification.
+        - 단일 요청이 ListPinsWithCreator + CountPins 2 쿼리 트리거
+          (creator_id 있으면 ListPinsByCreator + CountPinsByCreatorFiltered).
+        - 요청 헤더 1MB cap (Go DefaultMaxHeaderBytes) → URL 에 UUID
+          ~27,000 개 까지 자연 상한. 그러나 검증 없이 DB 까지 흘러감.
+        - 미인증 + rate limiter 없음 → 동시 N requests 가 같은 비용을
+          N 배 증폭. /api/pins 는 home/feed 진입점 라우트라 정상 트래픽
+          비중도 높음 — DB pool(25) 포화 시 사이트 전체 영향.
+
+        프로젝트 내 tag_ids 입력 cap 컨벤션 (같은 의미·다른 라우트):
+        - search.Search GET tag_ids: 5 (handler L115-118, 검색 결과 좁힘)
+        - pin.Create POST tag_ids:   10 (handler L111-114, 핀 등록 시 태그 부착)
+        - pin.List GET tag_ids:     없음 ← 본 후보 (필터링용)
+
+        Discovery 컨벤션 매핑: 같은 GET 파라미터 이름·같은 CSV split
+        패턴을 쓰는 두 핸들러(search/pin.List) 사이 cap 결정 비대칭은
+        가장 보수적인 선택을 search 쪽으로 정렬 → **5개 cap**. 근거:
+        (a) 둘 다 페이지네이션 보조 필터 (검색 결과 좁힘 vs 핀 목록
+        좁힘) 라 사용 패턴 일치, (b) pin.Create(10) 는 단일 핀 등록
+        시점이라 다른 의미. 필터 cap 으로 5 가 spec-grounded.
+
+        보수의 정의(§5): (a) 기존 동작 보존: ≤5 tag_ids 요청은 영향 0
+        (실제 UI 는 1-2개 필터가 일반). (b) 외부 API 비변경: 400 추가만,
+        ≤5 응답 형태 동일. (c) 롤백 가능: helper 한 줄. (d) 영향 최소:
+        한 줄 가드 + 자매 핸들러 패턴 그대로 차용.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. T1 happy(필터 정상 - 회귀 무영향):
+         (a) `curl -i 'http://localhost:8080/api/pins?limit=5'` → 200 + Pins 배열
+         (b) UUID 1개: `curl -i "http://localhost:8080/api/pins?tag_ids=<existing-uuid>&limit=5"` → 200
+         (c) UUID 5개(경계 inclusive): `curl -i "http://localhost:8080/api/pins?tag_ids=u1,u2,u3,u4,u5&limit=5"` → 200
+      4. T2 fail(상한 초과 → 400):
+         (a) UUID 6개: `curl -i "http://localhost:8080/api/pins?tag_ids=u1,u2,u3,u4,u5,u6&limit=5"`
+             → 400 + {"error":"태그 필터는 최대 5개까지 가능합니다"} (search 메시지 정렬)
+         (b) 대규모 배열(100개): 같은 400, 응답 시간 < 50ms (DB 안 가는 것을 확인)
+      5. T3 경계(정확히 5개):
+         (a) 5 UUID 모두 valid → 200
+         (b) 5 UUID 중 1개 invalid → 400 (UUID 형식 검증 강화도 같이 — search 와 정렬)
+      6. 회귀:
+         (a) `GET /api/pins?creator_id=<existing>&tag_ids=u1,u2,u3,u4,u5,u6` → 400
+             (listByCreator 경로도 cap 적용 확인)
+         (b) `GET /api/pins?limit=51` → 50 으로 clip (기존 limit 가드 무영향)
+         (c) `GET /api/pins/<id>/related` → 200 (Related 는 별경로, 영향 없음 확인)
+         (d) `GET /api/search?q=test&tag_ids=u1,u2,u3,u4,u5,u6` → 400 (search 기존 cap 유지)
+      7. 단위 테스트:
+         (a) TestList_TagIDsTooMany (6 UUID → 400 + 메시지)
+         (b) TestList_TagIDsAtMaxCount (5 UUID → 200 경로 통과, DB stub 또는 nil-deref recover)
+         (c) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 영역: 보안(입력 검증 누락). cycle T(PR #152
+      search.Search q 200 rune cap) 의 인접 영역: 같은 핸들러 패턴, 다른
+      파라미터(tag_ids 개수). search 가 5 cap 컨벤션을 정립했지만 pin.List
+      는 같은 GET 파라미터 이름·같은 CSV split 을 unbounded 로 흘림.
+
+      Processing 모드 진입 시 첫 단계 (잠정):
+        (a) `handler.go:531-540` 의 strings.Split 결과 길이 검사 추가:
+            ```
+            parts := strings.Split(tagsParam, ",")
+            if len(parts) > 5 {
+                writeError(w, 400, "태그 필터는 최대 5개까지 가능합니다")
+                return
+            }
+            ```
+            search.Search 의 L111-118 패턴 그대로 차용 (메시지/상한 정렬).
+            invalid UUID 도 search 와 정렬해 `continue` → `400` 전환 검토
+            (기존 동작 변경 폭이 커지면 별도 후보로 분리).
+        (b) 4-6줄 doc 주석 — search.Search tag_ids cap 인용 + 미인증·
+            미rate-limit + ANY() 영향 모델 + Count 쿼리 paginate 안 됨
+            서술.
+        (c) `handler_test.go` (없으면 신규) 에 2-3 sub-test 추가 —
+            TestList_TagIDsTooMany (6 → 400), TestList_TagIDsAtMaxCount
+            (5 → 통과, nil-deref recover 패턴 search cycle T 미러).
+        (d) 실 환경 QA 는 위 qa_plan 7단계 수행.
+
+      anti-pattern 매칭 없음 — DoS 입력 검증은 cycle T 가 정립한 패턴의
+      인접 영역. 인프라 anti-pattern(L15) 무관 (apps/api 핸들러 단일
+      가드).
