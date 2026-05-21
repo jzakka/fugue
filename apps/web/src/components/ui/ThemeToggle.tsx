@@ -31,7 +31,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="w-9 h-9 rounded-full bg-surface border border-border text-text-muted hover:border-accent hover:text-accent transition-colors flex items-center justify-center text-base cursor-pointer"
+      className="w-9 h-9 rounded-full bg-surface border border-border text-text-muted hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent transition-colors flex items-center justify-center text-base cursor-pointer"
       aria-label={isLight ? "다크 모드로 전환" : "라이트 모드로 전환"}
     >
       {isLight ? "☀️" : "🌙"}
