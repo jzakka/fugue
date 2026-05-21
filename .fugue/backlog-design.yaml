@@ -1339,4 +1339,6 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: in_progress
+    status: done
+    pr: 105
+    note: "2026-05-21 PR #105 — LoginButtons.tsx:73 OAuth provider button className `hover:border-accent` 뒤에 `focus-visible:border-accent` 1 utility 삽입(diff +1 -1, 단일 파일 1 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 border-accent #E85A2A 미러링. in-codebase focus-visible 10 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64 · ProfileHeader L39) 표준 패턴 정합. JSX 구조 · onClick · disabled · aria-label · style minHeight · provider.icon · provider.label · loading 분기 · ALL_PROVIDERS · useState · useEffect · handleClick 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. /login 은 미인증 사용자 유일 진입점. decision-log 2026-05-21 PR #100(ProfileHeader) · PR #96(NavBar) · PR #91(ThemeToggle) · PR #86(SearchBar) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
