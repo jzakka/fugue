@@ -178,7 +178,7 @@ export default function SearchBar() {
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-elevated border border-border rounded-[16px] shadow-2xl overflow-hidden z-[60]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-elevated border border-border rounded-[16px] overflow-hidden z-[60]">
           {/* Recent searches */}
           {showRecent && (
             <div className="p-3">
