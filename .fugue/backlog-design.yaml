@@ -1284,4 +1284,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 91
+    note: "2026-05-21 PR #91 (bbb0ae5) — ThemeToggle.tsx:34 className `hover:border-accent hover:text-accent` 뒤에 `focus-visible:border-accent focus-visible:text-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 border #E85A2A + text #E85A2A 미러링 → in-codebase focus-visible 7 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221) 표준 패턴 정합. 다른 utility · 컴포넌트 함수 · JSX 구조 · onClick · aria-label · useState · useEffect 모두 무변경 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #86 · 2026-05-19 PR #36 a11y 키보드 가시성 follow-up. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
