@@ -2640,7 +2640,7 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: done
     note: |
       Discovery 모드 발굴 — 영역: 보안(입력 검증 누락). cycle C/F/G/I/K/L/M/S
       silent-swallow 시리즈와는 별개 — 새 영역(미인증·미rate-limit 엔드포인트
