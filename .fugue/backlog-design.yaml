@@ -1287,3 +1287,20 @@ items:
     status: done
     pr: 91
     note: "2026-05-21 PR #91 (bbb0ae5) — ThemeToggle.tsx:34 className `hover:border-accent hover:text-accent` 뒤에 `focus-visible:border-accent focus-visible:text-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 border #E85A2A + text #E85A2A 미러링 → in-codebase focus-visible 7 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221) 표준 패턴 정합. 다른 utility · 컴포넌트 함수 · JSX 구조 · onClick · aria-label · useState · useEffect 모두 무변경 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #86 · 2026-05-19 PR #36 a11y 키보드 가시성 follow-up. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-navbar-hover-links-focus-visible-missing"
+    title: "NavBar 의 hover 효과 있는 Link 2개(핀 생성 L30 `hover:bg-accent-hover` · 로그인 L62 `hover:border-accent`)가 `focus-visible:` 규칙 부재 — 키보드 포커스 도달 시 hover 시각 변화 미러링 누락(in-codebase focus-visible 8 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:30-35"
+        - "apps/web/src/components/nav/NavBar.tsx:62-67"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' NavBar.tsx:32 핀 생성 Link className `px-4 py-2 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors` 와 :64 로그인 Link className `px-4 py-2 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent transition-colors` 둘 다 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(bg-accent-hover / border-accent) 미러링 0. native browser focus ring(outline) 만 그려져 PR #91(ThemeToggle focus-visible 미러링) · in-codebase focus-visible 8 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 신규) 의 'hover 와 focus-visible 시각 동일 미러링' 표준 패턴과 비대칭. decision-log 2026-05-21 PR #91 a11y 키보드 가시성 라인업 follow-up. NavBar 는 모든 페이지에 sticky top-0 으로 항상 보이는 글로벌 nav 라 키보드 사용자 빈도 최고. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, 마크업/JSX 구조 미수정, 단일 파일 2 className 변경)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 상태에서 NavBar 의 `+ 핀 생성` Link(L30) 확인 → 마우스 hover 시 bg #FF6B3D 로 변경. Tab 으로 포커스 → bg-accent #E85A2A 유지(hover 시각 미적용) + native outline 만. 3) 로그아웃 상태에서 NavBar 의 `로그인` Link(L62) 확인 → 마우스 hover 시 border #E85A2A 로 변경. Tab 으로 포커스 → border-border #2A2A2A 유지 + native outline 만. 4) 처리: L32 className `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` 1 utility 삽입(diff +1 -1) + L64 className `hover:border-accent` 뒤에 ` focus-visible:border-accent` 1 utility 삽입(diff +1 -1). 단일 파일 총 diff +2 -2, JSX 구조/aria/handler 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 상태로 NavBar 렌더 → Tab 으로 핀 생성 Link 에 포커스 → bg-accent-hover #FF6B3D 적용 확인. Enter 로 `/pin/new` 이동 동작 정상. 3) 로그아웃 후 NavBar 렌더 → Tab 으로 로그인 Link 에 포커스 → border-accent #E85A2A 적용 확인. Enter 로 `/login` 이동 정상. 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0(hover/focus-visible 동일 미러링). 5) 인접 회귀: NavBar Logo Link(L14) · 마이페이지 Link(L38 PR #TBD aria-label) · ThemeToggle(L36/L61 PR #91 focus-visible 적용) · LogoutButton(L56) 모두 hover/focus 상태 무변경. 6) light mode 동일 확인(--color-accent / --color-accent-hover 토큰 단일 값 유지). 7) DevTools Computed → focus 상태에서 computed bg/border 값 정확 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
