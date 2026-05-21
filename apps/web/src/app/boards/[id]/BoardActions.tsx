@@ -62,7 +62,11 @@ export default function BoardActions({
     return (
       <div className="space-y-3 shrink-0">
         {error && (
-          <div className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error"
+          >
             {error}
           </div>
         )}

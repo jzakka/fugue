@@ -78,7 +78,11 @@ function BoardSection({ creatorId }: { creatorId: string }) {
       {showCreate && (
         <div className="mb-4 p-4 bg-surface border border-border rounded-[10px] space-y-3">
           {error && (
-            <div className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error"
+            >
               {error}
             </div>
           )}

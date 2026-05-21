@@ -182,7 +182,11 @@ export default function FeedContainer({
   return (
     <div className="px-6">
       {error && (
-        <div className="mb-4 p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mb-4 p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error"
+        >
           {error}
           <button
             onClick={() => {
