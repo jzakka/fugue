@@ -62,11 +62,27 @@ type TopTag struct {
 	Count    int64  `json:"count"`
 }
 
+// maxSearchQueryRunes caps the `q` parameter at the same length as
+// `pins.title` (VARCHAR(200), migration 000004_pivot_pins.up.sql). The
+// endpoint is unauthenticated and not rate-limited and the query feeds
+// directly into pg_trgm `similarity($1)` plus `ILIKE '%' || $1 || '%'`
+// across pins+creators+boards (search.sql L1-104), so unbounded input
+// amplifies into a 3-4 query DB load per request. Mirrors the established
+// project convention — creators.nickname (50), creators.avatar_url (500),
+// pins.title (200), pins.media_url (500). 200 runes is the most
+// spec-grounded bound because that is the upper length of the search
+// target column itself.
+const maxSearchQueryRunes = 200
+
 // Search handles GET /api/search?q=&type=&tag_ids=&limit=&offset=
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	if q == "" {
 		writeError(w, http.StatusBadRequest, "검색어를 입력해주세요")
+		return
+	}
+	if utf8.RuneCountInString(q) > maxSearchQueryRunes {
+		writeError(w, http.StatusBadRequest, "검색어는 200자 이내여야 합니다")
 		return
 	}
 
