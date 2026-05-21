@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -83,7 +84,18 @@ func (rl *RateLimiter) middleware(next http.Handler, bucketKey func(*http.Reques
 		ctx := r.Context()
 		count, err := rateLimitScript.Run(ctx, rl.rdb, []string{key}, int(rl.window.Seconds())).Int64()
 		if err != nil {
-			// Redis down: fail-open
+			// Redis down: fail-open per spec (ratelimit/spec.md L11 SHALL NOT
+			// throttle on Redis failure). The fail-open behaviour itself stays
+			// intact — we just emit a timestamped log line so the operator can
+			// detect the bypass window and the (route, bucket) it affected.
+			//
+			// Without this log, the rate-limited routes (OG fetch 20/min/IP,
+			// pin create 30/min/user) silently lose protection during any
+			// Redis outage and the operator can only infer the bypass after
+			// the fact from traffic metrics. Mirrors the cycle C / F
+			// RevokeRefreshToken / RotateRefreshToken silent-swallow logging
+			// pattern.
+			log.Printf("auth.RateLimiter: Redis error, failing open: %v (key=%s)", err, key)
 			next.ServeHTTP(w, r)
 			return
 		}

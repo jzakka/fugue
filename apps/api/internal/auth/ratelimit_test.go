@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -135,6 +136,60 @@ func TestRateLimiter_RedisFailureFailsOpen(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Fatalf("request %d after redis down: got %d, want 200 (fail-open)", i, rec.Code)
 		}
+	}
+}
+
+// Pins the additive-logging contract for the fail-open branch:
+//   - Each Redis-failed request MUST emit a timestamped `auth.RateLimiter:`
+//     line carrying the underlying err and the bucket key, so the operator can
+//     identify the bypass window and the (route, bucket) it affected.
+//   - The fail-open behaviour itself stays unchanged (spec ratelimit/spec.md
+//     L11 SHALL NOT throttle on Redis failure).
+//   - The happy path MUST NOT emit any `auth.RateLimiter:` line (zero log
+//     volume during normal operation; mirrors the cycle C / F contract).
+func TestRateLimiter_LogsOnRedisFailure(t *testing.T) {
+	rl, mr := newTestRateLimiter(t, 1, time.Second)
+	h := rl.Middleware(okHandler())
+
+	mr.Close()
+
+	buf, restore := captureLog(t)
+	defer restore()
+
+	rec := doRequest(t, h, "/api/x", "1.2.3.4:1111")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("fail-open response: got %d, want 200", rec.Code)
+	}
+
+	out := buf.String()
+	if !strings.Contains(out, "auth.RateLimiter: Redis error, failing open:") {
+		t.Fatalf("expected fail-open log line, got: %q", out)
+	}
+	wantKey := fmt.Sprintf("key=%s/api/x:1.2.3.4", rlPrefix)
+	if !strings.Contains(out, wantKey) {
+		t.Fatalf("expected log to include %q, got: %q", wantKey, out)
+	}
+}
+
+func TestRateLimiter_NoLogOnSuccess(t *testing.T) {
+	rl, _ := newTestRateLimiter(t, 3, time.Second)
+	h := rl.Middleware(okHandler())
+
+	buf, restore := captureLog(t)
+	defer restore()
+
+	// Drive both allow (1-3) and 429 (4) branches; neither path may log.
+	for i := 1; i <= 3; i++ {
+		if rec := doRequest(t, h, "/api/x", "1.2.3.4:1111"); rec.Code != http.StatusOK {
+			t.Fatalf("request %d: got %d, want 200", i, rec.Code)
+		}
+	}
+	if rec := doRequest(t, h, "/api/x", "1.2.3.4:1111"); rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("request 4: got %d, want 429", rec.Code)
+	}
+
+	if out := buf.String(); strings.Contains(out, "auth.RateLimiter:") {
+		t.Fatalf("happy path must not emit RateLimiter log lines, got: %q", out)
 	}
 }
 
