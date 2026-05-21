@@ -602,7 +602,11 @@ export default function PinCreateForm() {
                 );
               })}
               {filteredTags.length === 0 && (
-                <div className="text-xs text-text-dim py-4 w-full text-center">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="text-xs text-text-dim py-4 w-full text-center"
+                >
                   일치하는 태그가 없습니다
                 </div>
               )}
