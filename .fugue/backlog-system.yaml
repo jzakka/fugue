@@ -1735,4 +1735,18 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: done
+    note: |
+      service.go의 RevokeRefreshToken에 Del/SRem 결과 `.Err()` capture + log.Printf 추가
+      (시그니처 void 유지, best-effort revocation 정책 보존). 신규 단위 테스트 3건
+      (revoke_refresh_test.go)로 로그 contract 고정: (1) Redis 다운 시 Del+SRem 둘 다
+      log 출력 + jti/sub 포함, (2) happy path 무로그 + 키 삭제 검증, (3) invalid token
+      early-return 무로그. 실 환경 QA:
+        (T1) docker isolated PG+Redis+API → 로그인 → /api/auth/logout → 200 OK + 무로그 +
+        rt:{JTI} 삭제 + rt_index:{sub} 비움.
+        (T2) `docker pause` Redis → /api/auth/logout → 10s 후 200 OK + 로그
+        "auth.RevokeRefreshToken: Del error: i/o timeout (jti=8dd1bab4-d9f9-4bfc-bd45-1bd97b4b85f1)"
+        출력 + unpause 후 rt:{JTI} status=active 잔존 확인(best-effort 정책 명세대로).
+        (T2b) miniredis Close()로 SREM 단독 실패도 단위 테스트로 커버.
+        회귀: /api/auth/refresh → 204 + 새 Set-Cookie + auth_token_refresh 로그.
+        /api/auth/providers → 200 ["google"]. 단위 테스트 525/525 pass.
