@@ -1104,3 +1104,35 @@ items:
     status: done
     note: "2026-05-21 PR #58 (f7b8fdf) squash merge — 6 박스 각 ARIA live region attribute pair 부착(error-only 5 박스 role=\"alert\" aria-live=\"polite\", AddToBoardButton success/error 분기 박스 role=\"status\" aria-live=\"polite\"). diff +27 -5, 6 파일. login L54 in-codebase precedent 정렬 + WCAG 2.1 SC 4.1.3 Status Messages Level AA 갭 해소. 시각/함수 회귀 0, 마우스 사용자 회귀 0. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — grep 12 매칭 코드 검증으로 대체."
 
+  - id: "design-20260521-video-trim-modal-focus-trap"
+    title: "VideoTrimModal Tab focus trap 누락 — WAI-ARIA Dialog Pattern 잔여 정렬"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:73-75,146-265"
+      cite: "WAI-ARIA Authoring Practices Guide § Dialog (Modal) Pattern — 'Tab and Shift+Tab do not move focus outside the dialog.' WCAG 2.1 SC 2.4.3 Focus Order (Level A) 및 SC 2.1.2 No Keyboard Trap 의 modal 예외(modal 컨텍스트 내부에서는 의도적 focus 순환이 정상). decision-log 2026-05-18 cycle 30(Initial focus 추가) note 마지막 줄 명시: '잔여 Focus trap 은 effort/risk 가 단발 사이클 패턴 초과로 본 사이클 범위 밖' — 본 후보는 그 잔여 항목 중 단순한 modal(focusable=2 buttons) 한 건. 동일 컴포넌트 누적: cycle 25(role=dialog 트리플), cycle 56(Escape + body scroll lock), cycle 70(overlay click 닫기), cycle 30(Initial focus via panelRef tabIndex=-1)."
+      repro: "1) VideoTrimModal 진입 후 Tab 키 반복 → panel(tabIndex=-1, Initial focus 받음) → '취소' button → '선택 완료' button → Tab 한 번 더 누르면 modal 외부(아래쪽 페이지 콘텐츠)로 포커스 이탈 → background 의 다른 폼/링크가 키보드 활성화되어 modal 격리 위반. 2) Shift+Tab 도 동일하게 panel 위쪽 페이지 콘텐츠로 이탈. 3) 처리: useEffect 1 블록 추가 — panel keydown listener 에서 e.key === 'Tab' 시 panel.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\"-1\"])') 로 focusable 수집, first/last index 와 비교해 Shift+Tab on first → last 로 wrap, Tab on last → first 로 wrap (e.preventDefault() + target.focus()). modal 내 focusable = [취소, 선택 완료] 2개로 단순. slider handle div 들은 tabIndex 부여 안 되어 있어 Tab 순서 포함되지 않음(별도 후보로 분리)."
+    qa_plan: "1) cd apps/web && npm run dev 후 비디오 업로드 → VideoTrimModal 진입 → Tab 키 반복으로 panel → 취소 → 선택 완료 → 다시 취소(wrap) 순환 확인. 2) Shift+Tab 반대 방향 순환 확인 — 선택 완료 → 취소 → 선택 완료(wrap). 3) modal 외부 background 페이지 콘텐츠로 포커스 이탈하지 않음 확인. 4) 시각 변화 0(useEffect 1 블록 추가만, JSX 미변경) — 동일 스크린샷. 5) 마우스 사용자 회귀 0(keydown listener 는 마우스 클릭 동작 미간섭). 6) Initial focus(cycle 30) · Escape(cycle 56) · overlay click(cycle 70) 기존 동작 그대로 회귀 0."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 6.0
+    status: pending
+
+  - id: "design-20260521-add-to-board-modal-focus-trap"
+    title: "AddToBoardButton modal Tab focus trap 누락 — WAI-ARIA Dialog Pattern 잔여 정렬"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:124-127,197-379"
+      cite: "WAI-ARIA Authoring Practices Guide § Dialog (Modal) Pattern — 'Tab and Shift+Tab do not move focus outside the dialog.' WCAG 2.1 SC 2.4.3 Focus Order (Level A). decision-log 2026-05-18 cycle 30(Initial focus 추가) note 마지막 줄 '잔여 Focus trap은 effort/risk가 단발 사이클 패턴 초과로 본 사이클 범위 밖' 의 잔여 항목 중 가변 focusable 개수 modal. 동일 컴포넌트 누적: cycle 25/56/70/30 정렬."
+      repro: "1) Pin 상세 페이지에서 '보드에 추가' → AddToBoardButton modal 진입 → Tab 키 반복 → 닫기(X) button → 보드 list buttons → '새 보드 만들기' button → Tab 한 번 더 누르면 modal 외부 페이지 콘텐츠로 포커스 이탈. 2) showCreate 토글 시 focusable 셋이 변경됨(입력 + 생성 + 취소). 3) 처리: VideoTrimModal 과 동일한 useEffect Tab keydown wrap 패턴 — panelRef.current.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\"-1\"])') 매 keydown 시 재계산(showCreate 토글/board list 로드/feedback 등장으로 focusable 셋이 동적). first/last wrap. autoFocus on showCreate input(L325)과 시간상 분리되어 무간섭."
+    qa_plan: "1) cd apps/web && npm run dev 후 Pin 상세에서 '보드에 추가' → modal 진입 → Tab 반복으로 닫기 → 보드 buttons → 새 보드 만들기 → 닫기(wrap) 순환 확인. 2) Shift+Tab 반대 순환 확인. 3) '새 보드 만들기' 클릭 → showCreate=true 상태에서 입력 → 생성 및 추가 → 취소 → 입력(wrap) 순환 확인(focusable 동적 재계산). 4) Initial focus(cycle 30 panelRef) · ESC(L131) · overlay click(L146-150) · autoFocus on input(L325) 모두 회귀 0. 5) 마우스 사용자 회귀 0. 6) 시각 변화 0."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: pending
+
