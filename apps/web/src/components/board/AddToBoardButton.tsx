@@ -240,6 +240,8 @@ function BoardSelectModal({
         {/* Feedback */}
         {feedback && (
           <div
+            role="status"
+            aria-live="polite"
             className={`mx-6 mt-4 px-3 py-2 rounded-[6px] text-xs ${
               feedback.type === "success"
                 ? "bg-success/10 border border-success/30 text-success"

@@ -52,7 +52,11 @@ export default function ProfileEditForm({
       <h2 className="text-xl font-bold font-display tracking-tight">프로필 편집</h2>
 
       {error && (
-        <div className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error"
+        >
           {error}
         </div>
       )}

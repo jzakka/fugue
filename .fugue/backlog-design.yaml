@@ -1078,5 +1078,28 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: in_progress
+    status: done
+    pr: 36
+    note: "처리 완료. PinCreateForm.tsx L341 dropzone div className 끝에 `focus-visible:border-accent focus-visible:outline-none` 2 utility 추가(diff +1 -1). PR #35 가 키보드 작동성(WCAG SC 2.1.1 Level A)을 회복한 후속으로 visual focus indication(SC 2.4.7 Level AA) 잔여 갭을 정렬. hover:border-accent 와 동일한 시각 신호 — 키보드 포커스 시 점선 색이 border-accent 로 변경. `focus-visible` 은 `:focus` 와 달리 키보드 navigation 시에만 활성 → 마우스 클릭 시 미적용 → 마우스 사용자 회귀 0. PR #35 부착 attribute(role/tabIndex/aria-label/onKeyDown) 미수정 → 키보드 작동성 회귀 0. In-codebase 5 개 컴포넌트(PinCard L146 / SearchClient L313+L351 / BoardGrid L22 / MyPageClient L130 / BoardCover L6+L30) 동일 패턴 적용 중이라 패턴 일관성 회복. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `focus-visible` L341 단일 매칭, 의도대로 부착 확인 + PR #35 부착 attribute 미수정 확인)으로 대체. PR #36 squash merge. WCAG 2.1 SC 2.4.7 Level AA 정렬."
+
+  - id: "design-20260519-dynamic-feedback-aria-live-region"
+    title: "동적 inline error/feedback 메시지 6곳 ARIA live region 누락 — WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 위반"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:184-200"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:318-322"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:54-58"
+        - "apps/web/src/components/profile/MyPageClient.tsx:80-84"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:64-68"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:240-251"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA): 'In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.' WAI-ARIA: role=\"alert\"(implicit aria-live=\"assertive\") 는 에러/긴급 메시지, role=\"status\"(implicit aria-live=\"polite\") 는 success/info/non-critical 상태 갱신용. DESIGN.md L11 'Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다' 및 루프 정체성 L7 '접근성 (대비, 키보드 포커스, aria)' 영역 정합. In-codebase precedent: `apps/web/src/app/login/page.tsx:54` `<p role=\"alert\" aria-live=\"polite\" className=\"...text-error\">` (코드베이스 내 ARIA live region 단일 매칭) — 본 후보 5개 error-only 박스가 동일 패턴 정렬, AddToBoardButton(L240-251) success/error 분기 박스는 role=\"status\" aria-live=\"polite\" 정렬. PR #33(decorative button aria-hidden) · PR #34(aria-required) · PR #35(role=\"button\" + tabIndex) · PR #36(focus-visible) 라인업의 a11y SR 안내 영역 확장."
+      repro: "1) `grep -rEn 'className=.*bg-error/10.*border.*border-error/30' apps/web/src --include='*.tsx'` → 6 매칭(FeedContainer L185 / PinCreateForm L319 / ProfileEditForm L55 / MyPageClient L81 / BoardActions L65 / TagFilter L48 — TagFilter 는 button 필터 칩이라 본 후보 범위 외). 2) `grep -nE 'role=\"alert\"|aria-live=|role=\"status\"' apps/web/src -r --include='*.tsx'` → login/page.tsx L54 단일 매칭으로 ARIA live region 미사용 광범위 갭 확인. 3) 처리: 6 박스 각각 1 attribute pair 추가 — error-only 5 박스(FeedContainer L185 / PinCreateForm L319 / ProfileEditForm L55 / MyPageClient L81 / BoardActions L65) 에 `role=\"alert\" aria-live=\"polite\"` (login 패턴 일치), AddToBoardButton L242 success/error 분기 박스에 `role=\"status\" aria-live=\"polite\"` (분기 콘텐츠 중 success 도 포함되어 alert 자의적 매핑 회피). className/조건부 렌더링/onClick 핸들러/자식 마크업 전부 미변경 → 시각 변화 0, 함수형 동작 변화 0. SR 사용자만 동적 에러/피드백 메시지 등장을 자동 안내 받음."
+    qa_plan: "1) cd apps/web && npm run dev 후 (a) /feed 진입 후 네트워크 오류 유발(예: API 컨테이너 중단) → FeedContainer 에러 박스 등장 시 VoiceOver/NVDA 가 텍스트를 자동 안내하는지 확인. (b) /pin/new 진입 후 빈 폼 제출 → PinCreateForm 에러 박스 안내 확인. (c) /me 진입 후 빈 보드 이름으로 '저장' → MyPageClient 에러 박스 안내 확인. (d) 보드 편집 모드 진입 후 빈 이름 저장 → BoardActions 에러 박스 안내 확인. (e) 프로필 편집 페이지에서 잘못된 입력 → ProfileEditForm 에러 박스 안내 확인. (f) AddToBoardButton 모달에서 보드 선택 → success/error 피드백 안내 확인. 2) 시각 변화 없음(role/aria-live 는 비주얼 무관) — 동일 스크린샷 차이 0. 3) DevTools Accessibility 트리에서 6 박스 모두 live region 으로 마킹되어 트리에 노출되는지 확인. 4) 마우스 사용자 회귀 0(role/aria-live 는 마우스 동작에 영향 없음)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
 
