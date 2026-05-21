@@ -1324,3 +1324,19 @@ items:
     status: done
     pr: 100
     note: "2026-05-21 PR #100 — ProfileHeader.tsx:39 편집 button className `hover:text-text-primary hover:border-accent` 뒤에 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 파일 1 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary #E8E8E8 + border-accent #E85A2A 미러링. in-codebase focus-visible 9 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64) 표준 패턴 정합. JSX 구조 · onClick · isOwner 조건 · onEdit prop · 인접 Avatar/h1/pin_count · ProfileEditForm 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #96(NavBar focus-visible) · PR #91(ThemeToggle) · PR #86(SearchBar) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-login-buttons-focus-visible-missing"
+    title: "LoginButtons 의 OAuth 로그인 button(L68-85)이 `hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 미인증 사용자의 유일한 진입점에서 키보드 포커스 가시화 누락(in-codebase focus-visible 10 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/login/LoginButtons.tsx:68-85"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' LoginButtons.tsx:73 OAuth provider button className `flex items-center justify-center gap-3 w-full py-3 px-4 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(border-accent #E85A2A) 미러링 0. native browser focus ring(outline) 만 그려져 in-codebase focus-visible 10 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64 · ProfileHeader L39 PR #100) 의 'hover 와 focus-visible 시각 동일 미러링' 표준 패턴과 비대칭. decision-log 2026-05-21 PR #100(ProfileHeader 편집 button focus-visible) · PR #96(NavBar 핀 생성·로그인 Link focus-visible) · PR #91(ThemeToggle focus-visible) · PR #86(SearchBar 최근 검색 삭제 focus-visible) follow-up. /login 페이지는 미인증 사용자의 유일한 진입점이고 OAuth provider button 은 페이지의 주된 액션 컨트롤이라 키보드 사용자 빈도 최고. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, 마크업/JSX 구조 미수정, 단일 파일 1 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그아웃 후 /login 진입 → Google·Discord OAuth 로그인 button 확인. 3) 마우스 hover → border #E85A2A 적용 확인. 4) Tab 으로 button 에 포커스 → border-border #2A2A2A 유지(hover 시각 미적용) + native outline 만. 5) 처리: L73 className `hover:border-accent` 뒤에 ` focus-visible:border-accent` 1 utility 삽입(diff +1 -1, 단일 className 변경). JSX 구조 · onClick · disabled · aria-label · style minHeight · provider.icon · provider.label · loading 분기 · ALL_PROVIDERS 상수 · useState · useEffect · handleClick 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그아웃 후 /login 진입 → LoginButtons 의 OAuth provider button(L68-85) 렌더 확인. 3) Tab 으로 첫 번째 button(Google) 에 포커스 → border-accent #E85A2A 적용 확인. Shift+Tab/Tab 으로 두 번째 button(Discord) 포커스 이동 → 동일 적용. 4) Enter/Space 로 handleClick 동작 정상(redirectTo 쿼리스트링 포함 /api/auth/<provider>/login 으로 이동). 5) 마우스 hover 효과 동일 확인 — 시각 회귀 0(hover/focus-visible 동일 미러링). 6) disabled 상태(loading) 시 button 에 disabled:opacity-50 disabled:cursor-not-allowed 적용 확인. 7) 인접 회귀: /login 페이지의 h1(L41) · 마스코트/안내 텍스트 · NavBar(미인증 → 핀 생성 Link 미렌더) 무변경. 8) light mode 동일 확인(--color-accent 토큰 단일 값 유지)."
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
