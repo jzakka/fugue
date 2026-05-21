@@ -1118,7 +1118,9 @@ items:
     effort: 1
     risk: 2
     score: 6.0
-    status: pending
+    status: done
+    pr: 61
+    note: "2026-05-21 PR #61 squash merge — VideoTrimModal.tsx 에 focus trap useEffect 1 블록 추가(diff +26 -0). panel keydown 에서 e.key === 'Tab' 시 panel.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\"-1\"])') 로 focusable 수집, first/last wrap. Shift+Tab on first 또는 panel → last, Tab on last → first (e.preventDefault() + target.focus()). modal 내 focusable = [취소, 선택 완료] 2 buttons. WAI-ARIA APG Dialog Pattern · WCAG 2.1 SC 2.4.3 Focus Order Level A 정렬. cycle 30(Initial focus) 잔여 항목 처리. JSX/className/role/aria-* 미변경 → 시각 회귀 0. 기존 useEffect(L42 video URL · L52 currentTime · L58 Escape · L66 body scroll lock · L73 Initial focus) 미수정 → 회귀 0. 마우스 사용자 회귀 0. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 코드 검증(grep 결과 새 useEffect L77-104 의도대로 부착, 기존 useEffect/JSX 미수정 확인)으로 대체."
 
   - id: "design-20260521-add-to-board-modal-focus-trap"
     title: "AddToBoardButton modal Tab focus trap 누락 — WAI-ARIA Dialog Pattern 잔여 정렬"
