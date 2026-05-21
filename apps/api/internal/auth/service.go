@@ -319,16 +319,34 @@ func (s *Service) RevokeRefreshToken(ctx context.Context, refreshTokenString str
 }
 
 // RevokeAllTokens revokes all refresh tokens for a creator (compromise detection).
+//
+// Implements docs/designs/oauth-login.md L219-224 sweep: read rt_index:{sub} →
+// delete each rt:{jti} → delete rt_index:{sub}. The function signature stays
+// void (best-effort sweep policy), but a silent Redis failure on any of the
+// three steps would leave the index set or member rt:{JTI} keys alive at
+// status=active for the full ~7d TTL while the caller observes only that
+// "compromise sweep ran" — meaning a compromised refresh token could still
+// rotate via /api/auth/refresh after the security incident response believes
+// the user's sessions are all revoked. The log lines give the operator the
+// timestamped trail to detect that orphan-key window per failure mode (Redis
+// read down vs per-jti Del partial vs index Del). Mirrors the additive-logging
+// contract from cycle C / F / G / I / K (RevokeRefreshToken /
+// RotateRefreshToken / RateLimiter / StoreRefreshToken / feed.GetFeed).
 func (s *Service) RevokeAllTokens(ctx context.Context, creatorID uuid.UUID) {
 	idxKey := rtIdxPrefix + creatorID.String()
 	jtis, err := s.rdb.SMembers(ctx, idxKey).Result()
 	if err != nil {
+		log.Printf("auth.RevokeAllTokens: SMembers error: %v (sub=%s)", err, creatorID)
 		return
 	}
 	for _, jti := range jtis {
-		s.rdb.Del(ctx, rtPrefix+jti)
+		if delErr := s.rdb.Del(ctx, rtPrefix+jti).Err(); delErr != nil {
+			log.Printf("auth.RevokeAllTokens: Del rt error: %v (jti=%s sub=%s)", delErr, jti, creatorID)
+		}
 	}
-	s.rdb.Del(ctx, idxKey)
+	if delErr := s.rdb.Del(ctx, idxKey).Err(); delErr != nil {
+		log.Printf("auth.RevokeAllTokens: Del rt_index error: %v (sub=%s)", delErr, creatorID)
+	}
 }
 
 func truncateNickname(name string) string {
