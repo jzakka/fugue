@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-21 — [design] 동적 inline error/feedback 6곳에 ARIA live region 부착 (WCAG 2.1 SC 4.1.3 Status Messages Level AA)
+결정/변경: 6개 동적 inline error/feedback 컨테이너에 ARIA live region attribute 부착(diff +27 -5, 6 파일) — error-only 5 박스(FeedContainer L186-187 / PinCreateForm L320-321 / ProfileEditForm L56-57 / MyPageClient L82-83 / BoardActions L66-67)에 `role="alert" aria-live="polite"`, AddToBoardButton L243-244 success/error 분기 박스에 `role="status" aria-live="polite"` 정렬. PR #58 squash merge (f7b8fdf).
+이유: WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.' 코드베이스 내 ARIA live region 단일 매칭(login L54 `<p role="alert" aria-live="polite">`) 외 5+1개 동적 메시지 컨테이너가 SR 자동 안내 없이 렌더되던 갭. AddToBoardButton 박스는 success/error 분기라 alert(긴급) 자의적 매핑 회피하고 status(non-critical)로 정렬. PR #33(decorative button aria-hidden) · PR #34(aria-required) · PR #35(role="button" + tabIndex) · PR #36(focus-visible) a11y 라인업의 SR 안내 영역 확장.
+영향 범위: 6 파일 각 1 attribute pair 추가만(role + aria-live). className · 조건부 렌더링 · onClick 핸들러 · 자식 마크업 모두 미수정 → 시각 변화 0, 함수형 동작 변화 0. 마우스 사용자 회귀 0. 단위/통합 테스트·실 브라우저 QA 는 Ralph 환경 제약(node_modules 미설치)으로 미수행 — 코드 검증(grep `role="alert"|role="status"|aria-live=` 6 박스 12 매칭 확인)으로 대체.
+
 ## 2026-05-19 — [design] PinCreateForm 미디어 파일 dropzone 의 키보드 포커스 시각 표시 추가
 결정/변경: `apps/web/src/app/pin/new/PinCreateForm.tsx` L341 dropzone div className 끝에 `focus-visible:border-accent focus-visible:outline-none` 2 utility 추가(diff +1 -1). PR #36 squash merge.
 이유: WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PR #35 가 dropzone 키보드 작동성(WCAG SC 2.1.1 Level A — Tab 도달 + Enter/Space 작동)을 회복한 후속으로 visual focus indication(SC 2.4.7 Level AA)이 잔여 갭으로 명시적으로 분리되어 있었음. hover:border-accent 와 동일 시각 신호 — 키보드 포커스 시 점선 색이 border-accent 로 변경. In-codebase 5 개 컴포넌트(PinCard L146 / SearchClient L313+L351 / BoardGrid L22 / MyPageClient L130 / BoardCover L6+L30) 일관 패턴 적용 사실로 패턴 정합성 확보.
