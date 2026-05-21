@@ -36,7 +36,7 @@ export default function ProfileHeader({
             {isOwner && onEdit && (
               <button
                 onClick={onEdit}
-                className="shrink-0 px-4 py-2 bg-surface-elevated border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer"
+                className="shrink-0 px-4 py-2 bg-surface-elevated border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors cursor-pointer"
               >
                 편집
               </button>
