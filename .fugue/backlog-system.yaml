@@ -2186,3 +2186,61 @@ items:
       CI 1차 실패(golangci-lint errcheck on mr.Set seed) → 1줄 if-err+t.Fatalf 추가 후 재push
       → main BEHIND(origin advance) → rebase --force-with-lease → 재 merge-on-green 성공.
 
+  - id: system-20260521-pin-create-tmpfile-close-silent-swallow
+    title: "pin.Create 의 비디오 업로드 임시 파일 Close 에러 silent-swallow 는 spec L205-207 '결정적으로 길이를 확인할 수 없는 경우 fail-closed' SHALL 을 우회할 수 있는 경로"
+    area: error-handling
+    evidence:
+      file: apps/api/internal/pin/handler.go
+      lines: "163-169"
+      quote: |
+        if _, err := io.Copy(tmpFile, file); err != nil {
+            _ = tmpFile.Close()
+            log.Printf("pin.Create: temp copy error: %v", err)
+            writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
+            return
+        }
+        _ = tmpFile.Close()  // ← L169: io.Copy 성공 후 Close 에러 silent discard.
+                              //         이후 probeDuration(origTmpPath) 가 동일 파일을 ffprobe 로 측정.
+      spec_citation: |
+        openspec/specs/pin/spec.md L205-207:
+        > Scenario: 구간 정보 없이 비디오 길이를 확인할 수 없는 경우
+        > WHEN 트리밍 구간 정보 없이 비디오가 업로드되었으나 서버가 결정적으로 길이를 확인할 수 없는 경우
+        > THEN 서버가 업로드를 거부하고 길이 확인 불가 에러를 반환한다
+        > (15초 초과 거부 SHALL이 길이 측정 실패라는 우연으로 침묵 우회되지 않도록 fail-closed)
+      bypass_chain: |
+        1) *os.File.Close() 는 io.Copy 성공 후에도 ENOSPC(tmpfs 풀)/EIO(파일시스템 결함)/
+           NFS write-back error 등으로 실패할 수 있고, 그 경우 buffered data 가 디스크에
+           flush 되지 않았음을 의미.
+        2) 같은 경로의 probeDuration(origTmpPath) 는 부분 파일을 ffprobe 로 측정 → 16s
+           실제 비디오가 12-14s 로 측정될 수 있음 → "duration > 15" 가드 통과.
+        3) 그 결과 spec SHALL "구간 정보 없이 15초 초과 비디오 업로드 거부" 가 침묵 우회되어
+           트림 없이 storage.Upload 까지 도달 → MIME spoof cycle (May 19) 가 단단히 잠근
+           "video > 15s 는 트림 없이 저장 불가" 보안 invariant 일관성 위반.
+        4) 같은 함수 L252-256 의 probeErr 분기는 spec 의 fail-closed 의도를 명시적으로 인용
+           하며 (L247-251 주석) probe 실패를 400 으로 처리. Close 실패는 그 invariant 의
+           upstream 누수 — probe 가 신뢰할 데이터를 보지 못해 측정 자체가 의미를 잃지만
+           silent-swallow 가 그것을 가시화하지 않는다.
+      adjacent_pattern: |
+        cycle C/F/G/I/K/L (PR #70/#81/#85/#92/#101/#111) additive-logging 시리즈가 Redis
+        silent-swallow 를 같은 원리(silent fail → 운영자 가시성 0 + spec invariant 누수)로
+        전부 닫음. 본 항목은 그 원리를 Redis 가 아닌 os.File 영역에 적용. May 19 cycle
+        (storage MIME normalize, PR #43) 의 "fail-closed 로 SHALL enforce" 가 직접 선례.
+    qa_plan: |
+      실 환경 — docker-compose up + go run cmd/server/main.go 로 :8080 띄움.
+      T1 happy short: 5s mp4 업로드(curl multipart) → 201 + pins row + 0 pin.Create 로그.
+      T2 happy trim: 30s mp4 + trim_start=0 trim_end=10 → 201 + 트림된 storage URL +
+        0 close error 로그.
+      T3 no-trim 16s reject (기존 동작 회귀): 16s mp4 업로드 → 400 "15초 초과 비디오는
+        트리밍이 필요합니다" + 0 close error 로그.
+      T4 Close 실패 path (best-effort): tmpfs quota 가 작은 mount 또는 chmod 로 강제
+        실패 어려우면 cycle I/K 한계 인용하여 패턴 동일성 + 코드 인스펙션으로 보강.
+      회귀: /api/pins GET 200, /api/feed 200, /api/auth/refresh 401(no cookies).
+      단위 테스트: 가능한 한 io.Closer interface 도입 없이 핸들러 통합 테스트로 happy path
+        만 추가(close=nil → 정상). Close-fail path 는 cycle I/K 동일 한계 인용.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
