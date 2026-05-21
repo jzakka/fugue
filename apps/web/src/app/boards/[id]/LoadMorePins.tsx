@@ -41,9 +41,18 @@ export default function LoadMorePins({
           <button
             onClick={loadMore}
             disabled={loading}
+            aria-busy={loading}
             className="px-6 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {loading ? <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" /> : "더보기"}
+            {loading ? (
+              <div
+                role="status"
+                aria-label="추가 핀 로딩 중"
+                className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto"
+              />
+            ) : (
+              "더보기"
+            )}
           </button>
         </div>
       )}
