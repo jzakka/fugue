@@ -249,16 +249,32 @@ func (s *Service) RotateRefreshToken(ctx context.Context, refreshTokenString str
 		return nil, err
 	}
 
-	// Mark old token as rotated with grace period
+	// Mark old token as rotated with grace period.
+	//
+	// A silent failure here leaves the old rt:{JTI} at status=active with the
+	// original ~7d TTL. The next RotateRefreshToken call with the same old
+	// token would then bypass the grace branch (status != "rotated") and re-
+	// issue another pair — same old token rotating indefinitely (token sprawl).
+	// The new pair has already been returned to the client, so we cannot fail
+	// the request, but the operator needs the timestamped trail to detect the
+	// stuck-active window and the index leak that follows. Mirrors the cycle C
+	// RevokeRefreshToken Del/SRem logging contract.
 	rotatedData, _ := json.Marshal(map[string]string{
 		"creator_id": creatorID.String(),
 		"status":     "rotated",
 	})
-	s.rdb.Set(ctx, key, rotatedData, rtGrace)
+	if setErr := s.rdb.Set(ctx, key, rotatedData, rtGrace).Err(); setErr != nil {
+		log.Printf("auth.RotateRefreshToken: grace mark Set error: %v (jti=%s sub=%s)", setErr, jti, creatorID)
+	}
 
-	// Remove old JTI from index
+	// Remove old JTI from index. A silent failure leaves stale jti in
+	// rt_index:{sub}; RevokeAllTokens compromise-detection sweeps over a
+	// superset of live tokens (harmless but the index-correctness invariant
+	// breaks).
 	idxKey := rtIdxPrefix + creatorID.String()
-	s.rdb.SRem(ctx, idxKey, jti)
+	if sremErr := s.rdb.SRem(ctx, idxKey, jti).Err(); sremErr != nil {
+		log.Printf("auth.RotateRefreshToken: index SRem error: %v (jti=%s sub=%s)", sremErr, jti, creatorID)
+	}
 
 	return pair, nil
 }
