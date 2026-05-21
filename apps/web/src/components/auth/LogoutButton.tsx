@@ -26,7 +26,7 @@ export default function LogoutButton() {
       disabled={loading}
       className="text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
     >
-      {loading ? "..." : error ? "재시도" : "로그아웃"}
+      {loading ? "로그아웃 중..." : error ? "재시도" : "로그아웃"}
     </button>
   );
 }
