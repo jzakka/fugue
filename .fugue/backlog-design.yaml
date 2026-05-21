@@ -1416,7 +1416,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 120
+    note: "2026-05-21 PR #120 — LoadMorePins.tsx:44 className `hover:text-text-primary hover:border-accent` 뒤에 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary + border-accent 미러링. 보드 상세 페이지(/boards/[id]) 페이지네이션 컨트롤로 보드 안 핀 수 ≥21 일 때 항상 렌더 → 키보드 사용자 빈도 높음. in-codebase focus-visible 14 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton) → 15 파일로 확장. JSX 구조 · onClick(loadMore) · disabled · loading 분기(spinner div) · hasMore 분기 · useState · fetchBoard import 모두 미수정 → 마우스 hover 회귀 0, 시각 회귀 0. decision-log 2026-05-21 PR #118(LogoutButton) · PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) · PR #105(LoginButtons) · PR #100(ProfileHeader) · PR #96(NavBar) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 2 utility 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-board-actions-focus-visible-missing"
     title: "BoardActions 의 보드 소유자 컨트롤 4 button(저장 L93 · 취소 L105 · 편집 L118 · 삭제 L124)이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 보드 상세 페이지 소유자 액션 키보드 포커스 가시화 누락(in-codebase focus-visible 13 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
