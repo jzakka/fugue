@@ -1588,3 +1588,51 @@ items:
     status: done
     pr: 143
     note: "2026-05-21 PR #143 — apps/web/src/components/pin/VideoTrimModal.tsx L275(취소)+L283(선택 완료) 두 button className 의 `hover:X` 뒤에 `focus-visible:X` 1 utility 미러 삽입(diff +2 -2, 단일 파일 2 className 변경). VideoTrimModal 은 /pin/new 비디오 업로드 후 노출되는 트림 모달의 핵심 액션 2건 — 취소 button(`hover:text-text-primary focus-visible:text-text-primary`) · 선택 완료 button(`hover:bg-accent-hover focus-visible:bg-accent-hover`). 키보드 Tab 포커스 도달 시 hover 와 동일한 시각 변화 제공. in-codebase focus-visible 23 파일 라인업 → 24 파일로 확장. NavBar L32 핀 생성 Link · BoardActions L93 저장 · AddToBoardButton L365 생성 · PinCreateForm L630 등록하기 · ProfileEditForm L117 저장 · MyPageClient L72+L108 '+ 새 보드'/'생성' · PinDetail L222 원본 보기 anchor 와 동일 패턴(`bg-accent text-white hover:bg-accent-hover focus-visible:bg-accent-hover` 및 `text-text-muted hover:text-text-primary focus-visible:text-text-primary`). JSX 구조 · onClick(onCancel/onConfirm) · disabled(clip MIN/MAX 검증) · 자식 텍스트(취소/선택 완료) · trim 슬라이더 · 비디오 element · panel ref/포커스 트랩 useEffect 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. 트림 모달은 modal role+aria-modal 로 Tab 순환이 panel 안에 갇혀 있어 두 버튼이 포커스 순환의 직접 대상 — focus-visible 미러 부재 시 키보드 사용자에게 시각 피드백이 사라지는 단일 진입점이었음. decision-log 2026-05-21 PR #141(PinDetail) · PR #139(MyPageClient BoardSection) · PR #137(ProfileEditForm) · PR #135(PinCreateForm) · PR #131(PinsGrid) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 2 className utility 변경 단위라 코드 검증(grep `focus-visible:` VideoTrimModal.tsx L275·L283 매칭 2건 + 인접 utility/onClick/disabled/자식 텍스트/JSX 구조 미변경 확인)으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-search-load-more-spinner-status-missing"
+    title: "SearchClient 검색 결과 '더보기' button(L405-415) 의 로딩 스피너가 `role=\"status\"`/`aria-busy`/`aria-label` 부재 — 검색 결과 추가 로딩 중 스크린리더 사용자에게 로딩 상태 미알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:404-416"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.' SearchClient L405-415 더보기 button: `<button onClick={handleLoadMore} disabled={loadingMore} className=\"... cursor-pointer disabled:opacity-50\">{loadingMore ? <div className=\"w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto\" /> : \"더보기\"}</button>` — loadingMore=true 시 button 자식이 텍스트(\"더보기\") 에서 div spinner 로 swap 되어 스크린리더에 button 의 접근 가능 이름이 사라짐(div spinner 는 visible label 없음). button 자체에 `aria-busy` · `aria-label` 부재 + spinner div 에 `role=\"status\"` 부재 → SR 사용자는 'button [unnamed], disabled' 만 듣게 됨. 같은 컴포넌트 SearchBar L251-254 'no results' 영역은 이미 `role=\"status\" aria-live=\"polite\"` 사용(코드베이스 내부 정합 근거). AddToBoardButton L270 feedback 영역도 동일. 안티패턴 L15-L21 무매치 — 토큰 비변경, JSX 구조 미수정, aria 속성 추가만(button 1개 + 내부 spinner div 1개)."
+      repro: "1) cd apps/web && npm run dev. 2) /search?q=<쿼리> 진입, 결과 21건 이상 확보. 3) 페이지 하단 '더보기' button 까지 스크롤. 4) SR(VoiceOver) 활성화 후 button 포커스 → '더보기, button' 확인. 5) button 클릭(로딩 중) → SR 알림 0건(button label 사라짐, disabled 만 알림). 6) 처리: button 에 `aria-busy={loadingMore}` + spinner div 에 `role=\"status\" aria-label=\"검색 결과 추가 로딩 중\"` 추가(diff +2). 또는 button 의 자식 분기를 spinner+`<span className=\"sr-only\">로딩 중</span>` 으로 변경. 단일 button JSX 변경 단위."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /search 결과 21건 이상 확보 → 더보기 button 클릭. 3) SR 으로 button 포커스 → 평소 '더보기' / 로딩 중 '검색 결과 추가 로딩 중, busy' 들리는지 확인. 4) 시각 동작 미변경(spinner 그대로) 확인. 5) light mode 동일 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
+  - id: "design-20260521-a11y-board-load-more-spinner-status-missing"
+    title: "LoadMorePins '더보기' button(L41-47) 의 로딩 스피너가 `role=\"status\"`/`aria-busy`/`aria-label` 부재 — 보드 추가 핀 로딩 중 스크린리더 사용자에게 로딩 상태 미알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/LoadMorePins.tsx:41-47"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'Status messages can be programmatically determined.' LoadMorePins L41-47 더보기 button: `<button onClick={loadMore} disabled={loading} className=\"...cursor-pointer\">{loading ? <div className=\"w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto\" /> : \"더보기\"}</button>` — loading=true 시 자식이 텍스트(\"더보기\") 에서 div spinner 로 swap 되어 button 의 접근 가능 이름이 사라짐. button 자체에 `aria-busy` · `aria-label` 부재 + spinner div 에 `role=\"status\"` 부재 → SR 사용자는 'button [unnamed], disabled' 만 듣게 됨. /boards/[id] 페이지의 보드 상세 추가 핀 로딩 핵심 컨트롤. SearchClient 더보기 button(decision-log follow-up) 과 동일 패턴 — 일관된 처리로 코드베이스 내부 정합 확장. 안티패턴 L15-L21 무매치 — 단일 파일 button 1개 aria 속성 추가만."
+      repro: "1) cd apps/web && npm run dev. 2) /boards/<id> 진입(20건 초과 핀 보드). 3) 페이지 하단 '더보기' button 클릭. 4) SR(VoiceOver) 활성화 후 button 포커스 → 로딩 중 SR 알림 0건. 5) 처리: button 에 `aria-busy={loading}` 1 prop + spinner div 에 `role=\"status\" aria-label=\"추가 핀 로딩 중\"` 2 prop 추가(diff +2 -0 또는 +3 -1)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /boards/<20건 초과 보드 id> 진입 → 더보기 button 클릭. 3) SR 으로 button 포커스 → 로딩 중 'busy, 추가 핀 로딩 중' 들리는지 확인. 4) 시각 동작 미변경(spinner mx-auto 그대로) 확인. 5) light mode 동일 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
+  - id: "design-20260521-a11y-add-to-board-modal-loading-spinner-status-missing"
+    title: "AddToBoardButton 모달 보드 목록 로딩 스피너(L284-287) 가 `role=\"status\"`/`aria-label` 부재 — 보드 선택 dialog 진입 시 스크린리더 사용자에게 로딩 상태 미알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:283-289"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'Status messages can be programmatically determined.' AddToBoardButton L283-289 보드 목록 영역: `<div className=\"flex-1 overflow-y-auto px-6 py-4 space-y-1\">{loading ? <div className=\"flex justify-center py-8\"><div className=\"w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin\" /></div> : boards.length === 0 && !showCreate ? <EmptyState .../> : ...}</div>` — loading=true 시 단독 spinner div 만 렌더, `role=\"status\"` · `aria-label` 부재. dialog 열림 직후 fetchBoards 진행 중 SR 사용자에게 알림 0건 → 무한 빈 상태로 인지될 가능성. 같은 컴포넌트 L270 feedback 영역은 이미 `role=\"status\" aria-live=\"polite\"` 사용(코드베이스 내부 정합 근거). 모달이 role=dialog+aria-modal 컨텍스트라 SR 사용자가 진입 직후 알림이 필요한 시점. 안티패턴 L15-L21 무매치 — 단일 spinner div 에 aria 속성 추가만(JSX 구조 미변경)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 핀 카드의 '저장' button 클릭 → AddToBoardButton 모달 진입. 3) dialog 열림 직후 보드 목록 영역에 spinner 만 노출되는 시점 관찰. 4) SR(VoiceOver) 활성화 후 dialog 진입 → 로딩 상태 알림 0건. 5) 처리: spinner div 컨테이너(L285) 에 `role=\"status\" aria-label=\"보드 목록 로딩 중\"` 2 prop 추가(diff +2 -1, 단일 div 1개)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 핀 카드 → 저장 button → AddToBoardButton 모달 진입. 3) SR 으로 dialog 진입 → '보드 목록 로딩 중' 들리는지 확인. 4) 로딩 완료 후 보드 목록/빈 상태로 swap → 알림 정상 종료 확인. 5) 시각 동작 미변경(spinner py-8 그대로) 확인. 6) light mode 동일 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
