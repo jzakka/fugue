@@ -29,7 +29,7 @@ export default async function NavBar() {
             <>
               <Link
                 href="/pin/new"
-                className="px-4 py-2 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors"
+                className="px-4 py-2 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors"
               >
                 + 핀 생성
               </Link>
@@ -61,7 +61,7 @@ export default async function NavBar() {
               <ThemeToggle />
               <Link
                 href="/login"
-                className="px-4 py-2 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent transition-colors"
+                className="px-4 py-2 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent focus-visible:border-accent transition-colors"
               >
                 로그인
               </Link>
