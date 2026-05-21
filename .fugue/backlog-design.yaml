@@ -1438,3 +1438,52 @@ items:
     status: done
     pr: 124
     note: "2026-05-21 PR #124 — BoardActions.tsx 4 button(L93 저장 · L105 취소 · L118 편집 · L124 삭제) className hover utility 뒤 미러링 focus-visible utility 삽입(diff +4 -4, 단일 파일 4 className 변경). L93 `focus-visible:bg-accent-hover` 1 utility · L105 `focus-visible:text-text-primary` 1 utility · L118 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility · L124 `focus-visible:text-error focus-visible:border-error` 2 utility. 보드 상세 페이지(/boards/[id]) 의 보드 소유자 액션 컨트롤로 isOwner=true 일 때 항상 렌더. 키보드 Tab 포커스 도달 시 hover 와 동일 시각(저장 accent-hover · 취소 text-primary · 편집 text-primary+border-accent · 삭제 text-error+border-error) 미러링. in-codebase focus-visible 15 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins) → 16 파일로 확장. JSX 구조 · onClick(handleSave/handleDelete/setEditing) · disabled · editing 분기 · useRouter · updateBoard · deleteBoard · confirm() · setName/setDescription/setError · error 분기(role=alert L65-72) · input 영역(L73-88) 모두 미수정. 머지 절차에서 BEHIND 1회 발생 — `git fetch origin main && git rebase origin/main && git push -f` 로 자동 회복 후 재머지 성공(§자체 회복 §3). decision-log 2026-05-21 PR #120(LoadMorePins) · PR #118(LogoutButton) · PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) · PR #100(ProfileHeader) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 4 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-field-filter-focus-visible-missing"
+    title: "FieldFilter 의 미디어 타입 필터 button(L33-44) non-selected variant 가 `hover:border-text-muted hover:text-text-primary` 만 적용되고 `focus-visible:` 규칙 부재 — 홈/피드 페이지 핵심 필터 키보드 포커스 가시화 누락(in-codebase focus-visible 16 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FieldFilter.tsx:33-44"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' FieldFilter.tsx:33-44 `<button>` 4 인스턴스(MEDIA_TYPES.map: 전체/이미지/음악/영상) 의 className 분기(L39 non-selected variant) `bg-transparent border border-border text-text-muted hover:border-text-muted hover:text-text-primary` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(border-text-muted + text-text-primary) 미러링 0 → native browser outline 만. 홈/피드 페이지(`/`)의 컨텐츠 미디어 타입 1차 필터로 모든 사용자 시각 진입점. router.push 로 URL 파라미터 변경 → 키보드 사용자 빈도 매우 높음. selected variant `bg-text-primary text-bg`(L38) 는 색 반전 강조라 별도 focus-visible 미러링 가능하나 변경 전 hover 도 없어 자체 리뷰 #2(자의적 해석) 위험 → non-selected variant 만 1 className 변경(diff +1 -1). in-codebase focus-visible 16 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #124(BoardActions) · PR #120(LoadMorePins) · PR #118(LogoutButton) · PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 className 분기 안 utility 추가)."
+      repro: "1) cd apps/web && npm run dev. 2) 홈/피드 페이지(/) 진입 → FieldFilter 4 button(전체/이미지/음악/영상) 렌더 확인. 3) non-selected button(예: 현재 '전체'일 때 '이미지'/'음악'/'영상') 마우스 hover → border-text-muted + text-text-primary 적용 확인. 4) Tab 으로 button 에 포커스 → text-text-muted + border-border 유지(hover 시각 미적용) + native outline 만. 5) 처리: L39 className `hover:border-text-muted hover:text-text-primary` 뒤에 ` focus-visible:border-text-muted focus-visible:text-text-primary` 2 utility 삽입(diff +1 -1, 단일 className 분기 안 utility 추가). selected variant L38 은 미변경(별도 후보 가능하나 현재 hover 도 없으므로 보수 결정). JSX 구조 · onClick(handleClick → router.push) · MEDIA_TYPES 배열 · key · useRouter · useSearchParams · params 처리 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 홈/피드 페이지(/) 진입 → FieldFilter 4 button 렌더 확인. Tab 으로 non-selected button 에 포커스 → border-text-muted + text-text-primary 적용 확인. Enter/Space 로 router.push 동작 → URL `?media_type=...` 변경 확인. 3) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 4) selected variant button(`bg-text-primary text-bg`) 시각 미변경 확인. 5) 페이지네이션 reset(`params.delete('offset')`) 동작 정상. 6) 인접 회귀: TagFilter · MasonryGrid · PinCard 무변경. 부모 페이지(/) FeedContainer 의 다른 부분 무변경. 7) light mode 동일 확인."
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+
+  - id: "design-20260521-a11y-tag-filter-focus-visible-missing"
+    title: "TagFilter 의 초기화 button(L46-51) 과 non-selected tag button(L56-68)이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 홈/피드 페이지 태그 필터 키보드 포커스 가시화 누락(in-codebase focus-visible 16 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/TagFilter.tsx:46-51"
+        - "apps/web/src/components/feed/TagFilter.tsx:56-68"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' TagFilter.tsx 2 className 에 `focus-visible:` 0건: (a) L48 초기화 button `px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer bg-error/10 text-error border border-error/30 hover:bg-error/20 transition-colors font-mono` — `focus-visible:bg-error/20` 누락. (b) L62 non-selected tag button variant `bg-accent-subtle text-text-muted hover:bg-accent/20` — `focus-visible:bg-accent/20` 누락(selected variant L61 `bg-accent text-white` 는 hover 도 없어 변경 없음). 홈/피드 페이지(`/`) 의 태그 필터로 PopularTag 렌더 시 키보드 Tab 으로 다수 컨트롤 횡단. in-codebase focus-visible 16 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #124(BoardActions) · PR #120(LoadMorePins) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 2 className 변경)."
+      repro: "1) cd apps/web && npm run dev. 2) 홈/피드 페이지(/) 에서 PopularTag 가 렌더되도록 시드 데이터 확인. 3) non-selected tag button 마우스 hover → bg-accent/20 적용 확인. 4) Tab 으로 button 에 포커스 → bg-accent-subtle 유지(hover 시각 미적용) + native outline 만. 5) 초기화 button(selectedSlugs.size > 0 일 때 L46-51 렌더) 마우스 hover → bg-error/20 적용 확인. 6) 처리: L48 className `hover:bg-error/20` 뒤에 ` focus-visible:bg-error/20` 1 utility + L62 `hover:bg-accent/20` 뒤에 ` focus-visible:bg-accent/20` 1 utility 삽입(diff +2 -2, 단일 파일 2 className 변경). JSX 구조 · onClick(handleToggle/handleReset → router.push) · useRouter · useSearchParams · selectedSlugs 집합 처리 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 홈/피드 페이지(/) 진입 → TagFilter 렌더 확인(PopularTag 시드 데이터 필요). Tab 으로 tag button 에 포커스 → bg-accent/20 적용 확인. Enter/Space 로 handleToggle → URL `?tags=...` 변경 확인. 3) tag 선택 후 초기화 button 렌더 → Tab 포커스 → bg-error/20 적용 확인. 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 5) selected variant `bg-accent text-white` 시각 미변경 확인. 6) 인접 회귀: FieldFilter · MasonryGrid · PinCard 무변경. 7) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
+  - id: "design-20260521-a11y-pins-grid-media-filter-focus-visible-missing"
+    title: "PinsGrid 의 마이페이지 미디어 타입 필터 button(L101-112) non-selected variant 가 `hover:text-text-primary hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 마이페이지 핀 필터 키보드 포커스 가시화 누락(in-codebase focus-visible 16 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:101-112"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PinsGrid.tsx:101-112 `<button>` 4 인스턴스(MEDIA_TYPES.map) 의 className 분기(L107 non-selected variant) `bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(text-text-primary + border-accent) 미러링 0 → native browser outline 만. 마이페이지(/mypage) 의 사용자 핀 콜렉션 미디어 타입 필터로 인증 사용자 핵심 진입점. selected variant L106 `bg-accent text-white` 는 색 반전 강조라 별도 focus-visible 미러링 가능하나 hover 가 없어 자체 리뷰 #2 위험 → non-selected variant 만 1 className 변경(diff +1 -1). in-codebase focus-visible 16 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #124(BoardActions) · PR #120(LoadMorePins) · PR #118(LogoutButton) follow-up — 특히 BoardActions L118 편집 button 과 동일 패턴(text-text-muted + hover:text-text-primary + hover:border-accent). 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 className 분기 안 utility 추가)."
+      repro: "1) cd apps/web && npm run dev. 2) 인증 사용자 마이페이지(/mypage) 진입 → PinsGrid 의 미디어 타입 필터 4 button(전체/이미지/음악/영상) 렌더 확인. 3) non-selected button 마우스 hover → text-text-primary + border-accent 적용 확인. 4) Tab 으로 button 에 포커스 → text-text-muted + border-border 유지(hover 시각 미적용) + native outline 만. 5) 처리: L107 className `hover:text-text-primary hover:border-accent` 뒤에 ` focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 분기 안 utility 추가). selected variant L106 은 미변경. JSX 구조 · onClick(handleTypeChange) · MEDIA_TYPES 배열 · activeType 분기 · useState · fetchUserPins 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 인증 사용자 마이페이지(/mypage) 진입 → PinsGrid 미디어 타입 필터 4 button 렌더 확인. Tab 으로 non-selected button 에 포커스 → text-text-primary + border-accent 적용 확인. Enter/Space 로 handleTypeChange → fetchUserPins 호출 → 핀 콜렉션 재로드. 3) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 4) selected variant button 시각 미변경 확인. 5) loading/CardSkeleton 분기 무변경. 6) 인접 회귀: MyPageClient · BoardGrid · ProfileHeader 무변경. 7) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
