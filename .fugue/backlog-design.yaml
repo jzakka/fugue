@@ -1490,4 +1490,6 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 131
+    note: "2026-05-21 PR #131 — PinsGrid.tsx:107 non-selected variant className 의 `hover:text-text-primary hover:border-accent` 뒤에 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 분기 안 utility 추가). MEDIA_TYPES.map 4 button(전체/이미지/음악/영상) non-selected variant 가 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary + border-accent 미러링. 마이페이지(/mypage) 사용자 핀 콜렉션 미디어 타입 필터 — 인증 사용자 핵심 진입점. selected variant L106 `bg-accent text-white` 는 hover 도 없어 보수 결정으로 미변경. in-codebase focus-visible 18 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins · BoardActions · FieldFilter · TagFilter) → 19 파일로 확장. BoardActions L118 편집 button(PR #124) · ProfileHeader L39(PR #100) 와 동일 패턴(text-text-muted + hover:text-text-primary + hover:border-accent). JSX 구조 · onClick(handleTypeChange) · MEDIA_TYPES 배열 · activeType 분기 · useState · fetchUserPins · loading/CardSkeleton 분기 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #129(TagFilter) · PR #127(FieldFilter) · PR #124(BoardActions) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 2 utility 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
