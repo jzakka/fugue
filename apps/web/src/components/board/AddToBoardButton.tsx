@@ -246,7 +246,7 @@ function BoardSelectModal({
           <button
             onClick={onClose}
             aria-label="닫기"
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-text-muted hover:text-text-primary cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover focus-visible:bg-surface-hover transition-colors text-text-muted hover:text-text-primary focus-visible:text-text-primary cursor-pointer"
           >
             <svg
               width="16"
@@ -293,7 +293,7 @@ function BoardSelectModal({
                 key={board.id}
                 onClick={() => handleSelectBoard(board.id, board.name)}
                 disabled={adding !== null || feedback?.type === "success"}
-                className="w-full flex items-center gap-3 px-3 py-3 rounded-[10px] hover:bg-surface-hover transition-colors text-left disabled:opacity-50 cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-[10px] hover:bg-surface-hover focus-visible:bg-surface-hover transition-colors text-left disabled:opacity-50 cursor-pointer"
               >
                 {/* Mini cover */}
                 <div className="w-10 h-10 rounded-[6px] bg-surface flex-shrink-0 overflow-hidden border border-border">
@@ -362,7 +362,7 @@ function BoardSelectModal({
                 <button
                   onClick={handleCreateAndAdd}
                   disabled={creating || !newBoardName.trim()}
-                  className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+                  className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {creating ? "생성 중..." : "생성 및 추가"}
                 </button>
@@ -371,7 +371,7 @@ function BoardSelectModal({
                     setShowCreate(false);
                     setNewBoardName("");
                   }}
-                  className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                  className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer"
                 >
                   취소
                 </button>
@@ -381,7 +381,7 @@ function BoardSelectModal({
             <button
               onClick={() => setShowCreate(true)}
               disabled={feedback?.type === "success"}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border border-border border-dashed rounded-[10px] text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border border-border border-dashed rounded-[10px] text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors disabled:opacity-50 cursor-pointer"
             >
               <svg
                 width="14"
