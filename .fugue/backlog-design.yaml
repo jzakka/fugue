@@ -1472,7 +1472,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 129
+    note: "2026-05-21 PR #129 — TagFilter.tsx 2 className 변경(diff +2 -2): L48 초기화 button `hover:bg-error/20` 뒤에 `focus-visible:bg-error/20` 1 utility + L62 non-selected tag button variant `hover:bg-accent/20` 뒤에 `focus-visible:bg-accent/20` 1 utility 삽입. 홈/피드 페이지(/) PopularTag 필터로 다중 태그 선택 시 키보드 Tab 횡단 컨트롤. 키보드 Tab 포커스 도달 시 hover 와 동일한 bg-error/20 · bg-accent/20 미러링. selected variant L61 `bg-accent text-white` 는 hover 없어 보수 결정으로 미변경. in-codebase focus-visible 17 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins · BoardActions · FieldFilter) → 18 파일로 확장. JSX 구조 · onClick(handleToggle/handleReset → router.push) · useRouter · useSearchParams · selectedSlugs 집합 처리 · tags.length === 0 분기 · pin_count span 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #127(FieldFilter) · PR #124(BoardActions) · PR #120(LoadMorePins) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 2 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-pins-grid-media-filter-focus-visible-missing"
     title: "PinsGrid 의 마이페이지 미디어 타입 필터 button(L101-112) non-selected variant 가 `hover:text-text-primary hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 마이페이지 핀 필터 키보드 포커스 가시화 누락(in-codebase focus-visible 16 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
