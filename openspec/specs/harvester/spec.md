@@ -799,3 +799,30 @@ Harvester가 외부 미디어 응답 본문을 stream으로 객체 저장소에 
 #### Scenario: classifier 입력은 절단되지 않은 원본 title을 받는다
 - **WHEN** classifier가 PinDocument를 평가할 때
 - **THEN** classifier는 잘리지 않은 원본 title로 판정을 수행하며, `pins.title`에 저장되는 값은 이와 무관하게 200 rune으로 잘린 형태다 (description rune-cap 정책과 대칭)
+
+
+---
+
+### Requirement: ProcessDocument의 media_url 후보는 pins.media_url 컬럼 cap에 맞춰 사전 차단된다
+
+시스템은 `PinDocument.ThumbnailURL`과 `PinDocument.MediaCandidates`의 각 `URL` 길이를 `pins.media_url` 컬럼 cap(500 rune) 기준으로 검사해야 하며(SHALL), 500 rune을 초과하는 후보는 ProcessDocument의 media_url 선택 단계에 도달하기 전에 제거해야 한다(SHALL). 길이 검사는 UTF-8 rune 단위로 수행하며 바이트 단위로 수행해서는 안 된다(SHALL NOT). 500 rune 이하 입력은 변경 없이 보존된다(SHALL).
+
+URL은 의미 단위가 rune 경계에 정렬되지 않으므로 시스템은 절단(truncate)이 아닌 차단(skip) 형태로 cap을 enforce한다(SHALL). 차단된 후보는 picker의 fallback chain에서 다음 후보로 자연 승계되며, 모든 후보가 차단되면 classifier의 `no_primary_media` 판정이 자연 발화하여 Pin은 생성되지 않고 URL은 skipped+harvested로 처리된다(SHALL).
+
+이는 `pins.media_url VARCHAR(500) NOT NULL` 컬럼 cap(`apps/api/db/migrations/000012_pivot_pins_media.up.sql`)에서 발생하는 PostgreSQL `value too long for type character varying(500)` 거부를 사전 차단해 Pin upsert SHALL(idempotent via ON CONFLICT DO UPDATE)이 결정적으로 충족되도록 한다. title cap 사전 절단(L781-801)과 동일한 enforce-before-write 패턴을 media_url에 대해서도 적용하되, URL semantic 보호를 위해 절단이 아닌 차단으로 형태를 달리한다.
+
+#### Scenario: 501 rune ThumbnailURL은 ProcessDocument 도달 전에 차단된다
+- **WHEN** Pioneer가 가져온 페이지의 `og:image` 또는 `twitter:image` 또는 첫 `<img src>`가 501 rune 이상의 URL이고 Harvester가 그 PinDocument를 처리할 때
+- **THEN** 시스템은 `PinDocument.ThumbnailURL`을 빈 문자열로 만들어 picker가 MediaCandidates fallback으로 진행하도록 하고, PostgreSQL의 `value too long for type character varying(500)` 에러를 발생시키지 않는다
+
+#### Scenario: 모든 후보가 500 rune을 초과하면 Pin이 생성되지 않는다
+- **WHEN** `PinDocument.ThumbnailURL`과 `PinDocument.MediaCandidates`의 모든 URL이 500 rune을 초과하는 경우
+- **THEN** 시스템은 모든 후보를 차단하여 classifier가 `no_primary_media` 판정을 내리도록 하고, ProcessDocument는 호출되지 않으며 URL은 skipped+harvested로 기록되어 harvest retry 비용이 누수되지 않는다
+
+#### Scenario: 500 rune 이하 media URL은 무손실 보존된다
+- **WHEN** ThumbnailURL과 MediaCandidates 후보가 모두 500 rune 이하일 때
+- **THEN** 시스템은 입력 URL을 변경 없이 그대로 picker에 전달하며 `pins.media_url`에 입력 그대로 저장한다
+
+#### Scenario: 멀티바이트 media URL은 rune 단위로 검사된다
+- **WHEN** media URL이 percent-encoded 한국어/일본어/이모지 등 멀티바이트 시퀀스를 포함하여 rune 수가 500을 초과하지만 바이트 수는 더 클 때
+- **THEN** 시스템은 rune 카운트 기준으로 차단 여부를 판정하며 바이트 카운트로 잘못 판정하지 않는다

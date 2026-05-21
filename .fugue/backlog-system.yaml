@@ -2415,7 +2415,7 @@ items:
     effort: 2
     risk: 1
     score: 6.0
-    status: pending
+    status: done
     note: |
       Discovery 모드 발굴 — 영역: 정합성(ERD/DB schema ↔ Go 코드). cycle 8
       (2026-05-19 PR #50 title VARCHAR(200) cap 사전 절단) 의 형태적 잔여 —
