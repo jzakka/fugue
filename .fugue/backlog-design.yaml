@@ -1657,7 +1657,9 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: done
+    pr: 158
+    note: "2026-05-21 PR #158 — apps/web/src/components/feed/FieldFilter.tsx L36 button 에 `aria-pressed={current === mt.value}` 1 prop 추가(diff +1 -0, 단일 button JSX 1개 변경 — map 안 4 button 모두 동일 적용). 홈 피드 미디어 타입 필터 4 button(전체/이미지/음악/영상) selected 상태가 ARIA 속성으로 노출 → SR 사용자가 'button, 전체, pressed' 같이 announce 받음. 기존: selected 상태가 `bg-text-primary text-bg` vs `bg-transparent border border-border text-text-muted` 색 반전으로만 표현 → SR 사용자가 'button, 전체' / 'button, 이미지' 만 듣고 현재 어느 필터가 활성인지 인지 불가. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) 정합. 코드베이스 내부 정합 근거: 코드베이스 전반 `aria-pressed`/`aria-selected`/`aria-checked` 사용 0건이었으므로 본 PR 이 첫 적용 사례. W3C ARIA Authoring Practices 의 toggle button 표준 패턴(`aria-pressed=\"true|false\"`) — radio/tab 아님(단일 button 토글 패턴). aria-pressed 라인업: FieldFilter L36 (in-codebase 1 라인업). 같은 사이클 발견된 TagFilter · PinsGrid 후보 처리 시 라인업 확장 예정. 시각 동작 0(button className · onClick(handleClick) · current 변수 분기 모두 미변경) · 마우스 사용자 회귀 0 · 인접 영역(MEDIA_TYPES 배열 · useRouter · useSearchParams · current 계산 · handleClick 본체 · L40 focus-visible utility 유지) 모두 미수정. 홈 / 페이지의 FeedContainer · TagFilter · MasonryGrid 무영향. light mode 동일(색 토큰 미변경). decision-log 2026-05-21 PR #157(Discovery 3 aria-pressed candidates) follow-up — Discovery cycle 49 가 식별한 3개 후보 중 1번째(score 16.0 동점 중 첫 등록) 항목 완료. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 prop 1개 추가. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — 단일 prop 추가 변경 단위라 코드 검증(grep `aria-pressed={current === mt.value}` FieldFilter L36 매칭 + 인접 utility/JSX/handleClick 미변경 확인)으로 대체."
 
   - id: "design-20260521-a11y-tagfilter-toggle-aria-pressed-missing"
     title: "TagFilter 홈 피드 PopularTag 토글 button 들의 다중 선택 상태가 `aria-pressed` 부재 — SR 사용자에게 현재 선택된 태그들 미알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A)"
