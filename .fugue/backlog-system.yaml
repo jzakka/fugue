@@ -1750,3 +1750,142 @@ items:
         (T2b) miniredis Close()로 SREM 단독 실패도 단위 테스트로 커버.
         회귀: /api/auth/refresh → 204 + 새 Set-Cookie + auth_token_refresh 로그.
         /api/auth/providers → 200 ["google"]. 단위 테스트 525/525 pass.
+
+  - id: system-20260521-auth-rotate-refresh-grace-mark-and-index-srem-silent-swallow
+    title: "auth.RotateRefreshToken 의 grace mark Set / index SRem 두 호출이 silent-swallow 되어 회전 후 cleanup 실패가 invisible — 동시성 race 시 토큰 sprawl 가능"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:196-263"
+        - "apps/api/internal/auth/service.go:257"
+        - "apps/api/internal/auth/service.go:261"
+        - ".fugue/decision-log.md (2026-05-21 cycle C 본문 follow-up: 'RotateRefreshToken grace mark Set (service.go:256)는 별도 backlog 후보로 분리')"
+        - "openspec/specs/auth/spec.md (로깅/observability 무명시 — in-codebase consistency 기준)"
+      cite: |
+        (a) 현재 코드 (service.go:252-262):
+              // Mark old token as rotated with grace period
+              rotatedData, _ := json.Marshal(map[string]string{
+                  "creator_id": creatorID.String(),
+                  "status":     "rotated",
+              })
+              s.rdb.Set(ctx, key, rotatedData, rtGrace)     // L257: silent swallow
+
+              // Remove old JTI from index
+              idxKey := rtIdxPrefix + creatorID.String()
+              s.rdb.SRem(ctx, idxKey, jti)                  // L261: silent swallow
+        두 호출 모두 `*redis.StatusCmd` / `*redis.IntCmd` 를 반환하지만 `.Err()` 검사 없이 폐기.
+        (b) 동작 의도: rotate 직후 old `rt:{JTI}` 키를 status=rotated + 10s grace TTL 로 덮어써,
+        같은 윈도우 안의 동시 RotateRefreshToken 호출 (race 또는 client 재시도) 이 status=="rotated"
+        분기 (L232-236) 를 거쳐 grace 통과하도록 만든다.
+        (c) L257 Set 실패 시 결과:
+            - old `rt:{JTI}` 는 status=active 그대로 + 7d TTL 유지.
+            - 다음에 같은 RT 로 RotateRefreshToken 호출되면 L237 status != "active" 분기를 빠져나가
+              L242 IssueTokenPair 로 또 새 RT 발급 → 같은 old RT 로 무한 회전 가능 (token sprawl).
+            - 정상 client 는 이미 새 RT 를 받았으므로 자기 자신은 영향 없음. 그러나 (1) 동시 race,
+              (2) 탈취된 RT 가 grace 안에서 reuse 되는 정상 시나리오가 grace 보호 없이 무한 회전으로
+              변질 → grace 가 의미하는 "concurrent legitimate retry" semantic 깨짐.
+            - 운영자 timestamped 단서 0건.
+        (d) L261 SRem 실패 시 결과:
+            - old jti 가 `rt_index:{sub}` 에 잔존.
+            - RevokeAllTokens (compromise detection, 현재 caller 없음) wiring 시 stale jti 에 대한
+              Del 시도가 발생하지만 동작에 무해. 그러나 `rt_index` 가 정확한 active jti 집합이라는
+              invariant 깨짐.
+        (e) 인접 RevokeRefreshToken (L281-289) 은 cycle C 에서 정확히 같은 패턴으로 `.Err()` capture +
+        `log.Printf` 추가됨. RotateRefreshToken 의 grace mark + index SRem 도 같은 in-codebase
+        consistency 패턴 적용 대상.
+      repro: |
+        1. docker-compose up -d && go run cmd/server/main.go.
+        2. OAuth 로그인 → /api/auth/refresh 호출 → 정상 회전 → `redis-cli get "rt:{old JTI}"` 결과
+           status=rotated, TTL ≈ 10s 확인 (정상 동작).
+        3. fail injection (예: Lua DEBUG SLEEP 으로 Get 만 통과시키고 Set 단계에서 ctx deadline 또는
+           Redis 일시적 reject 유발) → /api/auth/refresh 호출 → 새 토큰 발급 200/204 + 클라이언트는
+           정상이라 인식 + `redis-cli get "rt:{old JTI}"` → status=active 그대로 (TTL 7d) 잔존.
+        4. 같은 old RT 로 다시 /api/auth/refresh 호출 → 또 새 RT 발급 → 동일 old RT 로 무한 회전
+           반복 가능. 운영 로그 0건.
+      qa_plan: |
+        실 환경 QA(처리 모드 step 7 에서 수행):
+        T1 happy: docker-compose Redis 정상 → /api/auth/refresh 호출 → 204 + 새 Set-Cookie +
+          `redis-cli get "rt:{old JTI}"` status=rotated + TTL ≤ 10s + 신규 로그 무출력.
+        T2 grace mark Set 실패: docker compose pause Redis 를 GET 통과시점과 Set 시점 사이로
+          유발하기 어려우므로 단위 테스트로 대체 (miniredis 의 SetError() 또는 Set 명령 disable).
+          단위 테스트로 Set 실패 강제 → `auth.RotateRefreshToken: grace mark Set error: <err> (jti=<old> sub=<sub>)`
+          로그 출력 + 함수 시그니처 / 리턴값 무변경(새 pair 정상 반환).
+        T2b SRem 실패: 같은 단위 테스트 패턴으로 SRem 실패 강제 →
+          `auth.RotateRefreshToken: index SRem error: <err> (jti=<old> sub=<sub>)` 로그 출력.
+        T3 실 환경 race-condition 시뮬레이션: 동일 RT 로 동시 2개 /api/auth/refresh → 하나는
+          status=rotated 분기, 다른 하나는 status=active 분기 → grace 보호 동작 + 로그 정상 출력
+          확인.
+        회귀 가드: /api/auth/logout (cycle C 변경 무영향) / /api/auth/me / OAuth callback 정상 200/302.
+        단위 테스트 525+/525+ pass.
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+
+  - id: system-20260521-auth-ratelimit-redis-fail-open-silent-no-log
+    title: "auth.RateLimiter Redis 명령 실패 시 fail-open 처리하지만 로그 0건 — Redis outage 동안 rate-limit bypass 윈도우를 운영자가 감지 불가"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/auth/ratelimit.go:80-99"
+        - "openspec/specs/ratelimit/spec.md:11,35-38"
+        - "docs/architecture.md (Rate Limit 섹션: 'OG fetch: 20/분/IP', '핀 생성: 30/분/유저')"
+      cite: |
+        (a) 현재 코드 (ratelimit.go:80-99):
+              func (rl *RateLimiter) middleware(next http.Handler, bucketKey func(*http.Request) string) http.Handler {
+                  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                      key := fmt.Sprintf("%s%s:%s", rlPrefix, r.URL.Path, bucketKey(r))
+
+                      ctx := r.Context()
+                      count, err := rateLimitScript.Run(ctx, rl.rdb, []string{key}, int(rl.window.Seconds())).Int64()
+                      if err != nil {
+                          // Redis down: fail-open
+                          next.ServeHTTP(w, r)
+                          return
+                      }
+                      ...
+                  })
+              }
+            파일 전체 `log.` 0 매칭 (grep 확인). Redis 다운 동안 OG fetch (20/분/IP) · 핀 생성 (30/분/유저)
+            보호 라우트가 무제한 통과되지만 운영자에게 timestamped 단서 0건.
+        (b) Spec (ratelimit/spec.md L11): "Redis 명령 실패 시 미들웨어는 fail-open으로 처리하여 요청을
+            throttle해서는 안 된다(SHALL NOT)." Scenario "Redis 명령 실패 시 fail-open" (L35-38) 도 같은
+            fail-open 동작을 명시. 단, spec 어디에도 observability/logging 요구사항 없음.
+        (c) 따라서 본 항목은 spec 위반이 아니라 in-codebase consistency 갭 — 인접한 silent-failure
+            패턴 (pin.Create rollback DeletePin · auth.RevokeRefreshToken Del/SRem) 이 모두 timestamped
+            `log.Printf` 로 운영자 가시화된 후의 마지막 ratelimit 비대칭. confidence 4 (spec 직접 위반 아닌
+            in-codebase 일관성 결함).
+        (d) 운영 충격: Redis pause / OOM / MISCONF / 네트워크 단절 시 보호 라우트 전체가 무제한 통과
+            → 봇 / 어뷰저가 outage 동안 한 IP 에서 OG fetch 무한 호출 가능, 한 유저가 핀 무한 생성 가능.
+            운영자는 outage 종료 후 traffic 메트릭 차이로만 사후 추정 가능.
+      repro: |
+        1. docker-compose up -d && go run cmd/server/main.go.
+        2. /api/og/fetch 또는 /api/pins POST 라우트 정상 → limit 초과 횟수만큼 호출 →
+           429 enforce + Retry-After 헤더 확인 (정상 동작).
+        3. docker compose pause redis.
+        4. 같은 라우트에 limit 초과 횟수만큼 호출 → 모두 200/201 통과 (rate limiter 무력화)
+           + 서버 로그 무출력.
+        5. 운영자는 outage 동안 throttle 우회 사실 자체를 인지 불가. fix 적용 시 매 호출마다
+           "auth.RateLimiter: Redis error, failing open: <err> (key=<key>)" 또는 그 형태의
+           timestamped 로그가 출력되어 outage scope 와 영향 받은 (route, key) 즉시 식별 가능.
+      qa_plan: |
+        실 환경 QA(처리 모드 step 7 에서 수행):
+        T1 happy: docker-compose Redis 정상 → /api/og/fetch 또는 /api/pins 보호 라우트에 limit+2 회
+          호출 → limit 회 통과 + 2 회 429 + Retry-After 헤더 + 신규 로그 무출력.
+        T2 Redis paused: docker compose pause redis → 같은 라우트 limit+2 회 호출 → 모두 200/201 통과
+          + 매 호출마다 "auth.RateLimiter: Redis error, failing open: <err> (key=rl:<path>:<bucket>)"
+          로그 출력 + docker compose unpause → enforce 정상 복귀 (429 다시 발생).
+        T2b 단위 테스트: miniredis Close() + httptest.Recorder 로 fail-open 분기 진입 →
+          로그 capture (log.SetOutput) 로 출력 검증 + next handler 호출 검증 + 응답 코드 미변경.
+        회귀: 다른 ratelimit 분기 (정상 enforce 경로) 무변경 — 같은 단위 테스트에서 limit 초과 시
+          429 정상 반환 확인. 인접 라우트 (인증 미들웨어, JWT 발급) 회귀 없음.
+        단위 테스트 525+/525+ pass.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+
