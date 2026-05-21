@@ -1493,3 +1493,88 @@ items:
     status: done
     pr: 131
     note: "2026-05-21 PR #131 — PinsGrid.tsx:107 non-selected variant className 의 `hover:text-text-primary hover:border-accent` 뒤에 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 분기 안 utility 추가). MEDIA_TYPES.map 4 button(전체/이미지/음악/영상) non-selected variant 가 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary + border-accent 미러링. 마이페이지(/mypage) 사용자 핀 콜렉션 미디어 타입 필터 — 인증 사용자 핵심 진입점. selected variant L106 `bg-accent text-white` 는 hover 도 없어 보수 결정으로 미변경. in-codebase focus-visible 18 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins · BoardActions · FieldFilter · TagFilter) → 19 파일로 확장. BoardActions L118 편집 button(PR #124) · ProfileHeader L39(PR #100) 와 동일 패턴(text-text-muted + hover:text-text-primary + hover:border-accent). JSX 구조 · onClick(handleTypeChange) · MEDIA_TYPES 배열 · activeType 분기 · useState · fetchUserPins · loading/CardSkeleton 분기 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #129(TagFilter) · PR #127(FieldFilter) · PR #124(BoardActions) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 2 utility 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-pin-create-form-submit-cancel-focus-visible-missing"
+    title: "PinCreateForm 의 핀 등록 form 액션 2 button(L619 취소 · L627 등록하기) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 인증 사용자 핀 생성 핵심 액션의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:619-625"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:627-633"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PinCreateForm.tsx 2 className 에 `focus-visible:` 0건: (a) L623 취소 button `px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50` — `focus-visible:text-text-primary` 누락. (b) L630 등록하기 submit button `px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer` — `focus-visible:bg-accent-hover` 누락. /pin/new 핀 생성 form 의 핵심 제출 액션으로 인증 사용자 빈도 최고. in-codebase focus-visible 19 파일 라인업 표준 패턴(NavBar L32 핀 생성 Link · BoardActions L93 저장 · AddToBoardButton L365 생성 모두 `hover:bg-accent-hover focus-visible:bg-accent-hover`)과 비대칭. decision-log 2026-05-21 PR #131(PinsGrid) · PR #129(TagFilter) · PR #127(FieldFilter) · PR #124(BoardActions) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 2 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 인증 사용자로 /pin/new 진입 → form 렌더 확인. 3) 등록하기 submit button 마우스 hover → bg-accent-hover 적용 확인. Tab 으로 button 에 포커스 → bg-accent 유지(hover 시각 미적용) + native outline 만. 4) 취소 button 마우스 hover → text-text-primary 적용 확인. Tab 포커스 → text-text-muted 유지. 5) 처리: L623 className `hover:text-text-primary` 뒤에 ` focus-visible:text-text-primary` 1 utility + L630 className `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` 1 utility 삽입(diff +2 -2, 단일 파일 2 className 변경). JSX 구조 · onClick(router.back) · type=submit · disabled(isDisabled) · submitting/optimizing 분기 · 자식 텍스트 분기 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pin/new 진입 → 등록하기/취소 button 렌더 확인. Tab 으로 등록하기에 포커스 → bg-accent-hover 적용 확인. Enter/Space 로 form submit → 핀 생성 동작 정상. 3) Tab 으로 취소에 포커스 → text-text-primary 적용 확인. Enter 로 router.back 동작 확인. 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 5) disabled(isDisabled=true) 상태 시각 미변경 확인. 6) submitting/optimizing 상태 자식 텍스트 변경 미영향. 7) light mode 동일 확인."
+    impact: 5
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 25.0
+    status: pending
+
+  - id: "design-20260521-a11y-profile-edit-form-actions-focus-visible-missing"
+    title: "ProfileEditForm 의 form 액션 2 button(L106 취소 · L114 저장) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 마이페이지 프로필 편집 form 의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:106-113"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:114-120"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' ProfileEditForm.tsx 2 className 에 `focus-visible:` 0건: (a) L110 취소 button `px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50` — `focus-visible:text-text-primary` 누락. (b) L117 저장 submit button `px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer` — `focus-visible:bg-accent-hover` 누락. /mypage 프로필 편집 form(MyPageClient L167-175 editing 분기) 의 form 액션으로 키보드 form 사용자 빈도 높음. in-codebase focus-visible 19 파일 라인업 표준 패턴(BoardActions L93 저장 · NavBar L32 핀 생성 · AddToBoardButton L365 생성 모두 `hover:bg-accent-hover focus-visible:bg-accent-hover`)과 비대칭. decision-log 2026-05-21 PR #131(PinsGrid) · PR #124(BoardActions) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 2 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 인증 사용자 /mypage → ProfileHeader 편집 button(PR #100) 클릭 → ProfileEditForm 렌더 확인. 3) 저장 submit button 마우스 hover → bg-accent-hover 적용 확인. Tab 으로 button 에 포커스 → bg-accent 유지 + native outline 만. 4) 취소 button 마우스 hover → text-text-primary 적용 확인. Tab 포커스 → text-text-muted 유지. 5) 처리: L110 className `hover:text-text-primary` 뒤에 ` focus-visible:text-text-primary` 1 utility + L117 className `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` 1 utility 삽입(diff +2 -2, 단일 파일 2 className 변경). JSX 구조 · onClick(onCancel) · type=submit/button · disabled(saving) · 자식 텍스트 분기(저장 중.../저장) 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 진입 → 편집 모드 진입 → ProfileEditForm 렌더 확인. Tab 으로 저장에 포커스 → bg-accent-hover 적용 확인. Enter/Space 로 form submit → 프로필 업데이트 동작 정상. 3) Tab 으로 취소에 포커스 → text-text-primary 적용 확인. Enter 로 onCancel → editing=false 복귀. 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 5) disabled(saving=true) 상태 시각 미변경 확인. 6) light mode 동일 확인."
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+
+  - id: "design-20260521-a11y-my-page-board-section-focus-visible-missing"
+    title: "MyPageClient BoardSection 의 보드 생성 3 button(L70 새 보드 토글 · L105 생성 · L112 취소) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 마이페이지 보드 생성 흐름의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/MyPageClient.tsx:70-75"
+        - "apps/web/src/components/profile/MyPageClient.tsx:105-111"
+        - "apps/web/src/components/profile/MyPageClient.tsx:112-121"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' MyPageClient.tsx 3 className 에 `focus-visible:` 0건: (a) L72 '+ 새 보드' 토글 button `px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors cursor-pointer` — `focus-visible:bg-accent-hover` 누락. (b) L108 '생성' button `px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer` — `focus-visible:bg-accent-hover` 누락. (c) L118 '취소' button `px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer` — `focus-visible:text-text-primary` 누락. /mypage BoardSection(MyPageClient L184) 의 보드 생성 흐름으로 키보드 사용자 빈도 높음. in-codebase focus-visible 19 파일 라인업 표준 패턴(NavBar L32 핀 생성 · BoardActions L93 저장 · AddToBoardButton L365 생성 모두 `hover:bg-accent-hover focus-visible:bg-accent-hover`)과 비대칭. decision-log 2026-05-21 PR #131(PinsGrid) · PR #124(BoardActions) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 3 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 인증 사용자 /mypage → BoardSection 렌더 확인. Tab 으로 '+ 새 보드' button 에 포커스 → bg-accent 유지(hover 시각 미적용) + native outline 만. 3) showCreate=true 진입 → 생성/취소 button 렌더. Tab 으로 생성에 포커스 → bg-accent 유지. Tab 으로 취소에 포커스 → text-text-muted 유지. 4) 처리: L72/L108 className `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` + L118 `hover:text-text-primary` 뒤에 ` focus-visible:text-text-primary` 각 1 utility 삽입(diff +3 -3, 단일 파일 3 className 변경). JSX 구조 · onClick · disabled(creating) · showCreate 분기 · loadBoards · handleCreate · setNewBoardName · setError 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 진입 → BoardSection 렌더 확인. Tab 으로 '+ 새 보드' 에 포커스 → bg-accent-hover 적용 확인. Enter/Space 로 setShowCreate 토글. 3) 생성 폼 진입 → Tab 으로 생성에 포커스 → bg-accent-hover 적용 확인. Enter 로 handleCreate → 보드 생성. 4) Tab 으로 취소에 포커스 → text-text-primary 적용 확인. Enter 로 showCreate=false 복귀. 5) 마우스 hover 효과 동일 확인. 6) disabled(creating=true) 시각 미변경. 7) light mode 동일 확인."
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+
+  - id: "design-20260521-a11y-pin-detail-original-link-focus-visible-missing"
+    title: "PinDetail 페이지(/pins/[id]) 의 '원본 보기' 외부 anchor(L218-239) 가 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 핀 상세 외부 작품 이동 컨트롤의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pins/[id]/page.tsx:218-239"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' /pins/[id]/page.tsx:222 외부 작품 anchor `inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(bg-accent-hover) 미러링 0 → native browser outline 만. pin.url 존재 시 렌더되는 핀 상세의 핵심 외부 이동 anchor(target=_blank)로 모든 사용자 액션. in-codebase focus-visible 19 파일 라인업 표준 패턴(NavBar L32 핀 생성 · BoardActions L93 저장 · AddToBoardButton L365 생성 모두 `hover:bg-accent-hover focus-visible:bg-accent-hover`)과 비대칭. decision-log 2026-05-21 PR #109(AddToBoardButton trigger '보드에 추가') follow-up — 같은 핀 상세 페이지의 다른 액션은 이미 미러링. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 className 1 utility 추가 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) pin.url 이 있는 핀 상세 페이지(/pins/[id]) 진입 → '원본 보기' anchor 렌더 확인. 3) 마우스 hover → bg-accent-hover 적용 확인. 4) Tab 으로 anchor 에 포커스 → bg-accent 유지(hover 시각 미적용) + native outline 만. 5) 처리: L222 className `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` 1 utility 삽입(diff +1 -1, 단일 className 1 utility 추가). href · target=_blank · rel=noopener noreferrer · svg 아이콘 · 자식 텍스트 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) pin.url 이 있는 핀 상세 페이지 진입 → '원본 보기' anchor 렌더 확인. Tab 으로 anchor 에 포커스 → bg-accent-hover 적용 확인. Enter 로 새 탭에서 pin.url 오픈. 3) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 4) pin.url 미존재 시 anchor 미렌더 확인(분기 무영향). 5) 인접 회귀: AddToBoardButton trigger · 핀 메타 영역 무변경. 6) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
+  - id: "design-20260521-a11y-video-trim-modal-actions-focus-visible-missing"
+    title: "VideoTrimModal 의 액션 2 button(L272 취소 · L279 선택 완료) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 비디오 트림 모달 액션의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:272-278"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:279-286"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' VideoTrimModal.tsx 2 className 에 `focus-visible:` 0건: (a) L275 취소 button `px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer` — `focus-visible:text-text-primary` 누락. (b) L283 선택 완료 button `px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer` — `focus-visible:bg-accent-hover` 누락. PinCreateForm 비디오 업로드 후 노출되는 트림 모달의 핵심 액션 2건. in-codebase focus-visible 19 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #131(PinsGrid) · PR #124(BoardActions) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 2 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) /pin/new 에서 비디오 업로드 → VideoTrimModal 진입 → 취소/선택 완료 button 렌더 확인. 3) 마우스 hover → 각 hover 적용 확인. Tab 포커스 → hover 시각 미적용 + native outline 만. 4) 처리: L275 className `hover:text-text-primary` 뒤에 ` focus-visible:text-text-primary` + L283 `hover:bg-accent-hover` 뒤에 ` focus-visible:bg-accent-hover` 각 1 utility 삽입(diff +2 -2, 단일 파일 2 className 변경). JSX 구조 · onClick(onCancel/onConfirm) · disabled(clip MIN/MAX 검증) · 자식 텍스트 · trim 슬라이더 영역 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pin/new 비디오 업로드 → VideoTrimModal 진입. Tab 으로 선택 완료에 포커스 → bg-accent-hover 적용 확인. 3) Tab 으로 취소에 포커스 → text-text-primary 적용 확인. 4) 마우스 hover 효과 동일 확인. 5) disabled(clip 범위 위반) 시각 미변경 확인. 6) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
