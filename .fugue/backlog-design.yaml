@@ -1566,7 +1566,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 141
+    note: "2026-05-21 PR #141 — apps/web/src/app/pins/[id]/page.tsx:222 외부 작품 anchor className 의 `hover:bg-accent-hover` 뒤에 `focus-visible:bg-accent-hover` 1 utility 삽입(diff +1 -1, 단일 className 1 utility 추가). 핀 상세 페이지(/pins/[id]) 의 '원본 보기' anchor — pin.url 존재 시 렌더되는 외부 작품 이동 컨트롤(target=_blank, rel=noopener noreferrer). 키보드 Tab 포커스 도달 시 hover 와 동일한 bg-accent-hover 미러링. in-codebase focus-visible 22 파일 라인업 → 23 파일로 확장. NavBar L32 핀 생성 Link · BoardActions L93 저장 · AddToBoardButton L365 생성 · PinCreateForm L630 등록하기 · ProfileEditForm L117 저장 · MyPageClient L72+L108 '+ 새 보드'/'생성' 과 동일 패턴(`bg-accent text-white hover:bg-accent-hover focus-visible:bg-accent-hover`). href · target=_blank · rel=noopener noreferrer · svg 아이콘 · 자식 텍스트(원본 보기) 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. 같은 페이지의 AddToBoardButton trigger(PR #109) 는 이미 focus-visible 적용 — 이번 PR 로 핀 상세 페이지의 핵심 액션 전부가 focus-visible 라인업에 정렬. decision-log 2026-05-21 PR #139(MyPageClient BoardSection) · PR #137(ProfileEditForm) · PR #135(PinCreateForm) · PR #134(Discovery) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 1 utility 변경 단위라 코드 검증(grep `focus-visible:bg-accent-hover` page.tsx L222 매칭 1건 + 인접 utility/anchor 속성/svg/자식 텍스트 미변경 확인)으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-video-trim-modal-actions-focus-visible-missing"
     title: "VideoTrimModal 의 액션 2 button(L272 취소 · L279 선택 완료) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 비디오 트림 모달 액션의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
