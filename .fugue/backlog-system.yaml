@@ -1667,11 +1667,16 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
     note: |
-      후보 등록만. 처리 사이클은 별도 cycle에서 수행. 변경 범위는 L349 한 줄을
-      `if rowsAffected, err := h.q.DeletePin(...); err != nil { log.Printf(...) }
-      else if rowsAffected == 0 { log.Printf(...) }` 형태로 확장(약 4~6 줄)
-      + Querier 인터페이스 wrapper 기반 단위 테스트. orphan S3 객체 정리 정책은
-      decision-log 2026-05-19 cycle 8 entry가 명시적으로 별도 backlog로 분리한
-      상위 정책 결정이므로 본 후보는 DB orphan 로깅까지만 다룬다.
+      apps/api/internal/pin/handler.go:344-358 rollback 분기를
+      `if rowsAffected, delErr := h.q.DeletePin(...); delErr != nil { log.Printf("...error...") }
+      else if rowsAffected == 0 { log.Printf("...matched 0 rows...") }` 형태로 확장(7 LoC).
+      실 환경 QA(처리 모드 step 7): pin_tags BEFORE INSERT RAISE EXCEPTION trigger로
+      LinkPinTag 강제 실패시킨 뒤 (T1) pins BEFORE DELETE 없음 → DeletePin OK →
+      신규 로그 무출력 + orphan 0건, (T2) pins BEFORE DELETE RAISE EXCEPTION →
+      `rollback DeletePin error` 로그 1건 + orphan 1건, (T2b) pins BEFORE DELETE RETURN
+      NULL(swallow) → `rollback DeletePin matched 0 rows` 로그 1건 + orphan 1건,
+      (T3) trigger 전면 제거 정상 경로 → 201 Created + 로그 무출력 + pin/pin_tags 정상
+      생성. 인접 GET /api/pins/{id} 회귀 200. 단위 테스트 522/522 pass. PR (#TBD)
+      squash merge.
