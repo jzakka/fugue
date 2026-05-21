@@ -1214,3 +1214,19 @@ items:
     status: done
     pr: TBD
     note: "2026-05-21 PR #TBD — PinCard.tsx:72 AudioSection 의 `<div className=\"text-xs text-text-muted\">{pin.creator.nickname}</div>` 끝에 ` truncate` 1 utility 추가(diff +1 -1, 단일 className). 같은 부모 L70 `flex-1 min-w-0` 컨테이너 안에서 sibling L71 title(truncate 기존) 과 패턴 정렬 — text-overflow:ellipsis + overflow:hidden + whitespace:nowrap. 같은 컴포넌트 non-audio info section L184 `<span className=\"text-xs text-text-muted truncate\">{pin.creator.nickname}</span>` 와 카드 타입 간 비대칭 해소. In-codebase nickname/유사 텍스트 truncate 5건(SearchBar.tsx:290·:324·:365 / BoardGrid.tsx:26 / PinCard.tsx:184) 패턴과 정렬. nickname 50 char cap(VARCHAR(50)) × text-xs 12px 폭이 좁은 mobile masonry column(~252px effective) 에서 줄 바꿈/가로 overflow 가능했던 갭 해소. AudioWaveform · ▶ icon · title · 부모 컨테이너 className 모두 미수정 → 시각 회귀 0. 짧은 nickname 은 자연 표시(truncate 의 `text-overflow:ellipsis` 는 컨테이너 폭 초과 시에만 발동). Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 변경 단위라 코드 검증(grep `text-text-muted truncate` 매칭 PinCard L72·L184 2건, sibling L71 truncate · 부모 L70 flex-1 min-w-0 무변경 확인)으로 대체."
+
+  - id: "design-20260521-aesthetic-searchbar-dropdown-shadow-2xl-outlier"
+    title: "SearchBar 드롭다운 패널이 elevated rounded-[16px] 표면 7곳 중 유일하게 Tailwind 기본 shadow-2xl 을 사용 — DESIGN.md L11 'Decoration level: Minimal' 위반"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:181"
+      cite: "DESIGN.md L11 — 'Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다.' L12 — 'UI는 보이지 않는 만큼 심플하게.' L44 — 'Surface elevated: #1E1E1E / #FAFAFA — 드롭다운, 모달.' DESIGN.md 는 elevated 표면 분리 수단으로 surface-elevated 토큰 자체를 지정하고 별도 shadow 토큰은 `--shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.3)` (L60) 한 가지만 정의(card hover 용 — L86, L92 인용). In-codebase rounded-[16px] elevated surface 7건 audit — `/pins/[id]/page.tsx:123` article · `/boards/[id]/page.tsx:53` panel · `/login/page.tsx:35` main · `VideoTrimModal.tsx:183` modal · `AddToBoardButton.tsx:239` modal · `ProfileSkeleton.tsx:5` panel · `ProfileEditForm.tsx:50` panel · `ProfileHeader.tsx:13` panel 모두 `bg-surface-elevated/surface + border border-border + rounded-[16px]` 만으로 elevation 표현, shadow 0건. SearchBar.tsx:181 만 유일하게 Tailwind 기본 `shadow-2xl` (= 0 25px 50px -12px rgb(0 0 0 / 0.25)) 사용 → 패턴 outlier."
+      repro: "1) cd apps/web && npm run dev. 2) `/` 접속 → NavBar 검색창 클릭/포커스 → 드롭다운 열림. 3) 드롭다운 패널이 다른 elevated surface 7곳(modal · /pins/[id] · /boards/[id] · /login · profile panels) 과 비교해 두꺼운 drop shadow 로 'Material UI' 스타일 시각적 무게. DESIGN.md L11 '타이포그래피와 여백이 모든 걸 한다' 와 정렬 안 됨. 4) 처리: L181 className 끝부분 `shadow-2xl` 1 utility 제거(diff +1 -1, 다른 utility 모두 유지). `bg-surface-elevated`(#1E1E1E vs page bg #0C0C0C 명확 contrast) + `border border-border`(#2A2A2A 컨투어) + `z-[60]` (z-index stacking) + 검색 input 의 `mt-2` 공백 으로 분리는 보존됨. 5) 다른 elevated surface 와 일관성 회복."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 검색창 클릭 → 드롭다운 열기 → 패널 가장자리에 dark drop shadow 없음 확인. bg-surface-elevated 색 (#1E1E1E) 과 page bg (#0C0C0C) 의 명도 차이로 분리 시각 보존 확인. 3) 다양한 페이지 컨텍스트(/ 피드 위에 · /pins/[id] 위에 · /search 위에) 에서 드롭다운 표시 시 식별 가능성 확인. 4) light mode 토글 후 동일 검증 — bg-surface-elevated #FAFAFA vs page bg #F5F5F0 contrast 낮음, border-border #E0E0E0 가 주 분리 신호. 5) DevTools Computed → box-shadow: none 확인. 6) 인접 회귀: 같은 파일의 다른 패턴(L189 hover:bg-surface-hover · L266/313/341 result item rounded-[10px]) 무변경 확인. 7) modal 2건(VideoTrimModal · AddToBoardButton) 도 shadow 없는 상태로 정상 표시 확인."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
