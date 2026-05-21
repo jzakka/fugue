@@ -2447,3 +2447,98 @@ items:
             500).
         (e) 실 환경 QA 는 위 qa_plan 7단계 수행.
 
+  - id: system-20260521-feed-get-feed-redis-get-silent-swallow
+    title: "feed.GetFeed 의 Redis GET 실패(redis.Nil 외) silent fallthrough — cycle K(PR #101) 가 같은 함수의 cache SET 실패만 가시화하고 GET 실패는 누락. Redis degradation(OOM/MISCONF/network/replica failover) 시 personalized 5쿼리 부하가 DB 로 매 요청 전가되지만 운영자 timestamped 단서 0건"
+    area: error_handling
+    evidence:
+      files:
+        - "apps/api/internal/feed/handler.go:78-85"      # cached, err := h.rdb.Get(...).Bytes(); if err == nil { return cached } — err != redis.Nil 도 무로그 fallthrough
+        - "apps/api/internal/feed/handler.go:114-128"    # cycle K 가 가시화한 cache SET 실패 분기. 같은 함수의 inverse 누락
+        - "apps/api/internal/auth/service.go:226-237"    # auth 패키지의 Get 처리 모범 — redis.Nil 명시 구분 + 기타 err 는 fmt.Errorf wrap
+        - ".fugue/decision-log.md:542-546"               # cycle K(PR #101) feed.GetFeed cache SET silent-swallow 가시화 결정 로그
+        - ".fugue/decision-log.md:518-559"               # 동일 시리즈(cycle C/F/G/I/K/L/M auth+feed+pin silent-swallow → additive-logging) 의 정착된 패턴
+      quote: |
+        L78: `cached, err := h.rdb.Get(r.Context(), cacheKey).Bytes()`
+        L79: `if err == nil { write cached body; return }`
+        L82-85: ... // err != nil 분기 진입 — redis.Nil(정상 cache miss)과
+                    // degradation(OOM/MISCONF/network)을 구분 없이 모두
+                    // 무로그 compute path 로 fallthrough.
+        cycle K(PR #101, L126-128) 의 SET 실패는 이미 timestamped log 로
+        가시화됨 — 동일 함수의 GET 실패만 silent 남아 있는 상태.
+      reasoning: |
+        cycle C/F/G/I/K/L/M 시리즈가 정착시킨 원리: silent fail → 운영자
+        가시성 0 + spec invariant/성능 invariant 누수. cycle K(PR #101)는
+        같은 함수(feed.GetFeed) 의 cache SET 실패를 가시화했지만 GET 실패는
+        제외 — 형태적 잔여. cycle K decision-log(L545) 가 명시한 영향(
+        "personalized 5쿼리 부하 DB 전가") 은 SET 실패와 GET 실패가 동일하게
+        트리거. GET 실패는 추가로 사용자에게 정상 응답(compute path 성공)이
+        돌아가므로 SET 실패보다도 감지가 어려움 — 운영자 단서가 0이라
+        Redis degradation 진단 불가.
+
+        auth/service.go:226-237 의 Get 처리가 모범 — `if err == redis.Nil`
+        명시 분기 후 기타 err 는 `fmt.Errorf("check refresh token: %w", err)`
+        로 wrap 하여 호출자(상위 핸들러 401 변환)가 가시화. feed handler 는
+        cache-aside 패턴이라 err 발생 시 fallthrough 가 의도된 동작이지만,
+        redis.Nil(정상 cache miss) 과 다른 error(degradation) 의 구분은
+        반드시 필요 — fallthrough 동작은 보존하고 로깅만 추가.
+    qa_plan: |
+      1. `docker-compose up -d` 로 postgres + redis 기동.
+      2. `cd apps/api && go run cmd/server/main.go` 로 API 기동.
+      3. 인증된 유저(qatest, sub 11111111-...) 가 본인 pin 10개 이상 가지고
+         있는 상태(personalized 분기 진입 조건) 로 세팅. 부족하면 핀 시드.
+      4. T1 happy(cache miss → SET → 재호출 cache hit):
+         (a) `redis-cli DEL "feed:11111111-1111-1111-1111-111111111111:20:0"`
+         (b) `curl -H 'Authorization: Bearer <token>' http://localhost:8080/api/feed?limit=20`
+             → 200 + personalized feed
+         (c) `redis-cli TTL "feed:11111111-1111-1111-1111-111111111111:20:0"` ≈ 290-300 (적재 확인)
+         (d) 같은 요청 재호출 → 200 + 동일 응답 + `feed.GetFeed: cache get error:` 로그 0건
+              ("happy 경로에 새 로그가 끼지 않아야 한다")
+      5. T2 fail(Redis degradation 강제):
+         (a) `docker pause peppy-juggling-token-redis-1` (cycle K 동일 기법)
+         (b) `curl -H 'Authorization: ...' http://localhost:8080/api/feed?limit=20`
+             → 200 (compute path fallthrough 정상 — 동작 보존)
+         (c) API 로그에 `feed.GetFeed: cache get error: <i/o timeout|context deadline exceeded> (key=feed:11111111-...:20:0)`
+             1줄 (cycle K SET 로그와 동일 형식)
+         (d) `docker unpause peppy-juggling-token-redis-1` → 정상 회복 + 신규 로그 0건
+      6. T3 redis.Nil 정상 cache miss(degradation 아님):
+         (a) `redis-cli DEL "feed:...:20:0"` 후 즉시 GET 호출
+         (b) 200 + 응답 + cache get error 로그 0건 (redis.Nil 은 silent 유지)
+      7. 회귀:
+         (a) `GET /api/feed?limit=20` 비인증 호출 → 200 (cache 분기 무관)
+         (b) `GET /api/feed?cursor=<base64>` 페이지네이션 → 200
+         (c) `GET /api/pins` (no auth) 401, `GET /api/boards` 200, `GET /api/auth/providers` 200
+      8. 단위 테스트:
+         (a) `TestGetFeed_NoLogOnRedisNilCacheMiss` (miniredis 정상 동작 + 키 미존재 → 로그 0건)
+         (b) `TestGetFeed_LogsOnCacheGetFailure` (miniredis Close 로 GET 실패 강제 → 로그 1줄, compute path 정상 응답)
+         (c) `go vet ./... && go build ./... && go test ./...` 542 → 544/544 pass
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: done
+    note: |
+      Discovery 모드 발굴 — 영역: 에러 처리(silent-swallow 가시화 시리즈).
+      cycle K(2026-05-21 PR #101 feed.GetFeed cache SET silent-swallow 가시화)
+      의 동일 함수 내 inverse 잔여. cycle K 가 SET 실패만 처리하고 GET 실패는
+      `if err == nil { ... }` 후 무로그 fallthrough — 같은 영향(personalized
+      5쿼리 부하 DB 전가) 이 GET 실패에서도 트리거되지만 운영자 가시성 0.
+
+      Processing 모드 진입 시 첫 단계 (잠정):
+        (a) `handler.go:78` 의 `cached, err := h.rdb.Get(...).Bytes()` 직후
+            `if err == nil { ... }` 분기를 통과한 경우(= err != nil) 에 한해
+            `if err != redis.Nil { log.Printf("feed.GetFeed: cache get error:
+            %v (key=%s)", err, cacheKey) }` 추가. fallthrough 동작 보존.
+        (b) 13줄 doc 주석 — cycle K SET 분기(L116-126) 의 주석 패턴 동일 +
+            "redis.Nil 은 정상 cache miss 라 silent 유지, 기타 err 는
+            degradation 단서" 명시 + auth/service.go:226-237 의 Get 처리
+            모범 인용.
+        (c) `handler_cache_log_test.go` 에 2개 sub-test 추가 — cycle K 의
+            TestGetFeed_NoLogOnSuccessfulCacheSet / TestGetFeed_LogsOnCacheSetFailure
+            패턴 미러: TestGetFeed_NoLogOnRedisNilCacheMiss (happy miss)
+            + TestGetFeed_LogsOnCacheGetFailure (miniredis Close 강제).
+        (d) 실 환경 QA 는 위 qa_plan 8단계 수행.
+
+      anti-pattern 매칭 없음 — silent-swallow 가시화 시리즈는 cycle C 이래
+      정착된 명시적 허용 패턴 (L20 inframatch 와 무관).
+
