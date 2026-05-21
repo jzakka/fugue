@@ -405,10 +405,15 @@ export default function SearchClient({
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
+                aria-busy={loadingMore}
                 className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer disabled:opacity-50"
               >
                 {loadingMore ? (
-                  <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
+                  <div
+                    role="status"
+                    aria-label="검색 결과 추가 로딩 중"
+                    className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto"
+                  />
                 ) : (
                   "더보기"
                 )}
