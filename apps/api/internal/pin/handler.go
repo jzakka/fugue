@@ -166,7 +166,19 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "파일 처리에 실패했습니다")
 			return
 		}
-		_ = tmpFile.Close()
+		// spec: pin `구간 정보 없이 비디오 길이를 확인할 수 없는 경우` 도 거부 SHALL 을
+		// 명시한다 (openspec/specs/pin/spec.md L205-207). *os.File.Close() 는 io.Copy
+		// 성공 후에도 ENOSPC/EIO/NFS write-back error 등으로 실패할 수 있고, 그 경우
+		// buffered data 가 디스크에 flush 되지 않았음을 의미한다. 이어지는
+		// probeDuration(origTmpPath) 가 부분 파일을 ffprobe 로 측정하면 16s 실제 비디오가
+		// 12-14s 로 보고되어 "15초 초과 거부" SHALL 이 침묵 우회될 수 있으므로,
+		// L247-251 의 probeErr fail-closed 와 동일하게 Close 실패도 "결정적으로 길이를
+		// 확인할 수 없는 경우" 로 보고 400 으로 거부한다.
+		if err := tmpFile.Close(); err != nil {
+			log.Printf("pin.Create: tmpfile close error: %v (path=%s)", err, origTmpPath)
+			writeError(w, http.StatusBadRequest, "비디오 길이를 확인할 수 없습니다")
+			return
+		}
 
 		uploadPath := origTmpPath
 
