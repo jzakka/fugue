@@ -1303,4 +1303,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: in_progress
+    status: done
+    pr: 96
+    note: "2026-05-21 PR #96 (a24d094) — NavBar.tsx 단일 파일 2 className 변경(diff +2 -2): L32 핀 생성 Link className `hover:bg-accent-hover` 뒤에 `focus-visible:bg-accent-hover` + L64 로그인 Link className `hover:border-accent` 뒤에 `focus-visible:border-accent`. 키보드 Tab 포커스 도달 시 hover 와 동일한 bg-accent-hover #FF6B3D / border-accent #E85A2A 미러링 → in-codebase focus-visible 라인업 8 파일(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle) 표준 패턴 정합. JSX 구조 · href · aria-label · 인접 Link(Logo · 마이페이지) · ThemeToggle · LogoutButton · SearchBar · 다른 utility 모두 무변경 → 시각 회귀 0, 마우스 사용자 회귀 0. NavBar 는 sticky top-0 글로벌 nav 라 모든 페이지에서 보임. decision-log 2026-05-21 PR #91(ThemeToggle hover→focus-visible) follow-up. 머지 직전 BEHIND → git rebase origin/main + force push 후 재머지. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
