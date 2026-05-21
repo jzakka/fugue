@@ -69,7 +69,7 @@ function BoardSection({ creatorId }: { creatorId: string }) {
         </h2>
         <button
           onClick={() => setShowCreate((prev) => !prev)}
-          className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors cursor-pointer"
+          className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors cursor-pointer"
         >
           + 새 보드
         </button>
@@ -105,7 +105,7 @@ function BoardSection({ creatorId }: { creatorId: string }) {
             <button
               onClick={handleCreate}
               disabled={creating}
-              className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
             >
               {creating ? "생성 중..." : "생성"}
             </button>
@@ -115,7 +115,7 @@ function BoardSection({ creatorId }: { creatorId: string }) {
                 setNewBoardName("");
                 setError(null);
               }}
-              className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+              className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer"
             >
               취소
             </button>
