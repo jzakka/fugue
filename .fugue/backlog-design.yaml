@@ -1621,7 +1621,9 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 151
+    note: "2026-05-21 PR #151 — apps/web/src/app/boards/[id]/LoadMorePins.tsx L44 button 에 `aria-busy={loading}` 1 prop + L49-53 spinner div 에 `role=\"status\" aria-label=\"추가 핀 로딩 중\"` 2 prop 추가(diff +10 -1, 단일 button JSX 1개 변경 — 자식 분기를 단행 ternary 에서 다행 JSX 로 재작성하면서 spinner div 에 role/aria-label 부여). 보드 상세 '더보기' button 로딩 시 SR 사용자에게 (1) button busy state 노출 + (2) spinner div 가 implicit polite live region(role=status) 으로 '추가 핀 로딩 중' 알림 + (3) spinner aria-label 이 button 의 accessible name 으로 계산되어 'button [unnamed]' 갭 해소. 기존: loading=true 시 button 자식이 텍스트('더보기') → div spinner swap 되어 SR 'button [unnamed], disabled' 만 인지. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 정합. 코드베이스 내부 정합 근거: PR #147(SearchClient 더보기 button) 과 동일 패턴 — '더보기 + spinner status' 패턴이 검색/보드 양 컴포넌트로 일관 확장. role=status 라인업: SearchBar L253 'no results' · AddToBoardButton L270 feedback · SearchClient L412 spinner(PR #147) → LoadMorePins L50 spinner 추가(in-codebase 4 라인업). 시각 동작 0(spinner mx-auto · w-5 h-5 · border-2 · animate-spin 유지) · 마우스 사용자 회귀 0(button onClick(loadMore)/disabled(loading)/className focus-visible 포함 모두 미변경) · 인접 영역(L34-38 PinCard map · L20-32 loadMore async · setPins/setOffset/setHasMore state · fetchBoard call · hasMore 분기 · noscript 분기) 모두 미수정. decision-log 2026-05-21 PR #149(SearchClient archive) · PR #147(SearchClient fix) · PR #146(Discovery 3 spinner a11y candidates) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — aria 속성 추가만 변경 단위라 코드 검증(grep `aria-busy={loading}` L44 + `role=\"status\"` L50 + `aria-label=\"추가 핀 로딩 중\"` L51 매칭 + spinner className 미변경 확인)으로 대체."
 
   - id: "design-20260521-a11y-add-to-board-modal-loading-spinner-status-missing"
     title: "AddToBoardButton 모달 보드 목록 로딩 스피너(L284-287) 가 `role=\"status\"`/`aria-label` 부재 — 보드 선택 dialog 진입 시 스크린리더 사용자에게 로딩 상태 미알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA)"
