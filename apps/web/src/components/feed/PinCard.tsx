@@ -69,7 +69,7 @@ function AudioSection({ pin }: { pin: Pin }) {
           </span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold truncate">{pin.title}</div>
-            <div className="text-xs text-text-muted">{pin.creator.nickname}</div>
+            <div className="text-xs text-text-muted truncate">{pin.creator.nickname}</div>
           </div>
         </div>
       </div>

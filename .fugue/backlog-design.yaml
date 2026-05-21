@@ -1211,4 +1211,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: TBD
+    note: "2026-05-21 PR #TBD — PinCard.tsx:72 AudioSection 의 `<div className=\"text-xs text-text-muted\">{pin.creator.nickname}</div>` 끝에 ` truncate` 1 utility 추가(diff +1 -1, 단일 className). 같은 부모 L70 `flex-1 min-w-0` 컨테이너 안에서 sibling L71 title(truncate 기존) 과 패턴 정렬 — text-overflow:ellipsis + overflow:hidden + whitespace:nowrap. 같은 컴포넌트 non-audio info section L184 `<span className=\"text-xs text-text-muted truncate\">{pin.creator.nickname}</span>` 와 카드 타입 간 비대칭 해소. In-codebase nickname/유사 텍스트 truncate 5건(SearchBar.tsx:290·:324·:365 / BoardGrid.tsx:26 / PinCard.tsx:184) 패턴과 정렬. nickname 50 char cap(VARCHAR(50)) × text-xs 12px 폭이 좁은 mobile masonry column(~252px effective) 에서 줄 바꿈/가로 overflow 가능했던 갭 해소. AudioWaveform · ▶ icon · title · 부모 컨테이너 className 모두 미수정 → 시각 회귀 0. 짧은 nickname 은 자연 표시(truncate 의 `text-overflow:ellipsis` 는 컨테이너 폭 초과 시에만 발동). Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 변경 단위라 코드 검증(grep `text-text-muted truncate` 매칭 PinCard L72·L184 2건, sibling L71 truncate · 부모 L70 flex-1 min-w-0 무변경 확인)으로 대체."
