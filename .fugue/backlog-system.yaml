@@ -668,3 +668,857 @@ items:
     risk: 1
     score: 12.0
     status: done
+
+  - id: system-20260519-boards-handler-pin-count-images-error-swallow
+    title: "boards.Update와 boards.ListByCreator가 pin_count/cover_images DB 조회 에러를 무시해 잘못된 응답을 반환한다 (같은 파일 GetByID는 500 처리)"
+    area: errors
+    evidence:
+      files:
+        - "apps/api/internal/boards/handler.go:319-320"
+        - "apps/api/internal/boards/handler.go:398-399"
+        - "apps/api/internal/boards/handler.go:173-185"
+      cite: |
+        같은 핸들러 파일 안에서 동일한 두 쿼리(`CountBoardPins`, `ListBoardPinImages`)에 대한
+        에러 처리가 핸들러별로 불일치한다.
+
+        - `GetByID` (L173-185): 두 쿼리 모두 `if err != nil` 검사 + `log.Printf` +
+          `writeError(w, http.StatusInternalServerError, "보드 정보를 불러올 수 없습니다")`로
+          명시적 500 응답.
+        - `Update` (L319-320): `pinCount, _ := q.CountBoardPins(...)`, `images, _ := q.ListBoardPinImages(...)`로
+          에러 swallow. DB 일시 실패 시 `pin_count: 0` + `cover_images: null`이 200 응답에 그대로 들어감.
+        - `ListByCreator` (L398-399): 보드 목록 루프 안에서 같은 두 쿼리를 동일하게 swallow.
+          한 보드의 DB 일시 실패가 그 보드만 `pin_count: 0` + 빈 cover로 만들고 응답은 200.
+
+        `BoardResponse` 구조체(L25-35)는 `pin_count`와 `cover_images`를 응답 contract의
+        필수 필드로 노출하므로, 잘못된 값(0/null)이 사용자에게 표시되면 클라이언트가 그것을
+        진실로 취급한다. GetByID 처리가 일관성의 기준이며, Update/ListByCreator도 같은 기준으로
+        500을 반환하거나 최소한 에러를 로그로 남겨 운영 가시성을 확보해야 한다.
+      repro: |
+        1. 인증된 유저가 보드 B를 보유하고 있고 그 보드에 핀 5개가 연결되어 있다.
+        2. PUT /api/boards/{B.id}로 name만 수정한다.
+        3. 정상 경로: UpdateBoard 성공 후 CountBoardPins/ListBoardPinImages 호출.
+        4. 만약 DB가 일시 부하/네트워크 일시 단절로 CountBoardPins 호출이 timeout/error를 반환하면:
+           - 현재 동작: `pinCount` = 0(zero value), 응답 200 + `pin_count: 0` + `cover_images: null`.
+           - 기대 동작: GetByID와 동일하게 500 + "보드 정보를 불러올 수 없습니다".
+        5. ListByCreator도 동일 — 목록 안의 보드 한 건이 부분 실패하면 그 보드만 잘못된 값으로
+           표시된 채 200 응답.
+
+        고정형 수정안 후보(propose에서 결정):
+        - 옵션 A: Update의 두 쿼리에 GetByID와 동일한 에러 처리(log + 500) 적용. ListByCreator도
+          동일 처리(루프 안에서 한 건이라도 실패하면 500).
+        - 옵션 B: ListByCreator는 best-effort로 두고 에러를 log만 남기되 응답엔 0/null이 들어가지
+          않게 partial 응답 contract 정의(spec text 변경 필요).
+        spec 본문에 "DB 일시 실패 시 partial response 허용" 같은 carve-out이 없으므로 옵션 A가
+        최소 수정. log line만 추가하는 것은 가시성은 회복하지만 잘못된 응답이 그대로 나가므로
+        근본 해결이 아님.
+    qa_plan: |
+      실 환경 QA(처리 모드 §7):
+      1. `docker-compose up -d` (DB/Redis), `cd apps/api && go run cmd/server/main.go`.
+      2. 정상 케이스:
+         - 로그인 후 보드 B 생성 → 핀 1~2개를 보드에 추가.
+         - `curl -X PUT /api/boards/{B.id} -d '{"name":"new"}'` → 200 + `pin_count` 정확 + `cover_images` 정확.
+         - `curl /api/boards?creator_id={A.id}` → 200 + 각 보드의 `pin_count`/`cover_images` 정확.
+      3. 에러 케이스(DB 일시 실패 시뮬레이션):
+         - 옵션 1: `docker-compose stop postgres` 후 같은 요청 → 500 응답 + 로그에 DB error 라인.
+         - 옵션 2: `iptables -A OUTPUT -p tcp --dport 5432 -j DROP` 같은 네트워크 격리(가능 시).
+         - 비교: 현재 코드는 200 + 잘못된 값 반환. 수정 후엔 500 응답.
+      4. 회귀 체크: GET /api/boards/{id} 호출이 기존과 동일하게 200/404/500 분기 유지.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: done
+    pr: 40
+    note: |
+      archived as openspec/changes/archive/2026-05-19-fix-boards-handler-error-swallow. board capability의
+      기존 Requirement 2개에 보조 Scenario 추가: `보드를 수정한다`에 "수정 후 보드 정보 조회가 실패한 경우",
+      `유저의 보드 목록을 조회한다`에 "목록 내 보조 정보 조회가 실패한 경우". `apps/api/internal/boards/handler.go`
+      Update(L319-320)와 ListByCreator(L398-399)의 두 쿼리 에러 swallow를 GetByID(L173-185) baseline과
+      동일한 log + 500 응답으로 정렬. 실 환경 QA로 정상 경로 200(`pin_count`/`cover_images` 정확) 및
+      docker pause postgres 시 500 응답 + DB error 로그 모두 확인. 단위 테스트는 핸들러가 `*sql.DB`를
+      직접 받는 구조라 querier 인터페이스 surface 도입이 별개 카테고리 변경이므로 본 사이클 범위 밖으로
+      보류 — 회귀 방지는 실 환경 QA로 대체.
+
+  - id: system-20260519-pin-mime-content-type-spoof-not-rejected
+    title: "POST /api/pins가 multipart 파트의 declared Content-Type과 sniff된 실제 MIME 불일치를 검증하지 않아 `MIME 타입 위조 방지` SHALL이 enforce되지 않는다"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:143"
+        - "apps/api/internal/pin/handler.go:148"
+        - "apps/api/internal/pin/handler.go:270"
+        - "apps/api/internal/storage/storage.go:120-139"
+      cite: |
+        openspec/specs/pin/spec.md Requirement `미디어 타입을 자동 감지한다` (L238-247)
+        - Scenario "MIME 타입 기반 자동 분류" (L241-243):
+            WHEN 파일이 업로드되면
+            THEN 업로드된 파일의 실제 형식을 검증하여 미디어 타입(image/audio/video)을 결정한다
+        - Scenario "MIME 타입 위조 방지" (L245-247):
+            WHEN Content-Type과 실제 파일 내용이 일치하지 않으면
+            THEN 유효성 검사 오류가 반환된다
+
+        두 Scenario를 함께 읽으면 SHALL의 의도는 명확하다. 자동 분류는 sniff된 실제 형식으로
+        하고, 그와 별도로 클라이언트가 표기한 Content-Type과 sniff 결과가 불일치하면
+        오류를 반환해야 한다. "유효성 검사 오류"는 silent fallback이 아닌 명시적 거부 응답.
+
+        현재 코드 동작:
+        - `apps/api/internal/pin/handler.go:143` `contentType := header.Header.Get("Content-Type")` —
+          multipart part의 declared Content-Type을 그대로 수신.
+        - L148 `if strings.HasPrefix(contentType, "video/") { ... }` — declared 값을 신뢰해
+          비디오 분기 진입을 결정. sniff 결과와 비교하지 않음.
+        - L270 `h.store.Upload(r.Context(), header.Filename, contentType, uploadSize, uploadBody)` —
+          declared 값을 storage에 그대로 전달.
+        - `apps/api/internal/storage/storage.go:120-139` `Upload`:
+            * L127 `detected := http.DetectContentType(buf[:n])` — 첫 512바이트로 sniff.
+            * L131-134 `mime := detected; if mime == "application/octet-stream" && contentType != "" { mime = contentType }` —
+              octet-stream fallback 시에만 declared를 사용.
+            * L136-139 `mt, ok := allowedMIME[mime]; if !ok { return error }` — sniff 결과만 allowlist 검증.
+            * **declared contentType과 sniff된 detected 값을 비교하는 분기 없음.**
+        - `grep -rn "DetectContentType" apps/api/internal/storage/ apps/api/internal/pin/` →
+          storage.go:127 1건이 유일한 sniff 지점. handler에는 sniff/비교 코드 없음.
+      repro: |
+        직접 위조 케이스 (Scenario "MIME 타입 위조 방지" 직접 위반):
+        1. 인증된 유저가 PNG 이미지 파일을 multipart/form-data로 POST /api/pins에 업로드.
+           media 파트 헤더에 `Content-Type: video/mp4` 위조 표기.
+        2. handler.go L143 `contentType = "video/mp4"`. L148 `strings.HasPrefix(contentType, "video/")`
+           true → 비디오 처리 분기 진입.
+        3. 비디오 분기에서 origTmpPath에 PNG 바이트 그대로 저장. probeDuration(PNG) 호출 →
+           ffprobe 실패. handler.go L248 probeErr fail-closed 가드(2026-05-19-fix-pin-video-no-trim-probe-fail-reject)
+           로 400 반환. **이 경로는 우연히 fail-closed로 막힘.**
+
+        반대 방향 위조 케이스 (15초 초과 거부 SHALL 우회로 더 심각):
+        1. 인증된 유저가 16초짜리 WebM 비디오를 POST /api/pins에 업로드.
+           media 파트 헤더에 `Content-Type: image/png` 위조 표기.
+        2. handler.go L143 `contentType = "image/png"`. L148 false → 비디오 처리 분기 건너뜀.
+           uploadSize=header.Size, uploadBody=raw file 그대로 storage.Upload로 진행.
+        3. storage.go L127 `http.DetectContentType` → "video/webm" sniff. L131 `mime = "video/webm"`.
+           L136 `allowedMIME["video/webm"]` → `MediaVideo`. L142 size check 통과(100MB 이하).
+        4. L158 `s3.PutObject(..., ContentType: aws.String("video/webm"), ...)` — sniff 결과로
+           S3에 video로 저장. result.MediaType = "video". CreatePin에 `MediaType: "video"` 인서트.
+        5. handler.go L312-320 정상 응답 201 + 새 핀(media_type="video"). **15초 초과 비디오가
+           트림 없이 video로 저장됨.** Scenario "구간 정보 없이 15초 초과 비디오 업로드"의
+           거부 SHALL이 declared Content-Type 위조로 우회됨 (no-trim 거부 가드 자체에 도달 못함).
+
+        Audio 동의 케이스도 동일 패턴 가능: WAV 파일을 `Content-Type: image/jpeg`로 표기 →
+        storage에서 audio/wav로 sniff → audio로 저장. spec L99 "WAV/FLAC에서 압축 포맷으로 변환"
+        SHALL이 우회되어 원본 WAV 그대로 저장.
+
+        고정형 수정안 후보(propose에서 결정):
+        - 옵션 A (handler 자체 검증): pin.Create에서 storage.Upload 호출 후 result.MediaType과
+          declared contentType(L143)의 prefix(image/audio/video)를 비교. 불일치 시 핀 INSERT
+          전에 400 반환 + 업로드된 객체 삭제. handler 내부 단발 변경.
+        - 옵션 B (storage 검증): storage.Upload 시그니처에 declaredType 추가. mime != declared(normalized)
+          시 에러 반환. 호출자(pin/handler.go 1곳, 다른 호출자 없음 — `grep "store.Upload" apps/api/`
+          로 확인 필요)에서 declared 전달.
+        - 옵션 C (storage normalization): storage.Upload 내부에서 sniff된 detected와 contentType
+          인자를 비교. 비어 있지 않고 정규화 후 불일치하면 "validation: content type mismatch" 에러.
+          handler는 이미 contentType을 전달하므로 시그니처 변경 0.
+
+        검증 시 normalization 필요(false positive 회피):
+        - 동의 MIME: image/jpg ↔ image/jpeg, audio/x-wav ↔ audio/wav 등.
+        - 비어 있는 declared(브라우저가 표기 안 함, curl raw): skip하거나 sniff에 의존
+          (현재 동작 유지). spec L246은 "일치하지 않으면" 거부를 요구하므로 "표기 안 함"은
+          비교 자체 미실행으로 해석 가능.
+        - octet-stream fallback(storage.go L132-134)은 이미 declared를 신뢰하므로 같은 분기에서
+          mismatch 검증 추가 시 의미 충돌 없음.
+
+        anti-patterns.md 매칭 없음(L15는 helm/terraform/docker-compose 한정). in-progress changes
+        (fix-harvester-*, fix-scheduler-*)와 capability 무관. 직전 archive 두 건
+        (fix-pin-create-request-body-cap, fix-pin-video-no-trim-probe-fail-reject)은 같은 핸들러를
+        만지지만 결함 카테고리(본문 상한·probe fail-closed)와 무관한 별개 SHALL.
+    qa_plan: |
+      실 환경 QA(처리 모드 §7):
+      1. `docker-compose up -d` (DB/Redis/MinIO), `cd apps/api && go run cmd/server/main.go`. 로그인 후 JWT 확보.
+      2. 정상 케이스(회귀 방지):
+         - PNG 업로드 (브라우저처럼 정확한 Content-Type: image/png) → 201 + media_type=image.
+         - MP3 업로드 (Content-Type: audio/mpeg) → 201 + media_type=audio.
+         - 10초 MP4 업로드 (Content-Type: video/mp4) → 201 + media_type=video.
+      3. 위조 거부 케이스(직접 SHALL 검증):
+         - 16초 WebM 파일을 `Content-Type: image/png` 위조 표기로 업로드.
+           `curl -X POST /api/pins -H "Authorization: Bearer $JWT" -F "title=test" \
+              -F "media=@video.webm;type=image/png"` (--form 의 ;type= 으로 위조 가능).
+           현재 동작: 201 + media_type=video (no-trim 거부 우회).
+           수정 후: 400 + "MIME 타입이 일치하지 않습니다" (또는 동등 메시지).
+         - PNG 파일을 `Content-Type: video/mp4` 위조 표기로 업로드.
+           현재 동작: 400 (우연히 probe fail-closed로 막힘, 메시지 "비디오 길이를 확인할 수 없습니다").
+           수정 후: 400 + MIME 불일치 메시지(probe 분기 전에 거부).
+         - WAV 파일을 `Content-Type: image/jpeg` 위조 표기로 업로드.
+           현재 동작: 201 + media_type=audio (audio 변환 SHALL 우회).
+           수정 후: 400 + MIME 불일치 메시지.
+      4. Content-Type 미표기 케이스:
+         - curl raw multipart으로 media 파트에 Content-Type 헤더 미포함 업로드 → declared가 빈 문자열.
+           구현 결정에 따라 결과 다름(skip → 정상 처리 / strict → 400). evidence 옵션 정책 따라 검증.
+      5. DB 상태 확인:
+         - `docker compose exec postgres psql -U fugue -c "SELECT media_type, media_url, COUNT(*) FROM pins GROUP BY media_type, media_url ORDER BY media_type"` →
+           모든 위조 시도가 거부되어 잘못된 mediaType 행이 신규 생성되지 않음.
+      6. 회귀 체크: GET /api/pins/{id} 200 + GET /api/pins 정상 분류.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 6.0
+    status: done
+    pr: 43
+    note: "archived as openspec/changes/archive/2026-05-19-fix-pin-mime-content-type-spoof. pin capability에 Requirement `MIME 타입 위조 방지는 storage 레이어에서 declared와 sniff의 불일치 거부로 enforce된다` 추가(5 Scenarios). storage.Upload 내부에 normalizeMIME 헬퍼(6쌍 alias + lowercase + trim) + declared vs sniff 비교 분기 신설로 WebM-as-PNG 위조 등 silent bypass route 차단. QA 중 발견된 audio/wave→audio/wav allowlist 미스 회귀도 동일 헬퍼로 sniff 결과 canonical 변환하여 대칭 해소. storage_test.go 12 케이스. 실 환경 QA 8/8 spec 부합 + DB 위조 row 0건."
+
+  - id: system-20260519-snapshot-fail-spec-conflict-bot-vs-pioneer
+    title: "스냅샷 저장 실패 시 fetch 보고 의미가 bot/spec.md(fail-open)와 pioneer/spec.md(fail-closed)에서 정반대 SHALL로 충돌"
+    area: openspec-gap
+    evidence:
+      files:
+        - "openspec/specs/bot/spec.md:655-668"
+        - "openspec/specs/pioneer/spec.md:68-77"
+        - "openspec/specs/pioneer/spec.md:107-109"
+        - "apps/api/internal/bot/pioneer_consumer.go:171-178"
+        - "apps/api/internal/bot/pioneer_consumer.go:227-237"
+      cite: |
+        bot/spec.md L655 Requirement "스냅샷 저장 실패는 fail-open으로 처리한다":
+          "object storage 업로드가 실패하더라도 Pioneer의 크롤 진행을 중단시키지
+           않아야 한다(SHALL). ... URLScheduler 상 해당 URL은 fetch 성공으로
+           취급되어 재시도 큐에 들어가지 않는다" (Scenario L666-668).
+
+        pioneer/spec.md L68 Requirement "Pioneer는 실패 시 SetStatus +
+        RecordFetchError 둘 다 호출한다":
+          Scenario "snapshot 저장 실패도 실패로 보고" (L75-77):
+            "Pioneer가 HTTP fetch에는 성공했으나 snapshot 저장에 실패했을 때
+             THEN scheduler.SetStatus(url, 'fetch_failed', nil) +
+             scheduler.RecordFetchError(url, 'network')를 호출 ... (부분 성공을
+             'fetched'로 보고하지 않는다)"
+          + L107-109 errorKind 분류표 "snapshot 저장 실패 → network".
+
+        같은 openspec/specs/ 디렉터리 안 두 capability 스펙이 동일 시나리오
+        (HTTP fetch 성공 + snapshot put 실패)에 대해 정반대 SHALL을 진술.
+        production 코드는 pioneer/spec.md를 따른다.
+      repro: |
+        1. grep으로 두 SHALL 동시 확인:
+           - `grep -n "fail-open" openspec/specs/bot/spec.md`
+             → L655 Requirement 헤더, L658-668 세 Scenario.
+           - `grep -n "snapshot 저장 실패도 실패로 보고\|snapshot 저장 실패" openspec/specs/pioneer/spec.md`
+             → L75 Scenario, L108 분류표.
+        2. 코드 검증:
+           apps/api/internal/bot/pioneer_consumer.go:171-178 —
+             `if err := p.snapshotStore.Put(...); err != nil {
+                log.Printf("WARN ...snapshot put failed...");
+                p.reportFailure(rawURL, scheduler.ErrorNetwork);
+                return
+              }`
+           즉시 return + reportFailure → pioneer/spec.md 준수, bot/spec.md
+           Scenario "업로드 실패가 스케줄러 상태에 영향 없음" / "업로드 실패 시
+           크롤 계속"(링크 추출·후속 큐 처리 진행) 위반.
+        3. git log -S로 두 Requirement의 commit 시점 확인 (bot: de53c4c
+           2026-04-19, pioneer: 6da4061 2026-04-20). 더 늦은 pioneer 쪽으로
+           코드가 합쳐졌으나 bot/spec.md 측 fail-open 블록은 정리되지 않고
+           잔존 → 두 SHALL이 공존하여 어느 쪽이 SSoT인지 결정 불가.
+        4. 결정 옵션:
+           (A) pioneer/spec.md fail-closed가 SSoT. bot/spec.md L655-668
+               Requirement 통째로 삭제(또는 "pioneer/spec.md로 위임" 한 줄
+               유지). 코드 변경 0건.
+           (B) bot/spec.md fail-open이 SSoT. pioneer/spec.md L75-77 Scenario
+               + L108 errorKind 분류표 1행 삭제. 코드는 pioneer_consumer.go
+               L171-178을 snapshot put 실패 시 reportFailure 대신 WARN 로그만
+               남기고 EnqueueHarvester 단계로 진행하도록 수정 — 단, snapKey
+               없이는 EnqueueHarvester가 불완전 호출이 되므로 별도 설계 필요.
+           (C) 두 분기 구분: 일시 장애(5xx/timeout)는 fail-open, 영구 장애
+               (4xx/credential)는 fail-closed. 두 스펙 모두 부분 개정.
+        루프는 사용자에게 묻지 않으므로 needs_decision으로 두고 종료.
+    qa_plan: |
+      (needs_decision 단계라 본 항목은 QA 대상이 아님. 사용자 결정 후
+       Processing 모드 진입 시 사용할 절차:)
+      옵션 A 채택 시:
+        1. bot/spec.md L655-668 삭제 또는 pointer 한 줄로 축소.
+        2. openspec validate로 spec 정합성 확인.
+        3. 코드 변경 없으므로 회귀 QA는 기존 pioneer 동작 1회 재확인:
+           - localstack/minio Put을 의도적으로 503으로 실패시키고
+             docker-compose 환경에서 Pioneer 1회 실행.
+           - DB `pioneer_frontier`에서 해당 url_hash row의 fetch_error_count
+             가 1 증가, next_fetch_at가 backoff 적용된 미래 시각인지 psql로
+             직접 관찰.
+      옵션 B 채택 시:
+        1. pioneer/spec.md L75-77 Scenario + L108 분류표 행 삭제 + ADDED
+           "snapshot 저장 실패는 fetch 성공으로 취급" Scenario.
+        2. pioneer_consumer.go L171-178을 WARN-only로 변경하고 snapKey 없는
+           상태에서 EnqueueHarvester를 어떻게 호출할지(skip vs sentinel key)
+           재설계 — 사용자 추가 결정 필요.
+        3. 실 환경 QA: Put 실패 후 동일 row가 SetStatus(fetched)로 마감되어
+           365일 backoff 적용되는지 psql 직접 관찰.
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: needs_decision
+    note: |
+      Discovery 모드 단독 산출물. 두 spec.md 동시 인용으로 인용 자체가 모호
+      해지므로 Processing 모드에서 자체 리뷰 reject 조건 #2(인용 스펙/문서가
+      모호·자의적)에 해당 — 사용자 결정 전까지 status를 pending으로 승급하지
+      않는다. 결정이 옵션 A(코드 변경 0)면 spec 정리 change 1건으로 마감
+      가능, 옵션 B/C면 별도 설계 사이클 필요.
+
+  - id: system-20260519-bot-harvest-pipeline-ssrf
+    title: "HarvestPipeline.client이 timeout/SSRF 가드 없는 bare http.Client라 og:image/media URL을 통한 SSRF → 공개 노출 체인 가능"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/bot/harvest_pipeline.go:143-156"
+        - "apps/api/internal/bot/harvest_pipeline.go:337-399"
+        - "apps/api/internal/bot/harvest_pipeline.go:450-513"
+        - "apps/api/internal/og/service.go:54-340"
+      cite: |
+        (직접 인용 가능한 스펙은 부재. 그러나 같은 저장소
+         apps/api/internal/og/service.go L67-340이 동일한 외부 HTTP 호출
+         경로에 대해 per-IP private/reserved range 거부 + CheckRedirect
+         재해소를 이미 구현하고 있으므로 이는 프로젝트 내부 합의된
+         "외부 HTTP fetcher의 SSRF 방어 패턴"이다. Bot의
+         harvest_pipeline.go는 이 패턴을 따르지 않은 채 동일 신뢰 경계
+         (외부에서 가져온 URL을 fetch)에서 동작한다. 또한 OWASP Top-10
+         A10:2021 SSRF에 해당한다.)
+      repro: |
+        1. 외부 사이트 한 곳을 Pioneer가 크롤하도록 frontier에 enqueue.
+        2. 해당 사이트 HTML에
+           `<meta property="og:image" content="http://169.254.169.254/latest/meta-data/iam/security-credentials/<role>">`
+           삽입 (또는 사내 localhost:포트 URL).
+        3. Pioneer가 페이지를 가져오고 PickPrimaryImage가 위 og:image를
+           추출 → snapshot_key와 함께 EnqueueHarvester.
+        4. Harvester가 frontier에서 dequeue → HarvestPipeline.cacheImage
+           가 `p.client.Do(req)`로 169.254.169.254 fetch → 응답 바이트를
+           S3에 PutObject → 결과 URL을 Pin.og_image / media_url에 저장.
+        5. 공개 Pin 조회 API가 해당 storage URL을 그대로 응답하므로
+           AWS IAM 임시 자격증명이 인터넷에 공개됨.
+      attack_surface: |
+        - bare &http.Client{}: timeout 없음 → slow-loris 비용 공격,
+          redirect cap 없음 → metadata 서비스로의 리다이렉트 우회,
+          DialContext 없음 → DNS rebinding/private-IP 직접 연결 모두 가능.
+        - HarvestPipeline.downloadAndUpload (L337-399): media_url 입력
+          경로. Pioneer가 추출한 임의 URL.
+        - HarvestPipeline.cacheImage (L450-513): og:image 입력 경로.
+          외부 HTML에서 메타태그로 자유롭게 지정 가능.
+        - 두 경로 모두 fetch 결과를 S3 객체로 저장하고 그 객체의 공개
+          URL을 Pin row에 적재 → 공개 응답으로 흘러나감(공개-노출 체인).
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+minio+postgres 기동.
+      2. 호스트에서 `python3 -m http.server 8081`로 가짜 metadata 응답
+         JSON을 serve하는 페이지를 띄우고, 그 페이지에
+         `<meta property="og:image" content="http://169.254.169.254/latest/meta-data/iam/security-credentials/test">`
+         삽입한 HTML을 별도 endpoint에 노출.
+      3. pioneer_frontier에 위 페이지 URL을 enqueue한 뒤 1회 Pioneer
+         실행 → harvester 1회 실행.
+      4. minio에 og:image fetch 결과 객체가 생성되지 않는지,
+         apps/api 로그에 SSRF 거부 메시지가 남는지 확인.
+      5. 정상 외부 og:image(예: https://github.githubassets.com/favicon.ico)
+         로 동일 절차 → 정상적으로 minio에 저장되고 Pin.og_image가
+         채워지는지 회귀 확인.
+      6. 동일 절차를 media_url(downloadAndUpload) 경로에 대해서도
+         video URL로 1회 더 수행.
+    impact: 5
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 6.25
+    status: done
+    note: |
+      Discovery 모드 발굴. 인용 가능한 OpenSpec 요구사항은 부재하나
+      저장소 내부 합의된 SSRF 방어 패턴(og/service.go)이 명백히 존재해
+      "프로젝트 내부 스펙"의 위반으로 간주한다. Processing 모드에서
+      당 항목 채택 시 첫 단계는 (a) og/service.go의 SSRF-safe
+      dialer/CheckRedirect 로직을 공유 helper로 추출, (b) 해당 helper를
+      HarvestPipeline.client에 주입, (c) downloadAndUpload/cacheImage
+      각각에 timeout+redirect cap 명시. 동시에 harvester/spec.md에
+      "외부 미디어 fetch는 private/reserved IP 거부 + N MB 상한 + T초
+      timeout를 enforce한다" Scenario를 ADDED 한다.
+    resolution: |
+      2026-05-19 PR #47 (d51c944) 머지로 완료. apps/api/internal/httpclient
+      신규 패키지에 SSRF-safe HTTP client (per-IP private/reserved 거부 +
+      CheckRedirect 재해소 + non-http 스킴 거부 + 5s/60s/5-redirect cap)를
+      추가하고 HarvestPipeline.client에 주입. downloadAndUpload의 streaming
+      branch는 io.LimitReader(200 MiB)로 Content-Length lie 차단.
+      harvester/spec.md에 "외부 미디어 fetch는 SSRF-safe HTTP client를
+      경유한다" Requirement 5 Scenarios ADDED. og/service.go의 SSRF
+      dialer를 신규 httpclient 패키지로 마이그레이션하는 작업은 본 사이클
+      범위 밖으로 두고 후속 backlog 후보로 남김(중복 구현 정리 목적).
+
+  - id: system-20260519-harvest-pipeline-title-no-truncate
+    title: "HarvestPipeline이 doc.Title을 VARCHAR(200) cap 없이 그대로 INSERT → 긴 외부 title 페이지에서 PostgreSQL value-too-long 에러로 Pin 영구 실패 + 5회 fetch retry 비용 누수"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/db/migrations/000003_create_works.up.sql:5"   # title VARCHAR(200) NOT NULL
+        - "apps/api/internal/bot/harvest_pipeline.go:293"          # Title: doc.Title (truncate 없이)
+        - "apps/api/internal/bot/harvester_consumer.go:380-382"    # BodyText만 truncateRunes(500), Title은 없음
+        - "apps/api/internal/bot/pin_document.go:37-38"            # "BodyText is raw text BEFORE the description-length cut; the Harvester is responsible for the rune-safe truncation when persisting." — Title에 대한 동일 책임 부재(비대칭 디자인)
+        - "apps/api/internal/bot/extractor.go:69"                  # doc.Title = pickFirstNonEmpty(ogTitle, twTitle, jsonLDTitle, h1, htmlTitle) — 길이 cap 없음
+        - "apps/api/internal/bot/script_adapter.go:112"            # Title: primary.Title — 동일 패턴
+      cite: |
+        직접 인용 가능한 OpenSpec SHALL은 부재하나, 다음 사실로 결함성이
+        명백하다:
+        (a) `apps/api/db/migrations/000003_create_works.up.sql:5`이
+            `title VARCHAR(200) NOT NULL`로 DB-level 길이 cap을 강제.
+            이후 migration 어디에도 ALTER가 없어 production 스키마와
+            일치.
+        (b) 같은 파일 `harvester_consumer.go:382`이 `doc.BodyText =
+            truncateRunes(doc.BodyText, 500)`로 description의 VARCHAR(500)
+            cap에 맞춘 사전 rune-truncate를 명시적으로 수행. 즉
+            "pipeline write 직전에 컬럼 cap에 맞춰 자른다"가 이미 합의된
+            로컬 패턴.
+        (c) `pin_document.go:37-38`은 BodyText에 대해 truncate 책임을
+            문서로 명시(`Harvester is responsible for the rune-safe
+            truncation`). 그러나 Title은 같은 PinDocument 안에 있고
+            DB cap이 더 작은(200 < 500) 컬럼에 매핑되는데 truncate
+            책임이 어디에도 위임되지 않은 비대칭 결함.
+        (d) `openspec/specs/harvester/spec.md:190` Pin upsert SHALL:
+            "INSERT ... ON CONFLICT DO UPDATE를 통해 기존 Pin의 title
+            ... 을 새 값으로 갱신한다". 200자 초과 title이면 PostgreSQL
+            `ERROR: value too long for type character varying(200)`로
+            INSERT 자체가 실패하므로 이 SHALL이 비결정적으로 깨짐.
+      repro: |
+        1. 어떤 외부 사이트가 `<title>` 또는 `<h1>` 또는 `og:title` 메타
+           태그에 201자 이상의 문자열을 가지고 있다고 가정(SEO 키워드
+           stuffing이나 자동 생성 페이지에서 흔함).
+           예: `<title>A Comprehensive Review of Every Single Variant
+           of the Phenomenon ... (continues for 250 chars)</title>`
+        2. Pioneer가 이 페이지를 fetch + snapshot → HarvesterFrontier에
+           enqueue.
+        3. HarvesterConsumer가 dequeue → extractor.extract() →
+           doc.Title = "A Comprehensive Review ... (250 chars)".
+        4. `doc.BodyText = truncateRunes(doc.BodyText, 500)` 실행
+           (Title은 손대지 않음).
+        5. `pipeline.ProcessDocument(ctx, node, doc)` →
+           `UpsertBotPinByURL{Title: doc.Title}` →
+           PostgreSQL: `pq: value too long for type character varying(200)`.
+        6. createPins가 에러 반환 → h.stats.failed.Add(1) →
+           `h.reportFailure(rawURL, scheduler.ErrorNetwork, "pin_create",
+           createErr)` → scheduler가 retry 스케줄 등록.
+        7. 다음 fetch cycle에서 같은 URL이 다시 잡혀 같은 에러로 실패
+           (title은 변하지 않음). harvest_error_count가 5에 도달할
+           때까지 같은 비용 반복(snapshot fetch + extract + DB INSERT
+           attempt 모두). 5에 도달하면 partial index 제외로 영구 누락.
+        결과: 긴 title을 가진 모든 외부 페이지의 Pin이 영구적으로 생성
+        되지 않고, 그동안 5회의 무의미한 retry 비용 누수.
+      attack_surface: |
+        - 자기 도메인 컨트롤이 없는 외부 사이트의 자유 입력(title 메타).
+          공격이라기보다 운영 정상성 문제이지만, 누군가가 특정 도메인을
+          타깃해 200자 초과 title을 가진 페이지를 다수 만들어두면
+          harvester worker 시간/네트워크 비용을 의도적으로 낭비시킬
+          수 있음(amplification: 1 PR한 페이지 → 5회 fetch).
+        - 더 직접적 영향은 정상 외부 사이트(blog post title, news article
+          subhead, JSON-LD headline 등)에서 200자 초과가 자주 발생하여
+          정상 컨텐츠 일부가 누락되는 정합성 결함.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+postgres 기동.
+      2. 호스트에서 `python3 -m http.server 8090`로 다음 HTML 페이지를
+         serve:
+         ```html
+         <html><head><title>A test title that is exactly two hundred and
+         ten characters long to exceed the VARCHAR(200) cap and prove
+         the bug ... (210 chars total)</title></head>
+         <body><article><p>본문이 200자 넘게...</p></article></body></html>
+         ```
+      3. `psql`로 pioneer_frontier에 이 URL을 enqueue:
+         `INSERT INTO pioneer_frontier (normalized_url, url, url_hash, host)
+          VALUES ('http://localhost:8090/long.html', ...);`
+      4. Pioneer 1회 → snapshot이 harvester_frontier로 fanout 확인.
+      5. Harvester 1회 → 로그에서 `pq: value too long for type character
+         varying(200)`이 fix 전에는 나오는지 확인(재현),
+         fix 적용 후엔 사라지고 Pin이 정상 생성되는지 확인.
+      6. `psql`로 `SELECT title, length(title) FROM pins WHERE url=
+         'http://localhost:8090/long.html';` → title 길이가 ≤200인지
+         확인. rune-truncate가 마지막 글자를 안전하게 자르는지(멀티
+         바이트 글자 보존) 한국어 케이스(예: 한글 한 글자가 200번째에
+         걸치는 경우) 한 번 더 검증.
+      7. 회귀: 정상(50자) title 페이지를 같은 절차로 처리 → Pin 정상
+         생성, title이 입력값과 동일한지 확인.
+      8. ScriptAdapter 경로도 동일 패턴이 있는지 short script 한
+         site에 등록해 동일 절차 1회 더 수행.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: done
+    note: |
+      Discovery 모드 발굴 — 영역: 정합성(ERD/DB schema ↔ Go 코드).
+      Processing 모드 진입 시 첫 단계는 (a) `harvester_consumer.go:382`
+      바로 뒤에 `doc.Title = truncateRunes(doc.Title, 200)` 한 줄을
+      대칭으로 추가, (b) `pin_document.go:37-48`의 PinDocument doc
+      comment에 Title도 truncate 책임 명시, (c) harvester/spec.md에
+      "Pin upsert 전 title은 DB cap(200 runes)에 맞춰 rune-safe
+      truncate된다"를 ADDED Scenario로 추가. ScriptAdapter 경로도
+      동일 truncate 적용(consumer level 단일 지점으로도 충분 — Script
+      → consumer → pipeline 순서이므로 consumer가 단일 진입점).
+    resolution: |
+      PR #50 (2026-05-19 squash-merge). `harvester_consumer.processOne`에
+      `doc.BodyText` 절단 직후 `doc.Title = truncateRunes(doc.Title, 200)`
+      한 줄을 대칭으로 추가. `truncateRunes` doc-comment를 BodyText/Title
+      양쪽 명시로 확장. `pin_document.go`의 PinDocument doc-comment에
+      Title도 raw text 보장 + Harvester truncate 책임 한 줄 추가
+      (BodyText 줄과 대칭). 신규 테스트 `TestTruncateRunes_TitleCap`
+      5 subtest (ASCII 201→200/한국어 201→200/100자 무손실/empty/
+      boundary 200) 통과. `openspec/specs/harvester/spec.md`에 ADDED
+      Requirement "title은 pins.title 컬럼 cap에 맞춰 rune-safe 사전
+      절단된다" + 4 Scenarios. 실 환경 QA (PostgreSQL 16.13): ASCII
+      201자 INSERT는 `value too long for type character varying(200)`
+      에러로 거부(버그 재현), 200자 accept, 한국어 200 rune(600 byte)
+      accept, 한국어 201 rune reject로 fix 양상과 multibyte 안전성
+      모두 확인. OpenSpec change는 `archive/2026-05-19-fix-harvest-
+      pipeline-title-truncate/`로 이동.
+
+  - id: system-20260519-pin-create-handler-no-input-length-validation
+    title: "POST /api/pins 핸들러가 title/description/url/og_image 사용자 입력 길이를 사전 검증하지 않아 VARCHAR cap 초과 시 PostgreSQL value-too-long → 500 Internal Server Error (의도된 400 Bad Request 우회)"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/pin/handler.go:92-96"        # title trim + empty check만, length check 부재
+        - "apps/api/internal/pin/handler.go:286-289"      # description: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:291-294"      # url: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:296-299"      # og_image: FormValue 후 trim만, length check 부재
+        - "apps/api/internal/pin/handler.go:312-325"      # CreatePin INSERT → 길이 오류 시 L321-324가 500 응답
+        - "apps/api/db/migrations/000003_create_works.up.sql:5"  # title VARCHAR(200) NOT NULL
+        - "apps/api/db/migrations/000003_create_works.up.sql:6"  # description VARCHAR(500)
+        - "apps/api/db/migrations/000003_create_works.up.sql:4"  # url VARCHAR(1000) NOT NULL
+        - "apps/api/db/migrations/000003_create_works.up.sql:9"  # og_image VARCHAR(1000)
+      cite: |
+        (a) 직접 인용 가능한 OpenSpec SHALL은 부재하나, 동일 저장소 내부의
+            기존 합의된 패턴이 명확히 존재:
+            - `apps/api/internal/creator/handler.go:178-185`이
+              `if nickname == "" { 400 } if utf8.RuneCountInString(nickname) > 50 { 400 "닉네임은 50자를 초과할 수 없습니다" }`로
+              nickname VARCHAR(50)에 대해 사전 길이 검증.
+            - `apps/api/internal/boards/handler.go:106-113` / `:283-290`이
+              `if utf8.RuneCountInString(name) > 100 { 400 "보드 이름은 100자 이내여야 합니다" }`로
+              boards.name VARCHAR(100)에 대해 사전 길이 검증.
+            즉 "사용자 입력 → VARCHAR 컬럼 INSERT 전 RuneCount cap 검증 + 400 응답"이
+            프로젝트 내부 합의된 input-validation 패턴이다.
+        (b) `apps/api/internal/bot/harvester_consumer.go:380-384`이 bot 경로에서는
+            동일 cap에 대해 truncateRunes로 사전 절단. 이는 무인 best-effort
+            크롤러용 정책이고, 사용자 직접 입력 경로(pin.Create)는 truncate가 아닌
+            reject로 응답해야 사용자가 입력을 수정할 수 있다(2026-05-19 archive
+            fix-harvest-pipeline-title-truncate의 design.md D8 "classifier
+            sees original untruncated" 대칭 정책의 user-facing 변형).
+        (c) `pin.Create`의 handler.go:321-324는 INSERT 오류를 단일 500
+            ("핀 등록에 실패했습니다") 분기로 흡수해 client가 길이 초과를
+            구분할 방법이 없다. spec: pin `클라이언트 검증 우회 시 서버가 본문을
+            거절한다` 의 정신(L77-80 requestBodyCap 적용)이 본 검증에는 미적용된
+            비대칭 결함.
+        (d) PostgreSQL 16 character varying(N)은 rune-count cap이라
+            201 ASCII 또는 201 한국어 rune 모두 `value too long for type
+            character varying(200)` 거부 — 2026-05-19 archive
+            fix-harvest-pipeline-title-truncate 사이클이 실 환경 QA로
+            동일 행동 패턴을 직접 입증.
+      repro: |
+        1. docker-compose로 api+postgres 기동, 로그인 후 access_token 획득.
+        2. 다음 curl 호출:
+           ```
+           curl -X POST http://localhost:8080/api/pins \
+             -H "Authorization: Bearer $TOKEN" \
+             -F "title=$(python3 -c 'print("A"*201)')" \
+             -F "media=@small.jpg"
+           ```
+           → API 응답이 500 "핀 등록에 실패했습니다" (의도된 400 Bad Request 부재).
+           → 서버 로그에 `pin.Create: insert error: pq: value too long for type
+              character varying(200)` 출력.
+        3. description=A*501 / url=A*1001 / og_image=A*1001 각각도 동일한 500.
+        4. 정상 길이는 정상 생성 (회귀 없음 확인).
+        결과: 사용자가 긴 title/description/url을 입력하면(SEO 페이지 자동
+        생성 title 복붙, 분석 파라미터가 많은 URL 복붙 등 흔한 케이스) 핀
+        등록이 실패하는데 에러 메시지가 일반적이어서 사용자가 무엇을 줄여야
+        하는지 알 수 없음. 그리고 5xx 응답이라 클라이언트 retry/sentry alert
+        등에서 일시적 장애로 오분류됨.
+      attack_surface: |
+        - 인증된 모든 호출자가 트리거 가능(보안 사고는 아니나 운영 정상성·
+          UX 결함).
+        - 5xx 응답이라 모니터링 시스템(Sentry/Datadog/CW alarm)이 일시 장애로
+          오분류 → on-call noise. 정상 응답은 400.
+        - description/url/og_image 모두 client-supplied form field — 자동화된
+          fuzz/긴 입력으로 의도적 500 발생 가능. amplification은 낮음
+          (단순 reject)이나 동작 자체가 spec 위반.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. docker-compose로 api+postgres+minio 기동.
+      2. 호스트에서 로그인 후 JWT 획득.
+      3. fix 전: 위 repro 4 케이스(title=A*201/description=A*501/url=A*1001/
+         og_image=A*1001) 각각 호출 → 모두 500 응답 + `value too long for type
+         character varying(N)` 서버 로그 확인.
+      4. fix 적용 후: 동일 4 케이스 호출 → 400 응답 + 각 필드명시 메시지
+         ("제목은 200자 이내여야 합니다" 등) 확인.
+      5. 멀티바이트(한국어) 케이스: title=가*201 → 400 (rune count 기준 정확
+         검증) 확인. PostgreSQL이 rune-count cap이므로 fix도 utf8.RuneCountInString
+         기준으로 일치해야 함.
+      6. 회귀: title=200/description=500/url=1000/og_image=1000 (boundary)
+         → 정상 201 응답. title=A*100 같은 정상 길이 → 정상 201 응답.
+      7. multipart parse 단계(L82 ParseMultipartForm)에서 통과한 form field만
+         핸들러가 보므로 본 검증은 multipart body cap(requestBodyCap=500MB)과
+         독립적으로 동작 — 본문 크기는 작아도 단일 form field가 길면 cap 초과
+         가능 확인.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: done
+    note: |
+      Discovery 모드 발굴 — 영역: 정합성(사용자 입력 ↔ DB VARCHAR cap).
+      2026-05-19 archive fix-harvest-pipeline-title-truncate의 user-facing
+      대칭 변형. 단, 정책 차이: bot 경로는 truncate(무인 best-effort),
+      user-facing 경로는 reject 400(사용자가 입력 수정 가능). Processing
+      모드 진입 시 첫 단계는 (a) pin/handler.go:92 직후에 title length check
+      한 블록, (b) L289/293/298 각 optional 필드 trim 직후 length check
+      한 블록씩, (c) 각각 400 응답 메시지 일관 형식("X는 N자 이내여야 합니다"),
+      (d) 기존 nickname/board name 검증(creator/handler.go:182, boards/handler.go:110)
+      과 동일 패턴으로 정렬, (e) 단위 테스트는 pin/handler_test.go에 4 케이스
+      (각 필드 cap+1, cap boundary 무손실).
+    resolution: |
+      2026-05-19 — apps/api/internal/pin/handler.go에 utf8.RuneCountInString
+      기반 4 필드 length 검증 추가(title 200 / description 500 / url 1000 /
+      og_image 1000), 각각 400 응답. 4 신규 단위 테스트(title ASCII 201/한국어 201
+      reject + ASCII 200/한국어 200 accept boundary)로 회귀 방지. 실 환경 QA:
+      curl로 4 필드 × ASCII/한국어 reject 8건, 4 필드 boundary accept 4건, 일반
+      입력 + GET /api/pins/{id} 회귀 1건씩 모두 통과. DB 확인 length(title)=200,
+      length(description)=500, length(url)=1000, length(og_image)=1000 정확.
+      OpenSpec archive/2026-05-19-fix-pin-create-input-length-validation/.
+
+  - id: system-20260519-boards-handler-description-no-length-validation
+    title: "POST/PUT /api/boards 핸들러가 description 사용자 입력 길이를 사전 검증하지 않아 VARCHAR(500) cap 초과 시 500 Internal Server Error"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/boards/handler.go:120-123"   # Create: description, FormValue 후 length check 부재
+        - "apps/api/internal/boards/handler.go:292-295"   # Update: 동일 패턴
+        - "apps/api/internal/boards/handler.go:106-113"   # 같은 핸들러 name(VARCHAR(100))는 검증함
+        - "apps/api/internal/boards/handler.go:283-290"   # Update name도 동일 검증
+        - "apps/api/internal/boards/handler.go:132-135"   # CreateBoard INSERT → 500 분기
+        - "apps/api/internal/boards/handler.go:313-316"   # UpdateBoard INSERT → 500 분기
+        - "apps/api/db/migrations/000008_create_boards.up.sql:5"  # description VARCHAR(500)
+      cite: |
+        (a) 동일 boards.Create / boards.Update 핸들러가 name 필드에 대해서는
+            `utf8.RuneCountInString(name) > 100 → 400 "보드 이름은 100자
+            이내여야 합니다"` 패턴을 명시적으로 사용(L110, L287). 같은 핸들러
+            안의 두 VARCHAR 필드(name VARCHAR(100), description VARCHAR(500))가
+            서로 다른 validation policy를 적용받는 것은 비대칭 결함.
+        (b) creator.UpdateMe(handler.go:178-185)가 같은 패턴으로 nickname
+            VARCHAR(50) 검증 — 프로젝트 내부 합의된 input-validation 패턴.
+        (c) PostgreSQL 16 character varying(500)은 rune-count cap이라
+            description 501 rune 입력 시 `value too long for type character
+            varying(500)` 거부 → 핸들러는 L132-135 / L313-316의 일반 500
+            분기로 흡수.
+      repro: |
+        1. docker-compose로 api+postgres 기동, 로그인 후 JWT 획득.
+        2. 다음 curl 호출:
+           ```
+           curl -X POST http://localhost:8080/api/boards \
+             -H "Authorization: Bearer $TOKEN" \
+             -H "Content-Type: application/json" \
+             -d "{\"name\":\"test\",\"description\":\"$(python3 -c 'print("A"*501)')\"}"
+           ```
+           → 응답 500 "보드를 생성할 수 없습니다" (의도된 400 부재).
+           → 서버 로그 `boards.Create: DB error: pq: value too long for type
+              character varying(500)`.
+        3. PUT /api/boards/{id}의 description 필드도 동일 거동.
+      attack_surface: |
+        - 인증된 호출자만 트리거 — 보안 사고 아님. 운영 정상성·UX 결함.
+        - 5xx 응답이라 모니터링 false positive 유발(name은 정상 400으로 응답).
+        - 같은 핸들러 내부 inconsistency라 신규 컨트리뷰터가 디버깅에 혼란.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, JWT 획득.
+      2. fix 전: POST description=A*501 → 500 + DB 에러 로그 재현.
+      3. fix 적용 후: 동일 호출 → 400 "보드 설명은 500자 이내여야 합니다"
+         형식 응답.
+      4. PUT /api/boards/{id} description=가*501(한국어 멀티바이트) → 400.
+      5. 회귀: description=500 boundary → 정상 201/200 응답.
+      6. description=null(생략) → 정상 응답(optional 필드 보존).
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: done
+    note: |
+      Discovery 모드 발굴 — 같은 area(사용자 입력 ↔ VARCHAR cap)의 추가
+      후보. Processing 모드 진입 시 첫 단계는 (a) boards/handler.go:122
+      description 할당 직전에 `utf8.RuneCountInString(*req.Description) > 500`
+      체크 추가, (b) L294도 동일, (c) 메시지 형식은 L111 "보드 이름은
+      100자 이내여야 합니다"와 정렬, (d) 단위 테스트는 boards/handler_test.go에
+      cap+1/cap boundary 2 케이스.
+    resolution: |
+      2026-05-19 — apps/api/internal/boards/handler.go에 utf8.RuneCountInString
+      기반 description length 검증 추가(Create L121, Update L293 모두 cap=500).
+      cap 초과 시 400 "보드 설명은 500자 이내여야 합니다" — 같은 핸들러 name 검증
+      (L111 "보드 이름은 100자 이내여야 합니다") 형식과 정렬. 신규 단위 테스트 5건
+      (description ASCII 501 reject / 한국어 501 reject / ASCII 500 통과 / 생략 통과
+      + name 101 회귀)으로 Create 경로 검증. Update 경로는 GetBoard 선행 DB 의존
+      으로 real-env QA로 검증: curl POST/PUT × ASCII/한국어 cap+1 reject 4건,
+      boundary 500 accept 2건, omission preserve 1건, name=101 regression 1건, GET
+      회귀 1건 모두 통과. DB length(description) ≤ 500 확인. OpenSpec
+      archive/2026-05-19-fix-boards-handler-description-input-length-validation/.
+
+  - id: system-20260519-creator-update-avatar-url-no-length-validation
+    title: "PUT /api/creators/me 핸들러가 avatar_url 사용자 입력 길이를 사전 검증하지 않아 VARCHAR(500) cap 초과 시 500 Internal Server Error"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/creator/handler.go:187-194"  # avatar_url 처리 — length check 부재
+        - "apps/api/internal/creator/handler.go:178-185"  # 같은 핸들러 nickname 검증은 존재
+        - "apps/api/internal/creator/handler.go:196-205"  # UpdateCreator INSERT → 500 분기
+        - "apps/api/db/migrations/000001_create_creators.up.sql:7"  # avatar_url VARCHAR(500)
+      cite: |
+        (a) 같은 UpdateMe 핸들러가 nickname에 대해서는 `if nickname == "" { 400 }`
+            + `if utf8.RuneCountInString(nickname) > 50 { 400 "닉네임은 50자를
+            초과할 수 없습니다" }`로 사전 검증 + clear 400 메시지(L178-185).
+            avatar_url에 같은 검증 없음 — 핸들러 내부 inconsistency.
+        (b) avatar_url은 통상 S3/CDN URL이며 query string(signed token, cache
+            buster, analytics)이 길어지면 500 chars 초과가 발생 가능. spec
+            (docs/architecture.md)이나 ERD가 avatar_url 길이 cap을 명시하지
+            않아 client는 500 cap을 인지하지 못한다.
+        (c) JSON body parse(L157)에는 `http.MaxBytesReader` 미적용 — body size
+            cap도 별도 검토 필요하나 본 후보 범위 밖.
+      repro: |
+        1. docker-compose 기동, JWT 획득.
+        2. ```
+           curl -X PUT http://localhost:8080/api/creators/me \
+             -H "Authorization: Bearer $TOKEN" \
+             -H "Content-Type: application/json" \
+             -d "{\"avatar_url\":\"https://cdn.example.com/$(python3 -c 'print("A"*500)')\"}"
+           ```
+           → 응답 500 "프로필 업데이트에 실패했습니다".
+           → 서버 로그 `creator.UpdateMe: update error: pq: value too long for
+              type character varying(500)`.
+        3. 정상 길이(<=500) → 정상 200.
+      attack_surface: |
+        - 인증된 호출자만 트리거 — 보안 사고 아님. 운영 정상성·UX 결함.
+        - S3 signed URL pre-signed expiry token + tracking params 추가로 자연
+          발생 가능(악의 없는 사용자도 트리거).
+        - 5xx 응답으로 false positive 유발.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, JWT 획득.
+      2. fix 전: avatar_url=A*501 → 500 + DB 에러 재현.
+      3. fix 적용 후: 동일 호출 → 400 "아바타 URL은 500자 이내여야 합니다"
+         형식.
+      4. avatar_url=가*167 (한국어 167 rune * 3 byte = 501 byte → 167 rune은
+         500 미만이라 정상 통과, 167×3=501 byte여도 PostgreSQL cap은 rune이라
+         정상). cap 단위 일치 확인.
+      5. 회귀: avatar_url=500 boundary → 정상 200.
+      6. avatar_url=null/missing(부분 업데이트) → 기존 값 보존(L188-194 분기).
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: done
+    resolution: |
+      cycle 10 (2026-05-19): apps/api/internal/creator/handler.go UpdateMe의
+      `else` 분기(*req.AvatarURL != "")에 `utf8.RuneCountInString > 500 → 400
+      "아바타 URL은 500자 이내여야 합니다"` 추가. 빈 문자열 clear semantics와
+      avatar_url 누락 시 기존 값 보존 분기는 무영향. handler_test.go에 5건의
+      신규 unit test 추가(ASCII 501 reject, 한국어 501 reject, 500 boundary,
+      "" clear, 누락 시 보존). 실 환경 QA T1~T7 + T5a/T5b 모두 통과, DB length
+      ≤ 500 검증. PR: fix-creator-update-avatar-url-input-length-validation.
+    note: |
+      Discovery 모드 발굴 — 같은 area의 마지막 후보. Processing 모드 진입 시
+      첫 단계는 (a) creator/handler.go:188 `req.AvatarURL != nil` 분기 안에
+      `if utf8.RuneCountInString(*req.AvatarURL) > 500 { 400 }` 추가, (b)
+      메시지 형식은 L183 "닉네임은 50자를 초과할 수 없습니다"와 정렬, (c)
+      단위 테스트는 creator/handler_test.go에 cap+1/cap boundary 2 케이스.
+
+  - id: system-20260519-oauth-create-creator-no-avatar-url-truncation
+    title: "OAuth 로그인 경로가 profile.AvatarURL을 truncateNickname처럼 사전 절단하지 않아 VARCHAR(500) cap 초과 시 첫 로그인 INSERT 결정적 실패"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:111-119"   # findOrCreateWithEmail: truncateNickname OK, AvatarUrl raw
+        - "apps/api/internal/auth/service.go:143-154"   # createNewCreator: 동일 패턴
+        - "apps/api/internal/auth/service.go:292-301"   # truncateNickname 정의 (50 rune cap)
+        - "apps/api/internal/auth/service.go:303-308"   # toNullString — 절단 없음
+        - "apps/api/internal/auth/provider.go:88-94"    # Google: AvatarURL = info.Picture (raw)
+        - "apps/api/db/migrations/000001_create_creators.up.sql:7"  # avatar_url VARCHAR(500)
+      cite: |
+        (a) openspec/specs/auth/spec.md L8-10 Scenario "첫 로그인 시 계정 자동 생성"
+            — "WHEN 처음 로그인하는 유저가 OAuth 인증을 완료하면 / THEN 유저
+            계정이 자동 생성되고, 닉네임은 OAuth 프로필에서 가져온다." 계정
+            자동 생성이 SHALL인데 OAuth provider가 길이 500 초과 avatar URL을
+            반환하면 `creators` INSERT가 PostgreSQL `value too long for type
+            character varying(500)`으로 결정적 실패 → 로그인 자체가 불가능.
+        (b) 같은 service.go에 in-codebase precedent: `truncateNickname`(L292-301)이
+            `creators.nickname VARCHAR(50)` cap을 정확히 50 rune으로 절단해
+            `createNewCreator`(L144)·`findOrCreateWithEmail`(L111) 두 경로
+            모두에서 호출 중. avatar_url만 같은 패턴이 빠진 비대칭.
+        (c) 정책 정합성: decision-log 2026-05-19 cycle 10 entry "bot 경로
+            (harvester `truncateRunes`)와 달리 user-facing 경로는 reject 400
+            (사용자가 입력 수정 가능)." OAuth provider 응답은 user-input이
+            아니라 외부 시스템 데이터 — bot harvester와 같은 카테고리이므로
+            silent truncate 정책 적용이 맞다(reject 불가능: OAuth callback
+            중간에 400 띄울 곳 없음).
+        (d) Google 프로필 사진 URL은 `https://lh3.googleusercontent.com/a/...`
+            base에 size·crop·signature 파라미터(`=s96-c-rg-br100-...`)가 누적
+            되면 300~500+ chars 도달 가능. Discord는 자체 구성 형식이라 안전
+            (provider.go:165 `cdn.discordapp.com/avatars/{id}/{hash}.png`
+            ~80 chars).
+      repro: |
+        1. docker-compose 기동(api+postgres).
+        2. OAuth provider mock 또는 직접 service-level 호출로 profile.AvatarURL
+           = "https://example.com/" + strings.Repeat("A", 480) (총 500+) 전달.
+           → q.CreateCreatorFromOAuth / CreateCreatorFromOAuthOnConflict 호출
+           시 PostgreSQL `pq: value too long for type character varying(500)`.
+        3. handler.go Callback 분기에서 service 에러가 `fmt.Errorf("create
+           creator: %w", err)`로 wrap돼 callback 응답이 500/redirect-fail로
+           실패. 유저는 로그인 자체 불가.
+        4. 정상 길이(~100 chars Google URL)는 영향 없음(현재 production 통상값).
+      attack_surface: |
+        - 인증 안 된 외부 OAuth provider 응답 의존 — 자연 발생 가능. 악의적
+          공격 surface는 없음(provider가 신뢰 가능). 운영 정상성 결함.
+        - 영향 받는 유저는 로그인 자체 불가 → 사용자 손실 직결.
+        - Google 프로필 사진 URL이 향후 더 길어지면(이미 점진적 증가 추세)
+          잠재 영향 확대.
+    qa_plan: |
+      실 환경 QA:
+      1. docker-compose 기동, postgres 직접 접속(`docker compose exec postgres
+         psql -U fugue -d fugue`).
+      2. fix 전 재현: service-level 통합 테스트 또는 직접 SQL —
+         `INSERT INTO creators (nickname, avatar_url, email) VALUES ('t',
+         repeat('A', 501), 't@x.com')` → `value too long ...` 에러 확인.
+      3. fix 적용 후: 동일 SQL → `truncateAvatarURL` 미경유면 동일 에러. 그러나
+         service.go에서 호출 전 절단되므로 실제 OAuth 흐름에서는 통과.
+      4. 통합 테스트(또는 mock provider): profile.AvatarURL = 600 char URL
+         넘긴 OAuth callback flow → 200 redirect + DB row INSERT 성공 +
+         `SELECT length(avatar_url) FROM creators WHERE nickname='t'` = 500.
+      5. 회귀: AvatarURL = 100 char 정상 URL → 무손실(절단 미발동) 확인.
+      6. AvatarURL = "" → toNullString이 sql.NullString{} 반환(L304-306), DB
+         NULL 저장 정상.
+      7. 한국어 멀티바이트: 가\*501 rune URL(현실성 낮으나 cap 단위 검증) →
+         500 rune로 절단 + DB length(avatar_url) ≤ 500 byte보다 큰 1500
+         byte 저장 가능(PostgreSQL VARCHAR(N)은 rune-count cap이라 정상).
+    impact: 3
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 9.0
+    status: done
+    note: |
+      Discovery 모드 발굴 — cycles 7-10 user-facing input validation 패턴의
+      외부 ingress 짝(OAuth provider 응답 → DB VARCHAR cap). Processing 모드
+      진입 시 (a) service.go에 `truncateAvatarURL(s string) string` 추가
+      (truncateNickname 패턴 그대로, rune cap 500), (b) `findOrCreateWithEmail`
+      L114·`createNewCreator` L149 두 곳에서 `toNullString(truncateAvatarURL(
+      profile.AvatarURL))` 호출. email truncation은 RFC 5321(254) 내라 별도
+      후보. 단위 테스트: service_test.go 또는 신규 truncate_test.go에 cap+1/
+      cap/공백/한국어 멀티바이트 케이스.
+    resolution: |
+      2026-05-19 cycle 12 (Processing) 종결. 변경 요약:
+      - apps/api/internal/auth/service.go: `truncateAvatarURL(url string) string`
+        헬퍼 신설(rune cap 500, truncateNickname과 동일한 []rune slice 알고리즘).
+        `findOrCreateWithEmail` L114·`createNewCreator` L149 두 호출부에서
+        `toNullString(truncateAvatarURL(profile.AvatarURL))` 래핑 적용.
+      - apps/api/internal/auth/truncate_test.go(신규): 6 케이스(below cap/at cap/
+        above cap/멀티바이트 above cap/empty/truncateNickname 정책 parity)
+        모두 PASS.
+      - openspec/specs/auth/spec.md SSoT: "OAuth 프로필 필드 길이를 creators
+        컬럼 cap에 맞춰 절단한다" Requirement + 4 Scenario 추가.
+      - openspec/changes/fix-auth-create-creator-avatar-url-truncate/ →
+        openspec/changes/archive/2026-05-19-fix-auth-create-creator-avatar-url-truncate/
+        아카이브.
+      실 환경 QA(throwaway tool로 실 PostgreSQL 대상 6 케이스 실행):
+      T1(raw 600-char raw INSERT reject) OK / T2(600→500 truncated INSERT 성공)
+      OK / T3(500 boundary 무손실) OK / T4(80-char 정상 보존) OK / T5(가×500 rune
+      = 1500 byte 정상 저장) OK / T6(empty → NULL) OK. 인접 엔드포인트(health,
+      providers, login) 회귀 없음. PR & main merge: cycle 12 종료 시 등록.

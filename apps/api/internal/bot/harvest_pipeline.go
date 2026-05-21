@@ -28,7 +28,15 @@ import (
 	"github.com/sqlc-dev/pqtype"
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 )
+
+// maxMediaStreamBytes caps the streamed body size for non-image media in
+// downloadAndUpload. storage.Upload only validates the declared `size` arg;
+// without this cap a server that lies about Content-Length could stream
+// unbounded bytes. 200 MiB is 2x the storage.maxBytes[MediaVideo] ceiling so
+// legitimate uploads have headroom while malicious responses are cut off.
+const maxMediaStreamBytes int64 = 200 << 20
 
 // imageCacheMaxBytesEnv is the environment variable name used to override
 // the default primary image cache size threshold (Decision 5).
@@ -141,9 +149,13 @@ func NewHarvestPipeline(db BotDB, storage Storage, opts ...HarvestPipelineOption
 		}
 	}
 	p := &HarvestPipeline{
-		db:                 db,
-		storage:            storage,
-		client:             &http.Client{},
+		db:      db,
+		storage: storage,
+		client: httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: 5 * time.Second,
+			TotalTimeout:   60 * time.Second,
+			MaxRedirects:   5,
+		}),
 		imageCacheMaxBytes: maxBytes,
 		imageCacheTTLDays:  ttlDays,
 		imageCacheEnabled:  true,
@@ -388,9 +400,13 @@ func (p *HarvestPipeline) downloadAndUpload(ctx context.Context, mediaURL string
 	ext := extensionFromURL(mediaURL)
 	filename := fmt.Sprintf("bot/%s%s", uuid.New().String(), ext)
 
-	// Upload; pass Content-Length if available, -1 otherwise
+	// Upload; pass Content-Length if available, -1 otherwise. Wrap the body
+	// in a LimitReader so a server that lies about Content-Length cannot
+	// stream unbounded bytes into storage (storage.Upload only checks the
+	// declared `size` arg).
 	size := resp.ContentLength
-	uploadedURL, err := p.storage.Upload(ctx, filename, contentType, size, resp.Body)
+	body := io.LimitReader(resp.Body, maxMediaStreamBytes)
+	uploadedURL, err := p.storage.Upload(ctx, filename, contentType, size, body)
 	if err != nil {
 		return "", fmt.Errorf("upload media: %w", err)
 	}

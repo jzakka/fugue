@@ -15,10 +15,11 @@
 
 매 사이클 시작 시 가장 먼저 실행한다. 이 단계를 건너뛰면 stale한 `prompts/loop-system.md`를 읽어 이후 절차(특히 step 8 커밋+PR / step 9 머지)를 통째로 빠뜨릴 수 있다.
 
+이 디렉터리는 git worktree다. 부모 체크아웃이 `main`을 점유하므로 워크트리에서 `main`을 체크아웃할 수 없다. 모든 사이클은 워크트리 브랜치 위에서만 진행한다.
+
 1. `git diff --quiet && git diff --cached --quiet`로 worktree clean 여부 확인. uncommitted 변경이 있으면 직전 사이클이 step 8을 완수하지 못한 것이므로 즉시 사이클 종료(사용자가 정리하도록 둔다).
-2. `git fetch origin main`으로 원격 최신 ref 수신.
-3. `git merge --ff-only origin/main`으로 worktree 브랜치를 fast-forward. ff-only가 실패하면(worktree 브랜치가 origin/main과 분기됨) 즉시 사이클 종료.
-4. sync 결과 `prompts/loop-system.md`가 변경됐다면 이 파일을 다시 Read 하고 변경된 내용을 이 사이클의 지시로 삼는다.
+2. `git fetch origin main`으로 원격 최신 ref 수신. 브랜치 상태와 origin/main의 ff 관계는 검사하지 않는다(step 1에서 origin/main 기준으로 새 브랜치를 강제 생성하므로 stale 위험이 자동 해소된다).
+3. sync 결과 `prompts/loop-system.md`가 변경됐다면 이 파일을 다시 Read 하고 변경된 내용을 이 사이클의 지시로 삼는다.
 
 ## 사이클 시작 전 필수 읽기
 
@@ -67,7 +68,7 @@
 ### 1. 선택과 브랜치
 - `score` 최고 `pending` 항목. 동점 시 `impact` ↑, `effort` ↓.
 - `in_progress` 표시, 백로그 저장.
-- `git checkout -b loop-system/<id>`.
+- `git checkout -B loop-system/<id> origin/main` — origin/main을 기준으로 워크트리 브랜치를 **강제 재생성**한다. 직전 사이클의 squash-merge 후 잔존하는 stale 커밋이 있더라도 origin/main 시점으로 리셋되며, 그 작업은 이미 main에 보존되어 있으므로 잃을 변경은 없다. clean 가정은 step 0 §1에서 보장된다.
 
 ### 2. 제안 (`/opsx:propose`)
 - `evidence`, 인용 문서/스펙, 변경 범위, 회귀/마이그레이션 위험, 롤백 절차, `qa_plan` 포함.
@@ -127,8 +128,7 @@
 - `/opsx:archive`.
 - 항목 `done`.
 - `.fugue/decision-log.md`에 1~3줄 (무엇을 왜 바꿨는지, QA로 무엇을 확인했는지, PR 번호).
-- `git checkout main && git pull`.
-- 사이클 종료.
+- 사이클 종료. 워크트리는 머지된 feature 브랜치 상태로 남겨 둔다 — 다음 사이클 step 1이 `git checkout -B ... origin/main`으로 origin/main 기준 강제 재생성한다.
 
 ## 사용자 의도 침범 방지 (3중 안전장치)
 
