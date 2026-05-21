@@ -282,7 +282,11 @@ function BoardSelectModal({
         {/* Board List */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1">
           {loading ? (
-            <div className="flex justify-center py-8">
+            <div
+              role="status"
+              aria-label="보드 목록 로딩 중"
+              className="flex justify-center py-8"
+            >
               <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : boards.length === 0 && !showCreate ? (
