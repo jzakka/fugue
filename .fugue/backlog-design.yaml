@@ -1229,4 +1229,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 77
+    note: "2026-05-21 PR #77 (bfd1ab4) — SearchBar.tsx:181 className 끝 `shadow-2xl` 1 utility 제거(diff +1 -1). 변경 후 `apps/web/src/` 내 Tailwind built-in shadow utility(shadow-2xl/xl/lg/md) 매칭 0건 — 단일 outlier 패턴 해소. 인접 8개 elevated rounded-[16px] surface 와 패턴 정렬: bg-surface-elevated + border border-border + rounded-[16px] 만으로 elevation 표현. DESIGN.md L11/L12 'Minimal decoration' + L60 (--shadow-card-hover 만 정의, card hover 전용) 정합. 다른 className(absolute top-full left-0 right-0 mt-2 / bg-surface-elevated / border border-border / rounded-[16px] / overflow-hidden / z-[60]) 모두 유지 → 분리 시각 보존."
