@@ -2542,3 +2542,126 @@ items:
       anti-pattern 매칭 없음 — silent-swallow 가시화 시리즈는 cycle C 이래
       정착된 명시적 허용 패턴 (L20 inframatch 와 무관).
 
+  - id: system-20260521-search-q-no-length-cap
+    title: "/api/search 의 q 파라미터 길이 상한 없음 — 미인증·미rate-limit 엔드포인트가 unbounded q 를 pg_trgm similarity($1) 와 ILIKE '%' || $1 || '%' 에 그대로 흘려보내는 DoS 표면. 같은 핸들러 안에 빈/공백/type/태그-수/태그-UUID 검증은 모두 400 으로 잡으면서 q 길이만 누락"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/search/handler.go:66-71"   # q := TrimSpace; if q == "" → 400 — 길이 상한 없음
+        - "apps/api/internal/search/handler.go:73-111"  # type / limit / offset / tag_ids 검증은 모두 상한·형식 체크 후 400
+        - "apps/api/internal/search/handler.go:113"     # useSimilarity = utf8.RuneCountInString(q) > 2 — 하한만 있고 상한 없음
+        - "apps/api/internal/search/handler.go:203-237" # searchPins → SearchPinsBySimilarity / SearchPinsByILIKE 로 직행
+        - "apps/api/db/queries/search.sql:1-21"         # similarity(p.title, $1) > 0.1 + ORDER BY score — unbounded $1 의 trigram 추출 O(n) + per-row 비교
+        - "apps/api/db/queries/search.sql:23-38"        # p.title ILIKE '%' || $1 || '%' — pattern length 이 매칭 비용을 amplify
+        - "apps/api/cmd/server/main.go:130"             # r.Get("/api/search", ...) — JWTMiddleware 없음, rate limiter 없음
+        - "apps/api/internal/search/handler_test.go:10-74" # 같은 파일에 빈/공백/invalid type/>5 tags/invalid UUID 400 컨벤션 정립
+        - "apps/api/internal/creator/handler.go:182-185"   # nickname 50 rune cap → 400
+        - "apps/api/internal/creator/handler.go:192-195"   # avatar_url 500 rune cap → 400
+        - ".fugue/decision-log.md"                          # cycle Q (PR #144) — pins.media_url(500) 사전 차단 — VARCHAR 상한 = 보안/DoS 가드 컨벤션
+      quote: |
+        L67: `q := strings.TrimSpace(r.URL.Query().Get("q"))`
+        L68-71: `if q == "" { writeError(w, 400, "검색어를 입력해주세요"); return }`
+        — 빈 query 만 reject. q 길이 상한 검사 없음.
+        L113: `useSimilarity := utf8.RuneCountInString(q) > 2`
+              하한(>2) 만 검사. 상한 없음.
+        L130(main.go): `r.Get("/api/search", searchHandler.Search)`
+              — JWTMiddleware 없음, rate limiter 없음.
+        search.sql:8: `similarity(p.title, $1)` — pg_trgm 은 $1 의
+              trigram 을 추출(O(len($1))) 후 모든 pin 행과 비교.
+        search.sql:32: `p.title ILIKE '%' || $1 || '%'` — pattern length 가
+              postgres 의 LIKE 매칭 비용을 직접 amplify (LIKE 가 GIN
+              인덱스를 못 타면 full scan).
+      reasoning: |
+        같은 파일 handler_test.go 의 5 sub-test 가 입력 검증 컨벤션을 정립 —
+        empty / whitespace / invalid type / >5 tags / invalid UUID 모두 400.
+        그런데 q 길이만 무한대. q 는 (a) 미인증 (b) rate-limit 무, 두 가드
+        모두 부재인 채로 (c) pg_trgm similarity 와 ILIKE '%q%' 에 직행.
+
+        영향 모델:
+        - similarity(p.title, $1): $1 의 모든 3-char 윈도우(trigram) 를
+          추출(O(n)) 후 각 pin 의 trigram 집합과 비교. $1=100KB 면 trigram
+          ~100K 개. WHERE similarity > 0.1 + ORDER BY score 가 모든 pin
+          행에 대해 평가됨 (pg_trgm GIN 인덱스가 있어도 추출 비용은 $1 길이
+          비례).
+        - ILIKE '%' || $1 || '%': pattern length 가 길수록 매칭 cost 증가.
+          또한 100KB 패턴은 네트워크/parse 비용도 흡수.
+        - searchType=all (기본값) 이면 pins + creators + boards 3건 모두
+          $1 으로 트리거 → 3배 amplification.
+        - skipTopTags=false 분기(L134) 에서 추가로 limit=100 의 searchPins
+          를 한번 더 실행 → top_tags 보강 위해 4번째 쿼리.
+        결과: 단일 미인증 요청이 unbounded $1 로 PostgreSQL 4쿼리 (3 검색 +
+        1 top_tags 보강) 를 풀스트레치. 동시 N requests = N×4 슬로우 쿼리.
+
+        프로젝트 내 string 입력 cap 컨벤션:
+        - creators.nickname 50 rune (handler L182)
+        - creators.avatar_url 500 rune (handler L192)
+        - pins.title 200 rune (cycle 8 PR #50)
+        - pins.media_url 500 rune (cycle Q PR #144)
+        모두 사전 검증으로 400 반환. q 는 검색 대상(pins.title 200 rune)
+        보다 길 이유가 없음 — 200 rune 이 가장 보수적이고 spec-grounded 한
+        상한 (pins.title cap 과 정렬).
+
+        보수의 정의(§5): (a) 기존 동작 보존: ≤200 rune 쿼리는 영향 0.
+        (b) 외부 API 비변경: 400 추가만, 200 응답 형태 동일. (c) 롤백
+        가능: helper 한 줄. (d) 영향 최소: 한 줄 가드.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. T1 happy(짧은 쿼리 - 회귀 무영향):
+         (a) `curl -i 'http://localhost:8080/api/search?q=test&limit=5'`
+             → 200 + JSON body 에 pins/creators/boards/top_tags 키 4개
+         (b) `curl -i 'http://localhost:8080/api/search?q=test&type=pins&limit=5'`
+             → 200 + pins + top_tags + has_more
+         (c) `curl -i 'http://localhost:8080/api/search?q=음악&limit=5'`
+             → 200 (한국어 multi-byte rune ≤200 통과)
+      4. T2 fail(상한 초과 → 400):
+         (a) `Q=$(python3 -c "print('x'*201)") && curl -i "http://localhost:8080/api/search?q=$Q"`
+             → 400 + {"error":"검색어는 200자 이내여야 합니다"} (또는 동등 메시지)
+         (b) `Q=$(python3 -c "print('가'*201)") && curl -i ...` → 400 (한국어
+             rune 카운트 정확성 — UTF-8 바이트가 아닌 rune 으로 카운트)
+         (c) `Q=$(python3 -c "print('x'*100000)") && curl -i ...` → 400
+             (대형 페이로드 사전 차단 — DB 안 가는 것을 응답 시간 < 50ms 로 확인)
+      5. T3 경계(정확히 200 rune):
+         (a) `Q=$(python3 -c "print('x'*200)") && curl -i ...` → 200
+             (경계 inclusive — pins.title cap 과 동일 시멘틱)
+         (b) `Q=$(python3 -c "print('가'*200)") && curl -i ...` → 200
+      6. 회귀:
+         (a) `GET /api/search?q=` → 400 ("검색어를 입력해주세요" 유지)
+         (b) `GET /api/search?q=test&type=invalid` → 400 (type 검증 유지)
+         (c) `GET /api/search?q=test&tag_ids=...x6` → 400 (>5 tags 유지)
+         (d) `GET /api/pins` (no auth) → 401 (인접 라우트 무영향)
+      7. 단위 테스트:
+         (a) `TestSearch_QueryTooLong` (201 rune → 400)
+         (b) `TestSearch_QueryAtMaxLength` (200 rune → 200, DB stub 사용)
+         (c) `TestSearch_QueryKoreanRuneCount` (한국어 rune 카운트 정확성)
+         (d) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+    note: |
+      Discovery 모드 발굴 — 영역: 보안(입력 검증 누락). cycle C/F/G/I/K/L/M/S
+      silent-swallow 시리즈와는 별개 — 새 영역(미인증·미rate-limit 엔드포인트
+      의 unbounded 입력 → DB 부하 amplification).
+
+      Processing 모드 진입 시 첫 단계 (잠정):
+        (a) `handler.go:67-71` 의 빈 검사 직후에 `if utf8.RuneCountInString(q)
+            > 200 { writeError(w, http.StatusBadRequest, "검색어는 200자
+            이내여야 합니다"); return }` 추가. cap 200 의 근거: pins.title
+            VARCHAR(200) cap 과 정렬 (검색 대상 컬럼의 상한과 일치 → 가장
+            보수적이고 spec-grounded). 한국어 rune 카운트 = pins.media_url
+            cap (cycle Q) 과 동일 unit.
+        (b) 6-8줄 doc 주석 — 컨벤션 인용(creator.nickname 50, avatar_url 500,
+            pins.title 200, pins.media_url 500) + DoS 표면 명시 (미인증·
+            미rate-limit + pg_trgm $1 trigram 추출 + ILIKE pattern length).
+        (c) `handler_test.go` 에 3 sub-test 추가 — TestSearch_QueryTooLong (201
+            rune), TestSearch_QueryAtMaxLength (200 rune, DB 의존 없는 q-only
+            검증), TestSearch_QueryKoreanRuneCount (한국어 200 rune → 200,
+            201 → 400). 기존 5 sub-test 패턴(handler 의 q-only check 라 DB
+            mock 불요) 미러.
+        (d) 실 환경 QA 는 위 qa_plan 7단계 수행.
+
+      anti-pattern 매칭 없음 — DoS 입력 검증은 신규 영역. 인프라 anti-pattern
+      (L15) 과 무관 (apps/api 핸들러 코드 단일 라인 가드).
