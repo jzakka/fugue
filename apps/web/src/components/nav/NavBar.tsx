@@ -35,11 +35,15 @@ export default async function NavBar() {
               </Link>
               <ThemeToggle />
               <div className="flex items-center gap-3">
-                <Link href="/mypage" className="flex items-center gap-2">
+                <Link
+                  href="/mypage"
+                  aria-label={user.nickname}
+                  className="flex items-center gap-2"
+                >
                   {user.avatar_url ? (
                     <img
                       src={user.avatar_url}
-                      alt={user.nickname}
+                      alt=""
                       className="w-9 h-9 rounded-full border-2 border-border object-cover"
                     />
                   ) : (

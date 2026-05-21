@@ -1160,3 +1160,21 @@ items:
     pr: 65
     note: "2026-05-21 PR #65 — globals.css L102 다음에 `@media (prefers-reduced-motion: reduce) { .skeleton-shimmer .bg-surface-elevated { animation: none; } }` 1 블록 추가(diff +6 -0). W3C CSS Media Queries Level 5 § 11.1 prefers-reduced-motion · MDN best practice 적용. DESIGN.md L89 'Motion · Minimal-functional' 정신과 정렬. animation 만 비활성 — background-image/size/repeat 정적 그라디언트 보존 → skeleton 시각 형태 그대로. CardSkeleton/ProfileSkeleton 두 사용처 동시 cover. 일반 모드(prefers-reduced-motion: no-preference) 회귀 0, 다른 animation 선언 0(코드베이스 grep `animation:` 단일 매칭 확인). animate-spin 13곳은 essential progress indication 으로 본 변경 범위 밖. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — CSS 단일 @media 블록 단위라 코드 검증으로 대체."
 
+  - id: "design-20260521-navbar-mypage-link-accessible-name"
+    title: "NavBar 마이페이지 Link 의 mobile/fallback 시 접근 이름 부재 — WCAG 2.4.4 Link Purpose Level A"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:38-51"
+      cite: "WCAG 2.1 SC 2.4.4 Link Purpose (In Context) Level A — 'The purpose of each link can be determined from the link text alone.' WAI-ARIA naming hierarchy: aria-label > visible text > img alt. PR #31 (decision-log 2026-05-19) 'NavBar.tsx L42는 visible nickname span이 hidden sm:block이라 모바일에서 alt가 유일한 Link 접근 이름 — 본 변경 범위 밖(별도 cycle에서 Link aria-label 추가 패턴 필요)' 명시적 follow-up."
+      repro: "1) Chrome DevTools → Toggle Device Toolbar → iPhone SE (375px width). 2) 로그인 상태로 / 접속 → NavBar 우측 영역 → 아바타 Link 가 nickname span 을 hidden 처리하여 visible text 0. 3) 현재 상태: avatar_url 있을 때 img alt={nickname} 이 Link 접근 이름으로 노출(SR 'nickname, link')되지만, avatar_url 없을 때(L46 fallback div)는 visible text·img·aria-label 모두 부재 → SR 'link' 만 안내(WCAG 2.4.4 위반). 4) 처리: Link L38 에 `aria-label={user.nickname}` 추가 + L42 img alt 를 `{user.nickname}` → `\"\"` 로 변경(PR #31 의 'decorative + 인접 visible text' 패턴 정렬). aria-label 이 SR 우선이므로 desktop/mobile · img/fallback div 4 조합 모두 'nickname, link' 안내 통일."
+    qa_plan: "1) cd apps/web && npm run dev. 2) DevTools Accessibility tree 로 Link 노드의 'Name' 이 nickname 으로 노출되는지 확인. 3) img alt 가 '' 로 빈 문자열 되었는지 확인(decorative image 정렬). 4) Toggle Device Toolbar → 375px width → nickname span hidden 상태에서도 SR 접근 이름 보존 확인. 5) avatar_url=null 상태(fallback div, L46) 시뮬레이션 → aria-label 만으로 접근 이름 노출 확인. 6) 인접 회귀: 로그인 Link(L58)·Logo Link(L14) 접근 이름 미변경 확인."
+    impact: 3
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 9.0
+    status: done
+    pr: TBD
+    note: "2026-05-21 PR #TBD — NavBar.tsx 마이페이지 Link 에 `aria-label={user.nickname}` 추가(L40) + img alt `{user.nickname}` → `\"\"` 변경(L46). diff +5 -3(Link 단일 라인 → 멀티라인 prop 분리 + 1 attribute 추가 + 1 attribute 값 변경). WCAG 2.1 SC 2.4.4 Link Purpose (In Context) Level A 정렬. PR #31 decision-log 'NavBar.tsx L42 ... 별도 cycle에서 Link aria-label 추가 패턴 필요' follow-up 종결. WAI-ARIA naming hierarchy 로 aria-label 이 SR 우선 → desktop(visible nickname span sm:block)·mobile(nickname hidden)·avatar img·fallback div 4 조합 모두 'nickname, link' 안내 통일. img alt=\"\" 는 PR #31 의 3개 아바타 img(ProfileHeader/SearchClient/pins/[id]) 패턴과 정렬 — 인접 텍스트(aria-label 의 nickname)가 동일 정보 제공 → 장식 이미지. 시각 회귀 0(className · src · 컨테이너 미수정). 인접 Link(Logo L14, 핀 생성 L30-35, 로그인 L58) 접근 이름 미변경. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — JSX 단일 컴포넌트 2 attribute 변경 단위라 코드 검증으로 대체."
+
