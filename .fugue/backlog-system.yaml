@@ -1822,7 +1822,15 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: pending
+    status: done
+    pr: 81
+    qa_note: |
+      PR #81 (2026-05-21 cycle F). 실 환경 QA: T1 happy(204 + status=rotated TTL≈10s + 0 log lines)
+      + T3 grace branch(2회차 refresh 204) 통과. 회귀: /api/auth/logout 200 (cycle C Del+SRem 무영향),
+      /api/auth/me 200, OAuth callback 302. T2/T2b 단위 실패 주입은 cleanup 이전 Get 단계에서 먼저
+      fail되어 cleanup 경로 미도달 — happy-path 단위 테스트(rotate_refresh_test.go) +
+      cycle C 패턴 동일성 코드 인스펙션으로 대체. mid-function failure injection 위한 테스트 seam은
+      이 사이클의 additive-logging 범위 초과.
 
   - id: system-20260521-auth-ratelimit-redis-fail-open-silent-no-log
     title: "auth.RateLimiter Redis 명령 실패 시 fail-open 처리하지만 로그 0건 — Redis outage 동안 rate-limit bypass 윈도우를 운영자가 감지 불가"
