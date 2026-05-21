@@ -1680,3 +1680,59 @@ items:
       (T3) trigger 전면 제거 정상 경로 → 201 Created + 로그 무출력 + pin/pin_tags 정상
       생성. 인접 GET /api/pins/{id} 회귀 200. 단위 테스트 522/522 pass. PR (#TBD)
       squash merge.
+
+  - id: system-20260521-auth-logout-revoke-redis-del-silent-failure
+    title: "POST /api/auth/logout의 RevokeRefreshToken이 Redis DEL/SREM 결과를 받지 않아 Redis 실패 시 refresh token이 status=active로 잔존한 채 200 OK 응답"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/auth/handler.go:170-197"  # Logout 핸들러: revoke 호출 후 무조건 200 OK
+        - "apps/api/internal/auth/service.go:265-277"  # RevokeRefreshToken — 시그니처 void, Redis 결과 무검사
+        - "apps/api/internal/auth/service.go:176-192"  # StoreRefreshToken — rt:JTI 키에 status=active를 7일 TTL로 저장
+        - "apps/api/internal/auth/service.go:194-263"  # RotateRefreshToken — Redis Get(rt:JTI)으로 status 확인 후 회전
+      cite: |
+        (a) `handler.go:170-197` Logout:
+              func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+                  if cookie, err := r.Cookie("fugue_refresh"); err == nil {
+                      h.service.RevokeRefreshToken(r.Context(), cookie.Value)
+                  }
+                  // ...쿠키 만료 + LogAuthEvent + 200 OK...
+              }
+            RevokeRefreshToken 시그니처가 `(ctx, refreshTokenString)` 단방향(error 없음)이라 호출자는 실패 여부를 알 길이 없다. 핸들러는 무조건 `w.WriteHeader(http.StatusOK)`.
+        (b) `service.go:265-277` RevokeRefreshToken:
+              func (s *Service) RevokeRefreshToken(ctx context.Context, refreshTokenString string) {
+                  claims, err := s.jwtSvc.ValidateToken(refreshTokenString)
+                  if err != nil { return }
+                  if claims.ID != "" {
+                      s.rdb.Del(ctx, rtPrefix+claims.ID)
+                      if sub := claims.Subject; sub != "" {
+                          s.rdb.SRem(ctx, rtIdxPrefix+sub, claims.ID)
+                      }
+                  }
+              }
+            `s.rdb.Del(...)`와 `s.rdb.SRem(...)`은 `*redis.IntCmd`를 반환하지만 `.Err()` 검사 없이 그대로 폐기. Redis가 다운·네트워크 단절·MEMORY/MISCONF 상태면 DEL/SREM 둘 다 silent failure.
+        (c) `service.go:176-192` StoreRefreshToken은 `rt:{JTI}` 키에 `{"creator_id":..., "status":"active"}`를 7일 TTL로 저장. `service.go:194-263` RotateRefreshToken은 RT 검증 시 Redis에서 키를 GET해 status가 "active" 또는 "rotated"면 회전 허용.
+        (d) 따라서 logout 시 Redis DEL이 실패하면 `rt:JTI` 키가 7일간 status=active로 잔존 → 로그아웃 직전·도중 RT를 탈취한 공격자는 사용자가 "로그아웃됨"으로 알고 있는 동안에도 그 RT로 무한 회전 가능. 사용자 측은 200 OK + 쿠키 만료만 보아 로그아웃이 완료된 것으로 신뢰. 운영자에게도 timestamped 단서 0건.
+        (e) 인접 동일 영역의 다른 silent-swallow(RotateRefreshToken grace mark Set L256, RevokeAllTokens Del L287-289)는 별도 후보로 분리. 본 항목은 Logout 핸들러의 명시적 사용자 액션 한 경로로 한정.
+      repro: |
+        1. docker-compose up -d && go run cmd/server/main.go.
+        2. OAuth 로그인 → fugue_refresh 쿠키 획득 → `redis-cli get "rt:{JTI}"`로 status=active 확인.
+        3. `docker compose stop redis` 또는 `redis-cli ACL SETUSER default off`로 Redis DEL을 강제 실패시킨다.
+        4. `curl -X POST -b fugue_refresh=... /api/auth/logout` → 200 OK 응답.
+        5. `docker compose start redis`(또는 ACL 복구) 후 `redis-cli get "rt:{JTI}"` → 키가 여전히 status=active로 존재 → revoke 실패 silent.
+        6. 같은 RT로 `curl -X POST -b fugue_refresh=... /api/auth/refresh` 시도 → 204 NoContent + 새 토큰 발행 → 로그아웃 후에도 회전 가능 입증.
+      qa_plan: |
+        실 환경 QA(처리 모드 step 7에서 수행):
+        1. fix 적용 후 단위 테스트: `redis.Client`를 mock하여 Del→error / SRem→error를 강제 주입하고 RevokeRefreshToken 호출 시 `log.Printf("auth.Logout: revoke Del error: ...")` / `"... SRem error: ..."`가 출력되는지 capture로 assertion. 정상 경로(Del/SRem 모두 성공)는 신규 로그 무출력.
+        2. 실 환경 reproduction:
+           (T1 정상) docker-compose Redis 정상 → JWT로 RT 발급 → /api/auth/logout 호출 → 200 OK + 신규 로그 무출력 + `redis-cli get rt:{JTI}` → nil 확인.
+           (T2 Redis DEL 실패) Logout 시점 직전 `docker compose pause redis` → /api/auth/logout 호출 → 200 OK + 로그 `auth.Logout: revoke Del error: ...` 출력 + `docker compose unpause redis` 후 `redis-cli get rt:{JTI}` → 키 잔존 확인(현 결함 그대로 — fix는 운영자 가시화만, revoke 실패 자체는 best-effort 정책 유지).
+           (T2b SREM 실패) DEL은 통과시키고 SREM만 실패시키는 시뮬레이션(예: ACL로 SREM 명령만 차단) → 로그 `auth.Logout: revoke SRem error: ...` 출력.
+        3. 회귀 가드: /api/auth/refresh 호출 → 정상 회전 204 NoContent + 새 토큰 발급 + `rt:{old JTI}` status=rotated grace 10s 확인(별도 분기, 본 변경 무영향).
+        4. 인접 회귀: /api/auth/me, /api/auth/login(provider 리다이렉트), /api/auth/{provider}/callback 모두 200/302 정상.
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
