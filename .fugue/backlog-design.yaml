@@ -1548,7 +1548,9 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: pending
+    status: done
+    pr: 139
+    note: "2026-05-21 PR #139 — MyPageClient.tsx 단일 파일 3 className 변경(diff +3 -3): L72 '+ 새 보드' 토글 button `hover:bg-accent-hover` 뒤에 `focus-visible:bg-accent-hover` 1 utility + L108 '생성' button 동일 패턴 `focus-visible:bg-accent-hover` 1 utility + L118 '취소' button `hover:text-text-primary` 뒤에 `focus-visible:text-text-primary` 1 utility 삽입. /mypage BoardSection(MyPageClient L184 마운트) 의 보드 생성 흐름 — 인증 사용자 자기 보드 신규 생성 핵심 경로. 키보드 Tab 포커스 도달 시 hover 와 동일한 시각(새 보드/생성 bg-accent-hover, 취소 text-text-primary) 미러링. 같은 파일 L134 BoardCover Link 는 이미 `focus-visible:-translate-y-0.5 focus-visible:outline-none` 적용되어 있음 — BoardSection 의 3 button 만 별개 갭이었음. in-codebase focus-visible 21 파일 라인업 → 22 파일로 확장. NavBar L32 핀 생성 Link · BoardActions L93 저장 · AddToBoardButton L365 생성 · PinCreateForm L630 등록하기 · ProfileEditForm L117 저장과 동일 패턴(`bg-accent text-white hover:bg-accent-hover focus-visible:bg-accent-hover`). JSX 구조 · onClick(setShowCreate/handleCreate/setShowCreate+reset) · disabled(creating) · showCreate 분기 · loadBoards · handleCreate · setNewBoardName · setError 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #137(ProfileEditForm) · PR #135(PinCreateForm) · PR #134(Discovery) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 3 className 변경 단위라 코드 검증(grep `focus-visible:` MyPageClient L72·L108·L118·L134 4 매칭 + 인접 utility/JSX/handleCreate 본체 미변경 확인)으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-pin-detail-original-link-focus-visible-missing"
     title: "PinDetail 페이지(/pins/[id]) 의 '원본 보기' 외부 anchor(L218-239) 가 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 핀 상세 외부 작품 이동 컨트롤의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
