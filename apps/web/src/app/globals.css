@@ -101,6 +101,12 @@ body {
   animation: shimmer 1.5s linear infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer .bg-surface-elevated {
+    animation: none;
+  }
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
