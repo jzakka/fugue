@@ -1383,3 +1383,52 @@ items:
     status: done
     pr: 113
     note: "2026-05-21 PR #113 — AddToBoardButton.tsx BoardSelectModal 내부 5 button className 의 hover utility 각각에 미러링되는 focus-visible utility 5종 삽입(diff +5 -5, 단일 파일 5 className 변경): L249 닫기 X 에 `focus-visible:bg-surface-hover` + `focus-visible:text-text-primary` · L296 보드 list 에 `focus-visible:bg-surface-hover` · L365 생성 에 `focus-visible:bg-accent-hover` · L374 취소 에 `focus-visible:text-text-primary` · L384 새 보드 만들기 에 `focus-visible:text-text-primary` + `focus-visible:border-accent`. 키보드 Tab/Shift+Tab 포커스 트랩(L139-163) 안에서 컨트롤간 이동 시 hover 와 동일한 시각 미러링. in-codebase focus-visible 12 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton L30+L42 PR #109) → 13 파일로 라인업 내부 확장(같은 파일 trigger + modal). 함수 컴포넌트(BoardSelectModal) · panelRef · role=dialog/aria-modal/aria-labelledby · Tab focus trap · Escape · loadBoards · handleSelectBoard · handleCreateAndAdd · showCreate 분기 · feedback 분기 · EmptyState 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. 머지 절차에서 BEHIND 발생 — `git fetch origin main && git rebase origin/main && git push -f` 자동 회복 후 재머지 성공(§자체 회복 §3 절차). decision-log 2026-05-21 PR #109(AddToBoardButton trigger note 'BoardSelectModal 내부 button 별도 후보' 명시) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 5 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-logout-button-focus-visible-missing"
+    title: "LogoutButton 의 button(L27)이 `hover:text-text-primary` 만 적용되고 `focus-visible:` 규칙 부재 — NavBar 글로벌 nav 의 인증 사용자 로그아웃 컨트롤 키보드 포커스 가시화 누락(in-codebase focus-visible 13 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/auth/LogoutButton.tsx:24-30"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' LogoutButton.tsx:27 button className `text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(text-text-primary #E8E8E8) 미러링 0 → native browser outline 만. NavBar.tsx 의 sticky top-0 글로벌 nav 안에 인증 사용자 시 렌더되는 핵심 컨트롤(NavBar L56 import). NavBar L32 핀 생성 Link · L64 로그인 Link 두 컨트롤은 PR #96 에서 focus-visible 추가되었으나 같은 NavBar 안 LogoutButton 은 별개 컴포넌트라 누락. in-codebase focus-visible 13 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64 · ProfileHeader L39 · LoginButtons L73 · AddToBoardButton L30+L42+L249+L296+L365+L374+L384 PR #109/#113) 의 'hover 와 focus-visible 시각 동일 미러링' 표준 패턴과 비대칭. decision-log 2026-05-21 PR #113(BoardSelectModal 모달 컨트롤) · PR #109(AddToBoardButton trigger) · PR #96(NavBar 핀 생성·로그인 Link) · PR #91(ThemeToggle) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 NavBar 의 LogoutButton 확인. 3) 마우스 hover → text-text-primary #E8E8E8 적용 확인. 4) Tab 으로 button 에 포커스 → text-text-muted #888888 유지(hover 시각 미적용) + native outline 만. 5) 처리: L27 className `hover:text-text-primary` 뒤에 ` focus-visible:text-text-primary` 1 utility 삽입(diff +1 -1, 단일 className 변경). JSX 구조 · onClick(handleLogout) · disabled · 자식 텍스트 분기(로그아웃 중.../재시도/로그아웃) · useState · useCallback 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 NavBar 의 LogoutButton 렌더 확인. Tab 으로 button 에 포커스 → text-text-primary 적용 확인. Enter/Space 로 handleLogout 동작 정상(POST /api/auth/logout 후 /login 리다이렉트). 3) 마우스 hover 효과 동일 확인 — 시각 회귀 0(hover/focus-visible 동일 미러링). 4) disabled(loading) 상태 시 disabled:opacity-50 적용 확인. 5) error 상태 시 자식 텍스트 '재시도' 분기 동작 확인. 6) 인접 회귀: NavBar 의 ThemeToggle(L36) · 핀 생성 Link(L32) · 마이페이지 Link(L40) · 로고 Link(L14) · SearchBar(L24) 무변경. 7) light mode 동일 확인(--color-text-primary 토큰 단일 값 유지)."
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+
+  - id: "design-20260521-a11y-load-more-pins-focus-visible-missing"
+    title: "LoadMorePins 의 '더보기' button(L41-47)이 `hover:text-text-primary hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 보드 상세 페이지 페이지네이션 컨트롤 키보드 포커스 가시화 누락(in-codebase focus-visible 13 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/LoadMorePins.tsx:41-47"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' LoadMorePins.tsx:44 '더보기' button className `px-6 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors disabled:opacity-50 cursor-pointer` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(text-text-primary + border-accent) 미러링 0 → native browser outline 만. 보드 상세 페이지(/boards/[id])의 페이지네이션 컨트롤로 보드 안 핀 수 ≥21 일 때 항상 렌더. in-codebase focus-visible 13 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) · PR #105(LoginButtons) · PR #100(ProfileHeader) · PR #96(NavBar) follow-up. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) 핀 수 ≥21 인 보드의 /boards/[id] 진입 → '더보기' button 렌더 확인. 3) 마우스 hover → text-text-primary + border-accent 적용 확인. 4) Tab 으로 button 에 포커스 → text-text-muted + border-border 유지(hover 시각 미적용) + native outline 만. 5) 처리: L44 className `hover:text-text-primary hover:border-accent` 뒤에 ` focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). JSX 구조 · onClick(loadMore) · disabled · loading 분기(spinner div) · hasMore 분기 · useState · fetchBoard import 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 핀 수 ≥21 인 보드의 /boards/[id] 진입 → '더보기' button 렌더 확인. Tab 으로 button 에 포커스 → text-text-primary + border-accent 적용 확인. Enter/Space 로 loadMore 동작 정상(추가 20 핀 fetch + 페이지네이션). 3) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 4) loading 상태(disabled:opacity-50) 시각 미변경 확인. 5) hasMore=false 시 button unmount 확인(더 fetch 안 됨). 6) 인접 회귀: PinCard.tsx 렌더(L37 import) · 부모 페이지의 BoardActions/BoardCover · 보드 상세의 다른 컴포넌트 무변경. 7) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
+  - id: "design-20260521-a11y-board-actions-focus-visible-missing"
+    title: "BoardActions 의 보드 소유자 컨트롤 4 button(저장 L93 · 취소 L105 · 편집 L118 · 삭제 L124)이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 보드 상세 페이지 소유자 액션 키보드 포커스 가시화 누락(in-codebase focus-visible 13 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:90-108"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:114-128"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' BoardActions.tsx 4 button 의 className 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화 미러링 0 → native browser outline 만. (a) L93 저장 button `px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer` — `focus-visible:bg-accent-hover` 누락. (b) L105 취소 button `px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50` — `focus-visible:text-text-primary` 누락. (c) L118 편집 button `px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer` — `focus-visible:text-text-primary focus-visible:border-accent` 누락. (d) L124 삭제 button `px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-error hover:border-error transition-colors cursor-pointer` — `focus-visible:text-error focus-visible:border-error` 누락. 보드 상세 페이지(/boards/[id])의 보드 소유자 액션 컨트롤로 isOwner=true 일 때 항상 렌더. in-codebase focus-visible 13 파일 라인업 표준 패턴과 비대칭. decision-log 2026-05-21 PR #113(BoardSelectModal 모달 컨트롤) · PR #109(AddToBoardButton trigger) · PR #100(ProfileHeader 편집 button) follow-up — ProfileHeader 편집 button 과 동일 패턴(L118 편집 button 이 ProfileHeader L39 와 시각 유사). 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, JSX 구조 미수정, 단일 파일 4 className 변경)."
+      repro: "1) cd apps/web && npm run dev. 2) 자신이 소유한 보드의 /boards/[id] 진입 → BoardActions 의 편집·삭제 button(L116-128) 렌더 확인. 3) 편집 클릭 → editing=true → 저장·취소 button(L90-108) 렌더 확인. 4) 4 컨트롤 모두 마우스 hover → hover 시각 변화 확인(저장 bg-accent-hover · 취소 text-text-primary · 편집 text-text-primary+border-accent · 삭제 text-error+border-error). 5) Tab 으로 컨트롤간 이동 → hover 시각 미적용 + native outline 만. 6) 처리: 4 className 각각에 hover utility 와 미러링되는 focus-visible utility 추가(L93 `focus-visible:bg-accent-hover` + L105 `focus-visible:text-text-primary` + L118 `focus-visible:text-text-primary focus-visible:border-accent` + L124 `focus-visible:text-error focus-visible:border-error`, diff +4 -4 단일 파일 4 className 변경). JSX 구조 · onClick · disabled · editing 분기 · useRouter · updateBoard · deleteBoard · confirm() · setName/setDescription/setError · error 분기(role=alert L67) · input 영역 모두 미수정."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 자신이 소유한 보드의 /boards/[id] 진입 → 편집·삭제 button 렌더 확인. Tab 으로 편집 button 에 포커스 → text-text-primary + border-accent 적용 확인. Tab 으로 삭제 button → text-error + border-error 적용 확인. 3) Enter 로 편집 진입 → editing=true → 저장·취소 button 렌더. Tab 으로 저장 button → bg-accent-hover 적용 확인. Tab 으로 취소 button → text-text-primary 적용 확인. 4) 마우스 hover 효과 동일 확인 — 시각 회귀 0. 5) Enter 로 저장 → updateBoard fetch 동작 정상. Enter 로 취소 → editing=false 복귀. Enter 로 삭제 → confirm() 후 deleteBoard fetch · /mypage 리다이렉트. 6) 인접 회귀: error 영역(role=alert L67) · input 영역(L73-88) · 부모 페이지(/boards/[id]) 의 LoadMorePins · PinCard · BoardCover 무변경. 7) light mode 동일 확인."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
