@@ -2242,5 +2242,28 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 121
+    qa_note: |
+      PR #121 (2026-05-21 cycle M). 코드: pin/handler.go L169 의 `_ = tmpFile.Close()` 를
+      `if err := tmpFile.Close(); err != nil { log.Printf + writeError(400, "비디오 길이를
+      확인할 수 없습니다") + return }` 로 교체. 13줄 doc 주석으로 spec L205-207 인용 +
+      실패 모드(ENOSPC/EIO/NFS write-back) + L247-251 probeErr fail-closed 패턴 동일성 +
+      동일 응답 메시지(L255) 재사용 근거 명기. L164 (Copy 실패 후 정리용 Close) 는 이미
+      500 반환 경로라 추가 처리 없이 유지.
+      실 환경 QA: ffmpeg testsrc 로 5s/16s/30s mp4 3종 생성 후 access token (qatest2 sub
+      22222222-...) 으로 :8080 직접 호출.
+      T1 happy short (5s no trim) → 201 + storage URL + pins row + 0 close 로그.
+      T2 reject 16s no trim → 400 "15초 초과 비디오는 트리밍이 필요합니다" + 0 close 로그
+        (기존 SHALL 동작 보존).
+      T3 happy trim 30s 0-10s → 201 + `pin.Create: trimmed video 0.0s-10.0s, size 145488
+        -> 52773 bytes` + 0 close 로그.
+      회귀: /api/pins 200, /api/feed 200, /api/auth/providers 200.
+      DB verify: psql 직접 접속 → T1/T3 row 확인 후 DELETE 로 정리.
+      Close 실패 path 직접 단위 테스트는 `*os.File.Close()` 외부 주입 불가로 cycle I/K
+      동일 한계 인용, 이미 존재하는 TestCreate_RejectsNoTrimVideoWhenProbeDurationFails
+      가 Close=nil happy-path 회귀를 자연스럽게 통과 (533/533 pass in 23 packages).
+      `grep -rn "_ = .*\\.Close()" apps/api/internal/pin/handler.go` 잔여 4건은 모두
+      read-only reader Close (defer file/reopened/thumbFile + L164 의 Copy-error 경로
+      cleanup) 로 data-integrity 무관.
 
