@@ -1982,3 +1982,77 @@ items:
       miniredis seam 부재로 happy-path 단위 테스트(store_refresh_test.go) +
       cycle C/F/G 패턴 동일성 코드 인스펙션으로 대체. 단위 테스트 528→529 pass.
 
+  - id: system-20260521-feed-cache-set-silent-swallow
+    title: "feed.GetFeed 의 Redis Set 결과를 `_ = ... .Err()`로 명시 폐기 — Redis write 실패 시 캐시 무력화를 운영자가 감지 불가 (non-auth 패키지의 마지막 Redis silent-swallow 잔여)"
+    area: error-handling
+    evidence:
+      files:
+        - "apps/api/internal/feed/handler.go:71-129"
+        - "apps/api/internal/feed/handler.go:114-117"
+        - ".fugue/decision-log.md (2026-05-21 cycle C `RevokeRefreshToken` Del/SRem PR #70, cycle F `RotateRefreshToken` grace mark Set/SRem PR #81, cycle G `RateLimiter` fail-open PR #85, cycle I `StoreRefreshToken` Expire PR #92 — 인접 auth 패키지의 동일 silent-swallow 패턴이 모두 로깅화된 이후의 마지막 non-auth Redis 잔여)"
+        - "openspec/specs/feed/spec.md (cache 관련 SHALL/SHALL NOT 무명시 — performance-only opportunistic, in-codebase consistency 기준)"
+      cite: |
+        (a) 현재 코드 (feed/handler.go:114-117):
+              if data, err := json.Marshal(resp); err == nil {
+                  cacheKey := feedCacheKey(creatorID, limit, offset)
+                  _ = h.rdb.Set(r.Context(), cacheKey, data, 5*time.Minute).Err()
+              }
+            명시적 `_ = ... .Err()` discard. Redis 가 OOM(MAX_MEMORY+noeviction) / MISCONF /
+            네트워크 단절 / read-only replica failover 상태일 때 5분 TTL feed 캐시 적재 0건 →
+            같은 (sub, limit, offset) 요청도 매번 미스 → expensive personalized 경로 (CountUserPins +
+            GetUserTagFrequency + RecommendByTags + (조건부) RecommendByMediaType +
+            ListPinsWithCreator) 가 반복 재수행. 운영자에게 timestamped 단서 0건.
+
+        (b) Spec (openspec/specs/feed/spec.md): `cache` / `Redis` / `TTL` 키워드 0 매칭 (grep
+            확인). 캐시는 performance-only opportunistic mechanism 이므로 fail-open 의미 자체는
+            정확 — 본 항목은 spec 위반이 아닌 in-codebase observability consistency 갭.
+
+        (c) 인접 패턴: 같은 코드베이스 auth/service.go RevokeRefreshToken Del/SRem(cycle C
+            PR #70), RotateRefreshToken grace mark Set/SRem(cycle F PR #81), auth/ratelimit.go
+            fail-open(cycle G PR #85), auth/service.go StoreRefreshToken Expire(cycle I PR #92)
+            가 모두 `.Err()` capture + `log.Printf("<pkg>.<func>: <op> error: %v (key=...)")`
+            패턴으로 가시화됨. feed/handler.go L116 만 같은 패턴 적용 외 — `grep -rn '_ = .*\.Err\b'`
+            결과 apps/api/internal 전체에서 유일한 매칭(feed/handler.go:116). 본 1건 처리로
+            non-auth Redis silent-swallow 잔여 0건 도달.
+
+        (d) 운영 충격: Redis write degradation 동안 personalized feed 5쿼리 부하가 DB 로 완전 전가.
+            authenticated traffic 가 많은 시점에 DB CPU/IOPS spike 가 발생해도 운영자는 Redis
+            write 실패 자체를 의심하기 어려움 (Get 분기는 정상 미스 / 본 Set 분기는 0 log).
+            특히 partial Redis degradation (특정 key 패턴만 write 실패 등) 케이스는 traffic
+            메트릭 비교로도 사후 추정이 까다로움.
+
+        (e) confidence 5 (명시적 `_ = ... .Err()` discard 는 textbook silent swallow; (c) 인접
+            cycle C/F/G/I 4건 동일 패턴으로 정착됨 — 자의적 해석 위험 없음).
+      repro: |
+        1. docker-compose up -d && cd apps/api && set -a && source .env.dev && set +a &&
+           go run cmd/server/main.go.
+        2. OAuth 로그인 후 10개 이상 핀 생성 → /api/feed?limit=20 호출 → 200 + JSON +
+           `docker exec peppy-juggling-token-redis-1 redis-cli get "feed:{sub}:20:0"` 로
+           5분 TTL 캐시 적재 확인.
+        3. docker pause peppy-juggling-token-redis-1 → /api/feed?limit=20 재호출 → 200
+           (fail-open, 동작 자체는 정상 — buildPersonalizedFeed 가 DB 경로로 응답 생성).
+           서버 로그에 Set 실패 시그널 0건 (현재 결함 재현).
+        4. docker unpause → 정상 복귀.
+        5. fix 적용 시 매 Set 실패마다 "feed.GetFeed: cache set error: <err> (key=feed:<sub>:<limit>:<offset>)"
+           형태의 timestamped 로그 출력 → 운영자가 outage scope 와 영향 받은 (sub, limit, offset)
+           즉시 식별 가능. 함수 리턴 / 응답 코드 / cache fail-open 의미 무변경.
+      qa_plan: |
+        실 환경 QA (처리 모드 step 7 에서 수행):
+        T1 happy: OAuth 로그인 → 10+ 핀 생성 → /api/feed?limit=20 호출 → 200 + JSON +
+          `redis-cli get "feed:{sub}:20:0"` 로 캐시 적재 확인 + 신규 `feed.GetFeed:` 로그 0건.
+        T2 Redis paused: docker pause peppy-juggling-token-redis-1 → /api/feed?limit=20 호출 → 200
+          (fail-open 정상) + 매 호출마다 "feed.GetFeed: cache set error: <err> (key=feed:<sub>:<limit>:<offset>)"
+          로그 출력. docker unpause → 200 + 0 log (enforce 정상 복귀, 후속 호출에 캐시 재적재).
+        T3 단위 테스트: miniredis happy-path (0 로그) + miniredis Close 후 Set 호출 (로그 출력 +
+          응답 무변경) 두 케이스. captureLog 헬퍼 패턴(cycle C 의 `revoke_refresh_test.go:30`)
+          재사용.
+        회귀: 비인증 /api/feed (cache 미사용 분기) 무변경, /api/feed?cursor=<encoded> 페이지네이션
+          무변경, 인접 핸들러 (/api/pins, /api/boards, /api/auth/*) 회귀 없음.
+        단위 테스트 529+/529+ pass.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
