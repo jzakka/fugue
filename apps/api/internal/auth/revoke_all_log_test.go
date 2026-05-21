@@ -44,8 +44,12 @@ func TestRevokeAllTokens_NoLogOnSuccess(t *testing.T) {
 	// Seed the same shape StoreRefreshToken would produce: two rt:{JTI}
 	// bodies and an rt_index:{sub} SET pointing to both.
 	idxKey := rtIdxPrefix + creatorID.String()
-	mr.Set(rtPrefix+jti1, `{"creator_id":"`+creatorID.String()+`","status":"active"}`)
-	mr.Set(rtPrefix+jti2, `{"creator_id":"`+creatorID.String()+`","status":"active"}`)
+	if err := mr.Set(rtPrefix+jti1, `{"creator_id":"`+creatorID.String()+`","status":"active"}`); err != nil {
+		t.Fatalf("seed rt:%s: %v", jti1, err)
+	}
+	if err := mr.Set(rtPrefix+jti2, `{"creator_id":"`+creatorID.String()+`","status":"active"}`); err != nil {
+		t.Fatalf("seed rt:%s: %v", jti2, err)
+	}
 	if _, err := mr.SAdd(idxKey, jti1, jti2); err != nil {
 		t.Fatalf("seed SAdd: %v", err)
 	}
