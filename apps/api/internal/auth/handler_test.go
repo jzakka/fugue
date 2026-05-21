@@ -16,9 +16,11 @@ import (
 // providers map is needed for the error-reflection branch (L77).
 type stubProvider struct{}
 
-func (stubProvider) Name() string                                                              { return "google" }
-func (stubProvider) AuthCodeURL(state string) string                                           { return "" }
-func (stubProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error)          { return nil, nil }
+func (stubProvider) Name() string                    { return "google" }
+func (stubProvider) AuthCodeURL(state string) string { return "" }
+func (stubProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
+	return nil, nil
+}
 func (stubProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*UserProfile, error) {
 	return nil, nil
 }
@@ -111,4 +113,3 @@ func TestCallback_UnknownProviderRedirectUnchanged(t *testing.T) {
 		t.Fatalf("unknown-provider branch must redirect to the literal-constant error code: got %q want %q", loc, want)
 	}
 }
-
