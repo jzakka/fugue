@@ -1907,3 +1907,69 @@ items:
       keying 무영향). 단위 테스트 528/528 pass — TestRateLimiter_LogsOnRedisFailure +
       TestRateLimiter_NoLogOnSuccess 신설로 happy/fail 양쪽 additive-logging 계약 pin.
 
+  - id: system-20260521-auth-storerefreshtoken-expire-silent-swallow
+    title: "auth.StoreRefreshToken 의 Expire 호출이 silent-swallow 되어 rt_index:{sub} set이 TTL=-1로 영구화될 수 있음 — 같은 함수 안의 Set/SAdd `.Err()` 캡처 패턴과 비대칭"
+    area: error-handling
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:177-193"
+        - "apps/api/internal/auth/service.go:191"
+        - ".fugue/decision-log.md (2026-05-21 cycle C `RevokeRefreshToken` Del/SRem, cycle F `RotateRefreshToken` grace mark Set/SRem, cycle G `RateLimiter` fail-open — 인접 모든 silent-swallow가 로깅화된 이후의 같은 파일 잔여 비대칭)"
+        - "openspec/specs/auth/spec.md (rt index TTL 무명시 — in-codebase consistency 기준)"
+      cite: |
+        (a) 현재 코드 (service.go:177-193, StoreRefreshToken):
+              if err := s.rdb.Set(ctx, key, data, rtTTL).Err(); err != nil {
+                  return fmt.Errorf("store refresh token: %w", err)
+              }
+              idxKey := rtIdxPrefix + creatorID.String()
+              if err := s.rdb.SAdd(ctx, idxKey, jti).Err(); err != nil {
+                  return fmt.Errorf("add to token index: %w", err)
+              }
+              s.rdb.Expire(ctx, idxKey, rtTTL)        // L191: silent swallow
+              return nil
+        Set·SAdd 두 호출은 `.Err()` 으로 잡지만 Expire 만 *redis.BoolCmd 를 폐기.
+        (b) 동작 의도: rt_index:{sub} 는 Redis SET 자료형이라 SAdd 만으로는 키 생성 시 default
+            TTL 이 -1(영구). Expire 호출이 매 SAdd 마다 TTL 을 7d 로 갱신해 active jti 집합이 RT
+            만료와 함께 자연 정리되도록 한다 — rt:{JTI} 본체(rtTTL=7d) 와 lifetime 정렬.
+        (c) L191 Expire 실패 시 결과:
+            - rt_index:{sub} 가 TTL=-1 로 영구화 → 그 set 은 RT cleanup(SRem) 으로 비어도
+              key 자체는 영원히 잔존. 같은 sub 가 새 로그인할 때마다 SAdd 가 같은 영구 set 에
+              추가만 됨, 다음 Expire 가 성공하면 그 시점에 TTL refresh. 다만 outage 동안
+              발생한 영구 set 은 다음 정상 Expire 호출까지 그대로.
+            - 보안 영향 없음(jti 집합 자체는 SRem 으로 정확히 관리됨, `rt:` 본체 TTL 도 정확).
+            - 운영 영향: (1) RevokeAllTokens 가 (현재 caller 없지만) wiring 되었을 때 영구
+              SMembers 가 O(N total ever rotated) 로 비대 → 점진적 latency 증가. (2)
+              Redis 메모리 leak (소규모, jti 32B × 회전 수).
+            - 운영자 timestamped 단서 0 건.
+        (d) 인접 패턴: 같은 service.go 안의 RevokeRefreshToken Del/SRem(cycle C), RotateRefreshToken
+            grace mark Set/SRem(cycle F), 인접 파일 ratelimit.go fail-open(cycle G) 이 모두
+            `.Err()` 캡처 + `log.Printf` 로 가시화됨. StoreRefreshToken Expire 만 같은 패턴
+            적용 외 — in-codebase consistency 갭.
+        (e) confidence 4 (spec 직접 위반 아닌 in-codebase 일관성 결함; (b) 의 lifetime 정렬
+            의도는 7d TTL 정수와 SAdd 패턴으로 명백히 추론 가능하나 spec 명문화는 아님).
+      repro: |
+        1. docker-compose up -d && go run cmd/server/main.go.
+        2. OAuth 로그인 → StoreRefreshToken 호출 → `redis-cli ttl "rt_index:{sub}"` ≈ 604800 확인.
+        3. fail injection: SAdd 직후 Expire 단계에서 Redis 일시 reject 유발(예: Lua DEBUG SLEEP
+           으로 SAdd 후 일시 fail). 또는 단위 테스트로 miniredis Expire fail 강제 → 호출 자체는
+           nil(성공으로 보임) + `ttl` 으로 -1 확인.
+        4. fix 적용 시 매 Expire 실패마다 "auth.StoreRefreshToken: Expire error: <err> (sub=<sub>)"
+           로그 출력 → 운영자가 outage scope 와 영향 받은 sub 즉시 식별 가능.
+      qa_plan: |
+        실 환경 QA(처리 모드 step 7 에서 수행):
+        T1 happy: OAuth 로그인 또는 fresh RT 발급(테스트용 minter) → StoreRefreshToken 호출 →
+          `docker exec ... redis-cli ttl "rt_index:{sub}"` ≈ 604800 초 확인 + 신규
+          `auth.StoreRefreshToken:` 로그 0건.
+        T2 Expire fail 단위 테스트: miniredis + 의도적 Expire 실패 강제(혹은 happy-path 단위로는
+          cycle F 처럼 cleanup 직전 fail 주입이 불가하면 happy-path additive-logging 계약 + 코드
+          인스펙션 + cycle C/F/G 패턴 동일성으로 대체) → `auth.StoreRefreshToken: Expire error:
+          <err> (sub=<sub>)` 로그 출력 + 함수 리턴 무변경(nil).
+        회귀: /api/auth/refresh 204 + 새 rt_index TTL≈604800 정상, /api/auth/logout 200, /api/auth/me 200.
+        단위 테스트 528/528 → 528+ pass.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
