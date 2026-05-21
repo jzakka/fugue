@@ -113,7 +113,19 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 
 		if data, err := json.Marshal(resp); err == nil {
 			cacheKey := feedCacheKey(creatorID, limit, offset)
-			_ = h.rdb.Set(r.Context(), cacheKey, data, 5*time.Minute).Err()
+			// Cache write is opportunistic (no spec contract) but a silent
+			// discard hides Redis degradation (OOM / MISCONF / network /
+			// read-only replica failover) until the operator notices DB load
+			// amplification: every subsequent same (sub, limit, offset)
+			// request re-runs the full personalized path (CountUserPins +
+			// GetUserTagFrequency + RecommendByTags + (conditional)
+			// RecommendByMediaType + ListPinsWithCreator). Mirrors the
+			// additive-logging contract from cycle C / F / G / I in the
+			// auth package (RevokeRefreshToken / RotateRefreshToken /
+			// RateLimiter / StoreRefreshToken).
+			if setErr := h.rdb.Set(r.Context(), cacheKey, data, 5*time.Minute).Err(); setErr != nil {
+				log.Printf("feed.GetFeed: cache set error: %v (key=%s)", setErr, cacheKey)
+			}
 		}
 	} else {
 		var err error
