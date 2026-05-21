@@ -1358,4 +1358,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 109
+    note: "2026-05-21 PR #109 — AddToBoardButton.tsx:30 미인증 Link className `hover:text-text-primary hover:border-accent` 뒤에 `focus-visible:text-text-primary focus-visible:border-accent` 2 utility 삽입 + :42 인증 button 동일 2 utility 삽입(diff +2 -2, 단일 파일 2 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary #E8E8E8 + border-accent #E85A2A 미러링. in-codebase focus-visible 11 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 · SearchBar L221 · ThemeToggle L34 · NavBar L32+L64 · ProfileHeader L39 · LoginButtons L73) 표준 패턴 정합. JSX 구조 · onClick · href · BoardIcon · isOpen 분기 · BoardSelectModal 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. /pins/[id] 핀 상세 페이지의 주요 액션 컨트롤. decision-log 2026-05-21 PR #105(LoginButtons) · PR #100(ProfileHeader) · PR #96(NavBar) · PR #91(ThemeToggle) · PR #86(SearchBar) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 2 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
