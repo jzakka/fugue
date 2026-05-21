@@ -188,7 +188,20 @@ func (s *Service) StoreRefreshToken(ctx context.Context, jti string, creatorID u
 	if err := s.rdb.SAdd(ctx, idxKey, jti).Err(); err != nil {
 		return fmt.Errorf("add to token index: %w", err)
 	}
-	s.rdb.Expire(ctx, idxKey, rtTTL)
+	// Refresh rt_index:{sub} TTL to match the underlying rt:{JTI} lifetime
+	// (rtTTL = 7d). A silent failure here leaves the set at TTL=-1, after
+	// which the key persists forever; jti additions still work and SRem
+	// cleanup still runs, but RevokeAllTokens (compromise-detection sweep)
+	// would walk an O(N total ever rotated) SMembers result and Redis leaks
+	// a small amount of memory per session. The new pair has already been
+	// returned to the caller via StoreRefreshToken's success contract, so
+	// we cannot fail the request, but the operator needs the timestamped
+	// trail to detect the TTL-strip window. Mirrors the cycle C / F / G
+	// RevokeRefreshToken / RotateRefreshToken / RateLimiter additive-
+	// logging contract.
+	if expireErr := s.rdb.Expire(ctx, idxKey, rtTTL).Err(); expireErr != nil {
+		log.Printf("auth.StoreRefreshToken: Expire error: %v (sub=%s)", expireErr, creatorID)
+	}
 	return nil
 }
 
