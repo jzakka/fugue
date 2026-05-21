@@ -90,7 +90,7 @@ export default function BoardActions({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? "저장 중..." : "저장"}
           </button>
@@ -102,7 +102,7 @@ export default function BoardActions({
               setError(null);
             }}
             disabled={saving}
-            className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
           >
             취소
           </button>
@@ -115,13 +115,13 @@ export default function BoardActions({
     <div className="flex items-center gap-2 shrink-0">
       <button
         onClick={() => setEditing(true)}
-        className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer"
+        className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors cursor-pointer"
       >
         편집
       </button>
       <button
         onClick={handleDelete}
-        className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-error hover:border-error transition-colors cursor-pointer"
+        className="px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-error hover:border-error focus-visible:text-error focus-visible:border-error transition-colors cursor-pointer"
       >
         삭제
       </button>
