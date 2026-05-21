@@ -524,13 +524,29 @@ func (h *Handler) Related(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"pins": pins})
 }
 
+// maxListTagIDs caps `?tag_ids=` count on /api/pins (unauthenticated,
+// not rate-limited). Mirrors the sibling search.Search cap at
+// internal/search/handler.go:115 (same GET parameter name, same CSV
+// split, same filter semantic) — without this guard a single request
+// can pass an unbounded UUID array into ListPinsWithCreator +
+// CountPins (or ListPinsByCreator + CountPinsByCreatorFiltered on the
+// creator_id path), and the Count query has no LIMIT/OFFSET so the
+// `tag_id = ANY($N::uuid[])` EXISTS subquery is evaluated against
+// every row in `pins`.
+const maxListTagIDs = 5
+
 // List handles GET /api/pins?media_type=&tag_ids=&limit=&offset=&creator_id=
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	mediaType := r.URL.Query().Get("media_type")
 
 	var tagIDs []uuid.UUID
 	if tagsParam := r.URL.Query().Get("tag_ids"); tagsParam != "" {
-		for _, s := range strings.Split(tagsParam, ",") {
+		parts := strings.Split(tagsParam, ",")
+		if len(parts) > maxListTagIDs {
+			writeError(w, http.StatusBadRequest, "태그 필터는 최대 5개까지 가능합니다")
+			return
+		}
+		for _, s := range parts {
 			id, err := uuid.Parse(strings.TrimSpace(s))
 			if err != nil {
 				continue

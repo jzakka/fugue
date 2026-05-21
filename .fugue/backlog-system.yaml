@@ -2796,7 +2796,7 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
     note: |
       Discovery 모드 발굴 — 영역: 보안(입력 검증 누락). cycle T(PR #152
       search.Search q 200 rune cap) 의 인접 영역: 같은 핸들러 패턴, 다른
