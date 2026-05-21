@@ -218,7 +218,7 @@ export default function SearchBar() {
                     type="button"
                     onClick={(e) => handleDeleteRecent(q, e)}
                     aria-label="최근 검색에서 제거"
-                    className="opacity-0 group-hover:opacity-100 text-text-dim hover:text-text-primary transition-opacity p-1 cursor-pointer"
+                    className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-text-dim hover:text-text-primary transition-opacity p-1 cursor-pointer"
                   >
                     <svg
                       width="12"
