@@ -345,8 +345,14 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	for _, tagID := range tagIDs {
 		if err := h.q.LinkPinTag(r.Context(), db.LinkPinTagParams{PinID: p.ID, TagID: tagID}); err != nil {
 			log.Printf("pin.Create: LinkPinTag error: %v (pin=%s tag=%s)", err, p.ID, tagID)
-			// Rollback: delete the orphan pin
-			_, _ = h.q.DeletePin(r.Context(), db.DeletePinParams{ID: p.ID, CreatorID: creatorID})
+			// Rollback: delete the orphan pin. log both DB error and rowsAffected==0
+			// so an orphan that survives this cleanup leaves an operator-visible trail
+			// (otherwise pins.creator_id rows + S3 media linger silently).
+			if rowsAffected, delErr := h.q.DeletePin(r.Context(), db.DeletePinParams{ID: p.ID, CreatorID: creatorID}); delErr != nil {
+				log.Printf("pin.Create: rollback DeletePin error: %v (pin=%s creator=%s)", delErr, p.ID, creatorID)
+			} else if rowsAffected == 0 {
+				log.Printf("pin.Create: rollback DeletePin matched 0 rows (pin=%s creator=%s)", p.ID, creatorID)
+			}
 			writeError(w, http.StatusInternalServerError, "태그 연결에 실패했습니다")
 			return
 		}
