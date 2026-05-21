@@ -45,7 +45,7 @@ export default function TagFilter({ tags }: { tags: PopularTag[] }) {
       {selectedSlugs.size > 0 && (
         <button
           onClick={handleReset}
-          className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer bg-error/10 text-error border border-error/30 hover:bg-error/20 transition-colors font-mono"
+          className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer bg-error/10 text-error border border-error/30 hover:bg-error/20 focus-visible:bg-error/20 transition-colors font-mono"
         >
           초기화
         </button>
@@ -59,7 +59,7 @@ export default function TagFilter({ tags }: { tags: PopularTag[] }) {
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer font-mono ${
               selected
                 ? "bg-accent text-white"
-                : "bg-accent-subtle text-text-muted hover:bg-accent/20"
+                : "bg-accent-subtle text-text-muted hover:bg-accent/20 focus-visible:bg-accent/20"
             }`}
           >
             {tag.name}
