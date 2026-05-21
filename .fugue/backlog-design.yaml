@@ -1196,3 +1196,19 @@ items:
     status: done
     pr: TBD
     note: "2026-05-21 PR #TBD — LogoutButton.tsx:29 첫 분기 `\"...\"` → `\"로그아웃 중...\"` 1 string literal 변경(diff +1 -1). WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 정렬 — SR(VoiceOver/NVDA) 가 'horizontal ellipsis' 대신 의미 있는 진행 상태 안내. 코드베이스 내 5건의 `{동작} 중...` 패턴(LoginButtons '리다이렉트 중...' · ProfileEditForm '저장 중...' · PinCreateForm '파일 처리 중...' / '미리보기를 불러오는 중...' / '등록 중...')과 비대칭 해소. disabled 동작·error 분기('재시도')·hover transition·className(`text-sm text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:opacity-50`) 미수정 → 시각/동작 회귀 0. button width 가 4 chars(로그아웃) → 8 chars(로그아웃 중...) 로 변화하지만 NavBar 의 gap-3 spacing 안에서 흡수. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 string literal 변경 단위라 코드 검증으로 대체."
+
+  - id: "design-20260521-responsive-pincard-audio-nickname-truncate"
+    title: "PinCard AudioSection 의 creator.nickname 이 sibling title(truncate) 과 다르게 overflow 처리 부재 — 좁은 masonry column 에서 줄 바꿈 또는 가로 overflow"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:70-73"
+      cite: "PinCard.tsx:71 `<div className=\"text-sm font-semibold truncate\">{pin.title}</div>` 에는 truncate 적용, 같은 부모 `<div className=\"flex-1 min-w-0\">` (L70) 의 sibling L72 `<div className=\"text-xs text-text-muted\">{pin.creator.nickname}</div>` 에는 overflow 처리 0. 같은 컴포넌트의 non-audio info section L184 `<span className=\"text-xs text-text-muted truncate\">{pin.creator.nickname}</span>` 는 truncate 일관 적용 — 카드 타입 간 비대칭. In-codebase nickname/유사 텍스트 truncate 5건(SearchBar.tsx:290 truncate / :324 truncate / :365 truncate · BoardGrid.tsx:26 truncate · PinCard.tsx:184 truncate) 모두 truncate. nickname 은 `creators.nickname VARCHAR(50)` cap(decision-log 2026-05-19) 이라 한국어 50 자 / Latin 50 자 모두 좁은 mobile masonry column(~340px-padding-아바타 = ~252px) 에서 text-xs 12px 폭으로 overflow 가능. DESIGN.md L83 'Audio card: 트랙 제목/아티스트' 명세에서 두 텍스트는 같은 시각적 무게로 카드 안에 단정히 표시되어야 함."
+      repro: "1) cd apps/web && npm run dev. 2) DevTools → Toggle Device Toolbar → iPhone SE (375px width) 로 / 접속(audio 타입 핀이 있는 피드). 3) audio 타입 PinCard 의 AudioSection 내부 `flex-1 min-w-0` 컨테이너에서 title 은 한 줄로 잘려 ellipsis(`text-sm font-semibold truncate`) 표시되지만, 바로 아래 nickname(50 chars 한국어 또는 break-point 없는 Latin) 은 (a) 줄 바꿈 발생 시 카드 높이가 비대칭으로 늘어남, (b) 단일 단어 nickname(break-point 부재) 일 경우 부모 컨테이너를 가로 overflow → masonry column 폭 침범 가능. 4) 처리: L72 className 끝에 ` truncate` 1 utility 추가(`text-xs text-text-muted truncate`). diff +1 -1 단일 className. 같은 부모 L70 이미 `flex-1 min-w-0` 라 truncate 가 정상 작동(text-overflow:ellipsis + overflow:hidden + whitespace:nowrap)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) DevTools Device Toolbar → 375px width(iPhone SE) → / 피드 audio 타입 카드 nickname 한 줄 표시 + ellipsis(…) 표시 확인. 3) 768px(md) 와 1024px(lg) 에서 truncate 발동 임계점 회귀 확인 — 짧은 nickname 은 자연 표시, 긴 nickname 만 ellipsis. 4) 인접 회귀: non-audio info section L156 title(line-clamp-2)·L184 nickname(truncate 기존) 무변경 확인. /pins/[id] audio section L59 nickname(detail page 라 별도) 무영향. 5) 시각: AudioSection 의 AudioWaveform · ▶ icon · title 위치/spacing 모두 미변경 확인."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
