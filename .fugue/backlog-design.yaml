@@ -1398,7 +1398,9 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: pending
+    status: done
+    pr: 118
+    note: "2026-05-21 PR #118 — LogoutButton.tsx:27 className `hover:text-text-primary` 뒤에 `focus-visible:text-text-primary` 1 utility 삽입(diff +1 -1, 단일 className 변경). 키보드 Tab 포커스 도달 시 hover 와 동일한 text-text-primary #E8E8E8 미러링. NavBar.tsx L56 import 로 인증 사용자 시 글로벌 nav 안에 항상 렌더되는 핵심 컨트롤. 같은 NavBar 안 핀 생성 Link(L32) · 로그인 Link(L64) 는 PR #96 에서 focus-visible 추가됐으나 LogoutButton 은 별개 컴포넌트라 누락된 갭 해소. in-codebase focus-visible 13 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton) → 14 파일로 확장. JSX 구조 · onClick(handleLogout) · disabled · 자식 텍스트 분기(로그아웃 중.../재시도/로그아웃) · useState · useCallback 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #113(BoardSelectModal) · PR #109(AddToBoardButton trigger) · PR #105(LoginButtons) · PR #96(NavBar) · PR #91(ThemeToggle) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 className 변경 단위라 코드 검증으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-load-more-pins-focus-visible-missing"
     title: "LoadMorePins 의 '더보기' button(L41-47)이 `hover:text-text-primary hover:border-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 보드 상세 페이지 페이지네이션 컨트롤 키보드 포커스 가시화 누락(in-codebase focus-visible 13 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
