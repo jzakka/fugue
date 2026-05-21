@@ -104,7 +104,7 @@ export default function PinsGrid({
             className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
               activeType === mt.value
                 ? "bg-accent text-white"
-                : "bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent"
+                : "bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent"
             }`}
           >
             {mt.label}
