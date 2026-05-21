@@ -1118,7 +1118,7 @@ items:
     effort: 1
     risk: 2
     score: 6.0
-    status: pending
+    status: in_progress
 
   - id: "design-20260521-add-to-board-modal-focus-trap"
     title: "AddToBoardButton modal Tab focus trap 누락 — WAI-ARIA Dialog Pattern 잔여 정렬"
