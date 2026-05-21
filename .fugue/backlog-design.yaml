@@ -1269,3 +1269,19 @@ items:
     status: done
     pr: 86
     note: "2026-05-21 PR #86 (bc95356) — SearchBar.tsx:221 className 에 `focus-visible:opacity-100` 1 utility 삽입(diff +1 -1). 최근 검색 row 삭제 X 버튼이 키보드 Tab 포커스 도달 시 opacity:1 적용 → 시각 표시 가시화. 마우스 hover 동작·다른 utility·className·조건문·자식 JSX·부모 컴포넌트 모두 무변경 → 시각 회귀 0, 마우스 사용자 회귀 0. In-codebase focus-visible 패턴 6 파일 라인업(PinCard L146 · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341) 정합. decision-log 2026-05-19 PR #36(PinCreateForm dropzone focus-visible) a11y 키보드 가시성 follow-up. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
+
+  - id: "design-20260521-a11y-theme-toggle-focus-visible-missing"
+    title: "ThemeToggle 버튼이 `hover:border-accent hover:text-accent` 만 적용되고 `focus-visible:` 규칙 부재 — 키보드 포커스 도달 시 hover 시각 표시 미러링 누락(in-codebase focus-visible 7 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/ui/ThemeToggle.tsx:32-38"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' ThemeToggle.tsx:34 className `w-9 h-9 rounded-full bg-surface border border-border text-text-muted hover:border-accent hover:text-accent transition-colors flex items-center justify-center text-base cursor-pointer` 에 `focus-visible:` 0건 → 키보드 Tab 포커스 도달 시 hover 시각 변화(border-accent + text-accent) 미러링 0. native browser focus ring(outline) 은 그려지나 in-codebase focus-visible 7 파일 라인업(PinCard L146 hover/focus-visible 동일 미러링 -translate/shadow/border · BoardCover L6+L30 · BoardGrid L22 · MyPageClient L130 · SearchClient L313+L351 · PinCreateForm L341 dropzone · SearchBar L221 신규 PR #86) 의 'hover 와 focus-visible 시각 동일 미러링' 표준 패턴과 비대칭. decision-log 2026-05-21 PR #86(SearchBar 최근 검색 삭제 버튼 focus-visible:opacity-100) · 2026-05-19 PR #36(PinCreateForm dropzone focus-visible:border-accent focus-visible:bg-accent-subtle) 의 a11y 키보드 가시성 라인업 follow-up. ThemeToggle 은 NavBar 항상 보이는 컨트롤이라 키보드 사용자 빈도 높음. 안티패턴 L15-L21 무매치(토큰/공개 API 비변경, 마크업/JSX 구조 미수정, 단일 className 변경 단위)."
+      repro: "1) cd apps/web && npm run dev. 2) NavBar 의 ThemeToggle 버튼(달/해 이모지) 확인 — 마우스 hover 시 border #E85A2A 로 변경 + 이모지 color #E85A2A 적용. 3) Tab/Shift+Tab 으로 ThemeToggle 에 키보드 포커스 도달. 4) hover 와 동일한 border-accent + text-accent 시각 표시 0건 — native browser outline 만 그려짐. 5) 처리: L34 className 의 `hover:border-accent hover:text-accent` 뒤에 ` focus-visible:border-accent focus-visible:text-accent` 2 utility 삽입(diff +1 -1, 단일 className 변경). hover 와 focus-visible 시각 동일 미러링."
+    qa_plan: "1) cd apps/web && npm run dev. 2) NavBar 표시 → Tab 으로 ThemeToggle 에 포커스. 3) 시각 확인 — border #E85A2A + 이모지 color #E85A2A 적용. 4) 마우스로 hover 효과 동일 확인 — 시각 회귀 0(hover/focus-visible 동일 미러링). 5) Enter/Space 로 토글 동작 정상 확인(다크 ↔ 라이트). 6) light mode 에서도 동일 확인. 7) 인접 회귀: NavBar(L36 ThemeToggle import) · LogoutButton(L24) · 핀 생성 Link(L30) · 마이페이지 Link(L40) · 로고 Link(L14) hover/focus 상태 무변경. 8) DevTools Computed → focus 상태에서 border-color/color computed 값 #E85A2A 확인."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
