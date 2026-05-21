@@ -33,6 +33,7 @@ export default function FieldFilter() {
         <button
           key={mt.value}
           onClick={() => handleClick(mt.value)}
+          aria-pressed={current === mt.value}
           className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${
             current === mt.value
               ? "bg-text-primary text-bg"
