@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -263,15 +264,27 @@ func (s *Service) RotateRefreshToken(ctx context.Context, refreshTokenString str
 }
 
 // RevokeRefreshToken removes a single refresh token.
+//
+// The Redis DEL/SREM results are logged on failure. The function signature
+// remains void (best-effort revocation policy preserved), but a Redis outage
+// would otherwise leave the rt:{JTI} key alive at status=active for the full
+// 7-day TTL while the user sees only 200 OK + cookie expiry — meaning a
+// stolen refresh token could keep rotating via /api/auth/refresh after the
+// user believes they are logged out. The log line gives an operator the
+// timestamped trail to detect that orphan-key window.
 func (s *Service) RevokeRefreshToken(ctx context.Context, refreshTokenString string) {
 	claims, err := s.jwtSvc.ValidateToken(refreshTokenString)
 	if err != nil {
 		return
 	}
 	if claims.ID != "" {
-		s.rdb.Del(ctx, rtPrefix+claims.ID)
+		if delErr := s.rdb.Del(ctx, rtPrefix+claims.ID).Err(); delErr != nil {
+			log.Printf("auth.RevokeRefreshToken: Del error: %v (jti=%s)", delErr, claims.ID)
+		}
 		if sub := claims.Subject; sub != "" {
-			s.rdb.SRem(ctx, rtIdxPrefix+sub, claims.ID)
+			if sremErr := s.rdb.SRem(ctx, rtIdxPrefix+sub, claims.ID).Err(); sremErr != nil {
+				log.Printf("auth.RevokeRefreshToken: SRem error: %v (jti=%s sub=%s)", sremErr, claims.ID, sub)
+			}
 		}
 	}
 }
