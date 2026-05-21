@@ -1971,5 +1971,14 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 92
+    qa_note: |
+      PR #92 (2026-05-21 cycle I). 실 환경 QA: T1 happy (/api/auth/refresh → 204 +
+      새 Set-Cookie + `redis-cli TTL "rt_index:{sub}"` = 604800(≈7d, rt:{JTI} 본체와
+      lifetime 정렬) + auth.StoreRefreshToken 로그 0건). 회귀: /api/auth/me 200,
+      /api/auth/logout 200 + rt:{JTI} TTL=-2(삭제) + rt_index SMEMBERS empty
+      (cycle C Del+SRem contract 무영향), OAuth callback 302. Expire 단위 실패 주입은
+      miniredis seam 부재로 happy-path 단위 테스트(store_refresh_test.go) +
+      cycle C/F/G 패턴 동일성 코드 인스펙션으로 대체. 단위 테스트 528→529 pass.
 
