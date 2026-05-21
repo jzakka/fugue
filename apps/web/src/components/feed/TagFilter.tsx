@@ -56,6 +56,7 @@ export default function TagFilter({ tags }: { tags: PopularTag[] }) {
           <button
             key={tag.id}
             onClick={() => handleToggle(tag.slug)}
+            aria-pressed={selected}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer font-mono ${
               selected
                 ? "bg-accent text-white"
