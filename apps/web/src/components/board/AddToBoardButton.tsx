@@ -27,7 +27,7 @@ export default function AddToBoardButton({
     return (
       <Link
         href={`/login?redirect=/pins/${pinId}`}
-        className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors"
+        className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors"
       >
         <BoardIcon />
         보드에 추가
@@ -39,7 +39,7 @@ export default function AddToBoardButton({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors cursor-pointer"
       >
         <BoardIcon />
         보드에 추가
