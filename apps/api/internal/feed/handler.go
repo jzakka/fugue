@@ -82,6 +82,19 @@ func (h *Handler) GetFeed(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write(cached)
 			return
 		}
+		// Cache-aside fallthrough is intentional, but redis.Nil (normal cache
+		// miss) and Redis degradation (OOM / MISCONF / network / read-only
+		// replica failover) must be distinguished so operators can see when
+		// every request is amplifying to the full personalized path
+		// (CountUserPins + GetUserTagFrequency + RecommendByTags +
+		// (conditional) RecommendByMediaType + ListPinsWithCreator). Mirrors
+		// the additive-logging contract from cycle K's cache Set branch
+		// (L126-128) and auth/service.go:226-237 which distinguishes
+		// redis.Nil from other errors via fmt.Errorf wrap. redis.Nil stays
+		// silent because that is the documented cache-miss signal.
+		if err != redis.Nil {
+			log.Printf("feed.GetFeed: cache get error: %v (key=%s)", err, cacheKey)
+		}
 	}
 
 	var resp FeedResponse
