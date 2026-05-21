@@ -1675,7 +1675,9 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: done
+    pr: 160
+    note: "2026-05-22 PR #160 — apps/web/src/components/feed/TagFilter.tsx L59 button 에 `aria-pressed={selected}` 1 prop 추가(diff +1 -0, map 안 button N개(인기 태그 동적 개수) 모두 동일 적용 — selected 변수가 `selectedSlugs.has(tag.slug)` boolean 이라 그대로 활용). 홈 피드 PopularTag 다중 선택 button 의 selected 상태가 ARIA 속성으로 노출 → SR 사용자가 'button, {태그명} {수}, pressed' announce. 기존: selected 상태가 `bg-accent text-white` vs `bg-accent-subtle text-text-muted` 색 반전으로만 표현 → SR 사용자는 'button, {태그명} {수}' 만 듣고 현재 어느 태그가 활성인지 인지 0건. handleReset 'X 초기화' button(L46-51) 은 단순 액션이라 미포함. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) 정합. 코드베이스 내부 정합 근거: 직전 PR #158(FieldFilter L36) 와 동일 패턴 — `aria-pressed` 라인업이 1 → 2 파일로 확장. W3C ARIA Authoring Practices 의 toggle button 표준 패턴 — 다중 선택(여러 태그 동시 활성 가능)이므로 radio 그룹 아닌 toggle button 패턴 적용. decision-log 2026-05-22 PR #158(FieldFilter aria-pressed) · PR #157(Discovery 3 aria-pressed candidates) follow-up — Discovery cycle 49 가 식별한 3개 후보 중 2번째 항목 완료. 시각 동작 0(button className · onClick(handleToggle) · selected 변수 분기 모두 미변경, focus-visible utility L62 PR #129 그대로 유지) · 마우스 사용자 회귀 0 · 인접 영역(L1-12 import/state · L13-32 handleToggle · L34-39 handleReset · L43-52 outer 컨테이너/handleReset button · L66 tag.pin_count span · L70 outer div) 모두 미수정. 홈 / 페이지의 FieldFilter · FeedContainer · MasonryGrid 무영향. light mode 동일(색 토큰 미변경). 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 prop 1개 추가. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — 단일 prop 추가 변경 단위라 코드 검증(grep `aria-pressed={selected}` TagFilter L59 매칭 1건 + 인접 utility/JSX/handleToggle 본체 미변경 확인)으로 대체."
 
   - id: "design-20260521-a11y-pinsgrid-toggle-aria-pressed-missing"
     title: "PinsGrid 마이페이지 미디어 타입 필터 4 button(전체/이미지/음악/영상) 의 토글 button 상태가 `aria-pressed` 부재 — SR 사용자에게 현재 선택된 미디어 타입 미알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A)"
