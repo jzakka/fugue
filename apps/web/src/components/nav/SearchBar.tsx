@@ -249,7 +249,11 @@ export default function SearchBar() {
               )}
 
               {!loading && query.length >= 3 && !hasAnyResults && (
-                <div className="py-4 text-center text-sm text-text-dim">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="py-4 text-center text-sm text-text-dim"
+                >
                   검색 결과가 없습니다
                 </div>
               )}
