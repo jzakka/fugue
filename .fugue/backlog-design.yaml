@@ -1156,5 +1156,7 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 65
+    note: "2026-05-21 PR #65 — globals.css L102 다음에 `@media (prefers-reduced-motion: reduce) { .skeleton-shimmer .bg-surface-elevated { animation: none; } }` 1 블록 추가(diff +6 -0). W3C CSS Media Queries Level 5 § 11.1 prefers-reduced-motion · MDN best practice 적용. DESIGN.md L89 'Motion · Minimal-functional' 정신과 정렬. animation 만 비활성 — background-image/size/repeat 정적 그라디언트 보존 → skeleton 시각 형태 그대로. CardSkeleton/ProfileSkeleton 두 사용처 동시 cover. 일반 모드(prefers-reduced-motion: no-preference) 회귀 0, 다른 animation 선언 0(코드베이스 grep `animation:` 단일 매칭 확인). animate-spin 13곳은 essential progress indication 으로 본 변경 범위 밖. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — CSS 단일 @media 블록 단위라 코드 검증으로 대체."
 
