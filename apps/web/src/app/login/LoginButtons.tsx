@@ -70,7 +70,7 @@ export default function LoginButtons({ redirectTo }: { redirectTo: string }) {
           onClick={() => handleClick(provider.id)}
           disabled={loading !== null}
           aria-label={provider.label}
-          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent focus-visible:border-accent transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ minHeight: 44 }}
         >
           {loading === provider.id ? (
