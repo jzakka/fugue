@@ -1528,7 +1528,9 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: pending
+    status: done
+    pr: 137
+    note: "2026-05-21 PR #137 — ProfileEditForm.tsx 단일 파일 2 className 변경(diff +2 -2): L110 취소 button className 의 `hover:text-text-primary` 뒤에 `focus-visible:text-text-primary` 1 utility + L117 저장 submit button className 의 `hover:bg-accent-hover` 뒤에 `focus-visible:bg-accent-hover` 1 utility 삽입. /mypage 프로필 편집 form 의 form 액션 — MyPageClient L167-175 editing 분기에서 렌더. 키보드 Tab 포커스 도달 시 hover 와 동일한 시각(취소 text-text-primary, 저장 bg-accent-hover) 미러링. in-codebase focus-visible 20 파일 라인업(PinCard · BoardCover · BoardGrid · MyPageClient · SearchClient · PinCreateForm dropzone+submit/cancel · SearchBar · ThemeToggle · NavBar · ProfileHeader · LoginButtons · AddToBoardButton · LogoutButton · LoadMorePins · BoardActions · FieldFilter · TagFilter · PinsGrid) → 21 파일로 확장. NavBar L32 핀 생성 Link · BoardActions L93 저장 · AddToBoardButton L365 생성 · PinCreateForm L630 등록하기와 동일 패턴(`hover:bg-accent-hover focus-visible:bg-accent-hover`). JSX 구조 · onClick(onCancel) · type=submit/button · disabled(saving) · 자식 텍스트 분기(저장 중.../저장) 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. decision-log 2026-05-21 PR #135(PinCreateForm submit/cancel) · PR #134(Discovery 5 candidates) follow-up. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 2 className 변경 단위라 코드 검증(grep `focus-visible:` ProfileEditForm L110·L117 2 매칭 + 인접 utility/JSX/saving 분기 미변경 확인)으로 대체. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA)."
 
   - id: "design-20260521-a11y-my-page-board-section-focus-visible-missing"
     title: "MyPageClient BoardSection 의 보드 생성 3 button(L70 새 보드 토글 · L105 생성 · L112 취소) 이 `hover:` 만 적용되고 `focus-visible:` 규칙 부재 — 마이페이지 보드 생성 흐름의 키보드 포커스 가시화 누락(in-codebase focus-visible 19 파일 라인업 비대칭, WCAG 2.4.7 Focus Visible Level AA)"
