@@ -1248,4 +1248,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 80
+    note: "2026-05-21 PR #80 (dfcc02c) — 두 동적 inline `no-results` 메시지 div 에 `role=\"status\" aria-live=\"polite\"` 2 attribute 추가(diff +5 -1 두 곳, 총 +10 -2). SearchBar.tsx:251-255 (`검색 결과가 없습니다` mount 조건 `!loading && query.length >= 3 && !hasAnyResults`) + PinCreateForm.tsx:604-608 (`일치하는 태그가 없습니다` mount 조건 `filteredTags.length === 0`). 변경 후 `grep \"role=\"status\"\\|aria-live=\" apps/web/src/` 매칭 추가 2건. className(py-4 text-center text-sm text-text-dim / text-xs text-text-dim py-4 w-full text-center)·조건문·자식 텍스트·부모 컴포넌트 모두 미수정 → 시각 회귀 0, 마우스 사용자 회귀 0. PR #58 (f7b8fdf) 6 박스 ARIA live region 라인업의 'no-results' 분기 follow-up. 안티패턴 L19 (인라인 마크업 유지) 와 정합."
