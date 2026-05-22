@@ -141,10 +141,24 @@ func (s *Service) findOrCreateWithEmail(ctx context.Context, profile *UserProfil
 	return creatorID, nil
 }
 
+// createNewCreator runs the two INSERTs (creators + auth_accounts) inside a
+// single transaction so a failure on the second INSERT (transient PG error or
+// the auth_accounts UNIQUE(provider, provider_id) race when two simultaneous
+// OAuth callbacks for the same no-email identity both pass the L44
+// GetAuthAccountByProvider sql.ErrNoRows check) rolls the creators row back
+// instead of leaving an orphan creator that has no auth_account, no recovery
+// path for the user, and pollutes the creators table. Mirrors the BeginTx +
+// defer Rollback + tx.Commit pattern findOrCreateWithEmail already uses for
+// the email-bearing path.
 func (s *Service) createNewCreator(ctx context.Context, profile *UserProfile, providerName, email string) (uuid.UUID, error) {
-	nickname := truncateNickname(profile.Nickname)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
 
-	q := db.New(s.db)
+	q := db.New(tx)
+	nickname := truncateNickname(profile.Nickname)
 	creator, err := q.CreateCreatorFromOAuth(ctx, db.CreateCreatorFromOAuthParams{
 		Nickname:  nickname,
 		AvatarUrl: toNullString(truncateAvatarURL(profile.AvatarURL)),
@@ -156,6 +170,10 @@ func (s *Service) createNewCreator(ctx context.Context, profile *UserProfile, pr
 
 	if err := s.addAuthAccount(ctx, q, creator.ID, profile, providerName, email); err != nil {
 		return uuid.Nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return uuid.Nil, fmt.Errorf("commit create: %w", err)
 	}
 	return creator.ID, nil
 }
