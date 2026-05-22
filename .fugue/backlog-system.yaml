@@ -3217,7 +3217,8 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 188
     note: |
       처리 모드 시 변경 범위:
         (a) `apps/api/internal/og/service.go`:
