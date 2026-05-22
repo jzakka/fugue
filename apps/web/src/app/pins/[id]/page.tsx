@@ -118,7 +118,7 @@ export default async function PinDetailPage({ params }: Props) {
   return (
     <>
       <NavBar />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main id="main" className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         {/* Pin Detail */}
         <article className="bg-surface rounded-[16px] border border-border overflow-hidden">
           {/* Media Player */}

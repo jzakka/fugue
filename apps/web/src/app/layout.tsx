@@ -27,7 +27,15 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=general-sans@500,700&display=swap"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-accent focus:text-white focus:rounded-[6px] focus:text-sm focus:font-semibold"
+        >
+          메인 콘텐츠로 건너뛰기
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

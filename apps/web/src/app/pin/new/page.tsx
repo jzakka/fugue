@@ -17,7 +17,7 @@ export default async function PinNewPage() {
   return (
     <>
       <NavBar />
-      <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-8">
+      <main id="main" className="flex-1 max-w-2xl mx-auto w-full px-6 py-8">
         <PinCreateForm />
       </main>
     </>
