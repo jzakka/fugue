@@ -267,7 +267,7 @@ export default function SearchBar() {
                       key={pin.id}
                       href={`/pins/${pin.id}`}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover focus-visible:bg-surface-hover cursor-pointer transition-colors"
                     >
                       {pin.og_image ? (
                         <img
@@ -314,7 +314,7 @@ export default function SearchBar() {
                       key={creator.id}
                       href={`/creators/${creator.id}`}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover focus-visible:bg-surface-hover cursor-pointer transition-colors"
                     >
                       {creator.avatar_url ? (
                         <img
@@ -342,7 +342,7 @@ export default function SearchBar() {
                       key={board.id}
                       href={`/boards/${board.id}`}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover focus-visible:bg-surface-hover cursor-pointer transition-colors"
                     >
                       <div className="w-7 h-7 rounded-[6px] bg-surface shrink-0 flex items-center justify-center">
                         <svg
@@ -380,7 +380,7 @@ export default function SearchBar() {
                 <button
                   type="button"
                   onClick={() => handleSubmit()}
-                  className="block w-full mt-2 pt-2 border-t border-border text-center text-sm text-accent hover:text-accent-hover cursor-pointer py-2 transition-colors"
+                  className="block w-full mt-2 pt-2 border-t border-border text-center text-sm text-accent hover:text-accent-hover focus-visible:text-accent-hover cursor-pointer py-2 transition-colors"
                 >
                   전체 결과 보기
                 </button>
