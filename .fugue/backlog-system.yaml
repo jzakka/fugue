@@ -4555,7 +4555,48 @@ items:
     effort: 1
     risk: 2
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 255
+    resolution: |
+      PR #255 (merged 2026-05-22 squash 571ccd1) — cycle 96 Processing.
+
+      적용된 변경:
+        (a) apps/api/internal/bot/robots_filter.go:
+            - import "github.com/chungsanghwa/fugue/apps/api/internal/httpclient" 추가.
+            - 상수 신설: robotsFetchConnectTimeout (3s), robotsFetchMaxRedirects (5),
+              robotsBodyMaxBytes (512<<10 = 512 KiB, RFC 9309 §2.4 권고).
+            - NewRobotsFilter 의 httpClient 필드를 `httpclient.NewSSRFSafeClient(
+              httpclient.Options{ConnectTimeout: 3s, TotalTimeout: robotsFetchTimeout,
+              MaxRedirects: 5})` 로 교체. NewRobotsFilter 시그니처/nil rateSetter
+              허용 계약 보존 (PR #144 결정 정합).
+            - fetch L204: `io.ReadAll(resp.Body)` → `io.ReadAll(io.LimitReader(
+              resp.Body, robotsBodyMaxBytes))` 으로 body size cap.
+        (b) apps/api/internal/bot/robots_filter_ssrf_test.go 신규 5건:
+            - TestRobotsFilter_SSRFWiring_RejectsLoopback (127.0.0.1:1) — fail-open
+              cache entry + SetHostRate 미호출 검증.
+            - TestRobotsFilter_SSRFWiring_RejectsIMDS (169.254.169.254) — 동치.
+            - TestRobotsFilter_SSRFWiring_RejectsRFC1918 (10.0.0.1) — 동치.
+            - TestRobotsFilter_NewRobotsFilter_WiresSSRFSafeTransport — 생성자가
+              custom Transport + CheckRedirect 설치 (bare http.Client 회귀 가드).
+            - TestRobotsFilter_BodyLimit_TruncatesAtCap — 520 KiB+ robots.txt 의
+              cap 앞 Disallow 는 파싱되고 cap 뒤 Disallow 는 truncate 확인.
+
+      QA (실 환경, 단위 테스트 결과를 QA 결과로 둔갑시키지 않음):
+        - docker-compose redis 가 다른 worktree 점유 (port 6379) 로 stack 기동
+          불가 → §2 self-recovery 적용 = ad-hoc QA 드라이버 신설.
+        - apps/api/cmd/qa-robots-ssrf/main.go (post-QA 삭제) 가 production
+          NewRobotsFilter(nil) 을 직접 호출하여 caller-untrusted 3개 host
+          (127.0.0.1:1, 169.254.169.254, 10.0.0.1) 에 대해 Filter 실행:
+          T1 loopback OK, T2 IMDS OK, T3 RFC1918 OK, RESULT: PASS — 모두
+          fail-open entry 캐시 + outbound dial 거부 확인.
+        - go test ./internal/bot/... 신규 단위 5건 포함 전체 pass.
+        - 회귀: 정상 외부 host fetch path 는 robots_filter_test.go 기존 testsuite
+          (newRobotsTestServer + filterForTestServer) 가 그대로 통과.
+
+      비고: openspec change 추가 (변경 범위 (e) 옵션) 는 본 fix 가 capability-wide
+      contract (httpclient 패키지 doc-comment + PR #47 의 동치 reference) 의 잔존
+      적용일 뿐 신규 SHALL 추가가 아니어서 보류. bot capability spec 의 명시적
+      "RobotsFilter SHALL ..." 라인 추가는 후속 backlog 후보로 남김.
     note: |
       Discovery (security area, 2026-05-22 cycle).
 
