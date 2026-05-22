@@ -2152,7 +2152,9 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 245
+    note: "PinCreateForm.tsx L361 optimizing 분기 inner row div(`flex items-center gap-3 mb-3` — spinner + stage span 컨테이너)에 `role=\"status\"` + `aria-live=\"polite\"` 2 attribute 추가(diff +5 -1 — multi-line 형식으로 분리 reformat). 비디오/오디오 ffmpeg 클라이언트사이드 최적화 진행 시 stage 텍스트(`{optimizeProgress?.stage || \"파일 처리 중...\"}`) 가 SR 사용자에게 announce, stage 변화 시 polite 모드로 갱신 announce. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 충족. cycle 71 PR #212 PinsGrid + cycle 72 PR #214 AddToBoardButton spinner SR-status 라인업 직계 sibling. role=\"status\" 는 시각 변경 0(보조 기술 전용). aria-label 미사용 — 자식 stage span 의 dynamic text 가 자동 announce 되도록 role 만 부여(aria-label 부여 시 자식 텍스트 덮어쓰기 우려). outer div(`border border-border rounded-[10px] p-6`) · spinner(`w-5 h-5 ... animate-spin`) · stage span · progress bar(L367-372 percent transition) · optimizeFile 트리거 로직 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'role=\"status\"\\|aria-live' apps/web/src/app/pin/new/PinCreateForm.tsx` L362/L363 매칭 + 직전 L322 aria-live 와 L613 role=status 라인업 보존) 으로 대체."
 
   - id: "design-20260522-a11y-pincreate-ogloading-spinner-role-status-missing"
     title: "/pin/new PinCreateForm 의 OG 미리보기 로딩 spinner 에 `role=\"status\"` + `aria-label` 누락 — URL 입력 후 메타데이터 fetching 진행 상태 SR announce 부재(WCAG 2.1 SC 4.1.3 Status Messages Level AA)"
