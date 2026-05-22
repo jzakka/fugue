@@ -2043,4 +2043,6 @@ items:
     effort: 3
     risk: 1
     score: 5.0
-    status: in_progress
+    status: done
+    pr: 226
+    note: "layout.tsx body 최상단에 sr-only + focus:not-sr-only skip link anchor 추가(`<a href=\"#main\">메인 콘텐츠로 건너뛰기</a>`, focus 시 좌상단 노출, bg-accent + text-white + rounded-[6px] + text-sm + font-semibold 기존 토큰 조합, 신규 토큰 도입 0). 8개 page.tsx 의 `<main>` 요소에 `id=\"main\"` 추가(/, /pins/[id], /pin/new, /search, /mypage, /boards/[id], /creators/[id], /login). WCAG 2.1 SC 2.4.1 Bypass Blocks (Level A) 충족. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -rn 'id=\"main\"' apps/web/src/app --include=\"page.tsx\"` 8 matches + `grep -n 'href=\"#main\"' apps/web/src/app/layout.tsx` 1 match) 으로 대체. CI 2/2 SUCCESS · 1회 만에 머지 성공(BEHIND 발생 없음). 30+ 사이클 연속 a11y 우세 흐름 유지 — Level A 위반 우선 처리 원칙(area 회전은 guideline, 동등 후보 부재 시 Level A confidence 5 가 우선)."
