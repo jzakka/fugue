@@ -260,6 +260,7 @@ export default function SearchClient({
               <button
                 key={tag.id}
                 onClick={() => handleTagToggle(tag.id)}
+                aria-pressed={selected}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer font-mono ${
                   selected
                     ? "bg-accent text-white"
