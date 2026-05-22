@@ -1912,3 +1912,67 @@ items:
     risk: 1
     score: 8.0
     status: done
+
+  - id: "design-20260522-a11y-searchbar-loading-spinner-status-role-missing"
+    title: "SearchBar 검색 결과 로딩 spinner 가 `role=\"status\"` + `aria-label` 미적용 — 글로벌 검색 dropdown 로딩 상태 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:245-249"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices Guide `role=\"status\"`. SearchBar.tsx L245-249 검색 결과 로딩 spinner `<div className=\"flex justify-center py-4\"><div className=\"w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin\" /></div>` — 검색어 입력 후 결과 fetch 중 표시되는 icon-only spinner 에 role/aria-label 0건 + visible text label 동반 없음. 키보드 사용자가 검색 입력 후 dropdown 안에 결과 도착 대기 상태인지 인지 불가. SR 사용자가 dynamic update 를 announce 받지 못함. decision-log 2026-05-21 PR #167(FeedContainer loadingMore spinner role=status + aria-label='추가 작품 로딩 중') · 2026-05-22 in-codebase role=status 라인업(FeedContainer L216-220 · SearchClient L412-416 · LoadMorePins L48-52 · AddToBoardButton L285-291) follow-up. NavBar 의 RootLayout 단일 mount 라 모든 page route 의 글로벌 검색에 동시 적용. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 div 에 role + aria-label 2 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 모든 page 의 NavBar 검색 입력 → 3자 이상 입력 시 dropdown 표시 + loading spinner 등장. 3) VoiceOver/NVDA 등 SR 켠 상태에서 검색어 입력 → spinner 표시 중 SR announce 0건(role=status 가 없어 dynamic update 무알림). 4) 처리: L246 outer div 에 `role=\"status\"` + `aria-label=\"검색 결과 로딩 중\"` 2 prop 추가(diff +2 -1, multi-line attr 포맷)."
+      qa_plan: "1) cd apps/web && npm run dev. 2) NavBar 검색 입력란에 3자 이상 입력 → dropdown 안 spinner 표시. 3) VoiceOver/NVDA SR 켜고 '검색 결과 로딩 중' announce 확인. 4) 결과 도착 후 spinner 사라짐 동작 회귀 0 확인. 5) 시각 회귀 0(spinner 크기·색·정렬 동일). 6) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260522-a11y-mypageclient-auth-loading-spinner-status-role-missing"
+    title: "MyPageClient 인증 정보 로딩 spinner 가 `role=\"status\"` + `aria-label` 미적용 — /mypage 진입 초기 로딩 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/MyPageClient.tsx:56-62"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices Guide `role=\"status\"`. MyPageClient.tsx L56-62 `if (loading) { return (<div className=\"flex justify-center py-8\"><div className=\"w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin\" /></div>); }` — /mypage 진입 후 인증 정보 fetch 중 표시되는 icon-only spinner 에 role/aria-label 0건 + visible text label 동반 없음. SR 사용자가 마이페이지 진입 후 어떤 상태인지 인지 불가. decision-log 2026-05-21 PR #167(FeedContainer loadingMore spinner role=status) · in-codebase role=status 라인업 follow-up. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 div 에 role + aria-label 2 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 상태로 /mypage 진입 → 초기 loading=true 동안 icon-only spinner 표시. 3) SR 켠 상태에서 진입 → spinner 표시 중 SR announce 0건. 4) 처리: L58 outer div 에 `role=\"status\"` + `aria-label=\"마이페이지 로딩 중\"` 2 prop 추가(diff +2 -1)."
+      qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → spinner 표시 → 인증 fetch 완료 시점 관찰. 3) SR 켜고 '마이페이지 로딩 중' announce 확인. 4) 로드 완료 후 spinner 사라짐 동작 회귀 0 확인. 5) 시각 회귀 0(spinner 크기·색·정렬 동일). 6) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260522-a11y-pinsgrid-loadmore-spinner-status-role-missing"
+    title: "PinsGrid 추가 핀 로딩 spinner 가 `role=\"status\"` + `aria-label` 미적용 — 마이페이지 핀 그리드 추가 로딩 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:134-138"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices Guide `role=\"status\"`. PinsGrid.tsx L134-138 `{loading && pins.length > 0 && (<div className=\"flex justify-center py-8\"><div className=\"w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin\" /></div>)}` — 마이페이지 핀 그리드 무한 스크롤 추가 로딩 중 표시되는 icon-only spinner 에 role/aria-label 0건 + visible text label 동반 없음. SR 사용자가 추가 핀 fetch 상태인지 인지 불가. decision-log 2026-05-21 PR #167(FeedContainer loadingMore spinner role=status + aria-label='추가 작품 로딩 중') 와 동일 무한 스크롤 패턴이므로 정합 1대1 매핑. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 div 에 role + aria-label 2 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → 핀이 충분히 많은 경우 스크롤 다운 → 무한 스크롤 발동 시 spinner 표시. 3) SR 켠 상태에서 spinner 표시 중 SR announce 0건. 4) 처리: L135 outer div 에 `role=\"status\"` + `aria-label=\"추가 핀 로딩 중\"` 2 prop 추가(diff +2 -1)."
+      qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 진입 후 스크롤 다운하여 무한 스크롤 발동 → spinner 표시. 3) SR 켜고 '추가 핀 로딩 중' announce 확인. 4) 새 핀 도착 후 spinner 사라짐 동작 회귀 0 확인. 5) 시각 회귀 0. 6) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260522-a11y-addtoboardbutton-adding-spinner-status-role-missing"
+    title: "AddToBoardButton 보드 항목별 inline 추가 중 spinner 가 `role=\"status\"` + `aria-label` 미적용 — 보드에 핀 추가 상태 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:336-339"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices Guide `role=\"status\"`. AddToBoardButton.tsx L336-339 `{adding === board.id && (<div className=\"w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin flex-shrink-0\" />)}` — 사용자가 보드 row 클릭하여 핀 추가 시 해당 row 우측에 inline 표시되는 icon-only spinner 에 role/aria-label 0건. 같은 컴포넌트의 L285-291 보드 목록 로딩 spinner 는 이미 `role=\"status\"` + `aria-label=\"보드 목록 로딩 중\"` 적용됨 → 본 spinner 가 잔여 갭. 사용자가 보드 선택 후 추가 진행 상태인지 SR 사용자만 인지 불가. decision-log 2026-05-21 PR #167(FeedContainer role=status) · 동일 컴포넌트 L285-291 라인업 follow-up. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, 단일 div 에 role + aria-label 2 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 임의 핀 상세 페이지 진입 → AddToBoardButton 클릭 → 모달 열림 → 보드 row 클릭(추가 시작). 3) row 우측에 spinner 표시 → SR announce 0건. 4) 처리: L337-339 div 에 `role=\"status\"` + `aria-label=\"보드에 추가 중\"` 2 prop 추가(diff +3 -1, multi-line attr 포맷)."
+      qa_plan: "1) cd apps/web && npm run dev. 2) 핀 상세 → AddToBoardButton 클릭 → 보드 row 클릭. 3) spinner 표시 중 SR '보드에 추가 중' announce 확인. 4) 추가 완료 후 spinner 사라지고 feedback success 분기 동작 회귀 0 확인. 5) 동시에 다른 row 누를 수 없는 disabled 상태(L299 `disabled={adding !== null || feedback?.type === \"success\"}`) 회귀 0. 6) 시각 회귀 0(spinner 크기·색·정렬·flex-shrink-0 동일). 7) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
