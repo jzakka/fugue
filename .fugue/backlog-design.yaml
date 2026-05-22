@@ -2064,3 +2064,20 @@ items:
     status: done
     pr: 230
     note: "PinCreateForm.tsx L600 비선택 분기 utility 1줄에 `focus-visible:bg-accent/20` 1 utility 삽입(diff +1 -1). 키보드 사용자가 태그 chip button 으로 Tab 진입 시 hover 와 동일하게 background 가 `bg-accent/20` 으로 변화 → 시각 신호 가시화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycles 62-67 의 hover→focus-visible 미러링 라인업(PR #189 SearchBar dropdown · #191/#193 SearchClient · #197 PinDetail board chip · #200 FeedContainer 빈/에러 button · #202 VideoThumbnailPicker 비선택 분기) 직접 follow-up. 선택 분기(`bg-accent text-white`) · disabled 분기(`disabled:opacity-40 disabled:cursor-not-allowed`) · 정적 utility(`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors font-mono`) 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'focus-visible:bg-accent/20\\|hover:bg-accent/20' apps/web/src/app/pin/new/PinCreateForm.tsx` L600 1건 매칭 — 같은 line 에 hover + focus-visible 미러 동시 보유) 으로 대체. CI 2/2 SUCCESS · 1회 만에 머지 성공(BEHIND 발생 없음 — 본체 PR #230 처리 모드 시작 전 cycle 78 discovery PR #229 가 먼저 머지되어 baseline 동기화). discovery PR(#229) push 시 branch 가 origin 에 이미 존재(cycle 78 discovery PR #229 의 같은 branch 명을 재사용) → force-with-lease push 1회 적용(§자체 회복 §1 보강 케이스 — discovery 와 processing 이 같은 brunch id 를 공유할 때 표준 절차)."
+
+  - id: "design-20260522-a11y-board-group-focus-visible-text-accent-missing"
+    title: "BoardGrid + MyPageClient board Link `group-hover:text-accent` 에 `group-focus-visible:text-accent` 미러링 누락 — 보드 목록 진입 Link 가 키보드 포커스 시 board 이름 색 변화 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA · 동일 패턴 2 surface)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/BoardGrid.tsx:22-32"
+        - "apps/web/src/components/profile/MyPageClient.tsx:137-150"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' BoardGrid.tsx L22 `<Link className=\"group block transition-transform duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none\">` 의 자식 board 이름 div L26 `<div className=\"text-sm font-semibold text-text-primary group-hover:text-accent transition-colors truncate\">` 에 `group-focus-visible:text-accent` 0건. MyPageClient.tsx L137-150 의 동일 Link 패턴 L142 `<div className=\"text-sm font-semibold text-text-primary group-hover:text-accent transition-colors truncate\">` 동일 갭. Link 자체는 `focus-visible:-translate-y-0.5 focus-visible:outline-none` 보유 → 호버 시 (a) `translateY(-2px)` + (b) board 이름 accent 색 두 시각 신호 동시 발생, 포커스 시 (a) 만 발생 · (b) 누락. in-codebase focus-visible mirror 라인업(cycles 62-67: PR #189 · #191 · #193 · #197 · #200 · #202 · cycle 79 PR #230) 의 'hover 시각 변화를 focus-visible 에 미러링' 패턴 미적용. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 자식 div className 에 utility 1건 미러 삽입(부모 Link group 변경 0)."
+      repro: "1) cd apps/web && npm run dev. 2) /mypage 진입(또는 보드 목록이 렌더되는 페이지). 3) Tab 으로 BoardGrid/MyPageClient 의 board Link 에 도달 → translateY(-2px) 시각 변화는 발생하지만 board 이름 텍스트 색은 `text-text-primary` 유지(accent 색으로 변화 0). 4) 같은 Link 에 마우스 hover 시에는 board 이름이 `text-accent` 로 변화 → 비대칭. 5) `grep -n 'group-hover:text-accent' apps/web/src/components/board/BoardGrid.tsx apps/web/src/components/profile/MyPageClient.tsx` 2 matches 확인 + 같은 라인에 `group-focus-visible:` 0건."
+      qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → 본인 보드 목록 영역에서 첫 board Link Tab focus → 키보드 포커스 시 board 이름이 hover 와 동일하게 `text-accent` 로 색 변화 가시화. 3) 마우스 hover 동작 회귀 0(기존 group-hover:text-accent 유지). 4) Link 자체의 `focus-visible:-translate-y-0.5` translateY 시각 신호 유지(중복 시각 신호로 인한 깜빡임 0 — color 만 추가). 5) BoardGrid.tsx 를 쓰는 인접 화면(존재 시) 동일 동작. 6) light mode 동일(`--color-accent` 단일 토큰). 7) 시각 회귀 0(focus-visible 은 키보드 navigation 시에만 활성)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
