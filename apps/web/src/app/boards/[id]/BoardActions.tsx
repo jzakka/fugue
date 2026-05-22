@@ -63,6 +63,7 @@ export default function BoardActions({
       <div className="space-y-3 shrink-0">
         {error && (
           <div
+            id="board-name-error"
             role="alert"
             aria-live="polite"
             className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error"
@@ -76,6 +77,8 @@ export default function BoardActions({
           onChange={(e) => setName(e.target.value)}
           placeholder="보드 이름"
           aria-label="보드 이름"
+          aria-invalid={!!error && !name.trim()}
+          aria-describedby={error ? "board-name-error" : undefined}
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
         />
         <input
