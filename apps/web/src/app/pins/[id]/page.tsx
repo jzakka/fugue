@@ -201,12 +201,12 @@ export default async function PinDetailPage({ params }: Props) {
                   <img
                     src={pin.creator.avatar_url}
                     alt=""
-                    className="w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent transition-colors"
+                    className="w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent group-focus-visible:border-accent transition-colors"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border group-hover:border-accent transition-colors" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border group-hover:border-accent group-focus-visible:border-accent transition-colors" />
                 )}
-                <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">
+                <span className="text-sm font-medium text-text-primary group-hover:text-accent group-focus-visible:text-accent transition-colors">
                   {pin.creator.nickname}
                 </span>
               </Link>
