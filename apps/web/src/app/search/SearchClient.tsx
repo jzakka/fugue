@@ -239,6 +239,7 @@ export default function SearchClient({
           <button
             key={tab.value}
             onClick={() => handleTabChange(tab.value)}
+            aria-pressed={activeType === tab.value}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${
               activeType === tab.value
                 ? "bg-text-primary text-bg"
