@@ -264,7 +264,7 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		rawURL, err := h.scheduler.Dequeue(scheduler.QueueHarvester)
+		rawURL, err := h.scheduler.DequeueCtx(ctx, scheduler.QueueHarvester)
 		if err != nil {
 			// Spec "Dequeue 자체 오류는 카운트되지 않는다": log and retry
 			// instead of returning, so a transient scheduler/DB hiccup does

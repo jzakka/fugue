@@ -153,6 +153,10 @@ func (f *fakeScheduler) Dequeue(qt scheduler.QueueType) (string, error) {
 	return u, nil
 }
 
+func (f *fakeScheduler) DequeueCtx(ctx context.Context, qt scheduler.QueueType) (string, error) {
+	return f.Dequeue(qt)
+}
+
 func (f *fakeScheduler) Enqueue(qt scheduler.QueueType, urls ...string) error {
 	if qt == scheduler.QueuePioneer {
 		f.enqueuePioneer = append(f.enqueuePioneer, append([]string{}, urls...))

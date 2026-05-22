@@ -175,13 +175,28 @@ func normalizeURL(raw string) (normalized, host string, err error) {
 // keeps the loop branch-free and eliminates a whole class of "which timer
 // fires first" bugs.
 //
-// NOTE (future context-support): the URLScheduler interface does not take a
-// context.Context in this change's scope, so Dequeue blocks indefinitely
-// until a claim succeeds or a DB error occurs. Graceful shutdown is the
-// responsibility of a follow-up change that adds a context-taking overload;
-// today, operators relying on worker restart must accept up to one
-// pollInterval of quiescence before the process can exit.
+// Dequeue is preserved as a backward-compat wrapper that delegates to
+// DequeueCtx with a never-cancelled context.Background(). The follow-up
+// referenced by the historical NOTE here (`future context-support`) is
+// implemented by DequeueCtx — bot consumer Run loops should call DequeueCtx
+// so SIGTERM propagates into the poll sleep instead of waiting up to one
+// pollInterval. Tests and any legacy callers without a context handy may
+// still call Dequeue.
 func (s *PGURLScheduler) Dequeue(queueType QueueType) (string, error) {
+	return s.DequeueCtx(context.Background(), queueType)
+}
+
+// DequeueCtx implements URLScheduler. Honours ctx cancellation at two
+// points: (1) the per-attempt tryClaim transaction uses ctx so a slow
+// BeginTx / SELECT FOR UPDATE inside a DB maintenance window cancels with
+// ctx.Err() instead of hanging until k8s SIGKILL, and (2) the empty-queue /
+// all-throttled poll sleep uses select{<-ctx.Done(): ; <-time.After(poll)}
+// so cancellation returns within a few milliseconds rather than waiting up
+// to one pollInterval. The poll cadence (~1s) and "empty queue and host
+// throttle treated identically" semantics from
+// `spec.md` Requirement "Dequeue는 빈 큐/host throttle 시 block-on-empty로
+// 대기한다" are preserved — only the unblocking-on-cancel path is added.
+func (s *PGURLScheduler) DequeueCtx(ctx context.Context, queueType QueueType) (string, error) {
 	if queueType != QueuePioneer && queueType != QueueHarvester {
 		return "", fmt.Errorf("%w: %q", ErrUnknownQueueType, string(queueType))
 	}
@@ -189,14 +204,21 @@ func (s *PGURLScheduler) Dequeue(queueType QueueType) (string, error) {
 		return "", ErrRateLimiterRequired
 	}
 	for {
-		url, claimed, err := s.tryClaim(queueType)
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
+		url, claimed, err := s.tryClaim(ctx, queueType)
 		if err != nil {
 			return "", err
 		}
 		if claimed {
 			return url, nil
 		}
-		time.Sleep(s.pollIntervalOrDefault())
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		case <-time.After(s.pollIntervalOrDefault()):
+		}
 	}
 }
 
@@ -220,8 +242,11 @@ func (s *PGURLScheduler) pollIntervalOrDefault() time.Duration {
 // FOR UPDATE SKIP LOCKED's row locks are still held when the UPDATE fires.
 // Splitting them across transactions opens a window where another worker
 // could re-claim the same row between SELECT commit and UPDATE begin.
-func (s *PGURLScheduler) tryClaim(queueType QueueType) (string, bool, error) {
-	ctx := context.Background()
+//
+// The ctx is propagated into BeginTx and every qtx.* query so a cancelled
+// ctx (SIGTERM via DequeueCtx) aborts a stuck claim transaction instead of
+// hanging until k8s SIGKILL during DB maintenance / pool exhaustion.
+func (s *PGURLScheduler) tryClaim(ctx context.Context, queueType QueueType) (string, bool, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return "", false, fmt.Errorf("scheduler: begin claim tx: %w", err)
