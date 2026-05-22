@@ -4555,7 +4555,7 @@ items:
     effort: 1
     risk: 2
     score: 8.0
-    status: pending
+    status: in_progress
     note: |
       Discovery (security area, 2026-05-22 cycle).
 
