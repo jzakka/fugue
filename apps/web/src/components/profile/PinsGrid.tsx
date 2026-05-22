@@ -132,7 +132,11 @@ export default function PinsGrid({
 
       {hasMore && <div ref={sentinelRef} className="h-4" />}
       {loading && pins.length > 0 && (
-        <div className="flex justify-center py-8">
+        <div
+          role="status"
+          aria-label="추가 핀 로딩 중"
+          className="flex justify-center py-8"
+        >
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       )}
