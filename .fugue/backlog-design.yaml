@@ -1729,7 +1729,9 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    pr: 170
+    note: "2026-05-22 PR #170 — apps/web/src/components/feed/EmptyState.tsx L16 마스코트 div 에 `aria-hidden=\"true\"` 1 prop 추가(diff +1 -1). 변경 전: `<div className=\"text-5xl mb-4\">🐡</div>` → 변경 후: `<div aria-hidden=\"true\" className=\"text-5xl mb-4\">🐡</div>`. EmptyState 는 FeedContainer L165(피드 0건) · PinsGrid L124(마이페이지 핀 0건) · AddToBoardButton L296(보드 0건) 3곳 호출처에서 빈 상태 시각으로 사용 — SR 사용자는 빈 상태 진입 시 'blowfish, {message}, {description}' announce 받음 → 'blowfish' 가 의미 없는 잡음. message(L17 `text-text-muted text-sm`)·description(L19 `text-text-dim text-xs`)·children button(L21 mt-4) 이 의미 전달 담당이라 마스코트 announce 는 중복. WCAG 2.1 SC 1.1.1 Non-text Content (Level A) 정합 — 'decorative non-text content can be ignored by assistive technology'. 코드베이스 내부 정합 근거: PinCard L65 audio ▶ · L98 video ▶ · PinDetail page L54 ♪ · PinCreateForm L394 ♪ · L449 required * · SearchBar L286 dropdown placeholder — in-codebase aria-hidden 라인업 6 → 7 파일 확장(EmptyState L16 추가). Discovery cycle 53 PR #166 의 4개 후보 중 score 10.0 동점 3개 중 하나 완료(잔여 pending 2건 — NavBar 🐡 · login 🐡). 시각 동작 0(message/description/children 분기 모두 미변경 · 마스코트 표시 유지 · `text-5xl mb-4` className 유지 · 부모 `flex flex-col items-center justify-center py-16 text-center` 유지) · 마우스 사용자 회귀 0 · 호출처 3곳(FeedContainer L165 · PinsGrid L124 · AddToBoardButton L296) 무영향. light mode 동일(색 토큰 미변경). 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정(단일 div 에 1 prop 추가). Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — 단일 prop 1개 추가 변경 단위라 코드 검증(grep `aria-hidden=\"true\"` EmptyState L16 매칭 + 인접 message/description/children 분기 미변경 확인)으로 대체. 자체 회복 §3 — PR #170 fix 단계에서 머지 직전 origin/main 이 PR #168/#169 로 진행 → BEHIND → fetch + rebase + force-push 후 머지 성공."
 
   - id: "design-20260522-a11y-navbar-logo-mascot-aria-hidden-missing"
     title: "NavBar 로고 복어 마스코트 이모지(🐡) 가 `aria-hidden` 부재 — 모든 페이지 SR 사용자가 로고 링크 앞에 'blowfish' 노이즈 announce(WCAG 2.1 SC 1.1.1 Non-text Content Level A)"
