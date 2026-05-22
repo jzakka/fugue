@@ -4356,7 +4356,38 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 248
+    resolution: |
+      PR #248 (merge commit 57376ba) — `apps/api/internal/bot/goja_executor.go`
+      L47-65 의 timeout watcher goroutine 본문을 `vm.Interrupt(timeoutCtx.Err())`
+      무조건 호출로 단순화. DeadlineExceeded 와 Canceled 양쪽 모두 stop 신호로
+      통일되어, SIGTERM → runCtx cancel → timeoutCtx Canceled 경로에서도
+      VM 이 즉시 중단되도록 함. RunString 의 기존 `*goja.InterruptedError`
+      분기 (L109-115) 는 그대로 사용 — `timeout: context canceled` 로 래핑돼
+      caller 가 cancel-driven abort 와 자연 timeout 을 구분 가능. 14-line
+      docstring 으로 Go stdlib `context.WithTimeout` child semantics +
+      운영 영향 (k8s terminationGracePeriodSeconds → SIGKILL → finalize skip
+      → harvester_frontier lease 10분 stuck) + race 안전성 (single-use VM
+      인스턴스이므로 종료된 VM 에서 Interrupt 호출은 no-op) 을 명시.
+
+      신규 단위 테스트 `TestGojaExecutor_ParentCancelInterrupts`
+      (`goja_executor_test.go`) — `NewGojaExecutor(60_000)` + 50ms 후
+      parent cancel + `while(true){}` 스크립트로, fix 전 60s hang vs fix 후
+      < 500ms 인터럽트를 결정적으로 회귀 검출. 추가로 error 메시지에
+      `canceled` 보존 검증으로 cancel-cause 진단성 확보.
+
+      QA 결과:
+        - 전체 23개 패키지 `go test ./...` PASS (회귀 0).
+        - 회귀 검출 검증: fix stash 후 신규 테스트가 90s hang 으로 정확히
+          FAIL → fix 복원 후 < 200ms PASS.
+        - Ad-hoc QA driver (T1 cancel 100ms / T2 deadline 150ms / T3 happy
+          path) 3건 expected behavior 일치. driver 삭제.
+
+      PR #232 decision-log 의 finalize-callsite 보존 결정 (consumer
+      `context.Background()` 의도) 과 정합 — 본 fix 는 finalize callsite 를
+      건드리지 않고 GojaExecutor 내부 goroutine 만 수정해 finalize 보존
+      원칙을 강화 (스크립트가 시간 안에 끝나야 finalize 가 의도대로 작동).
     note: |
       Discovery (concurrency area) — 동시성 / 미완료 cancel 카테고리.
       `context.WithTimeout` 의 child ctx 가 부모 ctx 의 cancel 을 먼저
