@@ -142,6 +142,7 @@ export default function SearchBar() {
     <div className="flex-1 max-w-md relative" ref={containerRef}>
       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm opacity-40 pointer-events-none">
         <svg
+          aria-hidden="true"
           width="16"
           height="16"
           viewBox="0 0 24 24"
@@ -197,6 +198,7 @@ export default function SearchBar() {
                     className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
                   >
                     <svg
+                      aria-hidden="true"
                       width="14"
                       height="14"
                       viewBox="0 0 24 24"
@@ -221,6 +223,7 @@ export default function SearchBar() {
                     className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-text-dim hover:text-text-primary transition-opacity p-1 cursor-pointer"
                   >
                     <svg
+                      aria-hidden="true"
                       width="12"
                       height="12"
                       viewBox="0 0 24 24"
@@ -350,6 +353,7 @@ export default function SearchBar() {
                     >
                       <div className="w-7 h-7 rounded-[6px] bg-surface shrink-0 flex items-center justify-center">
                         <svg
+                          aria-hidden="true"
                           width="14"
                           height="14"
                           viewBox="0 0 24 24"
