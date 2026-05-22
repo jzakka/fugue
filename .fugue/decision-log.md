@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-05-22 — [system] 발견 모드 산출 backlog 변경의 main 반영 절차 결정 (chore commit + PR + 머지) — cycle 95
+결정/변경: cycle 94 발견 모드가 `.fugue/backlog-system.yaml` 에 `system-20260522-bot-robots-filter-bare-http-client-ssrf` 1건을 append 했으나 prompts/loop-system.md §발견 모드 step 7 "사이클 종료" 에 commit/PR 명시가 부재 → 다음 사이클이 step 1 의 `git checkout -B ... origin/main` 강제 재생성 시 uncommitted 변경 망실 위험. cycle 95 step 0 에서 worktree dirty 상태로 진입 후 §5 결정 회색지대 보수 원칙(기존 동작 보존·롤백 가능·영향 범위 최소)을 적용해 cycle 94 산출물을 chore commit + PR + 머지로 main 반영.
+이유: loop-system.md L184-188 "사이클 종료 시 갱신해야 하는 파일" 에 backlog-system.yaml 포함이나 발견 모드의 main 반영 절차 미명시. 처리 모드(step 1)의 강제 재생성 의미상 발견 산출물도 main 반영 필요. 보수 선택: chore commit 1건 격리 (코드 변경 0, 데이터 추가만, 롤백 가능, decision-log 본 항목 자체로 차후 발견 사이클이 동일 절차 따르도록 명시).
+영향 범위: 본 결정은 발견 모드 산출 backlog 변경에 한정. 처리 모드의 "사이클당 머지 1건"(L179)은 본 chore PR 이 코드 변경 0이라 위반 아님. 차후 발견 모드 사이클은 본 결정을 따라 종료 시 backlog 변경을 chore commit + PR + 머지로 마무리.
+
 ## 2026-05-22 — [design] SearchBar 4개 decorative SVG 에 `aria-hidden="true"` 추가 — cycle 94 Processing(PR #252) · 검색 prefix + 최근 검색 history + 최근 검색 제거 X + 보드 결과 placeholder 4 SVG 모두 SR hide(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A + WAI-ARIA Icon Button 패턴)
 결정/변경: SearchBar.tsx L145(검색 prefix · input aria-label='검색' 옆 ornament) / L201(최근 검색 history · visible text 최근 query) / L226(최근 검색 제거 X · aria-label='최근 검색에서 제거') / L356(보드 결과 placeholder · visible text 보드 이름) 4개 SVG element 시작 줄에 `aria-hidden="true"` 1 attribute 추가(diff +4 -0). 같은 파일 L293(pin media-type placeholder div) 가 이미 aria-hidden 적용된 inconsistent 상태 해소 → 5 matches L145/L201/L226/L293/L356 일관성 회복.
 이유: 각 부모 control 의 visible text 또는 aria-label 이 이미 accessible name 을 제공하므로 자식 SVG 는 SR 에서 hide 해 graphic 중복 announce 방지. cycle 93 PR #251 AddToBoardButton 4 SVG aria-hidden 라인업 직계 sibling — 같은 a11y 시리즈 컴포넌트 단위 처리.
