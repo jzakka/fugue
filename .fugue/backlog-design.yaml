@@ -2304,7 +2304,9 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    pr: 261
+    note: "SearchClient.tsx L357 board 결과 placeholder grid SVG opening tag 시작 줄에 `aria-hidden=\"true\"` 1 attribute 추가(diff +1 -0, L358 신규 삽입). 부모 Link(L350-388)는 같은 컨테이너 안 visible text `{board.name}`(L376) + `{board.description}`(L380) + `{board.creator_nickname}`(L384) 로 accessible name 제공 — 자식 placeholder SVG 는 SR 에서 hide. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Decorative icons 정렬. cycle 96 발견 모드 PR #256 직계 sibling 4건(BoardCover cycle 97 PR #257 → LoginButtons cycle 98 PR #259 → PinDetail cycle 99 PR #260 → 본 건) 중 4번째이자 마지막. in-codebase precedent: PinCard.tsx L65/L98/L121(cycle 95 PR #253) + AddToBoardButton.tsx 4건(cycle 93 PR #251) + SearchBar.tsx 4건 cycle 94 PR #252(특히 L356 `searchResult.type === 'board'` placeholder 동일 패턴) + BoardCover.tsx L8(cycle 97 PR #257) + LoginButtons.tsx L10/L34(cycle 98 PR #259) + pins/[id]/page.tsx L170/L226(cycle 99 PR #260). 시각 변경 0(aria-hidden 은 SR 전용). 부모 Link className(`block p-4 bg-surface rounded-[10px] border border-transparent hover:-translate-y-0.5 hover:shadow-card-hover hover:border-accent focus-visible:-translate-y-0.5 focus-visible:shadow-card-hover focus-visible:border-accent focus-visible:outline-none transition-all duration-200`) · href · 자식 visible text · 인접 div 구조 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/app/search/SearchClient.tsx` 1 match L358)으로 대체."
 
   - id: "design-20260522-a11y-boardcover-empty-placeholder-svg-aria-hidden-missing"
     title: "BoardCover 빈 cover placeholder grid SVG 에 `aria-hidden=\"true\"` 누락 — BoardGrid/AddToBoardButton/MyPageClient 등 다수 부모에서 visible text(board name) 가 accessible name 제공하나 SVG 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"

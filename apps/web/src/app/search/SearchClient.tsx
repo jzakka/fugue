@@ -355,6 +355,7 @@ export default function SearchClient({
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-[6px] bg-surface-elevated flex items-center justify-center shrink-0">
                         <svg
+                          aria-hidden="true"
                           width="18"
                           height="18"
                           viewBox="0 0 24 24"
