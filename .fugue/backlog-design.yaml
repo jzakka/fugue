@@ -2061,4 +2061,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: in_progress
+    status: done
+    pr: 230
+    note: "PinCreateForm.tsx L600 비선택 분기 utility 1줄에 `focus-visible:bg-accent/20` 1 utility 삽입(diff +1 -1). 키보드 사용자가 태그 chip button 으로 Tab 진입 시 hover 와 동일하게 background 가 `bg-accent/20` 으로 변화 → 시각 신호 가시화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycles 62-67 의 hover→focus-visible 미러링 라인업(PR #189 SearchBar dropdown · #191/#193 SearchClient · #197 PinDetail board chip · #200 FeedContainer 빈/에러 button · #202 VideoThumbnailPicker 비선택 분기) 직접 follow-up. 선택 분기(`bg-accent text-white`) · disabled 분기(`disabled:opacity-40 disabled:cursor-not-allowed`) · 정적 utility(`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors font-mono`) 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'focus-visible:bg-accent/20\\|hover:bg-accent/20' apps/web/src/app/pin/new/PinCreateForm.tsx` L600 1건 매칭 — 같은 line 에 hover + focus-visible 미러 동시 보유) 으로 대체. CI 2/2 SUCCESS · 1회 만에 머지 성공(BEHIND 발생 없음 — 본체 PR #230 처리 모드 시작 전 cycle 78 discovery PR #229 가 먼저 머지되어 baseline 동기화). discovery PR(#229) push 시 branch 가 origin 에 이미 존재(cycle 78 discovery PR #229 의 같은 branch 명을 재사용) → force-with-lease push 1회 적용(§자체 회복 §1 보강 케이스 — discovery 와 processing 이 같은 brunch id 를 공유할 때 표준 절차)."
