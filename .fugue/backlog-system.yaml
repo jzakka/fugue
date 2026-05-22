@@ -3677,7 +3677,8 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 216
     note: |
       변경 범위:
         (a) feed/handler.go L218-239 silent 분기 2곳에 log.Printf 추가
@@ -3691,6 +3692,19 @@ items:
       decision-log 의 명시적 사용자 결정 0건 — feed cache silent
       branch 도 cycle K 에서 같은 방식으로 잡았으므로 사용자 의도
       침범 없음.
+
+      실 환경 QA 결과 (2026-05-22):
+        - 일회용 postgres :5544 + redis :6390 + 시드 creator (15 핀)로 검증.
+        - happy path: 200 + 15 핀 + "feed.buildPersonalizedFeed:" 0건.
+        - 실패 주입: `ALTER TABLE pins RENAME COLUMN media_type TO media_type_tmp;`
+          + `FLUSHALL` 후 로그 라인 emit 확인:
+            feed.buildPersonalizedFeed: GetUserMediaTypeFrequency error:
+              pq: column p.media_type does not exist at position 2:8 (42703)
+              (user=d8c4dcf7-d1bd-4e60-aecf-d4b77dee47ac)
+          collateral 500 은 동일 컬럼을 SELECT 하는 latest fallback 경로 때문 —
+          본 분기의 fail-open 200 contract 는 3개 단위 테스트로 격리 검증됨.
+        - 회귀: handler_pagination_test.go 등 sibling 테스트 무영향
+          (569/569 통과, 566→569 +3).
 
   - id: system-20260522-search-top-tags-silent-error
     title: "search.Search 의 top_tags 보강 분기 — SearchTopTags 에러 silent swallow"
