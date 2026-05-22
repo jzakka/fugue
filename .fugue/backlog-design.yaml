@@ -2316,4 +2316,6 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 257
+    note: "BoardCover.tsx L7-22 빈 cover placeholder grid SVG 시작 줄에 `aria-hidden=\"true\"` 1 attribute 추가(diff +1 -0). 단일 변경으로 BoardGrid(/mypage · /creators/<id>) + AddToBoardButton(보드 row + 새 보드 만들기 모달) + MyPageClient(/mypage 보드 섹션) + SearchBar(드롭다운 보드 결과 placeholder · 단 SearchBar 는 BoardCover 미경유하나 동일 graphic 으로 cycle 94 PR #252 에서 이미 적용) 모든 caller 일괄 일관성 회복. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. cycle 92 발견 PR #250 누락 직계 sibling 4건(PR #256) 중 첫 처리. in-codebase precedent: PinCard.tsx L65/L98/L121 + AddToBoardButton.tsx L61/L253/L315/L398 + SearchBar.tsx L145/L201/L226/L293/L356 + NavBar.tsx L16 + EmptyState.tsx L16. cover 이미지 있는 분기(L29-46 grid 2x2 img tiles) · group-hover/group-focus-visible border/shadow · Link click 핸들러 모두 미변경. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/board/BoardCover.tsx` 1 match L8) 으로 대체."
