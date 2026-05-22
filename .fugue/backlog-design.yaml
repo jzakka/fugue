@@ -2206,7 +2206,9 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: PENDING
+    note: "PinCard.tsx L121 ExternalLinkIcon button(L109 button · aria-label='원본 보기' L118 · title='원본 보기' L117) 자식 SVG element 시작 줄에 `aria-hidden=\"true\"` 1 attribute 추가(diff +1 -0). 같은 파일 내 L65(audio play span) · L98(video play overlay div) 이미 aria-hidden 적용된 inconsistent 상태 해소 → 3 matches(L65/L98/L121) 일관성 회복. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. PinCard 는 / · /search · /mypage · /boards/[id] · /creators/[id] 모든 핀 listing 화면 표시 빈번 컨트롤 — 전 화면 일괄 개선. cycle 93 PR #251 AddToBoardButton + cycle 94 PR #252 SearchBar decorative-SVG aria-hidden 시리즈 직계 sibling. 시각 변경 0(aria-hidden 은 보조 기술 전용). 부모 button onClick(window.open url _blank) · aria-label · title · className(inline-flex · w-6 h-6 · rounded-full · bg-surface-elevated · hover:bg-accent-subtle · focus-visible:bg-accent-subtle · transition-colors · shrink-0 · cursor-pointer) 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/feed/PinCard.tsx` 3 matches L65/L98/L121) 으로 대체. 3-건 SVG aria-hidden 시리즈(cycle 92 discovery PR #250 등록 → cycle 93/94/95 처리) 완결. 잔여 pending 0건 → 다음 사이클 발견 모드."
 
   - id: "design-20260522-a11y-addtoboard-decorative-svg-aria-hidden-missing"
     title: "AddToBoardButton 내부 4개 decorative SVG 에 `aria-hidden=\"true\"` 누락 — 보드 트리거 BoardIcon, 모달 닫기 button SVG, 보드 placeholder SVG, 새 보드 만들기 plus SVG 가 SR 에 별도 graphic announce 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
