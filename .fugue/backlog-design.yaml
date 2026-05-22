@@ -2267,7 +2267,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 259
+    note: "LoginButtons.tsx L10(Google SVG) · L34(Discord SVG) 시작 줄에 각 `aria-hidden=\"true\"` 1 attribute 추가(diff +2 -0). 부모 button(L67-84) 의 aria-label={provider.label} + visible text {provider.label}(L81) 가 이미 accessible name 제공하므로 자식 SVG 는 SR 에서 hide. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. cycle 92 발견 모드 PR #250 누락 직계 sibling 4건(PR #256) 중 2번째 처리. in-codebase precedent: PinCard.tsx L65/L98/L121 + AddToBoardButton.tsx L61/L253/L315/L398 + SearchBar.tsx L145/L201/L226/L356 + BoardCover.tsx L8(cycle 97 PR #257). 시각 변경 0(aria-hidden 은 SR 전용). 부모 button className(`flex items-center justify-center gap-3 w-full py-3 px-4 border border-border rounded-full text-sm font-medium text-text-primary hover:border-accent focus-visible:border-accent transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`) · onClick handleClick · disabled · aria-label · provider 로딩 분기('리다이렉트 중...' L77) · useEffect /api/auth/providers fetch · setLoading state 모두 미변경. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/app/login/LoginButtons.tsx` 2 matches L10/L34) 으로 대체."
 
   - id: "design-20260522-a11y-pindetail-boardchip-originlink-svg-aria-hidden-missing"
     title: "PinDetail 페이지 2개 decorative SVG 에 `aria-hidden=\"true\"` 누락 — boards chip Link 의 grid icon + '원본 보기' anchor 의 external-link icon 이 SR 에서 graphic 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Icon Button 패턴)"
