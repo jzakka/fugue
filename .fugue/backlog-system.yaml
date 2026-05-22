@@ -3978,7 +3978,8 @@ items:
     effort: 2
     risk: 2
     score: 3.75
-    status: pending
+    status: done
+    pr: 232
     note: |
       직전 사이클 (PR #205, system-20260522-scheduler-dequeue-ignores-runctx,
       score 3.0) 의 직계 sibling. DequeueCtx 신설로 ‘빈 큐 대기 / poll

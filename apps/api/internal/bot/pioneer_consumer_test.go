@@ -164,9 +164,17 @@ func (f *fakeScheduler) Enqueue(qt scheduler.QueueType, urls ...string) error {
 	return nil
 }
 
+func (f *fakeScheduler) EnqueueCtx(ctx context.Context, qt scheduler.QueueType, urls ...string) error {
+	return f.Enqueue(qt, urls...)
+}
+
 func (f *fakeScheduler) EnqueueHarvester(url, snapshotKey string) error {
 	f.enqueueHarvester = append(f.enqueueHarvester, enqueueHarvesterCall{url: url, snapshotKey: snapshotKey})
 	return nil
+}
+
+func (f *fakeScheduler) EnqueueHarvesterCtx(ctx context.Context, url, snapshotKey string) error {
+	return f.EnqueueHarvester(url, snapshotKey)
 }
 
 func (f *fakeScheduler) SetStatus(key string, status scheduler.Status, pinIDs []uuid.UUID) error {
@@ -174,14 +182,26 @@ func (f *fakeScheduler) SetStatus(key string, status scheduler.Status, pinIDs []
 	return nil
 }
 
+func (f *fakeScheduler) SetStatusCtx(ctx context.Context, key string, status scheduler.Status, pinIDs []uuid.UUID) error {
+	return f.SetStatus(key, status, pinIDs)
+}
+
 func (f *fakeScheduler) RecordFetchError(key string, kind scheduler.ErrorKind) error {
 	f.recordFetchError = append(f.recordFetchError, recordFetchErrorCall{key: key, kind: kind})
 	return nil
 }
 
+func (f *fakeScheduler) RecordFetchErrorCtx(ctx context.Context, key string, kind scheduler.ErrorKind) error {
+	return f.RecordFetchError(key, kind)
+}
+
 func (f *fakeScheduler) RecordHarvestError(key string, kind scheduler.ErrorKind) error {
 	f.recordHarvestError = append(f.recordHarvestError, recordFetchErrorCall{key: key, kind: kind})
 	return nil
+}
+
+func (f *fakeScheduler) RecordHarvestErrorCtx(ctx context.Context, key string, kind scheduler.ErrorKind) error {
+	return f.RecordHarvestError(key, kind)
 }
 
 // fakeFetcher returns a fixed body + status for every URL, and allows an

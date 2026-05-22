@@ -74,23 +74,35 @@ func candidateNFromEnv() int {
 	return n
 }
 
-// Enqueue implements URLScheduler. It normalizes each URL, derives url_hash,
-// and runs a single batch insert against the chosen frontier table. pioneer
-// uses `ON CONFLICT DO NOTHING` (idempotent); harvester uses a conditional
-// UPSERT that reactivates un-harvested rows (DECISIONS §8).
+// Enqueue implements URLScheduler. Backward-compat wrapper over
+// EnqueueCtx(context.Background(), ...).
+func (s *PGURLScheduler) Enqueue(queueType QueueType, urls ...string) error {
+	return s.EnqueueCtx(context.Background(), queueType, urls...)
+}
+
+// EnqueueCtx implements URLScheduler. It normalizes each URL, derives
+// url_hash, and runs a single batch insert against the chosen frontier
+// table. pioneer uses `ON CONFLICT DO NOTHING` (idempotent); harvester uses
+// a conditional UPSERT that reactivates un-harvested rows (DECISIONS §8).
 //
 // Empty urls slice is a no-op and returns nil — this matches the spec's
-// "at least one" phrasing (0 inputs means 0 work, not an error).
-func (s *PGURLScheduler) Enqueue(queueType QueueType, urls ...string) error {
+// "at least one" phrasing (0 inputs means 0 work, not an error). The
+// pre-DB ctx.Err() check ensures an already-cancelled ctx returns
+// immediately without touching the connection pool; the sqlc-generated
+// *Context query then propagates ctx to the driver so a slow connection
+// during the INSERT aborts on cancel rather than hanging.
+func (s *PGURLScheduler) EnqueueCtx(ctx context.Context, queueType QueueType, urls ...string) error {
 	if len(urls) == 0 {
 		return nil
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	normalized, raw, hashes, hosts, err := prepareEnqueueBatch(urls)
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
 	switch queueType {
 	case QueuePioneer:
 		return s.queries.EnqueuePioneer(ctx, db.EnqueuePioneerParams{
@@ -111,23 +123,33 @@ func (s *PGURLScheduler) Enqueue(queueType QueueType, urls ...string) error {
 	}
 }
 
-// EnqueueHarvester implements URLScheduler. Singular-URL UPSERT that writes
-// snapshot_key alongside the row. The SQL (UpsertHarvesterWithSnapshot) is
-// guarded by `WHERE harvested_at IS NULL`, so an already-harvested row is a
-// no-op — the caller receives nil and the row is untouched. snapshot_key is
-// written via sql.NullString; this method requires a non-empty snapshotKey
-// (empty violates the spec's "snapshot_key를 호출 인자 값으로 세팅" clause).
-//
-// Spec: pioneer-scheduler-consumer change / scheduler spec ADDED Requirement.
+// EnqueueHarvester implements URLScheduler. Backward-compat wrapper over
+// EnqueueHarvesterCtx(context.Background(), ...).
 func (s *PGURLScheduler) EnqueueHarvester(rawURL string, snapshotKey string) error {
+	return s.EnqueueHarvesterCtx(context.Background(), rawURL, snapshotKey)
+}
+
+// EnqueueHarvesterCtx implements URLScheduler. Singular-URL UPSERT that
+// writes snapshot_key alongside the row. The SQL
+// (UpsertHarvesterWithSnapshot) is guarded by `WHERE harvested_at IS NULL`,
+// so an already-harvested row is a no-op — the caller receives nil and the
+// row is untouched. snapshot_key is written via sql.NullString; this method
+// requires a non-empty snapshotKey (empty violates the spec's
+// "snapshot_key를 호출 인자 값으로 세팅" clause).
+//
+// Spec: pioneer-scheduler-consumer change / scheduler spec ADDED
+// Requirement.
+func (s *PGURLScheduler) EnqueueHarvesterCtx(ctx context.Context, rawURL string, snapshotKey string) error {
 	if snapshotKey == "" {
 		return fmt.Errorf("scheduler: EnqueueHarvester requires non-empty snapshotKey")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	nu, host, parseErr := normalizeURL(rawURL)
 	if parseErr != nil {
 		return fmt.Errorf("scheduler: EnqueueHarvester parse %q: %w", rawURL, parseErr)
 	}
-	ctx := context.Background()
 	return s.queries.UpsertHarvesterWithSnapshot(ctx, db.UpsertHarvesterWithSnapshotParams{
 		NormalizedUrl: nu,
 		Url:           rawURL,
@@ -338,12 +360,23 @@ type claimCandidate struct {
 	host string
 }
 
-// SetStatus implements URLScheduler. status dispatches to one UPDATE per
+// SetStatus implements URLScheduler. Backward-compat wrapper over
+// SetStatusCtx(context.Background(), ...).
+func (s *PGURLScheduler) SetStatus(key string, status Status, pinIDs []uuid.UUID) error {
+	return s.SetStatusCtx(context.Background(), key, status, pinIDs)
+}
+
+// SetStatusCtx implements URLScheduler. status dispatches to one UPDATE per
 // branch; StatusHarvested additionally inserts pin-id rows inside the same
 // transaction as the status UPDATE so a pins INSERT failure rolls the
-// harvested_at flip back.
-func (s *PGURLScheduler) SetStatus(key string, status Status, pinIDs []uuid.UUID) error {
-	ctx := context.Background()
+// harvested_at flip back. ctx propagates into both single-statement
+// UPDATEs (via sqlc *Context queries) and the StatusHarvested
+// transaction's BeginTx, so an already-cancelled ctx returns
+// immediately and a mid-call cancel aborts the driver call.
+func (s *PGURLScheduler) SetStatusCtx(ctx context.Context, key string, status Status, pinIDs []uuid.UUID) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	hash, ok := hashLookupKey(key)
 	if !ok {
 		// Canonicalization yielded an empty URL (empty input or unparseable).

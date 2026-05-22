@@ -71,18 +71,35 @@ func (f *fakeHarvestScheduler) DequeueCtx(ctx context.Context, qt scheduler.Queu
 }
 
 func (f *fakeHarvestScheduler) Enqueue(scheduler.QueueType, ...string) error { return nil }
-func (f *fakeHarvestScheduler) EnqueueHarvester(string, string) error        { return nil }
+func (f *fakeHarvestScheduler) EnqueueCtx(context.Context, scheduler.QueueType, ...string) error {
+	return nil
+}
+func (f *fakeHarvestScheduler) EnqueueHarvester(string, string) error { return nil }
+func (f *fakeHarvestScheduler) EnqueueHarvesterCtx(context.Context, string, string) error {
+	return nil
+}
 
 func (f *fakeHarvestScheduler) SetStatus(key string, status scheduler.Status, pinIDs []uuid.UUID) error {
 	f.setStatus = append(f.setStatus, setStatusCall{key: key, status: status, pinIDs: pinIDs})
 	return nil
 }
 
+func (f *fakeHarvestScheduler) SetStatusCtx(ctx context.Context, key string, status scheduler.Status, pinIDs []uuid.UUID) error {
+	return f.SetStatus(key, status, pinIDs)
+}
+
 func (f *fakeHarvestScheduler) RecordFetchError(string, scheduler.ErrorKind) error { return nil }
+func (f *fakeHarvestScheduler) RecordFetchErrorCtx(context.Context, string, scheduler.ErrorKind) error {
+	return nil
+}
 
 func (f *fakeHarvestScheduler) RecordHarvestError(key string, kind scheduler.ErrorKind) error {
 	f.recordHarvestError = append(f.recordHarvestError, recordFetchErrorCall{key: key, kind: kind})
 	return nil
+}
+
+func (f *fakeHarvestScheduler) RecordHarvestErrorCtx(ctx context.Context, key string, kind scheduler.ErrorKind) error {
+	return f.RecordHarvestError(key, kind)
 }
 
 // pinnableDocHTML is a small HTML payload that the generic extractor +

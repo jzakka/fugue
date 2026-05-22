@@ -64,14 +64,31 @@ type HostRateLimiterIface interface {
 // originally delivered by `scheduler-retry-backoff` and are now typed
 // (ErrorKind) here.
 //
-// TODO(scheduler-claim-api): re-evaluate whether the failure-reporting methods
-// should accept a context.Context. The current signature omits it; a follow-up
-// refactor may want to propagate cancellation from the worker loop.
+// The ctx follow-up promised by the original "scheduler-claim-api" TODO has
+// been delivered in two parts: DequeueCtx (PR #205) for the block-on-empty
+// branch, and the remaining four *Ctx variants alongside it for
+// caller-driven cancellation of the single-shot frontier writes. The five
+// non-ctx methods are preserved as backward-compat wrappers delegating to
+// `*Ctx(context.Background(), ...)`. Consumer wiring (pioneer_consumer.go,
+// harvester_consumer.go) deliberately continues to call the non-ctx
+// variants for the finalize calls — see HarvesterConsumer.processOne for
+// the graceful-shutdown rationale (in-flight URL must complete its final
+// status transition before Run returns). New callers (tests, admin tools,
+// or future consumers with different shutdown semantics) should prefer
+// the *Ctx variants so cancellation propagates through to BeginTx and the
+// per-statement driver path.
 type URLScheduler interface {
 	// Enqueue inserts one or more URLs into the given queue's frontier table.
 	// Duplicates are no-ops for pioneer and conditional UPSERTs for harvester
-	// (see DECISIONS §8 / scheduler-claim-api proposal).
+	// (see DECISIONS §8 / scheduler-claim-api proposal). Backward-compat
+	// wrapper over EnqueueCtx(context.Background(), ...).
 	Enqueue(queueType QueueType, urls ...string) error
+	// EnqueueCtx is the context-aware variant of Enqueue. Honours ctx during
+	// the single batch INSERT (sqlc-generated *Context queries propagate ctx
+	// to the driver, which aborts a stuck query when ctx fires) and applies
+	// an upfront ctx.Err() check so an already-cancelled ctx returns
+	// immediately without touching the connection pool.
+	EnqueueCtx(ctx context.Context, queueType QueueType, urls ...string) error
 	// EnqueueHarvester is the snapshot-aware variant of the harvester enqueue
 	// path. Unlike Enqueue(QueueHarvester, urls...), which does not touch
 	// snapshot_key (baseline contract), this method writes `snapshotKey` into
@@ -79,8 +96,11 @@ type URLScheduler interface {
 	// snapshot Pioneer saved. Used by Pioneer consumer's fanout-B step.
 	// Semantics: UPSERT guarded by `harvested_at IS NULL` — already-harvested
 	// rows are a no-op (no re-harvest). Spec: pioneer-scheduler-consumer
-	// change / `specs/scheduler/spec.md` ADDED Requirement.
+	// change / `specs/scheduler/spec.md` ADDED Requirement. Backward-compat
+	// wrapper over EnqueueHarvesterCtx(context.Background(), ...).
 	EnqueueHarvester(url string, snapshotKey string) error
+	// EnqueueHarvesterCtx is the context-aware variant of EnqueueHarvester.
+	EnqueueHarvesterCtx(ctx context.Context, url string, snapshotKey string) error
 	// Dequeue blocks until a claimable URL is returned. Empty queue and host
 	// throttle both trigger a 1-second sleep before retry. Linearizable via
 	// FOR UPDATE SKIP LOCKED.
@@ -102,13 +122,27 @@ type URLScheduler interface {
 	// SetStatus reports a terminal outcome for `key` (= normalized_url). For
 	// StatusHarvested the caller may pass pin ids (UUIDs, matching pins.id) to
 	// atomically insert into harvester_frontier_pins in the same transaction.
+	// Backward-compat wrapper over SetStatusCtx(context.Background(), ...).
 	SetStatus(key string, status Status, pinIDs []uuid.UUID) error
+	// SetStatusCtx is the context-aware variant of SetStatus. For
+	// StatusHarvested the ctx is propagated into BeginTx so a slow / paused
+	// connection during the UPDATE+INSERT transaction can be cancelled
+	// instead of hanging.
+	SetStatusCtx(ctx context.Context, key string, status Status, pinIDs []uuid.UUID) error
 	// RecordFetchError reports a Pioneer fetch failure for the given key
 	// (= normalized_url) with one of the four errorKind enum values.
+	// Backward-compat wrapper over
+	// RecordFetchErrorCtx(context.Background(), ...).
 	RecordFetchError(key string, errorKind ErrorKind) error
+	// RecordFetchErrorCtx is the context-aware variant of RecordFetchError.
+	RecordFetchErrorCtx(ctx context.Context, key string, errorKind ErrorKind) error
 	// RecordHarvestError reports a Harvester harvest failure for the given
-	// key with one of the four errorKind enum values.
+	// key with one of the four errorKind enum values. Backward-compat wrapper
+	// over RecordHarvestErrorCtx(context.Background(), ...).
 	RecordHarvestError(key string, errorKind ErrorKind) error
+	// RecordHarvestErrorCtx is the context-aware variant of
+	// RecordHarvestError.
+	RecordHarvestErrorCtx(ctx context.Context, key string, errorKind ErrorKind) error
 }
 
 // ErrUnknownErrorKind is returned when a caller passes an errorKind outside
@@ -193,14 +227,26 @@ func (s *PGURLScheduler) WithPollInterval(d time.Duration) *PGURLScheduler {
 	return s
 }
 
-// RecordFetchError implements URLScheduler.
+// RecordFetchError implements URLScheduler. Backward-compat wrapper over
+// RecordFetchErrorCtx(context.Background(), ...).
 func (s *PGURLScheduler) RecordFetchError(key string, errorKind ErrorKind) error {
-	return s.recordError(key, errorKind, recordErrorOpsFetch)
+	return s.RecordFetchErrorCtx(context.Background(), key, errorKind)
 }
 
-// RecordHarvestError implements URLScheduler.
+// RecordFetchErrorCtx implements URLScheduler.
+func (s *PGURLScheduler) RecordFetchErrorCtx(ctx context.Context, key string, errorKind ErrorKind) error {
+	return s.recordError(ctx, key, errorKind, recordErrorOpsFetch)
+}
+
+// RecordHarvestError implements URLScheduler. Backward-compat wrapper over
+// RecordHarvestErrorCtx(context.Background(), ...).
 func (s *PGURLScheduler) RecordHarvestError(key string, errorKind ErrorKind) error {
-	return s.recordError(key, errorKind, recordErrorOpsHarvest)
+	return s.RecordHarvestErrorCtx(context.Background(), key, errorKind)
+}
+
+// RecordHarvestErrorCtx implements URLScheduler.
+func (s *PGURLScheduler) RecordHarvestErrorCtx(ctx context.Context, key string, errorKind ErrorKind) error {
+	return s.recordError(ctx, key, errorKind, recordErrorOpsHarvest)
 }
 
 // recordErrorOps bundles the SQL entry points for one side of the frontier
@@ -283,21 +329,26 @@ func hashLookupKey(rawKey string) ([]byte, bool) {
 	return h[:], true
 }
 
-// recordError is the shared implementation for RecordFetchError and
-// RecordHarvestError. It (1) validates errorKind, (2) for http_4xx runs a
-// single-statement dead UPDATE, (3) for the other three enum values runs a
-// single UPDATE that increments the error count and selects next_*_at from
-// five pre-computed candidate timestamps via a CASE clause. The caller never
-// has to SELECT the current count, so the write is a true single statement.
+// recordError is the shared implementation for RecordFetchError /
+// RecordFetchErrorCtx and RecordHarvestError / RecordHarvestErrorCtx. It (1)
+// validates errorKind, (2) for http_4xx runs a single-statement dead UPDATE,
+// (3) for the other three enum values runs a single UPDATE that increments
+// the error count and selects next_*_at from five pre-computed candidate
+// timestamps via a CASE clause. The caller never has to SELECT the current
+// count, so the write is a true single statement.
 //
-// The ctx is created internally because the URLScheduler interface signature
-// (defined by scheduler-claim-api) does not accept one. See the TODO note on
-// the interface declaration for the follow-up migration.
-func (s *PGURLScheduler) recordError(key string, errorKind ErrorKind, ops recordErrorOps) error {
+// ctx is received from the *Ctx-suffixed surface; the non-ctx
+// RecordFetchError / RecordHarvestError wrappers pass context.Background()
+// for backward compatibility. A pre-DB ctx.Err() fastpath returns
+// immediately on an already-cancelled ctx so callers that want to abort the
+// finalize half-way can rely on near-zero overhead.
+func (s *PGURLScheduler) recordError(ctx context.Context, key string, errorKind ErrorKind, ops recordErrorOps) error {
 	if err := validateErrorKind(errorKind); err != nil {
 		return err
 	}
-	ctx := context.Background()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	hash, ok := hashLookupKey(key)
 	if !ok {
 		// Canonicalization yielded an empty URL — skip the DB call. See the
