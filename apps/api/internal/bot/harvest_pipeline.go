@@ -372,10 +372,29 @@ func (p *HarvestPipeline) downloadAndUpload(ctx context.Context, mediaURL string
 	// header-decode checks cacheImage() uses, and only upload to the
 	// canonical key when the bytes pass. Non-image types stream straight
 	// through (their integrity is checked at the candidate stage).
+	//
+	// Enforce an explicit stream-size cap (harvester/spec.md L749 SHALL)
+	// using the same cacheImage() pattern: Content-Length precheck +
+	// LimitReader(cap+1) + post-read overshoot check. Without this guard
+	// an attacker-controlled image-MIME response could stream unbounded
+	// bytes into the harvester process before the in-process min-bytes /
+	// DecodeConfig validation fires — OOM-killing the worker and dropping
+	// every in-flight batch. cacheImage() (L494) and the non-image branch
+	// below (L408) both already enforce caps; this branch was the lone
+	// unbounded fetcher in HarvestPipeline. The cap reuses
+	// p.imageCacheMaxBytes (default 20 MiB) so all image-data fetches in
+	// HarvestPipeline share a single source-of-truth threshold.
 	if mediaType == "image" {
-		body, readErr := io.ReadAll(resp.Body)
+		if resp.ContentLength > 0 && resp.ContentLength > p.imageCacheMaxBytes {
+			return "", fmt.Errorf("%w: content-length %d > %d", errImageOversize, resp.ContentLength, p.imageCacheMaxBytes)
+		}
+		limited := io.LimitReader(resp.Body, p.imageCacheMaxBytes+1)
+		body, readErr := io.ReadAll(limited)
 		if readErr != nil {
 			return "", fmt.Errorf("read media body: %w", readErr)
+		}
+		if int64(len(body)) > p.imageCacheMaxBytes {
+			return "", fmt.Errorf("%w: read %d bytes", errImageOversize, len(body))
 		}
 		if int64(len(body)) < DefaultImageMinBytes {
 			return "", fmt.Errorf("%w: bytes=%d below min=%d", errImageInvalidMedia, len(body), DefaultImageMinBytes)
