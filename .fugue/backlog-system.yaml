@@ -4658,3 +4658,214 @@ items:
             fetch 는 caller-untrusted host 에 대해 SSRF-safe HTTP client
             를 경유한다 + 응답 본문은 RFC 9309 §2.4 권고 cap 으로
             제한한다" Requirement 추가.
+  - id: system-20260522-tag-list-q-no-length-cap
+    title: "/api/tags?q= 의 q 파라미터 길이 상한 없음 — 미인증·미rate-limit 엔드포인트가 unbounded q 를 SearchTags 의 ILIKE '%' || $1 || '%' 에 그대로 흘려보내는 DoS 표면. 자매 핸들러 /api/search 가 같은 패턴에 대해 200-rune cap (search.Search maxSearchQueryRunes) 컨벤션을 정립한 채 잔존하는 갭"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/tag/handler.go:31-45"        # List 진입 + switch query/category branch — q 길이 상한 없음
+        - "apps/api/internal/tag/handler.go:39-40"        # tags, err = h.q.SearchTags(ctx, sql.NullString{String: query, Valid: true}) — unbounded q 그대로 DB 전달
+        - "apps/api/db/queries/tags.sql:12-17"            # SearchTags: WHERE name ILIKE '%' || $1 || '%' LIMIT 50 — pattern length 가 매칭 cost 직접 amplify
+        - "apps/api/cmd/server/main.go:138-139"           # r.Get("/api/tags/popular", ...) / r.Get("/api/tags", ...) — JWTMiddleware 없음, rate limiter 없음
+        - "apps/api/internal/search/handler.go:89-99"     # 자매 컨벤션 — maxSearchQueryRunes = 200, 출처 주석 (pins.title VARCHAR(200) 정렬)
+        - "apps/api/internal/search/handler.go:108-111"   # `if utf8.RuneCountInString(q) > maxSearchQueryRunes { writeError(400, ...) }` — 동일 패턴이 자매 핸들러에 정착
+        - ".fugue/backlog-system.yaml#system-20260521-search-q-no-length-cap"  # done, PR #163 — 컨벤션 정립 사이클
+      quote: |
+        tag/handler.go:33: `query := r.URL.Query().Get("q")`
+        tag/handler.go:38-45: switch case 가 query != "" 이면 그대로
+              SearchTags 로 dispatch — 길이/형식 검증 없음.
+        tag/handler.go:39-40: `tags, err = h.q.SearchTags(r.Context(),
+              sql.NullString{String: query, Valid: true})`
+        tags.sql:15: `WHERE name ILIKE '%' || $1 || '%'`
+              — pattern length 가 LIKE 매칭 cost 를 amplify.
+        tags.sql:17: `LIMIT 50` — 결과 set 은 cap 되지만 매칭 cost
+              자체는 모든 tags 행에 대해 평가됨 (tags 테이블이 작더라도
+              pattern 100KB 이면 per-row 매칭 비용 amplify).
+        main.go:138-139: `r.Get("/api/tags/popular", ...)` /
+              `r.Get("/api/tags", ...)` — JWTMiddleware 없음,
+              rate limiter 없음.
+        search/handler.go:89-99: 자매 핸들러의 maxSearchQueryRunes = 200
+              주석 — "pins.title (VARCHAR(200), migration 000004) 와 정렬",
+              "endpoint is unauthenticated and not rate-limited",
+              "200 runes is the most spec-grounded bound".
+      reasoning: |
+        자매 핸들러 /api/search (system-20260521-search-q-no-length-cap,
+        PR #163, done) 가 같은 보안 컨벤션을 정립 — 미인증 + 미rate-limit
+        엔드포인트의 q 파라미터에 대해 200-rune cap. 그 사이클의 reasoning
+        섹션이 명시한 프로젝트 string 입력 cap 컨벤션 5건 (creators.nickname
+        50, creators.avatar_url 500, pins.title 200, pins.media_url 500,
+        search.q 200) 에 tag.List.q 만 잔존 갭.
+
+        영향 모델:
+        - ILIKE '%' || $1 || '%' (tags.sql L15): pattern length 가 길수록
+          매칭 cost 증가. 100KB pattern 이면 per-row LIKE 매칭 비용 amplify.
+          tags 테이블 자체가 seed_tags.sql 로 수십~수백 행 규모지만, postgres
+          가 GIN index 를 못 타는 (양쪽 와일드카드) 패턴이라 full table scan
+          매칭 비용이 pattern length 비례.
+        - LIMIT 50 가 결과 set 만 cap. 매칭 평가 자체는 모든 행에 대해
+          수행됨 — short-circuit 50개 발견 후 중단되지만 worst case (매칭
+          없음) 는 full scan.
+        - /api/tags 는 (a) 미인증 (b) rate-limit 무 — 단일 source 가
+          무제한 호출 가능. /api/search 보다 amplification 폭은 작지만
+          (similarity 없음, 1쿼리만) 동일 surface 카테고리.
+
+        보수 cap 선택: 200 rune — /api/search 와 정렬. 검색 대상 tags.name
+        은 VARCHAR(100) 이지만 컨벤션 정렬이 더 spec-grounded.
+
+        보수의 정의(§5): (a) 기존 동작 보존: ≤200 rune 쿼리는 영향 0.
+        (b) 외부 API 비변경: 400 추가만, 200 응답 형태 동일. (c) 롤백
+        가능: 한 줄 가드. (d) 영향 최소: 한 핸들러 한 분기에 가드 4줄.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. T1 happy(짧은 쿼리 - 회귀 무영향):
+         (a) `curl -i 'http://localhost:8080/api/tags?q=music&limit=5'`
+             → 200 + JSON body `tags` 배열
+         (b) `curl -i 'http://localhost:8080/api/tags?q=음악'`
+             → 200 (한국어 multi-byte rune ≤200 통과)
+         (c) `curl -i 'http://localhost:8080/api/tags?category=음악'`
+             → 200 (category 분기 정상, q 검증 비활성)
+         (d) `curl -i 'http://localhost:8080/api/tags'`
+             → 200 (둘 다 없는 default 분기 정상)
+      4. T2 fail(상한 초과 → 400):
+         (a) `Q=$(python3 -c "print('x'*201)") && curl -i "http://localhost:8080/api/tags?q=$Q"`
+             → 400 + {"error":"..."} (자매 메시지 정렬 "검색어는 200자 이내여야 합니다")
+         (b) `Q=$(python3 -c "print('가'*201)") && curl -i ...` → 400
+             (한국어 rune 카운트 — UTF-8 바이트가 아닌 rune)
+         (c) `Q=$(python3 -c "print('x'*100000)") && curl -i ...` → 400
+             (대형 페이로드 사전 차단, DB 미진입 응답시간 < 50ms)
+      5. T3 경계(정확히 200 rune):
+         (a) `Q=$(python3 -c "print('x'*200)") && curl -i ...` → 200
+             (경계 inclusive — search 자매 핸들러와 정렬)
+         (b) `Q=$(python3 -c "print('가'*200)") && curl -i ...` → 200
+      6. 회귀:
+         (a) `GET /api/tags/popular?limit=10` → 200 (인접 라우트 무영향)
+         (b) `GET /api/search?q=test&limit=5` → 200 (자매 라우트 무영향)
+         (c) `GET /api/tags?q=` (빈 q) → 200 (default 분기로 떨어짐 —
+             기존 동작 보존: q == "" 면 ListTags 호출)
+      7. 단위 테스트:
+         (a) `TestTagList_QueryTooLong` (201 rune → 400)
+         (b) `TestTagList_QueryAtMaxLength` (200 rune → 200, DB stub)
+         (c) `TestTagList_QueryKoreanRuneCount` (한국어 rune 카운트 정확성)
+         (d) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
+  - id: system-20260522-og-fetch-body-and-url-no-length-cap
+    title: "/api/og/fetch 의 요청 본문 + req.URL 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 그대로 decode 하고 req.URL 도 사전 길이 검증 없이 로그·http.NewRequest·Service.Fetch 로 흘러감. pin.Create (500MB MaxBytesReader) 와 pins.media_url (500 rune) 컨벤션이 정립한 사전 차단 정책의 잔존 갭"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/og/handler.go:46-50"          # json.NewDecoder(r.Body).Decode(&req) — MaxBytesReader 없음
+        - "apps/api/internal/og/handler.go:52-66"          # req.URL == "" / url.Parse / scheme 검증은 있으나 길이 검증 없음
+        - "apps/api/internal/og/handler.go:68-70"          # log.Printf("og.Fetch: error fetching %q ...) — 전체 URL 로그 기록 (로그 bloat)
+        - "apps/api/internal/og/service.go:65-73"          # NewService — 응답 본문은 maxResponseBytes(1<<20) 로 cap 되어 있으나 요청 측은 cap 없음
+        - "apps/api/cmd/server/main.go:104"                # ogRL := auth.NewRateLimiter(rdb, 20, time.Minute) — 20/min/IP rate limit 적용
+        - "apps/api/cmd/server/main.go:154"                # r.With(ogRL.Middleware).Post("/api/og/fetch", ogHandler.Fetch)
+        - "apps/api/internal/pin/handler.go:82"            # 자매 컨벤션 — r.Body = http.MaxBytesReader(w, r.Body, requestBodyCap=500<<20)
+        - ".fugue/backlog-system.yaml#system-20260515-pin-create-no-request-body-cap"  # done, L597-599 옵션 B 가 "/api/og/fetch 등 작은 본문 라우트에는 별도로 더 작은 상한을 두는 surface 분기" 를 명시적 후속 갭으로 식별
+        - ".fugue/backlog-system.yaml#system-20260521-bot-process-document-media-url-no-length-cap"  # done — URL 길이 cap 컨벤션 (pins.media_url VARCHAR(500))
+      quote: |
+        og/handler.go:46-47:
+              `var req fetchRequest`
+              `if err := json.NewDecoder(r.Body).Decode(&req); err != nil {`
+              — r.Body 는 unbounded. 100MB JSON 도 decoder 가 메모리에
+              올리며 parsing 시도.
+        og/handler.go:52-66: req.URL 에 대한 검증은 (a) 빈 문자열,
+              (b) url.Parse 가 nil 아님 + Host 비공백, (c) scheme ∈
+              {http, https}. 길이 cap 은 없음.
+        og/handler.go:68-70: `log.Printf("og.Fetch: error fetching %q: %v",
+              req.URL, err)` — 100KB URL 이 통째로 stderr 에 기록 →
+              log bloat / log injection 표면 (CRLF escape 는 %q 가 처리하지만
+              디스크 압박).
+        og/service.go:67-73: NewService 가 httpclient.NewSSRFSafeClient 로
+              outbound 만 cap (1MB 응답). 요청 측은 보호 없음.
+        main.go:104: `ogRL := auth.NewRateLimiter(rdb, 20, time.Minute)` —
+              20/min/IP fixed-window. 단일 요청 사이즈는 cap 안됨.
+        main.go:154: `r.With(ogRL.Middleware).Post("/api/og/fetch", ...)`.
+        pin/handler.go:82: `r.Body = http.MaxBytesReader(w, r.Body,
+              requestBodyCap)` — 자매 핸들러는 disk-spool 전 cap.
+      reasoning: |
+        두 갭 (a) JSON body unbounded, (b) URL length unbounded.
+
+        (a) JSON body unbounded:
+            json.NewDecoder(r.Body).Decode(&req) 는 Go 표준 라이브러리가
+            r.Body 를 unbounded 로 read. 단일 요청이 100MB 본문 보내면
+            decoder 가 streaming parse 하지만 string 필드 (req.URL) 에
+            전체를 메모리에 보관. 20/min/IP rate limit 가 호출 횟수만
+            cap 하고 단일 요청 사이즈는 cap 안 함. 동시 N IP × 100MB
+            = N×100MB heap pressure. pin/handler.go:82 의 MaxBytesReader
+            500<<20 (500MB) 가 자매 컨벤션이지만 og endpoint 는 본문이
+            {"url":"..."} JSON 한 줄이라 자매보다 훨씬 작은 cap (e.g.
+            8KB 또는 64KB) 이 가장 보수적.
+
+            done item system-20260515-pin-create-no-request-body-cap
+            의 reasoning 섹션 L597-599 (옵션 B) 가 명시적으로
+            "/api/og/fetch · /api/auth/* 등 작은 본문 라우트에는 별도로
+            더 작은 상한을 두는 surface 분기를 추가" 를 식별 — 즉 본
+            후보는 그 후속 잔존 갭의 정확한 implementation.
+
+        (b) URL 길이 unbounded:
+            req.URL 은 url.Parse / scheme 검증만 통과하면 그대로
+            (1) log.Printf 에 %q 로 기록 (로그 bloat),
+            (2) http.NewRequestWithContext 의 URL 인자로 전달 (request
+                line 길이 amplify, 대부분의 upstream 서버는 414 URI Too
+                Long 반환하지만 그 전에 outbound 패킷 build 비용 발생),
+            (3) Service.Fetch 안에서 다시 url.Parse + 헤더 build.
+            pins.media_url 500-rune cap (cycle Q PR #144) 와 정렬해
+            500 rune cap 이 가장 보수적이고 spec-grounded.
+
+        보수의 정의(§5):
+          (a) 기존 동작 보존: 정상 OG URL (대개 < 500 rune) 영향 0.
+              정상 JSON body ({"url":"..."}) 는 ~600 byte 이하라 8KB
+              cap 영향 0.
+          (b) 외부 API 비변경: 400/413 추가만, 200 응답 형태 동일.
+          (c) 롤백 가능: handler.go 진입부에 r.Body = MaxBytesReader
+              한 줄 + URL rune 검증 한 줄.
+          (d) 영향 최소: og.Handler.Fetch 한 함수에 2~4줄.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. T1 happy(정상 요청 - 회귀 무영향):
+         (a) `curl -X POST -H 'Content-Type: application/json' \
+              -d '{"url":"https://github.com/anthropics/claude-code"}' \
+              -i http://localhost:8080/api/og/fetch`
+             → 200 + JSON body (title/description/...)
+         (b) 한국어 URL fragment 포함 정상 → 200
+         (c) 짧은 URL (e.g. https://soundcloud.com/x) → 200 + detected_field
+      4. T2 fail(본문 상한 초과 → 413/400):
+         (a) `python3 -c "print('a'*200000)" | curl -X POST -H 'Content-Type: application/json' \
+              --data-binary @- -i http://localhost:8080/api/og/fetch`
+             → 413 (http.MaxBytesReader 가 자동 413) 또는 400
+             (json.Decode 에러로 catch)
+         (b) `head -c 10485760 /dev/urandom | base64 | curl -X POST -d @- ...`
+             → 413/400 (10MB 본문 사전 차단)
+      5. T3 fail(URL 길이 상한 초과 → 400):
+         (a) `URL="https://x.com/$(python3 -c "print('a'*1000)")" && \
+              curl -X POST -H 'Content-Type: application/json' \
+              -d "{\"url\":\"$URL\"}" -i http://localhost:8080/api/og/fetch`
+             → 400 + {"error":"URL은 500자 이내여야 합니다"}
+      6. T4 경계:
+         (a) URL 정확히 500 rune → 200 (경계 inclusive — pins.media_url
+             cap 과 정렬)
+         (b) Body 정확히 cap-1 byte → 200 / cap+1 byte → 413
+      7. 회귀:
+         (a) 정상 URL 빈 body → 400 ("URL이 필요합니다" 유지)
+         (b) ftp:// scheme → 400 ("http 또는 https URL만 허용됩니다")
+         (c) /api/og/fetch 를 GET 으로 → 405 (METHOD_NOT_ALLOWED 유지)
+         (d) rate limit (21번째 호출/IP) → 429 (ogRL.Middleware 유지)
+      8. 단위 테스트:
+         (a) `TestOGFetch_BodyTooLarge` (body cap+1 byte → 413/400)
+         (b) `TestOGFetch_URLTooLong` (URL 501 rune → 400)
+         (c) `TestOGFetch_URLAtMaxLength` (URL 500 rune → fetch 진입,
+             service mock 통과)
+         (d) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
