@@ -2286,7 +2286,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 260
+    note: "pins/[id]/page.tsx L169-183 boards chip Link 자식 grid SVG(opening tag) · L224-237 '원본 보기' anchor 자식 external-link SVG(opening tag) 두 곳에 각 `aria-hidden=\"true\"` 1 attribute 추가(diff +2 -0). 부모 Link(L164-187)는 visible text `{board.name}` + `{board.creator_nickname}`(L184-185) 로 accessible name 보유, 부모 anchor(L218-239)는 visible text '원본 보기'(L238) 로 accessible name 보유 — 자식 SVG 는 SR 에서 hide 필요. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 정렬. cycle 96 발견 모드 PR #256 직계 sibling 4건(BoardCover PR #257 → LoginButtons PR #259 → 본 건) 중 3번째. in-codebase precedent: PinCard.tsx L65/L98/L121 + AddToBoardButton.tsx 4건 + SearchBar.tsx 4건 + BoardCover.tsx L8 + LoginButtons.tsx L10/L34. 시각 변경 0(aria-hidden 은 SR 전용). 부모 Link className(`inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-accent hover:border-accent focus-visible:text-accent focus-visible:border-accent transition-colors`) · 부모 anchor className(`inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors`) · href · target · rel · 자식 visible text 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/app/pins/\\[id\\]/page.tsx` 3 matches L54/L170/L226 — L54 는 cycle 89 audio header 기존)으로 대체."
 
   - id: "design-20260522-a11y-searchclient-board-result-placeholder-svg-aria-hidden-missing"
     title: "SearchClient 보드 검색 결과 카드의 placeholder grid SVG 에 `aria-hidden=\"true\"` 누락 — 부모 Link visible text(board name + creator) 가 accessible name 제공하나 SVG 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"

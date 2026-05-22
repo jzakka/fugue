@@ -167,6 +167,7 @@ export default async function PinDetailPage({ params }: Props) {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-accent hover:border-accent focus-visible:text-accent focus-visible:border-accent transition-colors"
                   >
                     <svg
+                      aria-hidden="true"
                       width="12"
                       height="12"
                       viewBox="0 0 24 24"
@@ -222,6 +223,7 @@ export default async function PinDetailPage({ params }: Props) {
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors"
                 >
                   <svg
+                    aria-hidden="true"
                     width="14"
                     height="14"
                     viewBox="0 0 24 24"
