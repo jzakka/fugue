@@ -1999,7 +1999,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 220
+    note: "SearchClient.tsx L242 카테고리 탭 button 에 aria-pressed={activeType === tab.value} 1 prop 추가 (+1 -0). 4개 탭(전체/핀/크리에이터/보드) 모두 toggle button 패턴 SR announce 가시화 — 활성 탭 'pressed' / 나머지 'not pressed'. PinsGrid L104 · FieldFilter L36 의 동일 toggle 패턴 라인업 정합. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + ARIA Authoring Practices aria-pressed 충족. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(L242 aria-pressed 1건 매칭 + 인접 className/ternary/JSX/handleTabChange/TABS 미변경) 으로 대체. 1회 만에 머지 성공(BEHIND 발생 없음). cycle 73 Discovery PR #218 의 2건 후보 중 첫 처리 — 잔여 pending 1건(top tags chips)."
 
   - id: "design-20260522-a11y-searchclient-top-tags-chips-aria-pressed-missing"
     title: "SearchClient top tags chip 들이 toggle button 패턴이면서 `aria-pressed` 미적용 — 검색 결과 태그 다중 선택 상태 SR 무알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A + ARIA Authoring Practices aria-pressed)"
