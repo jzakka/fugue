@@ -3381,7 +3381,8 @@ items:
     effort: 1
     risk: 2
     score: 10.0
-    status: in_progress
+    status: done
+    pr: 196
     note: |
       구현 패턴 (cmd/bot/main.go L276 미러):
         srv := &http.Server{Addr: addr, Handler: r}
