@@ -2340,7 +2340,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 263
+    note: "SearchBar.tsx L190 outer div(`hover:bg-surface-hover` 뒤) + L223 delete button(`group-hover:opacity-100` 와 `focus-visible:opacity-100` 사이)에 `focus-within:bg-surface-hover` + `group-focus-within:opacity-100` 각 1 utility 추가(diff +2 utilities, +2 -2 lines). 5+ 컴포넌트(cycle 11 PR #36 PinCreateForm dropzone · PinCard L147 · SearchClient L315/L353 · BoardGrid L22 · MyPageClient L138 · BoardCover L6/L31 · pins/[id]/page.tsx L205/L208/L210) hover/focus 페어 라인업 정합. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정. 마우스 hover 동작 회귀 0(기존 `hover:bg-surface-hover` + `group-hover:opacity-100` 그대로). 키보드 Tab 으로 select button focus 시 row 배경 변경 + delete button 노출 — focus-visible 기존 단독 페어가 select button 자기-포커스만 커버하던 제약 해소. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -nE 'focus-within|group-focus-within' apps/web/src/components/nav/SearchBar.tsx` L190/L223 2 matches)으로 대체."
 
   - id: "design-20260522-a11y-feedcontainer-noscript-anchor-focus-visible-missing"
     title: "FeedContainer noscript 다음 페이지 anchor 가 `hover:text-text-primary` 만 보유하고 `focus-visible:` 페어 누락 — 디자인 시스템 hover/focus parity 패턴 1건 누락(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
