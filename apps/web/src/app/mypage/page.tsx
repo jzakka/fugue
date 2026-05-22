@@ -36,7 +36,7 @@ export default async function MyPage() {
   return (
     <>
       <NavBar />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main id="main" className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <MyPageClient
           creator={creator}
           pins={pinsData.pins}

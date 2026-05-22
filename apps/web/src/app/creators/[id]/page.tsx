@@ -70,7 +70,7 @@ export default async function CreatorProfilePage({ params }: Props) {
   return (
     <>
       <NavBar />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main id="main" className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
         <div className="space-y-6">
           <ProfileHeader creator={creator} />
           <BoardGrid boards={boards} />

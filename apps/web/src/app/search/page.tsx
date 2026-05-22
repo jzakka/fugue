@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <>
       <NavBar />
-      <main className="flex-1 pb-12">
+      <main id="main" className="flex-1 pb-12">
         {q ? (
           <Suspense>
             <SearchClient

@@ -48,7 +48,7 @@ export default async function BoardDetailPage({ params }: Props) {
   return (
     <>
       <NavBar />
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
+      <main id="main" className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
         {/* Board Header */}
         <div className="bg-surface rounded-[16px] border border-border p-6 sm:p-8 mb-8">
           <div className="flex items-start justify-between gap-4">
