@@ -2325,3 +2325,35 @@ items:
     status: done
     pr: 257
     note: "BoardCover.tsx L7-22 빈 cover placeholder grid SVG 시작 줄에 `aria-hidden=\"true\"` 1 attribute 추가(diff +1 -0). 단일 변경으로 BoardGrid(/mypage · /creators/<id>) + AddToBoardButton(보드 row + 새 보드 만들기 모달) + MyPageClient(/mypage 보드 섹션) + SearchBar(드롭다운 보드 결과 placeholder · 단 SearchBar 는 BoardCover 미경유하나 동일 graphic 으로 cycle 94 PR #252 에서 이미 적용) 모든 caller 일괄 일관성 회복. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. cycle 92 발견 PR #250 누락 직계 sibling 4건(PR #256) 중 첫 처리. in-codebase precedent: PinCard.tsx L65/L98/L121 + AddToBoardButton.tsx L61/L253/L315/L398 + SearchBar.tsx L145/L201/L226/L293/L356 + NavBar.tsx L16 + EmptyState.tsx L16. cover 이미지 있는 분기(L29-46 grid 2x2 img tiles) · group-hover/group-focus-visible border/shadow · Link click 핸들러 모두 미변경. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/board/BoardCover.tsx` 1 match L8) 으로 대체."
+
+  - id: "design-20260522-a11y-searchbar-recent-search-row-keyboard-focus-parity"
+    title: "SearchBar 최근 검색 row 의 hover 시각 표시 가 키보드 focus parity 누락 — 마우스 hover 시 row 배경 변경 + 삭제 버튼 노출 되지만 키보드 Tab 으로 행 내부 버튼 진입 시 row 무반응(WCAG 2.1 SC 2.4.7 Focus Visible Level AA · 디자인 시스템 hover/focus parity)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:188-241"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' 브라우저 default outline 으로 button 자체 focus 는 시각 표시되나 디자인 시스템이 row 단위 hover 반응(`hover:bg-surface-hover`)을 명시한 컨텍스트에서 키보드 사용자는 동일한 row-level 시각 피드백 부재. 디자인 시스템 정합성 in-codebase precedent: cycle 11 PR #36(PinCreateForm dropzone `hover:border-accent focus-visible:border-accent` 페어) + 5+ 컴포넌트(PinCard L147 / SearchClient L315+L353 / BoardGrid L22 / MyPageClient L138 / BoardCover L6+L31 / pins/[id]/page.tsx L205/L208/L210) 모두 `hover:* focus-visible:*`(또는 `group-hover:* group-focus-visible:*`) 페어 패턴 확립. SearchBar.tsx 본 row 만 페어 누락. L190 outer div 는 `hover:bg-surface-hover group transition-colors` — div 자체는 focusable 아님이라 `focus-visible:` 대신 `focus-within:` 으로 자손 focus 시 부모 반응 유도가 표준 CSS 패턴. L223 delete button 은 `opacity-0 group-hover:opacity-100 focus-visible:opacity-100` — group-hover 와 focus-visible 페어가 자기-포커스에만 반응(자식 button select L192 가 focus 시 delete 미노출)이라 마우스 'row 어디든 hover → delete 노출' 와 비대칭. `group-focus-within:opacity-100` 추가 시 select button 키보드 focus 만으로도 delete 노출. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 2 utility 추가만(L190 `focus-within:bg-surface-hover` + L223 `group-focus-within:opacity-100`, diff +2)."
+      repro: "1) cd apps/web && npm run dev. 2) 검색창 focus 후 최근 검색 row 가 1개 이상 표시되는 상태. 3) (마우스) 최근 검색 row 위 hover → row 배경이 `bg-surface-hover`로 변경 + 우측 X 삭제 button(L219-239) opacity 0→100 노출. 4) (키보드) Tab 으로 검색창 input → recent search row 의 select button(L192-218) 진입 → row 배경 무변경 + 삭제 button opacity 0 유지 → row 가 인터랙티브 한지 + 삭제 가능한지 키보드 사용자에게 시각 피드백 부재. 5) Tab 한 번 더 → delete button focus → `focus-visible:opacity-100` 발화로 그 자체만 노출. 6) `grep -rn 'focus-within' apps/web/src/components/nav/SearchBar.tsx` 0 matches."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 검색창 focus → 최근 검색 1개 이상 표시되는 상태(이전 검색 기록 필요). 3) Tab 으로 recent search select button focus → row 배경 `bg-surface-hover` 적용 확인 + delete button opacity 100 노출 확인. 4) Shift+Tab 으로 input 복귀 → row 배경 원복 + delete button 숨김(opacity-0). 5) 마우스 hover 시 동작 회귀 0(기존 `hover:bg-surface-hover` + `group-hover:opacity-100` 그대로). 6) 인접 search results section(L246+) · 빈 결과 placeholder · 카테고리 분기 무영향. 7) 시각 변화는 키보드 focus 시 row reaction 추가 만(마우스 사용자 변화 0)."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260522-a11y-feedcontainer-noscript-anchor-focus-visible-missing"
+    title: "FeedContainer noscript 다음 페이지 anchor 가 `hover:text-text-primary` 만 보유하고 `focus-visible:` 페어 누락 — 디자인 시스템 hover/focus parity 패턴 1건 누락(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:224-235"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' 브라우저 default outline 으로 anchor focus 자체는 시각 표시되나 디자인 시스템이 hover/focus 페어 패턴을 5+ 컴포넌트에 확립(cycle 11 PR #36 PinCreateForm dropzone · PinCard L147 · SearchClient L315/L353 · BoardGrid L22 · MyPageClient L138 · BoardCover L6/L31)한 컨텍스트에서 본 anchor 만 페어 누락. `grep -rn 'hover:' apps/web/src/components/feed/FeedContainer.tsx` 의 단 1 매칭이 L229 — `hover:text-text-primary` 만 있고 `focus-visible:text-text-primary` 누락. noscript 안 fallback pagination link 이라 JS 활성 시 미렌더되지만 JS 비활성 환경 키보드 사용자에게 hover 와 동일한 색 강조가 필요. 안티패턴 L15-L21 무매치 — 토큰 비변경, JSX 구조 미수정, 1 utility 추가만(`focus-visible:text-text-primary`, diff +1 -1 className 내 추가)."
+      repro: "1) (마우스) /(feed 페이지) 무한 스크롤 끝 또는 JS 비활성 환경에서 noscript fallback `다음 페이지` anchor 표시. 2) anchor 위 hover → `text-text-primary`(주 색)으로 강조. 3) (키보드 + JS 비활성) Tab 으로 anchor focus → 강조 없이 default `text-text-muted`(부드러운 회색)만 유지(브라우저 default outline 만). 4) 디자인 시스템이 hover/focus 페어를 5+ 컴포넌트에 확립한 컨텍스트에서 본 anchor 만 비대칭. 5) `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` L229 의 hover: 만 매칭 + focus-visible 미매칭."
+    qa_plan: "1) cd apps/web && npm run dev. 2) JS 비활성 브라우저 또는 강제 noscript 렌더링으로 anchor 표시. 3) Tab 으로 anchor focus → `text-text-primary` 적용 확인. 4) hover 시 동작 회귀 0(기존 `hover:text-text-primary` 그대로). 5) JS 활성 상태(99%+ 사용자)는 anchor 미렌더이므로 영향 0. 6) FeedContainer 의 다른 인터랙티브 요소(없음, anchor 가 noscript 유일)에 회귀 0."
+    impact: 1
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 4.0
+    status: pending
