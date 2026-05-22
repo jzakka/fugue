@@ -4202,3 +4202,206 @@ items:
       anti-patterns L15 무매치 (application code 결함, infra 무관).
       사용자 결정 침범 0건 (findOrCreateWithEmail 의 BeginTx 패턴이
       precedent).
+
+  - id: system-20260522-bot-goja-executor-parent-cancel-skips-interrupt
+    title: "GojaExecutor.Execute 의 timeout watcher 가 timeoutCtx.Err()==DeadlineExceeded 일 때만 vm.Interrupt 를 호출 → 부모 ctx 가 SIGTERM 으로 cancel 되면 Canceled 가 전파돼 Interrupt 가 발화하지 않고 무한 스크립트가 documented 10초 상한을 우회"
+    area: concurrency
+    evidence:
+      files:
+        - "apps/api/internal/bot/goja_executor.go:42-52"        # timeout goroutine — Canceled 분기 누락
+        - "apps/api/internal/bot/goja_executor.go:96-102"       # vm.RunString + InterruptedError 처리 분기
+        - "apps/api/internal/bot/script_adapter.go:90"          # executor.Execute(ctx, ...) — ctx 전파
+        - "apps/api/internal/bot/harvester_consumer.go:267"     # DequeueCtx(ctx, ...) — runCtx 진입
+        - "apps/api/internal/bot/harvester_consumer.go:306-311" # 운영 결정: in-flight URL 은 마지막 상태 전이까지 완료 (정합 보존)
+        - "apps/api/cmd/bot/main.go:277"                        # runCtx := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+        - "apps/api/cmd/bot/main.go:201-207"                    # NewGojaExecutor(timeoutMs=0 → 기본 10000ms)
+      cite: |
+        - openspec/changes/archive/2026-04-15-perfect-harvester/tasks.md:11
+          "goroutine + context Done 채널 감시 + goja `Interrupt()` 방식으로
+          타임아웃(기본 10초) 적용" — 10초 상한이 명시적 wiring 계약.
+        - apps/api/internal/bot/goja_executor.go:14 `const defaultScriptTimeoutMs = 10000`
+          — 동일 10초 상한이 코드에서도 단일 SoR 로 고정.
+        - apps/api/internal/bot/harvester_consumer.go:306-311 운영 결정
+          (PR #232 decision-log L766-770 의 finalize callsite 보존 결정과 정합):
+          in-flight URL 은 마지막 상태 전이까지 완료하지만 그 상한은 결국
+          "스크립트 자체가 10초 안에 끝난다" 는 전제에 묶여 있음 — 이 전제가
+          본 결함으로 SIGTERM 경로에서 깨짐.
+        - Go stdlib context: `context.WithTimeout(parent, d)` 의 child 가 parent
+          cancel 을 먼저 받으면 child.Err() 가 `context.Canceled` 를 반환
+          (DeadlineExceeded 가 아님). 즉 SIGTERM → runCtx.cancel() → timeoutCtx
+          (child) 는 Canceled 로 Done. 현 코드 L49 `if timeoutCtx.Err() ==
+          context.DeadlineExceeded` 가드는 false → vm.Interrupt 미발화 → goroutine
+          종료 → 스크립트가 자연 종료까지 계속 실행.
+      repro: |
+        가설: 부모 ctx 가 cancel 되면 GojaExecutor 의 10초 timeout 이 무력화되어
+        무한 루프 스크립트가 부모 ctx 의 deadline/cancel 과 무관하게 계속 실행.
+
+        결정적 단위 재현 (testcontainer 없이 가능):
+        1. `apps/api/internal/bot/goja_executor_test.go` 에 신규 케이스 추가:
+             ctx, cancel := context.WithCancel(context.Background())
+             exec := bot.NewGojaExecutor(60_000)  // timeout 60s
+             go func() { time.Sleep(50 * time.Millisecond); cancel() }()
+             start := time.Now()
+             _, err := exec.Execute(ctx, "(function(){ while(true){} })()", "", "")
+             elapsed := time.Since(start)
+        2. 기대 (fix 후): elapsed < 200ms + err != nil (InterruptedError 래핑 또는
+           ctx.Err 반환). 현재 (fix 전): elapsed → executor.timeoutMs 까지 (60s)
+           — 즉 부모 cancel 이 stop 신호로 작동하지 않음. RunString 은 자연
+           종료될 때까지 block.
+        3. cross-check: 같은 시나리오를 `executor := bot.NewGojaExecutor(50)`
+           (50ms timeout) 으로 바꾸면 fix 전/후 모두 ~50ms 안에 종료 →
+           DeadlineExceeded 분기는 이미 정상. Canceled 분기만 broken.
+
+        SIGTERM 운영 시나리오 재구성:
+        1. cmd/bot harvester 가 runCtx (signal.NotifyContext) 로 가동.
+        2. harvester_consumer.processOne → DocumentPipeline → ScriptAdapter.Extract
+           → GojaExecutor.Execute(ctx, scriptCode, html, url) 진입.
+        3. 악성/버그성 site script (`while(true){}` 또는 `for(;;){ obj[i]={}; i++ }`)
+           가 실행 중에 운영자가 `kill -TERM <pid>` 송신.
+        4. runCtx cancel → ctx 가 모든 하위 ctx (timeoutCtx 포함) 에 Canceled
+           전파. L48 의 `<-timeoutCtx.Done()` 는 즉시 unblock 하지만 L49 가드
+           가 false → vm.Interrupt 미발화. RunString 은 계속 실행.
+        5. 운영 영향:
+           - 같은 URL 의 in-flight 처리는 10초 상한 우회 → 스크립트가 자연
+             종료까지 hang. CPU pin (busy loop) 또는 OOM (allocation loop) 까지.
+           - k8s terminationGracePeriodSeconds (default 30s) 안에 RunString 이
+             종료되지 못하면 SIGKILL. SIGKILL 은 defer/finalize 우회 — 해당 URL
+             의 SetStatus(harvest_failed) + RecordHarvestError 가 실행되지 않음
+             → harvester_frontier row 가 `claimed` 또는 in-progress 상태로
+             남아 lease 만료 (default 10분) 까지 retry 불가.
+           - PR #232 decision-log (L766-770) 가 명시한 "in-flight URL 은 마지막
+             상태 전이까지 완료" 운영 계약이 SIGKILL 으로 깨짐. finalize callsite
+             가 context.Background() 를 의도적으로 사용하는 보호 패턴이
+             상위에서 깨지는 셈.
+      repro_minimal_test: |
+        package bot
+
+        import (
+            "context"
+            "testing"
+            "time"
+        )
+
+        func TestUnit_GojaExecutor_ParentCancelInterrupts(t *testing.T) {
+            exec := NewGojaExecutor(60_000) // 60s timeout
+            ctx, cancel := context.WithCancel(context.Background())
+            go func() {
+                time.Sleep(50 * time.Millisecond)
+                cancel()
+            }()
+            start := time.Now()
+            _, err := exec.Execute(ctx, "(function(){ while(true){} })()", "", "")
+            elapsed := time.Since(start)
+            if elapsed > 500*time.Millisecond {
+                t.Errorf("parent cancel did not interrupt VM: elapsed=%s (fix 전 60s까지 hang)", elapsed)
+            }
+            if err == nil {
+                t.Errorf("expected interrupt error, got nil (script ran to completion despite parent cancel)")
+            }
+        }
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+         통과 사전 조건. 신규 단위 테스트 (위 repro_minimal_test) 가 fix
+         전 FAIL → fix 후 PASS.
+      2. fix 후보:
+         (a) L47-52 goroutine 본문을 단순화 — `<-timeoutCtx.Done()` 후
+             `vm.Interrupt(timeoutCtx.Err())` 무조건 호출 (Canceled 와
+             DeadlineExceeded 양쪽 모두 stop 신호로 통일). vm.Interrupt
+             는 이미 종료된 VM 에서 no-op 이므로 race 안전 (race 조건
+             은 cancel() 가 RunString 종료 후 발화하는 경우 — Interrupt
+             호출이 다음 RunString 호출로 leak 되지 않음을 별 vm 인스턴스
+             가 보장).
+         (b) 또는 L49 가드를 `timeoutCtx.Err() != nil` 로 완화 (효과 동일).
+      3. 실 환경 재현 — disposable harvester:
+         (a) `docker-compose up -d` postgres + redis + minio.
+         (b) site_scripts 에 악성 스크립트 1건 seed:
+             ```sql
+             INSERT INTO sites (id, host) VALUES ('00000000-...-q1', 'qa-hang.invalid');
+             INSERT INTO site_scripts (site_id, node_type, script_code)
+               VALUES ('...-q1', 'detail', '(function(){ while(true){} })()');
+             INSERT INTO harvester_frontier (url, snapshot_key)
+               VALUES ('http://qa-hang.invalid/detail/1', 'qa-hang-1');
+             ```
+             (snapshot 은 placeholder; 본 QA 는 GojaExecutor 호출까지만
+             검증하므로 fetch 단은 mocked snapshot 또는 ScriptAdapter
+             직접 호출 ad-hoc 드라이버로 대체 가능)
+         (c) `apps/api/cmd/qa-goja-cancel/` 임시 driver 가 production
+             `bot.NewGojaExecutor(10000)` 인스턴스로 위 스크립트를
+             cancelable ctx 와 함께 호출. 100ms 후 cancel() 송신.
+         (d) 측정:
+             - fix 전 (revert): elapsed ≈ 10s, err = `timeout: ...` (deadline
+               경로) — 단, 운영 SIGTERM 시나리오에서는 parent cancel 시점
+               (예: 50ms) 에 timeoutCtx 가 Canceled 로 죽어 deadline 경로
+               이 fire 되지 않음 → 자연 종료까지 hang. 위 100ms cancel
+               후 RunString 이 10s까지 안 끝나는 것 자체가 회귀 검출.
+             - fix 후: elapsed < 500ms, err 가 InterruptedError 래핑
+               (`timeout: context canceled` 또는 유사).
+         (e) 회귀: 정상 스크립트 (예: `[{title:'x',mediaURL:'u',mediaType:'image'}]`)
+             를 cancel 없이 호출 → 정상 RawItem 반환 + 정상 종료 무영향.
+         (f) SIGTERM 통합 검증 (선택, 위 단위 재현으로 결정적 충분): 위 seed
+             상태에서 `go run ./cmd/bot harvester` 가동 → 워커가 processOne
+             진입 후 `kill -TERM <PID>` → process exit < 1s (fix 후) /
+             > 30s SIGKILL (fix 전). harvester_frontier 의 row 상태가
+             fix 후에는 harvest_failed 또는 retry pending (정상 finalize),
+             fix 전에는 claimed 잔류 (SIGKILL 으로 finalize skip).
+      4. 회귀: `go test ./...` 584 → 585+ pass (신규 단위 1-2건). pioneer/
+         harvester 의 cancel 가 정상적으로 finalize 단까지 도달하는지
+         별도 단위 회귀로 검증 (decision-log PR #232 의 finalize 보존
+         원칙과 정합).
+      5. `docker compose down` 정리. ad-hoc driver `cmd/qa-goja-cancel/`
+         삭제.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+    note: |
+      Discovery (concurrency area) — 동시성 / 미완료 cancel 카테고리.
+      `context.WithTimeout` 의 child ctx 가 부모 ctx 의 cancel 을 먼저
+      받으면 child.Err() 가 `Canceled` 를 반환한다는 stdlib 의미를 놓친
+      가드. 운영 SIGTERM 경로에서 documented 10초 상한이 우회되어
+      RunString 이 자연 종료까지 hang — k8s SIGKILL 까지 끌고 가서
+      finalize 가 skip 됨.
+
+      score 산정 근거:
+        impact=3 (single in-flight URL hang + k8s SIGKILL → finalize skip
+                  → lease 10분 stuck; 운영 빈도는 SIGTERM 시점 + 악성
+                  스크립트 동시 존재 조건이지만 site_scripts 가 외부에서
+                  수정 가능한 데이터라 표면이 존재.)
+        confidence=4 (archived tasks.md L11 "10초 적용" + 코드 L14 상수
+                      가 명시적 10s 계약; Go stdlib 의미가 결정적; 운영
+                      결정 (PR #232) 와 정합. spec.md SHALL 직접 인용
+                      줄은 없어 5점 보류.)
+        effort=1 (단일 함수 L47-52 의 3-4 줄 수정 + 단위 테스트 1건.)
+        risk=1 (vm.Interrupt 는 종료된 VM 에서 no-op; goroutine 은
+                vm 인스턴스 단일 closure; Interrupt 호출이 다른 호출로
+                leak 안 됨. fix 후 RunString 의 InterruptedError 분기
+                (L98) 가 이미 존재 → caller 분기 추가 없음.)
+        score = 3 * 4 / (1 * 1) = 12.0.
+
+      anti-patterns L15 무매치 (application code 결함, infra/deploy 무관).
+      L16-L21 design-track 무매치.
+
+      사용자 결정 침범 검사:
+        - PR #232 decision-log L766-770 의 "consumer finalize callsite 는
+          context.Background() 의도 보전" 결정과 정합. 본 후보의 fix 는
+          finalize callsite 를 건드리지 않고 GojaExecutor 내부 goroutine
+          만 수정 → finalize 보존 원칙 강화 (스크립트가 시간 안에 끝나야
+          finalize 가 의도대로 작동).
+        - in-flight URL 의 마지막 상태 전이 보존 (harvester_consumer.go
+          L306-311 운영 결정) 과도 정합. fix 후 스크립트는 cancel 신호에
+          반응해 InterruptedError 반환 → 정상 fail path 로 SetStatus(
+          harvest_failed) + RecordHarvestError 도달 → finalize 보존.
+
+      Processing 모드 진입 시 변경 범위:
+        (a) apps/api/internal/bot/goja_executor.go L47-52 goroutine 본문
+            수정 (Canceled 와 DeadlineExceeded 양쪽 모두 vm.Interrupt
+            발화하도록).
+        (b) goja_executor_test.go 신규 단위 테스트 1-2건 (parent cancel
+            시 < 500ms 안에 InterruptedError 반환 검증).
+        (c) doc 주석 3-5줄 — context.WithTimeout child ctx semantics +
+            10초 상한이 cancel/timeout 양쪽에 일관 적용됨을 명시.
+        (d) (선택) apps/api/cmd/qa-goja-cancel/ ad-hoc QA driver 신규 후
+            QA 종료 시 삭제.
