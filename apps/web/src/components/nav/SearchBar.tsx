@@ -243,7 +243,11 @@ export default function SearchBar() {
           {showResults && (
             <div className="p-3">
               {loading && !hasAnyResults && (
-                <div className="flex justify-center py-4">
+                <div
+                  role="status"
+                  aria-label="검색 결과 로딩 중"
+                  className="flex justify-center py-4"
+                >
                   <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
