@@ -335,7 +335,11 @@ function BoardSelectModal({
                   </div>
                 </div>
                 {adding === board.id && (
-                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <div
+                    role="status"
+                    aria-label="보드에 추가 중"
+                    className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin flex-shrink-0"
+                  />
                 )}
               </button>
             ))
