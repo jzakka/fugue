@@ -35,7 +35,10 @@ export default async function LoginPage({
       <main className="w-full max-w-[400px] bg-surface rounded-[16px] p-8 border border-border">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-accent rounded-xl flex items-center justify-center text-3xl mb-4">
+          <div
+            aria-hidden="true"
+            className="w-16 h-16 bg-accent rounded-xl flex items-center justify-center text-3xl mb-4"
+          >
             🐡
           </div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight font-display">
