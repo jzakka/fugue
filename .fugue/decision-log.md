@@ -17,10 +17,10 @@
 
 ## 항목
 
-## 2026-05-22 — [design] FeedContainer noscript 다음 페이지 anchor 에 `focus-visible:text-text-primary` 추가 — cycle 103 Processing(PR #264) · JS 비활성 환경 키보드 사용자 강조 가시화(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)
+## 2026-05-22 — [design] FeedContainer noscript 다음 페이지 anchor 에 `focus-visible:text-text-primary` 추가 — cycle 103 Processing(PR #265) · JS 비활성 환경 키보드 사용자 강조 가시화(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)
 결정/변경: `apps/web/src/components/feed/FeedContainer.tsx` L229 noscript fallback `다음 페이지` anchor className 에 `focus-visible:text-text-primary` 1 utility 추가(diff +1 -1, `hover:text-text-primary` 뒤). 같은 파일 다른 anchor 2건(L168 · L199 `hover:underline focus-visible:underline` 페어) 와 인접 일관성 회복. anchor href · noscriptParams · hasMore 조건부 렌더 · 인접 div 구조 미수정.
 이유: `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` 처리 전 L229 만 `hover:` 단독(focus-visible 미매칭) — 같은 파일 L168/L199 anchor 페어와 비대칭. 5+ 컴포넌트(cycle 11 PR #36 PinCreateForm dropzone · PinCard L147 · SearchClient L315/L353 · BoardGrid L22 · MyPageClient L138 · BoardCover L6/L31 · pins/[id]/page.tsx L205/L208/L210 · cycle 102 PR #263 SearchBar recent search row) 의 hover/focus 페어 라인업 일관성 회복. cycle 101 발견 PR #262 등록 2건 시리즈 완결(cycle 102 PR #263 SearchBar · cycle 103 본 건 FeedContainer).
-QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` 3 matches 확인(L168 · L199 · L229 모두 hover/focus 페어 동시 보유)으로 대체. FeedContainer 의 IntersectionObserver · loadMore · hasMore · noscript 분기 조건 · 인접 anchor 핸들러 미변경. JS 활성(99%+) 사용자는 noscript anchor 미렌더이므로 시각 회귀 0. PR #264.
+QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` 3 matches 확인(L168 · L199 · L229 모두 hover/focus 페어 동시 보유)으로 대체. FeedContainer 의 IntersectionObserver · loadMore · hasMore · noscript 분기 조건 · 인접 anchor 핸들러 미변경. JS 활성(99%+) 사용자는 noscript anchor 미렌더이므로 시각 회귀 0. PR #265.
 영향 범위: FeedContainer.tsx 단일 파일 1 className utility 추가. FeedContainer 는 / (홈 피드) · /search · /mypage · /boards/[id] · /creators/[id] 다수 페이지에서 mount 되며 noscript 분기는 JS 비활성 환경에 한정 렌더. 잔여 pending 0건 → 다음 사이클 발견 모드.
 
 ## 2026-05-22 — [design] SearchBar 최근 검색 row hover/focus parity 회복 — cycle 102 Processing(PR #263) · 키보드 사용자 row 시각 피드백 가시화(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)

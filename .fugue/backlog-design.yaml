@@ -2359,5 +2359,5 @@ items:
     risk: 1
     score: 4.0
     status: done
-    pr: 264
+    pr: 265
     note: "FeedContainer.tsx L229 noscript 다음 페이지 anchor className 에 `focus-visible:text-text-primary` 1 utility 추가(diff +1 -1, `hover:text-text-primary` 뒤). 같은 파일 다른 anchor 2건(L168 · L199 `hover:underline focus-visible:underline` 페어)과 인접 일관성 회복. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정. JS 비활성 환경(noscript 분기) 키보드 사용자에게 hover 동일 색 강조 적용 — JS 활성(99%+) 사용자는 anchor 미렌더이므로 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` L229 의 `hover:text-text-primary` 와 `focus-visible:text-text-primary` 동시 보유 확인 + 인접 anchor 2건(L168/L199) 페어 유지 + 본 anchor 외 JSX/handler 미변경 검증으로 대체."
