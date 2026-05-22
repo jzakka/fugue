@@ -113,7 +113,7 @@ function ExternalLinkIcon({ url }: { url: string }) {
         e.stopPropagation();
         window.open(url, "_blank", "noopener,noreferrer");
       }}
-      className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle transition-colors shrink-0 cursor-pointer"
+      className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle focus-visible:bg-accent-subtle transition-colors shrink-0 cursor-pointer"
       title="원본 보기"
       aria-label="원본 보기"
     >
