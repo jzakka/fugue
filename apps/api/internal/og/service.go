@@ -251,4 +251,3 @@ func detectField(hostname string) string {
 	}
 	return ""
 }
-
