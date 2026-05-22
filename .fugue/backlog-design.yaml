@@ -1981,4 +1981,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 214
+    note: "AddToBoardButton.tsx L337-342 보드 row inline 추가 중 spinner div 에 role=\"status\" + aria-label=\"보드에 추가 중\" 추가 (+5 -1, multi-line attr 포맷). 동일 컴포넌트 L286-287 의 '보드 목록 로딩 중' role=status 라인업 보완 — boards listing fetch / per-board adding 두 분기 모두 SR announce. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices role=status 충족. Ralph env 제약으로 step 7 실 브라우저 QA 는 grep verification(role=\"status\" 3건 매칭: L270 기존 feedback + L286 기존 boards loading + L339 본 PR · aria-label=\"보드에 추가 중\" L340) 으로 대체. 1회 만에 머지 성공. cycle 68 Discovery PR #204 의 4건 후보 전부 완료 — 잔여 pending 0건 → 다음 사이클 Discovery Mode."
