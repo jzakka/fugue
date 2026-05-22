@@ -3570,3 +3570,221 @@ items:
       decision-log 의 명시적 사용자 결정 0건 — code 내부 NOTE 는
       "follow-up change 가 처리" 로 deferral 만 명시했지 본 패턴을
       유지하라는 결정은 아님.
+
+  - id: system-20260522-feed-personalized-mediatype-fallback-silent-error
+    title: "feed.buildPersonalizedFeed 의 media-type fallback 분기 — GetUserMediaTypeFrequency / RecommendByMediaType 에러 silent swallow"
+    area: error-handling
+    evidence:
+      files:
+        - "apps/api/internal/feed/handler.go:218-239"
+      cite: |
+        apps/api/internal/feed/handler.go L218-239:
+          // Fallback: if tags produced insufficient results, try media-type-based
+          if len(recRows) < recLimit {
+              mtRows, err := h.q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
+                  CreatorID: creatorID,
+                  Limit:     3,
+              })
+              if err == nil && len(mtRows) > 0 {       // L222: err silent discard
+                  types := make([]string, 0, len(mtRows))
+                  for _, mr := range mtRows {
+                      types = append(types, mr.MediaType)
+                  }
+                  deficit := int32(recLimit - len(recRows))
+                  mtRecs, err := h.q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
+                      Column1:   types,
+                      CreatorID: creatorID,
+                      Limit:     deficit,
+                      Offset:    int32(offset),
+                  })
+                  if err == nil {                     // L234: err silent discard
+                      for _, mr := range mtRecs {
+                          recRows = append(recRows, db.RecommendByTagsRow(mr))
+                      }
+                  }
+              }
+          }
+
+        같은 파일의 자매 패턴(additive-logging 컨벤션 정립지):
+        - L95-97 cache get error 분기:
+            if err != redis.Nil {
+                log.Printf("feed.GetFeed: cache get error: %v (key=%s)", err, cacheKey)
+            }
+        - L139-141 cache set error 분기:
+            if setErr := ... .Err(); setErr != nil {
+                log.Printf("feed.GetFeed: cache set error: %v (key=%s)", setErr, cacheKey)
+            }
+        - L103-105 CountUserPins error 분기: log.Printf + writeError 500.
+        - L121-122 buildPersonalizedFeed error 분기: log.Printf + writeError 500.
+
+        L222 / L234 만 두 곳이 같은 파일·같은 핸들러 안에서 자매 컨벤션과 어긋남.
+      repro: |
+        1. `docker-compose up -d` + `cd apps/api && go run cmd/server/main.go`.
+        2. 인증된 유저(>=10 핀 보유, personalized 분기 진입)로 GET /api/feed?limit=20 호출.
+        3. PostgreSQL pg_terminate_backend 또는 docker 컨테이너 일시 정지로
+           DB 일시 장애 시뮬레이션 (pin_interactions 테이블 lock 등).
+        4. 관측: GetUserMediaTypeFrequency 가 에러 반환 시 mtRows=nil 로 통과,
+           if err == nil && len(mtRows) > 0 분기 진입 안 함 → media-type
+           fallback 자체가 비활성화. 또는 GetUserMediaTypeFrequency 성공 +
+           RecommendByMediaType 실패 시 mtRecs 가 nil 로 통과, append 안 됨.
+        5. 두 경우 모두 operator 는 어떤 로그도 보지 못한 채 user 는 정상
+           응답(빈 personalized + latest fallback)을 받음. 운영 측에서는
+           personalized feed quality 가 silently 저하된 상태가 지속되어도
+           감지 불가.
+    attack_surface: |
+      - 표면: 인증된 사용자의 /api/feed 호출 (>= 10 핀 보유 시 personalized 분기).
+        rate-limit 적용되지만 모든 인증 사용자의 매 페이지 호출에서 발생 가능.
+      - 영향: operator 가 RecommendByMediaType 또는 GetUserMediaTypeFrequency
+        DB 장애 / 슬로우 / pin_interactions·pin_tags join 부하 를 운영 metric
+        없이 감지 불가. 사용자 경험은 fallback chain(L243-245 latest)으로
+        degrade 되지만 alarm 없음. RecommendByTags 시점(L211)은 이미 명시적
+        에러 propagate(`return FeedResponse{}, fmt.Errorf(...)`) — sister
+        쿼리만 swallow.
+      - cycle C/F/G/I (auth 도메인) + cycle K/L (feed 캐시) 의 additive-
+        logging 컨벤션 동일 패턴. silent-error 시리즈 anti-pattern 무매치
+        — anti-patterns.md L15 는 helm/terraform/docker-compose deployment
+        wiring 한정, 본 패턴은 application code 결함.
+      - 대안: media-type fallback 자체를 fail-open(개인화 quality 저하 허용)
+        유지하되 log.Printf 만 추가 — 동작 변경 0, alarm surface 만 추가.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...` 사전.
+      2. feed/handler.go L218-239 의 두 silent 분기에 자매 컨벤션
+         (L96 / L121 형식) 의 log.Printf 추가:
+           if err != nil {
+             log.Printf("feed.GetUserMediaTypeFrequency: %v (user=%s)", err, creatorID)
+           } else if len(mtRows) > 0 { ... }
+         같은 패턴 RecommendByMediaType 에도. 기존 fallback 동작
+         (RecommendByTags 결과만으로 진행) 그대로 보존.
+      3. 단위 테스트: db mock 에서 GetUserMediaTypeFrequency 가 err 반환
+         시 personalized 응답이 RecommendByTags 결과만으로 빌드되는지
+         (silent 동작 보존) + 그 시점에 log entry 1건 emit 되는지
+         (testing/log capture).
+      4. 실 환경 QA:
+         (a) `docker-compose up -d` + dev API 가동.
+         (b) `psql` 로 personalized 분기 진입 조건 충족(>=10 핀 보유)
+             사용자 1명 준비.
+         (c) `ALTER FUNCTION` 또는 view rename 등으로 GetUserMediaTypeFrequency
+             SQL 일시 실패 유도 (또는 단순히 pin_interactions 컬럼 임시
+             rename 후 복원). curl /api/feed?limit=20 호출.
+         (d) 서버 stdout 로그에 `feed.GetUserMediaTypeFrequency:` prefix
+             출력 확인. 응답은 200 + latest fallback (동작 보존).
+      5. 회귀: 정상 케이스(DB 정상)에서 personalized 응답 shape 무변경
+         (cache hit / cache miss 양쪽), `/api/feed` 미인증/저-핀 분기
+         무영향, `/api/pins`·`/api/search` 인접 라우트 무영향.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+    note: |
+      변경 범위:
+        (a) feed/handler.go L218-239 silent 분기 2곳에 log.Printf 추가
+            (~4 본문줄 + 10 doc줄).
+        (b) feed/handler_test.go 또는 신규 sub-test 1~2건 (db mock /
+            log capture).
+        (c) 동작 변경 0 — fallback chain 그대로 유지.
+
+      회귀 위험: 매우 낮음. 추가-only logging, 외부 contract 0 변경.
+      anti-patterns L15 무매치 (application code).
+      decision-log 의 명시적 사용자 결정 0건 — feed cache silent
+      branch 도 cycle K 에서 같은 방식으로 잡았으므로 사용자 의도
+      침범 없음.
+
+  - id: system-20260522-search-top-tags-silent-error
+    title: "search.Search 의 top_tags 보강 분기 — SearchTopTags 에러 silent swallow"
+    area: error-handling
+    evidence:
+      files:
+        - "apps/api/internal/search/handler.go:159-178"
+      cite: |
+        apps/api/internal/search/handler.go L159-178:
+          if !skipTopTags && len(topPins) > 0 {
+              pinIDs := make([]uuid.UUID, 0, len(topPins))
+              for _, p := range topPins {
+                  pinIDs = append(pinIDs, uuid.MustParse(p.ID))
+              }
+              topTags, err := h.q.SearchTopTags(r.Context(), pinIDs)
+              if err == nil {                          // L165: err silent discard
+                  tags := make([]TopTag, 0, len(topTags))
+                  for _, t := range topTags {
+                      tags = append(tags, TopTag{
+                          ID: t.ID.String(), Name: t.Name,
+                          Slug: t.Slug, Category: t.Category, Count: t.Count,
+                      })
+                  }
+                  response["top_tags"] = tags
+              }
+          }
+          if _, ok := response["top_tags"]; !ok {
+              response["top_tags"] = []TopTag{}
+          }
+
+        같은 핸들러 안 자매 패턴:
+        - searchPins / searchCreators / searchBoards 시점에서는 err 발생
+          시 명시적 `log.Printf` + writeError 500 분기로 명확하게 처리.
+        - 본 분기만 silent swallow + 빈 [] fallback.
+      repro: |
+        1. `docker-compose up -d` + dev API 가동.
+        2. `psql` 로 pins/tags/pin_tags 정상 데이터 + GET
+           /api/search?q=test&type=pins&limit=5 호출 — 200 + top_tags
+           populated 정상.
+        3. SearchTopTags SQL 일시 실패 유도(예: pin_tags 테이블 임시
+           rename 또는 statement_timeout 매우 짧게 설정).
+        4. 관측: response 는 200 + top_tags=[] (정상 fallback 모양),
+           operator 는 어떤 로그도 보지 못함. top_tags 보강이 silently
+           비활성화된 상태로 운영 가능.
+    attack_surface: |
+      - 표면: 미인증·미rate-limit /api/search 의 top_tags 보강 분기.
+        searchType=all|pins|... 의 모든 호출에서 fire.
+      - 영향: top_tags 보강이 SQL 장애로 silently 비활성화되어도 operator
+        가 감지 못 함. top_tags 보강은 검색 UX 의 fan-out (관련 태그
+        탐색) 핵심이라 quality degradation 이지만 silent.
+      - 자매 분기들(searchPins/searchCreators/searchBoards)은 모두
+        explicit error 처리 — 본 분기만 누락. fail-open 정책 자체는
+        유지(빈 [] 응답으로 검색 결과 핵심은 보존)하되 alarm 노출
+        만 추가.
+      - anti-patterns L15 무매치 (application code).
+    qa_plan: |
+      실 환경 QA:
+      1. `go vet ./... && go build ./... && go test ./...` 사전.
+      2. search/handler.go L164-165 silent swallow 를 자매
+         additive-logging 패턴으로 교체:
+           topTags, err := h.q.SearchTopTags(r.Context(), pinIDs)
+           if err != nil {
+               log.Printf("search.SearchTopTags: %v (q=%q pin_count=%d)",
+                          err, q, len(pinIDs))
+           } else {
+               tags := make([]TopTag, 0, len(topTags))
+               for _, t := range topTags { ... }
+               response["top_tags"] = tags
+           }
+         빈 [] fallback 그대로 유지.
+      3. 단위 테스트: db mock 에서 SearchTopTags err 반환 시 응답이
+         top_tags=[] 로 도달 + log entry 1건 emit (testing/log capture).
+      4. 실 환경 QA:
+         (a) GET /api/search?q=test&type=pins&limit=5 정상 케이스
+             top_tags populated 확인.
+         (b) pin_tags 임시 rename 후 같은 요청 — 200 + top_tags=[]
+             + 서버 로그 `search.SearchTopTags:` prefix 확인.
+         (c) pin_tags 복원 후 정상 응답 복원 확인.
+      5. 회귀: empty q / type=invalid / >5 tags 등 sibling 검증
+         무영향, /api/pins·/api/feed 인접 라우트 무영향.
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+    note: |
+      변경 범위:
+        (a) search/handler.go L164-178 silent 분기에 log.Printf 추가
+            + struct 들여쓰기 변경 (~5 본문줄 + 6 doc줄).
+        (b) handler_test.go 의 SearchTopTags mock 분기 sub-test 1건.
+        (c) 동작 변경 0 — top_tags 빈 [] fallback 그대로 유지.
+
+      회귀 위험: 매우 낮음. 추가-only logging.
+      anti-patterns L15 무매치 (application code).
+      decision-log 의 명시적 사용자 결정 0건 — search 도메인 자매
+      검증(empty q / type / tag-count / UUID) 모두 명시적 에러 처리.
