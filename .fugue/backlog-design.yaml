@@ -1878,6 +1878,8 @@ items:
     note: "2026-05-22 cycle 65 처리. apps/web/src/app/pins/[id]/page.tsx L167 board chip Link className 의 `hover:text-accent hover:border-accent` 뒤에 `focus-visible:text-accent focus-visible:border-accent` 2 utility 삽입(diff +1 -1). pinBoards.map 으로 렌더되는 chip Link 들의 키보드 Tab 포커스 가시화 — hover 와 동일한 accent text + border 적용. in-codebase focus-visible 라인업(PR #105/#100/#96/#91/#86/#36/#129/#191/#193) 후속 보완. WCAG 2.1 SC 2.4.7 Focus Visible Level AA 준수."
 
   - id: "design-20260522-a11y-feedcontainer-empty-error-actions-focus-visible-mirror-missing"
+    pr: 200
+    note: "2026-05-22 cycle 66 처리. apps/web/src/components/feed/FeedContainer.tsx L168 EmptyState '전체 보기' button + L199 error region '다시 시도' button 각각 `hover:underline` 뒤에 `focus-visible:underline` 1 utility 삽입(diff +2 -2). 빈 상태/에러 상태에서 사용자 회복 액션 진입점의 키보드 Tab 포커스 가시화 — hover 와 동일한 underline 시각 신호. in-codebase focus-visible 라인업(PR #105/#100/#96/#91/#86/#36/#129/#191/#193/#197) 후속 보완. WCAG 2.1 SC 2.4.7 Focus Visible Level AA 준수."
     title: "FeedContainer 빈 상태 '전체 보기' button + 에러 '다시 시도' button 이 `focus-visible:` 미러링 0건 — 메인 피드 edge state 진입점의 키보드 포커스 가시화 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
     area: a11y
     evidence:
@@ -1891,7 +1893,7 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
 
   - id: "design-20260522-a11y-videothumbnailpicker-thumbnail-focus-visible-mirror-missing"
     title: "VideoThumbnailPicker 썸네일 선택 button 비선택 분기가 `focus-visible:` 미러링 0건 — 비디오 핀 생성 썸네일 선택 컨트롤의 키보드 포커스 가시화 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
