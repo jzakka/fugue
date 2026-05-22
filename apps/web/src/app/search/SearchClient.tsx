@@ -242,7 +242,7 @@ export default function SearchClient({
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${
               activeType === tab.value
                 ? "bg-text-primary text-bg"
-                : "bg-transparent border border-border text-text-muted hover:border-text-muted hover:text-text-primary"
+                : "bg-transparent border border-border text-text-muted hover:border-text-muted hover:text-text-primary focus-visible:border-text-muted focus-visible:text-text-primary"
             }`}
           >
             {tab.label}
@@ -262,7 +262,7 @@ export default function SearchClient({
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer font-mono ${
                   selected
                     ? "bg-accent text-white"
-                    : "bg-accent-subtle text-text-muted hover:bg-accent/20"
+                    : "bg-accent-subtle text-text-muted hover:bg-accent/20 focus-visible:bg-accent/20"
                 }`}
               >
                 {tag.name}
@@ -406,7 +406,7 @@ export default function SearchClient({
                 onClick={handleLoadMore}
                 disabled={loadingMore}
                 aria-busy={loadingMore}
-                className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent transition-colors cursor-pointer disabled:opacity-50"
+                className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors cursor-pointer disabled:opacity-50"
               >
                 {loadingMore ? (
                   <div
