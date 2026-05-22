@@ -1711,7 +1711,9 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
+    status: done
+    pr: 167
+    note: "2026-05-22 PR #167 — apps/web/src/components/feed/FeedContainer.tsx L215-219 외곽 div 에 `role=\"status\"` + `aria-label=\"추가 작품 로딩 중\"` 2 prop 추가(diff +5 -1). IntersectionObserver(L138-147)가 sentinel 도달 시 loadMore() 트리거 → setLoading(true) → 무한 스크롤 spinner 렌더 시 SR 사용자에게 '추가 작품 로딩 중' announce. 기존: 외곽 div 가 `flex justify-center py-8` 만 가져서 SR announce 0건 → 무한 스크롤 페이지네이션이 진행 중인지 모름. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 정합 — role=status implicit `aria-live=\"polite\"` + `aria-atomic=\"true\"`. 코드베이스 내부 정합 근거: PR #147(SearchClient L411-415) · PR #151(LoadMorePins L49-53) · PR #154(AddToBoardButton L282-287) 와 동일 패턴 — in-codebase role=status 라인업 5 → 6 파일 확장(SearchBar L253 · AddToBoardButton L270/L286 · SearchClient L413 · LoadMorePins L49 · PinCreateForm L606 · FeedContainer L216). 같은 컴포넌트 L184-203 error 영역은 이미 role=alert + aria-live=polite — 모달 status-message 라인업 정합. Discovery cycle 53 PR #166 의 4개 후보 중 최고점 항목 완료(잔여 pending 3건 — 🐡 마스코트 aria-hidden score 10.0 동점 3개). 시각 동작 0(spinner className `w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin` · 외곽 div `flex justify-center py-8` · loading/pins.length 분기 모두 미변경) · 마우스 사용자 회귀 0 · 인접 영역(L14-92 reloadPins/useEffect/loadMore · L138-147 IntersectionObserver · L151-161 초기 skeleton 분기 · L163-174 EmptyState 분기 · L184-204 error role=alert 영역 · L206-210 MasonryGrid · L220-231 noscript 분기) 모두 미수정. 인접 화면(MasonryGrid · PinCard · FieldFilter · TagFilter · FeedContainer 호출처 / page.tsx) 무영향. light mode 동일(색 토큰 미변경). 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정(외곽 div 에 2 prop 추가만). Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — 단일 prop 2개 추가 변경 단위라 코드 검증(grep `role=\"status\"` FeedContainer L216 + `aria-label=\"추가 작품 로딩 중\"` L217 매칭 + 인접 spinner className/외곽 className/loading 분기 미변경 확인)으로 대체."
 
   - id: "design-20260522-a11y-emptystate-mascot-aria-hidden-missing"
     title: "EmptyState 복어 마스코트 이모지(🐡) 가 `aria-hidden` 부재 — SR 사용자가 빈 상태 메시지 앞에 'blowfish' 노이즈 announce(WCAG 2.1 SC 1.1.1 Non-text Content Level A)"
