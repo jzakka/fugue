@@ -139,7 +139,7 @@ function BoardSection({ creatorId }: { creatorId: string }) {
             >
               <BoardCover images={board.cover_images} />
               <div className="mt-2">
-                <div className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors truncate">
+                <div className="text-sm font-semibold text-text-primary group-hover:text-accent group-focus-visible:text-accent transition-colors truncate">
                   {board.name}
                 </div>
                 <div className="text-xs text-text-dim font-mono">

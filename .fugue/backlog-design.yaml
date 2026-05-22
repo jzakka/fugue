@@ -2080,4 +2080,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 234
+    note: "BoardGrid.tsx L26 + MyPageClient.tsx L142 board 이름 div className 에 `group-focus-visible:text-accent` 1 utility 미러 삽입(diff +1 -0 per file · total +2 -0 · 2 surface). 부모 Link 의 `focus-visible:-translate-y-0.5 focus-visible:outline-none` (translateY) 신호에 색 변화 신호 추가 → hover 와 focus-visible 시 동일하게 board 이름이 `text-accent` 로 변화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycles 62-67 의 hover→focus-visible 미러링 라인업(PR #189 · #191 · #193 · #197 · #200 · #202) + cycle 79 PR #230(PinCreateForm 태그 chip) 직접 follow-up. 형제 utility(`text-sm font-semibold text-text-primary` · `transition-colors truncate`) · Link 의 transition/translateY 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -rn 'group-focus-visible:text-accent' apps/web/src/components/board/BoardGrid.tsx apps/web/src/components/profile/MyPageClient.tsx` 2 matches — 두 파일 각 1건) 으로 대체. processing branch push 시 cycle 80 discovery PR #233 의 같은 brunch id(`design-20260522-a11y-board-group-focus-visible-text-accent-missing`) 잔존으로 force-with-lease push 1회 적용(§자체 회복 §1 boost case — discovery 와 processing 이 같은 brunch id 공유 시 표준 절차)."
