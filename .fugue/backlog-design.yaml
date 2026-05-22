@@ -1945,7 +1945,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 210
+    note: "MyPageClient.tsx L56-64 BoardSection 보드 목록 로딩 spinner outer div 에 role=\"status\" + aria-label=\"보드 목록 로딩 중\" 추가 (+5 -1). 백로그가 제안한 '마이페이지 로딩 중' wording 은 실제 spinner 가 BoardSection.loading=true(보드 fetch) 상태만 다루고 페이지 진입 auth 와 무관하므로 §5 결정 회색지대 적용 — AddToBoardButton L287 의 '보드 목록 로딩 중' wording 과 정확히 일치시켜 동일 콘텐츠 도메인의 SR announce 텍스트를 통일. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices role=status 충족. Ralph env 제약으로 step 7 실 브라우저 QA 는 grep verification(L59 role=\"status\" + L60 aria-label=\"보드 목록 로딩 중\") 으로 대체."
 
   - id: "design-20260522-a11y-pinsgrid-loadmore-spinner-status-role-missing"
     title: "PinsGrid 추가 핀 로딩 spinner 가 `role=\"status\"` + `aria-label` 미적용 — 마이페이지 핀 그리드 추가 로딩 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
