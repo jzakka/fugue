@@ -1896,6 +1896,8 @@ items:
     status: done
 
   - id: "design-20260522-a11y-videothumbnailpicker-thumbnail-focus-visible-mirror-missing"
+    pr: 202
+    note: "2026-05-22 cycle 67 처리. apps/web/src/components/pin/VideoThumbnailPicker.tsx L137 ternary 비선택 분기 `border-border hover:border-accent/50` 뒤에 `focus-visible:border-accent/50` 1 utility 삽입(diff +1 -1). 비디오 핀 생성 플로우(/pin/new) 의 썸네일 선택 button 키보드 포커스 가시화 — hover 와 동일한 border-accent/50 시각 신호. 선택 분기(border-accent) 시각 회귀 0. in-codebase focus-visible 라인업(PR #105/#100/#96/#91/#86/#36/#129/#191/#193/#197/#200) 후속 보완. cycle 62 Discovery PR #189 5건 후보 전부 완료 — 잔여 pending 0건 → 다음 사이클 Discovery Mode. WCAG 2.1 SC 2.4.7 Focus Visible Level AA 준수."
     title: "VideoThumbnailPicker 썸네일 선택 button 비선택 분기가 `focus-visible:` 미러링 0건 — 비디오 핀 생성 썸네일 선택 컨트롤의 키보드 포커스 가시화 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
     area: a11y
     evidence:
@@ -1909,4 +1911,4 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
