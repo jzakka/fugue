@@ -2020,3 +2020,27 @@ items:
     status: done
     pr: 223
     note: "SearchClient.tsx L263 topTags.map chip button 에 aria-pressed={selected} 1 prop 추가 (+1 -0). 다중 선택 toggle button 패턴 SR announce 가시화 — selected chip 'pressed' / 비선택 'not pressed'. 직전 PR #220(같은 파일 L242 카테고리 탭 aria-pressed) 의 same-page sibling control 보완. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + ARIA Authoring Practices aria-pressed 충족. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(SearchClient.tsx aria-pressed 2건 매칭: L242 PR #220 + L263 본 PR · 인접 className/ternary/JSX/onClick/handleTagToggle 미변경) 으로 대체. 1회 만에 머지 성공(BEHIND 발생 없음). cycle 73 Discovery PR #218 의 2건 후보(카테고리 탭 + top tags chips) 전부 완료 — 잔여 pending 0건 → 다음 사이클 Discovery Mode."
+
+  - id: "design-20260522-a11y-layout-main-skip-link-missing"
+    title: "RootLayout 에 skip link anchor 부재 + 모든 page <main> 요소에 id 부재 — 키보드 사용자가 NavBar 다중 컨트롤(SearchBar input + 검색 dropdown rows + ThemeToggle + LoginButton/LogoutButton) 을 매 페이지 진입마다 Tab 통과해야 main content 도달(WCAG 2.1 SC 2.4.1 Bypass Blocks Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/layout.tsx:14-32"
+        - "apps/web/src/app/page.tsx:86"
+        - "apps/web/src/app/pins/[id]/page.tsx:121"
+        - "apps/web/src/app/pin/new/page.tsx:20"
+        - "apps/web/src/app/search/page.tsx:61"
+        - "apps/web/src/app/mypage/page.tsx:39"
+        - "apps/web/src/app/boards/[id]/page.tsx:51"
+        - "apps/web/src/app/creators/[id]/page.tsx:73"
+        - "apps/web/src/app/login/page.tsx:35"
+      cite: "WCAG 2.1 SC 2.4.1 Bypass Blocks (Level A) — 'A mechanism is available to bypass blocks of content that are repeated on multiple Web pages.' Fugue 의 / · /search · /mypage · /pins/[id] · /pin/new · /boards/[id] · /creators/[id] 페이지가 모두 NavBar 로 시작하고 NavBar 는 SearchBar input + 검색 결과 dropdown row 들(검색 결과 N개) + ThemeToggle button + (인증 상태에 따라) LoginButton 또는 LogoutButton 다중 컨트롤 보유. `grep -rn 'sr-only\\|skip\\|건너뛰기' src` 매칭 0건(L87 sr-only h1 1건은 작품 피드 헤딩이지 skip link 아님). `grep -rn 'id=\"main' src` 매칭 0건. 키보드 사용자가 매 페이지 진입 시 NavBar 모든 컨트롤(검색어 입력 시 dropdown row 가산) 을 Tab 으로 통과해야 main content 첫 article 에 도달. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, 시각 변경은 sr-only/focus:not-sr-only 표준 패턴(평소 visually hidden, 키보드 첫 Tab 포커스 시 좌상단 등장)으로 기존 화면 시각 영향 0."
+      repro: "1) cd apps/web && npm run dev. 2) / 진입(로그인 안 한 상태). 3) Tab 키 눌렀을 때 첫 포커스 도달 위치 관찰 → SearchBar input(NavBar 첫 컨트롤)에 도달. 4) 추가 Tab → SearchBar 검색어 입력 시 dropdown row 들 → ThemeToggle → LoginButton 순으로 통과. 5) main content 첫 article(MasonryGrid 안 PinCard)에 도달하려면 NavBar 컨트롤 전부 통과 필요. 6) /search?q=<keyword> 진입 시 동일(검색 결과 dropdown 가산). 7) `grep -rn 'href=\"#main\\|sr-only.*focus:not-sr-only' src` 매칭 0건 확인."
+    qa_plan: "1) cd apps/web && npm run dev. 2) / 진입 후 Tab 첫 회 누름 → 화면 좌상단에 'main content 로 건너뛰기' 링크 visible 등장(sr-only → focus:not-sr-only 토글). 3) Enter 키 → main content (#main) 으로 focus 이동 + 화면 스크롤. 4) /search, /mypage, /pins/[id], /pin/new, /boards/[id], /creators/[id] 페이지에서 동일 동작 확인. 5) /login 페이지(NavBar 없음)는 단순 main 으로 jump(시각 영향 없음). 6) 마우스 사용자는 anchor visible 없음(sr-only 유지). 7) 시각 회귀 0(skip link 외 모든 페이지 컨텐츠 미변경). 8) light mode 동일."
+    impact: 3
+    confidence: 5
+    effort: 3
+    risk: 1
+    score: 5.0
+    status: pending
