@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestGojaExecutor_NormalExecution(t *testing.T) {
@@ -167,6 +168,50 @@ func TestGojaExecutor_Timeout(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "timeout") {
 		t.Errorf("expected 'timeout' in error, got %q", err.Error())
+	}
+}
+
+// TestGojaExecutor_ParentCancelInterrupts pins the SIGTERM path: when the
+// parent ctx is cancelled mid-script (e.g. cmd/bot's signal.NotifyContext
+// runCtx receiving SIGTERM, propagated through script_adapter to here),
+// the executor MUST interrupt the VM rather than wait for the script to
+// finish naturally. Before the fix the L49 guard checked only for
+// DeadlineExceeded, so a parent cancel arrived at timeoutCtx as Canceled
+// (Go stdlib context.WithTimeout child semantics) and vm.Interrupt was
+// never called — letting an infinite-loop script bypass the documented
+// 10s upper bound until the harvester worker hit k8s SIGKILL.
+func TestGojaExecutor_ParentCancelInterrupts(t *testing.T) {
+	executor := NewGojaExecutor(60_000) // 60s upper bound — far above the cancel deadline
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		cancel()
+	}()
+
+	script := `
+	(function() {
+		while(true) {} // infinite loop
+		return [];
+	})()
+	`
+
+	start := time.Now()
+	_, err := executor.Execute(ctx, script, "<html></html>", "https://example.com")
+	elapsed := time.Since(start)
+
+	if elapsed > 500*time.Millisecond {
+		t.Errorf("parent cancel did not interrupt VM: elapsed=%s (pre-fix would hang until 60s timeoutMs upper bound)", elapsed)
+	}
+	if err == nil {
+		t.Fatal("expected interrupt error from parent cancel, got nil (script ran to completion)")
+	}
+	// The interrupt value is timeoutCtx.Err() which is context.Canceled on
+	// the parent-cancel path; the error is wrapped as `timeout: %s` by the
+	// executor. We assert the parent-cancel cause is preserved in the value
+	// so callers can diagnose SIGTERM-driven aborts vs natural timeouts.
+	if !strings.Contains(err.Error(), "canceled") {
+		t.Errorf("expected 'canceled' in error to preserve parent-cancel cause, got %q", err.Error())
 	}
 }
 

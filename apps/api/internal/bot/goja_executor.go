@@ -46,9 +46,22 @@ func (e *GojaExecutor) Execute(ctx context.Context, script string, html string, 
 
 	go func() {
 		<-timeoutCtx.Done()
-		if timeoutCtx.Err() == context.DeadlineExceeded {
-			vm.Interrupt("script execution timeout")
-		}
+		// Interrupt on both DeadlineExceeded (the executor's 10s upper bound
+		// fired) and Canceled (parent ctx cancellation — typically cmd/bot's
+		// signal.NotifyContext runCtx receiving SIGTERM, propagated through
+		// script_adapter.Execute(ctx, ...)). Without the Canceled branch a
+		// parent cancel arrives at timeoutCtx as Canceled (Go stdlib
+		// context.WithTimeout child semantics) and the 10s upper bound is
+		// silently bypassed on the SIGTERM path — a malicious or buggy site
+		// script (e.g. `while(true){}`) keeps running until natural
+		// completion, hanging the harvester worker past k8s
+		// terminationGracePeriodSeconds and forcing SIGKILL, which skips the
+		// in-flight URL's SetStatus/RecordHarvestError finalize and leaves
+		// the harvester_frontier row claimed until lease expiry. The VM
+		// instance is single-use per Execute call, so calling Interrupt on
+		// an already-finished VM (RunString returned before Done fired) is
+		// a no-op and safe to race against script completion.
+		vm.Interrupt(timeoutCtx.Err())
 	}()
 
 	// Unwrap JSON-wrapped scripts (e.g. {"script":"..."})
