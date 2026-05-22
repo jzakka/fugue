@@ -1984,3 +1984,35 @@ items:
     status: done
     pr: 214
     note: "AddToBoardButton.tsx L337-342 보드 row inline 추가 중 spinner div 에 role=\"status\" + aria-label=\"보드에 추가 중\" 추가 (+5 -1, multi-line attr 포맷). 동일 컴포넌트 L286-287 의 '보드 목록 로딩 중' role=status 라인업 보완 — boards listing fetch / per-board adding 두 분기 모두 SR announce. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices role=status 충족. Ralph env 제약으로 step 7 실 브라우저 QA 는 grep verification(role=\"status\" 3건 매칭: L270 기존 feedback + L286 기존 boards loading + L339 본 PR · aria-label=\"보드에 추가 중\" L340) 으로 대체. 1회 만에 머지 성공. cycle 68 Discovery PR #204 의 4건 후보 전부 완료 — 잔여 pending 0건 → 다음 사이클 Discovery Mode."
+
+  - id: "design-20260522-a11y-searchclient-category-tabs-aria-pressed-missing"
+    title: "SearchClient 카테고리 탭 4건이 toggle button 패턴이면서 `aria-pressed` 미적용 — 검색 결과 카테고리 선택 상태 SR 무알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A + ARIA Authoring Practices aria-pressed)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:237-251"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + ARIA Authoring Practices Guide `aria-pressed`. SearchClient.tsx L237-251 카테고리 탭(TABS.map: 전체/핀/크리에이터/보드) 4개 button 이 `activeType === tab.value` ternary 로 선택 분기(`bg-text-primary text-bg`)와 비선택 분기(`bg-transparent border ...`) 를 toggle 하는 명백한 toggle button 패턴이지만 `aria-pressed` 0건. 동일 코드베이스의 toggle button 패턴(`apps/web/src/components/profile/PinsGrid.tsx:104` `aria-pressed={activeType === mt.value}` · `apps/web/src/components/feed/FieldFilter.tsx:36` aria-pressed) 라인업과 비대칭. 검색 결과 페이지는 키워드 디스커버리의 주요 진입점이고 카테고리 탭은 진입 직후 첫 toggle control 이라 SR 사용자가 어느 카테고리가 활성인지 인지 못함 → 같은 탭 다시 누르거나 다른 탭으로 이동 시 상태 변화 announce 0건. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, ternary className 그대로 유지, 단일 button 에 aria-pressed 1 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) /search?q=<keyword> 진입 → 카테고리 탭 4개 표시. 3) VoiceOver/NVDA SR 켜고 탭 사이 Tab 으로 이동 → 'pressed/not pressed' announce 0건(button role 만 announce). 4) PinsGrid L99-114 의 동일 toggle 패턴은 'pressed/not pressed' announce 정상. 5) 처리: L239 button 에 `aria-pressed={activeType === tab.value}` 1 prop 추가(diff +1 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /search?q=<keyword> 진입 → 카테고리 탭 4개 표시. 3) SR 켜고 각 탭에 Tab 진입 → 활성 탭 'pressed' / 나머지 'not pressed' announce 확인. 4) 탭 클릭으로 activeType 전환 시 announce 변화 확인. 5) 시각 회귀 0(className/ternary 미변경). 6) 마우스/키보드 클릭 동작 회귀 0. 7) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260522-a11y-searchclient-top-tags-chips-aria-pressed-missing"
+    title: "SearchClient top tags chip 들이 toggle button 패턴이면서 `aria-pressed` 미적용 — 검색 결과 태그 다중 선택 상태 SR 무알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A + ARIA Authoring Practices aria-pressed)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:256-272"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + ARIA Authoring Practices Guide `aria-pressed`. SearchClient.tsx L256-272 topTags.map chip button 들이 `activeTagIds.has(tag.id)` 로 selected/unselected 를 toggle 하는 다중 선택 toggle button 패턴이지만 `aria-pressed` 0건. 선택 분기(`bg-accent text-white`)와 비선택 분기(`bg-accent-subtle text-text-muted hover:bg-accent/20 focus-visible:bg-accent/20`) 시각 분기는 있으나 SR 사용자가 어느 태그가 활성 필터인지 인지 못함. 동일 페이지 카테고리 탭 후보(`design-20260522-a11y-searchclient-category-tabs-aria-pressed-missing`)와 동일 패턴 두 번째 컨트롤. PinsGrid L104 · FieldFilter L36 toggle 라인업과 비대칭. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, ternary className 그대로 유지, 단일 button 에 aria-pressed 1 prop 추가."
+      repro: "1) cd apps/web && npm run dev. 2) /search?q=<keyword> 진입 → top tags 가 1개 이상이면 chip 들 렌더링. 3) VoiceOver/NVDA SR 켜고 chip 사이 Tab 으로 이동 → 'pressed/not pressed' announce 0건. 4) 같은 tag 다시 누르면 toggle 되지만 상태 변화 announce 없음. 5) 처리: L259 button 에 `aria-pressed={selected}` 1 prop 추가(diff +1 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /search?q=<keyword> 로 top tags 1개 이상 표시되는 검색어 사용. 3) SR 켜고 각 chip 에 Tab 진입 → 선택된 chip 'pressed' / 비선택 'not pressed' announce 확인. 4) chip 클릭으로 activeTagIds Set toggle 시 announce 변화 확인. 5) 시각 회귀 0(className/ternary 미변경). 6) 마우스/키보드 클릭 동작 회귀 0. 7) light mode 동일."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
