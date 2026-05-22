@@ -165,7 +165,7 @@ export default function FeedContainer({
       <EmptyState message="이 분야의 작품이 아직 없어요">
         <button
           onClick={() => router.push("/", { scroll: false })}
-          className="text-accent text-sm hover:underline cursor-pointer"
+          className="text-accent text-sm hover:underline focus-visible:underline cursor-pointer"
         >
           전체 보기
         </button>
@@ -196,7 +196,7 @@ export default function FeedContainer({
                 reloadPins(mediaType, tagsParam);
               }
             }}
-            className="ml-3 text-accent hover:underline cursor-pointer"
+            className="ml-3 text-accent hover:underline focus-visible:underline cursor-pointer"
           >
             다시 시도
           </button>
