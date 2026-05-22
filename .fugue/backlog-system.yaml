@@ -2954,3 +2954,157 @@ items:
       anti-pattern 매칭 없음. L15 인프라 deployment 미해당(코드 단일
       라인 교체). decision-log 2026-05-19 [system] HarvestPipeline SSRF
       가드 추가의 자매 갭으로 직접 연계.
+
+  - id: system-20260522-harvest-pipeline-download-image-unbounded-readall
+    title: "HarvestPipeline.downloadAndUpload 의 image 분기가 io.ReadAll(resp.Body) 로 응답 본문을 cap 없이 메모리 적재 — 자매 비대칭(non-image 분기 200MiB / cacheImage 20MiB)"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/bot/harvest_pipeline.go:349-396"
+        - "apps/api/internal/bot/harvest_pipeline.go:376"
+        - "apps/api/internal/bot/harvest_pipeline.go:408"
+        - "apps/api/internal/bot/harvest_pipeline.go:494"
+        - "apps/api/internal/bot/harvest_pipeline.go:34-39"
+        - "apps/api/internal/bot/harvest_pipeline.go:45-48"
+      cite: |
+        openspec/specs/harvester/spec.md L749 Requirement
+        `외부 미디어 fetch는 SSRF-safe HTTP client를 경유한다` 본문:
+        "Harvester가 외부 미디어 응답 본문을 stream으로 객체 저장소에
+        전달할 때는 명시적인 stream 크기 상한 가드를 갖춰야 한다(SHALL).
+        외부 서버가 `Content-Length`를 거짓으로 작게 응답하더라도 실제
+        stream된 바이트 수가 상한을 넘으면 fetch가 끊겨야 한다(SHALL)."
+
+        본 항목은 SHALL 의 "stream 크기 상한 가드" 직접 위반.
+        downloadAndUpload image 분기(L376)는 `io.ReadAll(resp.Body)` 로
+        cap 없는 메모리 적재 후 storage.Upload 의 bytes.NewReader(body)
+        로 전달 — 메모리 buffer → Upload stream 의 2단계지만, 첫 단계
+        readback 에 cap 이 없으면 SHALL 의 "상한을 넘으면 fetch가
+        끊겨야" 가 무력화됨.
+
+        같은 파일 자매 2건이 모두 cap 사용 (컨벤션 비대칭):
+          - L408 downloadAndUpload non-image: `io.LimitReader(resp.Body,
+            maxMediaStreamBytes)` (200 MiB)
+          - L494 cacheImage: Content-Length precheck (L488) +
+            `io.LimitReader(resp.Body, p.imageCacheMaxBytes+1)` (20 MiB)
+        같은 구조체 내 같은 트러스트 boundary 의 3개 fetch 사이트 중
+        image 분기 단 1개만 unbounded.
+
+        cycle U (PR #168) 발견 → cycle V (PR #171) 가 닫은 Pioneer
+        SSRF 가드와 동일 신뢰 경계의 자매 갭. PR #47 (2026-05-19
+        HarvestPipeline SSRF) + PR #144 (media_url cap) + PR #171
+        (Pioneer SSRF) 의 시리즈 잔여.
+      repro: |
+        1. attacker 가 통제하는 외부 페이지에서 추출된 media URL 이
+           image 타입으로 분류되어 Harvest pipeline 의 RawItem 으로
+           들어간다 (item.MediaType == "image", item.MediaURL 은
+           attacker server).
+        2. attacker server 는 `Content-Type: image/jpeg` 응답 헤더와
+           대량 바이트(예: 5 GiB 의 임의 byte stream)를 SSRF-safe
+           client 의 total timeout 10s 안에 송신 (10Gbps 회선에서 ~12s
+           이지만 50 Mbps 라도 timeout 직전까지 ~60 MiB).
+        3. SSRF-safe client 는 IP 검사 + redirect 재검사 + timeout 적용
+           정상이지만 응답 body 크기 cap 은 없음 (이는 fetcher 가
+           아니라 caller 의 책임).
+        4. downloadAndUpload 의 image 분기 진입 (mediaType=="image"):
+           L376 `body, readErr := io.ReadAll(resp.Body)` — cap 없이
+           수십 MiB ~ GiB 단위 메모리 적재 시도.
+        5. Harvester 워커 프로세스 RSS 가 응답 크기만큼 폭증 →
+           컨테이너 memory limit (k8s pod) 초과 → OOMKilled →
+           worker restart → in-flight 모든 작업(현재 batch + 진행 중
+           Dequeue) 손실. 동시 트래픽에서 다른 batch 도 같은 URL 을
+           재처리하면 cascading OOM 가능.
+        6. 부가적으로 L380 `if int64(len(body)) < DefaultImageMinBytes`
+           min-bytes 검증은 ReadAll 완료 후 실행되므로 이미 메모리는
+           적재된 후. 검증은 "유효 image bytes 인지" 만 보고 상한은
+           무관.
+      attack_surface: |
+        - SSRF-safe client 는 dial-time IP 검사·redirect 재검사·timeout
+          은 enforce 하지만 응답 본문 크기 cap 은 없음 (caller 의
+          io.LimitReader 책임). cycle V (PR #171) 가 추가한 Pioneer
+          SSRF wiring 도 마찬가지 — Pioneer 는 5 MiB body cap 으로
+          이미 caller-side 캡 적용.
+        - downloadAndUpload 호출지(L208 `Process` 의 batch loop) 는
+          외부 페이지에서 추출된 item.MediaURL / item.MediaType 을
+          그대로 전달 — content classification 은 추출 단계가 결정.
+          attacker 가 og:image 형태로 정상 image MIME 을 선언해두면
+          mediaType=="image" 분류 통과 가능.
+        - HTTP timeout 10s 안에 단일 connection 으로 streaming 가능한
+          최대 바이트는 회선 대역폭 × 10s. 클라우드 환경 (10Gbps NIC)
+          이면 ~12 GiB 까지 가능. k8s worker pod memory limit (보통
+          512 MiB ~ 2 GiB) 을 손쉽게 초과.
+        - 자매 cacheImage 가 사용하는 Content-Length precheck (L488)
+          은 거짓 Content-Length 에 대한 1차 방어. 그것도 본 분기에는
+          부재. downloadAndUpload 의 non-image 분기(L408) 는
+          LimitReader 만 적용하고 Content-Length precheck 는 없음 —
+          본 분기는 cacheImage 패턴(precheck + LimitReader+1) 또는
+          non-image 분기 패턴(LimitReader 만) 중 가장 보수적인 것을
+          채택 필요.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+         통과 사전 조건 확인.
+      2. 회귀 테스트 신규 추가 — `harvest_pipeline_image_cap_test.go`
+         또는 기존 `harvest_pipeline_validation_test.go` 확장: httptest
+         서버가 `image/jpeg` MIME 으로 cap+1 바이트 송신 → image 분기
+         가 errImageOversize (또는 신규 errImageStreamOversize) 로 거부,
+         storage.Upload 미호출 검증. 회귀: 정상 100 KiB JPEG 는 통과 +
+         storage.Upload 1회 호출 + 정상 URL 반환.
+      3. docker-compose up -d (DB+Redis+MinIO).
+      4. /tmp/fugue-qa-image-cap/ 에 python3 -m http.server 8090 로
+         거대 응답 송신하는 mock CGI 또는 정적 큰 파일 serve. ffmpeg
+         로 정상 image 300x300 PNG (~수 KiB) 와 비교용 200+ MiB
+         가짜 image (head -c 250M /dev/urandom 후 image/* MIME 헤더
+         서버 응답) 준비.
+      5. 임시 `apps/api/cmd/qa-image-cap/main.go` 가 production
+         HarvestPipeline 인스턴스(WithImageCacheMaxBytes 없이 default
+         20 MiB) 의 downloadAndUpload 를 직접 호출 — mediaType="image"
+         + URL=거대 응답 → errImageOversize / errImageStreamOversize
+         거부. RSS 가 cap 이내로 유지되는지 ps/top 으로 관찰.
+      6. 회귀: 정상 image (예: https://github.githubassets.com/favicon.ico
+         또는 로컬 mock 의 100 KiB PNG) 로 downloadAndUpload 호출 →
+         정상 storage.Upload + 반환 URL.
+      7. cycle U/V 와 동일 패턴: `go test ./...` 전체 회귀 후 임시
+         cmd 삭제.
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 20.0
+    status: pending
+    note: |
+      처리 모드 시 변경 범위:
+        (a) `apps/api/internal/bot/harvest_pipeline.go` downloadAndUpload
+            image 분기(L376) 의 `io.ReadAll(resp.Body)` 를
+            cacheImage 패턴 미러로 교체:
+              - Content-Length precheck: `if resp.ContentLength > 0 &&
+                resp.ContentLength > p.imageCacheMaxBytes { return "",
+                fmt.Errorf("%w: content-length %d > %d",
+                errImageOversize, resp.ContentLength, p.imageCacheMaxBytes) }`
+              - LimitReader+1: `limited := io.LimitReader(resp.Body,
+                p.imageCacheMaxBytes+1)` 후 ReadAll
+              - overshoot check: `if int64(len(body)) >
+                p.imageCacheMaxBytes { return "", fmt.Errorf("%w: read
+                %d bytes", errImageOversize, len(body)) }`
+            기존 min-bytes / DecodeConfig / min-dims 검증 모두 유지.
+            errImageOversize 재사용 (cacheImage 에 이미 정의 L66).
+        (b) 회귀 테스트 신규 (위 qa_plan #2).
+        (c) doc 주석 ~10줄 추가 — spec L749 SHALL 인용 + 자매 사이트
+            (L408 non-image / L494 cacheImage) 패턴 정렬 명시.
+
+      cap 채택 근거: cacheImage 가 동일 image MIME 에 대해 사용하는
+      `p.imageCacheMaxBytes` (default 20 MiB, HARVESTER_IMAGE_CACHE_MAX_BYTES
+      env override) 를 동일 적용 — 같은 HarvestPipeline 구조체의
+      image-data cap 단일 SoR 로 정렬. non-image 의 maxMediaStreamBytes
+      (200 MiB) 는 video/audio 의 storage.maxBytes[MediaVideo] ceiling
+      2x 라 image 컨텍스트에 부적절.
+
+      회귀 위험: 정상 image 는 모두 20 MiB 이내(cacheImage 와 동일
+      threshold, og:image / 대표 이미지 일반 수십 KiB ~ 수 MiB). 한
+      외부 페이지가 20 MiB+ image 를 primary 미디어로 게시하면 거부
+      → errImageOversize → reportFailure(ErrorNetwork) → 5회 retry 후
+      skipped+harvested. 이는 cacheImage 의 기존 동작과 일치.
+
+      anti-pattern 매칭 없음. L15 인프라 deployment 미해당 (코드 단일
+      함수 분기 내 cap 추가). cycle U/V (Pioneer SSRF) 의 자매 갭으로
+      직접 연계.
+
