@@ -3545,7 +3545,8 @@ items:
     effort: 2
     risk: 2
     score: 3.0
-    status: pending
+    status: done
+    pr: 205
     note: |
       변경 범위 (인터페이스 영향):
         (a) URLScheduler interface 에 `DequeueCtx(ctx, queueType)` 추가
