@@ -66,6 +66,10 @@ func (f *fakeHarvestScheduler) Dequeue(qt scheduler.QueueType) (string, error) {
 	return u, nil
 }
 
+func (f *fakeHarvestScheduler) DequeueCtx(ctx context.Context, qt scheduler.QueueType) (string, error) {
+	return f.Dequeue(qt)
+}
+
 func (f *fakeHarvestScheduler) Enqueue(scheduler.QueueType, ...string) error { return nil }
 func (f *fakeHarvestScheduler) EnqueueHarvester(string, string) error        { return nil }
 

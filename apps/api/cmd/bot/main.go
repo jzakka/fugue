@@ -269,10 +269,11 @@ priority order defined by harvester_frontier's partial index.`,
 			pipeline,
 		)
 
-		// Wire SIGINT/SIGTERM for clean worker shutdown between URLs.
-		// URLScheduler.Dequeue does not take a context, so a pending Dequeue
-		// may block up to one internal poll interval after cancellation
-		// before Run observes it — documented in postgres_scheduler.go.
+		// Wire SIGINT/SIGTERM for clean worker shutdown. The harvester Run
+		// loop calls URLScheduler.DequeueCtx(runCtx, ...) so cancellation
+		// propagates into the poll select and the tryClaim transaction;
+		// SIGTERM unblocks Dequeue within a few ms instead of waiting up to
+		// one pollInterval (~1s).
 		runCtx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer cancel()
 		return consumer.Run(runCtx)
@@ -488,10 +489,10 @@ func runPioneerConsumer(parent context.Context, infra *Infrastructure, seedURL s
 
 	// Wire SIGINT/SIGTERM so operators can stop the consumer cleanly between
 	// URLs, and inherit the cobra command's parent context so ancestor
-	// cancellation also propagates. Note: URLScheduler.Dequeue does not take
-	// a context, so a pending Dequeue call may block up to one internal poll
-	// interval before the cancellation is observed by the Run loop —
-	// acknowledged in postgres_scheduler.go.
+	// cancellation also propagates. The pioneer consumer Run loop calls
+	// URLScheduler.DequeueCtx(ctx, ...) so cancellation propagates into the
+	// poll select and the tryClaim transaction; SIGTERM unblocks Dequeue
+	// within a few ms instead of waiting up to one pollInterval (~1s).
 	if parent == nil {
 		parent = context.Background()
 	}

@@ -124,7 +124,7 @@ func (p *PioneerConsumer) Run(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		rawURL, err := p.scheduler.Dequeue(scheduler.QueuePioneer)
+		rawURL, err := p.scheduler.DequeueCtx(ctx, scheduler.QueuePioneer)
 		if err != nil {
 			// Spec "Dequeue 자체 오류는 카운트되지 않는다": log and retry
 			// instead of returning, so a transient scheduler/DB hiccup does

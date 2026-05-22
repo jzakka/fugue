@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"errors"
@@ -671,7 +672,7 @@ func TestIntegration_Dequeue_ConcurrentClaimsAreDistinct(t *testing.T) {
 			// (false, nil) (queue empty / all throttled). The partial index
 			// ordering plus SKIP LOCKED ensures workers don't collide.
 			for i := 0; i < rowsN; i++ {
-				url, ok, err := s.tryClaim(QueuePioneer)
+				url, ok, err := s.tryClaim(context.Background(), QueuePioneer)
 				if err != nil {
 					t.Errorf("tryClaim: %v", err)
 					return
@@ -716,14 +717,14 @@ func TestIntegration_Dequeue_ExpiredLeaseIsReclaimable(t *testing.T) {
 	h := sha256.Sum256([]byte(url))
 
 	// First claim: row is marked in-flight (next_fetch_at ≈ now + 10min).
-	u1, ok, err := s.tryClaim(QueuePioneer)
+	u1, ok, err := s.tryClaim(context.Background(), QueuePioneer)
 	if err != nil || !ok {
 		t.Fatalf("first tryClaim: ok=%v err=%v", ok, err)
 	}
 	// Other concurrent tests may beat us to our row or seed their own; loop
 	// until we hit the URL this test seeded.
 	for u1 != url {
-		u1, ok, err = s.tryClaim(QueuePioneer)
+		u1, ok, err = s.tryClaim(context.Background(), QueuePioneer)
 		if err != nil {
 			t.Fatalf("tryClaim probe: %v", err)
 		}
@@ -741,12 +742,12 @@ func TestIntegration_Dequeue_ExpiredLeaseIsReclaimable(t *testing.T) {
 
 	// Second claim MUST succeed: the row is claimable again because its
 	// next_fetch_at is now in the past and fetch_error_count is still 0.
-	u2, ok, err := s.tryClaim(QueuePioneer)
+	u2, ok, err := s.tryClaim(context.Background(), QueuePioneer)
 	if err != nil || !ok {
 		t.Fatalf("second tryClaim: ok=%v err=%v", ok, err)
 	}
 	for u2 != url {
-		u2, ok, err = s.tryClaim(QueuePioneer)
+		u2, ok, err = s.tryClaim(context.Background(), QueuePioneer)
 		if err != nil {
 			t.Fatalf("tryClaim probe (post-expiry): %v", err)
 		}

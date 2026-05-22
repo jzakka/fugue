@@ -85,6 +85,20 @@ type URLScheduler interface {
 	// throttle both trigger a 1-second sleep before retry. Linearizable via
 	// FOR UPDATE SKIP LOCKED.
 	Dequeue(queueType QueueType) (url string, err error)
+	// DequeueCtx is the context-aware variant of Dequeue. It honours ctx
+	// cancellation during the empty-queue / all-throttled poll sleep AND
+	// inside the per-attempt tryClaim transaction. When ctx is cancelled it
+	// returns "" and ctx.Err() within a few milliseconds instead of blocking
+	// up to one pollInterval. The non-ctx Dequeue exists for tests/legacy
+	// callers and is implemented as DequeueCtx(context.Background(), ...).
+	// Spec: `URLScheduler interface 시그니처가 정의된다` (spec.md L484)
+	// explicitly allows follow-up changes to add a context.Context overload
+	// to the five-method baseline. Used by pioneer/harvester consumer Run
+	// loops so SIGTERM during k8s rolling deploys propagates from
+	// signal.NotifyContext (cmd/bot/main.go L276/L498) all the way into a
+	// pending Dequeue, eliminating the up-to-one-pollInterval quiescence
+	// window the prior wiring required.
+	DequeueCtx(ctx context.Context, queueType QueueType) (url string, err error)
 	// SetStatus reports a terminal outcome for `key` (= normalized_url). For
 	// StatusHarvested the caller may pass pin ids (UUIDs, matching pins.id) to
 	// atomically insert into harvester_frontier_pins in the same transaction.
