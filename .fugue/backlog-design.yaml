@@ -2017,4 +2017,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 223
+    note: "SearchClient.tsx L263 topTags.map chip button 에 aria-pressed={selected} 1 prop 추가 (+1 -0). 다중 선택 toggle button 패턴 SR announce 가시화 — selected chip 'pressed' / 비선택 'not pressed'. 직전 PR #220(같은 파일 L242 카테고리 탭 aria-pressed) 의 same-page sibling control 보완. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + ARIA Authoring Practices aria-pressed 충족. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(SearchClient.tsx aria-pressed 2건 매칭: L242 PR #220 + L263 본 PR · 인접 className/ternary/JSX/onClick/handleTagToggle 미변경) 으로 대체. 1회 만에 머지 성공(BEHIND 발생 없음). cycle 73 Discovery PR #218 의 2건 후보(카테고리 탭 + top tags chips) 전부 완료 — 잔여 pending 0건 → 다음 사이클 Discovery Mode."
