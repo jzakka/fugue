@@ -134,7 +134,7 @@ export default function VideoThumbnailPicker({
             type="button"
             onClick={() => handleSelect(i)}
             className={`relative flex-1 aspect-video rounded-[6px] overflow-hidden border-2 transition-colors cursor-pointer ${
-              selected === i ? "border-accent" : "border-border hover:border-accent/50"
+              selected === i ? "border-accent" : "border-border hover:border-accent/50 focus-visible:border-accent/50"
             }`}
           >
             <img src={url} alt={`썸네일 ${i + 1}`} className="w-full h-full object-cover" />
