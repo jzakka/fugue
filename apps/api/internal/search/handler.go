@@ -1,6 +1,7 @@
 package search
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -15,12 +16,35 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
 
+// SearchQuerier abstracts the db.Queries methods the search handler invokes.
+// Mirrors the FeedQuerier pattern in apps/api/internal/feed/handler.go so that
+// silent-error log contracts (e.g. the top_tags fallback) can be pinned with a
+// mock querier in unit tests without standing up a real Postgres.
+type SearchQuerier interface {
+	SearchPinsBySimilarity(ctx context.Context, arg db.SearchPinsBySimilarityParams) ([]db.SearchPinsBySimilarityRow, error)
+	SearchPinsByILIKE(ctx context.Context, arg db.SearchPinsByILIKEParams) ([]db.SearchPinsByILIKERow, error)
+	SearchPinsWithTagFilter(ctx context.Context, arg db.SearchPinsWithTagFilterParams) ([]db.SearchPinsWithTagFilterRow, error)
+	SearchPinsILIKEWithTagFilter(ctx context.Context, arg db.SearchPinsILIKEWithTagFilterParams) ([]db.SearchPinsILIKEWithTagFilterRow, error)
+	SearchCreatorsBySimilarity(ctx context.Context, arg db.SearchCreatorsBySimilarityParams) ([]db.SearchCreatorsBySimilarityRow, error)
+	SearchCreatorsByILIKE(ctx context.Context, arg db.SearchCreatorsByILIKEParams) ([]db.SearchCreatorsByILIKERow, error)
+	SearchBoardsBySimilarity(ctx context.Context, arg db.SearchBoardsBySimilarityParams) ([]db.SearchBoardsBySimilarityRow, error)
+	SearchBoardsByILIKE(ctx context.Context, arg db.SearchBoardsByILIKEParams) ([]db.SearchBoardsByILIKERow, error)
+	SearchTopTags(ctx context.Context, dollar_1 []uuid.UUID) ([]db.SearchTopTagsRow, error)
+}
+
 type Handler struct {
-	q *db.Queries
+	q SearchQuerier
 }
 
 func NewHandler(database *sql.DB) *Handler {
 	return &Handler{q: db.New(database)}
+}
+
+// NewHandlerWithQuerier constructs a Handler bound to a custom SearchQuerier.
+// It is used by tests that exercise silent-error log contracts with a fake
+// querier (see handler_top_tags_log_test.go).
+func NewHandlerWithQuerier(q SearchQuerier) *Handler {
+	return &Handler{q: q}
 }
 
 // PinResult is the JSON shape for a pin search result.
@@ -161,8 +185,19 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 			for _, p := range topPins {
 				pinIDs = append(pinIDs, uuid.MustParse(p.ID))
 			}
+			// top_tags is a fan-out enrichment (related-tag discovery); the
+			// outer `response["top_tags"] = []TopTag{}` fallback below keeps
+			// the response shape stable even when SearchTopTags errors. The
+			// fallback alone, however, hides the difference between "no tags
+			// match the result set" and "pin_tags/tags join is degraded" —
+			// operators only notice when the discovery UX silently collapses.
+			// Mirrors the additive-logging contract from the sibling pins/
+			// creators/boards branches above (search.go L137 / L186 / L201)
+			// and the feed handler's media-type fallback (cycle for PR #216).
 			topTags, err := h.q.SearchTopTags(r.Context(), pinIDs)
-			if err == nil {
+			if err != nil {
+				log.Printf("search.SearchTopTags: %v (q=%q pin_count=%d)", err, q, len(pinIDs))
+			} else {
 				tags := make([]TopTag, 0, len(topTags))
 				for _, t := range topTags {
 					tags = append(tags, TopTag{
