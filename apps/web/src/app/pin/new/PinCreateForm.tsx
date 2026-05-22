@@ -317,6 +317,7 @@ export default function PinCreateForm() {
 
         {error && (
           <div
+            id="pin-error"
             role="alert"
             aria-live="polite"
             className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error"
@@ -456,6 +457,8 @@ export default function PinCreateForm() {
             placeholder="작품 제목"
             maxLength={200}
             aria-required="true"
+            aria-invalid={!!error && !title.trim()}
+            aria-describedby={error ? "pin-error" : undefined}
             className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
           />
         </div>
