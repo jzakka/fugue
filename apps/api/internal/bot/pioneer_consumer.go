@@ -24,6 +24,7 @@ import (
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/snapshot"
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 	"github.com/chungsanghwa/fugue/apps/api/internal/scheduler"
 )
 
@@ -314,19 +315,27 @@ type DefaultConsumerFetcher struct {
 	maxBody int64
 }
 
-// NewDefaultConsumerFetcher builds the production HTTP fetcher with the
-// same user agent, timeout, and redirect policy as fetchHTMLShared.
+// NewDefaultConsumerFetcher builds the production HTTP fetcher. The
+// underlying client is `httpclient.NewSSRFSafeClient`: every outbound
+// connection (and every redirect hop) re-resolves the host and refuses to
+// dial private/reserved IP ranges. Pioneer fetches caller-untrusted URLs
+// (a hrefs extracted from arbitrary external HTML) and stores the response
+// body in SnapshotStore at pioneer_consumer.go:171
+// `p.snapshotStore.Put(canonical, body)` — so the SHALL of
+// `openspec/specs/harvester/spec.md` L739 ("외부 사이트로부터 추출된 ...
+// URL에 대해 ... HTTP fetch는 SSRF-safe HTTP client를 경유해야 한다" +
+// "외부 저장소에 사설 호스트 응답 바이트가 적재되지 않는다") applies
+// here too: without this guard a 169.254.169.254 a href would land
+// in S3 and propagate to harvester_frontier as a snapshot. Mirrors
+// `harvest_pipeline.go:154` (HarvestPipeline.client) so both fetch stages
+// of the bot pipeline share one SSRF policy.
 func NewDefaultConsumerFetcher() *DefaultConsumerFetcher {
 	return &DefaultConsumerFetcher{
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				if len(via) >= 5 {
-					return fmt.Errorf("stopped after 5 redirects")
-				}
-				return nil
-			},
-		},
+		client: httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: 5 * time.Second,
+			TotalTimeout:   10 * time.Second,
+			MaxRedirects:   5,
+		}),
 		maxBody: 5 * 1024 * 1024,
 	}
 }

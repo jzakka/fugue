@@ -2927,7 +2927,7 @@ items:
     effort: 1
     risk: 2
     score: 12.5
-    status: pending
+    status: done
     note: |
       처리 모드 시 변경 범위:
         (a) `pioneer_consumer.go` `NewDefaultConsumerFetcher` 의 client
