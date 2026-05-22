@@ -3821,3 +3821,185 @@ items:
           NewHandlerWithQuerier 생성자 (FeedQuerier 패턴 미러링) — mock
           기반 단위 테스트 2건 정착 인프라.
         - 회귀: 571/571 통과(569→571 +2).
+
+  - id: system-20260522-scheduler-non-dequeue-paths-ignore-runctx
+    title: "scheduler.URLScheduler.{Enqueue,EnqueueHarvester,SetStatus,RecordFetchError,RecordHarvestError} 가 context.Context 미수신 — 워커 runCtx SIGTERM 이 finalize 단계의 단발 UPDATE 까지 도달하지 못함"
+    area: concurrency
+    evidence:
+      files:
+        - "apps/api/internal/scheduler/url_scheduler.go:67-112"
+        - "apps/api/internal/scheduler/url_scheduler.go:286-340"
+        - "apps/api/internal/scheduler/postgres_scheduler.go:84-138"
+        - "apps/api/internal/scheduler/postgres_scheduler.go:341-438"
+        - "apps/api/internal/bot/pioneer_consumer.go"
+        - "apps/api/internal/bot/harvester_consumer.go"
+      cite: |
+        apps/api/internal/scheduler/url_scheduler.go L67-69 인터페이스 본체의
+        in-place TODO:
+          // TODO(scheduler-claim-api): re-evaluate whether the failure-reporting
+          // methods should accept a context.Context. The current signature
+          // omits it; a follow-up refactor may want to propagate cancellation
+          // from the worker loop.
+
+        URLScheduler L70-112 의 5 메서드 (DequeueCtx 제외) 모두 ctx 미수신
+        signature:
+          Enqueue(queueType QueueType, urls ...string) error
+          EnqueueHarvester(url string, snapshotKey string) error
+          SetStatus(key string, status Status, pinIDs []uuid.UUID) error
+          RecordFetchError(key string, errorKind ErrorKind) error
+          RecordHarvestError(key string, errorKind ErrorKind) error
+
+        구현부 (apps/api/internal/scheduler/postgres_scheduler.go):
+          func (s *PGURLScheduler) Enqueue(queueType QueueType, urls ...string) error {
+              ...
+              ctx := context.Background()      // L93
+              switch queueType { ... }
+          }
+          func (s *PGURLScheduler) EnqueueHarvester(rawURL string, snapshotKey string) error {
+              ...
+              ctx := context.Background()      // L130
+              return s.queries.UpsertHarvesterWithSnapshot(ctx, ...)
+          }
+          func (s *PGURLScheduler) SetStatus(key string, status Status, pinIDs []uuid.UUID) error {
+              ctx := context.Background()      // L346
+              ...
+              case StatusHarvested:
+                  return s.setStatusHarvested(ctx, key, hash, pinIDs)  // BeginTx(ctx,nil) 도 ctx 동일
+              ...
+          }
+
+        apps/api/internal/scheduler/url_scheduler.go L296-340 recordError
+        (RecordFetchError / RecordHarvestError 의 shared impl):
+          func (s *PGURLScheduler) recordError(key string, errorKind ErrorKind, ops recordErrorOps) error {
+              ...
+              ctx := context.Background()      // L300
+              ...
+              rows, err := ops.dead(ctx, s.queries, hash)         // L309 (4xx 경로)
+              rows, err := ops.backoff(ctx, s.queries, hash, candidates) // L336 (비-4xx 경로)
+          }
+          // 같은 함수 주석 L293-295: "The ctx is created internally because
+          // the URLScheduler interface signature (defined by scheduler-claim-api)
+          // does not accept one. See the TODO note on the interface declaration
+          // for the follow-up migration."
+
+        직전 사이클(PR #205, system-20260522-scheduler-dequeue-ignores-runctx,
+        score 3.0)이 DequeueCtx 신설 + bot consumer 호출지 갱신으로
+        Dequeue 단의 ctx 누락을 닫았다. 같은 PGURLScheduler 의 나머지 5
+        메서드는 동일 누락이 그대로 유지 — pioneer/harvester consumer 가
+        fetch/harvest 성공·실패를 finalize 할 때 호출하는 단발 UPDATE 가
+        전부 runCtx 무관하게 진행된다.
+      repro: |
+        1. `docker run -d --name fugue-qa-pg-5544 -p 5544:5432 postgres:16`
+           disposable postgres + `migrate -path db/migrations
+           -database postgres://...:5544/fugue up`.
+        2. `INSERT INTO pioneer_frontier (...) VALUES (...);` 1건 seed.
+        3. `DATABASE_URL=postgres://...:5544/fugue go run ./cmd/bot pioneer`
+           (단일 워커) 가동.
+        4. 워커가 DequeueCtx 로 URL 을 잡고 fetch 단계로 진입한 직후
+           `SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+            WHERE application_name LIKE '%fugue%' AND state='active';`
+           로 워커 connection 만 hang 유도 (또는 `docker pause` 전체
+           postgres). 워커가 SetStatus / RecordFetchError 의 단발 UPDATE
+           에서 ctx 무관하게 무한 대기.
+        5. 별 터미널에서 `kill -TERM <bot-PID>` 송신. 관측: SIGTERM 도착
+           후에도 finalize UPDATE 가 ctx 무관이라 k8s
+           terminationGracePeriodSeconds (30s) 안에 종료 못 함 →
+           SIGKILL 강제 종료. lease 미해제 → harvester_frontier /
+           pioneer_frontier row 가 lease duration(10m, L29)간 in-flight
+           상태로 stuck. 워커 재시작 후 lease 만료 후 같은 URL 재처리
+           가능 (멱등성 보장으로 데이터 손상은 없음, 단 처리 지연 +
+           pool 압박).
+      attack_surface: |
+        - 표면: pioneer / harvester 워커 — Dequeue 후 finalize 경로
+          전체.
+          (a) 성공 finalize: SetStatus(StatusFetched | StatusHarvested) —
+              StatusHarvested 는 setStatusHarvested 가 BeginTx(ctx,nil)
+              로 트랜잭션을 열어 SetStatusHarvested + InsertHarvester
+              FrontierPins 두 쿼리를 묶음. ctx 무관이라 어느 단계든
+              hang 가능.
+          (b) 실패 finalize: SetStatus(StatusFetchFailed | StatusHarvestFailed)
+              + RecordFetchError / RecordHarvestError. 4xx 경로는 단발
+              dead UPDATE, 그 외는 단발 backoff UPDATE.
+          (c) Pioneer fanout: Enqueue(QueuePioneer/QueueHarvester) +
+              EnqueueHarvester (snapshot 동반 UPSERT).
+        - 영향: cycle 직전 DequeueCtx 가 ‘빈 큐 대기 / poll sleep’
+          단의 SIGTERM 지연만 해소. 워커가 일을 잡은 뒤 finalize 단계의
+          UPDATE 가 ctx 무관이라 DB hang/slow 시 워커 quiescence →
+          k8s SIGKILL → lease stuck.
+        - PR #196 cmd/server graceful shutdown + PR #205 DequeueCtx
+          시리즈의 잔여 갭. 운영이 SIGTERM 정상 종료를 기대한다는
+          신호가 이미 두 차례 정립됨.
+        - URLScheduler L67-69 의 in-place TODO + recordError L293-295
+          의 in-place 주석 두 곳이 follow-up 을 명시적으로 약속함
+          (confidence=5 의 spec-grounded 근거).
+        - cmd/bot/main.go 가 signal.NotifyContext 로 wiring 한 runCtx 가
+          finalize 경로까지 끝까지 도달하지 못함.
+        - anti-patterns L15 무매치 (application code, helm/terraform
+          무관).
+      qa_plan: |
+        실 환경 QA (Processing 모드 진입 시):
+        1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+           통과 사전 조건.
+        2. URLScheduler 인터페이스에 `EnqueueCtx`, `EnqueueHarvesterCtx`,
+           `SetStatusCtx`, `RecordFetchErrorCtx`, `RecordHarvestErrorCtx`
+           5개 메서드를 ctx 수신 형태로 추가 (DequeueCtx 신설 사례
+           미러링). 기존 5 메서드는 backward-compat wrapper 로 유지 —
+           내부에서 `*Ctx(context.Background(), ...)` 위임.
+        3. PGURLScheduler 의 5 함수 본문에서 `ctx := context.Background()`
+           제거 + ctx 인자 전파. setStatusHarvested 의 BeginTx 도
+           동일.
+        4. recordError shared impl 시그니처를 ctx 수신형으로 변경 +
+           ops.dead / ops.backoff 가 ctx 전파.
+        5. pioneer_consumer.go / harvester_consumer.go finalize 호출
+           5곳을 ctx 수신형으로 교체 (runCtx 전달).
+        6. 단위 테스트: ctx cancel 후 *Ctx 호출이 즉시 ctx.Err()
+           반환 검증 — nil *sql.DB 인스턴스 fastpath 로
+           `TestUnit_<Op>Ctx_RejectsCancelledCtxBeforeAnyDBCall` 5건.
+           (DequeueCtx 사이클이 정립한 패턴 그대로 적용)
+        7. 통합 테스트 (TEST_DATABASE_URL gated): 실제 disposable
+           postgres 에 BeginTx 차단 시나리오 (advisory lock 점유 등)
+           로 ctx cancel 즉시 반환 검증.
+        8. 실 환경 QA:
+           (a) `docker run -d --name fugue-qa-pg-5544 -p 5544:5432 postgres:16`
+               disposable + `migrate up`.
+           (b) seed `pioneer_frontier` 1건 + bot pioneer 가동.
+           (c) 워커가 fetch 진입한 직후 `pg_terminate_backend` 로 워커
+               connection 만 hang 시키고 `kill -TERM <bot-PID>` 송신.
+               관측: SIGTERM → exit < 500ms (이전 동작: SIGKILL 까지
+               최대 30s).
+           (d) seed pioneer_frontier 정상 + bot 정상 가동. 정상
+               happy path 무영향 회귀.
+           (e) `docker stop fugue-qa-pg-5544` 정리.
+        9. 회귀: `go test ./...` 566 → 571+ pass(추가 단위 5건 +
+           통합 5건). cmd/server graceful shutdown / DequeueCtx 직전
+           사이클의 시나리오 무영향 확인.
+    impact: 3
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 3.75
+    status: pending
+    note: |
+      직전 사이클 (PR #205, system-20260522-scheduler-dequeue-ignores-runctx,
+      score 3.0) 의 직계 sibling. DequeueCtx 신설로 ‘빈 큐 대기 / poll
+      sleep’ 단의 SIGTERM 즉시 종료가 정립됐고, 본 후보는 같은
+      PGURLScheduler 의 나머지 5 메서드 (Enqueue / EnqueueHarvester /
+      SetStatus / RecordFetchError / RecordHarvestError) 의 잔여 ctx
+      누락을 닫는다. URLScheduler L67-69 의 in-place TODO + recordError
+      L293-295 의 in-place 주석이 직접 인용 가능한 spec-grounded 근거
+      (confidence=5).
+
+      변경 범위:
+        (a) URLScheduler 인터페이스 5 메서드의 *Ctx wrapper 추가
+            (기존 signature 변경 없이 메서드 추가 only).
+        (b) PGURLScheduler 의 5 함수 본문에서 `ctx := context.Background()`
+            제거 + ctx 인자 전파.
+        (c) recordError shared impl 의 ctx 인자 수신 + ops.dead /
+            ops.backoff 의 ctx 전파.
+        (d) pioneer_consumer.go / harvester_consumer.go finalize 호출
+            5곳 교체.
+        (e) 회귀 단위 테스트 5건 + 통합 테스트 5건.
+
+      회귀 위험: 인터페이스 메서드 추가는 backward-compat (기존
+      5 메서드는 wrapper 로 유지). 사용자 결정 침범 0건.
+      anti-patterns L15 무매치 (application code 결함).
