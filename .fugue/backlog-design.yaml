@@ -2247,5 +2247,5 @@ items:
     risk: 1
     score: 16.0
     status: done
-    pr: PENDING
+    pr: 252
     note: "SearchBar.tsx 4개 decorative SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가(diff +4 -0): (a) L145 search prefix SVG(L143 span 안 검색 입력 ornament), (b) L201 최근 검색 history SVG(L191-216 button 자식 — visible text = 최근 query), (c) L226 최근 검색 제거 X SVG(L217 button 자식 — aria-label='최근 검색에서 제거'), (d) L356 보드 결과 placeholder SVG(L344-378 Link 자식 — visible text 보드 이름 + 크리에이터 nickname). 같은 파일 L293(pin media-type placeholder div)가 이미 aria-hidden 적용된 inconsistent 상태 해소 → 5 matches(L145/L201/L226/L293/L356) 일관성 회복. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. cycle 93 PR #251 AddToBoardButton 4 SVG aria-hidden 라인업 직계 sibling. in-codebase precedent: PinCard.tsx L65/L98 + NavBar.tsx L16 + EmptyState.tsx L16. 시각 변경 0(aria-hidden 은 SR 전용). 부모 span/button/Link className · onClick · aria-label · handleInputChange/handleSubmit/handleDeleteRecent/handleFocus · 드롭다운 표시/숨김/Esc · setOpen/setQuery state · 최근 검색 localStorage 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/nav/SearchBar.tsx` 5 matches L145/L201/L226/L293/L356) 으로 대체."
