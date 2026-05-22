@@ -2101,3 +2101,19 @@ items:
     status: done
     pr: 236
     note: "PinCreateForm.tsx L421 미디어 제거 button className 에 `focus-visible:underline` 1 utility 미러 삽입(diff +1 -1). 키보드 사용자가 '제거' button 으로 Tab 진입 시 hover 와 동일하게 underline 시각 신호 가시화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycle 66 PR #200 FeedContainer L168/L199 의 `hover:underline focus-visible:underline` 미러 라인업 직계 sibling. 같은 컴포넌트의 dropzone(L346) · input(L462/L475/L490/L556) · 태그 chip(L600 — cycle 79 PR #230) · footer button(L626/L633) focus-visible 라인업과 일관성 정렬. text-error 색 · cursor-pointer · text-xs · removeFile onClick 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'hover:underline\\|focus-visible:underline' apps/web/src/app/pin/new/PinCreateForm.tsx` L421 1건 매칭 — 같은 라인에 hover + focus-visible underline 동시 보유) 으로 대체."
+
+  - id: "design-20260522-a11y-pin-detail-creator-link-group-focus-visible-mirror-missing"
+    title: "/pins/[id] 의 Creator Link 자식 3건 `group-hover:` 시각 신호에 `group-focus-visible:` 미러링 누락 — 핀 상세의 크리에이터 진입점이 키보드 포커스 시 시각 신호 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA · cycle 81 BoardGrid/MyPageClient 패턴 직계 sibling)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pins/[id]/page.tsx:196-212"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' pins/[id]/page.tsx L196-212 의 Creator Link(`<Link href={`/creators/${pin.creator.id}`} className=\"flex items-center gap-3 group\">`) 의 자식 3건이 `group-hover:` 시각 신호 보유하지만 `group-focus-visible:` 미러 0건: (a) L204 avatar img `w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent transition-colors`, (b) L207 fallback div `w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border group-hover:border-accent transition-colors`, (c) L209 nickname span `text-sm font-medium text-text-primary group-hover:text-accent transition-colors`. 마우스 hover 시 avatar border + 닉네임 색 동시 변화 / Tab 포커스 시 native browser outline 만 표시. in-codebase 직접 precedent: cycle 81 PR #234 BoardGrid.tsx L26 + MyPageClient.tsx L142 의 board 이름 div 에 `group-focus-visible:text-accent` 미러 적용. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 자식 3 element className 에 utility 1건씩 미러 삽입(부모 Link group 변경 0, transition-colors 그대로 활성)."
+      repro: "1) cd apps/web && npm run dev. 2) /pins/<id> 진입(임의 pin id). 3) Tab 으로 Creator Link 영역까지 진행 → Link focus → 마우스 hover 와 달리 avatar border 색 변화 0 + 닉네임 색 변화 0 (native browser outline 만 표시). 4) 마우스 hover 시에는 avatar border `border-accent` + 닉네임 `text-accent` 동시 변화 → 비대칭. 5) 인접 surface BoardGrid.tsx L26 + MyPageClient.tsx L142 는 `group-focus-visible:text-accent` 미러 적용됨(cycle 81 PR #234) → in-codebase 패턴 precedent. 6) `grep -n 'group-hover:' apps/web/src/app/pins/[id]/page.tsx` L204/L207/L209 3건 매칭 + 같은 라인들에 `group-focus-visible:` 0건 확인."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pins/<id> 진입(임의 pin id) 후 Tab 으로 Creator Link 까지 진행. 3) 키보드 포커스 시 avatar border 가 hover 와 동일하게 `border-accent` 로 변화 + 닉네임이 `text-accent` 로 변화 → 시각 신호 가시화 확인. 4) 마우스 hover 동작 회귀 0(기존 group-hover:* 유지). 5) Enter 키 → /creators/<id> 이동 정상. 6) avatar 가 있는 케이스(img L204) + 없는 케이스(fallback div L207) 모두 동일하게 mirror 적용 확인. 7) light/dark mode 동일(`--color-accent` 단일 토큰). 8) 시각 회귀 0(focus-visible 은 키보드 navigation 시에만 활성, hover 분기 미변경)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
