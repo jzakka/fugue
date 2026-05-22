@@ -2119,3 +2119,19 @@ items:
     status: done
     pr: 240
     note: "pins/[id]/page.tsx L204/L207/L209 Creator Link 자식 3 element className 에 group-focus-visible 미러 utility 삽입: (a) L204 avatar img 에 `group-focus-visible:border-accent`, (b) L207 fallback div 에 `group-focus-visible:border-accent`, (c) L209 nickname span 에 `group-focus-visible:text-accent` (diff +1 -1 per line × 3 = +3 -3). 부모 Link 의 group 안에서 키보드 포커스 시 hover 와 동일하게 avatar border `border-accent` + 닉네임 `text-accent` 동시 변화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycle 81 PR #234 BoardGrid/MyPageClient 의 board 이름 group-focus-visible:text-accent 미러 라인업 직계 sibling. transition-colors · gap-3 · w-10 h-10 · rounded-full · border-2 · 부모 Link href/className 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -c 'group-focus-visible' apps/web/src/app/pins/\\[id\\]/page.tsx` 3 matches — L204/L207/L209 각 1건) 으로 대체."
+
+  - id: "design-20260522-a11y-pincard-external-link-focus-visible-mirror-missing"
+    title: "PinCard ExternalLinkIcon button 의 `hover:bg-accent-subtle` 에 `focus-visible:bg-accent-subtle` 미러링 누락 — 모든 PinCard 인스턴스의 '원본 보기' 컨트롤이 키보드 포커스 시 시각 신호 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA · 빈번 컨트롤)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:107-119"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PinCard.tsx L107-119 의 ExternalLinkIcon button(aria-label='원본 보기' · title='원본 보기' · onClick window.open url _blank) 의 className `inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-elevated hover:bg-accent-subtle transition-colors shrink-0 cursor-pointer` 에 `focus-visible:bg-accent-subtle` 0건. PinCard 는 / · /search · /mypage · /boards/[id] · /creators/[id] 등 모든 핀 listing 화면에 표시되는 빈번 컨트롤 — 키보드 사용자가 핀 카드에 Tab 진입 시 외부 링크 button focus 시 native browser outline 외 시각 신호 부재. in-codebase 직접 precedent: cycle 79 PR #230 PinCreateForm 태그 chip 비선택 분기의 `hover:bg-accent/20 focus-visible:bg-accent/20` 미러 + cycle 81 PR #234 BoardGrid/MyPageClient 의 `group-focus-visible:text-accent` 미러 + cycle 83 PR #236 PinCreateForm 제거 button 의 `hover:underline focus-visible:underline` 미러 + cycle 85 PR #240 pins/[id] Creator Link 의 `group-focus-visible:*` 미러 라인업. aria-label/title 보유 → control 자체는 a11y label OK, 시각 신호만 누락. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, button className 에 utility 1건 미러 삽입(bg-surface-elevated · transition-colors · onClick window.open · aria-label/title 미변경)."
+      repro: "1) cd apps/web && npm run dev. 2) / (메인 피드) 진입. 3) Tab 으로 첫 PinCard 진입 → 카드 내 ExternalLinkIcon button(우상단 또는 카드 내 위치)에 Tab focus → 마우스 hover 와 달리 background 변화 0(native browser outline 만 표시). 4) 마우스 hover 시에는 background 가 `bg-accent-subtle` 로 변화 → 비대칭. 5) 인접 화면 /search · /mypage · /boards/[id] · /creators/[id] 등 모든 핀 listing 화면에서 동일 컨트롤 → 빈번 발생. 6) `grep -n 'hover:bg-accent-subtle' apps/web/src/components/feed/PinCard.tsx` L116 1건 매칭 + 같은 라인에 `focus-visible:` 0건 확인."
+    qa_plan: "1) cd apps/web && npm run dev. 2) / 진입 후 Tab 으로 첫 PinCard ExternalLinkIcon button focus. 3) 키보드 포커스 시 hover 와 동일하게 background 가 `bg-accent-subtle` 로 변화 → 시각 신호 가시화 확인. 4) 마우스 hover 동작 회귀 0(기존 hover:bg-accent-subtle 유지). 5) Enter 키 → window.open 정상 동작(url _blank 새 탭). 6) 인접 화면 /search · /mypage · /boards/[id] · /creators/[id] 의 PinCard 동일 동작 확인. 7) bg-surface-elevated · transition-colors · cursor-pointer · aria-label/title 미변경. 8) light/dark mode 동일(`--color-accent-subtle` 단일 토큰). 9) 시각 회귀 0(focus-visible 은 키보드 navigation 시에만 활성)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
