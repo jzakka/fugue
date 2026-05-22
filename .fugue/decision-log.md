@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-05-22 — [design] SearchBar 4개 decorative SVG 에 `aria-hidden="true"` 추가 — cycle 94 Processing(PR #252) · 검색 prefix + 최근 검색 history + 최근 검색 제거 X + 보드 결과 placeholder 4 SVG 모두 SR hide(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A + WAI-ARIA Icon Button 패턴)
+결정/변경: SearchBar.tsx L145(검색 prefix · input aria-label='검색' 옆 ornament) / L201(최근 검색 history · visible text 최근 query) / L226(최근 검색 제거 X · aria-label='최근 검색에서 제거') / L356(보드 결과 placeholder · visible text 보드 이름) 4개 SVG element 시작 줄에 `aria-hidden="true"` 1 attribute 추가(diff +4 -0). 같은 파일 L293(pin media-type placeholder div) 가 이미 aria-hidden 적용된 inconsistent 상태 해소 → 5 matches L145/L201/L226/L293/L356 일관성 회복.
+이유: 각 부모 control 의 visible text 또는 aria-label 이 이미 accessible name 을 제공하므로 자식 SVG 는 SR 에서 hide 해 graphic 중복 announce 방지. cycle 93 PR #251 AddToBoardButton 4 SVG aria-hidden 라인업 직계 sibling — 같은 a11y 시리즈 컴포넌트 단위 처리.
+QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 grep verification 대체 — `grep -n 'aria-hidden' apps/web/src/components/nav/SearchBar.tsx` 5 matches L145/L201/L226/L293/L356. 부모 span/button/Link className · onClick · aria-label · handleInputChange/handleSubmit/handleDeleteRecent/handleFocus · 드롭다운 표시·숨김·Esc · setOpen/setQuery · 최근 검색 localStorage 미변경. 시각 회귀 0(aria-hidden 은 보조 기술 전용). PR #252.
+영향 범위: SearchBar.tsx 한 파일 4 위치. 잔여 pending PinCard external link SVG(score 12.0) 는 다음 사이클에서 처리 — 같은 SVG aria-hidden 시리즈 마지막 항목.
+
 ## 2026-05-22 — [design] AddToBoardButton 4개 decorative SVG 에 `aria-hidden="true"` 추가 — cycle 93 Processing(PR #251) · BoardIcon 함수(두 caller 커버) + 모달 close button + 빈 board cover placeholder + 새 보드 만들기 plus 4 SVG 모두 SR hide(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A + WAI-ARIA Icon Button 패턴)
 결정/변경: AddToBoardButton.tsx L61/L253/L315/L398 의 4개 SVG element 시작 줄에 `aria-hidden="true"` 1 attribute 추가(diff +4 -0). BoardIcon() 함수 정의 한 곳 수정으로 L28-34 Link + L40-46 button 두 caller 모두 커버.
 이유: 각 부모 control 의 visible text("보드에 추가", "새 보드 만들기") 또는 aria-label("닫기") 가 이미 accessible name 을 제공하므로 자식 SVG 는 SR 에서 hide 해야 graphic/image 중복 announce 방지. WAI-ARIA Authoring Practices Icon Button 패턴. in-codebase precedent: PinCard.tsx L65/L98 + NavBar.tsx L16 + EmptyState.tsx L16 + SearchBar.tsx L290.
