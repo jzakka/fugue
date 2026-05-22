@@ -2191,3 +2191,57 @@ items:
     status: done
     pr: 247
     note: "VideoThumbnailPicker.tsx L116 loading 분기 wrapper div(`flex items-center gap-2 text-xs text-text-muted py-2`)에 `role=\"status\"` + `aria-live=\"polite\"` 2 attribute 추가(diff +5 -1 — multi-line 형식으로 분리 reformat). 비디오 파일 선택 후 ffmpeg 썸네일 후보 추출 진행 시 '썸네일 추출 중...' 정적 텍스트가 SR 사용자에게 polite 모드로 announce, 추출 완료 시점도 announce. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) 충족. cycle 89 PR #245 PinCreateForm L362 optimizing spinner row + cycle 90 PR #246 PinCreateForm L498 ogLoading spinner row + cycle 71 PR #212 PinsGrid + cycle 72 PR #214 AddToBoardButton SR-status 라인업 직계 sibling. role=\"status\" + aria-live=\"polite\" 는 시각 변경 0(보조 기술 전용). aria-label 미사용 — 자식 정적 텍스트('썸네일 추출 중...')가 자동 announce 되도록 role 만 부여(cycle 89/90 와 동일 결정). spinner(`w-4 h-4 ... animate-spin`) · 정적 텍스트 · loading state 트랜지션 · thumbBlobs 추출 로직 · onSelect 핸들러 · thumbnail 후보 grid 분기 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'role=\"status\"\\|aria-live' apps/web/src/components/pin/VideoThumbnailPicker.tsx` L117/L118 신규 매칭) 으로 대체. 3-건 spinner SR-status 시리즈(cycle 88 discovery PR #244 등록 → cycle 89/90/91 처리) 완결. 잔여 pending 0건 → 다음 사이클 발견 모드."
+
+  - id: "design-20260522-a11y-pincard-external-link-svg-aria-hidden-missing"
+    title: "PinCard ExternalLinkIcon button 내부 decorative SVG 에 `aria-hidden=\"true\"` 누락 — '원본 보기' aria-label 보유 button 의 자식 SVG 가 SR 에 graphic 으로 별도 announce 될 수 있어 button 라벨과 중복 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:107-136"
+      cite: "WAI-ARIA Authoring Practices — Icon buttons: 'Hide the icon from assistive technologies by applying aria-hidden=\"true\" to the icon element, since the button itself is named via aria-label.' PinCard.tsx L107-136 의 ExternalLinkIcon button(L109-119 button + L120-134 SVG)은 L118 `aria-label=\"원본 보기\"` + L117 `title=\"원본 보기\"` 보유 — 라벨은 button 에서 announce 되어야 하나, 자식 SVG(L120-134) 는 `aria-hidden` 미보유로 일부 SR(JAWS 등)/SR verbosity 설정에서 'graphic' 또는 'image' 로 별도 announce 가능. in-codebase 직접 precedent: PinCard.tsx L65 audio play icon span(`aria-hidden=\"true\"`) + PinCard.tsx L98 video play overlay div(`aria-hidden=\"true\"`) + NavBar.tsx L16 logo div(`aria-hidden=\"true\"`) + EmptyState.tsx L16 mascot emoji div(`aria-hidden=\"true\"`) + SearchBar.tsx L290 pin media-type placeholder div(`aria-hidden=\"true\"`) — 같은 파일/같은 컴포넌트 라이브러리 내부 표준 패턴. PinCard 는 / · /search · /mypage · /boards/[id] · /creators/[id] 등 모든 핀 listing 화면 빈번 컨트롤 — 키보드/SR 사용자에게 영향 광범위. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가만."
+      repro: "1) cd apps/web && npm run dev. 2) / (메인 피드) 진입. 3) SR(VoiceOver/NVDA/JAWS) 활성화 상태로 Tab 으로 첫 PinCard ExternalLinkIcon button focus → '원본 보기, button' 다음에 SR verbosity 설정에 따라 'graphic' 또는 'image' 가 추가 announce 될 수 있음(JAWS verbosity high 기준). 4) `grep -n 'aria-hidden' apps/web/src/components/feed/PinCard.tsx` 매칭 L65/L98 만 보임(SVG L120 미보유). 5) 같은 파일 내 L65/L98 이미 aria-hidden 적용 → 일관성 깨짐."
+    qa_plan: "1) cd apps/web && npm run dev. 2) / 진입 후 Tab 으로 첫 PinCard ExternalLinkIcon button focus. 3) SR 활성화 상태로 button 발화 확인 → '원본 보기, button' 만 announce, SVG graphic 별도 발화 0. 4) 마우스 click + Enter 키 동작 회귀 0(window.open url _blank 정상). 5) 시각 회귀 0(aria-hidden 은 SR 전용). 6) 인접 화면 /search · /mypage · /boards/[id] · /creators/[id] 의 PinCard 동일 동작 확인. 7) title/aria-label/onClick/className 미변경."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
+
+  - id: "design-20260522-a11y-addtoboard-decorative-svg-aria-hidden-missing"
+    title: "AddToBoardButton 내부 4개 decorative SVG 에 `aria-hidden=\"true\"` 누락 — 보드 트리거 BoardIcon, 모달 닫기 button SVG, 보드 placeholder SVG, 새 보드 만들기 plus SVG 가 SR 에 별도 graphic announce 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:58-76"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:246-264"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:303-327"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:389-408"
+      cite: "WAI-ARIA Authoring Practices — Icon-with-text buttons: 'The icon is purely decorative; mark it aria-hidden=\"true\" so the accessible name comes solely from the visible text or aria-label.' AddToBoardButton.tsx 의 4개 SVG 모두 같은 패턴 누락: (a) L60 `BoardIcon()` 함수의 svg 는 L28-34 Link(visible text '보드에 추가') + L40-46 button(visible text '보드에 추가') 두 caller 의 자식으로 사용 — 부모 라벨이 visible text 인데 SVG 가 별도 graphic announce 가능. (b) L251 close button SVG 는 L246-264 button(`aria-label=\"닫기\"` L248) 자식 — button 라벨이 명시되어 있어 SVG 는 순수 decorative. (c) L312 board placeholder SVG 는 L303 div 안 cover_images 비어 있을 때 placeholder graphic — 자체적으로 의미 0(보드 이름은 L331 별도 표시). (d) L394 plus icon SVG 는 L389-408 button(visible text '새 보드 만들기') 자식 — visible text 가 button 이름 제공. in-codebase 직접 precedent: PinCard.tsx L65/L98 + NavBar.tsx L16 + EmptyState.tsx L16 + SearchBar.tsx L290 모두 같은 파일 내 다른 components 의 표준 패턴. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 4개 SVG element 에 각 `aria-hidden=\"true\"` 1 attribute 추가만(BoardIcon 은 함수 정의 1곳 수정으로 두 caller 모두 커버)."
+      repro: "1) cd apps/web && npm run dev. 2) /pins/<id> 진입(로그인 상태). 3) SR 활성화 상태로 Tab 으로 '보드에 추가' button focus → SR verbosity high 에서 BoardIcon SVG graphic 별도 announce 가능. 4) button click → 모달 열림 → Tab 으로 close button focus → '닫기, button' 다음 SVG graphic 별도 announce 가능. 5) 빈 cover board row 에서 placeholder SVG 도 SR 가 graphic 으로 인지 가능. 6) '새 보드 만들기' button focus → SVG graphic 별도 announce 가능. 7) `grep -n 'aria-hidden' apps/web/src/components/board/AddToBoardButton.tsx` 매칭 0(같은 코드베이스의 다른 file들과 inconsistent)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pins/<id>(로그인 상태) 진입 → '보드에 추가' button SR 발화 → '보드에 추가, button' 만 announce, SVG graphic 별도 발화 0. 3) 모달 열고 close button '닫기, button' 만 announce. 4) 빈 cover board placeholder SVG 별도 announce 0. 5) '새 보드 만들기' button focus → '새 보드 만들기, button' 만 announce. 6) 시각 회귀 0(aria-hidden 은 SR 전용). 7) 모달 열기/닫기/보드 선택/새 보드 만들기/Esc/Tab trap 모든 동작 회귀 0."
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
+
+  - id: "design-20260522-a11y-searchbar-decorative-svg-aria-hidden-missing"
+    title: "SearchBar 내부 4개 decorative SVG 에 `aria-hidden=\"true\"` 누락 — 검색 prefix icon, 최근 검색 history icon, 최근 검색 제거 X icon, 보드 결과 placeholder icon 이 SR 에 별도 graphic announce 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/SearchBar.tsx:143-157"
+        - "apps/web/src/components/nav/SearchBar.tsx:199-212"
+        - "apps/web/src/components/nav/SearchBar.tsx:223-235"
+        - "apps/web/src/components/nav/SearchBar.tsx:352-367"
+      cite: "WAI-ARIA Authoring Practices — Decorative icons: 'Icons that are purely visual decorations must be hidden from assistive technologies via aria-hidden=\"true\".' SearchBar.tsx 의 4개 SVG: (a) L143-157 search prefix SVG 는 L143 span(`pointer-events-none`) 안 — input(`aria-label=\"검색\"` L175) 옆 시각 ornament. (b) L199-212 history SVG 는 L191-216 button(visible text = 최근 query L213-215) 자식. (c) L223-235 X SVG 는 L217-236 button(`aria-label=\"최근 검색에서 제거\"` L220) 자식. (d) L352-367 board placeholder SVG 는 L344-378 Link(visible text 보드 이름 L370-372 + creator nickname L373-375) 자식. 모두 SVG 자체에 role/title 부재하나 `aria-hidden` 없어 SR verbosity 에 따라 graphic 별도 announce. in-codebase 직접 precedent: 같은 파일 SearchBar.tsx L290 pin media-type placeholder div 가 이미 `aria-hidden=\"true\"` 적용 — file 내부 inconsistent. PinCard.tsx L65/L98 + NavBar.tsx L16 + EmptyState.tsx L16 표준 패턴 라인업. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 4개 SVG element 에 각 `aria-hidden=\"true\"` 1 attribute 추가만."
+      repro: "1) cd apps/web && npm run dev. 2) / 진입 후 SearchBar focus. 3) SR 활성화 상태로 search input focus → '검색, edit text' 다음에 옆의 search SVG graphic 별도 announce 가능. 4) 최근 검색 항목 표시 시 history SVG + X SVG 별도 announce 가능. 5) 보드 결과 placeholder SVG 별도 announce 가능. 6) `grep -n 'aria-hidden' apps/web/src/components/nav/SearchBar.tsx` L290 1건만(다른 4개 SVG 누락)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) / 진입 후 SearchBar focus 검색 입력 → SR 발화 '검색, edit text' 만, prefix SVG graphic 별도 발화 0. 3) 최근 검색 표시 시 history button 발화 → 최근 query 텍스트만, history SVG graphic 별도 발화 0. 4) 제거 button focus → '최근 검색에서 제거, button' 만, X SVG 별도 발화 0. 5) 보드 결과 Link focus → 보드 이름 + 크리에이터 만, placeholder SVG 별도 발화 0. 6) 시각 회귀 0(aria-hidden 은 SR 전용). 7) 검색 입력/제출/최근 검색 클릭/제거/드롭다운 닫기 동작 회귀 0."
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 16.0
+    status: pending
