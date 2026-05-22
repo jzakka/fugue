@@ -577,7 +577,14 @@ func TestHarvestPipeline_ImageCache_NoCandidate_OgImageNull(t *testing.T) {
 }
 
 func TestHarvestPipeline_ImageCache_Oversize_FallbackToOriginalURL(t *testing.T) {
-	const threshold = 1024
+	// 16 KiB: above the 64x64 noise PNG (~12 KiB) served on /media so the
+	// primary media path (downloadAndUpload image branch) is not tripped by
+	// the same cap. The /huge.jpg fixture writes threshold+100 = 16484
+	// bytes which still exceeds 16384, preserving the cacheImage oversize
+	// fallback assertion. (downloadAndUpload's image-branch stream cap was
+	// added 2026-05-22 to enforce harvester/spec.md L749 SHALL; it shares
+	// the imageCacheMaxBytes source-of-truth with cacheImage.)
+	const threshold = 16384
 	server := imageCacheTestServer(threshold)
 	defer server.Close()
 
