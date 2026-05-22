@@ -2251,3 +2251,69 @@ items:
     status: done
     pr: 252
     note: "SearchBar.tsx 4개 decorative SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가(diff +4 -0): (a) L145 search prefix SVG(L143 span 안 검색 입력 ornament), (b) L201 최근 검색 history SVG(L191-216 button 자식 — visible text = 최근 query), (c) L226 최근 검색 제거 X SVG(L217 button 자식 — aria-label='최근 검색에서 제거'), (d) L356 보드 결과 placeholder SVG(L344-378 Link 자식 — visible text 보드 이름 + 크리에이터 nickname). 같은 파일 L293(pin media-type placeholder div)가 이미 aria-hidden 적용된 inconsistent 상태 해소 → 5 matches(L145/L201/L226/L293/L356) 일관성 회복. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. cycle 93 PR #251 AddToBoardButton 4 SVG aria-hidden 라인업 직계 sibling. in-codebase precedent: PinCard.tsx L65/L98 + NavBar.tsx L16 + EmptyState.tsx L16. 시각 변경 0(aria-hidden 은 SR 전용). 부모 span/button/Link className · onClick · aria-label · handleInputChange/handleSubmit/handleDeleteRecent/handleFocus · 드롭다운 표시/숨김/Esc · setOpen/setQuery state · 최근 검색 localStorage 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/nav/SearchBar.tsx` 5 matches L145/L201/L226/L293/L356) 으로 대체."
+
+  - id: "design-20260522-a11y-loginbuttons-provider-svg-aria-hidden-missing"
+    title: "LoginButtons 의 Google/Discord provider SVG 2건에 `aria-hidden=\"true\"` 누락 — 부모 button aria-label 이 accessible name 을 이미 제공하므로 SR 에서 graphic 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Icon Button 패턴)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/login/LoginButtons.tsx:10-28"
+        - "apps/web/src/app/login/LoginButtons.tsx:34-41"
+      cite: "WAI-ARIA Authoring Practices — Icon Button: '버튼 자체가 aria-label 로 accessible name 을 제공하는 경우 자식 graphic SVG 는 aria-hidden=\"true\" 로 보조 기술에서 숨겨 graphic 별도 발화를 막아야 한다.' WCAG 2.1 SC 4.1.2 (Level A) 충족. LoginButtons.tsx L67-84 의 button 은 `aria-label={provider.label}` (e.g. 'Google로 로그인' L8, 'Discord로 로그인' L32) 으로 accessible name 보유 + 동시에 button 안에 visible text `{provider.label}` (L81) 가 한 번 더 표시되는 구조라 SR 발화는 이미 라벨 1회 + visible text 1회 가능 — SVG 가 추가 graphic 발화를 만들면 동일 컨트롤이 SR 에서 최대 3회 announce. cycle 92 발견 모드 PR #250 누락 — 3-건 시리즈(PinCard / AddToBoardButton / SearchBar) 등록 시 LoginButtons 가 directly sibling 인데도 포함되지 않은 잔존 갭. in-codebase 직접 precedent: PinCard.tsx L121 ExternalLinkIcon SVG aria-hidden(cycle 95 PR #253) + AddToBoardButton.tsx L61/L253/L315/L398(cycle 93 PR #251) + SearchBar.tsx L145/L201/L226/L356(cycle 94 PR #252). 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 2개 SVG element 에 각 `aria-hidden=\"true\"` 1 attribute 추가만(diff +2 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /login 진입(미로그인 상태). 3) SR(VoiceOver/NVDA) 활성화 후 Google 로그인 button focus → 'Google로 로그인, button' 다음에 google color icon SVG graphic 별도 announce 가능 + visible text 'Google로 로그인' 한 번 더 발화 → 동일 컨트롤 SR 최대 3회 announce. 4) Discord 로그인 button 동일 구조. 5) `grep -n 'aria-hidden' apps/web/src/app/login/LoginButtons.tsx` 0 matches(2개 SVG 모두 누락)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /login 진입 → SR 발화 'Google로 로그인, button' + visible text 'Google로 로그인' 1회 만, google SVG graphic 별도 발화 0. 3) Discord button focus → 'Discord로 로그인, button' + visible text 만, discord SVG 별도 발화 0. 4) 시각 회귀 0(aria-hidden 은 SR 전용). 5) /login Google/Discord button click → /api/auth/<provider>/login redirect 동작 회귀 0. 6) provider 로딩 분기 '리다이렉트 중...' 표시 시(L77) icon 사라지는 동작 회귀 0."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
+  - id: "design-20260522-a11y-pindetail-boardchip-originlink-svg-aria-hidden-missing"
+    title: "PinDetail 페이지 2개 decorative SVG 에 `aria-hidden=\"true\"` 누락 — boards chip Link 의 grid icon + '원본 보기' anchor 의 external-link icon 이 SR 에서 graphic 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Icon Button 패턴)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pins/[id]/page.tsx:169-183"
+        - "apps/web/src/app/pins/[id]/page.tsx:224-237"
+      cite: "WAI-ARIA Authoring Practices — Decorative icons: 부모 control 의 visible text 또는 aria-label 이 이미 accessible name 을 제공하면 자식 graphic SVG 는 aria-hidden=\"true\" 로 hide. (a) L169-183 boards chip Link(L164-187 `<Link href=/boards/<id>`) 자식 grid SVG: 같은 Link 안에 visible text 보드 이름(L184 `<span>{board.name}</span>`) + creator nickname(L185 `<span>{board.creator_nickname}</span>`) 가 accessible name 제공. (b) L224-237 '원본 보기' anchor(L218-239 `<a href={pin.url} target=\"_blank\">`) 자식 external-link SVG: 같은 anchor 안에 visible text '원본 보기'(L238) 가 accessible name 제공. 같은 컴포넌트의 ExternalLinkIcon button 안 동일 SVG(PinCard.tsx L120-135)가 cycle 95 PR #253 에서 이미 aria-hidden 적용된 직계 sibling — pin detail 페이지의 같은 path 데이터 SVG 는 누락 상태. cycle 92 발견 모드 PR #250 누락. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 2개 SVG element 에 각 `aria-hidden=\"true\"` 1 attribute 추가만(diff +2 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /pins/<id>(보드에 속한 핀, 외부 url 보유) 진입. 3) SR 활성화 후 board chip Link focus → '<board.name>, link' + creator nickname 다음에 grid SVG graphic 별도 announce 가능. 4) '원본 보기' anchor focus → '원본 보기, link' 다음에 external-link SVG graphic 별도 announce 가능. 5) `grep -n 'aria-hidden' apps/web/src/app/pins/[id]/page.tsx` 0 matches."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pins/<id> 진입 → board chip Link focus → '<board.name>, link' + creator nickname 만, grid SVG graphic 별도 발화 0. 3) '원본 보기' anchor focus → '원본 보기, link' 만, external-link SVG 별도 발화 0. 4) 시각 회귀 0. 5) board chip click → /boards/<id> 이동, '원본 보기' click → 새 탭 외부 사이트 열림 모두 회귀 0. 6) creator Link · AddToBoardButton 인접 컨트롤 영향 0."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+
+  - id: "design-20260522-a11y-searchclient-board-result-placeholder-svg-aria-hidden-missing"
+    title: "SearchClient 보드 검색 결과 카드의 placeholder grid SVG 에 `aria-hidden=\"true\"` 누락 — 부모 Link visible text(board name + creator) 가 accessible name 제공하나 SVG 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/search/SearchClient.tsx:357-372"
+      cite: "WAI-ARIA Authoring Practices — Decorative icons: 'Icons that are purely visual decorations must be hidden from assistive technologies via aria-hidden=\"true\".' SearchClient.tsx L350-376 의 board 결과 Link 안 L357-372 grid SVG 는 placeholder graphic(L356 `w-10 h-10 rounded-[6px] bg-surface-elevated` 박스 안). 부모 Link visible text 는 board.name(L375)+creator.nickname(L378)+pin_count(L381) 가 이미 accessible name 제공. 같은 패턴이 cycle 94 PR #252 에서 SearchBar.tsx L356(`searchResult.type === 'board'` placeholder) 에 적용 — SearchClient 의 별도 검색 결과 페이지 placeholder 만 누락. BoardCover.tsx L7-22(빈 cover placeholder grid SVG) 와 정확히 동일 그래픽이지만 sibling 일관성 유지를 위해 BoardCover 와 별도 후보로 분리. cycle 92 발견 모드 PR #250 누락. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 1개 SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /search?q=<some term> 진입 후 보드 탭 선택(또는 보드 카테고리 결과 표시). 3) cover 이미지 없는 board 가 결과에 있을 때 SR 활성화. 4) board 결과 Link focus → '<board.name>, link' + creator + pin_count 다음에 grid SVG graphic 별도 announce 가능. 5) `grep -n 'aria-hidden' apps/web/src/app/search/SearchClient.tsx` 0 matches."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /search 에서 board 결과 표시 → SR 발화 board.name + creator + pin_count 만, grid SVG graphic 별도 발화 0. 3) 시각 회귀 0. 4) board Link click → /boards/<id> 이동 동작 회귀 0. 5) cover 이미지 있는 board(BoardCover-rendered) · pin 결과 · creator 결과 분기 무영향. 6) 인접 컴포넌트 카테고리 탭/top tags chips 무영향."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
+
+  - id: "design-20260522-a11y-boardcover-empty-placeholder-svg-aria-hidden-missing"
+    title: "BoardCover 빈 cover placeholder grid SVG 에 `aria-hidden=\"true\"` 누락 — BoardGrid/AddToBoardButton/MyPageClient 등 다수 부모에서 visible text(board name) 가 accessible name 제공하나 SVG 별도 발화 위험(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · WAI-ARIA Authoring Practices)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/BoardCover.tsx:7-22"
+      cite: "WAI-ARIA Authoring Practices — Decorative icons: 'Icons that are purely visual decorations must be hidden from assistive technologies via aria-hidden=\"true\".' BoardCover.tsx L6-23 의 빈 cover 분기(`images.length === 0`)에서 L7-22 grid SVG 는 빈 박스 시각 graphic. BoardCover 는 BoardGrid.tsx L20(부모 Link 안) · AddToBoardButton.tsx 보드 row(visible text board name) · MyPageClient.tsx L143(부모 Link 안) · SearchBar.tsx 등 다수 부모에서 사용 — 모든 부모가 visible text 로 board name 을 제공. cycle 94 PR #252 가 SearchBar.tsx L356 의 동일 그래픽(같은 4-rect grid path) placeholder 에 aria-hidden 적용 — BoardCover 컴포넌트 자체 적용 시 단일 변경으로 모든 caller(BoardGrid/AddToBoardButton/MyPageClient/SearchBar) 일괄 일관성 회복. cycle 92 발견 모드 PR #250 누락. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 1개 SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /mypage 또는 /creators/<id>(cover 이미지 없는 보드 보유) 진입. 3) SR 활성화 후 board 카드 Link focus → board.name 다음에 grid SVG graphic 별도 announce 가능. 4) `grep -n 'aria-hidden' apps/web/src/components/board/BoardCover.tsx` 0 matches."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage(빈 cover board 보유) 또는 BoardGrid 사용 화면 진입 → SR 발화 board.name(부모 Link visible text)만, BoardCover grid SVG graphic 별도 발화 0. 3) 시각 회귀 0. 4) cover 이미지 있는 분기(L29-44 grid 2x2 img tiles)는 미변경. 5) BoardGrid/AddToBoardButton/MyPageClient/SearchBar 모든 caller 일괄 일관성 회복 확인. 6) board Link click 동작/group-hover/group-focus-visible border/shadow 모두 회귀 0."
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
