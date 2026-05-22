@@ -226,7 +226,7 @@ export default function FeedContainer({
           <div className="flex justify-center py-8">
             <a
               href={`?${noscriptParams.toString()}`}
-              className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary transition-colors"
+              className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors"
             >
               다음 페이지
             </a>
