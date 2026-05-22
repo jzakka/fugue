@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/chungsanghwa/fugue/apps/api/internal/bot/crawler"
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 )
 
 // HostRateSetter is the contract RobotsFilter needs from the scheduler side
@@ -33,6 +34,21 @@ const robotsCacheTTL = 24 * time.Hour
 // robotsFetchTimeout caps the robots.txt HTTP GET so a stalled host
 // cannot block the filter chain.
 const robotsFetchTimeout = 5 * time.Second
+
+// robotsFetchConnectTimeout caps the connect phase separately from the
+// total response timeout so an unreachable host is failed-over fast.
+const robotsFetchConnectTimeout = 3 * time.Second
+
+// robotsFetchMaxRedirects caps redirect hops. Each hop re-runs the
+// SSRF guard (private/reserved IP rejection) via httpclient.CheckRedirect.
+const robotsFetchMaxRedirects = 5
+
+// robotsBodyMaxBytes caps the response body read so a hostile origin
+// cannot exhaust crawler memory through an oversized robots.txt. RFC 9309
+// §2.4 advises clients to enforce a 500 KiB limit; we round to 512 KiB
+// and silently truncate beyond — prefix-based Disallow matching tolerates
+// truncation (truncated rules simply do not match).
+const robotsBodyMaxBytes = 512 * 1024
 
 // robotsCacheEntry is the parsed robots.txt view for a single host.
 type robotsCacheEntry struct {
@@ -69,11 +85,23 @@ type inflightFetch struct {
 
 // NewRobotsFilter constructs a RobotsFilter. rateSetter may be nil, in which
 // case Crawl-delay parsing still occurs but no scheduler call is made.
+//
+// The httpClient is the SSRF-safe shared factory (httpclient.NewSSRFSafeClient).
+// robots.txt hosts are caller-untrusted — Pioneer extracts them from
+// `<a href>` in arbitrary external HTML — so the same private/reserved-IP
+// rejection policy that protects the Pioneer/Harvester fetch path applies
+// here. See httpclient/ssrf.go package doc and the PR #47 migration
+// (system-20260519-bot-harvest-pipeline-ssrf) for the capability-wide
+// contract this satisfies.
 func NewRobotsFilter(rateSetter HostRateSetter) *RobotsFilter {
 	return &RobotsFilter{
-		cache:      make(map[string]*robotsCacheEntry),
-		inflight:   make(map[string]*inflightFetch),
-		httpClient: &http.Client{Timeout: robotsFetchTimeout},
+		cache:    make(map[string]*robotsCacheEntry),
+		inflight: make(map[string]*inflightFetch),
+		httpClient: httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: robotsFetchConnectTimeout,
+			TotalTimeout:   robotsFetchTimeout,
+			MaxRedirects:   robotsFetchMaxRedirects,
+		}),
 		rateSetter: rateSetter,
 		now:        time.Now,
 	}
@@ -201,7 +229,12 @@ func (f *RobotsFilter) fetch(host string) *robotsCacheEntry {
 		return &robotsCacheEntry{fetchedAt: now}
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	// io.LimitReader caps read at robotsBodyMaxBytes; bytes beyond the cap
+	// are silently truncated. parseRobotsTxt's prefix-based matching is
+	// truncation-tolerant — Disallow directives past the cap simply do not
+	// participate in matching, which is the conservative outcome (origin
+	// loses ability to extend block list past 512 KiB, gains no leverage).
+	body, err := io.ReadAll(io.LimitReader(resp.Body, robotsBodyMaxBytes))
 	if err != nil {
 		return &robotsCacheEntry{fetchedAt: now, failOpen: true}
 	}
