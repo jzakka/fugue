@@ -2098,4 +2098,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 236
+    note: "PinCreateForm.tsx L421 미디어 제거 button className 에 `focus-visible:underline` 1 utility 미러 삽입(diff +1 -1). 키보드 사용자가 '제거' button 으로 Tab 진입 시 hover 와 동일하게 underline 시각 신호 가시화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycle 66 PR #200 FeedContainer L168/L199 의 `hover:underline focus-visible:underline` 미러 라인업 직계 sibling. 같은 컴포넌트의 dropzone(L346) · input(L462/L475/L490/L556) · 태그 chip(L600 — cycle 79 PR #230) · footer button(L626/L633) focus-visible 라인업과 일관성 정렬. text-error 색 · cursor-pointer · text-xs · removeFile onClick 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'hover:underline\\|focus-visible:underline' apps/web/src/app/pin/new/PinCreateForm.tsx` L421 1건 매칭 — 같은 라인에 hover + focus-visible underline 동시 보유) 으로 대체."

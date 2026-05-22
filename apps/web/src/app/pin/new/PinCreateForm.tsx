@@ -418,7 +418,7 @@ export default function PinCreateForm() {
                 <button
                   type="button"
                   onClick={removeFile}
-                  className="text-xs text-error hover:underline cursor-pointer"
+                  className="text-xs text-error hover:underline focus-visible:underline cursor-pointer"
                 >
                   제거
                 </button>
