@@ -3070,7 +3070,8 @@ items:
     effort: 1
     risk: 1
     score: 20.0
-    status: in_progress
+    status: done
+    pr: 179
     note: |
       처리 모드 시 변경 범위:
         (a) `apps/api/internal/bot/harvest_pipeline.go` downloadAndUpload
