@@ -2134,4 +2134,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 242
+    note: "PinCard.tsx L116 ExternalLinkIcon button className 에 `focus-visible:bg-accent-subtle` 1 utility 미러 삽입(diff +1 -1). 키보드 사용자가 핀 카드 내 '원본 보기' button 으로 Tab 진입 시 hover 와 동일하게 background `bg-accent-subtle` 시각 신호 가시화. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. cycle 79 PR #230 / cycle 81 PR #234 / cycle 83 PR #236 / cycle 85 PR #240 focus-visible 미러 라인업 직계 sibling. PinCard 는 / · /search · /mypage · /boards/[id] · /creators/[id] 등 모든 핀 listing 화면에 표시되는 빈번 컨트롤 — 전 화면 일괄 개선. inline-flex · items-center · justify-center · w-6 h-6 · rounded-full · bg-surface-elevated · transition-colors · shrink-0 · cursor-pointer · onClick window.open · aria-label/title 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -on 'hover:bg-accent-subtle\\|focus-visible:bg-accent-subtle' apps/web/src/components/feed/PinCard.tsx` L116 동일 라인에 두 utility 모두 보유) 으로 대체."
