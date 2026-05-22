@@ -2046,3 +2046,19 @@ items:
     status: done
     pr: 226
     note: "layout.tsx body 최상단에 sr-only + focus:not-sr-only skip link anchor 추가(`<a href=\"#main\">메인 콘텐츠로 건너뛰기</a>`, focus 시 좌상단 노출, bg-accent + text-white + rounded-[6px] + text-sm + font-semibold 기존 토큰 조합, 신규 토큰 도입 0). 8개 page.tsx 의 `<main>` 요소에 `id=\"main\"` 추가(/, /pins/[id], /pin/new, /search, /mypage, /boards/[id], /creators/[id], /login). WCAG 2.1 SC 2.4.1 Bypass Blocks (Level A) 충족. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -rn 'id=\"main\"' apps/web/src/app --include=\"page.tsx\"` 8 matches + `grep -n 'href=\"#main\"' apps/web/src/app/layout.tsx` 1 match) 으로 대체. CI 2/2 SUCCESS · 1회 만에 머지 성공(BEHIND 발생 없음). 30+ 사이클 연속 a11y 우세 흐름 유지 — Level A 위반 우선 처리 원칙(area 회전은 guideline, 동등 후보 부재 시 Level A confidence 5 가 우선)."
+
+  - id: "design-20260522-a11y-pincreate-tag-chip-focus-visible-missing"
+    title: "PinCreateForm 태그 chip 비선택 분기 `hover:bg-accent/20` 에 `focus-visible:bg-accent/20` 미러링 누락 — /pin/new 핀 생성 플로우의 태그 다중 선택 컨트롤이 키보드 포커스 시 시각 신호 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:597-601"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' PinCreateForm.tsx L587-606 의 filteredTags.map button(태그 다중 선택 chip) 의 비선택 분기 className `bg-accent-subtle text-text-muted hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed` 에 `focus-visible:bg-accent/20` 0건. in-codebase focus-visible 라인업 직접 비대칭: PR #189(SearchBar dropdown 4 control · cycle 62) · PR #191(SearchClient 3 control · cycle 63) · PR #193(SearchClient 3 control · cycle 64) · PR #197(PinDetail board chip Link · cycle 65) · PR #200(FeedContainer 빈/에러 button · cycle 66) · PR #202(VideoThumbnailPicker 비선택 분기 · cycle 67) 의 'hover 시각 변화를 focus-visible 에 미러링' 패턴 미적용. 같은 컴포넌트(PinCreateForm)의 dropzone(L346 `focus-visible:border-accent focus-visible:outline-none`) · 4개 input(L462/L475/L490/L556 `focus:border-accent`) · 2개 footer button(L626/L633 `focus-visible:bg-accent-hover`/`focus-visible:border-accent`) 은 focus-visible/focus 라인업 보유 → 태그 chip 만 잔여 갭. 안티패턴 L15-L21 무매치 — 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정, 비선택 분기 utility 1건만 삽입(선택 분기 `bg-accent text-white` 와 disabled 분기 `disabled:opacity-40 disabled:cursor-not-allowed` 미변경)."
+      repro: "1) cd apps/web && npm run dev. 2) /login 으로 로그인 후 /pin/new 진입. 3) 미디어 업로드 → 제목/설명 입력 → 태그 선택 영역(L587 max-h-48 overflow-y-auto wrapper)으로 Tab 진행. 4) filteredTags chip 중 하나를 Tab 으로 focus → 마우스 hover 와 달리 background 변화 0(native browser outline 만 표시). 5) 같은 폼의 dropzone(L346) · input(L462/L475/L490/L556) · footer button(L626/L633) 에 Tab 진입 시에는 focus-visible 시각 신호 가시화 → 비대칭. 6) `grep -n 'hover:bg-accent/20' apps/web/src/app/pin/new/PinCreateForm.tsx` L600 1건 매칭 + 같은 라인에 `focus-visible:` 0건 확인."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 후 /pin/new 진입. 3) 미디어 업로드 → 제목/설명 입력 → 태그 검색 input 으로 Tab → 카테고리 button 통과 → filteredTags chip 첫번째 button focus. 4) 키보드 포커스 시 hover 와 동일하게 background 가 `bg-accent/20` 으로 변화 → 시각 신호 가시화 확인. 5) 마우스 hover 동작 회귀 0(기존 hover:bg-accent/20 유지). 6) 선택 chip(`bg-accent text-white`) 시각 회귀 0(focus-visible 은 비선택 분기에만 추가). 7) 비활성 chip(disabled:opacity-40) 동작 회귀 0. 8) light mode 동일(`--color-accent` 토큰 단일 값 유지 · `/20` 투명도 modifier 는 Tailwind opacity 변환 시 동일 토큰 사용). 9) 시각 회귀 0(focus-visible 은 키보드 navigation 시에만 활성)."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
