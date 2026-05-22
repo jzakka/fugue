@@ -3109,3 +3109,166 @@ items:
       함수 분기 내 cap 추가). cycle U/V (Pioneer SSRF) 의 자매 갭으로
       직접 연계.
 
+  - id: system-20260522-og-service-duplicates-httpclient-ssrf-policy
+    title: "og.NewService 가 httpclient.NewSSRFSafeClient 의 DialContext / CheckRedirect / isPrivateIP / CIDR 표를 사문화 복제 — 단일 SoR 위반 + 정책 drift 위험"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/og/service.go:54-116"
+        - "apps/api/internal/og/service.go:298-340"
+        - "apps/api/internal/httpclient/ssrf.go:28-90"
+        - "apps/api/internal/httpclient/ssrf.go:92-129"
+      cite: |
+        apps/api/internal/httpclient/ssrf.go L92-95 docstring:
+        "IsPrivateIP reports whether ip falls inside loopback, link-local,
+        IPv4/IPv6 private ranges, or the reserved ranges enumerated below.
+        Callers that build their own dialer can reuse this single source of
+        truth so the SSRF policy stays consistent across packages."
+
+        .fugue/decision-log.md 2026-05-19 [system] HarvestPipeline SSRF
+        가드 추가 cycle 의 명시적 follow-up 결정 (L569 인용):
+        "og/service.go를 신규 패키지로 마이그레이션하는 작업은 본 사이클
+        범위 밖(단일 위반 차단에 집중)으로 두고 중복 정리는 후속 backlog
+        후보."
+
+        og 패키지가 cycle V 의 httpclient 패키지 신설 의도(공유 SoR)에
+        반해 동일한 SSRF 가드를 private 사본으로 유지하는 상태가 그대로
+        남아 있음. 사문화된 결정의 직접 후속.
+
+        Side-by-side CIDR 표 비교 (양쪽 모두 정확히 동일 — drift 미발생
+        현시점 스냅샷이지만 SoR 의 정확한 부재):
+          httpclient/ssrf.go L107-118 vs og/service.go L313-326
+          - "10.0.0.0/8"          (양쪽)
+          - "172.16.0.0/12"       (양쪽)
+          - "192.168.0.0/16"      (양쪽)
+          - "100.64.0.0/10"  CG-NAT (양쪽)
+          - "198.18.0.0/15"  Benchmarking (양쪽)
+          - "192.0.0.0/24"   IETF (양쪽)
+          - "192.0.2.0/24"   TEST-NET-1 (양쪽)
+          - "198.51.100.0/24" TEST-NET-2 (양쪽)
+          - "203.0.113.0/24" TEST-NET-3 (양쪽)
+          - "fc00::/7"       IPv6 ULA (양쪽)
+
+        DialContext / CheckRedirect 로직도 양쪽 동일 — IP 재해소 +
+        scheme 검사 + redirect-cap. og/service.go 는 추가로 자체
+        connectTimeout=3s / totalTimeout=5s / maxRedirects=5 상수를 사용
+        (httpclient defaults 5s/30s/5 보다 좁음 → 보존 필요).
+      repro: |
+        1. cycle V 의 SHA-256 hash 같은 후속 추가 reserved range 또는
+           CVE 대응으로 `httpclient.IsPrivateIP` 의 CIDR 표에 한 줄을
+           append 한다 (예: 새 IETF 예약 대역, 새 CG-NAT 변형).
+        2. apps/api 내 모든 SSRF-safe client 가 자동 정렬되어야 하지만,
+           og.Service 는 자체 private `isPrivateIP` + `privateRanges`
+           slice 를 사용하므로 신규 range 가 og 경로에 누락된다.
+        3. `/api/og/fetch` POST 핸들러 (`apps/api/internal/og/handler.go`
+           L40-105) 가 외부 URL 을 user-controlled body 로 받으므로,
+           새로 추가된 reserved range 호스트를 user 가 og fetch 로
+           요청하면 og.Service 는 dial 하고 metadata 를 응답에 포함시켜
+           response JSON 으로 노출 (handler L96-104 `fetchResponse`).
+        4. 즉 SoR 정책 변경이 og 경로에 한 사이클 지연 또는 영구 누락 →
+           silent drift.
+      attack_surface: |
+        - `/api/og/fetch` 는 인증/rate-limit 없는 POST 엔드포인트
+          (`cmd/server/main.go` 의 og 라우트 등록 부근 확인 필요).
+          user-controlled `req.URL` 이 그대로 og.Service.Fetch 에
+          전달되어 SSRF 가드의 정확성이 직접 결정한다.
+        - 현 시점 CIDR 표는 양쪽이 비트 단위 동일이라 실 sense of
+          security 는 보장되지만, 한 곳만 수정될 가능성이 본 항목의
+          핵심. 두 곳을 함께 수정해야 한다는 컨벤션을 코드가 표현하지
+          않으면 PR 단위에서 검토자가 누락하기 쉽다 (decision-log 2026-
+          05-19 cycle 도 "단일 위반 차단에 집중" 으로 og 정리를 후속에
+          위임). 즉 본 항목은 SoR 부재 자체가 결함 (cycle V 가 단일
+          SoR 도입했는데 사용처 통합이 미완) — 향후 cycle 의 정책
+          업데이트가 silent 하게 drift 한다.
+        - 추가: og.Service 의 NewService 함수가 60줄(L54-115) + 30줄
+          (L298-340) = 약 90줄의 SSRF wiring 을 보유. 5줄짜리
+          httpclient.NewSSRFSafeClient(Options{...}) 호출로 대체 가능 →
+          코드 표면 축소 + maintenance hygiene.
+        - 보안 정합성 (security policy consistency) 영역이므로 score 5
+          영역(고정 보안 vuln) 보다는 낮지만, .fugue 정책 영역(정합성)
+          으로 자연 분류.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+         통과 사전 조건 확인.
+      2. og 패키지에 신규 단위 회귀 테스트 추가 (현재 og/ 디렉터리에
+         _test.go 없음):
+         (a) `TestOGService_BlocksPrivateIP`: 169.254.169.254 → SSRF
+             거부 (error 본문에 "blocked private" 포함).
+         (b) `TestOGService_BlocksLoopback`: 127.0.0.1:1 → 거부.
+         (c) `TestOGService_HappyPath`: httptest.NewServer 의 public IP
+             (테스트 자체에서 swap 필요 — Service.client 를 swap 가능한
+             설계가 없으면 production NewSSRFSafeClient 가 swap 없이
+             public IP 요청을 수락하는 패턴으로 본 분야 cycle V/W
+             테스트와 동일 형태로 작성).
+      3. docker-compose up -d (postgres+redis+minio) + `cd apps/api &&
+         go run cmd/server/main.go` 띄움.
+      4. /api/og/fetch POST 직접 호출 (curl):
+         (a) `{"url":"http://169.254.169.254/latest/meta-data/..."}` →
+             200 + JSON `{"error":"og: fetch failed: ..."}` (또는 변경
+             후 httpclient 접두) — SSRF 거부 확인.
+         (b) `{"url":"http://127.0.0.1:8080/"}` → 200 + 거부 에러.
+         (c) `{"url":"https://example.com/"}` → 200 + OG meta 정상
+             파싱.
+      5. 회귀: 변경 전 동일 시나리오 응답과 비교, 모든 sub-test 에서
+         SSRF 거부 여부 동일.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+    note: |
+      처리 모드 시 변경 범위:
+        (a) `apps/api/internal/og/service.go`:
+            - L54-116 `NewService()` 본문 (DialContext closure +
+              CheckRedirect closure) 를 `httpclient.NewSSRFSafeClient(
+              httpclient.Options{ConnectTimeout: 3s, TotalTimeout: 5s,
+              MaxRedirects: 5})` 호출 결과로 교체.
+            - L298-340 `isPrivateIP` 함수 + `privateRanges` slice 전체
+              삭제.
+            - `net`, `time` import 는 `connectTimeout`/`totalTimeout`
+              상수만 남으면 `time` 만 유지. `net` 은 더 이상 직접
+              참조하지 않으므로 import drop.
+            - `httpclient` 패키지 import 추가.
+            - `connectTimeout`/`totalTimeout`/`maxRedirects` 상수
+              (L42-47) 는 httpclient.Options 인자로 인라인 — og 도메인
+              값(3s/5s/5)이 production 컨벤션이므로 동일 유지.
+            - `maxResponseBytes = 1 << 20` 상수 (L43) 는 `Fetch` 의
+              `io.LimitReader(resp.Body, maxResponseBytes)` (L148) 에서
+              사용되므로 유지.
+        (b) `apps/api/internal/og/service_test.go` 신규 — SSRF 거부 +
+            happy path 회귀 (cycle U 의 pioneer_consumer_ssrf_test.go
+            패턴 미러).
+        (c) doc 주석 ~12줄 — httpclient 패키지의 단일 SoR 도입 의도
+            인용 + decision-log 2026-05-19 후속 결정 인용 + og 도메인
+            timeout 값(3s/5s/5) 보존 명시.
+
+      에러 메시지 surface 변화: og.Service 의 SSRF 거부 에러는 현재
+      `og: blocked private/reserved IP ...` 형태이지만 변경 후
+      `httpclient: blocked private/reserved IP ...` 로 변한다. og 패키지
+      내부에 string 매칭 테스트 없음(grep 확인), handler.go L82,L91 은
+      `err.Error()` 를 JSON response 의 `Error` 필드에 그대로 전달
+      → API 응답의 string 표면 변화. 외부 consumer 가 이 prefix 를 case-
+      match 하지 않는다는 가정이 있어야 함 (frontend 는 사용자에게
+      메시지를 그대로 표시하지 않을 가능성이 높음 — 추가 확인 처리
+      모드 시 필요).
+
+      cap 채택 근거: httpclient.IsPrivateIP 의 CIDR 표를 단일 SoR 로
+      유지하는 것이 cycle V 의 명시 의도. og 의 timeout 값은
+      도메인 특성(OG 페이지 평균 응답이 짧다)으로 더 보수적이므로
+      delegation 시 그대로 보존.
+
+      회귀 위험: SSRF behavior 100% 동일 (CIDR 표 비트 단위 동일 +
+      DialContext/CheckRedirect 로직 동일). public IP 의 og fetch 는
+      정상 흐름 보존. 에러 prefix 변화만이 관찰 가능한 차이 —
+      handler 가 그대로 JSON 응답 필드에 흘리므로 API consumer 에
+      string 표면 변화는 있으나 동작 변화는 없음. 외부 consumer 가
+      prefix-match 안 한다는 가정이 깨지면 (a) og 패키지 자체에서
+      에러 wrap 으로 prefix 보존 또는 (b) httpclient 가 wrap 가능한
+      sentinel error 제공 중 하나 채택 — 처리 모드 시 결정.
+
+      anti-pattern 매칭 없음. L15 인프라 deployment 미해당.
+      decision-log 2026-05-19 (PR #47 cycle) + cycle U (PR #168) +
+      cycle V (PR #171) 의 SSRF 가드 시리즈 잔여 정합성 정리.
+
