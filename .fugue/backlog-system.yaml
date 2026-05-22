@@ -3790,7 +3790,8 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 219
     note: |
       변경 범위:
         (a) search/handler.go L164-178 silent 분기에 log.Printf 추가
@@ -3802,3 +3803,21 @@ items:
       anti-patterns L15 무매치 (application code).
       decision-log 의 명시적 사용자 결정 0건 — search 도메인 자매
       검증(empty q / type / tag-count / UUID) 모두 명시적 에러 처리.
+
+      실 환경 QA 결과 (2026-05-22):
+        - 일회용 postgres :5544 + redis :6390 + 시드 creator/pins/tags/pin_tags
+          (illustration:2, photography:1).
+        - happy path: GET /api/search?q=qatest&type=pins&limit=5
+          → 200 + 3 pins + top_tags 채워짐 + log 0건.
+        - 외과적 실패 주입: `ALTER TABLE tags RENAME COLUMN slug TO slug_tmp;`
+          (SearchTopTags 만 t.slug 를 읽고 searchPins 는 t.name 만 읽으므로
+          정확히 한 쿼리만 깨짐) → 200 + 3 pins 그대로 + top_tags=[]
+          + log emit:
+            search.SearchTopTags: pq: column t.slug does not exist
+              at position 2:22 (42703) (q="qatest" pin_count=3)
+        - fail-open contract 가 collateral 없이 완전 검증됨 (cycle 직전
+          feed media-type 케이스는 collateral 500 동반이었음).
+        - 추가 변경: SearchQuerier 인터페이스 도입(9 메서드) +
+          NewHandlerWithQuerier 생성자 (FeedQuerier 패턴 미러링) — mock
+          기반 단위 테스트 2건 정착 인프라.
+        - 회귀: 571/571 통과(569→571 +2).
