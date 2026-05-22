@@ -1768,3 +1768,51 @@ items:
     status: done
     pr: 176
     note: "2026-05-22 PR #176 — apps/web/src/app/login/page.tsx L38-40 히어로 마스코트 div 에 `aria-hidden=\"true\"` 1 prop 추가(diff +4 -1, multi-line attr 포맷). 변경 전: `<div className=\"w-16 h-16 bg-accent rounded-xl flex items-center justify-center text-3xl mb-4\">🐡</div>` → 변경 후: `<div aria-hidden=\"true\" className=\"...\">🐡</div>`. /login 페이지 비로그인 진입 시 SR 사용자가 카드 상단에서 'blowfish, 작품으로 만나다, heading 1' announce 받음 → 'blowfish' 가 의미 없는 잡음. 처리 후: 'blowfish' 누락 → 바로 h1 L44 (`text-2xl font-bold text-text-primary tracking-tight font-display`) '작품으로 만나다' 부터 announce. WCAG 2.1 SC 1.1.1 Non-text Content (Level A) 정합 — 'decorative non-text content can be ignored by assistive technology'. DESIGN.md L14 '마스코트: 헤드셋 끼고 붓 든 복어. 로고/빈 상태/온보딩에서 활용' 정합(로그인 히어로 = 온보딩 진입점 시각 유지). 코드베이스 내부 정합 근거: PinCard L65 audio ▶ · L98 video ▶ · PinDetail page L54 ♪ · PinCreateForm L394 ♪ · L449 required * · SearchBar L286 dropdown placeholder · EmptyState L16 🐡(PR #170) · NavBar L16 🐡(PR #173) — in-codebase aria-hidden 라인업 8 → 9 파일 확장(login L39 추가). Discovery cycle 53 PR #166 의 4개 후보(1 spinner + 3 mascot) 전부 완료 — spinner(PR #167 FeedContainer) + EmptyState 🐡(PR #170) + NavBar 🐡(PR #173) + login 🐡(PR #176). 잔여 pending 0건 → 다음 사이클 Discovery Mode. 시각 동작 0(마스코트 박스 utility `w-16 h-16 bg-accent rounded-xl flex items-center justify-center text-3xl mb-4` 유지 · 🐡 자식 유지 · 부모 div L37 `flex flex-col items-center mb-8` 유지 · h1 L44 유지 · p L47 유지 · LoginButtons L53 유지 · error region L56-60 유지) · 마우스 사용자 회귀 0(getAuthUser 분기 · redirect · searchParams · errorCode/errorMessage/redirectTo 계산 미변경 · LoginButtons 동작 미변경). 인접 영역(L1-3 import · L5-12 ERROR_MESSAGES · L14-31 LoginPage 본체 · L34 outer wrapper · L35 main 카드 · L37 logo flex 컨테이너 · L41-47 헤딩/설명 · L50 LoginButtons · L53-57 error region) 모두 미수정. 안티패턴 L17 (`rounded-xl` 마스코트 박스 자의적 등급 매핑 위험) 무매치 — 본 변경은 색·라디우스·크기 utility 비변경, aria 속성만 추가. light mode 동일(`--color-accent` 토큰 단일 값 유지, aria 속성은 색 비변경). Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 SR QA 미수행 — 단일 prop 1개 추가 변경 단위라 코드 검증(grep `aria-hidden=\"true\"` login/page.tsx L39 매칭 + 🐡 L42 자식 유지 + 인접 h1/p/LoginButtons/error region 미변경 확인)으로 대체."
+
+  - id: "design-20260522-a11y-pincreateform-title-aria-invalid-describedby-missing"
+    title: "PinCreateForm 제목 input 이 `aria-invalid`/`aria-describedby` 부재 — 빈 제목 제출 시 SR 사용자가 form-level role=alert 만 듣고 어느 필드가 invalid 인지 인지 0건(WCAG 2.1 SC 3.3.1 Error Identification Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:251-326,446-461"
+      cite: "WCAG 2.1 SC 3.3.1 Error Identification (Level A) — 'If an input error is automatically detected, the item that is in error is identified and the error is described to the user in text.' WAI-ARIA 1.2 §6.6.5 `aria-invalid` — 'Indicates the entered value does not conform to the format expected by the application' / §6.6.1 `aria-describedby` — 'Identifies the element (or elements) that describes the object'. PinCreateForm L254 setError('제목을 입력해주세요') 가 form-level error region L318-326 (role=alert + aria-live=polite) 로 announce 되지만, L451-460 title input 자체는 `aria-required=\"true\"` L458 만 가지고 `aria-invalid`/`aria-describedby` 모두 부재 → SR 사용자가 (1) form 제출 직후 error region 의 '제목을 입력해주세요' announce 받지만 (2) input 에 focus 복귀했을 때 invalid 상태 announce 0건 + 에러 텍스트와 input 의 프로그래밍적 연결 0건. 코드베이스 내부 정합 근거: 코드베이스 전반 `aria-invalid`/`aria-describedby` 사용 0건 (grep 검증) — 본 후보가 첫 적용. 자체 리뷰 #2(자의적 해석) 위험은 WAI-ARIA 1.2 표준 패턴(aria-invalid + aria-describedby field-to-error linkage)으로 회피. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, input 1개에 prop 2개 + error region 에 id 1개 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 /pin/new 진입. 3) 미디어 파일 업로드(아무 이미지). 4) 제목 비워둔 채 '게시하기' 클릭. 5) 현재: form 상단 error region 에 '제목을 입력해주세요' 표시(role=alert announce) → 사용자가 입력란으로 focus 이동해도 SR 가 invalid 상태/관련 에러 announce 0건. 6) 처리: L320 error div 에 `id=\"pin-error\"` + L451 title input 에 `aria-invalid={!!error && !title.trim()}` + `aria-describedby={error ? \"pin-error\" : undefined}` 추가(diff +3 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pin/new 진입 후 제목 빈 채 제출 → form-level role=alert 가 '제목을 입력해주세요' announce(기존 동작) + title input 에 focus 복귀 시 SR 가 '제목, 필수, 잘못됨, 제목을 입력해주세요' 같이 announce 확인. 3) 제목 입력 후 제출 → error 사라지면 aria-invalid=false / aria-describedby 미설정 확인. 4) input 시각(`w-full px-4 py-2.5 bg-bg border border-border rounded-[6px]` 등) · label · 인접 description textarea · URL input · 미디어 영역 시각 회귀 0 확인. 5) light mode 동일."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
+
+  - id: "design-20260522-a11y-profileeditform-nickname-aria-invalid-describedby-missing"
+    title: "ProfileEditForm 닉네임 input 이 `aria-invalid`/`aria-describedby` 부재 — 빈 닉네임 저장 시 SR 사용자가 form-level role=alert 만 듣고 어느 필드가 invalid 인지 인지 0건(WCAG 2.1 SC 3.3.1 Error Identification Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:25-29,54-75"
+      cite: "WCAG 2.1 SC 3.3.1 Error Identification (Level A). WAI-ARIA 1.2 §6.6.5 `aria-invalid` + §6.6.1 `aria-describedby`. ProfileEditForm L26-29 setError('닉네임을 입력해주세요') 가 form-level error region L54-62 (role=alert + aria-live=polite) 로 announce 되지만, L67-74 nickname input 자체는 `id=\"profile-nickname\"` + label htmlFor 만 가지고 `aria-invalid`/`aria-describedby` 모두 부재 → SR 사용자가 (1) form 제출 직후 error region '닉네임을 입력해주세요' announce 받지만 (2) input 에 focus 복귀했을 때 invalid 상태 announce 0건. 코드베이스 내부 정합 근거: 코드베이스 전반 `aria-invalid`/`aria-describedby` 사용 0건. PinCreateForm 의 동일 후보와 같이 처리 시 in-codebase aria-invalid 라인업 첫 확장(2 파일). 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, input 1개 prop 2개 + error region id 1개 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 후 /mypage 진입 → ProfileHeader '편집' 클릭 → ProfileEditForm 표시. 3) 닉네임 input 비워둔 채 '저장' 클릭. 4) 현재: error region 에 '닉네임을 입력해주세요' role=alert announce → 닉네임 input 에 focus 복귀해도 SR 가 invalid 상태 announce 0건. 5) 처리: L56 error div 에 `id=\"profile-nickname-error\"` + L68 nickname input 에 `aria-invalid={!!error && !nickname.trim()}` + `aria-describedby={error ? \"profile-nickname-error\" : undefined}` 추가(diff +3 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 편집 진입 후 닉네임 빈 채 저장 → form-level role=alert 가 '닉네임을 입력해주세요' announce(기존) + nickname input focus 복귀 시 SR 가 '닉네임, 잘못됨, 닉네임을 입력해주세요' announce 확인. 3) 정상 닉네임 입력 후 저장 → aria-invalid false / aria-describedby 미설정 확인. 4) avatar URL input · label · 인접 cancel/save button · 미리보기 img · error region 시각 회귀 0 확인. 5) light mode 동일."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
+
+  - id: "design-20260522-a11y-boardactions-name-aria-invalid-describedby-missing"
+    title: "BoardActions 보드 이름 input 이 `aria-invalid`/`aria-describedby` 부재 — 빈 보드 이름 저장 시 SR 사용자가 form-level role=alert 만 듣고 어느 필드가 invalid 인지 인지 0건(WCAG 2.1 SC 3.3.1 Error Identification Level A)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:23-46,63-88"
+      cite: "WCAG 2.1 SC 3.3.1 Error Identification (Level A). WAI-ARIA 1.2 §6.6.5 `aria-invalid` + §6.6.1 `aria-describedby`. BoardActions L25-28 setError('보드 이름을 입력해주세요') 가 form-level error region L64-72 (role=alert + aria-live=polite) 로 announce 되지만, L73-80 name input 자체는 `aria-label=\"보드 이름\"` 만 가지고 `aria-invalid`/`aria-describedby` 모두 부재 → SR 사용자가 (1) Save 클릭 직후 error region announce 받지만 (2) input 에 focus 복귀했을 때 invalid 상태 announce 0건. 인접 description input(L81-88) 은 validation 없음 — name input 만 처리 대상. 코드베이스 내부 정합 근거: 코드베이스 전반 `aria-invalid`/`aria-describedby` 사용 0건. PinCreateForm/ProfileEditForm 의 동일 후보와 같이 처리 시 in-codebase aria-invalid 라인업 3 파일 확장. 안티패턴 L15-L21 무매치 — 토큰/공개 API 비변경, JSX 구조 미수정, input 1개 prop 2개 + error region id 1개 추가."
+      repro: "1) cd apps/web && npm run dev. 2) 본인 소유 보드 페이지(/boards/<id>) 진입 → '편집' 클릭 → name/description input 표시. 3) name input 비워두고 '저장' 클릭. 4) 현재: error region '보드 이름을 입력해주세요' role=alert announce → name input focus 복귀해도 SR 가 invalid 상태 announce 0건. 5) 처리: L66 error div 에 `id=\"board-name-error\"` + L74 name input 에 `aria-invalid={!!error && !name.trim()}` + `aria-describedby={error ? \"board-name-error\" : undefined}` 추가(diff +3 -0)."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 본인 보드 페이지 편집 진입 후 name 빈 채 저장 → form-level role=alert 가 '보드 이름을 입력해주세요' announce + name input focus 복귀 시 SR 가 '보드 이름, 잘못됨, 보드 이름을 입력해주세요' announce 확인. 3) 정상 name 입력 후 저장 → aria-invalid false / aria-describedby 미설정 확인. 4) description input · 인접 Save/Cancel button · '편집'/'삭제' button · error region 시각 회귀 0 확인. 5) light mode 동일. 6) 삭제 버튼 confirm 동작 회귀 0."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
