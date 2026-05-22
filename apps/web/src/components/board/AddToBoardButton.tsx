@@ -58,6 +58,7 @@ export default function AddToBoardButton({
 function BoardIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="14"
       height="14"
       viewBox="0 0 24 24"
@@ -249,6 +250,7 @@ function BoardSelectModal({
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover focus-visible:bg-surface-hover transition-colors text-text-muted hover:text-text-primary focus-visible:text-text-primary cursor-pointer"
           >
             <svg
+              aria-hidden="true"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -310,6 +312,7 @@ function BoardSelectModal({
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <svg
+                        aria-hidden="true"
                         width="14"
                         height="14"
                         viewBox="0 0 24 24"
@@ -392,6 +395,7 @@ function BoardSelectModal({
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border border-border border-dashed rounded-[10px] text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors disabled:opacity-50 cursor-pointer"
             >
               <svg
+                aria-hidden="true"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
