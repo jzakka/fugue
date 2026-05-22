@@ -1999,7 +1999,7 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: in_progress
 
   - id: "design-20260522-a11y-searchclient-top-tags-chips-aria-pressed-missing"
     title: "SearchClient top tags chip 들이 toggle button 패턴이면서 `aria-pressed` 미적용 — 검색 결과 태그 다중 선택 상태 SR 무알림(WCAG 2.1 SC 4.1.2 Name, Role, Value Level A + ARIA Authoring Practices aria-pressed)"
