@@ -55,7 +55,11 @@ function BoardSection({ creatorId }: { creatorId: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-8">
+      <div
+        role="status"
+        aria-label="보드 목록 로딩 중"
+        className="flex justify-center py-8"
+      >
         <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
