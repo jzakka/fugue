@@ -4004,3 +4004,201 @@ items:
       회귀 위험: 인터페이스 메서드 추가는 backward-compat (기존
       5 메서드는 wrapper 로 유지). 사용자 결정 침범 0건.
       anti-patterns L15 무매치 (application code 결함).
+
+  - id: system-20260522-auth-create-new-creator-no-tx-orphan
+    title: "createNewCreator(이메일 없는 OAuth 경로)가 BeginTx 없이 creators+auth_accounts 두 INSERT를 분리 실행해 addAuthAccount 실패 시 orphan creator row 발생 — 자매 함수 findOrCreateWithEmail 의 atomicity 패턴 비대칭"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:144-161"   # createNewCreator: q := db.New(s.db), 트랜잭션 없음
+        - "apps/api/internal/auth/service.go:69-142"    # findOrCreateWithEmail: BeginTx + defer Rollback + Commit (sibling precedent)
+        - "apps/api/internal/auth/service.go:163-175"   # addAuthAccount: CreateAuthAccountWithProfile 호출
+        - "apps/api/db/migrations/000002_create_auth_accounts.up.sql:8"   # UNIQUE(provider, provider_id) — race 시 두 번째 INSERT 결정적 실패
+        - "apps/api/db/migrations/000001_create_creators.up.sql"           # creators 테이블 (nickname/avatar_url cap, email UNIQUE는 별 컬럼)
+        - "apps/api/db/queries/creators.sql"            # CreateCreatorFromOAuth (ON CONFLICT 없음), CreateCreatorFromOAuthOnConflict (email path 만 사용)
+      cite: |
+        (a) openspec/specs/auth/spec.md L8-10 Scenario "첫 로그인 시 계정
+            자동 생성" — "WHEN 처음 로그인하는 유저가 OAuth 인증을
+            완료하면 / THEN 유저 계정이 자동 생성되고, 닉네임은 OAuth
+            프로필에서 가져온다." 자동 생성이 SHALL 인데 두 INSERT 중
+            두 번째(auth_accounts)가 실패하면 (1) 유저는 로그인 실패
+            응답을 받고 (2) 다음 시도에서 GetAuthAccountByProvider 는
+            여전히 sql.ErrNoRows 라 createNewCreator 가 재실행 →
+            creators 에 또 다른 row INSERT (nickname 중복은 UNIQUE 없음).
+            결과: 단일 OAuth 신원에 대해 creators 에 N개의 orphan row
+            가 누적될 수 있다.
+        (b) 같은 service.go 안에 in-codebase precedent: findOrCreateWithEmail
+            (L69-142)이 정확히 같은 2-INSERT 패턴(CreateCreatorFromOAuthOnConflict
+            + addAuthAccount)을 `tx, _ := s.db.BeginTx(ctx, nil)` /
+            `defer tx.Rollback()` / `tx.Commit()` 로 감싸 원자성 보장 중.
+            createNewCreator 만 같은 보호가 없는 비대칭.
+        (c) auth_accounts UNIQUE(provider, provider_id) 제약(migration 000002
+            L8) 으로 인해 동시 OAuth callback race 가 결정적으로 orphan
+            을 생성한다: 두 callback 이 L44 GetAuthAccountByProvider 에서
+            동시에 sql.ErrNoRows 를 받고 → 둘 다 createNewCreator 진입 →
+            둘 다 CreateCreatorFromOAuth (creators INSERT) 성공 → 한 쪽만
+            addAuthAccount 성공, 다른 쪽은 `pq: duplicate key value violates
+            unique constraint "auth_accounts_provider_provider_id_key"` →
+            orphan creator row. transient PG 에러 (connection reset,
+            statement_timeout) 로도 동일 결과.
+        (d) 정책 정합성: findOrCreateWithEmail 의 BeginTx 가 이미 패턴
+            정립. createNewCreator 는 이메일 없는 경로 (Discord no-email
+            account, Google email_verified=false 등) 에서만 도달 — 이메일
+            없는 OAuth 유저는 재로그인 시도 시 새 신원 식별이 (provider,
+            provider_id) 외에 없어서 orphan 회복 경로가 더 좁다.
+        (e) creators 가 ON DELETE CASCADE 의 부모(auth_accounts.creator_id
+            REFERENCES creators(id) ON DELETE CASCADE) 이고 board_pins /
+            boards / interactions / refresh_tokens 등 다수 child FK 의
+            루트 — orphan creator 자체는 직접 손상은 아니지만 데이터
+            모델 무결성(모든 creator 는 최소 1개 auth_account 보유)을
+            깬다.
+      repro: |
+        1. `docker run -d --name fugue-qa-pg-5544 -p 5544:5432 postgres:16`
+           disposable postgres + `migrate -path apps/api/db/migrations
+           -database postgres://...:5544/fugue up`.
+        2. fix 전 단일 시나리오 (transient 실패 모사):
+           - service.go 의 addAuthAccount 직전 단계에 강제 에러 주입
+             (mock 또는 test-only hook), 또는 auth_accounts 에 미리
+             `INSERT INTO auth_accounts (creator_id, provider, provider_id)
+             VALUES ('00000000-...', 'google', 'TEST-PID-1')` 을 다른 creator
+             로 seed → 신규 OAuth 콜백이 provider='google', provider_id=
+             'TEST-PID-1', email='' (no email path) 으로 진입.
+           - 결과: CreateCreatorFromOAuth 성공 (새 creators row 생성) →
+             CreateAuthAccountWithProfile UNIQUE 위반 → 에러 반환.
+           - `SELECT id, nickname, email FROM creators ORDER BY created_at
+             DESC LIMIT 5;` 으로 orphan creator row 가 남아있음을 확인.
+           - `SELECT c.id FROM creators c LEFT JOIN auth_accounts a ON
+             a.creator_id = c.id WHERE a.id IS NULL;` 으로 orphan 명시.
+        3. fix 전 race 시나리오 (동시 callback 모사):
+           - 같은 (provider, provider_id) 로 2개의 service.FindOrCreateCreator
+             goroutine 을 동시 호출 (e.g. WaitGroup + barrier). 둘 다
+             email='' (no-email 경로).
+           - 결과: 둘 다 GetAuthAccountByProvider sql.ErrNoRows → 둘 다
+             createNewCreator 진입 → 둘 다 CreateCreatorFromOAuth 성공
+             (creators 2 row INSERT) → 한 쪽 addAuthAccount 성공, 다른
+             쪽 UNIQUE 위반 → orphan 1건 + 정상 1건.
+        4. fix 후 (BeginTx + Rollback 정착) 동일 두 시나리오:
+           - transient 실패: addAuthAccount 실패 시 tx.Rollback → creators
+             row 도 함께 롤백 → orphan 0건.
+           - race: 두 번째 callback 의 tx 가 Rollback 후 재시도 (FindOrCreateCreator
+             를 다시 호출하면 이번에는 첫 번째 callback 의 auth_accounts row
+             를 GetAuthAccountByProvider 에서 발견 → 기존 creator_id 반환).
+        5. `docker stop fugue-qa-pg-5544 && docker rm fugue-qa-pg-5544` 정리.
+      attack_surface: |
+        - 표면: OAuth callback 경로 — 이메일 없는 경로 (Discord 가 이메일
+          공유 동의 거부했거나, Google EmailVerified=false 인 경우).
+        - 발생 빈도: (1) PG transient 실패 — 운영 중 흔한 connection
+          reset / statement_timeout 시. (2) Race — 유저가 OAuth 동의
+          후 콜백 중 뒤로가기/새로고침으로 콜백이 두 번 발생하는 경우
+          또는 브라우저가 자동 재요청 시.
+        - 영향: (a) creators 테이블에 dangling row 누적 — DB pollution,
+          analytics/리포팅 정확도 저하. (b) nickname 이 OAuth 프로필
+          기반이라 동일 닉네임 중복 row 발생 가능 (UI/검색 혼란).
+          (c) 첫 로그인 실패 응답을 받은 유저는 재시도하지만 이메일
+          없는 경로라 (provider, provider_id) 기반 재매칭이 안 되면
+          또 다른 orphan 생성 — 부정 fan-out.
+        - 악의적 공격 surface: 직접 익스플로잇은 어렵지만, 동시 콜백
+          반복으로 creators 테이블 pollution 을 의도적으로 유발 가능
+          (DoS-by-pollution). 영향은 제한적 (UUID PK 라 lookup 성능
+          저하는 미미).
+        - in-codebase precedent: findOrCreateWithEmail (L69-142) 이
+          이미 같은 패턴을 BeginTx 로 보호 중. 사용자 결정 침범 0건.
+        - anti-patterns L15 무매치 (application code 결함, infra/deploy
+          무관).
+      qa_plan: |
+        실 환경 QA (Processing 모드 진입 시):
+        1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+           통과 사전 조건.
+        2. createNewCreator 본문을 findOrCreateWithEmail 패턴 미러링:
+           (a) `tx, err := s.db.BeginTx(ctx, nil)` / `defer tx.Rollback()`
+               wrap.
+           (b) `q := db.New(tx)` 로 같은 tx 안에서 두 INSERT 실행.
+           (c) 성공 시 `tx.Commit()` 후 creator.ID 반환.
+        3. 단위 테스트 (apps/api/internal/auth/service_test.go 또는
+           신규 service_tx_test.go):
+           (a) `TestUnit_CreateNewCreator_RollbackOnAuthAccountFailure` —
+               addAuthAccount stub 이 에러 반환 시 creators row 가
+               DB 에 남지 않음 검증 (disposable postgres 통합).
+           (b) `TestUnit_CreateNewCreator_RaceOrphan_NoLongerProduced` —
+               같은 (provider, provider_id) 동시 호출 2건 → orphan 0
+               (두 번째 호출이 UNIQUE 위반 후 tx.Rollback → creators
+               에 추가 row 없음) 검증.
+        4. 통합 테스트 (TEST_DATABASE_URL gated): 실제 disposable
+           postgres 로 fix 전/후 비교 — orphan count(SELECT COUNT(*)
+           FROM creators c LEFT JOIN auth_accounts a ON a.creator_id=c.id
+           WHERE a.id IS NULL) 가 fix 전 ≥1, fix 후 0.
+        5. 실 환경 QA:
+           (a) `docker run -d --name fugue-qa-pg-5544 -p 5544:5432
+                postgres:16` disposable + `migrate up`.
+           (b) repro step 2 (transient 실패 모사) → fix 후 orphan 0
+               확인.
+           (c) repro step 3 (race) → fix 후 orphan 0 확인 + 동일
+               유저로 정상 재로그인 시 같은 creator_id 반환 확인.
+           (d) happy path 회귀: 이메일 없는 정상 OAuth 첫 로그인 →
+               creator 1개 + auth_account 1개 정확히 생성.
+           (e) `docker stop fugue-qa-pg-5544 && docker rm
+                fugue-qa-pg-5544` 정리.
+        6. 회귀: `go test ./...` 추가 단위 2건 통합 1건 모두 통과.
+           findOrCreateWithEmail 경로 (이메일 있는 OAuth) 무영향 확인.
+    impact: 3
+    confidence: 5
+    effort: 2
+    risk: 2
+    score: 3.75
+    status: done
+    pr: 237
+    resolution: |
+      2026-05-22 (Processing) 종결. 변경 요약:
+      - apps/api/internal/auth/service.go createNewCreator (L144-180)
+        본문을 findOrCreateWithEmail 패턴 미러링: `tx, err :=
+        s.db.BeginTx(ctx, nil)` / `defer tx.Rollback()` / `q :=
+        db.New(tx)` / 두 INSERT 성공 후 `tx.Commit()`. atomicity
+        결함이 발생할 수 있는 두 경로(transient PG 에러, auth_accounts
+        UNIQUE(provider, provider_id) race)에서 loser 의 creators
+        row 가 자동 롤백됨. comment 로 race condition 시나리오와
+        findOrCreateWithEmail sibling parity 명기.
+      - apps/api/internal/auth/service_tx_test.go (신규, 175줄):
+        TEST_DATABASE_URL gated 통합 테스트 2건.
+          T1 (RollbackOnAuthAccountFailure): pre-seed auth_accounts
+              UNIQUE 충돌 강제 → createNewCreator 실패 시 creators
+              row count 무변경 검증.
+          T2 (RaceNoOrphan): 같은 (provider, provider_id) 동시 호출
+              2건 → 성공 수만큼만 creators 증가 + LEFT JOIN
+              auth_accounts 로 orphan=0 cross-check.
+      실 환경 QA (port 7711 disposable postgres):
+      - 회귀 검증 (fix revert): T1 `before=1 after=2 orphan creator`,
+        T2 `delta=2 want=1 + 1 orphan + pq:duplicate key` 양쪽 FAIL
+        — 테스트가 정확히 결함 검출.
+      - fix 적용: T1/T2 PASS.
+      - happy path (no-email): creator/auth_account 정확히 1쌍.
+      - 인접 경로 (findOrCreateWithEmail email-bearing): 첫 로그인 +
+        idempotent 재로그인 모두 OK, 동일 creator_id 반환.
+      - 전체 suite: 582 → 584 (통합 +2) PASS / 23 packages.
+      PR #237 (squash 30c93f7) main 머지 완료.
+    note: |
+      Discovery 모드 발굴 — auth area integrity 결함. 자매 함수
+      findOrCreateWithEmail (L69-142) 이 정확히 같은 2-INSERT 패턴을
+      BeginTx 로 이미 보호 중이므로 in-codebase precedent + 변경
+      패턴이 명확 (confidence=5). 변경 범위는 createNewCreator
+      함수 단일 — 5~10 라인 추가. 위험은 BeginTx 추가 외 없음
+      (재시도/ON CONFLICT 등 추가 정책은 본 사이클 범위 밖, 별
+      후보).
+
+      직전 cycles 7-12 의 auth area 패턴 (nickname/avatar_url
+      truncation, callback redirect escape 등) 이 input/output
+      sanitization 에 집중했다면, 본 후보는 storage atomicity
+      축으로 보완. 이메일 없는 OAuth 경로 (Discord no-email,
+      Google email_verified=false) 의 신뢰성을 sibling 경로와
+      대칭으로 회복.
+
+      Processing 모드 진입 시 변경 범위:
+        (a) apps/api/internal/auth/service.go createNewCreator 본문에
+            BeginTx + defer Rollback + tx.Commit wrap 추가.
+        (b) `q := db.New(s.db)` → `q := db.New(tx)` 교체.
+        (c) 단위 테스트 2건 + 통합 테스트 1건 신규.
+        (d) openspec/specs/auth/spec.md SSoT 갱신은 본 사이클 범위
+            밖 (read-only doc, 별 사이클).
+
+      anti-patterns L15 무매치 (application code 결함, infra 무관).
+      사용자 결정 침범 0건 (findOrCreateWithEmail 의 BeginTx 패턴이
+      precedent).
