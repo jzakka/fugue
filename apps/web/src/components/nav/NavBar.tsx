@@ -12,7 +12,10 @@ export default async function NavBar() {
       <nav className="sticky top-0 z-50 bg-bg border-b border-border px-6 py-4 flex items-center gap-6 backdrop-blur-sm">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 bg-accent rounded-md flex items-center justify-center text-lg">
+          <div
+            aria-hidden="true"
+            className="w-8 h-8 bg-accent rounded-md flex items-center justify-center text-lg"
+          >
             🐡
           </div>
           <span className="text-xl font-bold tracking-tight text-text-primary font-display">
