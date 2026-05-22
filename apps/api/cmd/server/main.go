@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -185,9 +190,41 @@ func main() {
 		r.With(auth.JWTMiddleware(jwtSvc)).Get("/me", authHandler.Me)
 	})
 
+	// Graceful shutdown wiring. cmd/bot/main.go (L276) already uses the
+	// signal.NotifyContext + http.Server.Shutdown pattern; cmd/server now
+	// matches it so SIGTERM during a k8s rolling deploy drains in-flight
+	// HTTP handlers instead of cutting them mid-write, and so the deferred
+	// db.Close()/rdb.Close() above actually run on shutdown (bare
+	// http.ListenAndServe + log.Fatalf would call os.Exit and skip them).
+	// 25s drain leaves ~5s headroom inside the k8s default
+	// terminationGracePeriodSeconds=30s for the runtime to finish exiting;
+	// the longest in-process handler today is og.Service.Fetch at 5s total.
 	addr := ":" + cfg.Port
-	log.Printf("fugue api server listening on %s", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		log.Fatalf("server: %v", err)
+	srv := &http.Server{Addr: addr, Handler: r}
+
+	ctx, cancel := signal.NotifyContext(context.Background(),
+		os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Printf("fugue api server listening on %s", addr)
+		serverErr <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErr:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("server: %v", err)
+		}
+	case <-ctx.Done():
+		log.Printf("fugue api server: shutdown signal received, draining...")
+		shutdownCtx, cancelShutdown := context.WithTimeout(
+			context.Background(), 25*time.Second)
+		defer cancelShutdown()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("fugue api server: graceful shutdown failed: %v", err)
+		}
+		log.Printf("fugue api server: shutdown complete")
 	}
 }
