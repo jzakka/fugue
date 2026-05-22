@@ -164,7 +164,7 @@ export default async function PinDetailPage({ params }: Props) {
                   <Link
                     key={board.id}
                     href={`/boards/${board.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-accent hover:border-accent transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-full text-xs text-text-muted hover:text-accent hover:border-accent focus-visible:text-accent focus-visible:border-accent transition-colors"
                   >
                     <svg
                       width="12"
