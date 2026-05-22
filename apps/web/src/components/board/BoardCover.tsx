@@ -5,6 +5,7 @@ export default function BoardCover({ images }: { images: string[] }) {
     return (
       <div className="w-full aspect-square bg-surface-elevated rounded-[10px] flex items-center justify-center border border-transparent group-hover:border-accent group-hover:shadow-card-hover group-focus-visible:border-accent group-focus-visible:shadow-card-hover transition-all duration-200">
         <svg
+          aria-hidden="true"
           width="24"
           height="24"
           viewBox="0 0 24 24"
