@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-05-22 — [design] PinCard ExternalLinkIcon SVG 에 `aria-hidden="true"` 추가 — cycle 95 Processing(PR #253) · 빈번 컨트롤 SR 단일 announce 보장 + SVG aria-hidden 3-건 시리즈 완결(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A + WAI-ARIA Icon Button 패턴)
+결정/변경: PinCard.tsx L121 ExternalLinkIcon button(aria-label='원본 보기' L118 · title='원본 보기' L117) 자식 SVG element 시작 줄에 `aria-hidden="true"` 1 attribute 추가(diff +1 -0). 같은 파일 L65(audio play span) · L98(video play overlay div) 이미 aria-hidden 적용된 inconsistent 상태 해소 → 3 matches L65/L98/L121 일관성 회복.
+이유: 부모 button 의 aria-label 이 이미 accessible name 을 제공하므로 자식 SVG 는 SR 에서 hide 해 graphic 중복 announce 방지. PinCard 는 / · /search · /mypage · /boards/[id] · /creators/[id] 모든 핀 listing 화면 빈번 컨트롤 — 전 화면 일괄 SR 개선. cycle 93 PR #251 AddToBoardButton + cycle 94 PR #252 SearchBar decorative-SVG aria-hidden 시리즈 직계 sibling — 3 사이클 시리즈 완결.
+QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 grep verification 대체 — `grep -n 'aria-hidden' apps/web/src/components/feed/PinCard.tsx` 3 matches L65/L98/L121. 부모 button onClick(window.open url _blank) · aria-label · title · className(inline-flex · w-6 h-6 · rounded-full · bg-surface-elevated · hover:bg-accent-subtle · focus-visible:bg-accent-subtle · transition-colors · shrink-0 · cursor-pointer) 미변경. 시각 회귀 0(aria-hidden 은 보조 기술 전용). PR #253.
+영향 범위: PinCard.tsx 한 파일 1 위치. SVG aria-hidden 시리즈(cycle 92 discovery PR #250 등록 → cycle 93/94/95 처리) 완결 — 잔여 pending 0건 → 다음 사이클 발견 모드.
+
 ## 2026-05-22 — [system] 발견 모드 산출 backlog 변경의 main 반영 절차 결정 (chore commit + PR + 머지) — cycle 95
 결정/변경: cycle 94 발견 모드가 `.fugue/backlog-system.yaml` 에 `system-20260522-bot-robots-filter-bare-http-client-ssrf` 1건을 append 했으나 prompts/loop-system.md §발견 모드 step 7 "사이클 종료" 에 commit/PR 명시가 부재 → 다음 사이클이 step 1 의 `git checkout -B ... origin/main` 강제 재생성 시 uncommitted 변경 망실 위험. cycle 95 step 0 에서 worktree dirty 상태로 진입 후 §5 결정 회색지대 보수 원칙(기존 동작 보존·롤백 가능·영향 범위 최소)을 적용해 cycle 94 산출물을 chore commit + PR + 머지로 main 반영.
 이유: loop-system.md L184-188 "사이클 종료 시 갱신해야 하는 파일" 에 backlog-system.yaml 포함이나 발견 모드의 main 반영 절차 미명시. 처리 모드(step 1)의 강제 재생성 의미상 발견 산출물도 main 반영 필요. 보수 선택: chore commit 1건 격리 (코드 변경 0, 데이터 추가만, 롤백 가능, decision-log 본 항목 자체로 차후 발견 사이클이 동일 절차 따르도록 명시).
