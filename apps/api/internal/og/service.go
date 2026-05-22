@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"golang.org/x/net/html"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 )
 
 // OGResult holds the parsed OpenGraph metadata from a URL.
@@ -51,68 +52,24 @@ type Service struct {
 	client *http.Client
 }
 
-// NewService creates a new OG fetching service with SSRF-safe HTTP client.
+// NewService creates a new OG fetching service backed by the shared SSRF-safe
+// HTTP client (`apps/api/internal/httpclient`). The shared client is the
+// single source of truth for the SSRF policy (CIDR allowlist, DialContext
+// IP check, CheckRedirect re-resolve, scheme allowlist) so that any future
+// reserved-range additions stay consistent across packages — see the
+// `IsPrivateIP` docstring "Callers that build their own dialer can reuse
+// this single source of truth so the SSRF policy stays consistent across
+// packages." og keeps its tighter domain timeouts (3s connect / 5s total /
+// 5 redirects) by passing them as Options; OG pages are short-lived so the
+// httpclient default (5s/30s/5) would be too loose for this caller.
 func NewService() *Service {
-	dialer := &net.Dialer{
-		Timeout: connectTimeout,
+	return &Service{
+		client: httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: connectTimeout,
+			TotalTimeout:   totalTimeout,
+			MaxRedirects:   maxRedirects,
+		}),
 	}
-
-	transport := &http.Transport{
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			host, port, err := net.SplitHostPort(addr)
-			if err != nil {
-				return nil, fmt.Errorf("og: invalid address %q: %w", addr, err)
-			}
-
-			ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
-			if err != nil {
-				return nil, fmt.Errorf("og: DNS lookup failed for %q: %w", host, err)
-			}
-			if len(ips) == 0 {
-				return nil, fmt.Errorf("og: no IP addresses found for %q", host)
-			}
-
-			for _, ip := range ips {
-				if isPrivateIP(ip.IP) {
-					return nil, fmt.Errorf("og: blocked private/reserved IP %s for host %q", ip.IP, host)
-				}
-			}
-
-			// Connect to the first resolved IP.
-			target := net.JoinHostPort(ips[0].IP.String(), port)
-			return dialer.DialContext(ctx, network, target)
-		},
-	}
-
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   totalTimeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= maxRedirects {
-				return fmt.Errorf("og: too many redirects (max %d)", maxRedirects)
-			}
-
-			// Validate scheme on every redirect hop.
-			if req.URL.Scheme != "http" && req.URL.Scheme != "https" {
-				return fmt.Errorf("og: blocked redirect to non-http scheme %q", req.URL.Scheme)
-			}
-
-			// Re-resolve and verify IP on each redirect hop.
-			host := req.URL.Hostname()
-			ips, err := net.DefaultResolver.LookupIPAddr(req.Context(), host)
-			if err != nil {
-				return fmt.Errorf("og: DNS lookup failed on redirect to %q: %w", host, err)
-			}
-			for _, ip := range ips {
-				if isPrivateIP(ip.IP) {
-					return fmt.Errorf("og: blocked redirect to private IP %s for host %q", ip.IP, host)
-				}
-			}
-			return nil
-		},
-	}
-
-	return &Service{client: client}
 }
 
 // Fetch retrieves and parses OG metadata from the given URL.
@@ -293,48 +250,4 @@ func detectField(hostname string) string {
 		}
 	}
 	return ""
-}
-
-// isPrivateIP returns true if the IP is in a private, loopback, or link-local range.
-func isPrivateIP(ip net.IP) bool {
-	// Loopback: 127.0.0.0/8 and ::1
-	if ip.IsLoopback() {
-		return true
-	}
-	// Link-local: 169.254.0.0/16 and fe80::/10
-	if ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
-		return true
-	}
-	// Unspecified: 0.0.0.0 and ::
-	if ip.IsUnspecified() {
-		return true
-	}
-
-	// Private IPv4 ranges.
-	privateRanges := []struct {
-		network string
-	}{
-		{"10.0.0.0/8"},
-		{"172.16.0.0/12"},
-		{"192.168.0.0/16"},
-		{"100.64.0.0/10"},   // Carrier-grade NAT
-		{"198.18.0.0/15"},   // Benchmarking
-		{"192.0.0.0/24"},    // IETF Protocol Assignments
-		{"192.0.2.0/24"},    // Documentation (TEST-NET-1)
-		{"198.51.100.0/24"}, // Documentation (TEST-NET-2)
-		{"203.0.113.0/24"},  // Documentation (TEST-NET-3)
-		{"fc00::/7"},        // IPv6 unique local
-	}
-
-	for _, r := range privateRanges {
-		_, cidr, err := net.ParseCIDR(r.network)
-		if err != nil {
-			continue
-		}
-		if cidr.Contains(ip) {
-			return true
-		}
-	}
-
-	return false
 }
