@@ -53,6 +53,7 @@ export default function ProfileEditForm({
 
       {error && (
         <div
+          id="profile-nickname-error"
           role="alert"
           aria-live="polite"
           className="p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error"
@@ -70,6 +71,8 @@ export default function ProfileEditForm({
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           maxLength={200}
+          aria-invalid={!!error && !nickname.trim()}
+          aria-describedby={error ? "profile-nickname-error" : undefined}
           className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
         />
       </div>
