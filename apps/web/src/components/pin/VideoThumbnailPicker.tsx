@@ -113,7 +113,11 @@ export default function VideoThumbnailPicker({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-xs text-text-muted py-2">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 text-xs text-text-muted py-2"
+      >
         <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         썸네일 추출 중...
       </div>
