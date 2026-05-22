@@ -1963,7 +1963,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 212
+    note: "PinsGrid.tsx L134-142 무한 스크롤 추가 로딩 spinner outer div 에 role=\"status\" + aria-label=\"추가 핀 로딩 중\" 추가 (+5 -1). FeedContainer L216-220 PR #167 의 동일 loadmore 패턴 follow-up — '작품' → '핀' 콘텐츠 도메인 차이만 반영. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA Authoring Practices role=status 충족. Ralph env 제약으로 step 7 실 브라우저 QA 는 grep verification(L136 role=\"status\" + L137 aria-label=\"추가 핀 로딩 중\") 으로 대체. 1회 만에 머지 성공(BEHIND 발생 없음)."
 
   - id: "design-20260522-a11y-addtoboardbutton-adding-spinner-status-role-missing"
     title: "AddToBoardButton 보드 항목별 inline 추가 중 spinner 가 `role=\"status\"` + `aria-label` 미적용 — 보드에 핀 추가 상태 SR 무알림(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA Authoring Practices status role)"
