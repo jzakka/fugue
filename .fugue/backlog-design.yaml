@@ -1837,7 +1837,9 @@ items:
     effort: 1
     risk: 1
     score: 16.0
-    status: pending
+    status: done
+    pr: 191
+    note: "2026-05-22 PR #191 — apps/web/src/components/nav/SearchBar.tsx 단일 파일 4 className 변경(diff +4 -4): L270 Pin Link `hover:bg-surface-hover` 뒤에 `focus-visible:bg-surface-hover` + L317 Creator Link 동일 1 utility + L345 Board Link 동일 1 utility + L383 '전체 결과 보기' button `hover:text-accent-hover` 뒤에 `focus-visible:text-accent-hover` 1 utility. 키보드 Tab 포커스 도달 시 hover 와 동일한 시각 신호(bg-surface-hover / text-accent-hover) 미러링. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 정합. 코드베이스 내부 정합 근거: 본 PR 머지 후 in-codebase focus-visible 라인업 21 파일에 4 SearchBar control 추가 — SearchBar 안의 X 삭제 button(L221) 은 PR #86 에서 이미 처리됨. cycle 62 Discovery PR #189 의 5 후보(score 16/12/8/8/8) 중 score 최고 항목 첫 처리 — 잔여 pending 4건. 시각 동작 0(같은 className 의 다른 utility `flex items-center gap-3 px-3 py-2 rounded-[10px] hover:bg-surface-hover cursor-pointer transition-colors` 등 모두 유지) · 마우스 사용자 회귀 0(focus-visible 은 키보드 navigation 시에만 활성). 컴포넌트 함수 시그니처 · JSX 구조 · onClick · href · setOpen · 인접 최근 검색 row(L189-238) · 검색 input(L158) · X 삭제 button(L217-236) 모두 미수정. light mode 동일(`--color-surface-hover`/`--color-accent-hover` 토큰 단일 값 유지). 안티패턴 L15-L21 무매치. Ralph 환경 제약(node_modules 미설치)으로 lint/typecheck/실 브라우저 QA 미수행 — 단일 파일 4 className 변경 단위라 코드 검증(`grep -n focus-visible apps/web/src/components/nav/SearchBar.tsx` → L221/L270/L317/L345/L383 5건 매칭 확인 + 인접 utility/JSX 미변경 확인)으로 대체. 머지 절차에서 cycle 62 Discovery PR #189 가 BEHIND 발생 — `git fetch origin main && git rebase origin/main && git push --force-with-lease` 2회 적용 후 머지 성공(§자체 회복 §3 절차). 본 처리 PR #191 은 1회 만에 머지 성공."
 
   - id: "design-20260522-a11y-searchclient-tabs-chips-loadmore-focus-visible-mirror-missing"
     title: "SearchClient 검색 결과 페이지 3 control(카테고리 탭 button · top tag chip button · '더보기' button) 이 `focus-visible:` 미러링 0건 — 검색 결과 페이지 컨트롤의 키보드 포커스 가시화 부재(WCAG 2.1 SC 2.4.7 Focus Visible Level AA)"
