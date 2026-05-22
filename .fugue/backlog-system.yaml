@@ -3273,3 +3273,298 @@ items:
       decision-log 2026-05-19 (PR #47 cycle) + cycle U (PR #168) +
       cycle V (PR #171) 의 SSRF 가드 시리즈 잔여 정합성 정리.
 
+
+  - id: system-20260522-cmd-server-no-graceful-shutdown
+    title: "cmd/server/main.go 가 bare http.ListenAndServe 사용 — SIGTERM 시 in-flight 요청 즉시 cut + defer db/redis.Close() 미실행"
+    area: error
+    evidence:
+      files:
+        - "apps/api/cmd/server/main.go:30-46"
+        - "apps/api/cmd/server/main.go:188-192"
+        - "apps/api/cmd/bot/main.go:276"
+        - "apps/api/cmd/bot/main.go:498"
+      cite: |
+        apps/api/cmd/server/main.go L188-192:
+          addr := ":" + cfg.Port
+          log.Printf("fugue api server listening on %s", addr)
+          if err := http.ListenAndServe(addr, r); err != nil {
+              log.Fatalf("server: %v", err)
+          }
+
+        apps/api/cmd/server/main.go L43, L59 (cleanup defers 등록):
+          defer func() { _ = db.Close() }()
+          defer func() { _ = rdb.Close() }()
+
+        cmd/bot/main.go 는 이미 패턴 보유 (L276, L498):
+          runCtx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+
+        → 같은 backend 의 같은 cmd/ 디렉터리에 표준 graceful shutdown
+        패턴이 이미 wiring 된 사례가 있는데 cmd/server 만 미적용.
+      repro: |
+        1. `docker-compose up -d` + `cd apps/api && go run cmd/server/main.go`
+           로 API 서버 가동.
+        2. `curl -X POST http://localhost:8080/api/pins ...` (인증 + 멀티-쿼리
+           트랜잭션 핸들러 — INSERT pins + INSERT pin_tags) 의 응답이
+           돌아오기 전에 server 프로세스에 SIGTERM 전송 (kill -TERM <PID>).
+        3. 관측: client 측 `curl: (52) Empty reply from server` 또는
+           connection reset by peer. 서버 측 stdout 에 `defer db.Close()` /
+           `defer rdb.Close()` 가 실행됐다는 흔적 0 (Go runtime 의 default
+           SIGTERM 핸들러는 즉시 프로세스 종료 → defers 미실행).
+        4. PostgreSQL 측: 진행 중이던 transaction 이 client 측 abrupt close
+           로 ROLLBACK (정상 동작이지만 partial 상태로 보일 수 있는 race
+           — 예: pin INSERT 직후 pin_tags INSERT 직전 cut → 외부 관찰자에는
+           orphan pin 잠시 보임).
+        5. k8s 환경에서 rolling deploy: 매 deploy 마다 in-flight 요청 (특히
+           긴 핸들러: search, OG fetch 5s, pin 생성 멀티-인서트) 가 client
+           에 5xx/connection reset 로 노출 — 사용자 경험 직접 영향.
+      attack_surface: |
+        - 표면: 모든 HTTP 핸들러 (`apps/api/internal/{auth,pin,board,feed,
+          search,og,creator,tag,interaction,boards}/handler.go`). Chi
+          router 등록 모두 단일 `*chi.Mux` 인스턴스에 attach 되어 같은
+          `http.ListenAndServe` 가 서비스.
+        - 일반 read 핸들러는 idempotent 라 영향 작지만, write 핸들러는
+          단일 핸들러 안에서 multi-statement transaction 또는 storage.Upload
+          + DB insert 같은 두-개-사이드-이펙트 시퀀스가 abrupt cut 되면
+          partial state 가능:
+          * POST /api/pins (storage.Upload 후 pin INSERT + pin_tags INSERT)
+          * POST /api/og/fetch (외부 HTTP 5s + DB 없음 — 영향 작음)
+          * POST /api/boards/{id}/pins (board_pins INSERT)
+          * POST /api/auth/{provider}/callback (user UPSERT + JWT 발급)
+        - DB 연결 abrupt close: PostgreSQL 서버는 client TCP RST 를
+          unhandled 종료로 인식 → idle 트랜잭션이 1분 동안 lock 유지
+          가능 (`idle_in_transaction_session_timeout` 미설정 시).
+          defer db.Close() 가 실행됐다면 `db.Close()` 가 모든 idle
+          connection 을 `terminate` 로 cleanup 하므로 lock 해제 즉시.
+        - Redis 연결 abrupt close: redis-go 클라이언트는 reconnect 처리
+          하므로 비교적 안전, 그러나 in-flight rate-limit 카운터 update
+          이 미flush 될 수 있음 (대부분 fire-and-forget 라 영향 작음).
+        - k8s deployment 표준 패턴: pod 의 preStop hook 또는 SIGTERM
+          전송 후 terminationGracePeriodSeconds (기본 30s) 안에 정상
+          종료해야 readiness probe 가 endpoint 제거. 현재는 graceful
+          shutdown 부재 → SIGTERM 직후 즉시 종료 → endpoint 제거 전
+          frame 안의 in-flight 요청은 cut → rolling deploy 시 매 pod 마다
+          1~수십 요청 5xx.
+        - anti-patterns L15 의 "배포 매니페스트 결함" 항목은 helm/
+          terraform/docker-compose 의 args/wiring 결함에 한정.
+          본 항목은 `apps/api/cmd/server/main.go` 의 Go application
+          코드 결함이므로 anti-pattern 무매치.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+         통과 사전 조건.
+      2. 변경: cmd/server/main.go 의 `http.ListenAndServe` 를 `*http.Server`
+         + `signal.NotifyContext` + `srv.Shutdown(shutdownCtx)` 패턴으로
+         교체 (cmd/bot/main.go L276 가 표준 사례). shutdown timeout 은
+         의미 있는 값 (예: 25s, k8s 기본 grace period 30s 안 cushion).
+         ListenAndServe goroutine 의 err 채널 처리로 srv 자체 실패와
+         shutdown 정상 종료를 구분.
+      3. 통합 테스트 추가 (선택): httptest server 띄우고 in-flight
+         long-handler 동안 Shutdown() 호출 시 정상 종료까지 대기 확인.
+      4. 실 환경 QA:
+         (a) `cd apps/api && go run cmd/server/main.go` 띄움.
+         (b) `curl http://localhost:8080/api/feed` 반복 호출 baseline (200 OK
+             확인).
+         (c) 별 터미널에서 `kill -TERM <PID>` 전송 직전에 in-flight curl
+             보내기 — server stdout 에 "shutdown: ...graceful..." 류 로그
+             확인 + curl 응답 정상 200 수신 확인 (in-flight 요청 완료
+             보장).
+         (d) `psql -h localhost -U fugue -d fugue -c "SELECT state, count(*)
+             FROM pg_stat_activity WHERE application_name LIKE '%fugue%'
+             GROUP BY state;"` 로 SIGTERM 직후 idle/active connection
+             상태 확인 — graceful 시 모든 connection 이 즉시 종료.
+         (e) shutdown timeout 초과 (예: long-poll 핸들러 가정) 시 강제 종료
+             동작 확인.
+      5. 회귀: 같은 server 가동 후 일반 핸들러 1~2개 호출 (예: /api/feed,
+         /api/og/fetch) → 정상 응답 200 보존.
+    impact: 4
+    confidence: 5
+    effort: 1
+    risk: 2
+    score: 10.0
+    status: pending
+    note: |
+      구현 패턴 (cmd/bot/main.go L276 미러):
+        srv := &http.Server{Addr: addr, Handler: r}
+        ctx, cancel := signal.NotifyContext(context.Background(),
+            os.Interrupt, syscall.SIGTERM)
+        defer cancel()
+        go func() {
+            if err := srv.ListenAndServe(); err != nil &&
+                !errors.Is(err, http.ErrServerClosed) {
+                log.Fatalf("server: %v", err)
+            }
+        }()
+        <-ctx.Done()
+        shutdownCtx, cancelShutdown := context.WithTimeout(
+            context.Background(), 25*time.Second)
+        defer cancelShutdown()
+        if err := srv.Shutdown(shutdownCtx); err != nil {
+            log.Printf("graceful shutdown timeout: %v", err)
+        }
+
+      cleanup defers (db.Close, rdb.Close) 는 main() 의 기존 defer 가
+      Shutdown 완료 후 main() return 시 정상 실행 → 자연 정리.
+
+      회귀 위험: 신규 핸들러 추가 시 동일 srv 인스턴스 재사용으로
+      Shutdown 자동 적용. 기존 핸들러 동작/응답 형태 무변경.
+      goroutine leak 가능성: in-flight 핸들러가 shutdown timeout 초과
+      시 강제 종료 (Shutdown context expired) — 25s 안에 끝나지 않는
+      핸들러가 있다면 timeout 조정 필요 (현 시점 가장 긴 핸들러는
+      og.Fetch 의 5s + safety margin 으로 25s 면 충분).
+
+      anti-patterns L15 ("배포 매니페스트 결함") 매칭 없음 — 본 항목은
+      Go application code 결함이지 helm/terraform/docker-compose 의
+      args/wiring 결함 아님. decision-log 검사 결과 cmd/server graceful
+      shutdown 관련 기록 0건 (사용자 결정 비침범).
+
+  - id: system-20260522-scheduler-dequeue-ignores-runctx
+    title: "scheduler.PGURLScheduler.Dequeue 가 context.Context 미수신 — consumer.Run(runCtx) 의 SIGTERM 이 빈 큐/throttled 상태의 워커에 도달하지 못함"
+    area: concurrency
+    evidence:
+      files:
+        - "apps/api/internal/scheduler/postgres_scheduler.go:172-201"
+        - "apps/api/internal/scheduler/postgres_scheduler.go:223-228"
+        - "apps/api/internal/bot/pioneer_consumer.go:117-152"
+        - "apps/api/internal/bot/harvester_consumer.go:257-294"
+      cite: |
+        apps/api/internal/scheduler/postgres_scheduler.go L178-201 NOTE +
+        구현:
+          // NOTE (future context-support): the URLScheduler interface does
+          // not take a context.Context in this change's scope, so Dequeue
+          // blocks indefinitely until a claim succeeds or a DB error
+          // occurs. Graceful shutdown is the responsibility of a follow-up
+          // change that adds a context-taking overload; today, operators
+          // relying on worker restart must accept up to one pollInterval
+          // of quiescence before the process can exit.
+          func (s *PGURLScheduler) Dequeue(queueType QueueType) (string, error) {
+              ...
+              for {
+                  url, claimed, err := s.tryClaim(queueType)
+                  if err != nil { return "", err }
+                  if claimed { return url, nil }
+                  time.Sleep(s.pollIntervalOrDefault())
+              }
+          }
+
+        apps/api/internal/scheduler/postgres_scheduler.go L223-224 tryClaim
+        도 ctx 무시:
+          func (s *PGURLScheduler) tryClaim(queueType QueueType) (string, bool, error) {
+              ctx := context.Background()
+              tx, err := s.db.BeginTx(ctx, nil)
+              ...
+
+        apps/api/internal/bot/pioneer_consumer.go L117-152 Run 루프:
+          for {
+              if err := ctx.Err(); err != nil { return err }     // L124
+              rawURL, err := p.scheduler.Dequeue(scheduler.QueuePioneer)  // L127 — ctx 무시!
+              ...
+          }
+
+        cmd/bot/main.go L276 + L498 는 runCtx 를 `signal.NotifyContext`
+        로 SIGTERM 받게 wiring 했지만, Run 루프가 mid-Dequeue 일 때는
+        ctx.Err() 체크가 매 iteration 의 시작에만 fire → 빈 큐/throttled
+        상태에서는 Dequeue 가 영원 loop.
+
+        defaultPollInterval = 1 * time.Second (L27) — 정상 케이스는 worst
+        1s 지연이지만, tryClaim 의 BeginTx(context.Background()) 가 DB
+        block 시 (pool 고갈/네트워크 hang) ctx cancellation 없이 무한
+        대기.
+      repro: |
+        1. `docker-compose up -d` 후 pioneer_frontier 큐 비우기 (DELETE
+           FROM pioneer_frontier; — 또는 모든 row 의 next_pioneer_at 을
+           미래로 설정 / 모든 host 를 throttled 상태로).
+        2. `cd apps/api && HARVESTER_MODE=real go run cmd/bot pioneer` (단일
+           워커) 가동.
+        3. 워커는 tryClaim 가 (false, nil) 반환 → time.Sleep(1s) → 무한
+           재시도. 정상.
+        4. 별 터미널에서 `kill -TERM <PID>`. 관측: 워커가 즉시 종료하지
+           않고 다음 time.Sleep 종료까지 (최대 1s) 대기 → 그 다음
+           tryClaim 한 번 더 수행 → Dequeue 함수가 return 하지 않으면
+           ctx.Err() 체크 못 함 → 실제 종료는 다음 iteration top 에서.
+        5. 더 심각한 시나리오: tryClaim 의 db.BeginTx(context.Background())
+           가 connection pool 고갈/DB 슬로우 시 (예: maintenance window
+           중) 무한 대기 → k8s terminationGracePeriodSeconds (30s) 초과
+           → SIGKILL 강제 종료. 슬로우 DB 단계에서 lease 가 미해제 →
+           harvester_frontier/pioneer_frontier row 가 10분간 in-flight
+           상태로 stuck (lease duration L29 = 10m).
+      attack_surface: |
+        - 표면: pioneer / harvester 워커. cmd/bot 의 두 가지 subcommand
+          모두 동일 PGURLScheduler.Dequeue 의존.
+        - 영향: k8s 롤링 deploy 시 워커가 SIGTERM 후 즉시 종료 못함 →
+          terminationGracePeriodSeconds 안에 정상 종료 실패 → SIGKILL →
+          in-flight URL 의 lease 가 10분간 stuck → 워커 재시작 후 같은
+          URL 재처리 가능 (lease 만료 후) — 그러나 멱등성 보장이 있어
+          데이터 손상은 없음.
+        - 더 깊은 영향: tryClaim 의 db.BeginTx(context.Background()) 가
+          DB 슬로우 시 ctx 무관하게 무한 대기. 정상 운영 중에도 DB
+          maintenance 윈도우/network blip 동안 워커가 hang → k8s 가
+          SIGKILL 로 해결. 빈도 낮지만 sev 영향 큼.
+        - cmd/bot 가 이미 signal.NotifyContext 패턴을 적용한 것은 운영
+          이 SIGTERM 정상 처리를 기대한다는 강한 신호 — scheduler 가
+          그 신호를 받지 못하는 것이 wiring 결함.
+        - cycle 변경 범위가 URLScheduler 인터페이스 변경을 포함하므로
+          backward-compat 검토 필요. 권장 전략: 새 메서드
+          `DequeueCtx(ctx, queueType) (string, error)` 추가, 기존 `Dequeue`
+          는 호환을 위해 `DequeueCtx(context.Background(), queueType)`
+          wrapper 로 유지 (점진적 마이그레이션). 두 consumer 가 곧장
+          `DequeueCtx(runCtx, ...)` 호출하도록 갱신.
+        - anti-patterns L15 (인프라 deployment) 무매치 — application
+          code 의 graceful shutdown 결함.
+    qa_plan: |
+      실 환경 QA (Processing 모드 진입 시):
+      1. `cd apps/api && go vet ./... && go build ./... && go test ./...`
+         통과 사전 조건.
+      2. URLScheduler 인터페이스에 `DequeueCtx(ctx, queueType)` 추가
+         OR `Dequeue` 의 첫 인자에 ctx 추가 (둘 중 backward-compat
+         영향 적은 쪽 채택). tryClaim 의 `context.Background()` 도
+         전달받은 ctx 로 교체.
+      3. PGURLScheduler.Dequeue 의 `time.Sleep(...)` 를
+         `select { case <-ctx.Done(): return "", ctx.Err()
+                    case <-time.After(pollInterval): }` 로 교체.
+      4. pioneer_consumer.go / harvester_consumer.go 의 Dequeue 호출이
+         runCtx 전달하도록 갱신.
+      5. 회귀 단위 테스트: TestPGURLScheduler_Dequeue_RespectsCancelledCtx
+         — 빈 큐 시나리오에서 ctx 가 cancel 되면 즉시 (poll interval
+         미대기) ctx.Err() 반환.
+      6. 실 환경 QA:
+         (a) `docker-compose up -d` + pioneer_frontier 비우기.
+         (b) `cd apps/api && HARVESTER_MODE=real go run cmd/bot pioneer`
+             가동.
+         (c) `kill -TERM <PID>` 전송. 관측: 워커가 SIGTERM 후 ~수
+             ms 안에 정상 종료 (이전: 최대 1s 대기 + tryClaim 한 번
+             더 수행).
+         (d) `docker compose exec postgres psql -U fugue -d fugue -c
+             "SELECT count(*) FROM pioneer_frontier WHERE
+             in_flight_at IS NOT NULL"` 로 lease in-flight 잔존 0건
+             확인 (정상 종료 시 워커가 새 URL 잡지 않음).
+      7. 회귀: harvester 동등 시나리오. busy 큐 (정상 워크로드) 시나리오
+         에서 Dequeue 가 즉시 URL 반환하는 happy path 무변경 확인.
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: pending
+    note: |
+      변경 범위 (인터페이스 영향):
+        (a) URLScheduler interface 에 `DequeueCtx(ctx, queueType)` 추가
+            OR 기존 `Dequeue` 의 첫 인자에 ctx 추가. backward-compat
+            트레이드오프 검토 후 가장 보수적인 쪽 채택.
+        (b) PGURLScheduler.tryClaim 의 `context.Background()` 를 전달
+            받은 ctx 로 교체.
+        (c) PGURLScheduler.Dequeue 의 `time.Sleep(pollInterval)` 를
+            `select { case <-ctx.Done(): ... case <-time.After(...): }`
+            로 교체.
+        (d) pioneer_consumer.go / harvester_consumer.go Run 루프의
+            Dequeue 호출에 runCtx 전달.
+        (e) 회귀 단위 테스트 신규 — 빈 큐에서 ctx cancel 즉시 반환.
+
+      회귀 위험: URLScheduler interface 변경은 모든 사용처 갱신 필요
+      (cmd/bot/main.go 의 buildPioneerConsumer / buildHarvesterConsumer
+      등). 점진적 마이그레이션 (DequeueCtx 신규 메서드 우선 + 기존
+      Dequeue wrapper 유지) 권장.
+
+      anti-patterns L15 무매치 (application code 결함).
+      decision-log 의 명시적 사용자 결정 0건 — code 내부 NOTE 는
+      "follow-up change 가 처리" 로 deferral 만 명시했지 본 패턴을
+      유지하라는 결정은 아님.
