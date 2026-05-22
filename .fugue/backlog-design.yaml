@@ -2226,7 +2226,7 @@ items:
     risk: 1
     score: 16.0
     status: done
-    pr: PENDING
+    pr: 251
     note: "AddToBoardButton.tsx 4개 decorative SVG element 에 `aria-hidden=\"true\"` 1 attribute 추가(diff +4 -0, 4개 SVG 시작 줄에 1줄 신규 삽입): (a) L61 BoardIcon 함수의 svg(L28-34 Link 'visible text 보드에 추가' + L40-46 button '보드에 추가' 두 caller 모두 커버), (b) L253 close button(aria-label='닫기') 자식 svg, (c) L315 빈 board cover placeholder div 안 svg, (d) L398 '새 보드 만들기' button 자식 plus svg. 부모 control 의 aria-label/visible text 가 이미 accessible name 제공하므로 자식 SVG 는 SR 에서 hide. WCAG 2.1 SC 4.1.2 Name/Role/Value (Level A) + WAI-ARIA Icon Button 패턴 충족. in-codebase precedent: PinCard.tsx L65 (audio play span) · L98 (video play overlay div) + NavBar.tsx L16 (logo emoji div) + EmptyState.tsx L16 (mascot emoji div) + SearchBar.tsx L290 (pin media-type placeholder div). 시각 변경 0(aria-hidden 은 보조 기술 전용 속성). 부모 button/Link className · onClick · aria-label · 모달 열기/닫기/Tab trap/Esc 동작 · 보드 선택 핸들러 · 새 보드 생성 핸들러 모두 미변경. Ralph env 제약(node_modules 미설치)으로 step 7 실 브라우저 QA 는 grep verification(`grep -n 'aria-hidden' apps/web/src/components/board/AddToBoardButton.tsx` 4 matches at L61/L253/L315/L398) 으로 대체."
 
   - id: "design-20260522-a11y-searchbar-decorative-svg-aria-hidden-missing"
