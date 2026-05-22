@@ -36,6 +36,12 @@ type recordingQuerier struct {
 
 	pinCount int64
 
+	// Optional error injection for the silent-error log tests. Zero-value
+	// (nil) preserves the original "always succeeds" behaviour assumed by
+	// sibling pagination tests.
+	mtFreqErr error
+	mtRecsErr error
+
 	tagCalls    []db.RecommendByTagsParams
 	mtCalls     []db.RecommendByMediaTypeParams
 	latestCalls []db.ListPinsWithCreatorParams
@@ -50,6 +56,9 @@ func (r *recordingQuerier) GetUserTagFrequency(_ context.Context, _ db.GetUserTa
 }
 
 func (r *recordingQuerier) GetUserMediaTypeFrequency(_ context.Context, _ db.GetUserMediaTypeFrequencyParams) ([]db.GetUserMediaTypeFrequencyRow, error) {
+	if r.mtFreqErr != nil {
+		return nil, r.mtFreqErr
+	}
 	return r.mtFreq, nil
 }
 
@@ -60,6 +69,9 @@ func (r *recordingQuerier) RecommendByTags(_ context.Context, p db.RecommendByTa
 
 func (r *recordingQuerier) RecommendByMediaType(_ context.Context, p db.RecommendByMediaTypeParams) ([]db.RecommendByMediaTypeRow, error) {
 	r.mtCalls = append(r.mtCalls, p)
+	if r.mtRecsErr != nil {
+		return nil, r.mtRecsErr
+	}
 	return sliceRowsMT(r.allMT, int(p.Offset), int(p.Limit)), nil
 }
 

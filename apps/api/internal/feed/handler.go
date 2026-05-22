@@ -213,13 +213,24 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID
 		}
 	}
 
-	// Fallback: if tags produced insufficient results, try media-type-based
+	// Fallback: if tags produced insufficient results, try media-type-based.
+	// Errors from GetUserMediaTypeFrequency / RecommendByMediaType keep this
+	// branch fail-open (the caller has already produced a valid tag-based
+	// recRows slice, and L243 falls back to latest if recRows is still empty),
+	// but a silent discard hides DB degradation in the personalized path —
+	// operators can't distinguish "user has no media-type history" from
+	// "pin_interactions/pin_tags join is failing" until the
+	// recommended-vs-latest mix collapses to all-latest. Mirrors the
+	// additive-logging contract from this file's cache branches (L96 / L139)
+	// and the auth package silent-error series.
 	if len(recRows) < recLimit {
 		mtRows, err := h.q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
 			CreatorID: creatorID,
 			Limit:     3,
 		})
-		if err == nil && len(mtRows) > 0 {
+		if err != nil {
+			log.Printf("feed.buildPersonalizedFeed: GetUserMediaTypeFrequency error: %v (user=%s)", err, creatorID)
+		} else if len(mtRows) > 0 {
 			types := make([]string, 0, len(mtRows))
 			for _, mr := range mtRows {
 				types = append(types, mr.MediaType)
@@ -231,7 +242,9 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID
 				Limit:     deficit,
 				Offset:    int32(offset),
 			})
-			if err == nil {
+			if err != nil {
+				log.Printf("feed.buildPersonalizedFeed: RecommendByMediaType error: %v (user=%s)", err, creatorID)
+			} else {
 				for _, mr := range mtRecs {
 					recRows = append(recRows, db.RecommendByTagsRow(mr))
 				}
