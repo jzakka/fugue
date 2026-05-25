@@ -2414,4 +2414,6 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    pr: 271
+    note: "VideoThumbnailPicker.tsx L140 `aria-pressed={selected === i}` 추가(diff +1 -0). FieldFilter.tsx L36 + TagFilter.tsx L59 + PinsGrid.tsx L104 + SearchClient.tsx L242/L263 + PinCreateForm.tsx L571/L585/L607 6+ 위치 aria-pressed 라인업과 정합 회복. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) 충족 — 선택 상태(selected === i)가 SR 에 programmatic 하게 announce. 시각 회귀 0(aria-pressed 는 SR 전용 attribute). className · onClick · handleSelect callback · thumbnails state · ✓ overlay · img alt · loading spinner · spinner role=status aria-live=polite 등 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'aria-pressed' apps/web/src/components/pin/VideoThumbnailPicker.tsx` L140 1 match 확인으로 대체."
