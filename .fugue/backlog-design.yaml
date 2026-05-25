@@ -2376,4 +2376,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 267
+    note: "NavBar.tsx L44 Link className 에 `group` 추가 + L50 img className 에 `group-hover:border-accent group-focus-visible:border-accent transition-colors` 추가 + L53 div fallback className 에 동일 페어 추가 + L55 span className 에 `group-hover:text-accent group-focus-visible:text-accent transition-colors` 추가(diff +4 utilities, +4 -4 lines). pins/[id]/page.tsx L197-213 creator Link 패턴과 정합 회복. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정. 마우스 hover/키보드 focus 모두 avatar border 가 border-accent 로 변경 + 닉네임 text 가 text-accent 로 변경. avatar 없는 분기(div fallback `bg-gradient-to-br from-accent to-accent-hover`)도 동일 페어 적용 — 두 분기 모두 시각 일관성 회복. `hidden sm:block` nickname span 은 sm 미만 breakpoint 에선 미렌더이므로 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'group-hover:|group-focus-visible:|class.*\\bgroup\\b' apps/web/src/components/nav/NavBar.tsx` L44/L50/L53/L55 4 matches 확인으로 대체."
