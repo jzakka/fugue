@@ -41,18 +41,18 @@ export default async function NavBar() {
                 <Link
                   href="/mypage"
                   aria-label={user.nickname}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 group"
                 >
                   {user.avatar_url ? (
                     <img
                       src={user.avatar_url}
                       alt=""
-                      className="w-9 h-9 rounded-full border-2 border-border object-cover"
+                      className="w-9 h-9 rounded-full border-2 border-border object-cover group-hover:border-accent group-focus-visible:border-accent transition-colors"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border" />
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent-hover border-2 border-border group-hover:border-accent group-focus-visible:border-accent transition-colors" />
                   )}
-                  <span className="text-sm text-text-primary hidden sm:block">
+                  <span className="text-sm text-text-primary hidden sm:block group-hover:text-accent group-focus-visible:text-accent transition-colors">
                     {user.nickname}
                   </span>
                 </Link>
