@@ -568,6 +568,7 @@ export default function PinCreateForm() {
             <button
               type="button"
               onClick={() => setActiveCategory("")}
+              aria-pressed={activeCategory === ""}
               className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
                 activeCategory === ""
                   ? "bg-text-primary text-bg"
@@ -581,6 +582,7 @@ export default function PinCreateForm() {
                 key={cat}
                 type="button"
                 onClick={() => setActiveCategory(cat)}
+                aria-pressed={activeCategory === cat}
                 className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition-colors ${
                   activeCategory === cat
                     ? "bg-text-primary text-bg"
@@ -602,6 +604,7 @@ export default function PinCreateForm() {
                     type="button"
                     onClick={() => toggleTag(tag.id)}
                     disabled={!selected && selectedTagIds.size >= TAG_MAX_COUNT}
+                    aria-pressed={selected}
                     className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors font-mono ${
                       selected
                         ? "bg-accent text-white"
