@@ -7,9 +7,28 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"unicode/utf8"
 
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// maxListQueryRunes mirrors the sister handler search.Search
+// (`maxSearchQueryRunes = 200`, internal/search/handler.go) which capped
+// its `q` parameter at the upper length of `pins.title` (VARCHAR(200),
+// migration 000004_pivot_pins.up.sql) to keep unauthenticated,
+// un-rate-limited search endpoints from amplifying pattern-based SQL
+// matching. The same surface exists here: /api/tags is unauthenticated
+// and not rate-limited (cmd/server/main.go:138-139) and feeds the raw
+// query string into SearchTags (db/queries/tags.sql:15)
+// `WHERE name ILIKE '%' || $1 || '%' LIMIT 50`. LIMIT 50 only caps the
+// result set; per-row LIKE matching cost is amplified by pattern length
+// (postgres cannot use the GIN trigram index for a double-wildcard
+// pattern), so an unbounded q drives a full-scan match cost proportional
+// to len(q). 200 runes is the most spec-grounded bound — it matches the
+// sister cap and aligns with the project string-input convention
+// (creators.nickname 50, creators.avatar_url 500, pins.title 200,
+// pins.media_url 500, search.q 200).
+const maxListQueryRunes = 200
 
 type Handler struct {
 	q *db.Queries
@@ -31,6 +50,11 @@ type TagResponse struct {
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	query := r.URL.Query().Get("q")
+
+	if utf8.RuneCountInString(query) > maxListQueryRunes {
+		writeError(w, http.StatusBadRequest, "검색어는 200자 이내여야 합니다")
+		return
+	}
 
 	var tags []db.Tag
 	var err error
