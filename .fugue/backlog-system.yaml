@@ -4753,8 +4753,27 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
-  - id: system-20260522-og-fetch-body-and-url-no-length-cap
+    status: done
+    pr: 272
+    resolution: |
+      Cycle 98 Processing — `apps/api/internal/tag/handler.go` 에 자매
+      핸들러 `search.Search` (`maxSearchQueryRunes = 200`) 컨벤션을
+      정렬하는 `maxListQueryRunes = 200` cap 추가. List 진입부에
+      `utf8.RuneCountInString(query) > maxListQueryRunes` 가드 4줄 →
+      400 + "검색어는 200자 이내여야 합니다" (자매 메시지 정렬).
+      신규 `apps/api/internal/tag/handler_test.go` — 3 sub-test:
+      `TestList_QueryTooLong_ASCII` (201 rune → 400 + "200" 메시지),
+      `TestList_QueryTooLong_Korean` (201 한국어 rune → 400, byte-vs-rune
+      카운트 정확성), `TestList_QueryAtMaxLength_KoreanBoundary` (200
+      한국어 rune → 가드 통과, nil *db.Queries 진입 panic 으로 boundary
+      inclusive 검증). 실 환경 QA (8080 라이브 서버 + Postgres SSH tunnel
+      + seed 2 tags): T1 happy(4건 200 정상 응답) · T2 fail(201 ASCII /
+      201 한국어 / 100KB ASCII 모두 400, 100KB 응답시간 < 50ms — DB
+      미진입 사전 차단 확인) · T3 boundary(200 ASCII/200 한국어 200) ·
+      회귀(/api/tags/popular 200, /api/search 200, 빈 q → ListTags
+      default 분기 200 기존 동작 보존). 전체 `go test ./...` 591 passed
+      / 23 packages. import `unicode/utf8` 추가, 외부 API/스키마 비변경.
+      PR #272.
     title: "/api/og/fetch 의 요청 본문 + req.URL 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 그대로 decode 하고 req.URL 도 사전 길이 검증 없이 로그·http.NewRequest·Service.Fetch 로 흘러감. pin.Create (500MB MaxBytesReader) 와 pins.media_url (500 rune) 컨벤션이 정립한 사전 차단 정책의 잔존 갭"
     area: security
     evidence:
