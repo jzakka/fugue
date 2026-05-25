@@ -2396,4 +2396,6 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    pr: 269
+    note: "PinCreateForm.tsx L571(`aria-pressed={activeCategory === \"\"}`) + L585(`aria-pressed={activeCategory === cat}`) + L607(`aria-pressed={selected}`) 3 attribute 추가(diff +3 -0). FieldFilter.tsx L36 + PinsGrid.tsx L104 + TagFilter.tsx L59 + SearchClient.tsx L242/L263 5+ 위치 aria-pressed 라인업과 정합 회복. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) 충족 — 선택 상태(activeCategory · selectedTagIds.has(tag.id))가 SR 에 programmatic 하게 announce. 시각 회귀 0(aria-pressed 는 SR 전용 attribute). className · onClick · disabled · TAG_MAX_COUNT 제한 · toggleTag callback · 인접 input/handler 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'aria-pressed' apps/web/src/app/pin/new/PinCreateForm.tsx` L571/L585/L607 3 matches 확인으로 대체."
