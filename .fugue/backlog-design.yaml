@@ -2379,3 +2379,21 @@ items:
     status: done
     pr: 267
     note: "NavBar.tsx L44 Link className 에 `group` 추가 + L50 img className 에 `group-hover:border-accent group-focus-visible:border-accent transition-colors` 추가 + L53 div fallback className 에 동일 페어 추가 + L55 span className 에 `group-hover:text-accent group-focus-visible:text-accent transition-colors` 추가(diff +4 utilities, +4 -4 lines). pins/[id]/page.tsx L197-213 creator Link 패턴과 정합 회복. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정. 마우스 hover/키보드 focus 모두 avatar border 가 border-accent 로 변경 + 닉네임 text 가 text-accent 로 변경. avatar 없는 분기(div fallback `bg-gradient-to-br from-accent to-accent-hover`)도 동일 페어 적용 — 두 분기 모두 시각 일관성 회복. `hidden sm:block` nickname span 은 sm 미만 breakpoint 에선 미렌더이므로 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'group-hover:|group-focus-visible:|class.*\\bgroup\\b' apps/web/src/components/nav/NavBar.tsx` L44/L50/L53/L55 4 matches 확인으로 대체."
+
+  - id: "design-20260526-a11y-pincreateform-selectable-buttons-aria-pressed-missing"
+    title: "PinCreateForm 의 3종 선택 button group(전체/카테고리 토글 + 태그 chip 다중 선택)이 `aria-pressed` 누락 — 선택 상태가 SR 에 전달 안됨(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · 디자인 시스템 선택 상태 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:568-578"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:580-592"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:600-613"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) — 'For all user interface components ... states, properties, and values that can be set by the user can be programmatically determined.' PinCreateForm.tsx 의 3개 button group 모두 선택 상태를 className 으로만 표시(`activeCategory === \"\"` 분기, `activeCategory === cat` 분기, `selectedTagIds.has(tag.id)` 분기 — 각각 `bg-text-primary text-bg` 또는 `bg-accent text-white` vs `bg-surface ...` 또는 `bg-accent-subtle ...`)하고 SR 발화는 button label 만 — 어느 chip 이 선택돼 있는지 키보드/SR 사용자는 판별 불가. in-codebase 선택 상태 announce 라인업: FieldFilter.tsx L36 `aria-pressed={current === mt.value}`(media_type 단일 선택 탭) + PinsGrid.tsx L104 `aria-pressed={activeType === mt.value}`(media_type 단일 선택 탭) + TagFilter.tsx L59 `aria-pressed={selected}`(태그 다중 선택 chip) + SearchClient.tsx L242 `aria-pressed={activeType === tab.value}`(검색 결과 카테고리 탭) + SearchClient.tsx L263 `aria-pressed={selected}`(검색 결과 top tag chip) — 5+ 위치에 aria-pressed 패턴 확립. PinCreateForm 3개 button group 만 본 패턴 누락. L600 태그 chip 은 TagFilter.tsx L59 와 정확히 동일 동작(다중 선택, selected boolean) — TagFilter 가 적용한 `aria-pressed={selected}` 가 그대로 적용 가능. L568/L580 카테고리 button 은 SearchClient.tsx L242 / FieldFilter.tsx L36 / PinsGrid.tsx L104 와 동일 동작(상호 배타 단일 선택) — 같은 패턴 `aria-pressed={activeCategory === \"\" }` / `aria-pressed={activeCategory === cat}` 적용. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 attribute 3개 위치 추가만(diff +3 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /pin/new 진입 → 미디어 업로드/url 입력 후 태그 선택 영역 표시. 3) (마우스/시각) 카테고리 button 클릭 → `bg-text-primary text-bg` 적용(선택 상태 시각화). 4) (키보드/SR) 같은 button 에 Tab focus + SR 발화 → button label 만, 'pressed' 또는 'not pressed' 상태 announce 0. 5) 태그 chip toggle 동작도 동일 — `bg-accent text-white`(선택) vs `bg-accent-subtle ...`(비선택) 시각만, SR 선택 상태 announce 0. 6) `grep -nE 'aria-pressed' apps/web/src/app/pin/new/PinCreateForm.tsx` 0 matches. 7) 대조: `grep -nE 'aria-pressed' apps/web/src/components/feed/FieldFilter.tsx apps/web/src/components/feed/TagFilter.tsx apps/web/src/components/profile/PinsGrid.tsx apps/web/src/app/search/SearchClient.tsx` 5 matches."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pin/new 진입 → 태그 선택 영역 표시. 3) Tab 으로 카테고리 button focus + SR(VoiceOver/NVDA) 활성 → '전체, button, not pressed' 또는 '<카테고리>, button, not pressed' 발화. 4) 카테고리 button 클릭 → 같은 button focus 시 '... pressed' 발화 + 인접 카테고리 button focus 시 'not pressed' 발화. 5) 태그 chip 도 동일 — 클릭으로 selected 상태 toggle 시 'pressed'/'not pressed' 발화 toggle. 6) 시각 회귀 0(aria-pressed 는 SR 전용 attribute). 7) toggleTag callback · activeCategory state · TAG_MAX_COUNT 제한 · disabled chip 등 동작 모두 회귀 0."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
