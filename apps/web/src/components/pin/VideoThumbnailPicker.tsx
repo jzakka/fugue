@@ -137,6 +137,7 @@ export default function VideoThumbnailPicker({
             key={i}
             type="button"
             onClick={() => handleSelect(i)}
+            aria-pressed={selected === i}
             className={`relative flex-1 aspect-video rounded-[6px] overflow-hidden border-2 transition-colors cursor-pointer ${
               selected === i ? "border-accent" : "border-border hover:border-accent/50 focus-visible:border-accent/50"
             }`}
