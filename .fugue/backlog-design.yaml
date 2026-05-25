@@ -2361,3 +2361,19 @@ items:
     status: done
     pr: 265
     note: "FeedContainer.tsx L229 noscript 다음 페이지 anchor className 에 `focus-visible:text-text-primary` 1 utility 추가(diff +1 -1, `hover:text-text-primary` 뒤). 같은 파일 다른 anchor 2건(L168 · L199 `hover:underline focus-visible:underline` 페어)과 인접 일관성 회복. WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) 충족. 토큰/공개 컴포넌트 API 비변경, JSX 구조 미수정. JS 비활성 환경(noscript 분기) 키보드 사용자에게 hover 동일 색 강조 적용 — JS 활성(99%+) 사용자는 anchor 미렌더이므로 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'hover:|focus-visible:' apps/web/src/components/feed/FeedContainer.tsx` L229 의 `hover:text-text-primary` 와 `focus-visible:text-text-primary` 동시 보유 확인 + 인접 anchor 2건(L168/L199) 페어 유지 + 본 anchor 외 JSX/handler 미변경 검증으로 대체."
+
+  - id: "design-20260525-a11y-navbar-mypage-link-hover-focus-parity-missing"
+    title: "NavBar /mypage 프로필 Link 가 hover/focus 시각 피드백 부재 — pins/[id]/page.tsx L197-213 creator Link 의 `group group-hover:border-accent group-focus-visible:border-accent` 패턴과 비대칭(WCAG 2.1 SC 2.4.7 Focus Visible Level AA · 디자인 시스템 hover/focus parity)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:41-58"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.' NavBar.tsx L41-58 `/mypage` Link 는 `aria-label={user.nickname}` 로 accessible name 제공하나 className `flex items-center gap-2` 만 보유 — hover/focus 시각 피드백 0. 같은 NavBar 의 인접 컨트롤 라인업: L33-38 + 핀 생성 Link (`hover:bg-accent-hover focus-visible:bg-accent-hover`) · L39 ThemeToggle (자체 `hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent`) · L59 LogoutButton (`hover:text-text-primary focus-visible:text-text-primary`) · L65-70 로그인 Link (`hover:border-accent focus-visible:border-accent`) — 모두 hover/focus 페어. 본 Link 만 페어 0. pins/[id]/page.tsx L197-213 creator Link 가 정확히 동일 구조(Link + avatar img/div fallback + nickname text)로 `className=\"flex items-center gap-3 group\"` + img/div fallback 의 `group-hover:border-accent group-focus-visible:border-accent transition-colors` + span 의 `group-hover:text-accent group-focus-visible:text-accent transition-colors` 페어 보유. NavBar Link 만 본 패턴 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, utility 추가만(Link `group` + img/div fallback border-accent 페어 + span text-accent 페어 + transition-colors)."
+      repro: "1) cd apps/web && npm run dev. 2) 로그인 상태로 모든 페이지 진입 → NavBar 우측 프로필 영역 표시. 3) (마우스) NavBar 프로필 아바타/닉네임 위 hover → 시각 변화 0(cursor pointer 만). 4) (키보드) Tab 으로 NavBar 컨트롤 통과 → + 핀 생성(hover/focus 페어 보유) → ThemeToggle(자체 페어 보유) → 프로필 Link focus 도달 → 변화 0(브라우저 default outline 만, border/text 색 변화 없음) → LogoutButton(페어 보유). 5) 인접 컨트롤(SearchBar / 핀 생성 / ThemeToggle / LogoutButton / 로그인 Link)와 비대칭. 6) `grep -nE 'hover:|focus-visible:' apps/web/src/components/nav/NavBar.tsx` L34-35 + 핀 생성 + L67 로그인 Link 만 매칭 — /mypage Link L41-58 영역 매칭 0."
+    qa_plan: "1) cd apps/web && npm run dev. 2) 로그인 상태로 / 진입 → NavBar 프로필 Link 표시. 3) Tab 으로 NavBar 컨트롤 통과 → 프로필 Link focus 도달 → avatar border 가 `border-accent` 로 변경 + 닉네임 text 가 `text-accent` 로 변경 확인. 4) Shift+Tab 으로 이전 컨트롤 복귀 → 원복(border-border + text-text-primary) 확인. 5) 마우스 hover 시 동일 시각 변경 확인. 6) avatar 없는 분기(div fallback `bg-gradient-to-br from-accent to-accent-hover`)도 hover/focus 시 border-accent 변경 확인. 7) 인접 NavBar 컨트롤(+ 핀 생성 / ThemeToggle / LogoutButton) 회귀 0. 8) `hidden sm:block` nickname span 의 hover/focus text-accent 가 sm 미만 breakpoint 에선 미렌더(span 자체 hidden)로 영향 0."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
