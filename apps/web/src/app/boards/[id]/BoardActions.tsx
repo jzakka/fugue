@@ -93,6 +93,7 @@ export default function BoardActions({
           <button
             onClick={handleSave}
             disabled={saving}
+            aria-busy={saving}
             className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? "저장 중..." : "저장"}
