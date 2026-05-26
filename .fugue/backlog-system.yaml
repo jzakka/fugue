@@ -5020,7 +5020,34 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 283
+    resolution: |
+      Cycle 101 (2026-05-26): apps/api/internal/creator/handler.go 에
+      `updateMeRequestBodyCap = 8 * 1024` 상수 도입 + UpdateMe 진입부에
+      `r.Body = http.MaxBytesReader(w, r.Body, updateMeRequestBodyCap)` +
+      decoder 에러 분기에 `var maxBytesErr *http.MaxBytesError;
+      errors.As(err, &maxBytesErr)` → 400 "요청 본문이 너무 큽니다".
+      cycle 99 og/handler.go:71 (PR #275) 자매 컨벤션과 동일 8KB cap.
+
+      신규 단위 테스트 2건 (creator/handler_test.go):
+        - TestUpdateMe_BodyTooLarge: valid-prefix JSON `{"nickname":"<padding>"}`
+          를 cap+1 byte 로 구성 → 400 + "본문" 메시지 + mock.lastUpdate
+          zero 검증(UpdateCreator 미호출).
+        - TestUpdateMe_BodyAtCap: cap-1 byte body 에 >50 rune nickname
+          padding → cap 통과 후 기존 rune cap 까지 도달했음을 입증
+          (400 "닉네임은 50자를 초과할 수 없습니다").
+      go test ./... 597 pass (이전 595 + 신규 2).
+
+      실환경 QA (PID 99167, creator 11111111-1111-1111-1111-111111111111):
+        - T0: GET /api/creators/me → 200 (qa-cycle10b 확인).
+        - T1: PUT 정상 nickname → 200, DB 반영 확인.
+        - T2(16KB body): 400 "요청 본문이 너무 큽니다" ✓.
+        - T2(cap-byte body=8192): cap 통과 → 기존 nickname rune cap 으로
+          400 "닉네임은 50자를 초과할 수 없습니다" (≤cap 보수 동작 일관).
+        - T3(51 rune nickname): 400 "닉네임은 50자를 초과할 수 없습니다" 유지.
+        - T4: avatar_url 포함 정상 update → 200.
+      QA 후 creator 상태 원복(qa-cycle10b).
 
   - id: system-20260526-boards-handlers-no-body-cap
     title: "POST /api/boards · PUT /api/boards/{id} · POST /api/boards/{id}/pins 의 JSON 본문 길이 상한 없음 — 3개 핸들러 모두 json.NewDecoder 가 unbounded r.Body 를 decode. name(100)·description(500) post-decode cap 은 있지만 decoder buffer 사전 차단 정책 갭"
