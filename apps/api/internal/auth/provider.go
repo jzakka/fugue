@@ -11,6 +11,29 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// maxUserInfoBytes caps the OAuth provider userinfo response body read.
+// Sister-convention pattern from every other external HTTP body read in
+// this codebase: og/service.go:44 (`maxResponseBytes = 1<<20`, 1 MB),
+// bot/robots_filter.go:51 (`robotsBodyMaxBytes = 512 KiB`),
+// bot/snapshot/reader.go:87 (`maxCompressedSize = 10 MB`),
+// bot/helpers.go (LimitReader wrapper), bot/pioneer_consumer.go,
+// bot/media_validator.go — all wrap `resp.Body` with `io.LimitReader`
+// before `io.ReadAll`. The two callers below (Google FetchProfile L69 +
+// Discord FetchProfile L144) were the only outliers using a bare
+// `io.ReadAll(resp.Body)` and could let a misbehaving provider OOM the
+// auth callback handler.
+//
+// Normal Google/Discord userinfo bodies carry id + email + name +
+// avatar URL + a verified flag, all well under 1 KB in practice. 64 KB
+// gives a ~60x safety margin over the largest realistic profile
+// payload (a maximally padded RFC 6068 mailto: string + a CDN avatar URL +
+// a unicode display name + a small `RawProfile` JSON envelope are still
+// in the low single-digit KB range) while keeping the unbounded surface
+// closed. The cap is intentionally smaller than og's 1 MB (which has to
+// hold whole HTML <head> sections) because userinfo is a tight JSON
+// shape, not a document.
+const maxUserInfoBytes = 64 * 1024
+
 // UserProfile is the normalized profile extracted from an OAuth provider.
 type UserProfile struct {
 	ProviderID    string
@@ -66,7 +89,7 @@ func (p *GoogleProvider) FetchProfile(ctx context.Context, token *oauth2.Token) 
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxUserInfoBytes))
 	if err != nil {
 		return nil, fmt.Errorf("read google response: %w", err)
 	}
@@ -141,7 +164,7 @@ func (p *DiscordProvider) FetchProfile(ctx context.Context, token *oauth2.Token)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxUserInfoBytes))
 	if err != nil {
 		return nil, fmt.Errorf("read discord response: %w", err)
 	}
