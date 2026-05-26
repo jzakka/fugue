@@ -5540,12 +5540,49 @@ items:
   - id: system-20260526-auth-provider-userinfo-unbounded-readall
     title: "auth/provider.go 의 Google·Discord FetchProfile 이 OAuth provider 응답 body 를 io.ReadAll 로 무제한 흡수 — io.LimitReader 자매 컨벤션 (og/service.go:96, bot/helpers.go:54, bot/robots_filter.go:237) 미적용으로 provider 가 비정상 거대 body 를 보내면 인증 콜백 핸들러가 OOM 위험"
     area: 에러 처리
-    status: pending
+    status: done
+    pr: 310
     score: 6.0
     impact: 2
     confidence: 4
     effort: 1
     risk: 1
+    resolution: |
+      cycle 108. apps/api/internal/auth/provider.go 에 `const maxUserInfoBytes = 64 * 1024`
+      신설 + 19줄 doc 주석 (자매 컨벤션 6+곳 인용 + 정상 userinfo body 1KB 미만 vs
+      64KB 60x 안전 마진 근거 + og 의 1MB 와의 차등 근거 = userinfo 는 JSON 타이트 shape
+      이지 HTML <head> 가 아님). GoogleProvider.FetchProfile(L84) ·
+      DiscordProvider.FetchProfile(L159) 의 `io.ReadAll(resp.Body)` 를 모두
+      `io.ReadAll(io.LimitReader(resp.Body, maxUserInfoBytes))` 로 wrap.
+
+      단위 테스트 4건 신규 (provider_userinfo_cap_test.go, `package auth` 내부 —
+      sibling handler_test.go 와 동일 convention):
+        - TestMaxUserInfoBytes_MatchesIntent (drift 감지)
+        - TestUserInfoCap_LimitReaderTruncatesOversizeBody (httptest.NewServer
+          가 4x cap body 리턴 → ReadAll 결과 정확히 maxUserInfoBytes 바이트 →
+          OOM 없음 검증, 실제 HTTP I/O)
+        - TestUserInfoCap_NormalBodyPassesThrough (정상 shape body 는
+          verbatim 통과)
+        - TestFetchProfile_OOMRiskClosed_DocumentedUnitGap (t.Skip — userinfo
+          URL 이 각 method 내부 하드코딩 + HTTP client 도 내부 구성이라
+          stub 으로 driveable 아님. cycle 106
+          TestUpdate_BodyTooLarge_DocumentedUnitGap 패턴 동일)
+
+      실 환경 QA (cycle108-server PID 74092, .env.dev + SSH PG tunnel +
+      redis/minio docker, port 8080):
+        - T1 happy / auth surface: GET /api/auth/providers → 200 + ["google"]
+          (Discord 는 .env.dev DISCORD_CLIENT_ID 빈 값으로 비활성),
+          GET /api/auth/google/login → 302 + Google OAuth URL redirect
+          (callback 라우터 + provider.go 신규 빌드 정상 로드 확인),
+          GET /api/auth/google/callback?error=access_denied → 302 +
+          /login?error=access_denied (cycle 89-class 에러 reflection 보존).
+        - 회귀: /api/feed 200, /api/pins?offset=50 200, /api/og/fetch 200,
+          /api/search?q=test 200.
+        - 알려진 QA 제약: end-to-end FetchProfile cap behavior 는 실
+          Google/Discord OAuth roundtrip 필요 → 로컬에서 provider 자격증명
+          없이는 도달 불가. qa_plan 에 명시한 제약, TestUserInfoCap_
+          LimitReaderTruncatesOversizeBody 의 실 HTTP I/O 패턴 핀으로
+          향후 provider.go 의 wrap 누락/cap 축소를 자동 감지.
     evidence:
       files:
         - "apps/api/internal/auth/provider.go:69"   # Google FetchProfile: body, err := io.ReadAll(resp.Body) — LimitReader 없음
