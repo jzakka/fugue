@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -15,6 +16,18 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// updateMeRequestBodyCap caps the JSON request body for PUT /api/creators/me.
+// The body schema is `{"nickname":"...","avatar_url":"..."}` where nickname
+// is post-decode capped at 50 runes and avatar_url at 500 runes (≤ 4
+// bytes/rune × 550 + JSON envelope ≈ 2.2 KB). 8 KB is generous yet cuts
+// the unbounded surface. Sister convention: og/handler.go:71
+// (`ogRequestBodyCap = 8 * 1024`, cycle 99 PR #275) for small JSON
+// bodies; pin/handler.go:82 (500 MB) for multipart video uploads. The
+// done item `system-20260515-pin-create-no-request-body-cap` (PR #149)
+// reasoning option B explicitly identified small-body routes needing
+// their own smaller cap as a follow-up; this is part of that follow-up.
+const updateMeRequestBodyCap = 8 * 1024
 
 // maxPublicProfileBoards is the upper bound on the number of public boards
 // included in the public profile response's `boards` array.
@@ -153,8 +166,14 @@ func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, updateMeRequestBodyCap)
 	var req updateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}

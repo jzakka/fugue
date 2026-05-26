@@ -237,6 +237,78 @@ func TestUpdateMe_EmptyNickname(t *testing.T) {
 	}
 }
 
+// TestUpdateMe_BodyTooLarge verifies http.MaxBytesReader pre-empts the JSON
+// decoder before any large body is buffered into heap. The body is
+// valid-prefix JSON — `{"nickname":"<padding>"}` where padding pushes the
+// total past updateMeRequestBodyCap — so the decoder is forced to read
+// past the cap (an all-garbage body would fail syntax-first and never
+// exercise the cap). The mock querier is unused because the body cap
+// rejects before UpdateCreator (or GetCreator) is invoked.
+func TestUpdateMe_BodyTooLarge(t *testing.T) {
+	mock := &mockQuerier{creator: sampleCreator()}
+	h := NewHandlerWithQuerier(mock)
+
+	prefix := []byte(`{"nickname":"`)
+	suffix := []byte(`"}`)
+	padding := bytes.Repeat([]byte("a"), updateMeRequestBodyCap+1-len(prefix)-len(suffix))
+	body := append(append(append([]byte{}, prefix...), padding...), suffix...)
+	if len(body) <= updateMeRequestBodyCap {
+		t.Fatalf("test setup: body must exceed cap (%d), got %d", updateMeRequestBodyCap, len(body))
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for body %d bytes (cap=%d), got %d; body=%s",
+			len(body), updateMeRequestBodyCap, rec.Code, rec.Body.String())
+	}
+	if msg := decodeUpdateMeError(t, rec); !strings.Contains(msg, "본문") {
+		t.Errorf("error message should reference body size, got %q", msg)
+	}
+	if (mock.lastUpdate != db.UpdateCreatorParams{}) {
+		t.Errorf("UpdateCreator must not be called when body cap rejects; lastUpdate=%+v", mock.lastUpdate)
+	}
+}
+
+// TestUpdateMe_BodyAtCap verifies cap-1 byte body passes the MaxBytesReader
+// guard and reaches the post-decode rune-cap checks (50 for nickname). A
+// 400 here for the wrong reason ("요청 본문이 너무 큽니다") would indicate
+// the body cap is off-by-one. Since the test body has a >50-rune nickname,
+// it reaches the existing nickname rune cap and returns the 닉네임 50자
+// error — which proves the body cap let it through to the rune check.
+func TestUpdateMe_BodyAtCap(t *testing.T) {
+	mock := &mockQuerier{creator: sampleCreator()}
+	h := NewHandlerWithQuerier(mock)
+
+	prefix := []byte(`{"nickname":"`)
+	suffix := []byte(`"}`)
+	padding := bytes.Repeat([]byte("a"), updateMeRequestBodyCap-1-len(prefix)-len(suffix))
+	body := append(append(append([]byte{}, prefix...), padding...), suffix...)
+	if len(body) != updateMeRequestBodyCap-1 {
+		t.Fatalf("test setup: body must be exactly cap-1 (%d), got %d", updateMeRequestBodyCap-1, len(body))
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/creators/me", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withCreatorID(req, testCreatorID)
+	rec := httptest.NewRecorder()
+
+	h.UpdateMe(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 (rune cap), got %d; body=%s", rec.Code, rec.Body.String())
+	}
+	msg := decodeUpdateMeError(t, rec)
+	if msg != "닉네임은 50자를 초과할 수 없습니다" {
+		t.Fatalf("body at cap-1 should reach nickname rune cap; got error %q (expected 닉네임 50자 메시지 — '요청 본문이 너무 큽니다' would mean cap is off-by-one)", msg)
+	}
+}
+
 func TestUpdateMe_Unauthorized(t *testing.T) {
 	mock := &mockQuerier{}
 	h := NewHandlerWithQuerier(mock)
