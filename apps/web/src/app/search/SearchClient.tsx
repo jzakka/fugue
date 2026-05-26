@@ -277,11 +277,13 @@ export default function SearchClient({
 
       {/* Loading state */}
       {loadingTab && (
-        <MasonryGrid>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
-        </MasonryGrid>
+        <div role="status" aria-label="검색 결과 로딩 중">
+          <MasonryGrid>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </MasonryGrid>
+        </div>
       )}
 
       {/* Results */}
