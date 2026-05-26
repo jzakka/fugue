@@ -3,6 +3,7 @@ package interaction
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -11,6 +12,20 @@ import (
 	"github.com/chungsanghwa/fugue/apps/api/internal/auth"
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 )
+
+// createRequestBodyCap caps the JSON request body for POST /api/interactions.
+// Body schema is `{"pin_id":"<uuid>","type":"view|pin|board_add"}` — pin_id
+// is 36 chars (UUID) and type is at most 9 chars, so normal bodies are ~60
+// bytes. 8 KB leaves ~130× safety margin while cutting the unbounded
+// surface. Sister convention: og/handler.go:71 (`ogRequestBodyCap = 8 *
+// 1024`, cycle 99 PR #275) for small JSON bodies; creator/handler.go:30
+// (`updateMeRequestBodyCap = 8 * 1024`, cycle 101 PR #283) for small
+// profile-update bodies; pin/handler.go:82 (500 MB) for multipart video
+// uploads. The done item `system-20260515-pin-create-no-request-body-cap`
+// (PR #149) reasoning option B explicitly identified small-body routes
+// needing their own smaller cap as a follow-up; this is part of that
+// follow-up.
+const createRequestBodyCap = 8 * 1024
 
 type Handler struct {
 	database *sql.DB
@@ -35,8 +50,14 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, createRequestBodyCap)
 	var req createInteractionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}

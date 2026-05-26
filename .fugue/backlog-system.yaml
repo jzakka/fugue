@@ -5207,4 +5207,36 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 285
+    resolution: |
+      Cycle 102 (2026-05-26): apps/api/internal/interaction/handler.go 에
+      `createRequestBodyCap = 8 * 1024` 상수 도입 + Create 진입부에
+      `r.Body = http.MaxBytesReader(w, r.Body, createRequestBodyCap)` +
+      decoder 에러 분기에 `var maxBytesErr *http.MaxBytesError;
+      errors.As(err, &maxBytesErr)` → 400 "요청 본문이 너무 큽니다".
+      cycle 99 og/handler.go:71 (PR #275) · cycle 101 creator/handler.go:30
+      (PR #283) 자매 컨벤션과 동일 8KB cap (정상 ~60B 본문 대비 ~130×
+      안전 마진).
+
+      신규 단위 테스트 2건 (interaction/handler_test.go):
+        - TestCreate_BodyTooLarge: valid-prefix JSON `{"pin_id":"<padding>"...}`
+          를 cap+1 byte 로 구성 → 400 + "본문" 메시지. nil database
+          Handler 로 db.New 미진입 입증.
+        - TestCreate_BodyAtCap: cap 안의 정상 크기 body 에 type="like"
+          (whitelist 외) 사용 → cap 통과 후 기존 type whitelist 분기
+          도달 (400 "유효하지 않은 인터랙션 타입입니다 (view, pin,
+          board_add)").
+      go test ./... 599 pass (이전 597 + 신규 2).
+
+      실환경 QA (PID 20274, creator 11111111-..., pin 44444444-...):
+        - T1a/b/c happy 3종(view·pin·board_add) → 201 + DB 3 row 적재
+          확인.
+        - T2 16KB body → 400 "요청 본문이 너무 큽니다" ✓.
+        - T3a 8192 byte (=cap) body → cap 통과 → 기존 uuid.Parse fail
+          400 "유효하지 않은 핀 ID입니다" (≤cap 보수 동작 일관).
+        - T3b 8193 byte (cap+1) → 400 "요청 본문이 너무 큽니다" ✓.
+        - 회귀: invalid type "like" → 400 유지, non-uuid pin_id → 400
+          유지, JWT 없음 → 401 유지.
+        - 인접 회귀: GET /api/feed → 200 (untouched).
+      QA 후 interactions 3 row DELETE 원복.
