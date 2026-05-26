@@ -369,7 +369,14 @@ export default function PinCreateForm() {
                 </span>
               </div>
               {optimizeProgress && (
-                <div className="w-full bg-border rounded-full h-2">
+                <div
+                  role="progressbar"
+                  aria-valuenow={Math.round(optimizeProgress.progress)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="파일 최적화 진행률"
+                  className="w-full bg-border rounded-full h-2"
+                >
                   <div
                     className="bg-accent h-2 rounded-full transition-all duration-300"
                     style={{ width: `${optimizeProgress.progress}%` }}
