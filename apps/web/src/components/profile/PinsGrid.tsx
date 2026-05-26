@@ -115,7 +115,7 @@ export default function PinsGrid({
 
       {/* Grid */}
       {loading && pins.length === 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div role="status" aria-label="작품 로딩 중" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
