@@ -5447,6 +5447,7 @@ items:
     title: "GET /api/feed 의 cursor base64 디코드 후 추출한 offset 값 상한 가드 누락 — pin.List(handler.go:568)의 자매 컨벤션 `o > 0 && o <= 100000`을 미적용. cursor 는 클라이언트 제공이라 위조 가능"
     area: security
     status: done
+    pr: 303
     score: 6.0
     impact: 3
     confidence: 5
