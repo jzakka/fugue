@@ -70,10 +70,13 @@ export default async function SearchPage({ searchParams }: Props) {
             />
           </Suspense>
         ) : (
-          <EmptyState
-            message="검색어를 입력해주세요"
-            description="작품, 크리에이터, 보드를 검색할 수 있습니다"
-          />
+          <>
+            <h1 className="sr-only">검색</h1>
+            <EmptyState
+              message="검색어를 입력해주세요"
+              description="작품, 크리에이터, 보드를 검색할 수 있습니다"
+            />
+          </>
         )}
       </main>
     </>
