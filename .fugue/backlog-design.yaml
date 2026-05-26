@@ -2561,3 +2561,19 @@ items:
     status: done
     pr: 290
     note: "apps/web/src/app/search/page.tsx L72-79 EmptyState 위에 `<h1 className=\"sr-only\">검색</h1>` 추가(diff +7 -4, h1 1줄 + Fragment 래퍼 `<>...</>` 2줄, 기존 EmptyState 들여쓰기 변경 4줄). /search?q= empty-state 분기에서만 mount — q-truthy 분기(SearchClient L232 `<h1>\"{q}\" 검색 결과</h1>`)는 미영향. WCAG 2.1 SC 1.3.1 Info & Relationships (Level A) + SC 2.4.6 Headings & Labels (Level AA) 충족. in-codebase sr-only h1 패턴(`apps/web/src/app/page.tsx` L87 '작품 피드')와 동일. 시각 회귀 0(sr-only Tailwind utility — clip + absolute position, SR 전용). EmptyState 컴포넌트 미수정 → BoardSection/PinsGrid 등 다른 EmptyState 사용처 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE '<h1' apps/web/src/app/search/page.tsx` L74 1 match 확인(was 0) + 다른 모든 페이지 h1 보유 라인업 확인으로 대체."
+
+  - id: "design-20260526-a11y-feedcontainer-initial-skeleton-status-missing"
+    title: "FeedContainer 초기 skeleton 로딩 분기에 `role=\"status\"` + `aria-label` 누락 — SR 사용자에게 작품 로딩 중 announce 0(WCAG 2.1 SC 4.1.3 Status Messages Level AA · in-codebase role=status loading 패턴)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:151-161"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.' FeedContainer.tsx L151-161 의 초기 로딩 분기 — `loading && pins.length === 0` 일 때 `<div className=\"px-6\"><MasonryGrid>{...CardSkeleton x 8}</MasonryGrid></div>` 만 렌더하고 role/aria-label 0. CardSkeleton(`apps/web/src/components/feed/CardSkeleton.tsx` L1-18) 자체는 시각 시멘틱 shimmer placeholder 라 aria 보강 없음. → 필터 변경(media_type · tags) 직후 reloadPins() 호출되어 pins=[] + loading=true 진입 시 SR 사용자에게 'loading' 발화 0, 화면 변경 인지 불가. in-codebase role=status loading announce 패턴 확립: 동일 FeedContainer.tsx L214-222 후속 로딩(`role=\"status\" aria-label=\"추가 작품 로딩 중\"`) + LoadMorePins.tsx L43-44 + SearchBar.tsx L248-255(`aria-label=\"검색 결과 로딩 중\"`) + SearchClient.tsx L408 + AddToBoardButton.tsx L286-293(`aria-label=\"보드 목록 로딩 중\"`) + AddToBoardButton.tsx L340-345(`aria-label=\"보드에 추가 중\"`) + MyPageClient.tsx L58-65(`aria-label=\"보드 목록 로딩 중\"`) + PinCreateForm.tsx L497-505 — 8건 모두 `role=\"status\"` + `aria-label` 페어 보유. FeedContainer 의 초기 1차 로딩 분기만 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, outer div 에 2 attribute 추가만(diff +2 -1)."
+      repro: "1) cd apps/web && npm run dev. 2) / (홈) 진입 후 FieldFilter 또는 TagFilter 에서 필터 변경(media_type=image · 태그 클릭 등) → searchParams 변경 → FeedContainer L94-99 useEffect 가 reloadPins() 호출 → loading=true + pins=[] 진입. 3) L151-161 분기 mount → `<div className=\"px-6\"><MasonryGrid>{CardSkeleton x 8}</MasonryGrid></div>` 표시(시각 shimmer placeholder). 4) (키보드/SR) VoiceOver/NVDA 활성 → 화면 변경 발화 0, 'loading' 인지 불가. 5) `grep -nE 'role=\"status\"' apps/web/src/components/feed/FeedContainer.tsx` 1 match(L216, 후속 로딩만) 확인. 6) 대조 L214-222 후속 로딩 → `role=\"status\" aria-label=\"추가 작품 로딩 중\"` 발화 정상."
+    qa_plan: "1) cd apps/web && npm run dev. 2) / 진입 후 필터 변경(예: FieldFilter 의 '이미지' 클릭) → reloadPins() 호출 + pins=[] + loading=true. 3) L151-161 분기 mount 시 SR(VoiceOver/NVDA) 발화 → '작품 로딩 중' announce 확인. 4) 데이터 응답 후 분기 변경(L182 main 분기) → role=status 영역 unmount, MasonryGrid + PinCard 렌더. 5) 후속 loadMore 시 L214-222 의 '추가 작품 로딩 중' announce 그대로 동작. 6) 시각 회귀 0(role/aria-label 은 SR 전용 attribute, skeleton 시각 동일). 7) `grep -nE 'role=\"status\"' apps/web/src/components/feed/FeedContainer.tsx` 2 matches(L153 신규 + L216 기존) 확인. 8) MasonryGrid/CardSkeleton/reloadPins/FieldFilter/TagFilter/EmptyState 모두 미수정."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
