@@ -5021,7 +5021,7 @@ items:
     risk: 1
     score: 8.0
     status: done
-    pr: TBD
+    pr: 283
     resolution: |
       Cycle 101 (2026-05-26): apps/api/internal/creator/handler.go 에
       `updateMeRequestBodyCap = 8 * 1024` 상수 도입 + UpdateMe 진입부에
