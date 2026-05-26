@@ -4888,4 +4888,43 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 275
+    resolution: |
+      cycle 99. apps/api/internal/og/handler.go 진입부에 2개 가드
+      추가:
+        (a) `r.Body = http.MaxBytesReader(w, r.Body, ogRequestBodyCap)`
+            with `ogRequestBodyCap = 8 * 1024`. MaxBytesError 는
+            errors.As 로 잡아 400 "요청 본문이 너무 큽니다" 응답.
+            json.SyntaxError 는 기존 400 "잘못된 요청 형식입니다" 유지.
+        (b) `utf8.RuneCountInString(req.URL) > maxOGURLRunes` (500) →
+            400 "URL은 500자 이내여야 합니다". 빈 URL 체크 이후,
+            url.Parse 이전에 배치.
+      자매 컨벤션:
+        - pin/handler.go:82 (MaxBytesReader 500MB — 비디오 업로드용
+          큰 본문). og 는 작은 본문 (`{"url":"..."}`)이라 8KB.
+        - tag/handler.go (cycle 98, PR #272) + search/handler.go 의
+          rune 단위 cap convention 정확히 재현.
+        - pins.media_url VARCHAR(500) (migration 000004) + bot URL cap
+          convention (system-20260521-bot-process-document-media-url-no-
+          length-cap, done) 와 정렬.
+        - done item system-20260515-pin-create-no-request-body-cap 의
+          reasoning L597-599 (옵션 B) 가 "/api/og/fetch · /api/auth/*
+          등 작은 본문 라우트" 를 명시적 follow-up 으로 식별한 것의
+          후속 구현.
+      QA: 실 환경 localhost:8080 에서 T1~T4 + 회귀 5건 전부 통과.
+      T1 happy(short URL 200, github URL 200) · T2 body cap(200KB
+      garbage→syntax 400, 10MB valid-prefix→MaxBytesError 400) ·
+      T3 URL cap(1000/600 char→400) · T4 boundary(500 ASCII rune→200,
+      500 Korean rune 1460 bytes→200 — rune-counted 입증) · 회귀
+      (empty URL/ftp/GET 405/sister /api/tags). 전체 `go test ./...`
+      595 passed / 23 packages (cycle 98 591 + og handler 4 신규).
+      `unicode/utf8` + `errors` import 추가, 외부 API/스키마 비변경.
+      PR #275.
+
+      또한 cycle 98 PR #272 의 Edit 가 실수로 삭제한 이 항목의
+      `- id:` 라인을 복원했다(origin/main 의 title block 이 직전
+      done item 아래에 orphan 으로 매달려 있던 silent corruption).
+      YAML 파서는 정상 로드했지만 discovery item 자체가 식별자를
+      잃은 상태였다 — 이 PR 가 식별자를 복원하면서 done 처리하여
+      orphan 상태를 종결한다.
