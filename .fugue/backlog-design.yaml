@@ -2450,7 +2450,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 277
+    note: "LogoutButton.tsx L27 `aria-busy={loading}` 추가(diff +1 -0). `disabled={loading}`(L26)와 페어로 비동기 fetch 진행 중 SR 사용자에게 busy 상태 programmatic announce. WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA 1.2 aria-busy 충족. in-codebase 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 — 동일 패턴(`disabled={X}` + `aria-busy={X}`) 3건 모두 정합 회복. 시각 회귀 0(aria-busy 는 SR 전용 attribute, disabled-opacity-50 시각은 그대로). handleLogout callback · loading/error state · fetch URL · window.location.href · 인접 컴포넌트 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'disabled=\\{loading\\}|aria-busy=\\{loading\\}' apps/web/src/components/auth/LogoutButton.tsx` L26/L27 2 matches 확인 + `grep -rnE \"disabled=\\{loading.*?\\}\" apps/web/src/` 3건 모두 aria-busy 페어 보유 확인으로 대체."
 
   - id: "design-20260526-a11y-loginbuttons-aria-busy-missing"
     title: "LoginButtons 의 disabled-during-loading button 이 `aria-busy` 누락 — SR 에 리다이렉트 진행 상태 미전달(WCAG 2.1 SC 4.1.3 Status Messages Level AA · 디자인 시스템 disabled+aria-busy 페어 라인업)"
