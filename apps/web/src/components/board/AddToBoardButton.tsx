@@ -22,6 +22,7 @@ export default function AddToBoardButton({
   userId,
 }: AddToBoardButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!userId) {
     return (
@@ -38,6 +39,7 @@ export default function AddToBoardButton({
   return (
     <>
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors cursor-pointer"
       >
@@ -48,7 +50,10 @@ export default function AddToBoardButton({
         <BoardSelectModal
           pinId={pinId}
           userId={userId}
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            triggerRef.current?.focus();
+          }}
         />
       )}
     </>
