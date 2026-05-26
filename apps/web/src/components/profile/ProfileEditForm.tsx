@@ -117,6 +117,7 @@ export default function ProfileEditForm({
         <button
           type="submit"
           disabled={saving}
+          aria-busy={saving}
           className="px-5 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
         >
           {saving ? "저장 중..." : "저장"}
