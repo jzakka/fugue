@@ -17,10 +17,10 @@
 
 ## 항목
 
-## 2026-05-26 — [design] MyPageClient BoardSection 보드 생성 button 에 `aria-busy={creating}` 추가 — cycle 115 Processing(PR #283) · 보드 생성 비동기 fetch 중 SR busy 상태 announce(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA 1.2 aria-busy)
+## 2026-05-26 — [design] MyPageClient BoardSection 보드 생성 button 에 `aria-busy={creating}` 추가 — cycle 115 Processing(PR #284) · 보드 생성 비동기 fetch 중 SR busy 상태 announce(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA 1.2 aria-busy)
 결정/변경: `apps/web/src/components/profile/MyPageClient.tsx` L112 `aria-busy={creating}` 1 attribute 추가(diff +1 -0). 기존 `disabled={creating}`(L111)와 페어로 비동기 `await createBoard({ name: trimmed })`(L43) 진행 중 SR 사용자에게 busy 상태 programmatic announce. button 내부 텍스트 `생성 → 생성 중...`(L114) 동적 swap 은 그대로 유지. handleCreate · creating state · createBoard fetch · boards state · setShowCreate 모두 미수정.
 이유: cycles 112(PR #277) + 113(PR #279) + 직전 115(PR #282) 에서 확립된 disabled+aria-busy 페어 패턴. SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27 + LoginButtons.tsx L71-72 + ProfileEditForm.tsx L119-120 5 선행 페어 라인업에 본 건 추가로 codebase 6건 모두 페어 보유. /mypage 의 BoardSection 은 모든 로그인 사용자가 보드 생성 시 거치는 핵심 컨트롤이라 SR 사용자 생성 진행 상태 인지 필수.
-QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'disabled=|aria-busy=' apps/web/src/components/profile/MyPageClient.tsx` L111(`disabled={creating}`) + L112(`aria-busy={creating}`) 페어 확인 + `grep -rnE 'aria-busy=' apps/web/src/` 6건(SearchClient · LoadMorePins · LogoutButton · LoginButtons · ProfileEditForm · MyPageClient) 라인업 확인으로 대체. PR #283.
+QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'disabled=|aria-busy=' apps/web/src/components/profile/MyPageClient.tsx` L111(`disabled={creating}`) + L112(`aria-busy={creating}`) 페어 확인 + `grep -rnE 'aria-busy=' apps/web/src/` 6건(SearchClient · LoadMorePins · LogoutButton · LoginButtons · ProfileEditForm · MyPageClient) 라인업 확인으로 대체. PR #284.
 영향 범위: MyPageClient.tsx 단일 파일 1 attribute 추가. BoardSection 은 /mypage 단독 mount — 로그인된 사용자가 본인 프로필에서 새 보드를 생성하는 시점에만 영향. 잔여 pending 2건(BoardActions · AddToBoardButton 모두 score 8.0) 다음 사이클들이 처리.
 
 ## 2026-05-26 — [design] ProfileEditForm 저장 submit button 에 `aria-busy={saving}` 추가 — cycle 115 Processing(PR #282) · 프로필 업데이트 비동기 fetch 중 SR busy 상태 announce(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA 1.2 aria-busy)
