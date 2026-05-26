@@ -34,6 +34,22 @@ import (
 // follow-up.
 const boardsRequestBodyCap = 8 * 1024
 
+// maxBoardsOffset caps the `offset` pagination parameter on GET
+// /api/boards/{id} (ListBoardPins). Sister-handler convention from
+// pin/handler.go:568 (`o > 0 && o <= 100000`) and search/handler.go
+// (cycle 105 PR #295, `maxSearchOffset = 100000`). Postgres LIMIT/OFFSET
+// pagination must sort-and-skip the entire OFFSET prefix before returning
+// rows; ListBoardPins joins pins → pin_boards and orders by pin_boards
+// created_at, so an unbounded offset like 999999999 forces a full sort of
+// the board's pin set even when the result is empty. Public boards are
+// reachable via OptionalJWTMiddleware (cmd/server/main.go) — a single
+// unauthenticated IP can repeatedly issue such requests against any public
+// board. Silent clamp (out-of-range falls back to offset=0) matches
+// pin/handler.go contract — out-of-range pagination has no meaningful
+// successful response anyway, so a 400 would be a stricter behavior change
+// than the sister.
+const maxBoardsOffset = 100000
+
 // ---------------------------------------------------------------------------
 // DTO
 // ---------------------------------------------------------------------------
@@ -220,7 +236,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	offset := 0
-	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 {
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 && o <= maxBoardsOffset {
 		offset = o
 	}
 
