@@ -4774,6 +4774,7 @@ items:
       default 분기 200 기존 동작 보존). 전체 `go test ./...` 591 passed
       / 23 packages. import `unicode/utf8` 추가, 외부 API/스키마 비변경.
       PR #272.
+  - id: system-20260522-og-fetch-body-and-url-no-length-cap
     title: "/api/og/fetch 의 요청 본문 + req.URL 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 그대로 decode 하고 req.URL 도 사전 길이 검증 없이 로그·http.NewRequest·Service.Fetch 로 흘러감. pin.Create (500MB MaxBytesReader) 와 pins.media_url (500 rune) 컨벤션이 정립한 사전 차단 정책의 잔존 갭"
     area: security
     evidence:
@@ -4887,4 +4888,4 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: in_progress

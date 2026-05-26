@@ -2,10 +2,35 @@ package og
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"net/url"
+	"unicode/utf8"
 )
+
+// ogRequestBodyCap caps the JSON request body for POST /api/og/fetch.
+// The body schema is `{"url":"..."}` where url is bounded above by
+// maxOGURLRunes (500). 500 runes is at most 4 bytes/rune × 500 = 2KB,
+// plus a small JSON envelope, so 8KB is a generous upper bound that
+// still cuts the unbounded surface. Sister convention is
+// pin/handler.go:82 (`r.Body = http.MaxBytesReader(w, r.Body,
+// requestBodyCap=500<<20)`) which uses 500MB because pin uploads
+// carry video originals. The done item
+// `system-20260515-pin-create-no-request-body-cap` explicitly flagged
+// `/api/og/fetch` as a small-body surface needing its own (smaller)
+// cap as a follow-up; this is that follow-up.
+const ogRequestBodyCap = 8 * 1024
+
+// maxOGURLRunes caps the request URL length. It mirrors the
+// `pins.media_url` VARCHAR(500) schema bound (migration
+// 000004_pivot_pins.up.sql) and the bot URL-cap convention
+// (`system-20260521-bot-process-document-media-url-no-length-cap`,
+// done). Without this cap, a pathological URL flows into
+// `log.Printf %q` (log bloat), `http.NewRequestWithContext` (oversize
+// outbound request line), and `Service.Fetch` parsing — all
+// unbounded in length cost.
+const maxOGURLRunes = 500
 
 // Handler handles OG metadata fetch HTTP requests.
 type Handler struct {
@@ -43,14 +68,25 @@ func (h *Handler) Fetch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, ogRequestBodyCap)
 	var req fetchRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}
 
 	if req.URL == "" {
 		writeError(w, http.StatusBadRequest, "URL이 필요합니다")
+		return
+	}
+
+	if utf8.RuneCountInString(req.URL) > maxOGURLRunes {
+		writeError(w, http.StatusBadRequest, "URL은 500자 이내여야 합니다")
 		return
 	}
 
