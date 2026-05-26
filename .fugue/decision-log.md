@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-05-26 — [design] BoardActions 저장 button 에 `aria-busy={saving}` 추가 — cycle 117 Processing(PR #286) · 보드 수정 비동기 fetch 중 SR busy 상태 announce(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA 1.2 aria-busy)
+결정/변경: `apps/web/src/app/boards/[id]/BoardActions.tsx` L96 `aria-busy={saving}` 1 attribute 추가(diff +1 -0). 기존 `disabled={saving}`(L95)와 페어로 비동기 `await updateBoard(boardId, {...})`(L33) 진행 중 SR 사용자에게 busy 상태 programmatic announce. button 내부 텍스트 `저장 → 저장 중...`(L98) 동적 swap 은 그대로 유지. 취소 button(L100-111, `disabled={saving}` 보유)은 자체 async 가 없어 aria-busy 미적용 — disabled 만 유지. handleSave · saving state · updateBoard fetch · router.refresh · setEditing 모두 미수정.
+이유: cycles 112(PR #277) + 113(PR #279) + 115(PR #282) + 116(PR #284) 에서 확립된 disabled+aria-busy 페어 패턴. SearchClient.tsx + LoadMorePins.tsx + LogoutButton.tsx + LoginButtons.tsx + ProfileEditForm.tsx + MyPageClient.tsx 6 선행 페어 라인업에 본 건 추가로 codebase 7건 모두 페어 보유. /boards/[id] 의 BoardActions 편집 모드는 보드 소유자가 보드 이름·설명 수정 시 거치는 핵심 컨트롤이라 SR 사용자 저장 진행 상태 인지 필수.
+QA: Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'disabled=|aria-busy=' apps/web/src/app/boards/[id]/BoardActions.tsx` L95(`disabled={saving}`) + L96(`aria-busy={saving}`) 페어 확인 + `grep -rnE 'aria-busy=' apps/web/src/` 7건(SearchClient · LoadMorePins · LogoutButton · LoginButtons · ProfileEditForm · MyPageClient · BoardActions) 라인업 확인으로 대체. PR #286.
+영향 범위: BoardActions.tsx 단일 파일 1 attribute 추가. BoardActions 는 /boards/[id] 의 소유자 편집 모드에서만 mount — 로그인된 소유자가 보드를 편집해 저장하는 시점에만 영향. 잔여 pending 1건(AddToBoardButton score 8.0) 다음 사이클이 처리.
+
 ## 2026-05-26 — [design] MyPageClient BoardSection 보드 생성 button 에 `aria-busy={creating}` 추가 — cycle 115 Processing(PR #284) · 보드 생성 비동기 fetch 중 SR busy 상태 announce(WCAG 2.1 SC 4.1.3 Status Messages Level AA + ARIA 1.2 aria-busy)
 결정/변경: `apps/web/src/components/profile/MyPageClient.tsx` L112 `aria-busy={creating}` 1 attribute 추가(diff +1 -0). 기존 `disabled={creating}`(L111)와 페어로 비동기 `await createBoard({ name: trimmed })`(L43) 진행 중 SR 사용자에게 busy 상태 programmatic announce. button 내부 텍스트 `생성 → 생성 중...`(L114) 동적 swap 은 그대로 유지. handleCreate · creating state · createBoard fetch · boards state · setShowCreate 모두 미수정.
 이유: cycles 112(PR #277) + 113(PR #279) + 직전 115(PR #282) 에서 확립된 disabled+aria-busy 페어 패턴. SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27 + LoginButtons.tsx L71-72 + ProfileEditForm.tsx L119-120 5 선행 페어 라인업에 본 건 추가로 codebase 6건 모두 페어 보유. /mypage 의 BoardSection 은 모든 로그인 사용자가 보드 생성 시 거치는 핵심 컨트롤이라 SR 사용자 생성 진행 상태 인지 필수.
