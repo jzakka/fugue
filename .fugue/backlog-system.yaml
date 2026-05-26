@@ -5287,7 +5287,39 @@ items:
   - id: system-20260526-search-offset-no-upper-bound
     title: "GET /api/search 의 offset 쿼리 파라미터 상한 가드 누락 — pin.List(handler.go:568)의 자매 컨벤션 `o > 0 && o <= 100000`을 미적용. 미인증 endpoint 인데 OFFSET 거대값이 Postgres LIMIT/OFFSET pagination 의 sort-and-skip 비용을 amplify"
     area: security
-    status: pending
+    status: done
+    pr: TBD
+    resolution: |
+      Cycle 105 (2026-05-26): apps/api/internal/search/handler.go 에
+      `const maxSearchOffset = 100000` 추가 (12줄 doc 주석 — 자매 pin/handler.go:568
+      컨벤션 정렬 + LIMIT/OFFSET sort-and-skip 비용 + 미인증 surface 명시) +
+      offset 가드를 `if o > 0 && o <= maxSearchOffset { offset = int32(o) }` 로 확장.
+      자매 컨벤션 그대로 silent clamp (out-of-range → offset=0).
+
+      신규 단위 테스트 3건 (handler_offset_cap_test.go, +120 line):
+        - TestSearch_OffsetSilentlyClampedAboveCap: offset=100001 →
+          arg.Offset == 0 (offsetCapturingQuerier mock 으로 검증, 첫 호출만
+          캡처해 top_tags 두 번째 호출의 offset=0 덮어쓰기 회피).
+        - TestSearch_OffsetAtCapPassesThrough: offset=100000 → arg.Offset == 100000
+          (boundary inclusive).
+        - TestSearch_OffsetNormalRangePassesThrough: offset=40 → arg.Offset == 40
+          (happy-path 회귀).
+      go test ./... 605 pass (이전 602 + 신규 3).
+
+      실 환경 QA (PID 81126):
+        - T1a/b/c happy: ?q=test, ?q=test&offset=10, ?q=test&offset=100 →
+          200 + 정상 응답.
+        - T2 silent clamp: ?q=test&offset=100001 (= cap+1) → 200 + offset=0 응답
+          (boards 첫 row 반환) ✓. ?q=test&offset=999999999 → 200 + 동일 응답,
+          29ms (DB 사전 차단 확인) ✓.
+        - T3a boundary inclusive: ?q=test&offset=100000 (= cap) → 200 + 빈 결과
+          (실제 offset=100000 으로 DB 진입). T3b ?q=test&offset=100001 → 200 +
+          첫 row (clamp 동작).
+        - 회귀 8건: /api/pins?offset=50 → 200 (자매 untouched), /api/tags?q=test →
+          200, /api/search 의 type=pins/creators/boards 분기 → 모두 200,
+          빈 q → 400 "검색어를 입력해주세요" 유지, 201 rune q → 400 "검색어는 200자
+          이내여야 합니다" 유지 (cycle 98 cap 정합), offset=-5 (음수) → 200 (기존
+          `o > 0` 가드 보존, default 0 동작).
     score: 6.0
     impact: 3
     confidence: 5
