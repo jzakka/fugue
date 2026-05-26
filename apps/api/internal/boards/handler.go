@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,6 +18,21 @@ import (
 	db "github.com/chungsanghwa/fugue/apps/api/internal/db"
 	"github.com/chungsanghwa/fugue/apps/api/internal/interaction"
 )
+
+// boardsRequestBodyCap caps JSON request bodies for the three small-body
+// board write routes: POST /api/boards (Create), PUT /api/boards/{id}
+// (Update), POST /api/boards/{id}/pins (AddPin). Body schemas are at most
+// ~2.4 KB (name ≤100 rune × 4 byte + description ≤500 rune × 4 byte +
+// JSON envelope), so 8 KB leaves ~4× safety margin for Create/Update and
+// ~130× for the tiny AddPin body (~50 byte). Sister convention:
+// og/handler.go:71 (cycle 99 PR #275), creator/handler.go:30 (cycle 101
+// PR #283), interaction/handler.go (cycle 102 PR #285) — all 8 KB for
+// small JSON bodies; pin/handler.go:82 (500 MB) for multipart video
+// uploads. The done item `system-20260515-pin-create-no-request-body-cap`
+// (PR #149) reasoning option B explicitly identified small-body routes
+// needing their own smaller cap as a follow-up; this is part of that
+// follow-up.
+const boardsRequestBodyCap = 8 * 1024
 
 // ---------------------------------------------------------------------------
 // DTO
@@ -96,8 +112,14 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, boardsRequestBodyCap)
 	var req createBoardRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}
@@ -273,8 +295,14 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, boardsRequestBodyCap)
 	var req updateBoardRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}
@@ -495,8 +523,14 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, boardsRequestBodyCap)
 	var req addPinRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			writeError(w, http.StatusBadRequest, "요청 본문이 너무 큽니다")
+			return
+		}
 		writeError(w, http.StatusBadRequest, "잘못된 요청 형식입니다")
 		return
 	}

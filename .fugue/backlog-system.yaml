@@ -5133,9 +5133,52 @@ items:
     effort: 2
     risk: 1
     score: 4.0
-    status: pending
+    status: done
+    pr: TBD
+    resolution: |
+      Cycle 103 (2026-05-26): apps/api/internal/boards/handler.go 의
+      3개 sister route(Create · Update · AddPin) 진입부에 `r.Body =
+      http.MaxBytesReader(w, r.Body, boardsRequestBodyCap=8*1024)` +
+      decoder 에러 분기에 `var maxBytesErr *http.MaxBytesError;
+      errors.As(err, &maxBytesErr)` → 400 "요청 본문이 너무 큽니다".
+      cycle 99 og/handler.go:71 (PR #275) · cycle 101 creator/handler.go:30
+      (PR #283) · cycle 102 interaction/handler.go (PR #285) 자매 컨벤션
+      동일 8KB cap. Create/Update body 는 name(100 rune) + description
+      (500 rune) 합 ~2.4KB max 라 4× 안전 마진, AddPin body 는 `{pin_id}`
+      ~50B 라 ~130× 안전 마진.
 
-  - id: system-20260526-interaction-create-no-body-cap
+      신규 단위 테스트 3건 (handler_body_cap_test.go, 패키지 첫 body
+      cap 테스트):
+        - TestCreate_BodyTooLarge: valid-prefix JSON `{"name":"<padding>"}`
+          를 cap+1 byte 로 구성 → 400 + "본문" 메시지. nil database
+          Handler 로 db.New 미진입 입증.
+        - TestAddPin_BodyTooLarge: chi.URLParams 주입으로 boardID 통과 →
+          body cap → 400 + "본문" 메시지. nil database 로 GetBoard
+          미진입 입증.
+        - TestCreate_BodyAtCap: cap 안의 정상 크기 body 에 name=101 rune
+          padding → cap 통과 후 기존 name rune cap 분기 도달, 400 "보드
+          이름은 100자 이내여야 합니다".
+        - TestUpdate_BodyTooLarge_DocumentedUnitGap: t.Skip — Update 는
+          MaxBytesReader 가 GetBoard DB 호출 뒤에 설치되어 nil-DB harness
+          로 reach 불가, 실환경 QA 가 커버.
+      go test ./... 602 pass (이전 599 + 신규 3, 1 skipped).
+
+      실환경 QA (PID 40260, creator 11111111-..., pin 44444444-...):
+        - T1a Create happy `{"name":"cycle103 QA board"}` → 201 + board id.
+        - T1b Update happy `{"name":"cycle103 QA renamed"}` → 200, DB
+          반영.
+        - T1c AddPin happy `{"pin_id":"<uuid>"}` → 201, board_pins 1 row
+          적재 확인.
+        - T2a Create 16KB → 400 "요청 본문이 너무 큽니다" ✓.
+        - T2b Update 16KB → 400 "요청 본문이 너무 큽니다" ✓.
+        - T2c AddPin 16KB → 400 "요청 본문이 너무 큽니다" ✓.
+        - T3a Create cap+1 byte (8193) → 400 "요청 본문이 너무 큽니다" ✓.
+        - T3b Create cap byte (8192) → cap 통과 → 400 "보드 이름은 100자
+          이내여야 합니다" (≤cap 보수 동작 일관).
+        - 회귀: 101 rune name 400 · 501 rune description 400 · 빈 pin_id
+          400 · no JWT 401 · GET /api/boards?creator_id=... 200 · GET
+          /api/boards/{id} 200 모두 유지.
+      QA 후 board DELETE /api/boards/{id} → 204, DB row 0 확인.
     title: "POST /api/interactions 의 JSON 본문 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 decode. body 는 `{pin_id, type}` 으로 ~100B 크기지만 cap 부재 → 단일 인증 user 가 거대 string 필드로 heap 압박 가능"
     area: security
     evidence:
