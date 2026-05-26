@@ -5208,7 +5208,7 @@ items:
     risk: 1
     score: 8.0
     status: done
-    pr: TBD
+    pr: 285
     resolution: |
       Cycle 102 (2026-05-26): apps/api/internal/interaction/handler.go 에
       `createRequestBodyCap = 8 * 1024` 상수 도입 + Create 진입부에
