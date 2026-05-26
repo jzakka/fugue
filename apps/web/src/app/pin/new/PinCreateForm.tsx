@@ -545,10 +545,11 @@ export default function PinCreateForm() {
                     key={id}
                     type="button"
                     onClick={() => toggleTag(id)}
+                    aria-label={`${tag.name} 태그 제거`}
                     className="flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-full text-xs cursor-pointer font-mono"
                   >
                     {tag.name}
-                    <span className="ml-0.5">×</span>
+                    <span aria-hidden="true" className="ml-0.5">×</span>
                   </button>
                 );
               })}

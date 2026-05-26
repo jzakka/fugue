@@ -2432,4 +2432,6 @@ items:
     effort: 1
     risk: 1
     score: 10.0
-    status: pending
+    status: done
+    pr: 274
+    note: "PinCreateForm.tsx L548 `aria-label={`${tag.name} 태그 제거`}` 추가 + L552 자식 `<span>×</span>` 에 `aria-hidden=\"true\"` 추가(diff +2 -1, 실질 attribute 2개 추가). SearchBar.tsx L219-239 '최근 검색에서 제거' + AddToBoardButton.tsx L247-266 '닫기' icon-only remove/close button 라인업과 정합 회복. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) + WAI-ARIA Authoring Practices Tag/Chip 패턴 충족 — '제거' 행동이 SR 에 명확히 announce. 시각 회귀 0(aria-label/aria-hidden 은 SR 전용 attribute, × 글리프는 그대로 표시). toggleTag callback · selectedTagIds Set · TAG_MAX_COUNT 제한 · 인접 카테고리 button(aria-pressed) · filteredTags chip(aria-pressed) 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'aria-label=\\{`|aria-hidden=\"true\" className=\"ml-0.5\"' apps/web/src/app/pin/new/PinCreateForm.tsx` L548/L552 2 matches 확인으로 대체."
