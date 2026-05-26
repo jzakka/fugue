@@ -4928,3 +4928,256 @@ items:
       YAML 파서는 정상 로드했지만 discovery item 자체가 식별자를
       잃은 상태였다 — 이 PR 가 식별자를 복원하면서 done 처리하여
       orphan 상태를 종결한다.
+
+  - id: system-20260526-creator-updateme-no-body-cap
+    title: "PUT /api/creators/me 의 JSON 본문 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 decode. nickname(50 rune)·avatar_url(500 rune) post-decode rune cap 은 존재하지만 decoder 가 거대 string 필드를 메모리에 먼저 buffer 해 사전 차단 정책 갭"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/creator/handler.go:156-160"   # var req updateRequest; json.NewDecoder(r.Body).Decode(&req) — MaxBytesReader 없음
+        - "apps/api/internal/creator/handler.go:182-185"   # utf8.RuneCountInString(nickname) > 50 → post-decode cap. decoder 가 buffer 끝낸 후 reject
+        - "apps/api/internal/creator/handler.go:192-195"   # utf8.RuneCountInString(*req.AvatarURL) > 500 → 동일 post-decode 패턴
+        - "apps/api/cmd/server/main.go:159"                # r.With(auth.JWTMiddleware(jwtSvc)).Put("/me", creatorHandler.UpdateMe) — JWT auth, rate limit 없음
+        - "apps/api/internal/og/handler.go:71"             # 자매 컨벤션 (cycle 99, PR #275) — r.Body = http.MaxBytesReader(w, r.Body, ogRequestBodyCap=8KB)
+        - "apps/api/internal/pin/handler.go:82"            # 원조 자매 (cycle ?, PR #149) — 500MB (비디오 업로드)
+        - ".fugue/backlog-system.yaml#system-20260515-pin-create-no-request-body-cap"  # done, L597-599 옵션 B 가 "/api/og/fetch · /api/auth/* 등 작은 본문 라우트" 를 follow-up 으로 식별
+      quote: |
+        creator/handler.go:156-160:
+              `var req updateRequest`
+              `if err := json.NewDecoder(r.Body).Decode(&req); err != nil {`
+              — r.Body 는 unbounded. `{"nickname":"<100MB string>"}`
+              요청도 decoder 가 string 필드 전체를 메모리에 buffer
+              한 후 L182 의 RuneCountInString rejection 에 도달.
+        creator/handler.go:182-185:
+              `if utf8.RuneCountInString(nickname) > 50 {`
+              — post-decode cap. decoder 가 buffer 를 끝낸 시점에는
+              이미 메모리에 string 전체가 올라가 있음.
+        main.go:159: `r.With(auth.JWTMiddleware(jwtSvc)).Put("/me",
+              creatorHandler.UpdateMe)` — JWT auth(per-user 한정), rate
+              limit 없음. 인증된 단일 user 가 N×100MB body 로 heap
+              압박 가능.
+      reasoning: |
+        Body cap 갭. nickname(50 rune)·avatar_url(500 rune) 의 post-decode
+        rune cap 은 존재하지만 json.Decoder 는 string 필드를 통째로
+        메모리에 buffer 한 후에야 RuneCountInString rejection 에 도달.
+        100MB nickname 을 보내면 decoder 가 100MB heap 을 잡고 → rune
+        count → 400. JWT auth 가 per-user 로 blast radius 를 묶지만
+        인증된 user 1명이 N concurrent 요청으로 heap pressure 유발 가능.
+
+        sister 컨벤션:
+          - pin/handler.go:82 (PR #149, requestBodyCap=500<<20) — multipart
+            (대용량 비디오)
+          - og/handler.go:71 (PR #275, ogRequestBodyCap=8KB) — 작은 JSON
+            body
+        본 핸들러 body 는 `{"nickname":"...","avatar_url":"..."}` 한 줄
+        (nickname ≤50 rune × 4 byte + avatar_url ≤500 rune × 4 byte +
+        JSON envelope ≈ 2.2KB max). og 와 동일 8KB cap 이 가장 보수적.
+
+        done item system-20260515-pin-create-no-request-body-cap 의
+        reasoning L597-599 (옵션 B) 가 "/api/og/fetch · /api/auth/* 등
+        작은 본문 라우트" 를 명시적 follow-up 으로 식별 — /api/auth/*
+        는 body decode 가 없는 cookie-only 핸들러라 해당 없음, 본
+        creator UpdateMe 는 "등" 에 포함되는 작은 JSON body 라우트의
+        sister 갭.
+
+        보수의 정의(§5):
+          (a) 기존 동작 보존: 정상 요청 (< 8KB) 영향 0.
+          (b) 외부 API 비변경: 400 추가만, 200 응답 형태 동일.
+          (c) 롤백 가능: 진입부 MaxBytesReader 한 줄 + errors.As 분기.
+          (d) 영향 최소: UpdateMe 한 함수에 2-4줄.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. JWT 발급 (테스트용 creator + access token cookie 확보).
+      4. T1 happy(정상 요청 - 회귀 무영향):
+         (a) `curl -X PUT -b "fugue_access=<token>" -H 'Content-Type:
+              application/json' -d '{"nickname":"테스트닉네임"}' \
+              -i http://localhost:8080/api/creators/me`
+             → 200 + 업데이트된 creator JSON
+         (b) avatar_url 정상값 (e.g. https://x.com/y.jpg) → 200
+      5. T2 fail(본문 상한 초과 → 400):
+         (a) `head -c 10485760 /dev/zero | tr '\0' 'a' |
+              jq -Rs '{nickname: .}' |
+              curl -X PUT -b "fugue_access=<token>" -H 'Content-Type:
+              application/json' --data-binary @- -i \
+              http://localhost:8080/api/creators/me`
+             → 400 + "요청 본문이 너무 큽니다"
+      6. T3 경계: body 정확히 cap-1 byte → 정상 처리(rune cap reject
+         은 별개), cap+1 byte → 400.
+      7. 회귀:
+         (a) 빈 nickname → 400 ("닉네임은 비어있을 수 없습니다") 유지
+         (b) 51 rune nickname → 400 ("닉네임은 50자를 초과할 수 없습니다") 유지
+         (c) 501 rune avatar_url → 400 ("아바타 URL은 500자 이내여야 합니다") 유지
+         (d) JWT 없이 호출 → 401 유지
+         (e) GET /api/creators/me → 200 유지(GetMe)
+      8. 단위 테스트:
+         (a) `TestUpdateMe_BodyTooLarge` (valid-prefix JSON cap+1 byte → 400)
+         (b) `TestUpdateMe_BodyAtCap` (cap-1 byte → decoder 통과, 후속
+             rune check 도달)
+         (c) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: system-20260526-boards-handlers-no-body-cap
+    title: "POST /api/boards · PUT /api/boards/{id} · POST /api/boards/{id}/pins 의 JSON 본문 길이 상한 없음 — 3개 핸들러 모두 json.NewDecoder 가 unbounded r.Body 를 decode. name(100)·description(500) post-decode cap 은 있지만 decoder buffer 사전 차단 정책 갭"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/boards/handler.go:99-103"     # Create: json.NewDecoder(r.Body).Decode(&req) — MaxBytesReader 없음
+        - "apps/api/internal/boards/handler.go:276-280"    # Update: 동일 패턴
+        - "apps/api/internal/boards/handler.go:498-502"    # AddPin: 동일 패턴, body 는 {pin_id} 만이지만 동일 갭
+        - "apps/api/internal/boards/handler.go:110-113"    # Create name cap 100 rune — post-decode
+        - "apps/api/internal/boards/handler.go:122-125"    # Create description cap 500 rune — post-decode
+        - "apps/api/internal/boards/handler.go:291-294"    # Update name cap 100 — post-decode
+        - "apps/api/internal/boards/handler.go:298-301"    # Update description cap 500 — post-decode
+        - "apps/api/cmd/server/main.go:167"                # r.With(auth.JWTMiddleware(jwtSvc)).Post("/", boardsHandler.Create)
+        - "apps/api/cmd/server/main.go:170"                # r.With(auth.JWTMiddleware(jwtSvc)).Put("/{id}", boardsHandler.Update)
+        - "apps/api/cmd/server/main.go:172"                # r.With(auth.JWTMiddleware(jwtSvc)).Post("/{id}/pins", boardsHandler.AddPin)
+        - "apps/api/internal/og/handler.go:71"             # 자매 컨벤션 (cycle 99, PR #275) — 8KB
+        - ".fugue/backlog-system.yaml#system-20260515-pin-create-no-request-body-cap"  # done — pin/handler.go:82 원조 컨벤션
+      quote: |
+        boards/handler.go:99-103 (Create):
+              `var req createBoardRequest`
+              `if err := json.NewDecoder(r.Body).Decode(&req); err != nil`
+              — unbounded.
+        boards/handler.go:276-280 (Update): 동일 패턴.
+        boards/handler.go:498-502 (AddPin): 동일 패턴, body = {pin_id}.
+        boards/handler.go:110: `if utf8.RuneCountInString(name) > 100`
+              — post-decode cap.
+        boards/handler.go:122: `if utf8.RuneCountInString(*req.Description) > 500`
+              — post-decode cap.
+        main.go:167/170/172: 세 라우트 모두 JWTMiddleware 적용, rate
+              limit 없음.
+      reasoning: |
+        3개 sister 사이트(같은 파일, 같은 패턴) 일괄 처리. 각 사이트
+        body 는:
+          - Create: `{name, description, is_public}` — name ≤100 rune
+            × 4 byte + description ≤500 rune × 4 byte ≈ 2.4KB max
+          - Update: 동일 schema (모두 optional pointer) ≈ 2.4KB max
+          - AddPin: `{pin_id: UUID}` ≈ 50B max
+        og 와 동일 8KB cap 이 가장 보수적 (Create/Update 가 2.4KB 라 4배
+        안전 마진).
+
+        cycle 99 og 패턴 그대로:
+          (a) 진입부에 `r.Body = http.MaxBytesReader(w, r.Body,
+              boardsRequestBodyCap)` 한 줄
+          (b) decoder 에러 분기에 `var maxBytesErr *http.MaxBytesError;
+              if errors.As(err, &maxBytesErr) { writeError(..., 400,
+              "요청 본문이 너무 큽니다"); return }` 추가
+          (c) 기존 generic 400 "잘못된 요청 형식입니다" 유지(syntax 에러)
+
+        보수의 정의(§5):
+          (a) 정상 요청 (< 8KB) 영향 0.
+          (b) 외부 API 비변경.
+          (c) 롤백 가능: 3개 진입부 각각 2-4줄.
+          (d) 영향 최소: boards/handler.go 한 파일.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. JWT 발급.
+      4. T1 happy(3개 라우트):
+         (a) `POST /api/boards -d '{"name":"테스트보드"}'` → 201
+         (b) `PUT /api/boards/{id} -d '{"name":"수정된이름"}'` → 200
+         (c) `POST /api/boards/{id}/pins -d '{"pin_id":"<uuid>"}'` → 201
+      5. T2 fail(3개 라우트 각각 cap+1 byte body → 400 "요청 본문이 너무 큽니다"):
+         (a) Create: `head -c 10485760 /dev/zero | tr '\0' 'a' |
+              jq -Rs '{name: .}' | curl POST ...` → 400
+         (b) Update: 동일 패턴 → 400
+         (c) AddPin: 10MB body → 400
+      6. T3 경계: 각 라우트 body 정확히 cap-1 byte → decoder 통과, cap+1 → 400.
+      7. 회귀:
+         (a) 101 rune name → 400 ("보드 이름은 100자 이내여야 합니다") 유지
+         (b) 501 rune description → 400 ("보드 설명은 500자 이내여야 합니다") 유지
+         (c) 빈 pin_id → 400 ("유효하지 않은 작품 ID입니다") 유지
+         (d) JWT 없이 호출 → 401 유지
+         (e) GET /api/boards 회귀 200 유지
+         (f) 타 user 보드 update → 403 유지(권한 분기)
+      8. 단위 테스트:
+         (a) `TestCreate_BodyTooLarge`, `TestUpdate_BodyTooLarge`,
+             `TestAddPin_BodyTooLarge` (각각 valid-prefix cap+1 → 400)
+         (b) 경계 boundary 1건 (Create 만, 다른 2건 동일 패턴이라 생략)
+         (c) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 2
+    confidence: 4
+    effort: 2
+    risk: 1
+    score: 4.0
+    status: pending
+
+  - id: system-20260526-interaction-create-no-body-cap
+    title: "POST /api/interactions 의 JSON 본문 길이 상한 없음 — json.NewDecoder 가 unbounded r.Body 를 decode. body 는 `{pin_id, type}` 으로 ~100B 크기지만 cap 부재 → 단일 인증 user 가 거대 string 필드로 heap 압박 가능"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/interaction/handler.go:38-42" # var req createInteractionRequest; json.NewDecoder(r.Body).Decode(&req) — MaxBytesReader 없음
+        - "apps/api/internal/interaction/handler.go:44-47" # isValidInteractionType(req.Type) — post-decode whitelist
+        - "apps/api/internal/interaction/handler.go:49-53" # uuid.Parse(req.PinID) — post-decode UUID parse
+        - "apps/api/cmd/server/main.go:177"                # r.With(auth.JWTMiddleware(jwtSvc)).Post("/api/interactions", interactionHandler.Create) — JWT, rate limit 없음
+        - "apps/api/internal/og/handler.go:71"             # 자매 컨벤션 cycle 99 PR #275 — 8KB
+        - ".fugue/backlog-system.yaml#system-20260515-pin-create-no-request-body-cap"  # done — 원조 컨벤션
+      quote: |
+        interaction/handler.go:38-42:
+              `var req createInteractionRequest`
+              `if err := json.NewDecoder(r.Body).Decode(&req); err != nil`
+              — unbounded.
+        interaction/handler.go:23-26:
+              `type createInteractionRequest struct {`
+              `    PinID string \`json:"pin_id"\``
+              `    Type  string \`json:"type"\` }`
+              — 두 string 필드. 정상 body 는 `{"pin_id":"<uuid>",
+              "type":"view"}` ≈ 60 byte.
+        interaction/handler.go:44-47: type 은 view/pin/board_add 화이트
+              리스트 (post-decode).
+        interaction/handler.go:49-53: pin_id 는 uuid.Parse (post-decode).
+              UUID 36자 가 정상이지만 decoder 단계에서는 임의 길이
+              string 허용.
+        main.go:177: `r.With(auth.JWTMiddleware(jwtSvc)).Post(
+              "/api/interactions", ...)` — JWT, rate limit 없음.
+      reasoning: |
+        body 가 가장 작은 사이트(~60B 정상). 그럼에도 decoder 가
+        unbounded 라 `{"pin_id":"<100MB string>","type":"view"}` 같은
+        악성 요청이 string 필드 전체를 메모리에 buffer 한 후에야
+        uuid.Parse 가 fail 하며 400 으로 returned. interaction.Create
+        는 ML 추천 신호 수집용으로 정상 호출 빈도가 높은 endpoint
+        (interaction 컨벤션, done item system-20260515-fix-interaction-
+        piggyback-on-pin-and-board-actions 참고) — 본 갭이 ML 신호 적재
+        경로 자체에는 영향 없지만 인증된 단일 user 의 N concurrent
+        악성 요청이 heap 점유 가능.
+
+        og 와 동일 8KB cap 이 가장 보수적 (정상 body 60B 의 ~130배
+        안전 마진).
+
+        보수의 정의(§5):
+          (a) 정상 요청 (< 100B) 영향 0.
+          (b) 외부 API 비변경.
+          (c) 롤백 가능: 진입부 2-4줄.
+          (d) 영향 최소: Create 한 함수.
+    qa_plan: |
+      1. `docker-compose up -d` postgres + redis.
+      2. `cd apps/api && go run cmd/server/main.go`.
+      3. JWT 발급 + 테스트 pin 1건 생성.
+      4. T1 happy:
+         (a) `POST /api/interactions -d '{"pin_id":"<uuid>","type":"view"}'` → 201
+         (b) type=pin, type=board_add 각각 → 201
+      5. T2 fail(body cap):
+         (a) `{"pin_id":"<10MB string>","type":"view"}` 요청 → 400 "요청 본문이 너무 큽니다"
+      6. T3 경계: cap+1 byte → 400, cap-1 byte → decoder 통과 후 uuid
+         parse fail → 400 (다른 메시지).
+      7. 회귀:
+         (a) 잘못된 type (e.g. "like") → 400 ("유효하지 않은 인터랙션 타입입니다") 유지
+         (b) 잘못된 pin_id (non-uuid) → 400 ("유효하지 않은 핀 ID입니다") 유지
+         (c) JWT 없이 호출 → 401 유지
+      8. 단위 테스트:
+         (a) `TestCreate_BodyTooLarge` (valid-prefix cap+1 → 400)
+         (b) `TestCreate_BodyAtCap` (cap-1 → decoder 통과 후 type/uuid 분기 도달)
+         (c) `go vet ./... && go build ./... && go test ./...` 통과.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
