@@ -2558,4 +2558,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 290
+    note: "apps/web/src/app/search/page.tsx L72-79 EmptyState 위에 `<h1 className=\"sr-only\">검색</h1>` 추가(diff +7 -4, h1 1줄 + Fragment 래퍼 `<>...</>` 2줄, 기존 EmptyState 들여쓰기 변경 4줄). /search?q= empty-state 분기에서만 mount — q-truthy 분기(SearchClient L232 `<h1>\"{q}\" 검색 결과</h1>`)는 미영향. WCAG 2.1 SC 1.3.1 Info & Relationships (Level A) + SC 2.4.6 Headings & Labels (Level AA) 충족. in-codebase sr-only h1 패턴(`apps/web/src/app/page.tsx` L87 '작품 피드')와 동일. 시각 회귀 0(sr-only Tailwind utility — clip + absolute position, SR 전용). EmptyState 컴포넌트 미수정 → BoardSection/PinsGrid 등 다른 EmptyState 사용처 영향 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE '<h1' apps/web/src/app/search/page.tsx` L74 1 match 확인(was 0) + 다른 모든 페이지 h1 보유 라인업 확인으로 대체."
