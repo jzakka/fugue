@@ -24,6 +24,7 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={loading}
+      aria-busy={loading}
       className="text-sm text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors cursor-pointer disabled:opacity-50"
     >
       {loading ? "로그아웃 중..." : error ? "재시도" : "로그아웃"}
