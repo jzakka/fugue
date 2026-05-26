@@ -5446,12 +5446,50 @@ items:
   - id: system-20260526-feed-cursor-offset-no-upper-bound
     title: "GET /api/feed 의 cursor base64 디코드 후 추출한 offset 값 상한 가드 누락 — pin.List(handler.go:568)의 자매 컨벤션 `o > 0 && o <= 100000`을 미적용. cursor 는 클라이언트 제공이라 위조 가능"
     area: security
-    status: pending
+    status: done
+    pr: 303
     score: 6.0
     impact: 3
     confidence: 5
     effort: 1
     risk: 1
+    resolution: |
+      cycle 107. apps/api/internal/feed/handler.go 에 `const maxFeedOffset = 100000`
+      신설 + parsePagination 의 cursor decode 가드를 `o > 0 && o <= maxFeedOffset`
+      으로 정렬. silent clamp (out-of-range → offset=0). 자매 핸들러
+      pin/handler.go:568, search/handler.go (cycle 105 PR #295),
+      boards/handler.go (cycle 106 PR #301) 와 동형.
+
+      cycle 104 Discovery 3건 series (search → boards-getbyid → feed-cursor) 의
+      마지막 arm — series 완결.
+
+      단위 테스트 7건 신규 (handler_offset_cap_test.go, package feed 내부 —
+      sibling tests handler_pagination_test.go / handler_cache_log_test.go 와 동일
+      package convention):
+        - TestParsePagination_OffsetSilentlyClampedAboveCap (cursor=base64("offset:100001") → 0)
+        - TestParsePagination_OffsetForgedHugeValueClamped (cursor=base64("offset:999999999") → 0)
+        - TestParsePagination_OffsetAtCapPassesThrough (cursor=base64("offset:100000") → 100000)
+        - TestParsePagination_OffsetNormalRangePassesThrough (cursor=base64("offset:40") → 40)
+        - TestParsePagination_NoCursorReturnsZero (regression guard)
+        - TestParsePagination_MalformedCursorReturnsZero (regression guard, 기존 silent-fall 보존)
+        - TestMaxFeedOffset_ValueMatchesSisterConvention (상수 drift 감지)
+
+      qa_plan 의 "out-of-range → 400" 가정은 silent clamp 자매 컨벤션과 불일치 —
+      cycle 105/106 와 동일하게 silent clamp 채택.
+
+      실 환경 QA (cycle107-server 부팅, urlsafe_b64encode 로 cursor 정확 구성):
+        - T1 happy: no cursor → 200 + pins=3 + next_cursor=offset:3.
+        - T1b: cursor=offset:2 → 200 + pins=3 + next_cursor=offset:5 (offset 전파 정상).
+        - T2 silent clamp: cursor=offset:200000 → 200 + pins=3 + next_cursor=offset:3
+          (offset=0 환원), cursor=offset:999999999 → 200 + 동일.
+        - T3 boundary: cursor=offset:100000 (= cap inclusive) → 200 + pins=0 +
+          next_cursor=None (cap 통과, OFFSET 100000 결과 0 row 정상),
+          cursor=offset:100001 → 200 + pins=3 + next_cursor=offset:3 (clamp).
+        - 회귀: malformed cursor "not-base64-!!!" → 200 + offset=0 silent-fall
+          기존 동작 보존, /api/feed?limit=10 → 200, /api/feed (cursor 없음) → 200.
+        - 자매 회귀: /api/pins?offset=50 → 200 (자매 untouched),
+          /api/search?q=ab&offset=10 → 200 (cycle 105 untouched),
+          /api/boards/33333333.../?offset=10 → 200 (cycle 106 untouched).
     evidence:
       files:
         - "apps/api/internal/feed/handler.go:336-345"  # cursor decode → fmt.Sscanf "offset:%d" → o > 0 만 가드, 상한 없음

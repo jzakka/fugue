@@ -324,6 +324,26 @@ func interleave(recommended, latest []PinResponse, limit int) []PinResponse {
 	return result
 }
 
+// maxFeedOffset caps the offset value decoded from the `cursor` query
+// parameter on GET /api/feed. Sister-handler convention from
+// pin/handler.go:568 (`o > 0 && o <= 100000`), search/handler.go (cycle 105
+// PR #295, `maxSearchOffset`), and boards/handler.go (cycle 106 PR #301,
+// `maxBoardsOffset`). buildNextCursor only emits well-formed cursors in
+// the normal pagination range, but the cursor is base64 (not signed) and
+// reaches us straight from the client — a hand-crafted
+// base64("offset:999999999") is indistinguishable from a legitimate
+// next_cursor at decode time. The endpoint is unauthenticated
+// (cmd/server/main.go OptionalJWTMiddleware), and both
+// ListPinsWithCreator and RecommendByTags / RecommendByMediaType are
+// OFFSET-based — Postgres must sort-and-skip the entire OFFSET prefix
+// before LIMIT applies, and the personalized branch fans out the same
+// offset across multiple queries (multiplying the amplification). Silent
+// clamp (out-of-range → offset=0) matches the sister contracts and
+// preserves the existing parsePagination behavior for malformed cursors
+// (silent fallback to offset=0) — a 400 here would be a stricter behavior
+// change than the cycle 105/106 sisters chose.
+const maxFeedOffset = 100000
+
 func parsePagination(r *http.Request) (limit, offset int) {
 	limit = 20
 	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
@@ -338,7 +358,7 @@ func parsePagination(r *http.Request) (limit, offset int) {
 		decoded, err := base64.URLEncoding.DecodeString(cursor)
 		if err == nil {
 			var o int
-			if _, err := fmt.Sscanf(string(decoded), "offset:%d", &o); err == nil && o > 0 {
+			if _, err := fmt.Sscanf(string(decoded), "offset:%d", &o); err == nil && o > 0 && o <= maxFeedOffset {
 				offset = o
 			}
 		}
