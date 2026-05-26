@@ -274,7 +274,7 @@ function BoardSelectModal({
         {/* Feedback */}
         {feedback && (
           <div
-            role="status"
+            role={feedback.type === "success" ? "status" : "alert"}
             aria-live="polite"
             className={`mx-6 mt-4 px-3 py-2 rounded-[6px] text-xs ${
               feedback.type === "success"
