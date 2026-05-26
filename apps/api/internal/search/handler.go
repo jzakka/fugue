@@ -98,6 +98,20 @@ type TopTag struct {
 // target column itself.
 const maxSearchQueryRunes = 200
 
+// maxSearchOffset caps the `offset` pagination parameter. Sister-handler
+// convention from pin/handler.go:568 (`o > 0 && o <= 100000`). Postgres
+// LIMIT/OFFSET pagination must sort-and-skip the entire OFFSET prefix
+// before returning rows; combined with this endpoint's pg_trgm similarity
+// scoring across pins/creators/boards (3-4 queries per request), an
+// unbounded offset like 999999999 forces a full multi-table scan even
+// when the result set is empty. The endpoint is unauthenticated
+// (cmd/server/main.go:135) so a single IP can repeatedly issue such
+// requests. Silent clamp (out-of-range falls back to offset=0) matches
+// pin/handler.go contract — out-of-range pagination has no meaningful
+// successful response anyway, so a 400 would be a stricter behavior
+// change than the sister.
+const maxSearchOffset = 100000
+
 // Search handles GET /api/search?q=&type=&tag_ids=&limit=&offset=
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
@@ -128,7 +142,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	offset := int32(0)
-	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 {
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o > 0 && o <= maxSearchOffset {
 		offset = int32(o)
 	}
 
