@@ -150,7 +150,7 @@ export default function FeedContainer({
 
   if (loading && pins.length === 0) {
     return (
-      <div className="px-6">
+      <div role="status" aria-label="작품 로딩 중" className="px-6">
         <MasonryGrid>
           {Array.from({ length: 8 }).map((_, i) => (
             <CardSkeleton key={i} />
