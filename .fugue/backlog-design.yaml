@@ -2630,7 +2630,9 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 305
+    note: "apps/web/src/app/pin/new/PinCreateForm.tsx L371-385 의 비디오 최적화 progress bar track div 에 `role=\"progressbar\"` + `aria-valuenow={Math.round(optimizeProgress.progress)}` + `aria-valuemin={0}` + `aria-valuemax={100}` + `aria-label=\"파일 최적화 진행률\"` 5개 ARIA attribute 추가(diff +8 -1: track `<div>` open tag 한 줄 → 8줄로 multiline 분해, inner fill `<div>` 무변경). ProgressInfo type(apps/web/src/lib/media/index.ts L9-12: `{ stage: string; progress: number }`) progress 0~100 range — float 가능성 있어 Math.round 로 정수 normalize → aria-valuenow 는 ARIA 1.2 spec 의 decimal 허용 범위 내 정수 안전. parent `<div role=\"status\" aria-live=\"polite\">`(L361-365)는 stage text(예: '파일 압축 중...') 만 announce, 자식 progressbar 는 percentage 자체 announce — ARIA spec 상 progressbar 는 자체 named landmark 라 role=status 와 호환(separate live region · separate accname). aria-label '파일 최적화 진행률' 은 stage text 와 별개 — SR 발화: 'progressbar, 30, 파일 최적화 진행률' (NVDA) 또는 '진행 상황 표시기 30 파일 최적화 진행률'(VoiceOver). WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · ARIA 1.2 progressbar pattern 충족. in-codebase role=progressbar 라인업: PinCreateForm.tsx L373 신규 단독 1 match(첫 도입 — 기존 0에서 1로). 시각 회귀 0(role/aria-* 는 SR 전용 attribute, bar fill width transition · bg-accent · bg-border · h-2 · rounded-full 모두 그대로). optimizeProgress null 분기(L371 조건부 render)는 무변경 — bar 자체가 mount 되지 않으므로 progressbar role 도 unmount. handleFileChange · onOptimizeStart · setOptimizeProgress · 인접 컴포넌트 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'role=\"progressbar\"' apps/web/src/` 1 match(PinCreateForm.tsx L373 신규) 확인 + parent role=status(L361)와의 ARIA spec 호환 검증으로 대체. scope 는 /pin/new optimizing 분기 단독 — VideoTrimModal(별도 modal pattern, 이미 ESC/focus trap 구현 완료) 및 AddToBoardButton(별도 사이클, 백로그 잔존 pending) 미접촉."
 
   - id: "design-20260526-a11y-addtoboardbutton-modal-close-focus-return-missing"
     title: "AddToBoardButton 모달 close 후 trigger button 으로 focus 복귀 누락 — 키보드/SR 사용자가 modal close 시 focus lost(WAI-ARIA Authoring Practices Dialog Pattern · WCAG 2.1 SC 2.4.3 Focus Order Level A)"
