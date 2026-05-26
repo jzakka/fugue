@@ -2471,3 +2471,67 @@ items:
     status: done
     pr: 279
     note: "LoginButtons.tsx L72 `aria-busy={loading === provider.id}` 추가(diff +1 -0). `disabled={loading !== null}`(L71)와 페어로 navigation 직전 클릭된 provider 만 busy=true(다른 provider 는 disabled 만, busy=false). WCAG 2.1 SC 4.1.3 Status Messages (Level AA) + ARIA 1.2 aria-busy 충족. in-codebase 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27(PR #277) — 4건 모두 disabled+aria-busy 페어 보유 라인업 완성. 시각 회귀 0(aria-busy 는 SR 전용 attribute, disabled-opacity-50 시각/리다이렉트 중... 텍스트는 그대로). handleClick callback · loading state · provider 분기 · OAuth URL · redirectTo param 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'disabled=|aria-busy=' apps/web/src/app/login/LoginButtons.tsx` L71/L72 페어 확인으로 대체."
+
+  - id: "design-20260526-a11y-profileeditform-save-aria-busy-missing"
+    title: "ProfileEditForm 저장 submit button 이 `aria-busy` 누락 — SR 에 프로필 업데이트 비동기 진행 미전달(WCAG 2.1 SC 4.1.3 Status Messages Level AA · 디자인 시스템 disabled+aria-busy 페어 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:117-123"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'In content implemented using markup languages, status messages can be programmatically determined through role or properties.' ARIA 1.2 `aria-busy` — 'Indicates an element is being modified and that assistive technologies MAY want to wait until the modification is complete before exposing it to the user.' ProfileEditForm.tsx L117-123 submit button 은 `disabled={saving}`(L119) 만 보유 — 비동기 fetch 진행 중(`await updateMe({...})` L33, 100-500ms+) SR 사용자에게 '저장 중' 상태가 disabled 만으로 'dimmed' 시각으로만 표시되고 programmatic 'busy' 상태 announce 0. button 내부 텍스트가 '저장 → 저장 중...'(L122) 으로 동적 swap 되나 button 자체의 busy 속성은 누락. in-codebase disabled+aria-busy 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27(PR #277 cycle 112) + LoginButtons.tsx L71-72(PR #279 cycle 113) — 4건 모두 비동기 fetch + disabled 진행 중 button 에 `aria-busy` 페어 적용. ProfileEditForm 저장 submit 만 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /mypage 진입 + 프로필 편집 진입 → ProfileEditForm 표시. 3) (마우스) 닉네임 변경 후 '저장' submit 클릭 → 즉시 disabled(opacity-50) 적용 + 텍스트 '저장 중...' 으로 변경 + fetch PUT /api/me 진행 → 응답 후 onSave callback. 4) (키보드/SR) Tab 으로 button focus + 클릭 후 SR(VoiceOver/NVDA) 발화 → '저장 중..., button, dimmed' 만, busy 상태 announce 0. 5) `grep -nE 'aria-busy' apps/web/src/components/profile/ProfileEditForm.tsx` 0 matches. 6) 대조: LogoutButton.tsx L27 + LoginButtons.tsx L72 모두 disabled-during-loading 페어 패턴 확립."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 진입 후 프로필 편집 모드 진입 → '저장' submit button 표시. 3) Tab 으로 button focus + SR(VoiceOver/NVDA) 활성 → '저장, button' 발화. 4) 닉네임 수정 후 button 클릭 → SR 발화가 '저장 중..., button, busy' 로 변경 확인(fetch 응답 전 짧은 시점). 5) 정상 응답 시 onSave callback 호출 + 편집 폼 종료. 6) 에러 시 button 이 '저장, button' 으로 복귀 + aria-busy 가 false 로 복귀 + disabled 해제 확인. 7) 시각 회귀 0(aria-busy 는 SR 전용 attribute, disabled-opacity-50 시각/'저장 중...' 텍스트는 그대로). 8) handleSubmit · saving state · updateMe fetch · onSave/onCancel callback 모두 미수정."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260526-a11y-mypageclient-create-aria-busy-missing"
+    title: "MyPageClient BoardSection 생성 button 이 `aria-busy` 누락 — SR 에 보드 생성 비동기 진행 미전달(WCAG 2.1 SC 4.1.3 Status Messages Level AA · 디자인 시스템 disabled+aria-busy 페어 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/profile/MyPageClient.tsx:109-115"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'In content implemented using markup languages, status messages can be programmatically determined through role or properties.' ARIA 1.2 `aria-busy` — 'Indicates an element is being modified ...' MyPageClient.tsx L109-115 BoardSection 의 보드 생성 button 은 `disabled={creating}`(L111) 만 보유 — 비동기 fetch 진행 중(`await createBoard({ name: trimmed })` L43, 100-500ms+) SR 사용자에게 '생성 중' 상태가 disabled 만으로 'dimmed' 시각으로만 표시되고 programmatic 'busy' 상태 announce 0. button 내부 텍스트가 '생성 → 생성 중...'(L114) 으로 동적 swap 되나 button 자체의 busy 속성은 누락. in-codebase 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27(PR #277) + LoginButtons.tsx L71-72(PR #279) — 4건 모두 페어 보유. MyPageClient 생성 button 만 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /mypage 진입 → BoardSection 의 '+ 새 보드' 토글 → 입력 영역 표시. 3) (마우스) 보드 이름 입력 후 '생성' button 클릭 → 즉시 disabled(opacity-50) 적용 + 텍스트 '생성 중...' 으로 변경 + fetch POST /api/boards 진행 → 응답 후 boards state 갱신. 4) (키보드/SR) Tab 으로 button focus + 클릭 후 SR 발화 → '생성 중..., button, dimmed' 만, busy 상태 announce 0. 5) `grep -nE 'aria-busy' apps/web/src/components/profile/MyPageClient.tsx` 0 matches. 6) 대조: LogoutButton.tsx L27 + LoginButtons.tsx L72 페어 패턴 확립."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /mypage 진입 후 '+ 새 보드' 클릭 → 입력 영역 + '생성' button 표시. 3) Tab 으로 '생성' button focus + SR 활성 → '생성, button' 발화. 4) 보드 이름 입력 후 button 클릭 → SR 발화가 '생성 중..., button, busy' 로 변경 확인. 5) 정상 응답 시 새 보드 카드가 grid 상단에 prepend + 입력 영역 닫힘. 6) 에러 시 button 이 '생성, button' 으로 복귀 + aria-busy false + disabled 해제. 7) 시각 회귀 0(aria-busy 는 SR 전용 attribute). 8) handleCreate · creating state · createBoard fetch · boards state · setShowCreate 모두 미수정."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260526-a11y-boardactions-save-aria-busy-missing"
+    title: "BoardActions 저장 button 이 `aria-busy` 누락 — SR 에 보드 수정 비동기 진행 미전달(WCAG 2.1 SC 4.1.3 Status Messages Level AA · 디자인 시스템 disabled+aria-busy 페어 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:93-99"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'status messages can be programmatically determined through role or properties.' ARIA 1.2 `aria-busy` — 'Indicates an element is being modified ...' BoardActions.tsx L93-99 의 보드 저장 button 은 `disabled={saving}`(L95) 만 보유 — 비동기 fetch 진행 중(`await updateBoard(boardId, {...})` L33, 100-500ms+) SR 사용자에게 '저장 중' 상태가 disabled 만으로 'dimmed' 시각으로만 표시되고 programmatic 'busy' 상태 announce 0. button 내부 텍스트가 '저장 → 저장 중...'(L98) 으로 동적 swap 되나 button 자체의 busy 속성은 누락. in-codebase 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27(PR #277) + LoginButtons.tsx L71-72(PR #279) — 4건 모두 페어 보유. BoardActions 저장만 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /boards/[id] (소유자 자신의 보드) 진입 → '편집' button 클릭 → BoardActions 가 편집 모드로 전환되어 이름/설명 input + '저장'/'취소' button 표시. 3) (마우스) 이름 변경 후 '저장' button 클릭 → 즉시 disabled(opacity-50) 적용 + 텍스트 '저장 중...' 으로 변경 + fetch PUT /api/boards/{id} 진행 → 응답 후 router.refresh 호출. 4) (키보드/SR) Tab 으로 button focus + 클릭 후 SR 발화 → '저장 중..., button, dimmed' 만, busy 상태 announce 0. 5) `grep -nE 'aria-busy' apps/web/src/app/boards/\\[id\\]/BoardActions.tsx` 0 matches. 6) 대조: LogoutButton.tsx L27 + LoginButtons.tsx L72 페어 패턴 확립."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /boards/[자신의 보드 id] 진입 후 '편집' 진입 → '저장' button 표시. 3) Tab 으로 button focus + SR 활성 → '저장, button' 발화. 4) 이름 수정 후 button 클릭 → SR 발화가 '저장 중..., button, busy' 로 변경 확인. 5) 정상 응답 시 router.refresh 동작 + 편집 모드 종료. 6) 에러 시 button 이 '저장, button' 으로 복귀 + aria-busy false + disabled 해제. 7) 시각 회귀 0(aria-busy 는 SR 전용 attribute). 8) handleSave · saving state · updateBoard fetch · router.refresh · setEditing 모두 미수정."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+
+  - id: "design-20260526-a11y-addtoboardbutton-create-aria-busy-missing"
+    title: "AddToBoardButton '생성 및 추가' button 이 `aria-busy` 누락 — SR 에 보드 생성+추가 비동기 진행 미전달(WCAG 2.1 SC 4.1.3 Status Messages Level AA · 디자인 시스템 disabled+aria-busy 페어 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:373-379"
+      cite: "WCAG 2.1 SC 4.1.3 Status Messages (Level AA) — 'status messages can be programmatically determined through role or properties.' ARIA 1.2 `aria-busy` — 'Indicates an element is being modified ...' AddToBoardButton.tsx L373-379 BoardSelectModal 의 '생성 및 추가' button 은 `disabled={creating || !newBoardName.trim()}`(L375) 만 보유 — 비동기 fetch 진행 중(`handleCreateAndAdd` 의 createBoard + addPinToBoard chain, 200-1000ms+) SR 사용자에게 '생성 중' 상태가 disabled 만으로 'dimmed' 시각으로만 표시되고 programmatic 'busy' 상태 announce 0. button 내부 텍스트가 '생성 및 추가 → 생성 중...'(L378) 으로 동적 swap 되나 button 자체의 busy 속성은 누락. 적용 조건은 `aria-busy={creating}` — disabled 의 validation 항(`!newBoardName.trim()`)은 busy 상태가 아니므로 busy 는 creating 만 반영. in-codebase 페어 라인업: SearchClient.tsx L410-411 + LoadMorePins.tsx L43-44 + LogoutButton.tsx L26-27(PR #277) + LoginButtons.tsx L71-72(PR #279) — 4건 모두 페어 보유. AddToBoardButton '생성 및 추가' 만 누락. 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 attribute 추가만(diff +1 -0)."
+      repro: "1) cd apps/web && npm run dev. 2) /pins/[id] 진입 후 '보드에 추가' 클릭 → BoardSelectModal 표시 → '+ 새 보드' 클릭 → 입력 영역 + '생성 및 추가' button 표시. 3) (마우스) 보드 이름 입력 후 '생성 및 추가' button 클릭 → 즉시 disabled(opacity-50) 적용 + 텍스트 '생성 중...' 으로 변경 + handleCreateAndAdd 의 createBoard + addPinToBoard chain 진행 → feedback success/error 표시. 4) (키보드/SR) Tab 으로 button focus + 클릭 후 SR 발화 → '생성 중..., button, dimmed' 만, busy 상태 announce 0. 5) `grep -nE 'aria-busy' apps/web/src/components/board/AddToBoardButton.tsx` 0 matches. 6) 대조: LogoutButton.tsx L27 + LoginButtons.tsx L72 페어 패턴 확립."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pins/[id] 진입 후 '보드에 추가' → BoardSelectModal → '+ 새 보드' → '생성 및 추가' button 표시. 3) Tab 으로 button focus + SR 활성 → '생성 및 추가, button' 발화(이름 입력 전엔 disabled). 4) 보드 이름 입력 후 button 클릭 → SR 발화가 '생성 중..., button, busy' 로 변경 확인. 5) 정상 응답 시 feedback success 표시. 6) 에러 시 button 이 '생성 및 추가, button' 으로 복귀 + aria-busy false + disabled 해제(name 이 trimmed 인 경우). 7) 시각 회귀 0(aria-busy 는 SR 전용 attribute). 8) handleCreateAndAdd · creating state · createBoard/addPinToBoard chain · feedback state · newBoardName 모두 미수정. 9) disabled 의 validation 항(`!newBoardName.trim()`)은 aria-busy 에 반영하지 않음(`aria-busy={creating}`)."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
