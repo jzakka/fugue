@@ -5134,7 +5134,7 @@ items:
     risk: 1
     score: 4.0
     status: done
-    pr: TBD
+    pr: 288
     resolution: |
       Cycle 103 (2026-05-26): apps/api/internal/boards/handler.go 의
       3개 sister route(Create · Update · AddPin) 진입부에 `r.Body =
