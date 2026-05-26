@@ -2417,3 +2417,19 @@ items:
     status: done
     pr: 271
     note: "VideoThumbnailPicker.tsx L140 `aria-pressed={selected === i}` 추가(diff +1 -0). FieldFilter.tsx L36 + TagFilter.tsx L59 + PinsGrid.tsx L104 + SearchClient.tsx L242/L263 + PinCreateForm.tsx L571/L585/L607 6+ 위치 aria-pressed 라인업과 정합 회복. WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) 충족 — 선택 상태(selected === i)가 SR 에 programmatic 하게 announce. 시각 회귀 0(aria-pressed 는 SR 전용 attribute). className · onClick · handleSelect callback · thumbnails state · ✓ overlay · img alt · loading spinner · spinner role=status aria-live=polite 등 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'aria-pressed' apps/web/src/components/pin/VideoThumbnailPicker.tsx` L140 1 match 확인으로 대체."
+
+  - id: "design-20260526-a11y-pincreateform-selected-tag-chip-remove-button-aria-label-missing"
+    title: "PinCreateForm 선택된 태그 chip 의 X 제거 button 이 accessible name 으로 '제거' 행동 미전달 — `{tag.name} ×` 만 announce(WCAG 2.1 SC 4.1.2 Name/Role/Value Level A · 디자인 시스템 icon-only remove button 라인업)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:544-553"
+      cite: "WCAG 2.1 SC 4.1.2 Name, Role, Value (Level A) — 'For all user interface components ... name and role can be programmatically determined.' PinCreateForm.tsx L544-553 선택된 태그 chip 은 button 내부에 `{tag.name}` 텍스트 + `<span className=\"ml-0.5\">×</span>` U+00D7 multiplication sign 글리프만 — accessible name 은 '{tag.name} 곱하기'(VoiceOver KR) 또는 '{tag.name} times'(NVDA EN)로 announce, '제거/삭제' 행동 의미 0. × 글리프는 시각적 close 관용 표현이나 SR 사용자에겐 X 행동을 의미하지 않음. in-codebase icon-only remove button 라인업: SearchBar.tsx L219-239 '최근 검색에서 제거' button — `aria-label=\"최근 검색에서 제거\"` + 자식 SVG `aria-hidden=\"true\"` 패턴 확립 + AddToBoardButton.tsx L247-266 '닫기' button — 동일 `aria-label=\"닫기\"` + 자식 SVG `aria-hidden=\"true\"` 패턴. PinCreateForm chip 만 본 패턴 누락. WAI-ARIA Authoring Practices Tag/Chip 패턴: 'Each tag includes a delete button. The delete button should have an accessible label such as Delete X where X is the tag value.' 안티패턴 L15-L21 무매치 — 토큰 비변경, 공개 컴포넌트 API 비변경, JSX 구조 미수정, 1 button 에 `aria-label={...}` 추가 + 1 span 에 `aria-hidden=\"true\"` 추가(diff +2 -0 attributes)."
+      repro: "1) cd apps/web && npm run dev. 2) /pin/new 진입 → 미디어 업로드/url 입력 후 태그 검색 → 임의 태그 chip 클릭 → 선택된 태그 영역(L538-555) 표시. 3) (마우스/시각) 선택된 chip 의 우측 × 클릭 → toggleTag(id) 호출되어 chip 제거. 4) (키보드/SR) 같은 chip button 에 Tab focus + SR(VoiceOver/NVDA) 활성 → '{tag.name} 곱하기, button' 또는 '{tag.name} times, button' 발화 — '제거' 의미 0. 5) `grep -nE 'aria-label' apps/web/src/app/pin/new/PinCreateForm.tsx` 0 matches in selected-tag chip area. 6) 대조: SearchBar.tsx L219-239 + AddToBoardButton.tsx L247-266 모두 icon-only remove/close button 에 `aria-label=\"...\"` + 자식 SVG `aria-hidden=\"true\"` 패턴 보유."
+    qa_plan: "1) cd apps/web && npm run dev. 2) /pin/new 진입 → 미디어 업로드/url 입력 후 태그 검색 → 임의 태그 chip 클릭 → 선택된 태그 영역 표시. 3) Tab 으로 chip button focus + SR(VoiceOver/NVDA) 활성 → '{tag.name} 태그 제거, button' 발화 확인. 4) chip 클릭 또는 Enter → toggleTag callback 호출 + chip 제거 + filteredTags 의 동일 태그가 chip area 에서 다시 selectable 상태로 회복. 5) 다중 태그 선택 → 각 chip 의 aria-label 이 해당 tag.name 으로 동적 생성 확인. 6) 시각 회귀 0(aria-label 은 SR 전용 attribute, × 글리프는 그대로 표시). 7) toggleTag callback · selectedTagIds Set · TAG_MAX_COUNT 제한 · 인접 카테고리 button(aria-pressed) · filteredTags chip(aria-pressed) 모두 회귀 0."
+    impact: 2
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 10.0
+    status: pending
