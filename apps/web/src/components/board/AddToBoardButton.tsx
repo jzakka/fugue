@@ -373,6 +373,7 @@ function BoardSelectModal({
                 <button
                   onClick={handleCreateAndAdd}
                   disabled={creating || !newBoardName.trim()}
+                  aria-busy={creating}
                   className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {creating ? "생성 중..." : "생성 및 추가"}
