@@ -100,17 +100,55 @@ func (r *S3Reader) Get(ctx context.Context, normalizedURL string, t time.Time) (
 	return body, nil
 }
 
+// MaxDecompressedSnapshotBytes caps the gunzipped snapshot body to bound
+// the gzip-bomb blast radius on the Harvester worker.
+//
+// Sister convention: every other external-body read in this codebase wraps
+// `io.ReadAll` with `io.LimitReader` — og/service.go:44 (1MB HTML head),
+// bot/robots_filter.go:51 (512KB), bot/snapshot/reader.go:87 (10MB on the
+// compressed gz blob), bot/helpers.go, bot/pioneer_consumer.go,
+// bot/media_validator.go, auth/provider.go:35 (64KB userinfo, cycle 108).
+// The compressed-input cap above is meaningless against a gzip bomb: a 1KB
+// gz with a 1000:1 ratio still fits under the 10MB input cap and explodes
+// to ~1GB on Gunzip. OWASP zip-bomb is a well-known category; we close it
+// by capping the decompressed output too.
+//
+// 100MB rationale: snapshot bodies are the full HTML page (not just <head>
+// like og), so the og cap (1MB) would be too tight. Pioneer-side typical
+// snapshots are ~100KB-1MB compressed with normal HTML compression ratio
+// 5:1-10:1 → decompressed ~500KB-10MB. 100MB gives ~10x safety margin over
+// the largest realistic page and matches the input cap's 10:1 ratio
+// (10MB input × 10:1 normal compression = 100MB normal output). A 1000:1
+// bomb at the 10MB input cap would try to write 10GB and is now rejected
+// instead of OOM-killing the Harvester worker — CompositeFetcher's
+// fail-open path (collapses any snapshot error into "miss" and falls back
+// to HTTP) handles the rejection gracefully without service degradation.
+const MaxDecompressedSnapshotBytes = 100 * 1024 * 1024
+
 // Gunzip decompresses a gzip member produced by gzipBytes (the storage
 // side's compression). Exposed for production Harvester use; the test
 // helper in testhelpers_test.go pre-dates this and remains unchanged so
 // its round-trip assertions stay self-contained.
+//
+// Output is capped at MaxDecompressedSnapshotBytes. If the decompressed
+// stream exceeds the cap, returns an error (rather than silent truncation)
+// so the caller's existing fail-open path (CompositeFetcher) retries via
+// HTTP instead of feeding a truncated, syntactically invalid HTML body to
+// downstream parsers.
 func Gunzip(src []byte) ([]byte, error) {
 	zr, err := gzip.NewReader(bytes.NewReader(src))
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = zr.Close() }()
-	return io.ReadAll(zr)
+	body, err := io.ReadAll(io.LimitReader(zr, MaxDecompressedSnapshotBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(body)) > MaxDecompressedSnapshotBytes {
+		return nil, fmt.Errorf("decompressed body exceeded %d byte cap (suspected gzip bomb)", MaxDecompressedSnapshotBytes)
+	}
+	return body, nil
 }
 
 // classifyGetError maps AWS SDK errors into the ErrSnapshot* sentinels.
