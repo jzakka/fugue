@@ -5650,7 +5650,26 @@ items:
   - id: system-20260526-snapshot-reader-gunzip-bomb-no-cap
     title: "snapshot/reader.go 의 Gunzip 이 io.ReadAll(gzip.Reader) 로 압축 해제 결과 크기 무제한 — 압축 입력은 10MB cap 이지만 해제 출력 cap 없음 → gzip bomb (1000:1 ratio 시 10GB) 으로 Harvester worker OOM"
     area: 에러 처리
-    status: pending
+    status: done
+    pr: 314
+    resolution: |
+      cycle 109 Processing 완료. snapshot/reader.go 에 `const MaxDecompressedSnapshotBytes = 100 * 1024 * 1024` (24줄 doc 주석 — 자매 컨벤션 7건 정렬: og 1MB · robots 512KB · snapshot input 10MB · auth 64KB cycle 108 등 + 10:1 ratio 정당화 + CompositeFetcher fail-open 경로 명시) 추가. Gunzip 의 `io.ReadAll(zr)` 를 `io.ReadAll(io.LimitReader(zr, cap+1))` 로 wrap 하고 cap 초과 시 silent truncation 대신 error 반환 (CompositeFetcher 가 어떤 snapshot 에러든 "miss" 로 collapse 후 HTTP fetch fallback 하므로 graceful degradation, truncated invalid HTML 을 parser 에 먹이는 것보다 안전).
+      신규 단위 테스트 5건 (reader_gunzip_cap_test.go, `package snapshot` 내부):
+        - TestMaxDecompressedSnapshotBytes_MatchesIntent (drift guard)
+        - TestGunzip_NormalSnapshotPassesThrough (realistic HTML round-trip)
+        - TestGunzip_AtCapPassesThrough (cap inclusive 통과)
+        - TestGunzip_OverCapRejected (cap+1 → error + "cap" 포함)
+        - TestGunzip_ZipBombRejected (cap+1MB 페이로드, 압축 ratio 100:1+ 보장)
+        - TestGunzip_CorruptedGzipStillReturnsError (회귀: cap wrap 이 CRC 에러 swallow 하지 않음)
+      실 환경 QA: snapshot pipeline 은 내부 trust boundary (Pioneer write → Harvester read) 라 HTTP 단독 호출로 도달 불가. cmd/cycle109qa/main.go (QA 후 삭제) 로 production snapshot.Gunzip 함수 직접 호출 7건 검증:
+        - T1 realistic HTML 18.5KB → ok (round-trip clean)
+        - T2 at cap (104857600 bytes) → ok
+        - T3 cap+1 → err "decompressed body exceeded 104857600 byte cap (suspected gzip bomb)"
+        - T4 zip bomb (gz=109KB 압축, 해제 시 cap+10MB) → err 동일
+        - T5 corrupted gz → err "gzip: invalid checksum" (cap wrap 회귀 없음)
+        - T6 empty body → ok len=0
+        - T7 1MB normal page (gz=3KB → 1088KB) → ok
+      서버 부팅 + 인접 회귀 5건: GET /api/feed → 200, /api/pins?offset=50 → 200 (cycle 105), /api/search?q=test&offset=10 → 200 (cycle 105), /api/boards/<id> → 200 (cycle 106), /api/tags → 200. 전체 `go test ./...` 622 passed / 23 packages (cycle 108 616 + snapshot cap 5건 + table case 1건). QA 후 cmd/cycle109qa 디렉토리 삭제, 서버 종료.
     score: 5.0
     impact: 2
     confidence: 4
