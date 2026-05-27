@@ -2684,4 +2684,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 316
+    note: "apps/web/src/app/boards/[id]/page.tsx L69 의 `!board.is_public` 분기 '비공개' 상태 chip className 에 `font-mono` 1 class 추가(diff +1 -1). 변경 후 in-codebase bg-accent-subtle text chip 6/6(pins/[id] Media Type Badge L130 · pins/[id] Tag chip L152 · pin/new mediaType chip L413 · boards/[id] 비공개 chip L69 신규 · PinCard read-time L198 · SearchBar dropdown tag chip L305) 모두 font-mono 보유 — DESIGN.md L20 'Data/Tags: Geist Mono — 태그, 메타데이터, 수치' 정렬. is_public=true 보드 영향 0(chip 자체 mount 0). 인접 컴포넌트 영향 0(단일 라인). 시각 회귀는 font-family 만 Pretendard → Geist Mono 전환 — 형제 chip 들과 동일 typewriter 느낌으로 정렬되는 의도된 변경. JSX 구조·`!board.is_public` 조건·children('비공개')·bg-accent-subtle·text-accent·rounded-full·px-2·py-0.5·text-xs 모두 미수정. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'font-mono' apps/web/src/app/boards/\\[id\\]/page.tsx` 2 matches(L65 pin count 기존 · L69 비공개 chip 신규) 확인 + `grep -rnE 'bg-accent-subtle.*rounded-full' apps/web/src/ --include=\"*.tsx\"` 6 matches 모두 font-mono 보유 검증으로 대체. CI Web (Next.js) + API (Go) 모두 SUCCESS. PR #316 머지 완료(2026-05-27)."
