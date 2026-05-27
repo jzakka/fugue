@@ -5731,3 +5731,100 @@ items:
         - 인접 회귀: snapshot writer 측 (snapshot/writer.go) 정상 write,
           Pioneer 정상 enqueue.
 
+
+  - id: system-20260528-consumer-run-dequeue-error-hot-spin
+    title: "PioneerConsumer.Run / HarvesterConsumer.Run 이 DequeueCtx 에러 시 backoff 없이 즉시 retry — DB outage 시 CPU/log hot-spin"
+    area: 동시성
+    status: pending
+    score: 8.0
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    evidence:
+      files:
+        - "apps/api/internal/bot/pioneer_consumer.go:127-134"  # DequeueCtx err → log + continue (no sleep)
+        - "apps/api/internal/bot/harvester_consumer.go:267-275"  # 동일 패턴 (대칭)
+        - "apps/api/internal/scheduler/postgres_scheduler.go:228-244"  # DequeueCtx: tryClaim err 즉시 반환, select sleep 은 claimed=false 경로만
+        - "apps/api/internal/scheduler/postgres_scheduler.go:271-275"  # tryClaim: BeginTx 실패 즉시 err 반환 (DB 연결 끊김 시 instant)
+      quote: |
+        pioneer_consumer.go:123-134 (Run loop):
+          for {
+              if err := ctx.Err(); err != nil { return err }
+              rawURL, err := p.scheduler.DequeueCtx(ctx, scheduler.QueuePioneer)
+              if err != nil {
+                  // Spec "Dequeue 자체 오류는 카운트되지 않는다": log and retry
+                  // instead of returning, so a transient scheduler/DB hiccup does
+                  // not consume any budget or kill the worker prematurely.
+                  log.Printf("WARN pioneer_consumer: dequeue err=%v", err)
+                  continue   // ← no sleep, no backoff
+              }
+              ...
+          }
+
+        harvester_consumer.go:263-276 (동일 패턴):
+          for {
+              if err := ctx.Err(); err != nil { return err }
+              rawURL, err := h.scheduler.DequeueCtx(ctx, scheduler.QueueHarvester)
+              if err != nil {
+                  log.Printf("WARN harvester_consumer: component=harvester_worker reason=dequeue_error err=%v", err)
+                  continue   // ← no sleep, no backoff
+              }
+              ...
+          }
+
+        postgres_scheduler.go:228-244 (DequeueCtx 내부):
+          for {
+              if err := ctx.Err(); err != nil { return "", err }
+              url, claimed, err := s.tryClaim(ctx, queueType)
+              if err != nil {
+                  return "", err   // ← claim err 는 즉시 호출자에게 반환
+              }
+              if claimed { return url, nil }
+              select {                    // ← sleep 은 (empty queue or all-throttled) 경로 전용
+              case <-ctx.Done(): return "", ctx.Err()
+              case <-time.After(s.pollIntervalOrDefault()):
+              }
+          }
+      reasoning: |
+        DequeueCtx 의 sleep 위치가 (claimed=false, no-error) 경로 한정이라
+        tryClaim 자체가 에러를 반환하는 경우(특히 DB 연결 끊김 — BeginTx 가
+        즉시 error 로 fail) Run loop 가 `log + continue` 만 반복하며 CPU·log
+        를 hot-spin 한다.
+        DB outage 지속 시 단일 Pioneer/Harvester worker 가:
+          - 매 iteration: BeginTx 실패 (~µs) → DequeueCtx err → log + continue
+          - 초당 수천~수만 회 WARN log
+          - CPU 1 core fully busy
+          - log shipping pipeline 압박 (Datadog/CloudWatch 비용 폭증)
+          - k8s liveness probe 는 healthcheck endpoint 가 아니므로 worker 가
+            "alive" 로 판정되어 restart 도 안 됨 (consumer pod 는 endpoint 없음).
+        반면 의도된 동작은:
+          - empty queue / all-throttled: 1초 (pollInterval) sleep — OK
+          - Dequeue 자체 오류: 같은 의미 (busy-wait 회피) 로 sleep 했어야 함
+        spec 인용 ("Dequeue 자체 오류는 카운트되지 않는다") 의 의도는
+        "에러를 budget 에 가산하지 말라" 이지 "에러 시 backoff 도 빼라" 가
+        아님 — 현 코드는 "budget 가산 X" 만 충족하고 "spin 회피" 는 빠뜨림.
+        해결: Run loop 의 err 분기에서 1 회 `select { ctx.Done(): ; time.After(pollInterval): }`
+        를 끼우거나 (가장 단순), DequeueCtx 내부의 tryClaim err 분기에 동일
+        select 를 끼우거나 (sister-handler 정합), 별도 ErrorBackoffPolicy 도입
+        (가장 보수적이지만 effort 1 초과). 가장 보수: Run loop 측에 직접 끼우면
+        Pioneer/Harvester 양쪽 대칭 1줄 변경 (effort 1, sister 컨벤션 정합 0
+        — 신규 패턴이지만 DequeueCtx 의 select-sleep 패턴과 완전히 동일 모양).
+        impact 2 (외부 서비스 중단 X, 사용자 영향 X, 운영 환경에서 DB outage
+        지속 시 비용/log 폭증 + log search noise). confidence 4 (코드 경로
+        결정적, 재현은 BeginTx mock 으로 trivial). effort 1 (4-6 줄 변경).
+        risk 1 (정상 경로 영향 0, sleep 추가는 expansion 만이라 회귀 surface
+        없음).
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA:
+        - T1 단위: BeginTx 가 즉시 err 반환하는 stub DequeueCtx 로 Run 호출,
+          1초 내 ctx 취소 → log line count 가 작은 수(예: ≤5) 인지 검증.
+          현 코드는 수천 줄.
+        - T2 단위 회귀: 정상 happy path Run 1회 → 정상 동작 유지.
+        - T3 단위 회귀: empty queue (claimed=false, no-err) 경로의 기존
+          sleep 동작 유지 — 변경되면 안 됨.
+        - T4 실 환경: 로컬 Postgres tunnel 끊은 상태에서 fuguebot pioneer
+          실행 → log line rate 가 빈번하지 않은지(예: 1초당 ≤1) 확인.
+          tunnel 복구 후 정상 dequeue 로 전환되는지 확인.
+        - T5 실 환경 회귀: harvester 도 동일하게 검증 (대칭).
+        - 인접 회귀: DequeueCtx 의 ctx 취소 즉시 반환은 보존 (SIGTERM 정합).
