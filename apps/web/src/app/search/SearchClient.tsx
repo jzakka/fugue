@@ -383,7 +383,7 @@ export default function SearchClient({
                             {board.description}
                           </div>
                         )}
-                        <div className="text-xs text-text-dim mt-1 font-mono">
+                        <div className="text-xs text-text-dim mt-1">
                           {board.creator_nickname}
                         </div>
                       </div>
