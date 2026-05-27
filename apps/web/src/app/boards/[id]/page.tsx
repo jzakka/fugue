@@ -66,7 +66,7 @@ export default async function BoardDetailPage({ params }: Props) {
                   {board.pin_count} pins
                 </span>
                 {!board.is_public && (
-                  <span className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full text-xs">
+                  <span className="px-2 py-0.5 bg-accent-subtle text-accent rounded-full text-xs font-mono">
                     비공개
                   </span>
                 )}
