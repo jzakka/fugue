@@ -6006,3 +6006,64 @@ items:
         bot/media_validator.go probeDuration 의 timeout-wrap 패턴(context.WithTimeout
         + defer cancel)은 이번 변경 범위 밖. 본 PR 은 sister-convention drift 의
         핵심 결함(ctx 전혀 안 받음) 만 해소. timeout 분리가 필요하면 후속 사이클로.
+
+  - id: system-20260528-server-base-context-on-sigterm
+    area: concurrency
+    status: pending
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 4.0
+    title: |
+      cmd/server/main.go 의 http.Server 가 BaseContext 미설정 — SIGTERM 시
+      in-flight r.Context() 가 cancel 되지 않아 cycle 120 PR #353·cycle 127
+      PR #377 의 ctx 전파 fix 가 SIGTERM 시나리오에서 무효화.
+    evidence:
+      - "cmd/server/main.go:203 — `srv := &http.Server{Addr: addr, Handler: r}` 로 BaseContext 미지정. Go net/http 기본값은 connection ctx 가 context.Background() 에서 파생되므로 srv.Shutdown 호출 시점에 in-flight 핸들러의 r.Context() 는 cancel 되지 않는다(Shutdown 은 listener 만 닫고 in-flight 가 자연 종료까지 대기)."
+      - "cmd/server/main.go:205-228 — signal.NotifyContext(SIGTERM) → 25s 드레인 → ListenAndServe 종료 의 graceful shutdown 흐름이 갖춰져 있으나, BaseContext 가 signal ctx 를 받지 않으므로 신호가 in-flight 핸들러까지 도달하지 못함. L201 주석 `the longest in-process handler today is og.Service.Fetch at 5s total` 도 cycle 95 이후 pin.Create 의 reencodeVideoRange(15s trim 기준 수초~수십 초) 가 추가되면서 stale — 25s drain 초과 in-flight 가 실재."
+      - "cycle 127 PR #377 backlog evidence(`재현: API 서버에 SIGTERM 송신 시점에 진행 중인 ffmpeg/ffprobe subprocess 는 부모 ctx cancel 을 받지 못해 ... http.Server.Shutdown 의 drain 기간이 그만큼 늘어난다.`) 가 SIGTERM 시나리오를 명시했으나, exec.CommandContext(ctx, ...) 만으로는 ctx 의 출처(r.Context())가 cancel 되지 않으므로 SIGTERM 트리거가 ffmpeg 까지 전달 안 됨. cycle 127 fix 는 client-disconnect mid-upload 경로만 실 효과 — SIGTERM 경로는 BaseContext 필수."
+      - "cycle 120 PR #353 GoogleProvider.FetchProfile ctx 전파도 동일 — 콜백 핸들러가 SIGTERM 받아도 r.Context() 가 cancel 되지 않으면 userinfo HTTP round-trip 이 자연 종료까지 대기. 본 fix 없이는 ctx 전파 PR 3건(120·127 + cycle 120 의 provider_ctx_propagation_test.go 가 검증한 ctx cancel 시나리오)이 SIGTERM 에서 효과 없음."
+      - "Sister precedent: cmd/bot/main.go:277/499 의 signal.NotifyContext(parent, SIGTERM) → runCtx 가 모든 봇 consumer/worker 로 propagate(DequeueCtx · processOne · scheduler.RecordFetchErrorCtx 등). 봇 트랙은 같은 패턴으로 이미 SIGTERM 신호가 in-flight 작업까지 도달. HTTP 서버 트랙만 BaseContext 누락으로 sister-convention drift."
+      - "Go net/http 표준 패턴: BaseContext func(net.Listener) context.Context — connection ctx 의 부모를 지정. signal-bound ctx 를 반환하면 srv.Shutdown 시점에 in-flight 핸들러의 r.Context() 까지 cancel chain 이 전파(conn ctx ← BaseContext, req.Context() ← conn ctx)."
+    qa_plan: |
+      처리 모드 7단계에서 사용:
+      1. `docker-compose up -d` + API 서버 기동.
+      2. 큰 비디오(>15s) 트리밍 업로드 시작 — reencodeVideoRange 진입 후 ffmpeg
+         이 수초간 실행 중인 시점에 API 서버 PID 에 SIGTERM 송신
+         (`kill -TERM <PID>`).
+      3. 변경 전: signal ctx 가 cancel 되어도 in-flight curl 요청의 r.Context()
+         는 그대로 → ffmpeg 가 자연 종료까지 진행, `ps aux | grep ffmpeg` 에서
+         ffmpeg 가 살아있음 + srv.Shutdown 이 25s 까지 대기(또는 25s timeout 후
+         shutdown failed 로그). 25s 후 curl 은 connection reset 받음.
+      4. 변경 후: signal ctx cancel → BaseContext 가 반환한 ctx cancel →
+         conn ctx cancel → r.Context() cancel → CommandContext 가 ffmpeg
+         즉시 kill → 서버 log 에 `ffmpeg reencode: signal: killed` + handler 가
+         500 응답 + Shutdown 이 빠르게 완료(in-flight 즉시 drain).
+      5. 회귀: 정상 케이스(짧은 비디오 업로드 + GET /api/pins) 가 영향 없음 확인.
+         SIGTERM 미발생 시 동작 변화 0(BaseContext 의 ctx 는 server lifetime
+         내 cancel 되지 않으므로 strictly additive).
+      6. (보너스) curl 으로 GoogleProvider.FetchProfile (POST /api/auth/google/callback)
+         호출 중 SIGTERM — cycle 120 PR #353 의 ctx 전파가 본 fix 와 합쳐져
+         userinfo HTTP round-trip 도 cancel 되는지 검증.
+    note: |
+      수정 모양(예상 5 line):
+        ctx, cancel := signal.NotifyContext(context.Background(),
+            os.Interrupt, syscall.SIGTERM)
+        defer cancel()
+        srv := &http.Server{
+            Addr:        addr,
+            Handler:     r,
+            BaseContext: func(_ net.Listener) context.Context { return ctx },
+        }
+      ctx 변수 선언 순서를 srv 생성 전으로 옮긴다(현 cmd/server/main.go:203 → :205
+      순서를 뒤집음). 의미적 변화 없음.
+
+      관찰자 측 보너스: net.Listener 매개변수는 본 패턴에서 사용하지 않으므로 `_`
+      로 받는다(linter ok). connection ctx 가 baseCtx 에서 파생되므로 SIGTERM
+      이후 새 connection accept 가 멈춰도 in-flight conn 들은 cancel 신호 받음.
+    refs:
+      - "cycle 120 PR #353 (GoogleProvider.FetchProfile ctx 전파) — 본 fix 없이는 SIGTERM 시나리오에서 효과 없음"
+      - "cycle 127 PR #377 (pin.Create ffmpeg/ffprobe ctx 전파) — 본 fix 와 합쳐져야 SIGTERM 시 ffmpeg kill 동작"
+      - "cycle 121 (동시성 ctx 전파 sister-handler cross-walk) — BaseContext 표면을 누락"
+      - "cmd/bot/main.go:277/499 signal.NotifyContext sister-precedent — 봇 트랙은 같은 패턴으로 SIGTERM → in-flight 까지 cancel chain 완성"
