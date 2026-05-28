@@ -68,6 +68,12 @@ func TestImageValidator_Reject1x1GIF(t *testing.T) {
 	defer srv.Close()
 
 	v := NewDefaultMediaValidator()
+	// SSRF guard: NewDefaultMediaValidator now wires httpclient.NewSSRFSafeClient
+	// (see media_validator.go doc-comment), whose DialContext rejects loopback IPs
+	// — including the 127.0.0.1 that httptest.NewServer binds to. srv.Client()
+	// returns a client whose Transport is configured for this specific stub
+	// (matches the existing fixture pattern in robots_filter_test.go:29).
+	v.HTTP = srv.Client()
 	r := v.Validate(context.Background(), srv.URL, "image")
 
 	if r.Valid {
@@ -86,6 +92,7 @@ func TestImageValidator_AcceptNormalPNG(t *testing.T) {
 	defer srv.Close()
 
 	v := NewDefaultMediaValidator()
+	v.HTTP = srv.Client() // bypass SSRF loopback guard for httptest 127.0.0.1
 	r := v.Validate(context.Background(), srv.URL, "image")
 
 	if !r.Valid {
@@ -104,6 +111,7 @@ func TestImageValidator_RejectCorruptedBytes(t *testing.T) {
 	defer srv.Close()
 
 	v := NewDefaultMediaValidator()
+	v.HTTP = srv.Client() // bypass SSRF loopback guard for httptest 127.0.0.1
 	r := v.Validate(context.Background(), srv.URL, "image")
 
 	if r.Valid {
@@ -121,6 +129,7 @@ func TestImageValidator_RejectSmallDimensions(t *testing.T) {
 	defer srv.Close()
 
 	v := NewDefaultMediaValidator()
+	v.HTTP = srv.Client() // bypass SSRF loopback guard for httptest 127.0.0.1
 	r := v.Validate(context.Background(), srv.URL, "image")
 
 	if r.Valid {
