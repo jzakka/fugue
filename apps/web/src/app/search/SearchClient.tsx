@@ -234,7 +234,11 @@ export default function SearchClient({
       </h1>
 
       {/* Category tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide">
+      <div
+        role="group"
+        aria-label="검색 카테고리"
+        className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide"
+      >
         {TABS.map((tab) => (
           <button
             key={tab.value}
