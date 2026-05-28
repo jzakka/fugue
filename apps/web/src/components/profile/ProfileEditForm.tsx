@@ -47,9 +47,10 @@ export default function ProfileEditForm({
   return (
     <form
       onSubmit={handleSubmit}
+      aria-labelledby="profile-edit-form-title"
       className="bg-surface rounded-[16px] p-6 sm:p-8 border border-border space-y-6"
     >
-      <h2 className="text-xl font-bold font-display tracking-tight">프로필 편집</h2>
+      <h2 id="profile-edit-form-title" className="text-xl font-bold font-display tracking-tight">프로필 편집</h2>
 
       {error && (
         <div

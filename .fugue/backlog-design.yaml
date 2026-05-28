@@ -3145,6 +3145,7 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
-
+    status: done
+    pr: 417
+    note: "cycle 172 Processing 머지. apps/web/src/components/profile/ProfileEditForm.tsx L48 `<form>` 에 aria-labelledby=\"profile-edit-form-title\" + L52 `<h2>` 에 id=\"profile-edit-form-title\" 추가(diff +2 -2, 2 attribute, JSX 구조 비변경, className 모두 그대로). WAI-ARIA 1.2 form landmark + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — visible heading '프로필 편집' 텍스트가 SR name 으로 그대로 노출되며 form 이 AT landmark navigation 에 'form, 프로필 편집' 으로 등장. cycle 171 PR #411 PinCreateForm `<form>` aria-labelledby 정착 패턴의 인접 갭 해소 (in-codebase form landmark coverage 1 → 2). form 의 nickname input(aria-required/aria-invalid/aria-describedby cycle 152/146/164 라인업) · avatar URL input · cancel button · submit button(aria-busy cycle 161) 모두 미수정 → 동작 변화 0."
 
