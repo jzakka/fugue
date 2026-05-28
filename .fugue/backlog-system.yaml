@@ -6089,7 +6089,7 @@ items:
   - id: system-20260528-bot-media-validator-bare-http-client-ssrf
     area: 보안
     status: done
-    # cycle 134 처리 — PR <fill-after-merge> 머지로 종결.
+    # cycle 134 처리 — PR #395 머지로 종결.
     # 1줄 교체(httpclient.NewSSRFSafeClient + Options{5s/30s/5}), 자매 4건과 동일 SoR 정렬.
     # 실 환경 QA(qa-media-validator-ssrf binary): loopback 375µs / IMDS 15µs / 10.0.0.1 11µs /
     # 192.168.1.1 8µs 모두 download_failed 로 dial-time 거부(µs 단위 latency 가 socket connect
