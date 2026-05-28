@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -197,14 +198,34 @@ func main() {
 	// db.Close()/rdb.Close() above actually run on shutdown (bare
 	// http.ListenAndServe + log.Fatalf would call os.Exit and skip them).
 	// 25s drain leaves ~5s headroom inside the k8s default
-	// terminationGracePeriodSeconds=30s for the runtime to finish exiting;
-	// the longest in-process handler today is og.Service.Fetch at 5s total.
+	// terminationGracePeriodSeconds=30s for the runtime to finish exiting.
+	//
+	// BaseContext wires the signal ctx into every accepted connection so
+	// SIGTERM propagates into each in-flight r.Context(): srv.Shutdown alone
+	// only stops the listener and waits for handlers — it does NOT cancel
+	// req.Context. Without BaseContext, in-flight handlers (cycle 120 PR
+	// #353 GoogleProvider.FetchProfile, cycle 127 PR #377 pin.Create
+	// ffmpeg/ffprobe) see ctx cancel only on client-disconnect, not on
+	// server shutdown. With BaseContext, the cancel chain is
+	// signal ctx → conn ctx (via BaseContext) → req.Context (via the
+	// per-conn serve loop), so CommandContext kills ffmpeg subprocesses
+	// and Shutdown drains within actual response latency instead of
+	// waiting up to 25s for ffmpeg's natural exit. cmd/bot/main.go's
+	// signal.NotifyContext → DequeueCtx → processOne chain is the sister
+	// precedent on the bot track.
 	addr := ":" + cfg.Port
-	srv := &http.Server{Addr: addr, Handler: r}
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+		BaseContext: func(_ net.Listener) context.Context {
+			return ctx
+		},
+	}
 
 	serverErr := make(chan error, 1)
 	go func() {
