@@ -139,7 +139,7 @@ export default function SearchBar() {
   const hasAnyResults = hasPins || hasCreators || hasBoards;
 
   return (
-    <div className="flex-1 max-w-md relative" ref={containerRef}>
+    <div className="flex-1 max-w-md relative" ref={containerRef} role="search">
       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm opacity-40 pointer-events-none">
         <svg
           aria-hidden="true"
