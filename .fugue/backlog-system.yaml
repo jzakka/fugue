@@ -6085,3 +6085,118 @@ items:
       - "cycle 127 PR #377 (pin.Create ffmpeg/ffprobe ctx 전파) — 본 fix 와 합쳐져야 SIGTERM 시 ffmpeg kill 동작"
       - "cycle 121 (동시성 ctx 전파 sister-handler cross-walk) — BaseContext 표면을 누락"
       - "cmd/bot/main.go:277/499 signal.NotifyContext sister-precedent — 봇 트랙은 같은 패턴으로 SIGTERM → in-flight 까지 cancel chain 완성"
+
+  - id: system-20260528-bot-media-validator-bare-http-client-ssrf
+    area: 보안
+    status: pending
+    impact: 4
+    confidence: 4
+    effort: 1
+    risk: 2
+    score: 8.0
+    title: |
+      bot/media_validator.go NewDefaultMediaValidator 가 bare &http.Client{Timeout:30s} 를 사용 — Harvester 의 미디어
+      후보 fetch 경로(image/video/audio 디코드·크기 검증용 download) 가 SSRF-safe 가 아님. 외부 페이지에서 추출된
+      caller-untrusted 미디어 URL(og:image / twitter:image / <img src> 등)이 169.254.169.254, 10.x, 192.168.x,
+      127.0.0.1 같은 private/reserved IP 를 가리키면 dial 이 그대로 성공하여 내부 서비스로 outbound 요청이 나간다.
+      harvester spec L739 "외부 미디어 fetch는 SSRF-safe HTTP client를 경유한다(SHALL)" + L751 "임의 미디어 URL에
+      대한 fetch 경로를 모두 포괄한다" 직접 위반. 자매 컨벤션(harvest_pipeline.go:154, pioneer_consumer.go:376,
+      robots_filter.go:100, og/service.go) 4건 모두 httpclient.NewSSRFSafeClient 로 정렬 완료 상태에서 단독으로
+      잔존하는 마지막 bare HTTP client 게이트.
+    evidence:
+      files:
+        - "apps/api/internal/bot/media_validator.go:129"   # NewDefaultMediaValidator: HTTP: &http.Client{Timeout: 30 * time.Second}
+        - "apps/api/internal/bot/media_validator.go:144"   # Validate(ctx, url, declaredType) — caller-untrusted url 인자
+        - "apps/api/internal/bot/media_validator.go:169"   # download(ctx, url) — v.HTTP.Do(req) 로 bare client 직접 호출
+        - "apps/api/cmd/bot/harvester_consumer_builder.go:31"  # 프로덕션 wiring: NewHarvesterConsumer(...).WithMediaValidator(NewDefaultMediaValidator())
+        - "apps/api/internal/bot/harvester_consumer.go:198"    # WithMediaValidator(v MediaValidator) — validator 가 consumer 메인 루프에 합류
+        - "apps/api/internal/bot/media_validator.go:345"   # FilterValidMedia: r := validator.Validate(ctx, url, declared) — PinDocument 채택 전 fetch 진입점
+        - "apps/api/internal/httpclient/ssrf.go:24"        # NewSSRFSafeClient(opts) — 단일 SoR
+        - "apps/api/internal/bot/harvest_pipeline.go:154"  # 자매: client: httpclient.NewSSRFSafeClient(...)
+        - "apps/api/internal/bot/pioneer_consumer.go:376"  # 자매: client: httpclient.NewSSRFSafeClient(...) — cycle 22 PR #171
+        - "apps/api/internal/bot/robots_filter.go:100"     # 자매: httpClient: httpclient.NewSSRFSafeClient(...)
+        - "apps/api/internal/og/service.go"                # 자매: og.NewService — httpclient.NewSSRFSafeClient 위임 (cycle 188 정합)
+        - "openspec/specs/harvester/spec.md:739"           # SHALL: 외부 미디어 fetch는 SSRF-safe HTTP client를 경유한다
+        - "openspec/specs/harvester/spec.md:751"           # 본 Requirement는 ... 임의 미디어 URL에 대한 fetch 경로를 모두 포괄한다
+      quote: |
+        media_validator.go:127-139 (NewDefaultMediaValidator):
+          func NewDefaultMediaValidator() *DefaultMediaValidator {
+              return &DefaultMediaValidator{
+                  HTTP:            &http.Client{Timeout: 30 * time.Second},   // ← bare client, SSRF 가드 없음
+                  ImageMinWidth:   DefaultImageMinWidth,
+                  ...
+              }
+          }
+        media_validator.go:169-198 (download):
+          func (v *DefaultMediaValidator) download(ctx context.Context, url string) ([]byte, string, error) {
+              req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+              ...
+              resp, err := v.HTTP.Do(req)   // ← caller-untrusted url 로 bare client 직접 dial
+              ...
+          }
+        openspec/specs/harvester/spec.md:739-751:
+          ### Requirement: 외부 미디어 fetch는 SSRF-safe HTTP client를 경유한다
+          Harvester가 외부 사이트로부터 추출된 — 즉, 호출자가 제어할 수 없는 — URL에 대해 미디어
+          바이트를 직접 가져와 ... 그 HTTP fetch는 SSRF-safe HTTP client를 경유해야 한다(SHALL).
+          ...
+          본 Requirement는 기존 Requirement `Generic HTML→Pin extractor가 default 변환 경로다`가
+          추출하는 `og:image`/`twitter:image`/JSON-LD `schema.org` image 후보 URL과, 그 외 페이지에서
+          추출되는 임의 미디어 URL에 대한 fetch 경로를 모두 포괄한다.
+      reasoning: |
+        MediaValidator 는 PinDocument 채택 전에 외부 페이지에서 추출된 미디어 후보(이미지/비디오/오디오)를
+        download → 디코더로 validate 하는 경로다(harvester spec L659 SHALL "미디어 후보 유효성 검증"). 입력 URL 은
+        Generic HTML→Pin extractor 가 외부 HTML 의 og:image / twitter:image / JSON-LD schema.org image / <img src>
+        에서 그대로 추출한 caller-untrusted URL — 즉 spec L741 의 "외부 사이트로부터 추출된 — 즉, 호출자가
+        제어할 수 없는 — URL" 정의에 정확히 일치한다.
+
+        spec L739 의 SHALL 적용 범위는 L741 elaboration("미디어 바이트를 직접 가져와 객체 저장소에 적재할 때") 만
+        보면 cacheImage/downloadAndUpload(=HarvestPipeline, S3 적재 경로) 만 cover 하는 것처럼 읽힐 수 있으나, L751
+        의 encompass clause 는 "임의 미디어 URL에 대한 fetch 경로를 모두 포괄한다" 로 fetch path 전체를 SHALL 범위
+        로 명시한다. MediaValidator.download 는 그 정의에 그대로 매핑된다. 또한 cycle 22 PR #171 가 Pioneer 의
+        HTML fetch 경로(상기 S3 적재 경로 아닌 snapshotStore 적재 경로)에 spec L739 를 적용한 선례가 있어 "fetch
+        결과의 최종 저장소가 S3 가 아니어도 caller-untrusted URL 에 대한 모든 outbound HTTP 는 SSRF-safe 여야
+        한다" 는 패키지 단일 정책이 이미 확립돼 있다.
+
+        위협 모델: (a) AWS EC2/EKS 환경에서 og:image = http://169.254.169.254/latest/meta-data/iam/security-credentials/
+        를 가리키는 외부 페이지가 한 번이라도 Pioneer 큐에 들어가면 Harvester worker 가 IMDS 응답을 read → 디코드
+        실패로 validation 탈락 후 폐기되지만, 그 사이 IAM 자격증명이 process 메모리에 적재되며 timing/error message
+        side-channel 로 내부 인프라 topology 가 노출. (b) 192.168.x / 10.x / 172.16.x 내부 서비스 포트 스캔 — bot
+        worker 가 사실상 어디서나 attacker 가 외부 페이지에 og:image 만 심으면 dispatched 가능한 SSRF probe 로
+        전락. (c) DNS rebinding — 처음 public IP 로 resolve 된 URL 이 validator 호출 시점에 192.168.1.1 로 flip 되어
+        도 bare dialer 는 무방비.
+
+        confidence 4 — spec L739 + L751 명시적 SHALL, sister convention 4건 (harvest_pipeline.go:154,
+        pioneer_consumer.go:376, robots_filter.go:100, og/service.go) 모두 NewSSRFSafeClient 로 정렬,
+        media_validator.go 단독 잔존, 재현 시나리오 결정적(httpclient.NewSSRFSafeClient 의 ssrf_test.go 패턴 그대로
+        적용 가능, 169.254.169.254 dial 거부 검증). impact 4 — IMDS 자격증명 노출 + 내부 서비스 dial 가능성 +
+        bot 트랙 잔여 SSRF 게이트 마지막 1건이라 패치 후 패키지 단위 closure. effort 1 — bare http.Client 1줄 →
+        httpclient.NewSSRFSafeClient(Options{...}) 1줄 교체 + import 1줄 + doc 주석. risk 2 — 기존 단위 테스트가
+        httptest.NewServer(127.0.0.1 binding) 다수 사용 → SSRF 가드가 loopback 을 거부하므로 robots_filter_test.go
+        패턴(`f.httpClient = ts.Client()` post-construction override) 으로 fixture 정정 필요. 외부 contract
+        무변경(NewDefaultMediaValidator 시그니처 동일, HTTP 필드 exported 라 기존 wiring 그대로).
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA — production NewDefaultMediaValidator() 인스턴스로 직접 외부 호출 시나리오.
+      (1) 사전 조건: `docker-compose up -d` + 임시 binary `apps/api/cmd/qa-media-validator-ssrf/main.go` 에서
+          production `bot.NewDefaultMediaValidator()` 인스턴스 생성.
+      (2) T1 (IMDS 거부): Validate(ctx, "http://169.254.169.254/latest/meta-data/", "image") → Result.Valid=false
+          + Reason=MediaValidationDownloadFailed + 서버 log 에 `httpclient: blocked private/reserved IP 169.254.169.254`
+          로 wrap 된 download error 확인.
+      (3) T2 (RFC1918 거부): Validate(ctx, "http://10.0.0.1/x", "image") → 동일 형태 거부.
+      (4) T3 (loopback 거부): Validate(ctx, "http://127.0.0.1:1/x", "image") → 동일 형태 거부.
+      (5) T4 (302 → private redirect 거부): httptest public-mock(이는 SSRF 가 거부하므로 별도 공인 IP 테스트
+          서버 또는 redirect-to-private 가 잡히는 test 단위로 보강) — robots_filter_ssrf_test.go 의
+          TestRobotsFilter_FetchRobots_BlocksRedirectToLoopback 패턴과 동일.
+      (6) T5 (happy path 회귀): Validate(ctx, "https://github.githubassets.com/favicon.ico", "image") → Valid=true
+          + Bytes 정상 + ContentType=image/x-icon (공개 CDN 으로 정상 디코드 보존 확인).
+      (7) Harvester 워커 부팅 회귀: `HARVESTER_MODE=real` 로 cmd/bot 부팅 → wiring 로그 정상.
+      (8) `go vet ./... && go build ./... && go test ./...` 통과 (기존 media_validator_test.go 가
+          httptest.NewServer 사용 → SSRF 가드가 127.0.0.1 거부하므로 `v.HTTP = srv.Client()` 패턴으로 fixture
+          updates 필요 — robots_filter_test.go:29 sister-precedent).
+      (9) 임시 binary `cmd/qa-media-validator-ssrf/` QA 종료 후 삭제.
+    refs:
+      - "cycle 19 PR #47 — HarvestPipeline SSRF 최초 가드 + httpclient 패키지 신설"
+      - "cycle 22 PR #171 — Pioneer DefaultConsumerFetcher SSRF 정렬 + 자매 패키지 단일 SoR 정책 확립"
+      - "cycle 94 PR #186 — RobotsFilter SSRF 정렬"
+      - "cycle ~188 — og.NewService 의 inline SSRF dialer 를 httpclient 위임으로 교체 (single SoR)"
+      - "harvester/spec.md L739-776 — 외부 미디어 fetch SSRF SHALL + L751 모든 미디어 fetch path 포괄 clause"
+      - "harvester/spec.md L659 — 미디어 후보 유효성 검증 SHALL (MediaValidator 의 spec 근거)"
