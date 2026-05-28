@@ -2796,5 +2796,7 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 339
+    note: "apps/web/src/app/boards/[id]/BoardActions.tsx L80 보드 이름 input 에 `aria-required=\"true\"` 단일 attribute 추가(diff +1 -0). WCAG 2.1 SC 4.1.2 Name/Role/Value Level A + WAI-ARIA 1.2 aria-required widget state 충족. in-codebase aria-required coverage 2 → 3 (PinCreateForm L470 + ProfileEditForm L75 cycle 142 라인업에 BoardActions 합류). 시각/레이아웃/동작 변화 0 (aria-required 는 SR 전용 attribute, native form validation popup 미작동 → handleSave L23-28 의 setError-based 'const trimmedName = name.trim(); if (!trimmedName) { setError(...); return; }' 동작 그대로). input 의 type/value/onChange/placeholder/aria-label/aria-invalid(기존)/aria-describedby(기존)/className 모두 미수정. description input(L84-91, 선택 input — aria-required 적용 0)·error live region(L65-72 role=alert)·저장·취소 button(L92-113)·handleSave/handleDelete/updateBoard/deleteBoard API·editing toggle(L17 useState)·비 editing 분기(L118-132 편집/삭제 button group) 모두 미수정. PinCreateForm L470 + ProfileEditForm L75 의 setError-based required validation 패턴(빈 trim 입력 disallow → setError → return) 과 정확 동일 구조 — 컨벤션 라인업 3/3 정렬 완료. 'aria-required' 가 HTML 'required' 보다 보수적인 선택(cycle 142 와 동일 근거): native validation popup 미작동으로 setError-based UI 와 동작 충돌 0. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'aria-required' apps/web/src/app/boards/[id]/BoardActions.tsx` 1 match(L80) + `grep -rnE 'aria-required' apps/web/src/ --include=\"*.tsx\"` 3 matches(PinCreateForm L470 · ProfileEditForm L75 · BoardActions L80, coverage 2 → 3) + diff inspection(시각 변경 0)으로 대체. CI Web (Next.js) + API (Go) 모두 SUCCESS. PR #339 머지 완료(2026-05-28). 잔여 pending 0건 → 다음 사이클 발견 모드."
 
