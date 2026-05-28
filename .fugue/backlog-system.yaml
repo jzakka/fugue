@@ -5881,7 +5881,8 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: in_progress
+    status: done
+    pr: 353
     qa_plan: |
       처리 모드 7단계 실 환경 QA:
         - T1 단위(추가): httptest.NewServer 가 30s sleep → 부모 ctx 100ms timeout →
@@ -5908,3 +5909,27 @@ items:
       + resp, err := client.Do(req)
       oauth2.Transport.RoundTrip 가 req.Clone(req.Context()) 로 ctx 보존하므로
       Authorization 헤더 주입 + ctx cancel 둘 다 충족.
+    resolution: |
+      Cycle 120 (PR #353, merged 2026-05-28).
+      변경:
+        - apps/api/internal/auth/provider.go: GoogleProvider.FetchProfile 가
+          http.NewRequestWithContext(ctx, "GET", p.userinfoURL, nil) + client.Do(req)
+          패턴으로 정렬 (Discord FetchProfile L154-161 과 동일). GoogleProvider
+          struct 에 userinfoURL string 필드 추가, 상수 googleUserinfoURL =
+          "https://www.googleapis.com/oauth2/v2/userinfo" 로 NewGoogleProvider 가
+          초기화 (테스트 seam, production 동작 변화 없음).
+        - apps/api/internal/auth/provider_ctx_propagation_test.go (신규, 3 pin):
+          (a) ctx cancel 전파 — httptest server 가 ctx.Done 까지 hang, 부모 ctx
+              100ms timeout → 2s 안에 ctx error 로 return.
+          (b) happy-path 회귀 — Authorization Bearer 헤더 전달 + UserProfile
+              필드 매핑 핀.
+          (c) default URL drift 가드 — 상수/생성자 핀.
+      QA 결과 (로컬 API + dummy creds, 8080):
+        - GET /api/auth/providers → ["google"] (registry 회귀 0).
+        - GET /api/auth/google/login → 302 → accounts.google.com/o/oauth2/auth
+          (?client_id=qa-google-client&scope=openid+email+profile&...) — NewGoogleProvider
+          가 userinfoURL 필드 추가 후에도 AuthCodeURL 발급 경로 정상.
+        - GET /api/auth/google/callback?code=fake&state=nope → 302 →
+          /login?error=invalid_state — 콜백 에러 분류 회귀 0.
+      go vet ./... / go build ./... / go test ./... (631 passed in 23 packages,
+      신규 3 tests 포함) 모두 통과.
