@@ -3000,7 +3000,8 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
-    note: "Discovery 만 — 처리 모드는 다음 사이클. AddToBoardButton modal flow 라 impact 2 (submit 보다 낮은 빈도). LoginButtons L72 의 one-of-N busy 패턴(disabled binary + aria-busy boolean) 정확 복제 — adding === board.id 식만 swap."
+    status: done
+    pr: 375
+    note: "apps/web/src/components/board/AddToBoardButton.tsx L307 board select button 에 `aria-busy={adding === board.id}` 단일 attribute 추가(diff +1 -0). LoginButtons L72 의 one-of-N busy 패턴(`aria-busy={loading === provider.id}`) 정확 복제 — 활성 board 만 aria-busy=true, 다른 board 는 aria-busy=false. ARIA 1.2 aria-busy widget state 충족. 시각/레이아웃/동작 변화 0 (aria-busy 는 SR 전용 attribute, button 의 onClick/disabled/className/inline spinner role=\"status\" L347-351/board cover img/board.name/board.pin_count 모두 그대로). 인접 button(L379 '생성 및 추가' L383 aria-busy={creating} binary 패턴) 영향 0. BoardSelectModal 의 4 close path · focus trap · panelRef · triggerRef focus return · feedback live region · loadBoards · scroll lock 모두 미수정 → 동작 변화 0. SR(VoiceOver/NVDA) 사용자가 active board click 후 button focus 시 '<보드명>, N pins, 버튼, 비활성, 바쁨' 발화 보강. 본 사이클 머지 시점 origin/main `grep -rnE 'aria-busy' apps/web/src/ --include=\"*.tsx\"` 10 match (cycle 161 9 매치 라인업 + AddToBoardButton board select L307 합류). cycle 154 PR #362 FieldFilter open 유지. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep 2 + 10 matches + diff inspection으로 대체. CI Web (Next.js) + API (Go) 모두 SUCCESS. PR #375 머지 완료(2026-05-28)."
 
 

@@ -304,6 +304,7 @@ function BoardSelectModal({
                 key={board.id}
                 onClick={() => handleSelectBoard(board.id, board.name)}
                 disabled={adding !== null || feedback?.type === "success"}
+                aria-busy={adding === board.id}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-[10px] hover:bg-surface-hover focus-visible:bg-surface-hover transition-colors text-left disabled:opacity-50 cursor-pointer"
               >
                 {/* Mini cover */}
