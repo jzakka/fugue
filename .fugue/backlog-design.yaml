@@ -3064,4 +3064,45 @@ items:
     pr: 384
     note: "cycle 167 Processing 머지. VideoThumbnailPicker.tsx L134 wrapper 에 role=\"group\" + aria-label=\"비디오 썸네일 선택\" 2 attribute 추가(diff +5 -1, opening tag multiline reformat). cycle 154/156/158/159/166 group landmark 컨벤션 정확 복제 — coverage 4 → 5 (FieldFilter + TagFilter + SearchClient 카테고리 탭 + SearchClient 인기 태그 + PinCreateForm + VideoThumbnailPicker 합류)."
 
+  - id: "design-20260528-a11y-pin-create-form-orphan-labels-to-div"
+    title: "PinCreateForm L331/L540 styled `<label>` 2개에 `htmlFor` + 라벨링 가능한 form control 자식 둘 다 부재 — HTML5 spec 상 label 의미 부적합(SR 가 label 발화하나 programmatic 연결 0) · WCAG 2.1 SC 1.3.1 Info & Relationships Level A · ProfileEditForm L67/L86 + PinCreateForm L460/L479/L492 의 htmlFor 보유 5 라벨 컨벤션 라인업 외부 갭"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:331-333"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:540-543"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:67"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:86"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:460"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:479"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:492"
+      cite: "HTML Living Standard `<label>` (https://html.spec.whatwg.org/multipage/forms.html#the-label-element): 'The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element\\'s labeled control, either using the for attribute, or by putting the form control inside the label element itself.' WCAG 2.1 SC 1.3.1 Info & Relationships Level A: 'Information, structure, and relationships conveyed through presentation can be programmatically determined.' PinCreateForm.tsx L331 `<label className=\"block text-sm text-text-muted mb-2 font-medium\">미디어 파일 *</label>` 가 htmlFor 0 + 자식에 labelable form control(input/select/textarea/button/output/progress/meter/textarea) 0 — 직전 형제 L335 `<div role=\"button\">` (커스텀 file drop zone)은 HTML5 labelable element 아님. L540 `<label className=\"block text-sm text-text-muted mb-2 font-medium\">태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}) (선택)</label>` 동일 구조 — 직전 형제는 selected tag chips L545-564 + tag 검색 input L566(aria-label=\"태그 검색\" 보유) + 카테고리 필터 group L575 + filteredTags list L605+ 4 개 영역으로 단일 form control 없음. 두 label 모두 SR(VoiceOver/NVDA) 가 'label' role 발화하지만 어떤 form control 의 label 인지 0. 컨벤션 라인업: ProfileEditForm L67 `<label htmlFor=\"profile-nickname\">` + L86 `<label htmlFor=\"profile-avatar-url\">` + PinCreateForm L460 `<label htmlFor=\"pin-title\">` + L479 `<label htmlFor=\"pin-description\">` + L492 `<label htmlFor=\"pin-url\">` — 5 라벨 일관 컨벤션. PinCreateForm 자체 내부 일관성도 깨짐 (L460/L479/L492 3 라벨 htmlFor 보유 / L331/L540 2 라벨 htmlFor 부재). 보수적 선택 — `<label>` → `<div>` 태그 교체(2 위치): (a) htmlFor 추가는 L331 의 경우 `<div role=\"button\">` 가 labelable 아니라 불가 + L540 의 경우 형제 4 영역으로 단일 target 없음, (b) wrapping(label 안에 form control 넣기)은 L331 file drop zone 구조 + L540 4 영역 grouping 구조 재작성 필요로 effort 5+, (c) `<div>` 교체는 className/inline span 자식/JSX 구조 모두 그대로 보존 + HTML 의미만 라벨 → 일반 텍스트로 변경 → SR 가 'label' role 발화 안 함 + 시각 변경 0. anti-patterns L15-L21 무매치 — 단일 태그명 교체, Tailwind 클래스 의미 덮어쓰기 0, JSX 구조 비변경, 시각 변경 0."
+      repro: "1) cd apps/web && npm run dev → 로그인 → /pin/new 진입. 2) DevTools Elements 패널 → L331 `<label>미디어 파일 *</label>` 의 `htmlFor` 평가 0 + 자식에 input/select/textarea 등 labelable 0. 3) VoiceOver/NVDA → 페이지 진입 시 label '미디어 파일' 만 발화하나 어떤 form control 의 label 인지 0 — 다음 element 가 `<div role=\"button\">` 라 association 불가능. 4) L540 동일 — `<label>태그 ({N}/{MAX}) (선택)</label>` 의 htmlFor 0 + 다음 4 영역(chip list / input / category group / tag list) 어디에도 연결 0. 5) 비교: L460 `<label htmlFor=\"pin-title\">제목 *</label>` 가 `<input id=\"pin-title\">` (L463) 와 association 보유 → SR '제목, 필수, 텍스트 필드' 정상 발화. 6) `grep -rnE '<label[^>]*className=' apps/web/src/ --include=\"*.tsx\" | grep -v htmlFor` 3 match (PinCreateForm L331/L540 + VideoThumbnailPicker L131)."
+      qa_plan: "1) cd apps/web && npm run dev → /pin/new 진입 → DevTools Elements 패널 → L331/L540 위치 태그 평가 (변경 전 `<label>`, 변경 후 `<div>`). 2) 변경 후 SR(VoiceOver/NVDA) 페이지 진입 시 두 위치에서 'label' role 발화 안 함 (단순 텍스트로 발화). L460/L479/L492 의 정상 라벨링은 그대로 유지(htmlFor 보유 → input id 와 association). 3) 시각 검사: 변경 후 페이지 외형 변화 0 (className 동일 → font/color/margin/spacing 모두 그대로). 4) `grep -rnE '<label[^>]*className=' apps/web/src/ --include=\"*.tsx\" | grep -v htmlFor` 변경 전 3 match → 변경 후 1 match (VideoThumbnailPicker L131 별도 사이클로 분리). 5) 파일 업로드/제목 입력/필드 입력/태그 picker 모든 form control 동작 검증 — handleSubmit/submitting/optimizing/setActiveCategory/toggleTag 모두 영향 0. 6) 인접 영역(error live region L320/upload progress L362/og preview L505/태그 카테고리 group L575 cycle 166 PR #382/etc.) 영향 0."
+    impact: 1
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 4.0
+    status: pending
+
+  - id: "design-20260528-a11y-video-thumbnail-picker-orphan-label-to-div"
+    title: "VideoThumbnailPicker L131 styled `<label>` 에 `htmlFor` + 라벨링 가능한 form control 자식 둘 다 부재 — HTML5 spec 상 label 의미 부적합(SR 가 label 발화하나 programmatic 연결 0, 직전 wrapper L134 의 aria-label='비디오 썸네일 선택' cycle 167 PR #384 와 의미 중복) · WCAG 2.1 SC 1.3.1 Info & Relationships Level A"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoThumbnailPicker.tsx:131-133"
+        - "apps/web/src/components/pin/VideoThumbnailPicker.tsx:134-138"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:67"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:460"
+      cite: "HTML Living Standard `<label>` (https://html.spec.whatwg.org/multipage/forms.html#the-label-element): 'The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element\\'s labeled control, either using the for attribute, or by putting the form control inside the label element itself.' WCAG 2.1 SC 1.3.1 Info & Relationships Level A. VideoThumbnailPicker.tsx L131 `<label className=\"block text-sm text-text-muted mb-2 font-medium\">썸네일 선택</label>` 가 htmlFor 0 + 자식에 labelable form control 0 — 직후 형제 L134 wrapper `<div role=\"group\" aria-label=\"비디오 썸네일 선택\">` (cycle 167 PR #384) 안의 3 button 은 HTML5 labelable element 아님(button 은 labelable 이지만 wrapper 가 group 이고 button 이 3개라 단일 target 없음 + 이미 wrapper 의 aria-label 로 SR name 노출). cycle 167 decision-log L20-24 명시: 'label 자체 SR 연결은 별도 사이클(htmlFor 또는 id+aria-labelledby 패턴)로 처리 가능한 인접 갭.' 결과적으로 L131 label 텍스트 '썸네일 선택' 과 L134 wrapper aria-label '비디오 썸네일 선택' 두 SR name 이 거의 동일 의미로 중복 발화 (label '썸네일 선택' role 발화 → group 'wrapper aria-label' name 발화). 컨벤션 라인업 ProfileEditForm L67 `<label htmlFor=\"profile-nickname\">` + PinCreateForm L460 `<label htmlFor=\"pin-title\">` 등 5 라벨 htmlFor 보유 — VideoThumbnailPicker L131 만 외부. 보수적 선택 — `<label>` → `<div>` 태그 교체: (a) htmlFor 는 3 button 중 하나에만 가리킬 수 있어 자의적, (b) wrapping 은 wrapper L134 의 role=\"group\" + aria-label 정착 패턴(cycle 167) 재작성 필요로 effort 4+, (c) `<div>` 교체는 className/텍스트 children 모두 그대로 보존 + HTML 의미만 라벨 → 일반 텍스트 로 변경 → SR label role 발화 차단 + L134 wrapper 의 aria-label 단일 SR name 발화 → 중복 제거 + 시각 변경 0. anti-patterns L15-L21 무매치 — 단일 태그명 교체, Tailwind 클래스 의미 덮어쓰기 0, JSX 구조 비변경, 시각 변경 0."
+      repro: "1) cd apps/web && npm run dev → 로그인 → /pin/new 진입 → 비디오 파일(.mp4/.webm) 업로드 → optimizing 완료 후 VideoThumbnailPicker 렌더 → DevTools Elements 패널 → L131 `<label>썸네일 선택</label>` 의 htmlFor 평가 0 + 자식에 input/select/textarea 등 0. 2) VoiceOver/NVDA → 영역 진입 시 label '썸네일 선택' role 발화 → 직후 wrapper L134 group '비디오 썸네일 선택, group, 3 items' 발화 → SR 사용자가 사실상 동일 의미를 2 번 듣게 됨. 3) 비교: VideoThumbnailPicker 의 loading state L114 `<div role=\"status\" aria-live=\"polite\">` 는 label role 발화 0 → group context 단일 발화 양호. 4) `grep -nE '<label[^>]*className=' apps/web/src/components/pin/VideoThumbnailPicker.tsx | grep -v htmlFor` 1 match (L131)."
+      qa_plan: "1) cd apps/web && npm run dev → /pin/new 진입 → 비디오 업로드 → VideoThumbnailPicker 렌더 → DevTools Elements 패널 → L131 태그 평가 (변경 전 `<label>`, 변경 후 `<div>`). 2) 변경 후 SR(VoiceOver/NVDA) 영역 진입 시 단일 발화: '비디오 썸네일 선택, group, 3 items, 썸네일 1, button, pressed' (label role 중복 제거). 3) 시각 검사: 변경 후 영역 외형 변화 0 (className 'block text-sm text-text-muted mb-2 font-medium' 그대로 → font/color/margin/spacing 모두 그대로). 4) `grep -nE '<label[^>]*className=' apps/web/src/components/pin/VideoThumbnailPicker.tsx | grep -v htmlFor` 변경 전 1 match → 변경 후 0 match. 5) `grep -rnE '<label[^>]*className=' apps/web/src/ --include=\"*.tsx\" | grep -v htmlFor` 변경 전 3 match (PinCreateForm L331/L540 + VideoThumbnailPicker L131) → 변경 후 2 match (PinCreateForm 분 별도 사이클). 6) 3 thumbnail button onClick={handleSelect}/aria-pressed={selected === i}/className conditional/img src/selected indicator overlay 모두 영향 0. 7) loading state L114-125·early return L127·extractFrames API·onSelect callback·setSelected·useEffect timestamps 모두 영향 0."
+    impact: 1
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 4.0
+    status: pending
+
 
