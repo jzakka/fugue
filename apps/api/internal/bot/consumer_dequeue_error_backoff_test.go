@@ -112,8 +112,8 @@ func TestPioneerConsumer_Run_EmptyDequeue_NotSlowedByErrorBackoff(t *testing.T) 
 	// must NOT delay it (because the empty path never enters the err branch).
 	sched := &fakeScheduler{
 		dequeueScript: []dequeueResult{
-			{url: ""},                       // empty (no err) — must skip with no extra sleep
-			{url: "https://a.example/u1"},   // success — finishes budget
+			{url: ""},                     // empty (no err) — must skip with no extra sleep
+			{url: "https://a.example/u1"}, // success — finishes budget
 		},
 	}
 	c := newBudgetConsumer(t, sched, []byte("<html></html>"), 1)
