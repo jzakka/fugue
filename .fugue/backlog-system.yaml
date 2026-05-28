@@ -5841,3 +5841,70 @@ items:
           tunnel 복구 후 정상 dequeue 로 전환되는지 확인.
         - T5 실 환경 회귀: harvester 도 동일하게 검증 (대칭).
         - 인접 회귀: DequeueCtx 의 ctx 취소 즉시 반환은 보존 (SIGTERM 정합).
+
+  - id: system-20260528-google-fetchprofile-ctx-not-propagated
+    title: "GoogleProvider.FetchProfile 의 client.Get(URL) 이 ctx 를 outbound HTTP 에 전파하지 않아 SIGTERM/timeout 캔슬이 동작 안 함 (Discord 와 sister-handler drift)"
+    area: concurrency
+    evidence:
+      files:
+        - "apps/api/internal/auth/provider.go:84-86"  # Google: client.Get(URL) — ctx 전파 X
+        - "apps/api/internal/auth/provider.go:154-161"  # Discord: NewRequestWithContext + http.DefaultClient.Do — ctx 전파 O
+        - "/Users/ivanchung/go/pkg/mod/golang.org/x/oauth2@v0.36.0/transport.go:50"  # Transport.RoundTrip: req2 := req.Clone(req.Context()) — req 자체의 ctx 만 사용
+        - "/Users/ivanchung/go/pkg/mod/golang.org/x/oauth2@v0.36.0/oauth2.go:343-367"  # NewClient: ctx 는 TokenSource 의 token 새로 받기 전용
+      cite: |
+        openspec/specs/auth/spec.md (인증 콜백 라이프사이클: OAuth callback handler 는
+        provider 의 userinfo 응답을 가져온 뒤 인증/세션 발급으로 진행한다)
+        + apps/api/cmd/server/main.go:202-228 graceful shutdown SHALL (25s 드레인)
+        + Discord FetchProfile (provider.go:154-161) 의 sister-handler 패턴 — 동일 OAuth
+        provider 추상화 안에서 한 쪽만 ctx 전파, 다른 쪽은 안 함.
+        oauth2 v0.36.0 transport.go L50 `req2 := req.Clone(req.Context())` — client.Get(URL)
+        가 만드는 request 의 ctx 는 context.Background() 라서 부모 ctx 가 RoundTrip 으로
+        전파되지 않음(FetchProfile 에 ctx 파라미터가 있어도 무의미). Discord 는 동일
+        디렉터리에서 같은 OAuth abstraction 인데 NewRequestWithContext 로 정합.
+      repro: |
+        1. 가짜 느린 OAuth userinfo 엔드포인트(`httptest.NewServer` + 30s `time.Sleep`)
+           를 띄우고 GoogleProvider 의 userinfo URL 을 그쪽으로 가도록 wrap 한다.
+        2. 부모 ctx 를 100ms 후 cancel 되도록 만든다(`context.WithTimeout(ctx, 100ms)`).
+        3. `googleProvider.FetchProfile(ctx, token)` 호출.
+        4. 기대 동작(Discord 와 정합): 100ms 후 ctx.Err() 와 함께 즉시 return.
+           실제 동작: 30s 동안 hang (oauth2.Transport 가 req.Context() 를 보는데
+           client.Get(URL) 은 context.Background() 으로 request 를 생성하므로).
+        5. 운영 영향: k8s 롤링 디플로이 도중 SIGTERM 이 떨어지면 in-flight
+           Google OAuth callback handler 는 25s 드레인 시한을 지키지 못한다.
+           Google userinfo 가 5s 이상 느려지는 시점이 디플로이와 겹치면 콜백
+           goroutine 이 OS TCP timeout(~2분) 까지 유지되어 SIGKILL 로 종료,
+           in-flight 로그인은 누락(creator/auth_account INSERT 절반 적용 위험은
+           tx Rollback 으로 가드되어 0 이지만 사용자 UX 손상). Discord 콜백은
+           동일 상황에서 ctx 가 즉시 cancel 되어 25s 안에 정상 종료.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA:
+        - T1 단위(추가): httptest.NewServer 가 30s sleep → 부모 ctx 100ms timeout →
+          GoogleProvider.FetchProfile 가 100~200ms 안에 ctx.DeadlineExceeded
+          계열 err 로 return. pre-fix 는 30s 대기 → 실패.
+        - T2 단위 회귀: GoogleProvider 정상 happy path(httptest 즉시 200) 가
+          fix 후에도 동일 UserProfile 반환. oauth2.Transport 의 Authorization
+          헤더 주입은 client.Do(req) 경로에서 동일하게 유지.
+        - T3 단위 회귀: DiscordProvider 는 손대지 않음 — 회귀 0.
+        - T4 실 환경: 로컬에서 `httptest.NewServer` 를 띄워 fake userinfo
+          핸들러로 라우팅하고 `curl -i /api/auth/google/callback?code=...&state=...`
+          호출 시 5s 안에 502/timeout 으로 떨어지는지 확인(기존: 30~120s hang).
+          가능하면 SIGTERM 전송 시 25s 안에 핸들러 종료되는지 관찰.
+        - T5 인접 회귀: `/api/auth/discord/callback`(존재 시) 정상 동작 유지
+          + `/api/auth/google/login` 의 AuthCodeURL 발급 경로 회귀 없음.
+          OAuth token 교환(Exchange) 경로(L80-82) 는 본 변경 영역 밖.
+    note: |
+      수정 모양 (1-line drop-in, Discord 패턴 정합):
+        client := p.config.Client(ctx, token)
+      - resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+      + req, err := http.NewRequestWithContext(ctx, "GET",
+      +     "https://www.googleapis.com/oauth2/v2/userinfo", nil)
+      + if err != nil { return nil, fmt.Errorf("new google request: %w", err) }
+      + resp, err := client.Do(req)
+      oauth2.Transport.RoundTrip 가 req.Clone(req.Context()) 로 ctx 보존하므로
+      Authorization 헤더 주입 + ctx cancel 둘 다 충족.
