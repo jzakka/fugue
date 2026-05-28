@@ -55,8 +55,16 @@ type Provider interface {
 
 // --- Google ---
 
+// googleUserinfoURL is the public Google userinfo endpoint used by FetchProfile.
+// Exposed as a field on GoogleProvider so unit tests can redirect the call to
+// an httptest.NewServer (with controllable latency / cancellation behavior)
+// without depending on the live googleapis.com endpoint — the only reason
+// the field exists; production never overrides it.
+const googleUserinfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
+
 type GoogleProvider struct {
-	config *oauth2.Config
+	config      *oauth2.Config
+	userinfoURL string
 }
 
 func NewGoogleProvider(clientID, clientSecret, callbackURL string) *GoogleProvider {
@@ -68,6 +76,7 @@ func NewGoogleProvider(clientID, clientSecret, callbackURL string) *GoogleProvid
 			Scopes:       []string{"openid", "email", "profile"},
 			Endpoint:     google.Endpoint,
 		},
+		userinfoURL: googleUserinfoURL,
 	}
 }
 
@@ -83,7 +92,20 @@ func (p *GoogleProvider) Exchange(ctx context.Context, code string) (*oauth2.Tok
 
 func (p *GoogleProvider) FetchProfile(ctx context.Context, token *oauth2.Token) (*UserProfile, error) {
 	client := p.config.Client(ctx, token)
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	// oauth2.Config.Client(ctx, token) 의 ctx 는 TokenSource 의 refresh 경로
+	// 전용 — outbound HTTP request 에는 전파되지 않는다(oauth2 v0.36.0
+	// transport.go:50 `req2 := req.Clone(req.Context())` 가 req 자체의 ctx 만
+	// 본다). client.Get(URL) 은 NewRequest 가 context.Background() 으로
+	// request 를 만들어 부모 ctx cancel 이 무시되므로, Discord FetchProfile
+	// (L154-161) 과 동일한 NewRequestWithContext + client.Do 패턴으로 정렬해
+	// 부모 ctx(SIGTERM graceful shutdown / 핸들러 deadline)가 outbound
+	// userinfo 요청 취소까지 전파되도록 한다. oauth2.Transport 의
+	// Authorization 헤더 주입은 client.Do(req) 경로에서 동일하게 유지된다.
+	req, err := http.NewRequestWithContext(ctx, "GET", p.userinfoURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("google userinfo new request: %w", err)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("google userinfo request: %w", err)
 	}
