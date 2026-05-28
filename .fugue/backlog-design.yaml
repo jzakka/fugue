@@ -3105,6 +3105,8 @@ items:
     effort: 1
     risk: 1
     score: 4.0
-    status: pending
+    status: done
+    pr: TBD
+    note: "cycle 169 Processing 머지. apps/web/src/components/pin/VideoThumbnailPicker.tsx L131 styled `<label>` 을 `<div>` 로 태그 교체(diff +2 -2, className 'block text-sm text-text-muted mb-2 font-medium' + 텍스트 children '썸네일 선택' 그대로). HTML Living Standard `<label>` element spec + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — htmlFor 부재 + labelable form control 자식 부재 인 styled text 를 일반 텍스트로 의미 정정. cycle 167 PR #384 wrapper aria-label '비디오 썸네일 선택' 와의 중복 SR 발화 제거. 시각/레이아웃/동작 변화 0. 본 사이클 머지 시점 origin/main `grep -rnE '<label[^>]*className=' apps/web/src/ --include=\"*.tsx\" | grep -v htmlFor` 1 match → 0 match (orphan styled label 코드베이스 전부 정리). cycle 168 PR #389 의 PinCreateForm L331/L540 처리에 이어 PinCreateForm + VideoThumbnailPicker 2 파일 3 위치 모두 처리 완료."
 
 
