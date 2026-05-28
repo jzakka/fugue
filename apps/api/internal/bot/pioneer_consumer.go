@@ -49,6 +49,30 @@ type ConsumerFetcher interface {
 // workers with one mental model.
 const WorkerBudget = 100
 
+// dequeueErrorBackoff bounds how often the consumer Run loops may re-enter
+// scheduler.URLScheduler.DequeueCtx after the previous call returned an
+// error. Without this sleep, the spec rule "Dequeue 자체 오류는 카운트되지
+// 않는다" (errors are not counted toward the worker budget) collapses into a
+// busy-wait: PGURLScheduler.DequeueCtx's own poll sleep only fires on the
+// (claimed=false, no-err) path (postgres_scheduler.go:236-243), so a real
+// error from tryClaim — most commonly BeginTx failing in microseconds when
+// the DB connection pool is down — returns to the caller immediately, the
+// Run loop logs+continues, and the cycle repeats thousands of times per
+// second per worker. The intent of the spec rule was "do not consume the
+// budget", not "skip the backoff"; without a sleep here, a sustained DB
+// outage burns one CPU core per worker, drowns log-shipping pipelines, and
+// is invisible to k8s liveness probes (consumer pods expose no HTTP).
+//
+// Pinned to 1s to match scheduler.defaultPollInterval — the same value
+// PGURLScheduler.DequeueCtx uses on the (empty queue / all-throttled) path
+// (postgres_scheduler.go:27). Operators reason about both backoffs with the
+// same number, and "spec pins this to 1 second" applies symmetrically: the
+// quiet-but-healthy and quiet-because-broken backoffs are deliberately the
+// same. Not surfaced via env/config/CLI for the same reason WorkerBudget
+// isn't — recovery cadence is a build-time tuning knob, not a per-deploy
+// override.
+const dequeueErrorBackoff = 1 * time.Second
+
 // PioneerConsumer implements the new Dequeue → fetch → snapshot → parse →
 // filter → Enqueue(pioneer) + EnqueueHarvester → SetStatus loop.
 //
@@ -69,6 +93,11 @@ type PioneerConsumer struct {
 	// has no env/config/CLI surface, satisfying the spec's "build-time
 	// constant" rule for production callers.
 	budget int
+	// errorBackoff overrides dequeueErrorBackoff for in-process tests only.
+	// Zero (the default) means "use dequeueErrorBackoff". Same package-private
+	// test seam shape as `budget` above — production code paths cannot reach
+	// it because no exported setter exists.
+	errorBackoff time.Duration
 }
 
 // NewPioneerConsumer wires the consumer with its four mandatory dependencies
@@ -119,6 +148,10 @@ func (p *PioneerConsumer) Run(ctx context.Context) error {
 	if budget <= 0 {
 		budget = WorkerBudget
 	}
+	backoff := p.errorBackoff
+	if backoff <= 0 {
+		backoff = dequeueErrorBackoff
+	}
 	dequeues := 0
 	for {
 		if err := ctx.Err(); err != nil {
@@ -130,6 +163,15 @@ func (p *PioneerConsumer) Run(ctx context.Context) error {
 			// instead of returning, so a transient scheduler/DB hiccup does
 			// not consume any budget or kill the worker prematurely.
 			log.Printf("WARN pioneer_consumer: dequeue err=%v", err)
+			// Match the (empty queue / all-throttled) sleep cadence to avoid
+			// a hot-spin when tryClaim's BeginTx fails immediately on DB
+			// outage — see dequeueErrorBackoff doc above. ctx.Done arms the
+			// select so SIGTERM still unblocks within the same nanosecond.
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
 			continue
 		}
 		if rawURL == "" {
