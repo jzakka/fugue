@@ -429,6 +429,12 @@ func newBudgetConsumer(t *testing.T, sched scheduler.URLScheduler, body []byte, 
 	chain := NewFilterChain()
 	c := NewPioneerConsumer(sched, store, chain, fetcher)
 	c.budget = budget
+	// Shrink the dequeue-error backoff so the existing 2s-timeout error tests
+	// finish without changing their wall-clock budget. Production stays at
+	// dequeueErrorBackoff (1s); this only affects in-process tests that use
+	// this helper. 1ms keeps a real sleep on the path (so cancellation /
+	// ordering bugs would still surface) without inflating CI time.
+	c.errorBackoff = time.Millisecond
 	return c
 }
 

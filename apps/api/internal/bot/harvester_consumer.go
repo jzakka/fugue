@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"strings"
 	"sync/atomic"
+	"time"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -94,6 +95,11 @@ type HarvesterConsumer struct {
 	// it is package-private and has no env/config/CLI surface, satisfying
 	// the spec's "build-time constant" rule.
 	budget int
+	// errorBackoff overrides dequeueErrorBackoff for in-process tests only.
+	// Zero (the default) means "use dequeueErrorBackoff". Symmetric with
+	// PioneerConsumer.errorBackoff (pioneer_consumer.go) — same test-seam
+	// shape as `budget` above, and no production setter exists.
+	errorBackoff time.Duration
 
 	// fetchFailureCount is the in-memory worker-stat counter required by
 	// harvester-snapshot-first-fetch tasks §3.2 and design.md Decision 3.
@@ -259,6 +265,10 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 	if budget <= 0 {
 		budget = harvesterDequeueBudget
 	}
+	backoff := h.errorBackoff
+	if backoff <= 0 {
+		backoff = dequeueErrorBackoff
+	}
 	dequeues := 0
 	for {
 		if err := ctx.Err(); err != nil {
@@ -272,6 +282,15 @@ func (h *HarvesterConsumer) Run(ctx context.Context) error {
 			// Key=value format; Pioneer symmetry is required only for the
 			// budget-exhausted log below (tasks.md §2.4).
 			log.Printf("WARN harvester_consumer: component=harvester_worker reason=dequeue_error err=%v", err)
+			// Match the (empty queue / all-throttled) sleep cadence to avoid
+			// a hot-spin when tryClaim's BeginTx fails immediately on DB
+			// outage — see dequeueErrorBackoff doc in pioneer_consumer.go.
+			// ctx.Done arms the select so SIGTERM still unblocks immediately.
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
 			continue
 		}
 		if rawURL == "" {

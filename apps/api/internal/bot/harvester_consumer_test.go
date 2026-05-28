@@ -372,6 +372,10 @@ func TestHarvesterConsumer_Run_DequeueErrorRetries(t *testing.T) {
 	fetcher := newMapFetcher()
 
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, NewMockPipeline())
+	// Shrink the dequeue-error backoff so the 200ms ctx window still permits
+	// many retries (proving "retry instead of return"). Production keeps the
+	// 1s backoff that bounds DB-outage CPU/log cost.
+	c.errorBackoff = time.Millisecond
 
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
@@ -902,6 +906,11 @@ func newBudgetHarvester(t *testing.T, sched scheduler.URLScheduler, fetcher Snap
 	}
 	c := NewHarvesterConsumer(sched, fetcher, nil, nil, nil, pipeline)
 	c.budget = budget
+	// Shrink dequeue-error backoff so existing short-timeout error tests
+	// retain the same retry count assertions. Production stays at
+	// dequeueErrorBackoff (1s); symmetric with newBudgetConsumer in
+	// pioneer_consumer_test.go.
+	c.errorBackoff = time.Millisecond
 	return c
 }
 
