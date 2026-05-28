@@ -88,6 +88,7 @@ function BoardSection({ creatorId }: { creatorId: string }) {
         >
           {error && (
             <div
+              id="mypage-board-name-error"
               role="alert"
               aria-live="polite"
               className="p-2 bg-error/10 border border-error/30 rounded-[6px] text-xs text-error"
@@ -102,6 +103,8 @@ function BoardSection({ creatorId }: { creatorId: string }) {
             placeholder="보드 이름"
             aria-label="새 보드 이름"
             aria-required="true"
+            aria-invalid={!!error && !newBoardName.trim()}
+            aria-describedby={error ? "mypage-board-name-error" : undefined}
             maxLength={100}
             className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
             onKeyDown={(e) => {

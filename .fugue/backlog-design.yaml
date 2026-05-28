@@ -3021,7 +3021,8 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
-    note: "Discovery 만 — 처리 모드는 다음 사이클. BoardActions L74-83 / ProfileEditForm L70-81 / PinCreateForm L463-474 3 컴포넌트 컨벤션 라인업의 동일 'input + aria-invalid + aria-describedby ↔ error div + id' 패턴 정확 복제. id 명명 `mypage-board-name-error` (BoardActions `board-name-error` 와 충돌 회피)."
+    status: done
+    pr: 378
+    note: "apps/web/src/components/profile/MyPageClient.tsx error alert div L91 에 `id=\"mypage-board-name-error\"` 추가 + 새 보드 이름 input L106-107 에 `aria-invalid={!!error && !newBoardName.trim()}` + `aria-describedby={error ? \"mypage-board-name-error\" : undefined}` 2 attribute 추가 (diff +3 -0). BoardActions L66/L81/L82 의 동일 패턴 정확 복제 — 보드 생성 실패 시(L47-50 createBoard catch → setError) error 메시지가 alert(role=\"alert\" aria-live=\"polite\") 로 announce 되고, input focus 시 SR(VoiceOver/NVDA) 가 invalid state + error 메시지 description 추가 발화. id 명명 `mypage-board-name-error` 는 BoardActions 의 `board-name-error` 와 충돌 회피용 컴포넌트 스코프 prefix. WAI-ARIA 1.2 aria-invalid + aria-describedby spec 충족. 시각/레이아웃/동작 변화 0 (id/aria-invalid/aria-describedby 모두 SR 전용 attribute, input 의 type/value/onChange/placeholder/aria-label/aria-required/maxLength/className/onKeyDown 모두 그대로). 인접 button(L116 생성 + L124 취소)·BoardSection BoardCover·ProfileHeader·ProfileEditForm·PinsGrid·NavBar 모두 영향 0. SR 사용자가 보드 생성 실패 후 input focus 시 '새 보드 이름, 텍스트 필드, 필수, invalid, <error 메시지>' 발화 — 컨벤션 라인업 3 → 4 (BoardActions + ProfileEditForm + PinCreateForm + MyPageClient). cycle 154 PR #362 FieldFilter open 유지. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 grep + diff inspection으로 대체. CI Web (Next.js) + API (Go) 모두 SUCCESS. PR #378 머지 완료(2026-05-28)."
 
 
