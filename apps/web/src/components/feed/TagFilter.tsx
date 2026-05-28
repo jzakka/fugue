@@ -41,7 +41,11 @@ export default function TagFilter({ tags }: { tags: PopularTag[] }) {
   if (tags.length === 0) return null;
 
   return (
-    <div className="px-6 pb-2 flex gap-2 items-center overflow-x-auto scrollbar-hide">
+    <div
+      role="group"
+      aria-label="태그 필터"
+      className="px-6 pb-2 flex gap-2 items-center overflow-x-auto scrollbar-hide"
+    >
       {selectedSlugs.size > 0 && (
         <button
           onClick={handleReset}
