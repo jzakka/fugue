@@ -28,7 +28,11 @@ export default function FieldFilter() {
   }
 
   return (
-    <div className="px-6 py-4 flex gap-2 overflow-x-auto scrollbar-hide">
+    <div
+      role="group"
+      aria-label="미디어 타입 필터"
+      className="px-6 py-4 flex gap-2 overflow-x-auto scrollbar-hide"
+    >
       {MEDIA_TYPES.map((mt) => (
         <button
           key={mt.value}
