@@ -72,6 +72,7 @@ export default function ProfileEditForm({
           onChange={(e) => setNickname(e.target.value)}
           maxLength={200}
           autoComplete="nickname"
+          aria-required="true"
           aria-invalid={!!error && !nickname.trim()}
           aria-describedby={error ? "profile-nickname-error" : undefined}
           className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
