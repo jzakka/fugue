@@ -5881,7 +5881,7 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: in_progress
     qa_plan: |
       처리 모드 7단계 실 환경 QA:
         - T1 단위(추가): httptest.NewServer 가 30s sleep → 부모 ctx 100ms timeout →
