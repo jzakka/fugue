@@ -3084,7 +3084,9 @@ items:
     effort: 1
     risk: 1
     score: 4.0
-    status: pending
+    status: done
+    pr: 388
+    note: "cycle 168 Processing 머지. apps/web/src/app/pin/new/PinCreateForm.tsx L331 + L540 styled `<label>` 2개를 `<div>` 로 태그 교체(diff +4 -4, className 'block text-sm text-text-muted mb-2 font-medium' + 자식 텍스트/inline span 모두 그대로). HTML Living Standard `<label>` element spec + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — htmlFor 부재 + labelable form control 자식 부재 인 styled text 를 일반 텍스트로 의미 정정. 시각/레이아웃/동작 변화 0 (className 동일, JSX 구조 비변경, form control 동작 비변경). 본 사이클 머지 시점 origin/main `grep -rnE '<label[^>]*className=' apps/web/src/ --include=\"*.tsx\" | grep -v htmlFor` 3 match → 1 match (VideoThumbnailPicker L131 잔여, 별도 후보로 다음 사이클 처리)."
 
   - id: "design-20260528-a11y-video-thumbnail-picker-orphan-label-to-div"
     title: "VideoThumbnailPicker L131 styled `<label>` 에 `htmlFor` + 라벨링 가능한 form control 자식 둘 다 부재 — HTML5 spec 상 label 의미 부적합(SR 가 label 발화하나 programmatic 연결 0, 직전 wrapper L134 의 aria-label='비디오 썸네일 선택' cycle 167 PR #384 와 의미 중복) · WCAG 2.1 SC 1.3.1 Info & Relationships Level A"
