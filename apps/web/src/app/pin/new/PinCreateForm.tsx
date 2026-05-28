@@ -572,7 +572,11 @@ export default function PinCreateForm() {
             className="w-full px-4 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors mb-3"
           />
 
-          <div className="flex gap-1.5 overflow-x-auto mb-3 scrollbar-hide">
+          <div
+            role="group"
+            aria-label="태그 카테고리 필터"
+            className="flex gap-1.5 overflow-x-auto mb-3 scrollbar-hide"
+          >
             <button
               type="button"
               onClick={() => setActiveCategory("")}
