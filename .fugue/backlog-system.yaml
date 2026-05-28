@@ -5936,7 +5936,7 @@ items:
 
   - id: system-20260528-pin-handler-ffmpeg-ctx-propagation
     area: errors
-    status: in_progress
+    status: done
     impact: 2
     confidence: 4
     effort: 1
@@ -5986,3 +5986,23 @@ items:
     refs:
       - "cycle 120 PR #353 (GoogleProvider.FetchProfile ctx propagation) — 동일 구조 sister-convention drift 선례"
       - "cycle 123 (bot/media_validator.go ctx 검증)"
+    resolution:
+      cycle: 127
+      pr: 377
+      merged_at: "2026-05-28T03:40:46Z"
+      merge_commit: 9007d93942c3f827c67caa1eee06af3376954cd0
+      changes: |
+        apps/api/internal/pin/handler.go — trimVideoRange / reencodeVideoRange /
+        probeDuration 3 헬퍼가 첫 인자로 ctx context.Context 를 받고 내부에서
+        exec.CommandContext(ctx, ...) 호출. 5 call sites (L199/L215/L223/L238/L264)
+        가 r.Context() 를 전달. apps/api/internal/pin/handler_test.go — 기존 2개
+        probeDuration 호출에 context.Background() 인자 추가.
+      qa:
+        - "happy 1: 5s mp4 no-trim → POST /api/pins 201 / 96ms (probeDuration L264 경로)"
+        - "happy 2: 30s webm trim 0-10 → POST /api/pins 201 / 735ms (-c copy 실패 → reencode 경로 진입 후 정상 완료)"
+        - "cancel: 1080p webm trim 0-10 진행 중 curl SIGTERM → ffmpeg PID 86139 <500ms 내 종료 + server log `ffmpeg reencode: signal: killed` + HTTP 500 / 1.59s. 변경 전이면 ffmpeg 가 cancel 못 받고 자연 종료까지 대기."
+        - "회귀: GET /api/pins → 200 / 2 happy 핀 정상 응답"
+      note: |
+        bot/media_validator.go probeDuration 의 timeout-wrap 패턴(context.WithTimeout
+        + defer cancel)은 이번 변경 범위 밖. 본 PR 은 sister-convention drift 의
+        핵심 결함(ctx 전혀 안 받음) 만 해소. timeout 분리가 필요하면 후속 사이클로.
