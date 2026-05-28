@@ -5936,7 +5936,7 @@ items:
 
   - id: system-20260528-pin-handler-ffmpeg-ctx-propagation
     area: errors
-    status: pending
+    status: in_progress
     impact: 2
     confidence: 4
     effort: 1

@@ -196,7 +196,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Validate trim values
-			duration, _ := probeDuration(origTmpPath)
+			duration, _ := probeDuration(r.Context(), origTmpPath)
 			trimDuration := trimEnd - trimStart
 			if trimStart < 0 || trimStart >= trimEnd || trimDuration > float64(maxVideoDurationSeconds)+0.5 {
 				writeError(w, http.StatusBadRequest, "유효하지 않은 트리밍 구간입니다")
@@ -212,7 +212,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			defer func() { _ = os.Remove(trimCopyPath) }()
 			trimmedPath := trimCopyPath
 
-			copyErr := trimVideoRange(origTmpPath, trimmedPath, trimStart, trimDuration)
+			copyErr := trimVideoRange(r.Context(), origTmpPath, trimmedPath, trimStart, trimDuration)
 			needsReencode := copyErr != nil // -c copy failed (e.g. WebM → MP4 remux)
 			if copyErr != nil {
 				log.Printf("pin.Create: -c copy trim failed (will re-encode): %v", copyErr)
@@ -220,7 +220,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 			// Also check duration accuracy and size if copy succeeded
 			if !needsReencode {
-				resultDur, probeErr := probeDuration(trimmedPath)
+				resultDur, probeErr := probeDuration(r.Context(), trimmedPath)
 				fi, statErr := os.Stat(trimmedPath)
 				if probeErr == nil && (resultDur-trimDuration > 2.0 || resultDur-trimDuration < -2.0) {
 					needsReencode = true
@@ -235,7 +235,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			if needsReencode {
 				reencodedPath := origTmpPath + ".reencoded.mp4"
 				defer func() { _ = os.Remove(reencodedPath) }()
-				if err := reencodeVideoRange(origTmpPath, reencodedPath, trimStart, trimDuration); err != nil {
+				if err := reencodeVideoRange(r.Context(), origTmpPath, reencodedPath, trimStart, trimDuration); err != nil {
 					log.Printf("pin.Create: ffmpeg re-encode error: %v", err)
 					writeError(w, http.StatusInternalServerError, "비디오 처리에 실패했습니다")
 					return
@@ -261,7 +261,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			// `구간 정보 없이 비디오 길이를 확인할 수 없는 경우` 도 거부 SHALL을 명시한다 —
 			// probe 실패 시 fail-closed 로 처리해 15초 초과 거부 SHALL이 길이 측정 실패라는
 			// 우연으로 침묵 우회되지 않게 한다.
-			duration, probeErr := probeDuration(origTmpPath)
+			duration, probeErr := probeDuration(r.Context(), origTmpPath)
 			if probeErr != nil {
 				log.Printf("pin.Create: probe duration failed: %v", probeErr)
 				writeError(w, http.StatusBadRequest, "비디오 길이를 확인할 수 없습니다")
@@ -718,9 +718,16 @@ func writeError(w http.ResponseWriter, status int, message string) {
 }
 
 // trimVideoRange trims a video using stream copy (fast, keyframe boundary).
-func trimVideoRange(inputPath, outputPath string, start, duration float64) error {
-	cmd := exec.Command(
-		"ffmpeg",
+//
+// ctx 는 호출 핸들러의 r.Context() 를 받아 exec.CommandContext 로 ffmpeg
+// 자식 프로세스에 묶는다. 클라이언트 disconnect / SIGTERM 등으로 ctx 가
+// cancel 되면 ffmpeg 가 즉시 SIGKILL 되어 http.Server.Shutdown 의 25s 드레인
+// 예산 안에 핸들러 goroutine 이 cmd.CombinedOutput 에서 unblock 된다.
+// Sister convention: bot/media_validator.go:284 probeDuration 도 동일하게
+// exec.CommandContext(probeCtx, ...) 사용. 참고 PR #353 (GoogleProvider
+// FetchProfile ctx 전파, cycle 120).
+func trimVideoRange(ctx context.Context, inputPath, outputPath string, start, duration float64) error {
+	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-ss", fmt.Sprintf("%.3f", start),
 		"-i", inputPath,
 		"-t", fmt.Sprintf("%.3f", duration),
@@ -736,9 +743,9 @@ func trimVideoRange(inputPath, outputPath string, start, duration float64) error
 }
 
 // reencodeVideoRange trims + re-encodes (frame-accurate, smaller output).
-func reencodeVideoRange(inputPath, outputPath string, start, duration float64) error {
-	cmd := exec.Command(
-		"ffmpeg",
+// ctx 는 trimVideoRange 와 동일한 이유로 ffmpeg 자식 프로세스에 묶는다.
+func reencodeVideoRange(ctx context.Context, inputPath, outputPath string, start, duration float64) error {
+	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-i", inputPath,
 		"-ss", fmt.Sprintf("%.3f", start),
 		"-t", fmt.Sprintf("%.3f", duration),
@@ -758,9 +765,9 @@ func reencodeVideoRange(inputPath, outputPath string, start, duration float64) e
 }
 
 // probeDuration runs ffprobe to extract video duration in seconds.
-func probeDuration(path string) (float64, error) {
-	out, err := exec.Command(
-		"ffprobe",
+// ctx 는 trimVideoRange 와 동일한 이유로 ffprobe 자식 프로세스에 묶는다.
+func probeDuration(ctx context.Context, path string) (float64, error) {
+	out, err := exec.CommandContext(ctx, "ffprobe",
 		"-v", "error",
 		"-show_entries", "format=duration",
 		"-of", "default=noprint_wrappers=1:nokey=1",

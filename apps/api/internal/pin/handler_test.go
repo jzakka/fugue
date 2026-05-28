@@ -562,7 +562,7 @@ func TestProbeDuration_InvalidFile(t *testing.T) {
 	_, _ = tmpFile.WriteString("not a video")
 	_ = tmpFile.Close()
 
-	_, err = probeDuration(tmpFile.Name())
+	_, err = probeDuration(context.Background(), tmpFile.Name())
 	if err == nil {
 		t.Error("expected error for non-video file, got nil")
 	}
@@ -573,7 +573,7 @@ func TestProbeDuration_MissingFile(t *testing.T) {
 		t.Skip("ffprobe not installed, skipping")
 	}
 
-	_, err := probeDuration("/tmp/nonexistent-video-file.mp4")
+	_, err := probeDuration(context.Background(), "/tmp/nonexistent-video-file.mp4")
 	if err == nil {
 		t.Error("expected error for missing file, got nil")
 	}
