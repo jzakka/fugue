@@ -131,7 +131,11 @@ export default function VideoThumbnailPicker({
       <label className="block text-sm text-text-muted mb-2 font-medium">
         썸네일 선택
       </label>
-      <div className="flex gap-2">
+      <div
+        role="group"
+        aria-label="비디오 썸네일 선택"
+        className="flex gap-2"
+      >
         {thumbnails.map((url, i) => (
           <button
             key={i}

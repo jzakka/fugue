@@ -3060,7 +3060,8 @@ items:
     effort: 1
     risk: 1
     score: 4.0
-    status: pending
-    note: "Discovery 만 — 처리 모드는 다음 사이클. cycle 154/156/158/159 group landmark 컨벤션 라인업 외부 갭 — wrapper 단일 div 에 role=\"group\" + aria-label 2 attribute 추가만으로 ARIA 1.2 spec 직접 부합 + button 의 aria-pressed/onClick/className/handleSelect/setSelected 모두 그대로 보존."
+    status: done
+    pr: 384
+    note: "cycle 167 Processing 머지. VideoThumbnailPicker.tsx L134 wrapper 에 role=\"group\" + aria-label=\"비디오 썸네일 선택\" 2 attribute 추가(diff +5 -1, opening tag multiline reformat). cycle 154/156/158/159/166 group landmark 컨벤션 정확 복제 — coverage 4 → 5 (FieldFilter + TagFilter + SearchClient 카테고리 탭 + SearchClient 인기 태그 + PinCreateForm + VideoThumbnailPicker 합류)."
 
 
