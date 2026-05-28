@@ -310,8 +310,8 @@ export default function PinCreateForm() {
         />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight font-display">
+      <form onSubmit={handleSubmit} className="space-y-6" aria-labelledby="pin-create-form-title">
+        <h1 id="pin-create-form-title" className="text-2xl font-bold tracking-tight font-display">
           핀 생성
         </h1>
 
