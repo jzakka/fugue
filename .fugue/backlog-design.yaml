@@ -2757,4 +2757,6 @@ items:
     effort: 1
     risk: 1
     score: 8.0
-    status: pending
+    status: done
+    pr: 331
+    note: "apps/web/src/components/profile/ProfileEditForm.tsx L92 avatar URL input 에 `autoComplete=\"photo\"` 단일 attribute 추가(diff +1 -0). WCAG 2.1 SC 1.3.5 Identify Input Purpose Level AA + HTML Standard 4.10.18.7.2 autofill detail tokens 의 'photo' 토큰 정확 매칭 — HTML spec 정의 'Photograph, icon, or other image corresponding to the company, person, address, or contact information in the other fields associated with this field' 이 avatar URL purpose 와 일치. in-codebase autoComplete coverage 1 → 2 (cycle 138 PR #327 nickname 에 이어 두 번째 토큰 매핑). type='url' 은 값 형식 식별자이지 input purpose programmatic identifier 가 아니므로 본 변경은 별개 보강. 시각/레이아웃/동작 변화 0(HTML form attribute 만 추가, id='profile-avatar-url'/htmlFor/type='url'/value/onChange/placeholder='https://...'/className/avatar preview img onError fallback/handleSubmit/취소·저장 button 모두 미수정). 인접 input(MyPageClient L93-107 보드 이름, AddToBoardButton L361-376 보드 이름, PinCreateForm L463-474 title 등)은 각각 별도 token(off/on) 매핑 필요라 본 사이클은 photo 단독. 'url' token(HTML spec 'Home page' 의미)은 의미 불일치라 'photo' 선택. Ralph env 제약(node_modules/headless 도구 미설치)으로 step 7 실 브라우저 QA 는 `grep -nE 'autoComplete' apps/web/src/components/profile/ProfileEditForm.tsx` 2 matches(L74 nickname 기존 · L92 photo 신규) + `grep -rnE 'autoComplete' apps/web/src/ --include=\"*.tsx\"` 2 matches(둘 다 ProfileEditForm.tsx, coverage 1 → 2) + diff inspection(시각 변경 0)으로 대체. CI Web (Next.js) + API (Go) 모두 SUCCESS. PR #331 머지 완료(2026-05-28). 잔여 pending 0건 → 다음 사이클 발견 모드."
