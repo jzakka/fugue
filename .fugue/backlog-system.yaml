@@ -6211,7 +6211,12 @@ items:
 
   - id: system-20260528-pin-tags-tag-id-fk-missing-cascade
     area: integrity
-    status: pending
+    status: done
+    # cycle 152 처리 — migration 000028 (DROP/ADD CONSTRAINT ON DELETE CASCADE) 1 hop.
+    # 실 환경 QA: pre-migration `\d+ pin_tags` 에 tag_id FK cascade 부재 확인 → migrate up 적용 →
+    # post-migration cascade 표시 확인 → 테스트 tag 삽입 + pin_tag 관계 1건 → DELETE FROM tags 성공 →
+    # orphan_pin_tags_count = 0 (cascade 동작) → 회귀: `GET /api/pins?limit=2` 200 + tags 배열 정상,
+    # `GET /api/pins/{id}` 200 (pin_tags JOIN 경로 회귀 없음).
     title: |
       pin_tags.tag_id FK 가 ON DELETE CASCADE 부재 (postgres default = NO ACTION) — docs/erd.md L86 명시 위반.
       ERD 가 "tag_id | UUID FK → tags | ON DELETE CASCADE" 로 명시하나 실제 migration
