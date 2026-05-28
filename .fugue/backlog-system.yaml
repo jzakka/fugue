@@ -5735,7 +5735,20 @@ items:
   - id: system-20260528-consumer-run-dequeue-error-hot-spin
     title: "PioneerConsumer.Run / HarvesterConsumer.Run 이 DequeueCtx 에러 시 backoff 없이 즉시 retry — DB outage 시 CPU/log hot-spin"
     area: 동시성
-    status: pending
+    status: done
+    pr: 319
+    resolution: |
+      cycle 111 Processing — 두 Run loop 의 DequeueCtx err 분기에 동일
+      `select { ctx.Done : time.After(dequeueErrorBackoff=1s) }` 끼움.
+      `dequeueErrorBackoff` 상수 + per-consumer `errorBackoff` test seam
+      (budget 와 동일 패턴, production 노출 0). 1s = scheduler.defaultPollInterval
+      (postgres_scheduler.go:27) 와 동일값 — 의도된 정렬.
+      pin tests 5건 추가 (consumer_dequeue_error_backoff_test.go): {Pioneer,Harvester}
+      backoff bound + ctx-cancel-during-backoff + empty-dequeue 회귀 가드
+      + drift guard. real-env QA: in-module `cmd/cycle111qa` (QA 후 삭제)
+      가 real PGURLScheduler + real *sql.DB 로 production 코드 경로
+      `scheduler: begin claim tx: sql: database is closed` 정확히 재현 —
+      두 Run loop 모두 5s 윈도우에 ~4 log (≈ 1.24s/log, pre-fix: ~50,000).
     score: 8.0
     impact: 2
     confidence: 4
