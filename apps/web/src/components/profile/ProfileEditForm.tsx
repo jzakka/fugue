@@ -64,7 +64,9 @@ export default function ProfileEditForm({
 
       {/* Nickname */}
       <div>
-        <label htmlFor="profile-nickname" className="block text-sm text-text-muted mb-2 font-medium">닉네임</label>
+        <label htmlFor="profile-nickname" className="block text-sm text-text-muted mb-2 font-medium">
+          닉네임 <span className="text-error" aria-hidden="true">*</span>
+        </label>
         <input
           id="profile-nickname"
           type="text"
