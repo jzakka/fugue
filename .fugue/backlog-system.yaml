@@ -6009,12 +6009,30 @@ items:
 
   - id: system-20260528-server-base-context-on-sigterm
     area: concurrency
-    status: in_progress
+    status: done
     impact: 2
     confidence: 4
     effort: 1
     risk: 2
     score: 4.0
+    resolution:
+      cycle: 129
+      pr: 385
+      merge_commit: c4f6d43d02783344add5f785d9d3de2c80be5bd4
+      merged_at: 2026-05-28T04:12:23Z
+      change: |
+        cmd/server/main.go — `http.Server` 인스턴스에 `BaseContext: func(_ net.Listener) context.Context { return ctx }`
+        를 추가. `signal.NotifyContext(SIGTERM)` 으로 생성된 ctx 의 선언 순서를
+        srv 생성 전으로 이동(net 패키지 import 추가). 총 변경 ~5줄 + 18줄 주석.
+        cancel chain: signal ctx → conn ctx (BaseContext) → req.Context (per-conn serve loop).
+        이로써 cycle 120 PR #353 (GoogleProvider) + cycle 127 PR #377 (pin.Create ffmpeg/ffprobe)
+        의 ctx 전파 fix 가 SIGTERM 시나리오에서도 트리거된다.
+      qa_evidence:
+        - "Case 1 (결정): 17MB 4K webm (2560x1440, 60fps, 30s) trim 0-10 업로드 → libx264 reencode ~2.78x 속도(frame 425/600)에서 SIGTERM. `ffmpeg_count` 1→0 within 474ms(t+186ms=1, t+474ms=0), curl HTTP 500 (\"비디오 처리에 실패했습니다\") in 3.28s. 서버 log: `pin.Create: ffmpeg re-encode error: ffmpeg reencode: signal: killed` 직후 `shutdown complete`. fix 없으면 ffmpeg 가 자연 종료(~5s 추가)까지 진행, Shutdown 도 그만큼 지연됨."
+        - "Case 2 (회귀): 5s mp4 no-trim 업로드 → HTTP 201 in 85ms, DB row id=53e909fa-831b-473f-8cbe-3ee06f51b223 생성, MinIO video/6d7b5818-...mp4 업로드 완료. SIGTERM 미발생 경로는 무변화."
+        - "Case 3 (스모크): GET /api/feed 200 in 3.7ms, GET /api/pins?limit=5 200 in 7.2ms. 라우팅·인증 미들웨어 영향 0."
+        - "go vet ./... + go build ./... + go test ./... 통과 (631 tests, 23 packages — CI 확인)."
+      followups: []
     title: |
       cmd/server/main.go 의 http.Server 가 BaseContext 미설정 — SIGTERM 시
       in-flight r.Context() 가 cancel 되지 않아 cycle 120 PR #353·cycle 127
