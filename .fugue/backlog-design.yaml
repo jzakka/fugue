@@ -3126,7 +3126,7 @@ items:
     risk: 1
     score: 8.0
     status: done
-    pr: TBD
+    pr: 411
     note: "cycle 171 Processing 머지. apps/web/src/app/pin/new/PinCreateForm.tsx L313 `<form>` 에 aria-labelledby=\"pin-create-form-title\" + L314 `<h1>` 에 id=\"pin-create-form-title\" 추가(diff +2 -2, 2 attribute, JSX 구조 비변경, className 모두 그대로). WAI-ARIA 1.2 form landmark + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — visible heading '핀 생성' 텍스트가 SR name 으로 그대로 노출되며 form 이 AT landmark navigation 에 'form, 핀 생성' 으로 등장. cycle 148 PR #348 SearchBar role=\"search\" landmark 정착 패턴 (wrapper 단일 attribute 추가로 SR landmark 노출 + 명명) 의 인접 갭 해소. 시각/레이아웃/동작 변화 0."
 
   - id: "design-20260528-a11y-profile-edit-form-landmark-aria-labelledby"
