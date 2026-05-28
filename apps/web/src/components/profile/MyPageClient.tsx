@@ -73,6 +73,8 @@ function BoardSection({ creatorId }: { creatorId: string }) {
         </h2>
         <button
           onClick={() => setShowCreate((prev) => !prev)}
+          aria-expanded={showCreate}
+          aria-controls="mypage-board-create-form"
           className="px-3 py-1.5 bg-accent text-white rounded-full text-xs font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors cursor-pointer"
         >
           + 새 보드
@@ -80,7 +82,10 @@ function BoardSection({ creatorId }: { creatorId: string }) {
       </div>
 
       {showCreate && (
-        <div className="mb-4 p-4 bg-surface border border-border rounded-[10px] space-y-3">
+        <div
+          id="mypage-board-create-form"
+          className="mb-4 p-4 bg-surface border border-border rounded-[10px] space-y-3"
+        >
           {error && (
             <div
               role="alert"
