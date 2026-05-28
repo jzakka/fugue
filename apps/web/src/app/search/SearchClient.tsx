@@ -257,7 +257,11 @@ export default function SearchClient({
 
       {/* Top tags chips */}
       {topTags.length > 0 && (
-        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
+        <div
+          role="group"
+          aria-label="인기 태그"
+          className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1"
+        >
           {topTags.map((tag) => {
             const selected = activeTagIds.has(tag.id);
             return (
