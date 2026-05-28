@@ -5933,3 +5933,56 @@ items:
           /login?error=invalid_state — 콜백 에러 분류 회귀 0.
       go vet ./... / go build ./... / go test ./... (631 passed in 23 packages,
       신규 3 tests 포함) 모두 통과.
+
+  - id: system-20260528-pin-handler-ffmpeg-ctx-propagation
+    area: errors
+    status: pending
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    title: |
+      pin.Create 핸들러의 ffmpeg/ffprobe 헬퍼 3종이 ctx-less exec.Command 호출 —
+      sister-convention drift (bot/media_validator.go probeDuration 와 비교).
+    evidence:
+      - "apps/api/internal/pin/handler.go:722 — trimVideoRange 가 exec.Command(\"ffmpeg\", ...) (ctx 인자 없음). 호출부 L215 는 r.Context() 보유."
+      - "apps/api/internal/pin/handler.go:740 — reencodeVideoRange 가 exec.Command(\"ffmpeg\", ...) (ctx 인자 없음). 호출부 L238 도 r.Context() 보유."
+      - "apps/api/internal/pin/handler.go:762 — probeDuration 가 exec.Command(\"ffprobe\", ...) (ctx 인자 없음). 호출부 L199/L223/L264 모두 r.Context() 보유."
+      - "apps/api/internal/bot/media_validator.go:273-291 sister: DefaultMediaValidator.probeDuration(ctx context.Context, body []byte) — context.WithTimeout(ctx, timeout) 으로 probeCtx 생성 → exec.CommandContext(probeCtx, bin, ...) → defer cancel(). 동일 ffprobe 호출에 ctx 를 묶는 정합 패턴이 이미 코드베이스에 존재."
+      - "cycle 120 PR #353 (apps/api/internal/auth/provider.go:93-141 GoogleProvider.FetchProfile) — sister-convention drift 가 confidence=4 로 인정된 직전 선례. Discord(ctx-bound) ↔ Google(ctx-less) drift 와 동일 구조: 같은 코드베이스 안 동종 호출이 ctx 를 안 받는 케이스는 명세 위반은 아니나 SIGTERM/graceful shutdown 시 outbound 프로세스 reap 가 막힌다."
+      - "재현: API 서버에 SIGTERM 송신 시점에 진행 중인 ffmpeg/ffprobe subprocess 는 부모 ctx cancel 을 받지 못해 자체 종료 신호가 안 가고, ffmpeg 의 자연 종료까지(짧은 파일 ~수백 ms ~ 15초 trim 최대 ~수십 초) 핸들러 goroutine 이 cmd.CombinedOutput()/cmd.Output() 에서 대기. http.Server.Shutdown 의 drain 기간이 그만큼 늘어난다."
+    qa_plan: |
+      처리 모드 7단계에서 사용:
+      1. `docker-compose up -d` + `cd apps/api && go run cmd/server/main.go` 로 API 기동.
+      2. 큰 비디오(>15s) 를 `curl -F file=@big.mp4 -F trim_start=0 -F trim_end=10 ...
+         /api/pins` 로 업로드해 reencodeVideoRange 분기에 진입시킨다(파일이 작거나
+         -c copy 가 성공하면 reencode 분기 진입 못함; WebM 또는 trim 결과 사이즈
+         초과로 needsReencode=true 유도).
+      3. ffmpeg 실행 중(`ps aux | grep ffmpeg` 로 PID 확인) 클라이언트 측에서
+         `curl ... &` 백그라운드 후 부모 curl 프로세스에 SIGINT.
+      4. 변경 전: 서버 측 ffmpeg 프로세스가 cancel 신호 못 받고 끝까지 진행 →
+         `ps` 에서 ffmpeg 가 자연 종료까지 남아 있음 + 서버 log 에 ctx 관련 메시지 없음.
+      5. 변경 후(exec.CommandContext): 클라이언트 disconnect → r.Context() cancel
+         → CommandContext 가 ffmpeg 에 SIGKILL → `ps` 에서 즉시 사라짐 + 서버 log 가
+         `ffmpeg ... signal: killed` 또는 `ctx.Canceled` 류 wrap 메시지 출력.
+      6. 회귀: 동일 시나리오에서 클라이언트가 끝까지 기다리는 happy path 1회 — 응답
+         코드/body 동일, 핀 생성 성공.
+      참고: 단위 테스트 추가도 가능(httptest 핸들러에서 ctx cancel 후 ffmpeg 프로세스
+      종료 관찰). bot/media_validator.go 에는 이 형태의 단위 테스트가 없으므로
+      비대칭. 실 환경 QA 가 1순위.
+    note: |
+      수정 모양 (3 헬퍼 시그니처 변경 + 5 call sites):
+        - func trimVideoRange(ctx context.Context, inputPath, outputPath string, start, duration float64) error
+            cmd := exec.CommandContext(ctx, "ffmpeg", ...)
+        - func reencodeVideoRange(ctx context.Context, inputPath, outputPath string, start, duration float64) error
+            cmd := exec.CommandContext(ctx, "ffmpeg", ...)
+        - func probeDuration(ctx context.Context, path string) (float64, error)
+            out, err := exec.CommandContext(ctx, "ffprobe", ...).Output()
+        call sites (L199/L215/L223/L238/L264) 가 `r.Context()` 를 전달하도록 한다.
+        bot/media_validator.go 패턴처럼 timeout wrap 까지 추가하면 더 안전(예: 15s
+        trim 의 reencode 는 수십 초 걸릴 수 있으므로 별도 sub-ctx 타임아웃 검토).
+        operator 도구(bot/cmd/visualize/graphviz.go:95) 는 본 변경 영역 밖.
+    refs:
+      - "cycle 120 PR #353 (GoogleProvider.FetchProfile ctx propagation) — 동일 구조 sister-convention drift 선례"
+      - "cycle 123 (bot/media_validator.go ctx 검증)"
