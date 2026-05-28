@@ -18,6 +18,8 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 )
 
 // MediaValidationReason is a stable, externally-observable category for why
@@ -121,12 +123,53 @@ type DefaultMediaValidator struct {
 	ProbeTimeout time.Duration
 }
 
+// mediaValidatorConnectTimeout caps the dial latency for a single media
+// candidate fetch. Aligns with sister-convention values used by the other
+// caller-untrusted fetchers in this package (robots_filter.go,
+// harvest_pipeline.go, pioneer_consumer.go) — all pick 5s as a tight-enough
+// connect budget that an SSRF probe of an unreachable internal IP cannot
+// burn an entire worker for the full transport default.
+const mediaValidatorConnectTimeout = 5 * time.Second
+
+// mediaValidatorMaxRedirects bounds redirect chains so a misbehaving CDN (or
+// a deliberately crafted SSRF chain) cannot make the dialer re-resolve and
+// re-check unboundedly many hops. CheckRedirect re-runs the IsPrivateIP
+// guard on every hop (httpclient/ssrf.go L70-88), so this cap is a defense
+// in depth on top of that re-check, mirroring robots_filter.go and the rest
+// of the bot HTTP fetcher chain.
+const mediaValidatorMaxRedirects = 5
+
 // NewDefaultMediaValidator returns a validator configured with design.md D4
 // default thresholds. Callers that need to tune values for tests or operations
 // can replace fields on the returned struct directly.
+//
+// The HTTP client is the SSRF-safe shared factory
+// (httpclient.NewSSRFSafeClient): media candidate URLs reach this validator
+// after being extracted from caller-untrusted HTML (OG tags, <img>/<video>
+// src, JSON-LD media payloads, RSS enclosures), so the dialer MUST reject
+// connections to private/reserved IP ranges (loopback, IMDS, RFC 1918, CGN,
+// link-local, IPv6 ULA) before the request leaves the worker. Without this
+// guard an external publisher could plant `<img src="http://169.254.169.254/
+// latest/meta-data/iam/security-credentials/...">` (or a DNS-rebinding host
+// resolving to 10.x at probe time) and use the harvester as an SSRF pivot to
+// scan the cluster's internal address space or exfiltrate IMDS credentials
+// during media validation.
+//
+// Spec: openspec/specs/harvester/spec.md L739 SHALL
+// "외부 미디어 fetch는 SSRF-safe HTTP client를 경유한다" and L751 encompass
+// clause "임의 미디어 URL에 대한 fetch 경로를 모두 포괄한다" — the in-validator
+// download() path (L169) is exactly such a fetch path. Sister convention
+// already aligned on the same factory: robots_filter.go:100 (PR #47),
+// harvest_pipeline.go:154 (cycle 19), pioneer_consumer.go:376 (cycle 22 PR
+// #171), og/service.go (cycle ~188) — this constructor brings the last
+// caller-untrusted outbound surface on the bot track onto the same SoR.
 func NewDefaultMediaValidator() *DefaultMediaValidator {
 	return &DefaultMediaValidator{
-		HTTP:            &http.Client{Timeout: 30 * time.Second},
+		HTTP: httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: mediaValidatorConnectTimeout,
+			TotalTimeout:   30 * time.Second,
+			MaxRedirects:   mediaValidatorMaxRedirects,
+		}),
 		ImageMinWidth:   DefaultImageMinWidth,
 		ImageMinHeight:  DefaultImageMinHeight,
 		ImageMinBytes:   DefaultImageMinBytes,
