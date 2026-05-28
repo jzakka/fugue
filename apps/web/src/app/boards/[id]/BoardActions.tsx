@@ -77,6 +77,7 @@ export default function BoardActions({
           onChange={(e) => setName(e.target.value)}
           placeholder="보드 이름"
           aria-label="보드 이름"
+          aria-required="true"
           aria-invalid={!!error && !name.trim()}
           aria-describedby={error ? "board-name-error" : undefined}
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
