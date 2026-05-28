@@ -328,9 +328,9 @@ export default function PinCreateForm() {
 
         {/* Media Upload */}
         <div>
-          <label className="block text-sm text-text-muted mb-2 font-medium">
+          <div className="block text-sm text-text-muted mb-2 font-medium">
             미디어 파일 <span className="text-error">*</span>
-          </label>
+          </div>
           {!file && !optimizing ? (
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -537,10 +537,10 @@ export default function PinCreateForm() {
 
         {/* Tag Selection */}
         <div>
-          <label className="block text-sm text-text-muted mb-2 font-medium">
+          <div className="block text-sm text-text-muted mb-2 font-medium">
             태그 ({selectedTagIds.size}/{TAG_MAX_COUNT}){" "}
             <span className="text-text-dim">(선택)</span>
-          </label>
+          </div>
 
           {selectedTagIds.size > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
