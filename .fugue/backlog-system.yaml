@@ -5736,7 +5736,7 @@ items:
     title: "PioneerConsumer.Run / HarvesterConsumer.Run 이 DequeueCtx 에러 시 backoff 없이 즉시 retry — DB outage 시 CPU/log hot-spin"
     area: 동시성
     status: done
-    pr: 319
+    pr: 322
     resolution: |
       cycle 111 Processing — 두 Run loop 의 DequeueCtx err 분기에 동일
       `select { ctx.Done : time.After(dequeueErrorBackoff=1s) }` 끼움.
