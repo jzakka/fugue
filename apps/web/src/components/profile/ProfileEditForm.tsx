@@ -89,6 +89,7 @@ export default function ProfileEditForm({
           value={avatarUrl}
           onChange={(e) => setAvatarUrl(e.target.value)}
           placeholder="https://..."
+          autoComplete="photo"
           className="w-full px-4 py-2.5 bg-bg border border-border rounded-[6px] text-text-primary outline-none focus:border-accent transition-colors"
         />
         {avatarUrl.trim() && (
