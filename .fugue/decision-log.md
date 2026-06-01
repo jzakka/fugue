@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 282 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 276 이후 6 cycle 미방문 = 봇 round 26 적격. 6 sub-surface 새 시각 (component architecture) 측정: A. snapshot 47 — HTML snapshot 저장/조회 baseline (재가공 가능 archive) / B. URLScheduler/Schedule/Dequeue 39 — scheduling 의식적 baseline / C. Classify/Category 15 — 분류 의식적 baseline (creator/work/post) / D. goja JS executor 37 — SPA JavaScript 실행 baseline (Single Page App 처리) / E. Drain 18 — stale URL 정리 의식적 (resource leak 방지) / F. Adapter 60 — 어댑터 패턴 baseline (Pioneer/Harvester ↔ source 분리).
+이유: 6 sub-surface 모두 봇 도메인 architecture 의식적 baseline (A snapshot archive, B scheduler 풍부, C 분류 baseline, D goja SPA 실행, E drain stale, F adapter 분리 — anti-pattern L9 bot 도메인 표준 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area 26 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 278 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 272 이후 6 cycle 미방문 = 정합성 round 32 적격. 6 sub-surface 새 시각 (sqlc/constraint) 측정: A. queries .sql files 9 — 9 도메인 1:1 매핑 정합 (cycle 272 sqlc .sql.go 9 정합) / B. sqlc directive `-- name:` 109 — 풍부 baseline (avg 12 query/domain) / C. sqlc.yaml v2 — 최신 채택 baseline / D. CASCADE 15 — 풍부 baseline (FK 17 중 15 cascade = 88%, relation 의식적) / E. UNIQUE 11 — 의식적 baseline (uniqueness 명확) / F. JSONB 5 — sparse 의식적 (구조화 어려운 metadata만, schema 우선).
 이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A 9:9 1:1 매핑 — positive, B 109 query 풍부, C sqlc v2 최신, D CASCADE 88% relation 의식적, E UNIQUE 의식적, F JSONB sparse schema 우선 — anti-pattern L9 정합) → 후보 0건.
