@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 319 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (318 OpenSpec/317 봇/316 동시성/315 에러/314 보안/313 정합) — cycle 313 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (CHECK/DEFAULT/NOT NULL/timestamptz/ON UPDATE/trigger) 측정: A. CHECK constraint refs 3 — sparse 의식적 (application validation 우선, DB CHECK 최소 — 사용자 결정 영역) / B. DEFAULT refs 43 — 풍부 baseline (DEFAULT 명시 적극) / C. NOT NULL refs 82 — 풍부 baseline (nullability 명시성 적극) / D. timestamptz 23 vs naive TIMESTAMP 0 — positive (timezone-aware 100% 일관) / E. ON UPDATE refs 0 — sparse 의식적 (PK UUID 불변, ON UPDATE 동작 N/A) / F. trigger/function refs 0 — sparse 의식적 (application logic 우선, DB trigger 미채택 — 사용자 결정 영역).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A CHECK 3 결정 영역, B DEFAULT 43 풍부, C NOT NULL 82 풍부, D timestamptz 100% positive, E ON UPDATE 0 N/A, F trigger 0 결정 영역 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 317 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (316 동시성/315 에러/314 보안/313 정합/312 OpenSpec/311 봇) — cycle 311 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (test/mock/SSRF-bot/media_type/scoring/cmd) 측정: A. internal/bot test 파일 40 / 비테스트 47 = 0.85 ratio — 풍부 baseline (테스트 적극) / B. mocks.go/gomock refs 1 — sparse (단일 mocks.go에서 인라인 정의, gomock 미채택 — 사용자 결정 영역) / C. SSRF/isPrivateIP non-test refs in bot 19 — 풍부 baseline (SSRF 방어 적극) / D. media_type/MediaType refs in bot 41 — 풍부 baseline (media_type 일관 적극) / E. Pioneer scoring/score/Priority refs (pioneer/link_filter/link_stats) 2 — sparse (link_stats 우선, 점수 기반 priority 명시 미채택 — 사용자 결정 영역) / F. internal/bot/cmd subdirs 1 (visualize) — sparse 의식적 (시각화 CLI 단일, 다른 CLI 미요구).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 sparse (A 0.85 test ratio 풍부, B mocks.go inline 결정, C SSRF 19 풍부, D media_type 41 풍부, E scoring 2 결정 영역, F cmd 1 sparse 의식적 — anti-pattern L15 인프라 정합) → 후보 0건.
