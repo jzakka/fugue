@@ -3148,4 +3148,19 @@ items:
     status: done
     pr: 417
     note: "cycle 172 Processing 머지. apps/web/src/components/profile/ProfileEditForm.tsx L48 `<form>` 에 aria-labelledby=\"profile-edit-form-title\" + L52 `<h2>` 에 id=\"profile-edit-form-title\" 추가(diff +2 -2, 2 attribute, JSX 구조 비변경, className 모두 그대로). WAI-ARIA 1.2 form landmark + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — visible heading '프로필 편집' 텍스트가 SR name 으로 그대로 노출되며 form 이 AT landmark navigation 에 'form, 프로필 편집' 으로 등장. cycle 171 PR #411 PinCreateForm `<form>` aria-labelledby 정착 패턴의 인접 갭 해소 (in-codebase form landmark coverage 1 → 2). form 의 nickname input(aria-required/aria-invalid/aria-describedby cycle 152/146/164 라인업) · avatar URL input · cancel button · submit button(aria-busy cycle 161) 모두 미수정 → 동작 변화 0."
+  - id: "design-20260601-videotrimmodal-rounded-8px"
+    title: "VideoTrimModal video element 의 rounded-[8px] 가 DESIGN.md radius scale (sm:6/md:10/lg:16/full) 위반"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:199"
+      cite: "DESIGN.md L73-77 — 'Border radius: sm: 6px (inputs, alerts) / md: 10px (cards) / lg: 16px (modals, panels) / full: 9999px (buttons, chips, avatars, search bar)' — 8px 는 scale 에 정의되지 않음"
+      repro: "grep -nE 'rounded-\\[8px\\]' apps/web/src/ — 1 match (VideoTrimModal.tsx:199 video element). 다른 비표준 radius 0건. cycle 348 ring utility 0 + cycle 358 100% Tailwind token discipline 누적 baseline 에서 단일 ouliner 발견."
+    qa_plan: "1) cd apps/web && npm run dev → 로그인 → /pin/new → video 파일 업로드 → 트림 모달 오픈 → video element 의 radius 시각 검사(8px → 10px 로 변경, modal 컨테이너 16px / video 카드 표면 10px 정합). 2) grep -nE 'rounded-\\[(8|10)px\\]' apps/web/src/components/pin/VideoTrimModal.tsx 1 match (rounded-[10px]) 확인. 3) `rounded-[8px]` codebase 0 확인. 4) modal/Pin 생성 플로우 다른 화면 회귀 0."
+    impact: 1
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 5.0
+    status: pending
 
