@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 320 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (319 정합/318 OpenSpec/317 봇/316 동시성/315 에러/314 보안) — cycle 314 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (JWT-claim/cookie-flag/CORS/Bearer/upload-size/path-traversal) 측정: A. JWT claim exp/iat/nbf/Claims non-test refs 92 — 풍부 baseline (claim 검증 적극) / B. Cookie SameSite/HttpOnly/Secure non-test refs 9 — baseline (cookie 보안 플래그 명시) / C. CORS/AllowedOrigins non-test refs 2 — sparse 의식적 (chi/cors middleware 중앙 집중 설정 — 사용자 결정 영역) / D. Authorization/Bearer non-test refs 7 — baseline (Bearer JWT 일관 채택) / E. MaxBytesReader/maxFileSize/maxBytes non-test refs 33 — 풍부 baseline (upload size limit 적극) / F. filepath.Clean/`..`/path 정규화 non-test refs 65 — 풍부 baseline (path traversal 방어 적극).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A JWT claim 92 풍부, B cookie flag 9 명시, C CORS 2 중앙 집중 결정 영역, D Bearer 7 일관, E upload 33 풍부, F path 65 풍부 — anti-pattern L15 인프라/L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 317 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (316 동시성/315 에러/314 보안/313 정합/312 OpenSpec/311 봇) — cycle 311 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (test/mock/SSRF-bot/media_type/scoring/cmd) 측정: A. internal/bot test 파일 40 / 비테스트 47 = 0.85 ratio — 풍부 baseline (테스트 적극) / B. mocks.go/gomock refs 1 — sparse (단일 mocks.go에서 인라인 정의, gomock 미채택 — 사용자 결정 영역) / C. SSRF/isPrivateIP non-test refs in bot 19 — 풍부 baseline (SSRF 방어 적극) / D. media_type/MediaType refs in bot 41 — 풍부 baseline (media_type 일관 적극) / E. Pioneer scoring/score/Priority refs (pioneer/link_filter/link_stats) 2 — sparse (link_stats 우선, 점수 기반 priority 명시 미채택 — 사용자 결정 영역) / F. internal/bot/cmd subdirs 1 (visualize) — sparse 의식적 (시각화 CLI 단일, 다른 CLI 미요구).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 sparse (A 0.85 test ratio 풍부, B mocks.go inline 결정, C SSRF 19 풍부, D media_type 41 풍부, E scoring 2 결정 영역, F cmd 1 sparse 의식적 — anti-pattern L15 인프라 정합) → 후보 0건.
