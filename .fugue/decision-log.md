@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 269 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 263 이후 6 cycle 미방문 = OpenSpec 갭 round 29 적격. 6 sub-surface 새 시각 측정: A. archive changes 118 — 활발한 변경 history 풍부 baseline / B. in-progress changes 3 — 동시 작업 sparse 의식적 / C. specs total 11 — 도메인 분리 baseline (auth/board/bot 등) / D. EARS SHALL/MUST 252 — 명세 정밀도 풍부 baseline / E. proposal.md 3 — in-progress 1:1 매핑 정합 / F. design.md 3 — in-progress 1:1 매핑 정합 (OpenSpec authoring convention L10).
+이유: 6 sub-surface 모두 OpenSpec authoring convention 정합 (A archive 풍부, B in-progress sparse, C specs 도메인 분리, D EARS 풍부, E-F proposal/design 1:1 매핑 — anti-pattern L10 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area 29 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 266 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 260 이후 6 cycle 미방문 = 정합성 round 30 적격. 6 sub-surface 새 시각 측정: A. sql.NullX wrapper 148 — Go std nullable wrapper 의식적 baseline (sqlc generated null handling) / B. CHECK constraint 3 — DB level enum 제약 sparse 의식적 (status enum 류만 DB enforce) / C. json tag fields 241 — struct field json convention 풍부 baseline / D. updated_at trigger 7 — 의식적 시간 추적 baseline (변경 추적 필요 테이블만) / E. UUID PK 5 — 의식적 baseline (5 PK 테이블, gen_random_uuid() 패턴) / F. soft delete deleted_at 0 — hard delete 의식적 (anti-pattern L9 Go std 정합).
 이유: 6 sub-surface 모두 의식적 minimal 또는 정합 (A sqlc null wrapper 표준, B CHECK sparse 의식적, C json tag 풍부, D updated_at trigger 선별, E UUID PK 5 의식적, F hard delete 의식적 — L9 정합) → 후보 0건.
