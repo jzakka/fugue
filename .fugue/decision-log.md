@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 315 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (314 보안/313 정합/312 OpenSpec/311 봇/310 동시성/309 에러) — cycle 309 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (log variant/3rd-party-logger/sentinel/Error()/retry-helper/recoverer) 측정: A. log.Println 10 / log.Printf 160 — baseline (formatted log 우세 의식적) / B. slog 0 / zap·zerolog·logrus 0 — positive (std log 일관 채택, 3rd party logger 회피 — 사용자 결정 영역) / C. sentinel `var Err…` declarations 6 — baseline (errors.Is 비교 sentinel 적정) / D. `.Error()` string 34 — baseline (에러 메시지 전파 적극) / E. retry()/MaxRetries/RetryAfter 1 — sparse (cycle 305의 retry/backoff 63 baseline의 단일 helper 정의, 호출 site는 각자) / F. middleware.Recoverer/recover() 7 — baseline (panic 보호망 적정).
+이유: 6 sub-surface 모두 baseline 또는 positive (A log.Printf 160 우세, B 3rd-party 0 std 일관 사용자 결정, C sentinel 6 적정, D .Error 34 전파, E retry helper 1 sparse 의식적, F recoverer 7 보호망 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 312 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (311 봇/310 동시성/309 에러/308 보안/307 정합/306 OpenSpec) — cycle 306 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (BDD/phase/archive-size/why-section/design-adoption/SHALL-density) 측정: A. spec.md WHEN/THEN scenario 1346 — 풍부 baseline (BDD scenario 적극) / B. tasks.md `## ` phase headers 12 / 3 tasks.md = avg 4 phase/change — baseline (phase 분할 적극) / C. archive 118 changes, total proposal 4607 lines = avg 39 lines/proposal — baseline (완료시점 풍부도 자연스러움) / D. active proposal `## Why` 3/3 = 100% — positive signal (모든 active proposal에 Why 명시) / E. active design.md 3/3 = 100%, README.md per active change 0 sparse 의식적 (proposal/tasks/design 3종 정렬, README 미요구) / F. specs 11 / SHALL contained lines 252 = avg 23 SHALL-line/spec — 풍부 baseline (capability별 행위 명세 풍부).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A WHEN/THEN 1346 BDD 풍부, B avg 4 phase baseline, C 39 lines/proposal baseline, D Why 100% positive, E design 100% + README 0 sparse 의식적, F SHALL 23/spec 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
