@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 239 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 233 이후 6 cycle 미방문 = 동시성 round 19 — 6 sub-surface 새 시각: goroutine launch `go func(` 3 prod (request-scoped concurrency minimal — 의식적) + sync.Once 0 (lazy init 미채택 — eager init dominant) + sync.Pool 0 (object pool 미채택 — GC pressure 무시 의식적) + errgroup 0 (golang.org/x/sync/errgroup 미채택 — sync.WaitGroup 위주) + singleflight 0 (caching coalescing 미채택) + runtime.NumGoroutine/GOMAXPROCS 0 (런타임 튜닝 미사용 — Go 기본값 신뢰).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std sync 표준 + 도메인 표준 영역) / 의식적 minimal baseline / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area cycle 101/110/116/124/137/150/157/167/175/181/187/193/199/209/215/221/227/233/239 19 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 235 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 229 이후 6 cycle 미방문 = 정합성 round 22 — 6 sub-surface 새 시각: TIMESTAMPTZ 23 (TIMESTAMP 23 = 100% TIMESTAMPTZ 정합 — naive timestamp 회피 positive signal) + ENUM 0 (Postgres ENUM 미채택 — application-layer enum + CHECK constraint 위임) + CHECK constraint 3 (minimal column-level invariant — 의식적) + UUID PK 5 (UUID primary key discipline 일관) + JSONB 4 (minimal JSONB usage — relational normalized 우선) + ARRAY 4 (minimal ARRAY column — junction table 우선).
 이유: 6 sub-surface 모두 anti-pattern L9 (Postgres 도메인 표준 + ERD 정합) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
