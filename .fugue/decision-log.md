@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 327 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (326 보안/325 정합/324 OpenSpec/323 봇/322 동시성/321 에러) — cycle 321 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (err==nil-positive/ctx.Canceled-DeadlineExceeded/Errorf-wrap-ratio/discard-line-start/error-metric/ErrorResponse-struct) 측정: A. `if err == nil` non-test refs 10 — sparse 의식적 (positive branch 일부, error branch 위주 — Go convention) / B. context.Canceled 1 / context.DeadlineExceeded 0 non-test refs — sparse 의식적 (errors.Is(ctx.Err(), ...) 우선 채택, 명시 비교 1만) / C. fmt.Errorf no-%w 28 vs with %w 173 = 86% wrap dominant — positive (error chain 보존 dominant, leaf/정적 메시지만 28) / D. `_ = fn(...)` line-start non-test refs 43 — baseline (Close()/Set* 의식적 무시, Go std 패턴) / E. errorCount/failureCount/.Inc()/.Add(1) error metric non-test refs 19 — baseline (observability counter 적정 채택) / F. ErrorResponse struct/type definitions non-test refs 1 — sparse 의식적 (단일 envelope struct 일관 — cycle 273 writeError 158 sister와 단일 helper 결합).
+이유: 6 sub-surface 모두 baseline 또는 positive (A err==nil 10 sparse convention, B context.* 1/0 errors.Is 우선, C wrap 86% positive chain 보존, D `_ =` 43 std 패턴, E error metric 19 observability, F ErrorResponse 1 단일 envelope — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 325 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (324 OpenSpec/323 봇/322 동시성/321 에러/320 보안/319 정합) — cycle 319 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (CREATE INDEX/UUID PK/sql.Null·pgtype/sqlc-return-type/up-down-pair/CREATE-DROP-pair) 측정: A. CREATE INDEX refs 24 — 풍부 baseline (인덱스 적극 생성) / B. UUID PRIMARY KEY refs 18 — baseline (UUID PK 채택 일관, 17 CREATE TABLE 대비 18 = 거의 모든 테이블 UUID PK) / C. sql.Null/pgtype non-test refs 148 — 풍부 baseline (nullable Go 매핑 적극) / D. sqlc named query return type :many 49 / :one 35 / :exec 14 / :execrows 11 = 4종 balanced — baseline (return type 4종 모두 활용) / E. up.sql 26 / down.sql 26 = 100% — positive (up/down 페어 완비) / F. CREATE TABLE 17 (up) vs DROP TABLE 17 (down) = 100% 1:1 — positive (스키마 생성/롤백 1:1 매핑).
 이유: 6 sub-surface 모두 baseline 또는 positive (A INDEX 24 풍부, B UUID PK 18 일관, C nullable 148 풍부, D return type 4종 balanced, E up/down 100% positive, F CREATE/DROP 1:1 100% positive — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
