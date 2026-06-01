@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 324 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (323 봇/322 동시성/321 에러/320 보안/319 정합/318 OpenSpec) — cycle 318 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (requirements.md/Out-of-Scope/BREAKING/Architecture/What-section/sub-headers) 측정: A. requirements.md 0 / active change dirs 6 = 0/6 — sparse 의식적 (proposal+tasks+design 3-doc convention 일관, requirements.md 미채택 — 사용자 결정 영역) / B. `## Out of Scope` sections refs 6 — baseline (out-of-scope 명시 적정 채택) / C. BREAKING markers refs 15 — baseline (breaking change 표기 일관 적극) / D. `## Architecture`/`## Dependencies` sections in specs 0 — sparse 의식적 (capability spec은 BDD 행위 위주, architecture는 docs/architecture.md 분리 — 사용자 결정 영역) / E. `## What`/`## What's Changing` 98 / proposal.md 120 = 82% — baseline (대다수 What 섹션, 초기 proposal 일부 자연스러움) / F. spec ### sub-headers 176 / 11 specs = avg 16 sub-header/spec — 풍부 baseline (각 capability 적극 분해).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A requirements.md 0/6 결정 영역, B Out-of-Scope 6 baseline, C BREAKING 15 baseline, D Architecture 0 분리 결정, E What 82% baseline, F sub-headers 16/spec 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 321 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (320 보안/319 정합/318 OpenSpec/317 봇/316 동시성/315 에러) — cycle 315 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (log.Fatal/ctx.Err/errors.Unwrap/log.SetFlags/defer-close-chan/err-string-convention) 측정: A. log.Fatal/Fatalln/Fatalf non-test refs 9 — baseline (cmd 초기화 실패 fatal 적정) / B. ctx.Err() non-test refs 21 — 풍부 baseline (context error 명시적 전파 적극) / C. errors.Unwrap explicit non-test refs 0 — sparse 의식적 (errors.Is/As 58 우선 채택, Unwrap 직접 호출은 unwrap chain 사용자 결정 회피) / D. log.SetFlags/SetOutput/SetPrefix non-test refs 0 — sparse 의식적 (std log default 채택, prefix/flag 변경 미요구 — 사용자 결정 영역) / E. defer close(ch) non-test refs 1 — sparse 의식적 (channel close = sender 책임 일관, defer pattern 한정) / F. errors.New("Uppercase…") 0 vs errors.New("lowercase…") 13 — positive (Go convention 100% 준수, 0/13 ratio).
 이유: 6 sub-surface 모두 baseline 또는 positive (A log.Fatal 9 cmd 초기화 적정, B ctx.Err 21 풍부, C errors.Unwrap 0 sparse 의식적, D log.Set* 0 결정 영역, E defer close(ch) 1 sender 책임 일관, F err-string 0/13 100% convention — anti-pattern L9 Go std 정합) → 후보 0건.
