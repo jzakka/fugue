@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 331 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (330 OpenSpec/329 봇/328 동시성/327 에러/326 보안/325 정합) — cycle 325 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (migration-number-gap/FK-explicit-ON-DELETE/GENERATED-IDENTITY/DEFAULT-now-uuid/composite-PK/UNIQUE-TEXT-VARCHAR) 측정: A. migration 26 unique numbers (000001-000019, 000022-000028, gap 020/021) — baseline (의식적 squash 결과, golang-migrate 결번 허용) / B. REFERENCES 16 vs ON DELETE 명시 15 = 1 누락 (pin_tags.tag_id) — baseline (cycle 295 ALTER로 cascade 보완, 현재 schema 정합 / 원래 CREATE TABLE artifact 보존) / C. GENERATED/IDENTITY column 0 — sparse 의식적 baseline (UUID PK + DEFAULT 함수 위주, distributed-friendly identity 미채택) / D. DEFAULT now()/gen_random_uuid 31 — 풍부 baseline (timestamp/UUID 자동 채움 적극) / E. composite PRIMARY KEY 3 (boards/tags/frontier_tables 매핑 테이블만) — sparse 의식적 baseline (single UUID PK + mapping 테이블만 composite) / F. UNIQUE 11 / TEXT 21 vs VARCHAR 24 = mixed 의식적 (VARCHAR(n) 길이 제한 우선) — baseline.
+이유: 6 sub-surface 모두 baseline (A gap 020/021 squash 결과, B 1 FK 누락 cycle 295 보완, C GENERATED 0 UUID 정책, D DEFAULT 31 풍부, E composite PK 3 mapping only, F TEXT/VARCHAR mixed 길이 제한 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 329 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (328 동시성/327 에러/326 보안/325 정합/324 OpenSpec/323 봇) — cycle 323 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (bot-subpackages/backoff-jitter/ffprobe-exec/extract-refs/classify-refs/URL-normalize) 측정: A. internal/bot/ subpackages 3 (cmd, crawler, snapshot) — baseline (flat 구조 + 3 specialized 분리, cycle 305 sources 미채택 sister) / B. backoff/exponential/jitter refs in bot 14 — baseline (backoff 활성, cycle 305 retry 63 sister 일부) / C. ffprobe/ffmpeg/exec.Command in bot 17 — baseline (external 도구 호출 적정, video duration 검증) / D. extract/Extract/extractor refs in bot 123 — 풍부 baseline (content extraction 적극) / E. classify/Classify/classifier refs in bot 54 — 풍부 baseline (content classification 적극) / F. URL normalize/canonical refs in bot 103 — 풍부 baseline (URL 정규화 적극).
 이유: 6 sub-surface 모두 baseline 또는 풍부 (A subpackages 3 flat+specialized, B backoff 14 활성, C ffprobe 17 적정, D extract 123 풍부, E classify 54 풍부, F normalize 103 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
