@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 253 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area cycle 224 이후 28 cycle 미방문 = 보안 round 16 — 6 sub-surface 새 시각: chi CORS middleware cmd/server/main.go 단일 file (CORS 단일 설정 의식적) + CSRF/SameSite site 3 (cookie SameSite minimal — OAuth Bearer 토큰 위주) + password hashing bcrypt/argon2/scrypt/pbkdf2 0 (OAuth-only baseline 의식적 — decision-log L? 결정 정합) + security headers X-Frame/X-Content/HSTS/CSP 0 (edge layer/Ingress 위임 의식적 minimal — cycle 203 sister 정합) + JWT_SECRET env var 10 site (env 단일 source — JWT secret rotation 단일 secret 의식적) + path traversal filepath.Clean/Abs 13 (file path normalization discipline).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std 보안 idiom + chi cors 표준) / OAuth-only baseline / cycle 203 edge layer 위임 / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area cycle 99/108/127/151/158/170/176/182/188/194/200/206/212/218/224/253 16 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 249 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 243 이후 6 cycle 미방문 = OpenSpec round 26 — 6 sub-surface 새 시각: specs total 3859 line (11 domain spec body 풍부 — bot 982/harvester 828/scheduler 814 dominant) + Requirement count 176 total (4+5+42+7+15+20+37+2+3+2+39 — bot/harvester/scheduler heavy) + SHALL clauses 252 total (50+7+22+5+66+6+6+6+65+17+2 — EARS discipline 풍부) + WHEN/IF heading-position 0 (inline EARS 위주 — heading 미채택 의식적) + Acceptance heading 0 (SHALL 본문 위주 — Acceptance section 미사용) + Scenario heading 11 (도메인 평균 1 — minimal).
 이유: 6 sub-surface 모두 anti-pattern L10 (OpenSpec authoring convention + EARS SHALL 표준 + inline 위주) / positive signal stable (252 SHALL + 176 Requirement) / 의식적 minimal baseline → 폐기. 후보 0건.
