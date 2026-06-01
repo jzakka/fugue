@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 336 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (335 봇/334 동시성/333 에러/332 보안/331 정합/330 OpenSpec) — cycle 330 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (archive-avg-files/capability-internal-files/openspec-meta-files/BDD-GIVEN-WHEN-THEN/active-tasks-avg-count/proposal-3section) 측정: A. archive 평균 files 403/118 = 3.4 — baseline (의식적 design+proposal+tasks 표준 + specs/ delta 옵션) / B. spec capability 디렉터리 내부 11/11 모두 1 file (spec.md only) — sparse 의식적 baseline (단일 spec.md 컨벤션, sub-spec 분할 미채택) / C. openspec/AGENTS.md/README.md 0/2 부재 — sparse 의식적 baseline (top-level meta 부재, capability spec.md 자족) / D. GIVEN/WHEN/THEN BDD 키워드 11 spec 모두 0 — sparse 의식적 baseline (#### Scenario + 자연어 위주, BDD 명시 키워드 미채택 — cycle 330 Scenario 669 정합) / E. active tasks.md 평균 27/3 = 9 (7/9/11) — baseline (적정 분할, change당 9 task) / F. proposal.md 3-section (Why/What Changes/Impact) 3/3 active = 100% — positive (3-part 구조 일관).
+이유: 6 sub-surface 모두 baseline 또는 positive (A archive 3.4 표준, B 1 file 컨벤션, C meta 부재 자족, D BDD 0 자연어, E task 9 적정, F 3-section 100% positive — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 333 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (332 보안/331 정합/330 OpenSpec/329 봇/328 동시성/327 에러) — cycle 327 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (panic-recover/slog-log-import/errors-As-Is/sentinel-error-decl/Error-log-level/defer-Close-resource) 측정: A. panic( non-test refs 1 / recover non-test refs 0 — sparse 의식적 baseline (Go convention error return 우선, panic 거의 미사용) / B. "log/slog" import 166 files vs "log" import 194 files — baseline (structured logging 광범위 채택, 비등 분포 — log std 일부 잔존) / C. errors.As 12 / errors.Is 42 — sparse 의식적 baseline (Is로 sentinel 비교 위주, As는 typed error 최소) / D. var Err... = errors.New 선언 5 — sparse 의식적 baseline (typed error 최소 선언) / E. .Error( log level non-test refs 18 — baseline (Error level 적정 사용) / F. defer .*Close() non-test refs 115 — 풍부 baseline (resource cleanup 적극).
 이유: 6 sub-surface 모두 baseline (A panic 1 Go convention, B slog 166/log 194 광범위 채택, C errors.Is 42 우선, D sentinel 5 최소 선언, E Error log 18 적정, F defer Close 115 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
