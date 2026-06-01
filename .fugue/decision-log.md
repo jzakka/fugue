@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 334 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (333 에러/332 보안/331 정합/330 OpenSpec/329 봇/328 동시성) — cycle 328 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (goroutine-spawn/sync-Mutex-RWMutex/errgroup/time-After-NewTimer/ctx-WithTimeout-Deadline/make-close-chan) 측정: A. `go ` non-test goroutine spawn 17 (anonymous 15 포함) — baseline (적정 채택, 명시적 launching) / B. sync.Mutex/RWMutex declarations non-test 7 — sparse 의식적 baseline (atomic/channel/DB transaction 위주, mutex 최소) / C. errgroup refs 0 — sparse 의식적 baseline (raw goroutine + channel 위주, errgroup 미채택 — cycle 328 WaitGroup 0 정합) / D. time.After/time.NewTimer non-test 10 — baseline (적정 사용, ticker.Stop 0 정합) / E. context.WithTimeout/WithDeadline non-test 28 — 풍부 baseline (timeout 적극 채택) / F. make(chan ) 12 / close() 4 non-test — sparse 의식적 baseline (channel 12 생성 / close 4 명시 — 일부 channel은 GC 의존, close는 producer-done 시그널만).
+이유: 6 sub-surface 모두 baseline (A goroutine 17 적정, B Mutex 7 sparse, C errgroup 0 미채택, D time.After 10 적정, E ctx.WithTimeout 28 풍부, F make/close 12/4 sparse — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 331 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (330 OpenSpec/329 봇/328 동시성/327 에러/326 보안/325 정합) — cycle 325 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (migration-number-gap/FK-explicit-ON-DELETE/GENERATED-IDENTITY/DEFAULT-now-uuid/composite-PK/UNIQUE-TEXT-VARCHAR) 측정: A. migration 26 unique numbers (000001-000019, 000022-000028, gap 020/021) — baseline (의식적 squash 결과, golang-migrate 결번 허용) / B. REFERENCES 16 vs ON DELETE 명시 15 = 1 누락 (pin_tags.tag_id) — baseline (cycle 295 ALTER로 cascade 보완, 현재 schema 정합 / 원래 CREATE TABLE artifact 보존) / C. GENERATED/IDENTITY column 0 — sparse 의식적 baseline (UUID PK + DEFAULT 함수 위주, distributed-friendly identity 미채택) / D. DEFAULT now()/gen_random_uuid 31 — 풍부 baseline (timestamp/UUID 자동 채움 적극) / E. composite PRIMARY KEY 3 (boards/tags/frontier_tables 매핑 테이블만) — sparse 의식적 baseline (single UUID PK + mapping 테이블만 composite) / F. UNIQUE 11 / TEXT 21 vs VARCHAR 24 = mixed 의식적 (VARCHAR(n) 길이 제한 우선) — baseline.
 이유: 6 sub-surface 모두 baseline (A gap 020/021 squash 결과, B 1 FK 누락 cycle 295 보완, C GENERATED 0 UUID 정책, D DEFAULT 31 풍부, E composite PK 3 mapping only, F TEXT/VARCHAR mixed 길이 제한 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
