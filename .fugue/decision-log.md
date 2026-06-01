@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 341 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (340 동시성/339 에러/338 보안/337 정합/336 OpenSpec/335 봇) — cycle 335 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (URLScheduler/Pioneer/Harvester/OpenGraph/RSS-Atom/depth-breadth-frontier) 측정: A. URLScheduler/UrlScheduler refs in bot non-test 26 — baseline (scheduler consumer 적정 채택) / B. Pioneer/pioneer refs in bot non-test 173 — 풍부 baseline (Pioneer URL discovery 핵심 구현 풍부) / C. Harvester/harvester refs in bot non-test 343 — 매우 풍부 baseline (Harvester content extraction 핵심 구현 매우 풍부) / D. OpenGraph/og: refs 63 — 풍부 baseline (OG meta extract 적극) / E. RSS/Atom feed refs in bot 1 — sparse 의식적 baseline (RSS 미채택, web crawler 위주 — html harvester 우선) / F. depth/breadth/frontier refs in bot 52 — 풍부 baseline (frontier 모델 채택, BFS/DFS dimension).
+이유: 6 sub-surface 모두 baseline 또는 풍부 (A URLScheduler 26 적정, B Pioneer 173 풍부, C Harvester 343 매우 풍부, D OG 63 풍부, E RSS 1 sparse web 위주, F frontier 52 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 339 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (338 보안/337 정합/336 OpenSpec/335 봇/334 동시성/333 에러) — cycle 333 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (pkg-errors-deprecated/error-msg-capitalization/err-Error-compare/errors-New-vs-Errorf-ratio/error-response-helper/errors-New-trailing-period) 측정: A. github.com/pkg/errors refs 0 — positive (외부 deprecated lib 미사용, 표준 errors 패키지 채택) / B. errors.New 메시지 첫 글자 capital 0 / lower 58 = 100% lower — positive (Go style 일관 준수) / C. err.Error() ==/!= 직접 비교 non-test 0 — positive (anti-pattern 0, errors.Is/As 사용) / D. errors.New 60 vs fmt.Errorf 213 = 22% errors.New / 78% Errorf — baseline (Errorf 우선 wrap 가능성, 정적 메시지만 errors.New) / E. http.Error/writeError/writeJSONError/respondError helper non-test 170 — 풍부 baseline (response helper 적극, 단일 envelope — cycle 327 ErrorResponse 1 정합) / F. errors.New trailing period 0 / total 58 = 100% no-period — positive (Go style 일관 준수).
 이유: 6 sub-surface 모두 baseline 또는 positive (A pkg/errors 0 std 채택, B lower 100% Go style, C err.Error compare 0, D Errorf 78% wrap 우선, E response helper 170 풍부, F no-period 100% Go style — anti-pattern L9 Go std 정합) → 후보 0건.
