@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 276 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 270 이후 6 cycle 미방문 = 봇 round 25 적격. 6 sub-surface 새 시각 측정 (extractor 표면): A. html parse(goquery/html.Parse) 15 — DOM 추출 표준 baseline / B. og:meta extraction (og:title/image/description/url + twitter:) 12 — OpenGraph 표준 baseline / C. content-type sniff(DetectContentType/TypeByExtension) 7 — mime 감지 의식적 / D. URL canonical/normalize 50 — 풍부 baseline (dedup 표면 정합성) / E. seen/visited/dedup 81 — 풍부 baseline (재방문 회피) / F. iframe/embed/youtube/vimeo 2 — sparse 의식적 (provider 별 처리).
+이유: 6 sub-surface 모두 봇 도메인 표준 정합 (A html parse 표준, B og:meta 표준, C mime sniff 의식적, D URL canonical 풍부, E dedup 풍부, F embed sparse provider별 — anti-pattern L9 bot 도메인 표준 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area 25 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 273 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 267 이후 6 cycle 미방문 = 에러 처리 round 31 적격. 6 sub-surface 새 시각 측정: A. fmt.Errorf %w wrap 173 — error wrap 풍부 baseline (Go std error chain 정합) / B. errors.Is/As 20 — sentinel/typed error 검사 baseline / C. sql.ErrNoRows handle 21 — 404 변환 의식적 (direct equality) / D. writeError envelope 158 — JSON 응답 일관 baseline / E. http.Error std 11 — 단순 case 의식적 (writeError 158:11 ≈ 14:1 우세, 일관성 정합) / F. log error level 91 — 풍부 baseline.
 이유: 6 sub-surface 모두 positive signal 또는 의식적 baseline (A %w 풍부, B errors.Is/As baseline, C sql.ErrNoRows 변환 의식적, D writeError 158 일관 — positive, E http.Error sparse — writeError 우세, F log error 91 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
