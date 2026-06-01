@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 304 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (303 에러/302 보안/301 정합/300 OpenSpec/299 봇/298 동시성) — cycle 298 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (select/once/wg/atomic/ticker/close) 측정: A. `select {` 14 — baseline (채널 multiplex 적절) / B. `sync.Once` 0 — sparse 의식적 (one-time init 미사용, 명시 init 우선) / C. `sync.WaitGroup`/wg.Add/Done/Wait 30 — 풍부 baseline (goroutine sync 적극) / D. `atomic.*` 14 — baseline (lock-free counter 명시) / E. `time.NewTicker`/`time.NewTimer` 0 — sparse (틱 패턴 미사용, context-driven loop 우선) / F. `close(` 4 — sparse 신중 (sender-만-close 패턴, 채널 close 보수).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A select 14 적절, B Once 0 사용자 결정 영역, C WaitGroup 30 풍부, D atomic 14 lock-free, E Ticker 0 context-driven 대체, F close 4 신중 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 300 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (299 봇/298 동시성/297 에러/296 보안/295 정합/294 OpenSpec) — cycle 294 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (doc structure/task completion) 측정: A. spec.md with sections 11/11 — positive signal (모든 capability에 ## 섹션 일관) / B. spec headers 198 — 풍부 baseline (avg 18 헤더/spec 구조 풍부) / C. spec checkbox refs 0 — positive (spec은 트래커 아님, 의식적 분리) / D. tasks checkboxes total 1930 — 풍부 baseline (작업 항목 명시 적극) / E. completed task checkboxes 1689/1930 = 87.5% — positive 진행률 (높은 완료율) / F. Req/Design/Tasks document 18 — baseline (활성+아카이브 분포).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A 11/11 spec sections positive, B 198 headers 풍부, C spec checkbox 0 positive 분리, D 1930 tasks 풍부, E 87.5% 완료 positive 처리율, F 18 docs baseline — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
