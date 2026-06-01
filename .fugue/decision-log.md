@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 242 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area cycle 236 이후 6 cycle 미방문 = 보안 round 18 — 6 sub-surface 새 시각: raw fmt.Sprintf SQL 0 (sqlc bind parameter discipline — positive signal) + os/exec 7 (ffmpeg/ffprobe/dot all `exec.Command(name, args...)` no-shell form + args=tmp file path — command injection 차단) + filepath.Clean 0 (file upload pin video site에서 사용자 제공 filename 미직접 저장 + S3 key 서버 생성 추정 — confidence<3) + MaxBytesReader 10 (request body size discipline 풍부) + JWT alg none guard 1 (SigningMethodHMAC enforce — alg confusion attack 방어 positive signal) + audit log 0 (MVP 단계 의식적 minimal — confidence<3).
+이유: 6 sub-surface 모두 anti-pattern L9 (sqlc bind + Go exec args-array shell-free + JWT HMAC enforce) / positive signal stable / 의식적 minimal baseline / confidence<3 → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area cycle 99/108/127/151/158/170/176/182/188/194/200/206/212/218/224/230/236/242 18 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 238 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 232 이후 6 cycle 미방문 = 에러 처리 round 22 — 6 sub-surface 새 시각: pkg/errors stack-trace lib 1 (std errors 채택 — pkg/errors 미채택 의식적) + panic() prod 0 (panic-free baseline — positive signal) + context.Canceled/DeadlineExceeded 1 minimal (ctx cancel 시 wrap-and-propagate 위주 — 명시적 분기 minimal) + http.Error 11 (auth handler/middleware/ratelimit 전부 — OAuth callback/redirect plain-text 의식적 분리, writeError JSON envelope 158 sister 별도) + fmt.Println 1 (debug print 거의 없음 — positive signal) + `_ =` ignored return 70 (의도적 무시 패턴 — errcheck whitelist 추정).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + auth OAuth plain-text 의식적 분리 + std log/errors only) / positive signal stable (panic 0 + fmt.Println 1) / 의식적 minimal baseline → 폐기. 후보 0건.
