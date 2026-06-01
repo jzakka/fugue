@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 279 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 273 이후 6 cycle 미방문 = 에러 처리 round 32 적격. 6 sub-surface 새 시각 (HTTP status/cleanup) 측정: A. 4xx status (BadRequest/Unauthorized/Forbidden/NotFound/Conflict/UnprocessableEntity) 105 — client error 풍부 baseline / B. 5xx status (InternalServerError/ServiceUnavailable/GatewayTimeout) 55 — server error 풍부 baseline (105:55 = 2:1 client validation 우세 healthy) / C. ValidationError type 0 — typed error 미채택 의식적 (writeError + 4xx 직접 호출) / D. err != nil 349 — Go std error check 풍부 baseline / E. defer .Close() 69 — resource cleanup 풍부 baseline (file/body/tx) / F. context.Canceled/DeadlineExceeded 1 — sparse 의식적 (대부분 handler 종료 = context cancel 무관).
+이유: 6 sub-surface 모두 의식적 baseline 또는 정합 (A 4xx 풍부, B 5xx 풍부 2:1 healthy, C typed 미채택 — writeError 직접, D err check 349 Go std, E defer Close 69 cleanup 풍부, F ctx.Canceled sparse — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area 32 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 275 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 269 이후 6 cycle 미방문 = OpenSpec 갭 round 30 적격. 6 sub-surface 새 시각 측정: A. tasks.md in-progress 3 — proposal/design/tasks 1:1:1 매핑 정합 (cycle 269 in-progress 3 정합) / B. archive 최근 batch — 2026-05-19 fix prefix 5건 (bug fix 활발 baseline) / C. capability specs 11 (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler) — 도메인 분리 명확 baseline / D. delta spec.md inside changes 0 — specs/ 통합 유지, change 디렉토리 안 delta spec 미채택 의식적 / E. WHEN/THEN/IF EARS conditional 2 — sparse (SHALL/MUST 252 위주, conditional EARS 형식 sparse 의식적) / F. archive tasks.md 117 — archive 118 중 117 = 1:1 매핑 (단 1개 누락 — 의식적 minimal).
 이유: 6 sub-surface 모두 OpenSpec convention 정합 (A tasks 1:1:1, B fix prefix archive 활발, C specs 11 도메인 명확, D delta 미채택 의식적, E SHALL 위주 conditional sparse, F archive tasks 117/118 정합 — anti-pattern L10 정합) → 후보 0건.
