@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 251 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 245 이후 6 cycle 미방문 = 동시성 round 21 — 6 sub-surface 새 시각: chi middleware.Timeout 0 prod (per-request timeout middleware 미채택 — cycle 203 sister covered) + chi middleware.Throttle 0 prod (concurrent throttle 미채택 — auth ratelimit 도메인 위임) + DB SetMaxOpenConns/SetMaxIdleConns/SetConnMaxLifetime/SetConnMaxIdleTime 6 site (cycle 203 sister 2-tier sizing 정합 server 25/5/5min + bot 5/2/5min) + Redis PoolSize/MinIdleConns 1 minimal (go-redis default 위임) + context.WithCancel prod 0 (signal.NotifyContext root ctx propagate — cycle 203 sister 정합) + `go func` in internal/ 17 (prod+test combined — cycle 203 sister prod 3 정합 추정 + test 14).
+이유: 6 sub-surface 모두 anti-pattern L9 Go std + chi middleware 표준 / cycle 203 covered / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area cycle 101/110/116/124/137/150/157/167/175/181/187/193/199/209/215/221/227/233/239/245/251 21 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 247 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 241 이후 6 cycle 미방문 = 정합성 round 24 — 6 sub-surface 새 시각: sqlc generated func 109 = `-- name:` 109 = :one/:many/:exec 109 (1:1:1 ratio — strong positive signal SSOT) + sqlc.arg/narg 32 (named parameter readability discipline) + RETURNING clause 13 (Postgres write+read single-round-trip 활용 positive signal) + COUNT(*) 6 (aggregate minimal — count surface 한정) + named query directive 109 (sqlc directive 표준 일관) + query type classification 109 (every query 분류 명시 discipline).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres RETURNING) / positive signal stable (109:109:109 1:1:1) / 의식적 baseline → 폐기. 후보 0건.
