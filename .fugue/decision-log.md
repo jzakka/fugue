@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 295 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (294 OpenSpec/293 봇/292 동시성/291 에러/290 보안/289 정합) — cycle 289 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (type/relation 정합) 측정: A. ERD UUID refs 19 — 풍부 baseline (PK 일관 UUID 패턴) / B. Go uuid.UUID 사용 49 파일 — 풍부 baseline (코드 일관) / C. TIMESTAMP/TIMESTAMPTZ in migrations 23 — baseline (시간 컬럼 일관) / D. FK REFERENCES 16 / CREATE TABLE 17 = 94% relation 명시 — positive signal (관계 적극 정의) / E. CREATE TABLE 17 — baseline (테이블 수 적정) / F. sqlc query files 9 — sparse 의식적 (도메인별 1:1 매핑, cycle 278 baseline 확인).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A ERD UUID 19 풍부, B Go uuid 49 일관, C TIMESTAMP 23 일관, D FK 16/17 = 94% positive 적극, E table 17 적정, F sqlc 9 1:1 sparse — anti-pattern L9 Go std/DB 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 291 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (290 보안/289 정합/288 OpenSpec/287 봇/286 동시성/285 에러) — cycle 285 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (panic/wrap/discard) 측정: A. panic() 1 — sparse 의식적 (panic 회피 일관) / B. recover() 6 — baseline (HTTP middleware 보호망) / C. errors.Is/As/Unwrap/Join 58 — 풍부 baseline (sentinel 비교 일관) / D. fmt.Errorf %w wrap 154 — 풍부 baseline (에러 체인 명시 적극) / E. errors.New 60 — baseline (inline 적정) / F. `_ =` discard 145 — 의식적 명시 (Go std 패턴 정합, close 등).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A panic 1 sparse 회피, B recover middleware 보호, C errors.Is 58 풍부, D %w wrap 154 풍부 체인, E errors.New 60 적정, F `_ =` 의식적 명시 — anti-pattern L9 Go std 정합) → 후보 0건.
