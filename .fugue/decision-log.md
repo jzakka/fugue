@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 312 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (311 봇/310 동시성/309 에러/308 보안/307 정합/306 OpenSpec) — cycle 306 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (BDD/phase/archive-size/why-section/design-adoption/SHALL-density) 측정: A. spec.md WHEN/THEN scenario 1346 — 풍부 baseline (BDD scenario 적극) / B. tasks.md `## ` phase headers 12 / 3 tasks.md = avg 4 phase/change — baseline (phase 분할 적극) / C. archive 118 changes, total proposal 4607 lines = avg 39 lines/proposal — baseline (완료시점 풍부도 자연스러움) / D. active proposal `## Why` 3/3 = 100% — positive signal (모든 active proposal에 Why 명시) / E. active design.md 3/3 = 100%, README.md per active change 0 sparse 의식적 (proposal/tasks/design 3종 정렬, README 미요구) / F. specs 11 / SHALL contained lines 252 = avg 23 SHALL-line/spec — 풍부 baseline (capability별 행위 명세 풍부).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A WHEN/THEN 1346 BDD 풍부, B avg 4 phase baseline, C 39 lines/proposal baseline, D Why 100% positive, E design 100% + README 0 sparse 의식적, F SHALL 23/spec 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 310 Discovery — 동시성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (309 에러/308 보안/307 정합/306 OpenSpec/305 봇/304 동시성) — cycle 304 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (mutex/chan-make/ctx-source/go-func/sync.Map/x/sync) 측정: A. `sync.Mutex`/`sync.RWMutex` 18 — baseline (lock 적정) / B. `make(chan ` 13 — baseline (채널 생성 적극) / C. `context.Background()` 232 vs `r.Context()` 140 — baseline (background는 cmd init+bot worker, r.Context는 HTTP handler 의식적 분리) / D. `go func()` 16 — baseline (goroutine 적정) / E. `sync.Map` 0 — sparse 의식적 (Mutex+map 우선, sync.Map 미채택 — 사용자 결정 영역) / F. semaphore/`x/sync` 0 — sparse 의식적 (rate limit 22로 충분, semaphore 미도입 — 사용자 결정 영역).
 이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A Mutex 18 적정, B chan 13 baseline, C ctx 232 vs 140 분리 baseline, D go func 16 적정, E sync.Map 0 사용자 결정, F semaphore 0 사용자 결정 — anti-pattern L9 Go std 정합) → 후보 0건.
