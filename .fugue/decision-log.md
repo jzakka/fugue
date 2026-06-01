@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 271 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area cycle 265 이후 6 cycle 미방문 = 보안 round 19 적격. 6 sub-surface 새 시각 측정: A. middleware 9 — auth/recovery/logging 의식적 baseline (chi router middleware stack) / B. creator_id/CreatorID 307 — Fugue 도메인 creator-centric naming 풍부 baseline (user 명명 0 — domain language 일관) / C. r.Context().Value 직접 호출 2 — sparse (helper 함수 wrap 의식적, 직접 접근 회피) / D. raw SQL string literal 0 — sqlc 100% (INSERT/SELECT/UPDATE/DELETE string literal 0 — positive signal, SQL injection 표면 부재) / E. url.Parse/ParseRequestURI 27 — URL 검증 풍부 baseline (SSRF/redirect 표면 검사) / F. mime type whitelist 43 — image/video 화이트리스트 풍부 baseline.
+이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A middleware stack 의식적, B creator-centric naming 일관, C ctx.Value helper wrap, D sqlc 100% SQL injection 부재 — positive, E url 검증 풍부, F mime whitelist 풍부) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area 19 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 269 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 263 이후 6 cycle 미방문 = OpenSpec 갭 round 29 적격. 6 sub-surface 새 시각 측정: A. archive changes 118 — 활발한 변경 history 풍부 baseline / B. in-progress changes 3 — 동시 작업 sparse 의식적 / C. specs total 11 — 도메인 분리 baseline (auth/board/bot 등) / D. EARS SHALL/MUST 252 — 명세 정밀도 풍부 baseline / E. proposal.md 3 — in-progress 1:1 매핑 정합 / F. design.md 3 — in-progress 1:1 매핑 정합 (OpenSpec authoring convention L10).
 이유: 6 sub-surface 모두 OpenSpec authoring convention 정합 (A archive 풍부, B in-progress sparse, C specs 도메인 분리, D EARS 풍부, E-F proposal/design 1:1 매핑 — anti-pattern L10 정합) → 후보 0건.
