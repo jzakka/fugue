@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 305 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (304 동시성/303 에러/302 보안/301 정합/300 OpenSpec/299 봇) — cycle 299 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (sources/scheduler/snapshot/retry/goja/robots) 측정: A. `internal/bot/sources/` 디렉터리 부재 — sparse 의식적 (Harvester 도메인별 script 미구현 baseline, README L Harvester 가이드는 도메인 추가 시점에 생성) / B. Enqueue/Dequeue refs 121 — 풍부 baseline (URLScheduler producer/consumer 활성) / C. `snapshot.` refs 46 — baseline (HTML snapshot 적극) / D. retry/backoff refs 63 — 풍부 baseline (retry 적극) / E. `goja.` refs 35 — baseline (JS runtime 활성, harvester script eval) / F. `robots.` refs 22 — baseline (robots.txt 필터 활성).
+이유: 6 sub-surface 모두 baseline 또는 positive sparse (A sources 부재 = 도메인 script propose 영역 안티-패턴 L15 정합, B 121 풍부 scheduler, C 46 snapshot baseline, D 63 retry 풍부, E 35 goja baseline, F 22 robots baseline) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 303 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (302 보안/301 정합/300 OpenSpec/299 봇/298 동시성/297 에러) — cycle 297 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (logging/cancel/legacy/cleanup/aggregate/type-assert) 측정: A. log.Print/Fatal/Println refs 183 — 풍부 baseline (logging 적극) / B. context.DeadlineExceeded/Canceled 27 — baseline (deadline/cancel 명시 분기) / C. pkg/errors / errors.Wrap( 0 — positive (legacy lib 미사용, std errors 일관 채택) / D. defer recover / defer func() 40 — baseline (cleanup 적극) / E. errgroup/multierror/errors.Join 1 — sparse 의식적 (단일 사용, errgroup 미채택, 명시 goroutine+channel 우선) / F. errors.As( 12 — baseline (타입 분기 적절).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 선택 (A log 183 풍부, B context.* 27 baseline, C pkg/errors 0 positive std 일관, D defer 40 baseline cleanup, E errgroup 1 sparse 사용자 결정 영역, F errors.As 12 baseline — anti-pattern L9 Go std 정합) → 후보 0건.
