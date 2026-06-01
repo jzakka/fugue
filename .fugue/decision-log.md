@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 270 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 264 이후 6 cycle 미방문 = 봇 round 24 적격. 6 sub-surface 새 시각 측정: A. bot Go prod 43 (top-level 31 + crawler 8 + snapshot 4) — 도메인 풍부 baseline (sources/<domain>/ 하위 구조 미채택, classifier/extractor/fetcher 단일 책임 분리 의식적) / B. retry/backoff 32 — 풍부 baseline (HTTP 429/5xx 회복) / C. http.Client 8 — timeout 명시 baseline (default 0 무한 회피) / D. User-Agent 10 — 명시 baseline (서버 식별 + robots 매칭) / E. robots.txt 22 — 준수 풍부 baseline / F. rate limiter 3 — sparse 의식적 (per-domain 필요 지점만).
+이유: 6 sub-surface 모두 봇 도메인 표준 정합 (A 책임 분리 의식적, B retry 풍부, C timeout 명시, D UA 명시, E robots 준수, F rate limiter sparse — anti-pattern L9 bot 도메인 표준 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area 24 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 266 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 260 이후 6 cycle 미방문 = 정합성 round 30 적격. 6 sub-surface 새 시각 측정: A. sql.NullX wrapper 148 — Go std nullable wrapper 의식적 baseline (sqlc generated null handling) / B. CHECK constraint 3 — DB level enum 제약 sparse 의식적 (status enum 류만 DB enforce) / C. json tag fields 241 — struct field json convention 풍부 baseline / D. updated_at trigger 7 — 의식적 시간 추적 baseline (변경 추적 필요 테이블만) / E. UUID PK 5 — 의식적 baseline (5 PK 테이블, gen_random_uuid() 패턴) / F. soft delete deleted_at 0 — hard delete 의식적 (anti-pattern L9 Go std 정합).
 이유: 6 sub-surface 모두 의식적 minimal 또는 정합 (A sqlc null wrapper 표준, B CHECK sparse 의식적, C json tag 풍부, D updated_at trigger 선별, E UUID PK 5 의식적, F hard delete 의식적 — L9 정합) → 후보 0건.
