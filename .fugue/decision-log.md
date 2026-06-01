@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 307 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (306 OpenSpec/305 봇/304 동시성/303 에러/302 보안/301 정합) — cycle 301 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (DDL primitives: table/PK/NOT NULL/CASCADE/CHECK/UNIQUE) 측정: A. CREATE TABLE 17 — baseline (17 tables) / B. PRIMARY KEY 17 — positive signal (1:1 with CREATE TABLE, 모든 테이블 PK 명시) / C. NOT NULL 82 — 풍부 baseline (avg 4.8/table, nullable 통제 적극) / D. ON DELETE/UPDATE 16 — baseline (FK 16개 명시적 cascade rule) / E. CHECK ( 3 — sparse 의식적 (DB CHECK 보수, 애플리케이션 검증 우선 — 사용자 결정 영역) / F. UNIQUE 11 — baseline (unique key 적극).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A 17 tables baseline, B 17/17 PK 100% positive, C 82 NOT NULL 풍부, D 16 cascade 명시, E CHECK 3 사용자 결정 영역, F 11 UNIQUE baseline — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 303 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (302 보안/301 정합/300 OpenSpec/299 봇/298 동시성/297 에러) — cycle 297 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (logging/cancel/legacy/cleanup/aggregate/type-assert) 측정: A. log.Print/Fatal/Println refs 183 — 풍부 baseline (logging 적극) / B. context.DeadlineExceeded/Canceled 27 — baseline (deadline/cancel 명시 분기) / C. pkg/errors / errors.Wrap( 0 — positive (legacy lib 미사용, std errors 일관 채택) / D. defer recover / defer func() 40 — baseline (cleanup 적극) / E. errgroup/multierror/errors.Join 1 — sparse 의식적 (단일 사용, errgroup 미채택, 명시 goroutine+channel 우선) / F. errors.As( 12 — baseline (타입 분기 적절).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 선택 (A log 183 풍부, B context.* 27 baseline, C pkg/errors 0 positive std 일관, D defer 40 baseline cleanup, E errgroup 1 sparse 사용자 결정 영역, F errors.As 12 baseline — anti-pattern L9 Go std 정합) → 후보 0건.
