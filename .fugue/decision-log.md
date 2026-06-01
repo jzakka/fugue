@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 303 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (302 보안/301 정합/300 OpenSpec/299 봇/298 동시성/297 에러) — cycle 297 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (logging/cancel/legacy/cleanup/aggregate/type-assert) 측정: A. log.Print/Fatal/Println refs 183 — 풍부 baseline (logging 적극) / B. context.DeadlineExceeded/Canceled 27 — baseline (deadline/cancel 명시 분기) / C. pkg/errors / errors.Wrap( 0 — positive (legacy lib 미사용, std errors 일관 채택) / D. defer recover / defer func() 40 — baseline (cleanup 적극) / E. errgroup/multierror/errors.Join 1 — sparse 의식적 (단일 사용, errgroup 미채택, 명시 goroutine+channel 우선) / F. errors.As( 12 — baseline (타입 분기 적절).
+이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 선택 (A log 183 풍부, B context.* 27 baseline, C pkg/errors 0 positive std 일관, D defer 40 baseline cleanup, E errgroup 1 sparse 사용자 결정 영역, F errors.As 12 baseline — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 300 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (299 봇/298 동시성/297 에러/296 보안/295 정합/294 OpenSpec) — cycle 294 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (doc structure/task completion) 측정: A. spec.md with sections 11/11 — positive signal (모든 capability에 ## 섹션 일관) / B. spec headers 198 — 풍부 baseline (avg 18 헤더/spec 구조 풍부) / C. spec checkbox refs 0 — positive (spec은 트래커 아님, 의식적 분리) / D. tasks checkboxes total 1930 — 풍부 baseline (작업 항목 명시 적극) / E. completed task checkboxes 1689/1930 = 87.5% — positive 진행률 (높은 완료율) / F. Req/Design/Tasks document 18 — baseline (활성+아카이브 분포).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A 11/11 spec sections positive, B 198 headers 풍부, C spec checkbox 0 positive 분리, D 1930 tasks 풍부, E 87.5% 완료 positive 처리율, F 18 docs baseline — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
