@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 257 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 251 이후 6 cycle 미방문 = 동시성 round 22 — 6 sub-surface 새 시각: sync.Mutex/RWMutex site 14 file (concurrent state guard discipline 분포) + sync.WaitGroup site 7 file (goroutine completion sync discipline) + chan/make(chan) site 8 file (channel-based 통신 sparse 의식적) + sync.Once site 0 (init once 미사용 — package-level init 위주) + atomic site 3 file (lock-free counter sparse minimal) + errgroup site 0 (errgroup 미채택 — std sync only baseline).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std sync idiom + errgroup 미채택 의식적 std only + sync.Once 미사용 package-level init) / cycle 203/215/251 covered / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area cycle 101/110/116/124/137/150/157/167/175/181/187/193/199/209/215/221/227/233/239/245/251/257 22 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 254 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 247 이후 6 cycle 미방문 = 정합성 round 25 — 6 sub-surface 새 시각: ERD docs/erd.md UUID 컬럼 mention 13 (UUID PK/FK SSOT 일관 baseline) + Go uuid.UUID/pgtype.UUID type site 50 file (UUID type 분포 풍부 positive signal) + timestamp/timestamptz column 23 (UTC tz 표준 일관 — Postgres timestamptz default) + UNIQUE constraint 12 (uniqueness invariant 분포 의식적) + FK REFERENCES/FOREIGN KEY 16 (FK 정의 분포 — cycle 28 align_pin_tags_tag_id_cascade migration 정합) + CREATE INDEX 25 (인덱스 분포 풍부 — query 성능 의식적).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc + Postgres + UUID + timestamptz + FK + INDEX 도메인 표준) / positive signal stable (UUID 50 + INDEX 25 + FK 16) / 의식적 baseline → 폐기. 후보 0건.
