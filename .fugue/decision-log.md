@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 244 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 238 이후 6 cycle 미방문 = 에러 처리 round 23 — 6 sub-surface 새 시각: sql.ErrNoRows 처리 21 (DB miss 변환 discipline — cycle 220 sister 24 정합) + ctx.Err/ctx.Done 28 (ctx propagation discipline — positive signal) + json.Decode/Unmarshal 15 (request body decode handler/service 일관 discipline) + sentinel Err 5 (cycle 220/226 sister 5 일관 sparse minimal) + recover() prod 0 (middleware.Recoverer 단일 위임 + cycle 232 prod+test 차이) + errors.As type assertion 12 (custom error type 풍부 — typed error discipline).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + sql.ErrNoRows 표준 + ctx propagation 표준 + sentinel sparse + errors.As typed) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area cycle 100/107/115/122/127/132/146/152/162/168/174/180/184/192/198/204/210/214/220/226/232/238/244 23 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 241 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 235 이후 6 cycle 미방문 = 정합성 round 23 — 6 sub-surface 새 시각: sqlc .sql 9 / generated .sql.go 9 (1:1 mapping discipline — positive signal) + migration up/down pair 26:26 (1:1 — every up has rollback discipline positive signal) + sqlc.yaml schema=db/migrations (single source of truth) + pgtype/sql.Null 148 (nullable type discipline 풍부) + json struct tag 241 (API DTO json tag discipline) + migration files 26 step (현재 schema 진화).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres migration 1:1 표준) / positive signal stable / 의식적 baseline → 폐기. 후보 0건.
