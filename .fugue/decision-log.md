@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 286 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (285 에러/283 보안/278 정합/275 OpenSpec/273 에러/271 보안) = 동시성 round 적격. 6 sub-surface 새 시각 (sync/goroutine/context) 측정: A. sync.WaitGroup 7 — sparse 의식적 (작업 단위 명시적 wait) / B. sync.Mutex/RWMutex 17 — baseline (in-memory state lock 명시) / C. go func() 15 — sparse (anonymous goroutine 통제, 무분별 fan-out 회피) / D. context.WithTimeout/Cancel/Deadline 39 — 풍부 baseline (context 전파 명시적, deadline 일관) / E. make(chan ...) 12 — sparse (channel 절제, primary는 context+mutex) / F. atomic.* 14 — baseline (counter/flag 패턴 race-free).
+이유: 6 sub-surface 모두 std sync/context primitive + 의식적 절제 정합 (A WaitGroup sparse 명시적, B Mutex baseline lock, C goroutine 통제, D context 풍부 전파, E channel 절제, F atomic baseline — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 283 Discovery — 보안 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 보안 area cycle 277 이후 6 cycle 미방문 = 보안 round 21 적격. 6 sub-surface 새 시각 (authz/identity) 측정: A. ownership check (creator_id !=/==) 12 — 풍부 baseline (자원 소유 검증) / B. 403 Forbidden 1 — sparse 의식적 (ownership check 사전 차단 + 401 우세) / C. 401 Unauthorized 16 — middleware 통합 baseline / D. RequireAuth 별도 명명 0 — middleware 단일 위치 (다른 명명) / E. OAuth provider (google/github/kakao/naver) 15 — 풍부 baseline / F. bcrypt/password 0 — OAuth-only positive signal (사용자 결정 정합, cycle 224 baseline).
 이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A ownership 풍부, B 403 sparse 사전 차단 우세, C 401 middleware 통합, D RequireAuth 미명명 단일, E OAuth 풍부, F bcrypt 0 OAuth-only — positive signal 사용자 결정 정합) → 후보 0건.
