@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 268 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 262 이후 6 cycle 미방문 = 동시성 round 29 적격. 6 sub-surface 새 시각 측정: A. sync.Map prod 0 — 의식적 minimal (Mutex+map 또는 미채택) / B. atomic.* prod 14 — counter/flag 의식적 baseline / C. errgroup 0 — 의식적 minimal (std goroutine+WaitGroup+channel 표준) / D. context.WithTimeout/Deadline 4 — sparse 의식적 (timeout 필요 지점만) / E. select { 6 — context cancel pattern 의식적 / F. sync.Once 0 — lazy init 미채택 의식적 (init() 또는 main 명시 초기화).
+이유: 6 sub-surface 모두 의식적 minimal 또는 Go std 정합 (A sync.Map 미채택, B atomic counter baseline, C errgroup 미채택 — std primitive, D WithTimeout sparse, E select context cancel, F sync.Once 미채택 — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area 29 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 264 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 258 이후 6 cycle 미방문 = 봇 round 23 — 6 sub-surface 새 시각: URLScheduler prod 19 (Pioneer/Harvester scheduler 의존 분포) + Pioneer prod 84 (Pioneer 측 도메인 vocabulary) + Harvester prod 151 (Harvester heavy = post-fetch processing 책임 풍부 — 84:151 = 1:1.8 ratio) + bot domain .sql 0 (internal/bot 안 .sql 0 — db/queries/bot.sql 단일 외부 위치 의식적) + log statements bot prod 42 (bot 도메인 logging discipline 풍부) + metrics/Counter/Histogram/Gauge bot prod 8 (snapshot/ metrics.go 위주 sparse 의식적).
 이유: 6 sub-surface 모두 anti-pattern L9 봇 도메인 표준 (URLScheduler 계약 표준 + Pioneer/Harvester 2-tier 분리 + sqlc 단일 위치 + std log + metrics sparse) / cycle 216/222/258 covered / positive signal stable → 폐기. 후보 0건.
