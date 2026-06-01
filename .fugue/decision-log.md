@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 275 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 269 이후 6 cycle 미방문 = OpenSpec 갭 round 30 적격. 6 sub-surface 새 시각 측정: A. tasks.md in-progress 3 — proposal/design/tasks 1:1:1 매핑 정합 (cycle 269 in-progress 3 정합) / B. archive 최근 batch — 2026-05-19 fix prefix 5건 (bug fix 활발 baseline) / C. capability specs 11 (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler) — 도메인 분리 명확 baseline / D. delta spec.md inside changes 0 — specs/ 통합 유지, change 디렉토리 안 delta spec 미채택 의식적 / E. WHEN/THEN/IF EARS conditional 2 — sparse (SHALL/MUST 252 위주, conditional EARS 형식 sparse 의식적) / F. archive tasks.md 117 — archive 118 중 117 = 1:1 매핑 (단 1개 누락 — 의식적 minimal).
+이유: 6 sub-surface 모두 OpenSpec convention 정합 (A tasks 1:1:1, B fix prefix archive 활발, C specs 11 도메인 명확, D delta 미채택 의식적, E SHALL 위주 conditional sparse, F archive tasks 117/118 정합 — anti-pattern L10 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area 30 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 273 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 267 이후 6 cycle 미방문 = 에러 처리 round 31 적격. 6 sub-surface 새 시각 측정: A. fmt.Errorf %w wrap 173 — error wrap 풍부 baseline (Go std error chain 정합) / B. errors.Is/As 20 — sentinel/typed error 검사 baseline / C. sql.ErrNoRows handle 21 — 404 변환 의식적 (direct equality) / D. writeError envelope 158 — JSON 응답 일관 baseline / E. http.Error std 11 — 단순 case 의식적 (writeError 158:11 ≈ 14:1 우세, 일관성 정합) / F. log error level 91 — 풍부 baseline.
 이유: 6 sub-surface 모두 positive signal 또는 의식적 baseline (A %w 풍부, B errors.Is/As baseline, C sql.ErrNoRows 변환 의식적, D writeError 158 일관 — positive, E http.Error sparse — writeError 우세, F log error 91 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
