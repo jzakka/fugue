@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 267 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 261 이후 6 cycle 미방문 = 에러 처리 round 30 적격. 6 sub-surface 새 시각 측정: A. panic() prod 0 — 의식적 minimal (no panic in prod path, Go std fail-fast 회피) / B. recover() defer 0 — panic 0 정합 (recover 불필요) / C. log.Fatal/log.Panic 9 — cmd/main startup fail-fast 의식적 (DB 연결 등 의존성 부재 시) / D. os.Exit 1 — main 진입점 의식적 / E. errors.New literal 13 — sentinel error pattern 의식적 (errors.Is/As 호환) / F. ignored error `_ = ` 44 — Go std 정합 패턴 (json.Encode response writer write error / tx.Rollback in defer / file.Close in defer — original error 우선 보존).
+이유: 6 sub-surface 모두 의식적 minimal 또는 Go std 정합 (A panic 0 minimal, B recover 0 정합, C log.Fatal startup 의식적, D os.Exit main만, E errors.New sentinel 의식적, F `_ = ` Go std rollback/close 패턴 — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area 30 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 264 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 258 이후 6 cycle 미방문 = 봇 round 23 — 6 sub-surface 새 시각: URLScheduler prod 19 (Pioneer/Harvester scheduler 의존 분포) + Pioneer prod 84 (Pioneer 측 도메인 vocabulary) + Harvester prod 151 (Harvester heavy = post-fetch processing 책임 풍부 — 84:151 = 1:1.8 ratio) + bot domain .sql 0 (internal/bot 안 .sql 0 — db/queries/bot.sql 단일 외부 위치 의식적) + log statements bot prod 42 (bot 도메인 logging discipline 풍부) + metrics/Counter/Histogram/Gauge bot prod 8 (snapshot/ metrics.go 위주 sparse 의식적).
 이유: 6 sub-surface 모두 anti-pattern L9 봇 도메인 표준 (URLScheduler 계약 표준 + Pioneer/Harvester 2-tier 분리 + sqlc 단일 위치 + std log + metrics sparse) / cycle 216/222/258 covered / positive signal stable → 폐기. 후보 0건.
