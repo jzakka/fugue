@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 290 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (289 정합/288 OpenSpec/287 봇/286 동시성/285 에러/283 보안) — cycle 283 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (injection/secrets/randomness) 측정: A. HTML escape/sanitize 0 — positive signal (Backend API JSON-only, HTML render 없음) / B. exec.Command/CommandContext 7 — sparse 의식적 (ffprobe 등 통제된 외부 실행만) / C. Sprintf SQL 0 — positive signal (sqlc prepared statement 일관, SQL injection 면역) / D. os.Getenv 22 — baseline (config 명시적 환경 변수) / E. crypto/rand 1 vs math/rand 3 — 의식적 분리 (보안 토큰은 crypto/rand, 비-보안은 math/rand) / F. jwt./Bearer 73 — 풍부 baseline (인증 토큰 일관).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A HTML 0 JSON API positive, B exec sparse 통제, C Sprintf SQL 0 sqlc positive, D Getenv 명시, E crypto/math 분리, F JWT 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 286 Discovery — 동시성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (285 에러/283 보안/278 정합/275 OpenSpec/273 에러/271 보안) = 동시성 round 적격. 6 sub-surface 새 시각 (sync/goroutine/context) 측정: A. sync.WaitGroup 7 — sparse 의식적 (작업 단위 명시적 wait) / B. sync.Mutex/RWMutex 17 — baseline (in-memory state lock 명시) / C. go func() 15 — sparse (anonymous goroutine 통제, 무분별 fan-out 회피) / D. context.WithTimeout/Cancel/Deadline 39 — 풍부 baseline (context 전파 명시적, deadline 일관) / E. make(chan ...) 12 — sparse (channel 절제, primary는 context+mutex) / F. atomic.* 14 — baseline (counter/flag 패턴 race-free).
 이유: 6 sub-surface 모두 std sync/context primitive + 의식적 절제 정합 (A WaitGroup sparse 명시적, B Mutex baseline lock, C goroutine 통제, D context 풍부 전파, E channel 절제, F atomic baseline — anti-pattern L9 Go std 정합) → 후보 0건.
