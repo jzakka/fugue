@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 292 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (291 에러/290 보안/289 정합/288 OpenSpec/287 봇/286 동시성) — cycle 286 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (channel/timer/structured concurrency) 측정: A. select { 13 — baseline (channel multiplexing 명시) / B. time.Ticker/Tick/NewTicker 0 — sparse 의식적 (periodic background 미사용, on-demand 패턴) / C. errgroup 0 — sparse (golang.org/x/sync 미채택, std WaitGroup 우선 — anti-pattern L9 std 정합) / D. <-ctx.Done() 7 — baseline (cancellation 명시적 수신) / E. sync.Once 0 — sparse (단일-init 강제 불필요, 명시적 init) / F. context.Background() 223 — 풍부 baseline (root context 명시, 테스트/main 포함).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A select 13 명시, B Ticker 0 on-demand, C errgroup 0 std 우선, D ctx.Done 7 cancellation 명시, E Once 0 명시적 init, F Background 223 root 명시 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 288 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (287 봇/286 동시성/285 에러/283 보안/278 정합/275 OpenSpec) — cycle 275 = 6th 가장 최근으로 다음 회전 적격. 6 sub-surface 새 시각 (EARS/contract/delta) 측정: A. specs/ 11 capabilities (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler) — baseline (도메인 분리 명확) / B. changes/ 4 active in-progress — sparse 의식적 (소수 활성, WIP 통제) / C. SHALL/MUST/Scenario refs 672 — 풍부 baseline (EARS 풍부) / D. WHEN-THEN scenarios 0 — 단일 EARS 형식 (SHALL inline 채택, anti-pattern L10 정합) / E. spec total 3859 lines (avg 350/capability) — baseline (적절 분량) / F. ADDED/MODIFIED/REMOVED delta sections 118 — 풍부 baseline (delta tracking 명시).
 이유: 6 sub-surface 모두 의식적 baseline 또는 sparse 의식적 (A 11 capability 분리, B 4 WIP 통제 sparse, C 672 EARS 풍부, D WHEN-THEN 0 단일 형식 채택, E 3859 lines 적절, F 118 delta 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
