@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 318 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (317 봇/316 동시성/315 에러/314 보안/313 정합/312 OpenSpec) — cycle 312 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (spec-len/capability-dirs/Stakeholders/Acceptance/What-How/diagram) 측정: A. avg spec.md length 350 lines/spec (3859 / 11) — 풍부 baseline (상세 명세) / B. capability spec dirs 11 (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler) — 풍부 baseline (도메인별 분리 적극) / C. `## Stakeholders` 0 — sparse 의식적 (Why + BDD WHEN/THEN 1346으로 대체, 별도 섹션 미요구 컨벤션) / D. `## Acceptance Criteria` 0 — sparse 의식적 (BDD scenario로 대체, 별도 섹션 미요구) / E. proposal `## What` 3/3 = 100% vs `## How` 0/3 = 0% — positive (What+Why proposal vs How→design.md 분리 일관) / F. mermaid/diagram in design.md 0 — sparse 의식적 (텍스트 design 일관, diagram 미요구).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A 350 lines/spec 풍부, B 11 capability 풍부, C Stakeholders 0 컨벤션, D Acceptance 0 BDD 대체, E What 100% positive 분리, F diagram 0 텍스트 일관 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 315 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (314 보안/313 정합/312 OpenSpec/311 봇/310 동시성/309 에러) — cycle 309 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (log variant/3rd-party-logger/sentinel/Error()/retry-helper/recoverer) 측정: A. log.Println 10 / log.Printf 160 — baseline (formatted log 우세 의식적) / B. slog 0 / zap·zerolog·logrus 0 — positive (std log 일관 채택, 3rd party logger 회피 — 사용자 결정 영역) / C. sentinel `var Err…` declarations 6 — baseline (errors.Is 비교 sentinel 적정) / D. `.Error()` string 34 — baseline (에러 메시지 전파 적극) / E. retry()/MaxRetries/RetryAfter 1 — sparse (cycle 305의 retry/backoff 63 baseline의 단일 helper 정의, 호출 site는 각자) / F. middleware.Recoverer/recover() 7 — baseline (panic 보호망 적정).
 이유: 6 sub-surface 모두 baseline 또는 positive (A log.Printf 160 우세, B 3rd-party 0 std 일관 사용자 결정, C sentinel 6 적정, D .Error 34 전파, E retry helper 1 sparse 의식적, F recoverer 7 보호망 — anti-pattern L9 Go std 정합) → 후보 0건.
