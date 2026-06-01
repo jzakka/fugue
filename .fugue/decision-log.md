@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 329 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (328 동시성/327 에러/326 보안/325 정합/324 OpenSpec/323 봇) — cycle 323 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (bot-subpackages/backoff-jitter/ffprobe-exec/extract-refs/classify-refs/URL-normalize) 측정: A. internal/bot/ subpackages 3 (cmd, crawler, snapshot) — baseline (flat 구조 + 3 specialized 분리, cycle 305 sources 미채택 sister) / B. backoff/exponential/jitter refs in bot 14 — baseline (backoff 활성, cycle 305 retry 63 sister 일부) / C. ffprobe/ffmpeg/exec.Command in bot 17 — baseline (external 도구 호출 적정, video duration 검증) / D. extract/Extract/extractor refs in bot 123 — 풍부 baseline (content extraction 적극) / E. classify/Classify/classifier refs in bot 54 — 풍부 baseline (content classification 적극) / F. URL normalize/canonical refs in bot 103 — 풍부 baseline (URL 정규화 적극).
+이유: 6 sub-surface 모두 baseline 또는 풍부 (A subpackages 3 flat+specialized, B backoff 14 활성, C ffprobe 17 적정, D extract 123 풍부, E classify 54 풍부, F normalize 103 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 327 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (326 보안/325 정합/324 OpenSpec/323 봇/322 동시성/321 에러) — cycle 321 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (err==nil-positive/ctx.Canceled-DeadlineExceeded/Errorf-wrap-ratio/discard-line-start/error-metric/ErrorResponse-struct) 측정: A. `if err == nil` non-test refs 10 — sparse 의식적 (positive branch 일부, error branch 위주 — Go convention) / B. context.Canceled 1 / context.DeadlineExceeded 0 non-test refs — sparse 의식적 (errors.Is(ctx.Err(), ...) 우선 채택, 명시 비교 1만) / C. fmt.Errorf no-%w 28 vs with %w 173 = 86% wrap dominant — positive (error chain 보존 dominant, leaf/정적 메시지만 28) / D. `_ = fn(...)` line-start non-test refs 43 — baseline (Close()/Set* 의식적 무시, Go std 패턴) / E. errorCount/failureCount/.Inc()/.Add(1) error metric non-test refs 19 — baseline (observability counter 적정 채택) / F. ErrorResponse struct/type definitions non-test refs 1 — sparse 의식적 (단일 envelope struct 일관 — cycle 273 writeError 158 sister와 단일 helper 결합).
 이유: 6 sub-surface 모두 baseline 또는 positive (A err==nil 10 sparse convention, B context.* 1/0 errors.Is 우선, C wrap 86% positive chain 보존, D `_ =` 43 std 패턴, E error metric 19 observability, F ErrorResponse 1 단일 envelope — anti-pattern L9 Go std 정합) → 후보 0건.
