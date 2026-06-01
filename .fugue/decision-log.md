@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 332 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (331 정합/330 OpenSpec/329 봇/328 동시성/327 에러/326 보안) — cycle 326 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (CSRF/SQL-injection-raw/security-HTTP-header/rate-limit/HMAC-sign/refresh-token) 측정: A. CSRF refs 1 — sparse 의식적 baseline (OAuth-only + Bearer JWT 자동 완화, cycle 326 OAuth 47 정합) / B. fmt.Sprintf SQL raw concat 0 (sqlc generated parameterized 100%) — positive (모든 쿼리 sqlc named query parameterized, cycle 325 sqlc-return 4종 baseline 보완) / C. HSTS/CSP/X-Frame/X-Content-Type 보안 HTTP header refs 0 — sparse 의식적 baseline (reverse proxy/CDN layer 책임 분리, backend application은 비즈니스 응답만) / D. RateLimit/rate-limit refs 116 — 풍부 baseline (적극 채택, scheduler host_rate_limiter + auth ratelimit) / E. hmac.NewHash/sha256/signed/Signature refs 1 — sparse 의식적 baseline (OAuth provider 위임, app-side signing 미채택 — JWT는 외부 lib) / F. refresh-token/RefreshToken refs 68 — 풍부 baseline (refresh token flow 적극 구현, stateless JWT + rotation).
+이유: 6 sub-surface 모두 baseline 또는 positive (A CSRF 1 OAuth/Bearer 완화, B SQL injection 0 sqlc positive, C 보안 헤더 0 proxy 분리, D rate-limit 116 적극, E HMAC 1 OAuth 위임, F refresh 68 풍부 — anti-pattern L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 329 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (328 동시성/327 에러/326 보안/325 정합/324 OpenSpec/323 봇) — cycle 323 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (bot-subpackages/backoff-jitter/ffprobe-exec/extract-refs/classify-refs/URL-normalize) 측정: A. internal/bot/ subpackages 3 (cmd, crawler, snapshot) — baseline (flat 구조 + 3 specialized 분리, cycle 305 sources 미채택 sister) / B. backoff/exponential/jitter refs in bot 14 — baseline (backoff 활성, cycle 305 retry 63 sister 일부) / C. ffprobe/ffmpeg/exec.Command in bot 17 — baseline (external 도구 호출 적정, video duration 검증) / D. extract/Extract/extractor refs in bot 123 — 풍부 baseline (content extraction 적극) / E. classify/Classify/classifier refs in bot 54 — 풍부 baseline (content classification 적극) / F. URL normalize/canonical refs in bot 103 — 풍부 baseline (URL 정규화 적극).
 이유: 6 sub-surface 모두 baseline 또는 풍부 (A subpackages 3 flat+specialized, B backoff 14 활성, C ffprobe 17 적정, D extract 123 풍부, E classify 54 풍부, F normalize 103 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
