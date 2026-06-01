@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 241 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area cycle 235 이후 6 cycle 미방문 = 정합성 round 23 — 6 sub-surface 새 시각: sqlc .sql 9 / generated .sql.go 9 (1:1 mapping discipline — positive signal) + migration up/down pair 26:26 (1:1 — every up has rollback discipline positive signal) + sqlc.yaml schema=db/migrations (single source of truth) + pgtype/sql.Null 148 (nullable type discipline 풍부) + json struct tag 241 (API DTO json tag discipline) + migration files 26 step (현재 schema 진화).
+이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres migration 1:1 표준) / positive signal stable / 의식적 baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area cycle 100/106/112/118/125/131/142/149/155/161/167/173/179/185/191/197/203/209/217/223/229/235/241 23 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 238 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 232 이후 6 cycle 미방문 = 에러 처리 round 22 — 6 sub-surface 새 시각: pkg/errors stack-trace lib 1 (std errors 채택 — pkg/errors 미채택 의식적) + panic() prod 0 (panic-free baseline — positive signal) + context.Canceled/DeadlineExceeded 1 minimal (ctx cancel 시 wrap-and-propagate 위주 — 명시적 분기 minimal) + http.Error 11 (auth handler/middleware/ratelimit 전부 — OAuth callback/redirect plain-text 의식적 분리, writeError JSON envelope 158 sister 별도) + fmt.Println 1 (debug print 거의 없음 — positive signal) + `_ =` ignored return 70 (의도적 무시 패턴 — errcheck whitelist 추정).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + auth OAuth plain-text 의식적 분리 + std log/errors only) / positive signal stable (panic 0 + fmt.Println 1) / 의식적 minimal baseline → 폐기. 후보 0건.
