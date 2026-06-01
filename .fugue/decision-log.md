@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 301 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (300 OpenSpec/299 봇/298 동시성/297 에러/296 보안/295 정합) — cycle 295 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (sqlc/db type/tx) 측정: A. sqlc generated .sql.go 9 — sparse 의식적 (도메인 1:1 매핑, cycle 278/295 baseline 정합) / B. sqlc models.go in dbgen 0 — sparse 의식적 (모델 도메인 .sql.go 통합) / C. pgtype.* refs 0 — sparse 의식적 (sqlc 기본 db/sql 인터페이스, pgx v5 pgtype 미채택) / D. sql.Null* refs 173 — 풍부 baseline (NULL 가능 컬럼 명시적) / E. Begin/BeginTx 21 — baseline (transaction 명시) / F. WithTx/Queries{ wiring 5 — sparse (tx Queries 단순 wiring).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A 9 sql.go 1:1, B models 통합, C pgtype 0 db/sql 표준 채택, D sql.Null 173 풍부, E BeginTx 21 명시, F WithTx 5 단순 — anti-pattern L9 Go std/sqlc 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 297 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (296 보안/295 정합/294 OpenSpec/293 봇/292 동시성/291 에러) — cycle 291 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (idiom/HTTP status) 측정: A. `if err != nil {` 455 — 풍부 baseline (Go std idiom) / B. `if err :=` / `if err =` 326 — 풍부 baseline (단행 init+check 적극) / C. writeError/writeJSON/render.JSON helpers 187 — 풍부 baseline (응답 helper 일관) / D. http.StatusInternalServerError 59 — baseline (500 명시적) / E. http.StatusBadRequest/NotFound 135 — 풍부 (400/404 분기 명시) / F. sql.ErrNoRows 25 — baseline (없는 row 명시적 처리).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 명시 (A `if err != nil` 455 Go idiom, B short-init 326 풍부, C helper 187 일관, D 500 59 명시, E 400/404 135 분기, F sql.ErrNoRows 25 처리 — anti-pattern L9 Go std 정합) → 후보 0건.
