@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 272 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area cycle 266 이후 6 cycle 미방문 = 정합성 round 31 적격. 6 sub-surface 새 시각 측정: A. migrations up 26 — 활발한 schema 진화 baseline / B. migrations down 26 — up:down 1:1 매핑 정합 (롤백 가능 positive signal) / C. CREATE INDEX 28 — 풍부 baseline (성능 + UNIQUE 제약) / D. FK REFERENCES 17 — 관계 정합성 풍부 baseline / E. NOT NULL columns 82 — 의식적 baseline (nullable 회피, sqlc null wrapper 표면 최소화) / F. sqlc .sql.go 9 — 9 도메인 분리 baseline (auth/board/bot/pin/feed 등).
+이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A schema 진화 활발, B up:down 1:1 매핑 — positive, C INDEX 풍부, D FK 풍부, E NOT NULL 의식적, F sqlc 도메인 분리 — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area 31 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 269 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 263 이후 6 cycle 미방문 = OpenSpec 갭 round 29 적격. 6 sub-surface 새 시각 측정: A. archive changes 118 — 활발한 변경 history 풍부 baseline / B. in-progress changes 3 — 동시 작업 sparse 의식적 / C. specs total 11 — 도메인 분리 baseline (auth/board/bot 등) / D. EARS SHALL/MUST 252 — 명세 정밀도 풍부 baseline / E. proposal.md 3 — in-progress 1:1 매핑 정합 / F. design.md 3 — in-progress 1:1 매핑 정합 (OpenSpec authoring convention L10).
 이유: 6 sub-surface 모두 OpenSpec authoring convention 정합 (A archive 풍부, B in-progress sparse, C specs 도메인 분리, D EARS 풍부, E-F proposal/design 1:1 매핑 — anti-pattern L10 정합) → 후보 0건.
