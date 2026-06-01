@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 243 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 237 이후 6 cycle 미방문 = OpenSpec round 25 — 6 sub-surface 새 시각: active changes top-level 3 (cycle 237 sister 정합) + archive changes 118 (누적 history — positive signal velocity) + specs 도메인 11 (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler — single source-of-truth) + ## ADDED Requirements heading 2/3 active (67% coverage) + ## MODIFIED Requirements heading 1/3 (33% — change classification 일관) + ## REMOVED Requirements heading 0 (active changes 에서 spec 제거 없음).
+이유: 6 sub-surface 모두 anti-pattern L10 (OpenSpec authoring convention + ADDED/MODIFIED/REMOVED 표준 heading) / positive signal stable (active 3 + archive 118 velocity) / 의식적 baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area cycle 101/107/113/119/126/132/138/144/150/156/162/168/174/180/186/192/198/204/210/216/222/228/231/237/243 25 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 238 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 232 이후 6 cycle 미방문 = 에러 처리 round 22 — 6 sub-surface 새 시각: pkg/errors stack-trace lib 1 (std errors 채택 — pkg/errors 미채택 의식적) + panic() prod 0 (panic-free baseline — positive signal) + context.Canceled/DeadlineExceeded 1 minimal (ctx cancel 시 wrap-and-propagate 위주 — 명시적 분기 minimal) + http.Error 11 (auth handler/middleware/ratelimit 전부 — OAuth callback/redirect plain-text 의식적 분리, writeError JSON envelope 158 sister 별도) + fmt.Println 1 (debug print 거의 없음 — positive signal) + `_ =` ignored return 70 (의도적 무시 패턴 — errcheck whitelist 추정).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + auth OAuth plain-text 의식적 분리 + std log/errors only) / positive signal stable (panic 0 + fmt.Println 1) / 의식적 minimal baseline → 폐기. 후보 0건.
