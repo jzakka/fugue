@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 298 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (297 에러/296 보안/295 정합/294 OpenSpec/293 봇/292 동시성) — cycle 292 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (resource lifecycle/shutdown) 측정: A. defer 208 — 풍부 baseline (Go std cleanup idiom) / B. defer Close() 115 — 풍부 baseline (rows/body 자원 정리) / C. defer Unlock() 19 — positive (sync.Mutex/RWMutex 17 vs Unlock 19 ≈ 1:1 pair) / D. defer cancel() 26 — baseline (WithTimeout/Cancel 39 중 67% pair) / E. runtime.NumGoroutine/leak measurement 0 — sparse 의식적 (production 측정 없이 leak 회피 패턴) / F. graceful shutdown (Shutdown/GracefulStop) 8 — baseline (signal handling 명시).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A defer 208 std cleanup, B Close 115 자원, C Unlock 19 Mutex 17 1:1 positive, D cancel 26 67% pair, E leak measure 0 sparse 회피, F shutdown 8 명시 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 294 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (293 봇/292 동시성/291 에러/290 보안/289 정합/288 OpenSpec) — cycle 288 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (process/maturity) 측정: A. active changes 3 (fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring) — sparse 의식적 (모두 fix- prefix, bug-fix WIP 통제) / B. proposal.md 120 (3 active + 117 archived) — 풍부 baseline (제안 누적) / C. tasks.md 120 (1:1 with proposal) — positive signal (모든 change에 task list 동반) / D. design.md 90 (75% adoption) — baseline (의식적, 일부 hotfix는 design 생략) / E. archived 118 — 풍부 baseline (활성 3 vs 완료 118 = 1:39 throughput 건강) / F. total openspec md 441 (spec 11 + change 430) — 풍부 baseline (spec/change 적극 관리).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A 3 fix WIP sparse, B 120 proposal 풍부, C 120:120 1:1 positive, D 75% design baseline, E 118 archived 풍부, F 441 md 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
