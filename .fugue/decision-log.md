@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 258 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 252 이후 6 cycle 미방문 = 봇 round 22 — 6 sub-surface 새 시각: internal/bot/cmd/ subcommand visualize/ 단일 (cmd 구조 minimal — graphviz export tool 한정) + internal/bot/snapshot/ sub-package 5 component key/metrics/reader/store/testhelpers (HTML snapshot 책임 분리 baseline) + MediaValidator usage 55 site (cycle 222 sister 55 정합 stable) + UA/userAgent 12 site (cycle 222 sister 10 정합) + robots 68 site (cycle 222 sister 22 → 더 풍부 stable) + playwright/goja/JSExec 53 site (cycle 222 sister playwright 13 + goja 35 = 48 정합 stable).
+이유: 6 sub-surface 모두 anti-pattern L9 봇 도메인 표준 / cycle 216/222 covered / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area cycle 102/111/119/132/147/156/166/174/180/186/192/198/204/210/216/222/228/234/240/246/252/258 22 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 254 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 247 이후 6 cycle 미방문 = 정합성 round 25 — 6 sub-surface 새 시각: ERD docs/erd.md UUID 컬럼 mention 13 (UUID PK/FK SSOT 일관 baseline) + Go uuid.UUID/pgtype.UUID type site 50 file (UUID type 분포 풍부 positive signal) + timestamp/timestamptz column 23 (UTC tz 표준 일관 — Postgres timestamptz default) + UNIQUE constraint 12 (uniqueness invariant 분포 의식적) + FK REFERENCES/FOREIGN KEY 16 (FK 정의 분포 — cycle 28 align_pin_tags_tag_id_cascade migration 정합) + CREATE INDEX 25 (인덱스 분포 풍부 — query 성능 의식적).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc + Postgres + UUID + timestamptz + FK + INDEX 도메인 표준) / positive signal stable (UUID 50 + INDEX 25 + FK 16) / 의식적 baseline → 폐기. 후보 0건.
