@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 309 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (308 보안/307 정합/306 OpenSpec/305 봇/304 동시성/303 에러) — cycle 303 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (http.Error/wrap-ratio/return-err/discard/case/panic-non-test) 측정: A. `http.Error(` 12 — sparse (대신 render.JSON/writeError helper 우선, http.Error는 raw text 응답에만 의식적 사용) / B. fmt.Errorf 241 total / `%w` wrap 175 (73%) / non-wrap 66 — baseline (wrap 73% 일관, non-wrap은 root error 의식적) / C. `return nil, err`/`return err` 251 — 풍부 baseline (early-return 적극) / D. `_ = err`/`_ = ret` explicit error discard 0 — positive (cycle 291의 `_ =` 145는 close 등 의식적 discard, 에러 명시 무시 0) / E. `errors.New("…")` lowercase 58 / uppercase 0 — positive (Go 컨벤션 lowercase 100% 일관) / F. non-test `panic(` 0 — positive (panic 회피 일관 의식적).
+이유: 6 sub-surface 모두 baseline 또는 positive (A http.Error 12 sparse 의식적, B wrap 73% baseline 일관, C return err 251 풍부, D 명시 에러 discard 0 positive, E lowercase 100% positive 컨벤션, F panic 0 positive 회피 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 305 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (304 동시성/303 에러/302 보안/301 정합/300 OpenSpec/299 봇) — cycle 299 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (sources/scheduler/snapshot/retry/goja/robots) 측정: A. `internal/bot/sources/` 디렉터리 부재 — sparse 의식적 (Harvester 도메인별 script 미구현 baseline, README L Harvester 가이드는 도메인 추가 시점에 생성) / B. Enqueue/Dequeue refs 121 — 풍부 baseline (URLScheduler producer/consumer 활성) / C. `snapshot.` refs 46 — baseline (HTML snapshot 적극) / D. retry/backoff refs 63 — 풍부 baseline (retry 적극) / E. `goja.` refs 35 — baseline (JS runtime 활성, harvester script eval) / F. `robots.` refs 22 — baseline (robots.txt 필터 활성).
 이유: 6 sub-surface 모두 baseline 또는 positive sparse (A sources 부재 = 도메인 script propose 영역 안티-패턴 L15 정합, B 121 풍부 scheduler, C 46 snapshot baseline, D 63 retry 풍부, E 35 goja baseline, F 22 robots baseline) → 후보 0건.
