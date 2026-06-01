@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 338 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (337 정합/336 OpenSpec/335 봇/334 동시성/333 에러/332 보안) — cycle 332 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (password-hash/401-403-status/logging-redaction/cookie-MaxAge-Expires/mime-type-whitelist/SSRF-private-IP) 측정: A. bcrypt/argon2/HashPassword refs 0 — sparse 의식적 baseline (OAuth-only auth, password-based 미채택 — cycle 326 OAuth 47 정합) / B. http.StatusUnauthorized/StatusForbidden non-test 19 — baseline (401/403 명시 차단 적정 채택, 권한 거부 명시) / C. redact/mask/REDACTED non-test 0 — sparse 의식적 baseline (token JWT는 application log 노출 없음, 사용자 정보 logging 최소) / D. MaxAge/Expires non-test 10 — baseline (cookie/session lifetime 적정 채택) / E. mime-type whitelist/allowedTypes refs 0 — sparse 의식적 baseline (ffprobe 검증으로 우회 — cycle 329 ffprobe 17 정합) / F. PrivateIP/isPrivate/169.254/127.0.0/SSRF/10.0.0.0/192.168 refs 185 — 매우 풍부 baseline (SSRF 방어 매우 적극, pioneer/harvester guard).
+이유: 6 sub-surface 모두 baseline (A password 0 OAuth, B 401/403 19 명시, C redact 0 logging 최소, D MaxAge 10 lifetime, E mime 0 ffprobe 우회, F SSRF 185 매우 풍부 — anti-pattern L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 335 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (334 동시성/333 에러/332 보안/331 정합/330 OpenSpec/329 봇) — cycle 329 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (robots-filter/snapshot/fetch-fetcher/goja-runtime/MediaValidator/drain-worker) 측정: A. robots/Robots/RobotsFilter refs in bot non-test 136 — 풍부 baseline (robots.txt filter 적극 채택, crawler 정책 준수) / B. snapshot/Snapshot refs in bot non-test 396 — 매우 풍부 baseline (snapshot 적극 채택, raw HTML 캡처) / C. Fetch/fetcher refs in bot non-test 580 — 매우 풍부 baseline (fetcher 적극 채택) / D. goja refs in bot non-test 40 — baseline (JS runtime 적정 채택, harvester script 실행) / E. MediaValidator/media_validator refs in bot non-test 66 — 풍부 baseline (media 검증 적극) / F. drain/Drain/worker/Worker refs in bot non-test 122 — 풍부 baseline (queue worker 패턴 적극 채택).
 이유: 6 sub-surface 모두 풍부 baseline (A robots 136, B snapshot 396, C fetch 580, D goja 40, E MediaValidator 66, F drain/worker 122 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
