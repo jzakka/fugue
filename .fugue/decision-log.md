@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 250 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 244 이후 6 cycle 미방문 = 에러 처리 round 24 — 6 sub-surface 새 시각: bare `if err != nil {` 346 vs total branches 352 (98% bare 형식 — Go std error check idiom 일관 positive signal) + err != nil branches 352 total (도메인 처리 풍부) + errors.Unwrap 0 prod (직접 unwrap call 미사용 — errors.Is/As 위주 위임 의식적) + os.Exit 0 (직접 종료 call 0 — log.Fatal 위임 + panic-free positive signal) + log.Fatal 9 (startup-time fault only — graceful shutdown 의식적) + sentinel `return Err` 1 minimal (fmt.Errorf wrap dominant — cycle 220 errors.New 13 sister 정합).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std error check + errors.Is/As over Unwrap + log.Fatal over os.Exit) / positive signal stable (98% bare + 0 Unwrap + 0 os.Exit) / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area cycle 100/107/115/122/127/132/146/152/162/168/174/180/184/192/198/204/210/214/220/226/232/238/244/250 24 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 247 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 241 이후 6 cycle 미방문 = 정합성 round 24 — 6 sub-surface 새 시각: sqlc generated func 109 = `-- name:` 109 = :one/:many/:exec 109 (1:1:1 ratio — strong positive signal SSOT) + sqlc.arg/narg 32 (named parameter readability discipline) + RETURNING clause 13 (Postgres write+read single-round-trip 활용 positive signal) + COUNT(*) 6 (aggregate minimal — count surface 한정) + named query directive 109 (sqlc directive 표준 일관) + query type classification 109 (every query 분류 명시 discipline).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres RETURNING) / positive signal stable (109:109:109 1:1:1) / 의식적 baseline → 폐기. 후보 0건.
