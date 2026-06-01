@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 256 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 250 이후 6 cycle 미방문 = 에러 처리 round 25 — 6 sub-surface 새 시각: %w nested chain depth>1 single-line 0 (flat wrap discipline — depth>1 회피) + stdlib log.Printf/Println/Fatal site 27 (std log only baseline) + slog/log/slog site 0 (slog 미채택 의식적 — std log only) + errors.Join site 1 (multi-error 조합 sparse — cycle 220 sister 1 정합) + validation site 25 file (validation 책임 분포 풍부 positive signal) + fmt.Errorf("%w wrap-leading pattern 24 site (wrap leading message format).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + slog 미채택 의식적 std log only + flat wrap + errors.Join sparse) / cycle 220/238/244 covered / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area cycle 100/107/115/122/127/132/146/152/162/168/174/180/184/192/198/204/210/214/220/226/232/238/244/250/256 25 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 252 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 246 이후 6 cycle 미방문 = 봇 round 21 — 6 sub-surface 새 시각: internal/bot/ root .go 35+ + crawler/cmd/snapshot 3 sub-package (cycle 222 sister consumer-pipeline-fetcher 3-tier file 분포 정합) + Enqueue/Dequeue site 23 (URLScheduler 계약 사용 stable — cycle 215 sister) + retry/backoff distribution 3 file harvester_consumer/robots_filter/pioneer_consumer (cycle 222 sister 92 retry/backoff vocabulary 분포 정합) + idempotency/ON CONFLICT site 30 (DB write idempotency discipline 풍부 positive signal) + crawler/ sub-package 5 component bfs_crawler/http_fetcher/link_extractor/file_fetcher/url_utils (Pioneer 측 책임 분리 baseline) + ctx.Done/ctx.Err 15 (cycle 215 sister ctx propagation 정합).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std 봇 idiom + URLScheduler 계약 표준 + sub-package 책임 분리) / positive signal stable (idempotency 30 + Enqueue/Dequeue 23) / cycle 215/216/222 covered → 폐기. 후보 0건.
