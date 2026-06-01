@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 287 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (286 동시성/285 에러/283 보안/278 정합/275 OpenSpec/273 에러) = 봇 round 적격 (마지막 봇 = cycle 264). 6 sub-surface 새 시각 (crawler/contract) 측정: A. URLScheduler refs 26 — sparse 의식적 (단일 컴포넌트 호출점 명확) / B. Harvester refs 343 — 풍부 baseline (도메인 핵심 컴포넌트) / C. Pioneer refs 173 — 풍부 baseline (URL discovery 핵심) / D. robots.txt refs 68 — baseline (정중한 크롤링 명시) / E. rate limit/backoff/throttle refs 49 — baseline (대기 패턴 명시) / F. idempotency/dedup/ON CONFLICT refs 13 — sparse 의식적 (DB layer dedup 우선, app layer 절제).
+이유: 6 sub-surface 모두 의식적 baseline 또는 sparse 의식적 (A URLScheduler 단일 호출점, B Harvester 핵심 풍부, C Pioneer 핵심 풍부, D robots 정중 baseline, E backoff 대기 명시, F dedup DB layer 우선 sparse — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 283 Discovery — 보안 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 보안 area cycle 277 이후 6 cycle 미방문 = 보안 round 21 적격. 6 sub-surface 새 시각 (authz/identity) 측정: A. ownership check (creator_id !=/==) 12 — 풍부 baseline (자원 소유 검증) / B. 403 Forbidden 1 — sparse 의식적 (ownership check 사전 차단 + 401 우세) / C. 401 Unauthorized 16 — middleware 통합 baseline / D. RequireAuth 별도 명명 0 — middleware 단일 위치 (다른 명명) / E. OAuth provider (google/github/kakao/naver) 15 — 풍부 baseline / F. bcrypt/password 0 — OAuth-only positive signal (사용자 결정 정합, cycle 224 baseline).
 이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A ownership 풍부, B 403 sparse 사전 차단 우세, C 401 middleware 통합, D RequireAuth 미명명 단일, E OAuth 풍부, F bcrypt 0 OAuth-only — positive signal 사용자 결정 정합) → 후보 0건.
