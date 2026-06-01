@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 306 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (305 봇/304 동시성/303 에러/302 보안/301 정합/300 OpenSpec) — cycle 300 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (RFC2119/naming/length/granularity/cross-link/doc-reach) 측정: A. spec RFC2119 keyword SHALL 488 / MUST 3 — baseline (SHALL 일관 채택, MUST 3 sparse 의식적 — 단일 모달리티) / B. active change folder 3개 모두 `fix-` prefix — positive signal (네이밍 컨벤션 일관) / C. active proposal.md avg 24 lines (72 lines / 3) — baseline (간결 proposal, 핵심 why 명시) / D. active tasks.md avg 9 tasks/change (27 / 3) — baseline (적정 분할 granularity) / E. cross-spec `@spec:`/`specs/` refs 6 — baseline (capability cross-link 적정) / F. AGENTS/docs/CLAUDE openspec 인용 refs 5 — baseline (project-level cross-doc 적정).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A SHALL 488 RFC2119 단일 모달리티 일관, B fix- 100% 컨벤션 positive, C 24 lines 간결 baseline, D 9 tasks 적정 granularity, E 6 cross-link baseline, F 5 doc reach baseline — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 303 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (302 보안/301 정합/300 OpenSpec/299 봇/298 동시성/297 에러) — cycle 297 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (logging/cancel/legacy/cleanup/aggregate/type-assert) 측정: A. log.Print/Fatal/Println refs 183 — 풍부 baseline (logging 적극) / B. context.DeadlineExceeded/Canceled 27 — baseline (deadline/cancel 명시 분기) / C. pkg/errors / errors.Wrap( 0 — positive (legacy lib 미사용, std errors 일관 채택) / D. defer recover / defer func() 40 — baseline (cleanup 적극) / E. errgroup/multierror/errors.Join 1 — sparse 의식적 (단일 사용, errgroup 미채택, 명시 goroutine+channel 우선) / F. errors.As( 12 — baseline (타입 분기 적절).
 이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 선택 (A log 183 풍부, B context.* 27 baseline, C pkg/errors 0 positive std 일관, D defer 40 baseline cleanup, E errgroup 1 sparse 사용자 결정 영역, F errors.As 12 baseline — anti-pattern L9 Go std 정합) → 후보 0건.
