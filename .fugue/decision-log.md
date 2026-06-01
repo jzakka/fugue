@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 342 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (341 봇/339 에러/337 정합/335 봇/333 에러/331 정합) — cycle 336 OpenSpec 이후 6+ cycle 경과로 회전 적격. 6 sub-surface 새 시각 (AGENTS-endpoint-list/active-design-md-volume/spec-L2-section-count/spec-TODO-marker/active-change-TODO-marker/active-BREAKING-marker) 측정: A. AGENTS.md endpoint (^(GET|POST|PUT|PATCH|DELETE) ) 명시 0 — sparse 의식적 baseline (HTTP verb prefix 형식 미채택, endpoint table/section 다른 표기 가능성) / B. active openspec/changes/*/design.md 평균 198 lines / 3 files ≈ 66 lines — baseline 적정 (active change design 적정 documentation 수준) / C. openspec/specs/*/spec.md L2 (^## ) section 11 spec 모두 2개 (Purpose + Requirements) — positive (11 capability spec 동일 구조 100% 일관) / D. openspec/specs/*/ TODO|FIXME|XXX refs 1 — sparse 의식적 baseline (spec cleanup 거의 완료) / E. active openspec/changes/*/ TODO|FIXME|XXX refs 0 — positive (active change cleanup 완료) / F. active openspec/changes/*/ "BREAKING" refs 0 — sparse 의식적 baseline (active change 모두 non-BREAKING 작업, cycle 324 archive 포함 15는 과거 누적).
+이유: 6 sub-surface 모두 baseline 또는 positive — A AGENTS endpoint 0 표기 형식 차이, B design avg 66 적정, C spec L2 2 sections 11 spec 100% 일관, D TODO specs 1 cleanup, E TODO active 0 cleanup, F active BREAKING 0 non-BREAKING — anti-pattern L10 OpenSpec authoring 정합 → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 341 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (340 동시성/339 에러/338 보안/337 정합/336 OpenSpec/335 봇) — cycle 335 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (URLScheduler/Pioneer/Harvester/OpenGraph/RSS-Atom/depth-breadth-frontier) 측정: A. URLScheduler/UrlScheduler refs in bot non-test 26 — baseline (scheduler consumer 적정 채택) / B. Pioneer/pioneer refs in bot non-test 173 — 풍부 baseline (Pioneer URL discovery 핵심 구현 풍부) / C. Harvester/harvester refs in bot non-test 343 — 매우 풍부 baseline (Harvester content extraction 핵심 구현 매우 풍부) / D. OpenGraph/og: refs 63 — 풍부 baseline (OG meta extract 적극) / E. RSS/Atom feed refs in bot 1 — sparse 의식적 baseline (RSS 미채택, web crawler 위주 — html harvester 우선) / F. depth/breadth/frontier refs in bot 52 — 풍부 baseline (frontier 모델 채택, BFS/DFS dimension).
 이유: 6 sub-surface 모두 baseline 또는 풍부 (A URLScheduler 26 적정, B Pioneer 173 풍부, C Harvester 343 매우 풍부, D OG 63 풍부, E RSS 1 sparse web 위주, F frontier 52 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
