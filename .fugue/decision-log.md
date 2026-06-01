@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 299 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (298 동시성/297 에러/296 보안/295 정합/294 OpenSpec/293 봇) — cycle 293 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (module structure/interface) 측정: A. bot Go files 87 — 풍부 baseline (큰 도메인) / B. bot subdirs 7 (top + 6 sub) — baseline (도메인 분할 명확) / C. MediaValidator/ffprobe 71 — 풍부 baseline (media 검증 핵심) / D. Adapter type refs 63 — 풍부 baseline (interface 추상화 활용) / E. Classifier type refs 29 — baseline (분류 로직 명시) / F. Extractor type refs 49 — 풍부 baseline (metadata 추출 핵심).
+이유: 6 sub-surface 모두 풍부 baseline 또는 baseline (A 87 files 풍부, B 7 dirs 분할, C MediaValidator 71 풍부, D Adapter 63 추상화, E Classifier 29 명시, F Extractor 49 풍부 — anti-pattern L9 Go std 정합 / 책임 분리 명확 Snapshot 396 > Extractor 49 > Adapter 63 > Classifier 29) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 294 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area 직전 6 system cycle 미방문 (293 봇/292 동시성/291 에러/290 보안/289 정합/288 OpenSpec) — cycle 288 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (process/maturity) 측정: A. active changes 3 (fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring) — sparse 의식적 (모두 fix- prefix, bug-fix WIP 통제) / B. proposal.md 120 (3 active + 117 archived) — 풍부 baseline (제안 누적) / C. tasks.md 120 (1:1 with proposal) — positive signal (모든 change에 task list 동반) / D. design.md 90 (75% adoption) — baseline (의식적, 일부 hotfix는 design 생략) / E. archived 118 — 풍부 baseline (활성 3 vs 완료 118 = 1:39 throughput 건강) / F. total openspec md 441 (spec 11 + change 430) — 풍부 baseline (spec/change 적극 관리).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A 3 fix WIP sparse, B 120 proposal 풍부, C 120:120 1:1 positive, D 75% design baseline, E 118 archived 풍부, F 441 md 풍부 — anti-pattern L10 OpenSpec authoring 정합) → 후보 0건.
