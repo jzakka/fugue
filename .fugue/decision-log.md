@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 337 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (336 OpenSpec/335 봇/334 동시성/333 에러/332 보안/331 정합) — cycle 331 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (sqlc-generated-files/CONCURRENTLY-index/JSONB-column/created-updated-coverage/PARTIAL-INDEX-WHERE/WITH-fillfactor-options) 측정: A. apps/api/internal/db/*.sql.go sqlc-generated 9 files (CREATE TABLE 17 중 query 매핑 9) — baseline (sqlc 적정 채택, 매핑/lookup 테이블 제외) / B. CREATE INDEX CONCURRENTLY 0 — sparse 의식적 baseline (운영 초기 단계, 무중단 인덱스 불요) / C. JSONB column 0 — sparse 의식적 baseline (관계형 정규화 위주, JSONB 미채택) / D. created_at/updated_at refs 19 in 11 files (17 CREATE TABLE 중 11 = 65% 채택) — baseline (audit 컬럼 적극, mapping/lookup 테이블 예외) / E. PARTIAL INDEX WHERE clause 0 — sparse 의식적 baseline (전체 인덱스 위주, conditional index 미채택) / F. WITH (fillfactor)/TABLESPACE 옵션 0 — sparse 의식적 baseline (Postgres default 옵션, 운영 튜닝 미적용).
+이유: 6 sub-surface 모두 baseline (A sqlc 9 적정, B CONCURRENTLY 0 초기, C JSONB 0 정규화, D timestamp 65% audit, E PARTIAL 0 전체 인덱스, F WITH 0 default — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 335 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (334 동시성/333 에러/332 보안/331 정합/330 OpenSpec/329 봇) — cycle 329 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (robots-filter/snapshot/fetch-fetcher/goja-runtime/MediaValidator/drain-worker) 측정: A. robots/Robots/RobotsFilter refs in bot non-test 136 — 풍부 baseline (robots.txt filter 적극 채택, crawler 정책 준수) / B. snapshot/Snapshot refs in bot non-test 396 — 매우 풍부 baseline (snapshot 적극 채택, raw HTML 캡처) / C. Fetch/fetcher refs in bot non-test 580 — 매우 풍부 baseline (fetcher 적극 채택) / D. goja refs in bot non-test 40 — baseline (JS runtime 적정 채택, harvester script 실행) / E. MediaValidator/media_validator refs in bot non-test 66 — 풍부 baseline (media 검증 적극) / F. drain/Drain/worker/Worker refs in bot non-test 122 — 풍부 baseline (queue worker 패턴 적극 채택).
 이유: 6 sub-surface 모두 풍부 baseline (A robots 136, B snapshot 396, C fetch 580, D goja 40, E MediaValidator 66, F drain/worker 122 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
