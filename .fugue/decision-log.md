@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 326 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (325 정합/324 OpenSpec/323 봇/322 동시성/321 에러/320 보안) — cycle 320 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (env-secret/TLS/timing-safe/OAuth/auth-middleware/URL-scheme) 측정: A. os.Getenv/envconfig non-test refs 23 — baseline (env-based 시크릿 관리 적극) / B. tls/crypto/tls/x509 non-test refs 0 — sparse 의식적 (TLS termination ALB/Ingress 위임, app 내부 TLS handling 미요구 — 사용자 결정 영역) / C. subtle.ConstantTimeCompare non-test refs 0 — sparse 의식적 (OAuth-only auth로 password timing-attack 비교 site 부재 — cycle 308 password 0 sister) / D. oauth/OAuth/client_secret/client_id non-test refs 47 — 풍부 baseline (OAuth 일관 채택) / E. JWTMiddleware/OptionalJWTMiddleware/Middleware non-test refs 24 — 풍부 baseline (auth middleware 적극 wired) / F. URL scheme validation (url.Parse/URL.Scheme/scheme allowlist) non-test refs 29 — baseline (URL scheme 검증, SSRF 방어 적극).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A env 23 baseline, B TLS 0 ALB 위임, C timing-safe 0 OAuth-only N/A, D OAuth 47 풍부, E middleware 24 풍부, F URL scheme 29 baseline — anti-pattern L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 323 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (322 동시성/321 에러/320 보안/319 정합/318 OpenSpec/317 봇) — cycle 317 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (User-Agent/dedup/Content-Type/Content-Length/playwright/adapter) 측정: A. User-Agent non-test refs in bot 19 — 풍부 baseline (UA 명시, bot identity 표시 적극) / B. dedup/visited/seen/inflight/singleflight non-test refs in bot 99 — 풍부 baseline (URL dedup 활성) / C. Content-Type/DetectContentType/mime non-test refs in bot 29 — baseline (content-type 식별 적극) / D. Content-Length/maxResponseSize/maxBytes non-test refs in bot 17 — baseline (size limit 명시) / E. playwright/chromium/headless/browser non-test refs in bot 26 — baseline (playwright headless 활용 적극) / F. adapter/Adapter/RegisterAdapter non-test refs in bot 60 — 풍부 baseline (adapter registry 일관 적극).
 이유: 6 sub-surface 모두 풍부 baseline 또는 baseline (A UA 19 풍부, B dedup 99 풍부, C content-type 29 baseline, D size-limit 17 baseline, E playwright 26 baseline, F adapter 60 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
