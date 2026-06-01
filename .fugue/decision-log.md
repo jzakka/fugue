@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-01 — [design] cycle 362 Processing — VideoTrimModal video radius 8px→10px (DESIGN.md md token 정합)
+결정/변경: PR #778. apps/web/src/components/pin/VideoTrimModal.tsx:199 `<video>` element 의 `rounded-[8px]` → `rounded-[10px]` 1-line 변경. backlog `design-20260601-videotrimmodal-rounded-8px` (cycle 361 발견, score 5.0) 처리.
+이유: DESIGN.md L73-77 radius scale (sm:6 / md:10 / lg:16 / full:9999) 정합. 8px 는 scale 미정의. video element 는 모달 내부 카드 표면 미디어 → md:10px (cards) 가 token 위계상 일관 (modal 컨테이너 lg:16, 내부 카드 md:10). anti-patterns L17 (radius 자의) 위반 1건 해소.
+영향 범위: VideoTrimModal video element 외형 변화 (radius 2px 증가) 외 모든 동작/레이아웃/색상/transition 0. /pin/new video 업로드 → 트림 모달 시각에만 적용. 다른 화면/컴포넌트 회귀 0 (`grep` 8px scope 1 match → 0 match).
+
 ## 2026-06-01 — [system] cycle 327 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (326 보안/325 정합/324 OpenSpec/323 봇/322 동시성/321 에러) — cycle 321 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (err==nil-positive/ctx.Canceled-DeadlineExceeded/Errorf-wrap-ratio/discard-line-start/error-metric/ErrorResponse-struct) 측정: A. `if err == nil` non-test refs 10 — sparse 의식적 (positive branch 일부, error branch 위주 — Go convention) / B. context.Canceled 1 / context.DeadlineExceeded 0 non-test refs — sparse 의식적 (errors.Is(ctx.Err(), ...) 우선 채택, 명시 비교 1만) / C. fmt.Errorf no-%w 28 vs with %w 173 = 86% wrap dominant — positive (error chain 보존 dominant, leaf/정적 메시지만 28) / D. `_ = fn(...)` line-start non-test refs 43 — baseline (Close()/Set* 의식적 무시, Go std 패턴) / E. errorCount/failureCount/.Inc()/.Add(1) error metric non-test refs 19 — baseline (observability counter 적정 채택) / F. ErrorResponse struct/type definitions non-test refs 1 — sparse 의식적 (단일 envelope struct 일관 — cycle 273 writeError 158 sister와 단일 helper 결합).
 이유: 6 sub-surface 모두 baseline 또는 positive (A err==nil 10 sparse convention, B context.* 1/0 errors.Is 우선, C wrap 86% positive chain 보존, D `_ =` 43 std 패턴, E error metric 19 observability, F ErrorResponse 1 단일 envelope — anti-pattern L9 Go std 정합) → 후보 0건.
