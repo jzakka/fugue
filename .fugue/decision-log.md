@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 274 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 268 이후 6 cycle 미방문 = 동시성 round 30 적격. 6 sub-surface 새 시각 측정: A. goroutine `go ` launch prod 3 — 의식적 minimal (백그라운드 작업 sparse) / B. chan declarations 4 — sparse 의식적 / C. sync.WaitGroup 0 — goroutine 3 sparse 정합 (단일 작업 위주, WaitGroup 불필요) / D. sync.Mutex/RWMutex/Lock 31 — 풍부 baseline (cache/state guard) / E. ctx.Done/<-ctx.Done 7 — graceful shutdown 의식적 / F. defer cancel 6 — context lifecycle 의식적 (WithTimeout 4 정합).
+이유: 6 sub-surface 모두 의식적 minimal 또는 Go std 정합 (A goroutine sparse, B chan sparse, C WaitGroup 0 정합, D Mutex 풍부 cache guard, E ctx.Done graceful shutdown, F defer cancel WithTimeout 정합 — anti-pattern L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area 30 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 271 Discovery — 보안 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 보안 area cycle 265 이후 6 cycle 미방문 = 보안 round 19 적격. 6 sub-surface 새 시각 측정: A. middleware 9 — auth/recovery/logging 의식적 baseline (chi router middleware stack) / B. creator_id/CreatorID 307 — Fugue 도메인 creator-centric naming 풍부 baseline (user 명명 0 — domain language 일관) / C. r.Context().Value 직접 호출 2 — sparse (helper 함수 wrap 의식적, 직접 접근 회피) / D. raw SQL string literal 0 — sqlc 100% (INSERT/SELECT/UPDATE/DELETE string literal 0 — positive signal, SQL injection 표면 부재) / E. url.Parse/ParseRequestURI 27 — URL 검증 풍부 baseline (SSRF/redirect 표면 검사) / F. mime type whitelist 43 — image/video 화이트리스트 풍부 baseline.
 이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A middleware stack 의식적, B creator-centric naming 일관, C ctx.Value helper wrap, D sqlc 100% SQL injection 부재 — positive, E url 검증 풍부, F mime whitelist 풍부) → 후보 0건.
