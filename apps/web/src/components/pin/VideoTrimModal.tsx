@@ -196,7 +196,7 @@ export default function VideoTrimModal({
             <video
               ref={videoRef}
               src={videoUrl}
-              className="w-full rounded-[8px] bg-black max-h-[280px] object-contain"
+              className="w-full rounded-[10px] bg-black max-h-[280px] object-contain"
               preload="auto"
               muted
               playsInline
