@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 245 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area cycle 239 이후 6 cycle 미방문 = 동시성 round 20 — 6 sub-surface 새 시각: sync.Map 0 (concurrent map 미채택 — Mutex+map idiom 위주) + sync.Mutex 3 prod (cycle 233 sister 4 정합 — minimal lock site) + ticker/timer .Stop() 2 (resource cleanup discipline minimal) + chan close 2 (channel close site minimal — broadcast/signal 위주) + sync.WaitGroup 0 prod (request-scoped goroutine 3 site 가 detach 추정) + context.Background()/TODO 33 (startup-time + tooling/script Background 정상).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std sync 표준 + 도메인 표준 영역) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area cycle 101/110/116/124/137/150/157/167/175/181/187/193/199/209/215/221/227/233/239/245 20 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 241 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 235 이후 6 cycle 미방문 = 정합성 round 23 — 6 sub-surface 새 시각: sqlc .sql 9 / generated .sql.go 9 (1:1 mapping discipline — positive signal) + migration up/down pair 26:26 (1:1 — every up has rollback discipline positive signal) + sqlc.yaml schema=db/migrations (single source of truth) + pgtype/sql.Null 148 (nullable type discipline 풍부) + json struct tag 241 (API DTO json tag discipline) + migration files 26 step (현재 schema 진화).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres migration 1:1 표준) / positive signal stable / 의식적 baseline → 폐기. 후보 0건.
