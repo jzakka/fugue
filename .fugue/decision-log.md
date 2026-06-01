@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 317 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (316 동시성/315 에러/314 보안/313 정합/312 OpenSpec/311 봇) — cycle 311 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (test/mock/SSRF-bot/media_type/scoring/cmd) 측정: A. internal/bot test 파일 40 / 비테스트 47 = 0.85 ratio — 풍부 baseline (테스트 적극) / B. mocks.go/gomock refs 1 — sparse (단일 mocks.go에서 인라인 정의, gomock 미채택 — 사용자 결정 영역) / C. SSRF/isPrivateIP non-test refs in bot 19 — 풍부 baseline (SSRF 방어 적극) / D. media_type/MediaType refs in bot 41 — 풍부 baseline (media_type 일관 적극) / E. Pioneer scoring/score/Priority refs (pioneer/link_filter/link_stats) 2 — sparse (link_stats 우선, 점수 기반 priority 명시 미채택 — 사용자 결정 영역) / F. internal/bot/cmd subdirs 1 (visualize) — sparse 의식적 (시각화 CLI 단일, 다른 CLI 미요구).
+이유: 6 sub-surface 모두 풍부 baseline 또는 의식적 sparse (A 0.85 test ratio 풍부, B mocks.go inline 결정, C SSRF 19 풍부, D media_type 41 풍부, E scoring 2 결정 영역, F cmd 1 sparse 의식적 — anti-pattern L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 315 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (314 보안/313 정합/312 OpenSpec/311 봇/310 동시성/309 에러) — cycle 309 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (log variant/3rd-party-logger/sentinel/Error()/retry-helper/recoverer) 측정: A. log.Println 10 / log.Printf 160 — baseline (formatted log 우세 의식적) / B. slog 0 / zap·zerolog·logrus 0 — positive (std log 일관 채택, 3rd party logger 회피 — 사용자 결정 영역) / C. sentinel `var Err…` declarations 6 — baseline (errors.Is 비교 sentinel 적정) / D. `.Error()` string 34 — baseline (에러 메시지 전파 적극) / E. retry()/MaxRetries/RetryAfter 1 — sparse (cycle 305의 retry/backoff 63 baseline의 단일 helper 정의, 호출 site는 각자) / F. middleware.Recoverer/recover() 7 — baseline (panic 보호망 적정).
 이유: 6 sub-surface 모두 baseline 또는 positive (A log.Printf 160 우세, B 3rd-party 0 std 일관 사용자 결정, C sentinel 6 적정, D .Error 34 전파, E retry helper 1 sparse 의식적, F recoverer 7 보호망 — anti-pattern L9 Go std 정합) → 후보 0건.
