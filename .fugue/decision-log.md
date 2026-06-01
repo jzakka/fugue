@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 322 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (321 에러/320 보안/319 정합/318 OpenSpec/317 봇/316 동시성) — cycle 316 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (signal.Notify/Shutdown/ctx.Value/ticker.Stop/typed-atomic/select-default) 측정: A. signal.Notify/NotifyContext non-test refs 7 — baseline (SIGTERM/SIGINT graceful shutdown 명시) / B. http.Server.Shutdown non-test refs 1 — sparse 의식적 (cmd/server 단일 graceful shutdown) / C. ctx.Value/context.WithValue non-test refs 7 — baseline (request-scoped value propagation 적정) / D. ticker.Stop/timer.Stop non-test refs 0 — sparse 의식적 (ticker/timer production 미사용 cycle 203 sister, leak risk N/A) / E. typed atomic.Bool/Int32/Int64/Uint32/Uint64/Pointer/Value non-test refs 8 — baseline (typed atomic counter 명시 채택) / F. select case default non-test refs 0 — sparse 의식적 (blocking select 위주, non-blocking pattern 미요구 — 사용자 결정 영역).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A signal 7 graceful baseline, B Shutdown 1 단일, C ctx.Value 7 적정, D timer.Stop 0 production 미사용, E typed atomic 8 baseline, F select default 0 결정 영역 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 319 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (318 OpenSpec/317 봇/316 동시성/315 에러/314 보안/313 정합) — cycle 313 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (CHECK/DEFAULT/NOT NULL/timestamptz/ON UPDATE/trigger) 측정: A. CHECK constraint refs 3 — sparse 의식적 (application validation 우선, DB CHECK 최소 — 사용자 결정 영역) / B. DEFAULT refs 43 — 풍부 baseline (DEFAULT 명시 적극) / C. NOT NULL refs 82 — 풍부 baseline (nullability 명시성 적극) / D. timestamptz 23 vs naive TIMESTAMP 0 — positive (timezone-aware 100% 일관) / E. ON UPDATE refs 0 — sparse 의식적 (PK UUID 불변, ON UPDATE 동작 N/A) / F. trigger/function refs 0 — sparse 의식적 (application logic 우선, DB trigger 미채택 — 사용자 결정 영역).
 이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A CHECK 3 결정 영역, B DEFAULT 43 풍부, C NOT NULL 82 풍부, D timestamptz 100% positive, E ON UPDATE 0 N/A, F trigger 0 결정 영역 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
