@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 266 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area cycle 260 이후 6 cycle 미방문 = 정합성 round 30 적격. 6 sub-surface 새 시각 측정: A. sql.NullX wrapper 148 — Go std nullable wrapper 의식적 baseline (sqlc generated null handling) / B. CHECK constraint 3 — DB level enum 제약 sparse 의식적 (status enum 류만 DB enforce) / C. json tag fields 241 — struct field json convention 풍부 baseline / D. updated_at trigger 7 — 의식적 시간 추적 baseline (변경 추적 필요 테이블만) / E. UUID PK 5 — 의식적 baseline (5 PK 테이블, gen_random_uuid() 패턴) / F. soft delete deleted_at 0 — hard delete 의식적 (anti-pattern L9 Go std 정합).
+이유: 6 sub-surface 모두 의식적 minimal 또는 정합 (A sqlc null wrapper 표준, B CHECK sparse 의식적, C json tag 풍부, D updated_at trigger 선별, E UUID PK 5 의식적, F hard delete 의식적 — L9 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area cycle 30 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 264 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 258 이후 6 cycle 미방문 = 봇 round 23 — 6 sub-surface 새 시각: URLScheduler prod 19 (Pioneer/Harvester scheduler 의존 분포) + Pioneer prod 84 (Pioneer 측 도메인 vocabulary) + Harvester prod 151 (Harvester heavy = post-fetch processing 책임 풍부 — 84:151 = 1:1.8 ratio) + bot domain .sql 0 (internal/bot 안 .sql 0 — db/queries/bot.sql 단일 외부 위치 의식적) + log statements bot prod 42 (bot 도메인 logging discipline 풍부) + metrics/Counter/Histogram/Gauge bot prod 8 (snapshot/ metrics.go 위주 sparse 의식적).
 이유: 6 sub-surface 모두 anti-pattern L9 봇 도메인 표준 (URLScheduler 계약 표준 + Pioneer/Harvester 2-tier 분리 + sqlc 단일 위치 + std log + metrics sparse) / cycle 216/222/258 covered / positive signal stable → 폐기. 후보 0건.
