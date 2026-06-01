@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 238 Discovery — 에러 처리 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 에러 처리 area cycle 232 이후 6 cycle 미방문 = 에러 처리 round 22 — 6 sub-surface 새 시각: pkg/errors stack-trace lib 1 (std errors 채택 — pkg/errors 미채택 의식적) + panic() prod 0 (panic-free baseline — positive signal) + context.Canceled/DeadlineExceeded 1 minimal (ctx cancel 시 wrap-and-propagate 위주 — 명시적 분기 minimal) + http.Error 11 (auth handler/middleware/ratelimit 전부 — OAuth callback/redirect plain-text 의식적 분리, writeError JSON envelope 158 sister 별도) + fmt.Println 1 (debug print 거의 없음 — positive signal) + `_ =` ignored return 70 (의도적 무시 패턴 — errcheck whitelist 추정).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + auth OAuth plain-text 의식적 분리 + std log/errors only) / positive signal stable (panic 0 + fmt.Println 1) / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 에러 처리 area cycle 100/107/115/122/127/132/146/152/162/168/174/180/184/192/198/204/210/214/220/226/232/238 22 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 235 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 229 이후 6 cycle 미방문 = 정합성 round 22 — 6 sub-surface 새 시각: TIMESTAMPTZ 23 (TIMESTAMP 23 = 100% TIMESTAMPTZ 정합 — naive timestamp 회피 positive signal) + ENUM 0 (Postgres ENUM 미채택 — application-layer enum + CHECK constraint 위임) + CHECK constraint 3 (minimal column-level invariant — 의식적) + UUID PK 5 (UUID primary key discipline 일관) + JSONB 4 (minimal JSONB usage — relational normalized 우선) + ARRAY 4 (minimal ARRAY column — junction table 우선).
 이유: 6 sub-surface 모두 anti-pattern L9 (Postgres 도메인 표준 + ERD 정합) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
