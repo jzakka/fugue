@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 248 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area cycle 242 이후 6 cycle 미방문 = 보안 round 19 — 6 sub-surface 새 시각: reflect/unsafe 0 (type-safe Go discipline — positive signal) + http.Server ReadTimeout/WriteTimeout/IdleTimeout 0 (cycle 203 covered — 의식적 minimal + ALB/Ingress timeout 위임 + Slowloris edge layer 책임) + TLS InsecureSkipVerify 0 (cert verify enforce — positive signal) + chi RealIP/X-Forwarded-For 3 (proxy chain handling minimal) + webhook signature 0 (webhook 미사용 baseline) + os.Getenv 27 (env loader — cycle 230 sister 23 grow 정합).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std type-safe + cert verify default + env loader 표준) / cycle 203 covered (server timeout edge layer 위임) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area cycle 99/108/127/151/158/170/176/182/188/194/200/206/212/218/224/230/236/242/248 19 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 244 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 238 이후 6 cycle 미방문 = 에러 처리 round 23 — 6 sub-surface 새 시각: sql.ErrNoRows 처리 21 (DB miss 변환 discipline — cycle 220 sister 24 정합) + ctx.Err/ctx.Done 28 (ctx propagation discipline — positive signal) + json.Decode/Unmarshal 15 (request body decode handler/service 일관 discipline) + sentinel Err 5 (cycle 220/226 sister 5 일관 sparse minimal) + recover() prod 0 (middleware.Recoverer 단일 위임 + cycle 232 prod+test 차이) + errors.As type assertion 12 (custom error type 풍부 — typed error discipline).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std error idiom + sql.ErrNoRows 표준 + ctx propagation 표준 + sentinel sparse + errors.As typed) / positive signal stable / 의식적 minimal baseline → 폐기. 후보 0건.
