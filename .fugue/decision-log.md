@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 323 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (322 동시성/321 에러/320 보안/319 정합/318 OpenSpec/317 봇) — cycle 317 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (User-Agent/dedup/Content-Type/Content-Length/playwright/adapter) 측정: A. User-Agent non-test refs in bot 19 — 풍부 baseline (UA 명시, bot identity 표시 적극) / B. dedup/visited/seen/inflight/singleflight non-test refs in bot 99 — 풍부 baseline (URL dedup 활성) / C. Content-Type/DetectContentType/mime non-test refs in bot 29 — baseline (content-type 식별 적극) / D. Content-Length/maxResponseSize/maxBytes non-test refs in bot 17 — baseline (size limit 명시) / E. playwright/chromium/headless/browser non-test refs in bot 26 — baseline (playwright headless 활용 적극) / F. adapter/Adapter/RegisterAdapter non-test refs in bot 60 — 풍부 baseline (adapter registry 일관 적극).
+이유: 6 sub-surface 모두 풍부 baseline 또는 baseline (A UA 19 풍부, B dedup 99 풍부, C content-type 29 baseline, D size-limit 17 baseline, E playwright 26 baseline, F adapter 60 풍부 — anti-pattern L9 Go std/L15 인프라 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 321 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (320 보안/319 정합/318 OpenSpec/317 봇/316 동시성/315 에러) — cycle 315 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (log.Fatal/ctx.Err/errors.Unwrap/log.SetFlags/defer-close-chan/err-string-convention) 측정: A. log.Fatal/Fatalln/Fatalf non-test refs 9 — baseline (cmd 초기화 실패 fatal 적정) / B. ctx.Err() non-test refs 21 — 풍부 baseline (context error 명시적 전파 적극) / C. errors.Unwrap explicit non-test refs 0 — sparse 의식적 (errors.Is/As 58 우선 채택, Unwrap 직접 호출은 unwrap chain 사용자 결정 회피) / D. log.SetFlags/SetOutput/SetPrefix non-test refs 0 — sparse 의식적 (std log default 채택, prefix/flag 변경 미요구 — 사용자 결정 영역) / E. defer close(ch) non-test refs 1 — sparse 의식적 (channel close = sender 책임 일관, defer pattern 한정) / F. errors.New("Uppercase…") 0 vs errors.New("lowercase…") 13 — positive (Go convention 100% 준수, 0/13 ratio).
 이유: 6 sub-surface 모두 baseline 또는 positive (A log.Fatal 9 cmd 초기화 적정, B ctx.Err 21 풍부, C errors.Unwrap 0 sparse 의식적, D log.Set* 0 결정 영역, E defer close(ch) 1 sender 책임 일관, F err-string 0/13 100% convention — anti-pattern L9 Go std 정합) → 후보 0건.
