@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 310 Discovery — 동시성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (309 에러/308 보안/307 정합/306 OpenSpec/305 봇/304 동시성) — cycle 304 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (mutex/chan-make/ctx-source/go-func/sync.Map/x/sync) 측정: A. `sync.Mutex`/`sync.RWMutex` 18 — baseline (lock 적정) / B. `make(chan ` 13 — baseline (채널 생성 적극) / C. `context.Background()` 232 vs `r.Context()` 140 — baseline (background는 cmd init+bot worker, r.Context는 HTTP handler 의식적 분리) / D. `go func()` 16 — baseline (goroutine 적정) / E. `sync.Map` 0 — sparse 의식적 (Mutex+map 우선, sync.Map 미채택 — 사용자 결정 영역) / F. semaphore/`x/sync` 0 — sparse 의식적 (rate limit 22로 충분, semaphore 미도입 — 사용자 결정 영역).
+이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A Mutex 18 적정, B chan 13 baseline, C ctx 232 vs 140 분리 baseline, D go func 16 적정, E sync.Map 0 사용자 결정, F semaphore 0 사용자 결정 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 동시성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 308 Discovery — 보안 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (307 정합/306 OpenSpec/305 봇/304 동시성/303 에러/302 보안) — cycle 302 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (SQL/password/JWT/rate-limit/CSRF/rand) 측정: A. SQL `$1/$2/$3` placeholder refs 348 — 풍부 baseline (sqlc parameterized query 일관 채택, SQL injection 회피) / B. password/bcrypt/argon2/scrypt non-test refs 0 — positive (OAuth-only auth, 자체 비번 미저장 의식적 결정) / C. JWT signing alg HS256/RS256 등 5 — baseline (alg 명시) / D. rate limit refs 22 — baseline (rate limit 적극, host limiter 등) / E. CSRF 1 — sparse 의식적 (Bearer JWT 채택 시 CSRF 자체가 N/A, 단일 참조는 인지 표시 — 사용자 결정 영역) / F. crypto/rand 3 vs math/rand 1 — baseline (보안 시드 crypto/rand 명시, 비보안 math/rand 적절 분리).
 이유: 6 sub-surface 모두 baseline 또는 positive (A 348 sqlc parameterized 풍부, B password 0 OAuth-only 결정, C JWT alg 5 baseline, D rate limit 22 baseline, E CSRF 1 Bearer 결정 영역, F rand 분리 baseline) → 후보 0건.
