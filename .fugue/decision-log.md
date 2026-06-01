@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 246 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 240 이후 6 cycle 미방문 = 봇 round 25 — 6 sub-surface 새 시각: URLScheduler 26 (cycle 228 sister 19 정합 — vocabulary 풍부) + Enqueue/Dequeue 119 (queue interface 풍부 — cycle 228 sister 38 grow) + bot test files 40 vs prod 47 (0.85 test:prod ratio — strong positive signal coverage) + bot prod files 47 (Pioneer/Harvester/Scheduler 도메인 분리) + json.RawMessage/metadata 8 (metadata 처리 minimal) + Pioneer depth limit 57 (crawl depth control 풍부).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std + 봇 도메인 표준) / positive signal stable (test:prod 0.85 + queue 119 + depth 57) / 의식적 baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area cycle 102/108/114/120/126/132/138/144/151/157/163/170/176/182/188/194/200/206/212/216/222/228/234/240/246 25 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 241 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 235 이후 6 cycle 미방문 = 정합성 round 23 — 6 sub-surface 새 시각: sqlc .sql 9 / generated .sql.go 9 (1:1 mapping discipline — positive signal) + migration up/down pair 26:26 (1:1 — every up has rollback discipline positive signal) + sqlc.yaml schema=db/migrations (single source of truth) + pgtype/sql.Null 148 (nullable type discipline 풍부) + json struct tag 241 (API DTO json tag discipline) + migration files 26 step (현재 schema 진화).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres migration 1:1 표준) / positive signal stable / 의식적 baseline → 폐기. 후보 0건.
