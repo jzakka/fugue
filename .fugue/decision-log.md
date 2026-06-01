@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 249 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 243 이후 6 cycle 미방문 = OpenSpec round 26 — 6 sub-surface 새 시각: specs total 3859 line (11 domain spec body 풍부 — bot 982/harvester 828/scheduler 814 dominant) + Requirement count 176 total (4+5+42+7+15+20+37+2+3+2+39 — bot/harvester/scheduler heavy) + SHALL clauses 252 total (50+7+22+5+66+6+6+6+65+17+2 — EARS discipline 풍부) + WHEN/IF heading-position 0 (inline EARS 위주 — heading 미채택 의식적) + Acceptance heading 0 (SHALL 본문 위주 — Acceptance section 미사용) + Scenario heading 11 (도메인 평균 1 — minimal).
+이유: 6 sub-surface 모두 anti-pattern L10 (OpenSpec authoring convention + EARS SHALL 표준 + inline 위주) / positive signal stable (252 SHALL + 176 Requirement) / 의식적 minimal baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area cycle 101/107/113/119/126/132/138/144/150/156/162/168/174/180/186/192/198/204/210/216/222/228/231/237/243/249 26 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 247 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 241 이후 6 cycle 미방문 = 정합성 round 24 — 6 sub-surface 새 시각: sqlc generated func 109 = `-- name:` 109 = :one/:many/:exec 109 (1:1:1 ratio — strong positive signal SSOT) + sqlc.arg/narg 32 (named parameter readability discipline) + RETURNING clause 13 (Postgres write+read single-round-trip 활용 positive signal) + COUNT(*) 6 (aggregate minimal — count surface 한정) + named query directive 109 (sqlc directive 표준 일관) + query type classification 109 (every query 분류 명시 discipline).
 이유: 6 sub-surface 모두 anti-pattern L9 (sqlc 도메인 표준 + Postgres RETURNING) / positive signal stable (109:109:109 1:1:1) / 의식적 baseline → 폐기. 후보 0건.
