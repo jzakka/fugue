@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 254 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area cycle 247 이후 6 cycle 미방문 = 정합성 round 25 — 6 sub-surface 새 시각: ERD docs/erd.md UUID 컬럼 mention 13 (UUID PK/FK SSOT 일관 baseline) + Go uuid.UUID/pgtype.UUID type site 50 file (UUID type 분포 풍부 positive signal) + timestamp/timestamptz column 23 (UTC tz 표준 일관 — Postgres timestamptz default) + UNIQUE constraint 12 (uniqueness invariant 분포 의식적) + FK REFERENCES/FOREIGN KEY 16 (FK 정의 분포 — cycle 28 align_pin_tags_tag_id_cascade migration 정합) + CREATE INDEX 25 (인덱스 분포 풍부 — query 성능 의식적).
+이유: 6 sub-surface 모두 anti-pattern L9 (sqlc + Postgres + UUID + timestamptz + FK + INDEX 도메인 표준) / positive signal stable (UUID 50 + INDEX 25 + FK 16) / 의식적 baseline → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area cycle 100/106/112/118/125/131/142/149/155/161/167/173/179/185/191/197/203/209/217/223/229/235/241/247/254 25 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 252 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 246 이후 6 cycle 미방문 = 봇 round 21 — 6 sub-surface 새 시각: internal/bot/ root .go 35+ + crawler/cmd/snapshot 3 sub-package (cycle 222 sister consumer-pipeline-fetcher 3-tier file 분포 정합) + Enqueue/Dequeue site 23 (URLScheduler 계약 사용 stable — cycle 215 sister) + retry/backoff distribution 3 file harvester_consumer/robots_filter/pioneer_consumer (cycle 222 sister 92 retry/backoff vocabulary 분포 정합) + idempotency/ON CONFLICT site 30 (DB write idempotency discipline 풍부 positive signal) + crawler/ sub-package 5 component bfs_crawler/http_fetcher/link_extractor/file_fetcher/url_utils (Pioneer 측 책임 분리 baseline) + ctx.Done/ctx.Err 15 (cycle 215 sister ctx propagation 정합).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std 봇 idiom + URLScheduler 계약 표준 + sub-package 책임 분리) / positive signal stable (idempotency 30 + Enqueue/Dequeue 23) / cycle 215/216/222 covered → 폐기. 후보 0건.
