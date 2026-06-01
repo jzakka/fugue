@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 296 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (295 정합/294 OpenSpec/293 봇/292 동시성/291 에러/290 보안) — cycle 290 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (HTTP middleware/transport) 측정: A. CORS — cmd/server/main.go의 go-chi/cors middleware 1건 (internal/ 0건은 entrypoint 집중) — baseline 의식적 / B. CSRF refs 1 — sparse 의식적 (JWT Bearer + cookie 미사용 → CSRF 면역, positive signal) / C. rate limit middleware refs 116 — 풍부 baseline (rate limit 적극 적용) / D. MaxBytes body limit 75 — 풍부 baseline (body size 명시적 제한) / E. TLS/HTTPS 641 — baseline (전송 계층 보안 명시, 단순 match 잡음 포함) / F. X-Forwarded-For/RealIP 2 — sparse 의식적 (chi RealIP middleware 단일).
+이유: 6 sub-surface 모두 baseline 또는 positive signal (A CORS entrypoint 집중, B CSRF JWT positive 면역, C rate limit 116 풍부, D MaxBytes 75 풍부, E TLS 명시, F RealIP 단일 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 291 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area 직전 6 system cycle 미방문 (290 보안/289 정합/288 OpenSpec/287 봇/286 동시성/285 에러) — cycle 285 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (panic/wrap/discard) 측정: A. panic() 1 — sparse 의식적 (panic 회피 일관) / B. recover() 6 — baseline (HTTP middleware 보호망) / C. errors.Is/As/Unwrap/Join 58 — 풍부 baseline (sentinel 비교 일관) / D. fmt.Errorf %w wrap 154 — 풍부 baseline (에러 체인 명시 적극) / E. errors.New 60 — baseline (inline 적정) / F. `_ =` discard 145 — 의식적 명시 (Go std 패턴 정합, close 등).
 이유: 6 sub-surface 모두 baseline 또는 positive signal (A panic 1 sparse 회피, B recover middleware 보호, C errors.Is 58 풍부, D %w wrap 154 풍부 체인, E errors.New 60 적정, F `_ =` 의식적 명시 — anti-pattern L9 Go std 정합) → 후보 0건.
