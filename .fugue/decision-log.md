@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 308 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area 직전 6 system cycle 미방문 (307 정합/306 OpenSpec/305 봇/304 동시성/303 에러/302 보안) — cycle 302 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (SQL/password/JWT/rate-limit/CSRF/rand) 측정: A. SQL `$1/$2/$3` placeholder refs 348 — 풍부 baseline (sqlc parameterized query 일관 채택, SQL injection 회피) / B. password/bcrypt/argon2/scrypt non-test refs 0 — positive (OAuth-only auth, 자체 비번 미저장 의식적 결정) / C. JWT signing alg HS256/RS256 등 5 — baseline (alg 명시) / D. rate limit refs 22 — baseline (rate limit 적극, host limiter 등) / E. CSRF 1 — sparse 의식적 (Bearer JWT 채택 시 CSRF 자체가 N/A, 단일 참조는 인지 표시 — 사용자 결정 영역) / F. crypto/rand 3 vs math/rand 1 — baseline (보안 시드 crypto/rand 명시, 비보안 math/rand 적절 분리).
+이유: 6 sub-surface 모두 baseline 또는 positive (A 348 sqlc parameterized 풍부, B password 0 OAuth-only 결정, C JWT alg 5 baseline, D rate limit 22 baseline, E CSRF 1 Bearer 결정 영역, F rand 분리 baseline) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 305 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area 직전 6 system cycle 미방문 (304 동시성/303 에러/302 보안/301 정합/300 OpenSpec/299 봇) — cycle 299 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (sources/scheduler/snapshot/retry/goja/robots) 측정: A. `internal/bot/sources/` 디렉터리 부재 — sparse 의식적 (Harvester 도메인별 script 미구현 baseline, README L Harvester 가이드는 도메인 추가 시점에 생성) / B. Enqueue/Dequeue refs 121 — 풍부 baseline (URLScheduler producer/consumer 활성) / C. `snapshot.` refs 46 — baseline (HTML snapshot 적극) / D. retry/backoff refs 63 — 풍부 baseline (retry 적극) / E. `goja.` refs 35 — baseline (JS runtime 활성, harvester script eval) / F. `robots.` refs 22 — baseline (robots.txt 필터 활성).
 이유: 6 sub-surface 모두 baseline 또는 positive sparse (A sources 부재 = 도메인 script propose 영역 안티-패턴 L15 정합, B 121 풍부 scheduler, C 46 snapshot baseline, D 63 retry 풍부, E 35 goja baseline, F 22 robots baseline) → 후보 0건.
