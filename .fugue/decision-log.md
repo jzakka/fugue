@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 281 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 275 이후 6 cycle 미방문 = OpenSpec 갭 round 31 적격. 6 sub-surface 새 시각 (spec sizing/archive history) 측정: A. auth spec.md 102 lines — 소규모 도메인 명세 baseline / B. bot spec.md 982 lines — 큰 명세 (Pioneer/Harvester 복합 + EARS 풍부) / C. archive 2026-05 batch 63 — 5월 활발 (avg 2/일) / D. archive 2026-04 batch 55 — 4월 활발 (archive 118 = 63+55 두 달치 = 2개월간 100% 활동) / E. README/AGENTS in changes 0 — 표준 트리(proposal/design/tasks)만 의식적 / F. archive 5th token 분포 — pin 7/trim 4/pioneer 4/link 4/snapshot 3 (pin 도메인 최다 + harvester 표면 trim/link/snapshot 활발).
+이유: 6 sub-surface 모두 OpenSpec 활동 patterns 의식적 baseline (A auth 소규모, B bot 982 복합, C/D 5월/4월 활발 — 100% 2개월 활동, E README 미채택 표준 트리, F pin/harvester 키워드 우세 — anti-pattern L10 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area 31 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 278 Discovery — 정합성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 정합성 area cycle 272 이후 6 cycle 미방문 = 정합성 round 32 적격. 6 sub-surface 새 시각 (sqlc/constraint) 측정: A. queries .sql files 9 — 9 도메인 1:1 매핑 정합 (cycle 272 sqlc .sql.go 9 정합) / B. sqlc directive `-- name:` 109 — 풍부 baseline (avg 12 query/domain) / C. sqlc.yaml v2 — 최신 채택 baseline / D. CASCADE 15 — 풍부 baseline (FK 17 중 15 cascade = 88%, relation 의식적) / E. UNIQUE 11 — 의식적 baseline (uniqueness 명확) / F. JSONB 5 — sparse 의식적 (구조화 어려운 metadata만, schema 우선).
 이유: 6 sub-surface 모두 의식적 baseline 또는 positive signal (A 9:9 1:1 매핑 — positive, B 109 query 풍부, C sqlc v2 최신, D CASCADE 88% relation 의식적, E UNIQUE 의식적, F JSONB sparse schema 우선 — anti-pattern L9 정합) → 후보 0건.
