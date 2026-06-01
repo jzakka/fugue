@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 255 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. OpenSpec 갭 area cycle 249 이후 6 cycle 미방문 = OpenSpec round 27 — 6 sub-surface 새 시각: openspec/changes/ in-progress 3 (fix-harvester-adapter-fallback-counter + fix-harvester-wire-media-validator + fix-scheduler-host-rate-limiter-config-wiring + archive/) + openspec/specs/ domain 11 (auth/board/bot/feed/harvester/interaction/pin/pioneer/profile/ratelimit/scheduler — cycle 249 sister 정합) + spec body line bot 982/harvester 828/scheduler 814 dominant + pin 426/pioneer 303 mid + auth 102/board 131/feed 92/ratelimit 67/profile 66/interaction 48 light (cycle 249 sister 3859 total 정합) + MUST/SHOULD/MAY RFC 2119 keyword 3 total (bot 3, 그 외 0 — RFC 2119 미채택 EARS SHALL 위주 의식적) + ## section heading bot 221/harvester 187/scheduler 173/pin 101/pioneer 70/board 31/auth 23/feed 21/profile 15/ratelimit 13/interaction 12 (section 풍부 분포 — heading discipline) + proposal/design/tasks trio file 330 (changes + archive 풍부 baseline).
+이유: 6 sub-surface 모두 anti-pattern L10 (OpenSpec authoring convention + EARS SHALL 위주 + RFC 2119 미채택 의식적) / cycle 249 covered / positive signal stable → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. OpenSpec 갭 area cycle 101/107/113/119/126/132/138/144/150/156/162/168/174/180/186/192/198/204/210/216/222/228/231/237/243/249/255 27 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 252 Discovery — 봇 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 봇 area cycle 246 이후 6 cycle 미방문 = 봇 round 21 — 6 sub-surface 새 시각: internal/bot/ root .go 35+ + crawler/cmd/snapshot 3 sub-package (cycle 222 sister consumer-pipeline-fetcher 3-tier file 분포 정합) + Enqueue/Dequeue site 23 (URLScheduler 계약 사용 stable — cycle 215 sister) + retry/backoff distribution 3 file harvester_consumer/robots_filter/pioneer_consumer (cycle 222 sister 92 retry/backoff vocabulary 분포 정합) + idempotency/ON CONFLICT site 30 (DB write idempotency discipline 풍부 positive signal) + crawler/ sub-package 5 component bfs_crawler/http_fetcher/link_extractor/file_fetcher/url_utils (Pioneer 측 책임 분리 baseline) + ctx.Done/ctx.Err 15 (cycle 215 sister ctx propagation 정합).
 이유: 6 sub-surface 모두 anti-pattern L9 (Go std 봇 idiom + URLScheduler 계약 표준 + sub-package 책임 분리) / positive signal stable (idempotency 30 + Enqueue/Dequeue 23) / cycle 215/216/222 covered → 폐기. 후보 0건.
