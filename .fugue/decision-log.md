@@ -17,6 +17,10 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 327 Discovery — 반응형 17th round 12 sub-surface 폐기
+결정/변경: backlog append 없음. 직전 4 effective = 326(미학) + 325(상태) + 324(접근성) + 323(토큰) → 미방문 = 반응형 17th round (cycle 322 baseline 으로부터 5-cycle 간격). 12 sub-surface 새 시각: A. breakpoint 분포 sm: 26 dominant + md: 2 + lg/xl/2xl: 0 (DESIGN.md L70 sm 500/md 800/lg 1200 — sm 단일 우세 mobile-first + anti-pattern L20 23×3=69 회귀 인지 정합) + B. position utility 4종 = absolute 12 + relative 7 + fixed 3 + sticky 1 (static/transform-stacking 0) + C. inset-0 6 only (inset-x-/y-/auto 0 — 4-side single tier) + D. min-h-/max-h-/min-w-/max-w- 3/8/10/10 (max 우세 - min 보수적) + E. gap-x-/gap-y- 축 분리 0 (gap 통합 단일 표준 — cycle 322 gap-2/3/4 26/17/13) + F. divide-x/divide-y 0 (anti-pattern L16 Tailwind 기본 미채택) + G. items-center 61 dominant + start 3 + end 1 (baseline/stretch 0 — center 단일 우세) + H. justify-center 32 + between 8 + end 3 (start/around/evenly 0 — center 우세) + I. justify-items/justify-self 0 (grid auto-placement 단일) + J. place-* 0 (place-items/content/self 미채택) + K. mx-auto 8 (my-auto/m-auto 0 — 가로 센터링 단일 표준) + L. container utility 0 (Tailwind container plugin 미채택, 직접 max-w-* 사용).
+이유: 12 sub-surface 모두 anti-pattern L16/L20 Tailwind 기본 정합 + DESIGN.md L70 mobile-first + sm 단일 우세 + center 단일 우세 + max 우세 + 4-side single tier / cycle 312/317/322 baseline 외 12 new view 모두 의식적 minimal 또는 정합 → 폐기. 후보 0건.
+
 ## 2026-06-01 — [system] cycle 269 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 263 이후 6 cycle 미방문 = OpenSpec 갭 round 29 적격. 6 sub-surface 새 시각 측정: A. archive changes 118 — 활발한 변경 history 풍부 baseline / B. in-progress changes 3 — 동시 작업 sparse 의식적 / C. specs total 11 — 도메인 분리 baseline (auth/board/bot 등) / D. EARS SHALL/MUST 252 — 명세 정밀도 풍부 baseline / E. proposal.md 3 — in-progress 1:1 매핑 정합 / F. design.md 3 — in-progress 1:1 매핑 정합 (OpenSpec authoring convention L10).
 이유: 6 sub-surface 모두 OpenSpec authoring convention 정합 (A archive 풍부, B in-progress sparse, C specs 도메인 분리, D EARS 풍부, E-F proposal/design 1:1 매핑 — anti-pattern L10 정합) → 후보 0건.
