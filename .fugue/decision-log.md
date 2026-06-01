@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 277 Discovery — 보안 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 보안 area cycle 271 이후 6 cycle 미방문 = 보안 round 20 적격. 6 sub-surface 새 시각 (upload/auth) 측정: A. multipart upload (multipart./MultipartReader/ParseMultipartForm/FormFile) 4 — upload 표면 sparse 의식적 (pin/creator/board avatar) / B. file size limit (MaxBytesReader/LimitReader/MaxMemory) 29 — 풍부 baseline (size enforcement) / C. JWT verify (jwt.Parse/ParseWithClaims/SigningMethod) 4 — sparse 의식적 (auth middleware 단일 위치) / D. Authorization Bearer (Authorization header/Bearer prefix) 5 — sparse 의식적 (middleware 통합) / E. CORS AllowOrigins 1 — 단일 정의 의식적 (chi middleware) / F. CSRF/SameSite 3 — SameSite cookie 의식적 baseline.
+이유: 6 sub-surface 모두 의식적 sparse 또는 풍부 baseline (A upload sparse, B size limit 풍부, C JWT middleware 단일, D Bearer middleware 통합, E CORS 단일, F SameSite 의식적 — anti-pattern L9/L15 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 보안 area 20 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 273 Discovery — 에러 처리 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 에러 처리 area cycle 267 이후 6 cycle 미방문 = 에러 처리 round 31 적격. 6 sub-surface 새 시각 측정: A. fmt.Errorf %w wrap 173 — error wrap 풍부 baseline (Go std error chain 정합) / B. errors.Is/As 20 — sentinel/typed error 검사 baseline / C. sql.ErrNoRows handle 21 — 404 변환 의식적 (direct equality) / D. writeError envelope 158 — JSON 응답 일관 baseline / E. http.Error std 11 — 단순 case 의식적 (writeError 158:11 ≈ 14:1 우세, 일관성 정합) / F. log error level 91 — 풍부 baseline.
 이유: 6 sub-surface 모두 positive signal 또는 의식적 baseline (A %w 풍부, B errors.Is/As baseline, C sql.ErrNoRows 변환 의식적, D writeError 158 일관 — positive, E http.Error sparse — writeError 우세, F log error 91 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
