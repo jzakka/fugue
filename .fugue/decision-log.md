@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 252 Discovery — 봇 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 봇 area cycle 246 이후 6 cycle 미방문 = 봇 round 21 — 6 sub-surface 새 시각: internal/bot/ root .go 35+ + crawler/cmd/snapshot 3 sub-package (cycle 222 sister consumer-pipeline-fetcher 3-tier file 분포 정합) + Enqueue/Dequeue site 23 (URLScheduler 계약 사용 stable — cycle 215 sister) + retry/backoff distribution 3 file harvester_consumer/robots_filter/pioneer_consumer (cycle 222 sister 92 retry/backoff vocabulary 분포 정합) + idempotency/ON CONFLICT site 30 (DB write idempotency discipline 풍부 positive signal) + crawler/ sub-package 5 component bfs_crawler/http_fetcher/link_extractor/file_fetcher/url_utils (Pioneer 측 책임 분리 baseline) + ctx.Done/ctx.Err 15 (cycle 215 sister ctx propagation 정합).
+이유: 6 sub-surface 모두 anti-pattern L9 (Go std 봇 idiom + URLScheduler 계약 표준 + sub-package 책임 분리) / positive signal stable (idempotency 30 + Enqueue/Dequeue 23) / cycle 215/216/222 covered → 폐기. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 봇 area cycle 102/111/119/132/147/156/166/174/180/186/192/198/204/210/216/222/228/234/240/246/252 21 round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 249 Discovery — OpenSpec 갭 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. OpenSpec 갭 area cycle 243 이후 6 cycle 미방문 = OpenSpec round 26 — 6 sub-surface 새 시각: specs total 3859 line (11 domain spec body 풍부 — bot 982/harvester 828/scheduler 814 dominant) + Requirement count 176 total (4+5+42+7+15+20+37+2+3+2+39 — bot/harvester/scheduler heavy) + SHALL clauses 252 total (50+7+22+5+66+6+6+6+65+17+2 — EARS discipline 풍부) + WHEN/IF heading-position 0 (inline EARS 위주 — heading 미채택 의식적) + Acceptance heading 0 (SHALL 본문 위주 — Acceptance section 미사용) + Scenario heading 11 (도메인 평균 1 — minimal).
 이유: 6 sub-surface 모두 anti-pattern L10 (OpenSpec authoring convention + EARS SHALL 표준 + inline 위주) / positive signal stable (252 SHALL + 176 Requirement) / 의식적 minimal baseline → 폐기. 후보 0건.
