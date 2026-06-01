@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-01 — [system] cycle 313 Discovery — 정합성 area 6 sub-surface 폐기
+결정/변경: backlog append 없음. 정합성 area 직전 6 system cycle 미방문 (312 OpenSpec/311 봇/310 동시성/309 에러/308 보안/307 정합) — cycle 307 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (INDEX/ALTER/timezone/sqlc-coverage/UUID-default/comment-density) 측정: A. CREATE INDEX 25 — 풍부 baseline (인덱스 적극) / B. ALTER TABLE 20 / 26 migrations = 77% — baseline (점진적 schema 진화) / C. TIMESTAMPTZ 23 vs naive TIMESTAMP 0 — positive 100% (모든 시간 컬럼 timezone-aware) / D. db/queries/*.sql 9 vs internal/*.sql.go 9 = 1:1 — positive (sqlc 모든 쿼리 generate 완전 매칭) / E. DEFAULT gen_random_uuid 11 — baseline (UUID PK 11개 server-side 생성) / F. SQL `-- ` comment lines 31 — 풍부 baseline (마이그레이션 의도 문서화 적극).
+이유: 6 sub-surface 모두 baseline 또는 positive (A INDEX 25 풍부, B ALTER 77% 점진적 진화, C TIMESTAMPTZ 100% positive timezone-aware, D sqlc 9:9 1:1 positive, E UUID default 11 baseline, F comment 31 풍부 — anti-pattern L9 Go std 정합) → 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry. 정합성 area round 누적 baseline.
+
 ## 2026-06-01 — [system] cycle 310 Discovery — 동시성 area 6 sub-surface 폐기
 결정/변경: backlog append 없음. 동시성 area 직전 6 system cycle 미방문 (309 에러/308 보안/307 정합/306 OpenSpec/305 봇/304 동시성) — cycle 304 = 6th 가장 최근으로 회전 적격. 6 sub-surface 새 시각 (mutex/chan-make/ctx-source/go-func/sync.Map/x/sync) 측정: A. `sync.Mutex`/`sync.RWMutex` 18 — baseline (lock 적정) / B. `make(chan ` 13 — baseline (채널 생성 적극) / C. `context.Background()` 232 vs `r.Context()` 140 — baseline (background는 cmd init+bot worker, r.Context는 HTTP handler 의식적 분리) / D. `go func()` 16 — baseline (goroutine 적정) / E. `sync.Map` 0 — sparse 의식적 (Mutex+map 우선, sync.Map 미채택 — 사용자 결정 영역) / F. semaphore/`x/sync` 0 — sparse 의식적 (rate limit 22로 충분, semaphore 미도입 — 사용자 결정 영역).
 이유: 6 sub-surface 모두 baseline 또는 의식적 sparse (A Mutex 18 적정, B chan 13 baseline, C ctx 232 vs 140 분리 baseline, D go func 16 적정, E sync.Map 0 사용자 결정, F semaphore 0 사용자 결정 — anti-pattern L9 Go std 정합) → 후보 0건.
