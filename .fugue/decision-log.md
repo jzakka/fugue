@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 562 Discovery — tokens area 33rd round custom-text-size-token-usage 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area 4차 로테이션을 자매 회피 신규 축 custom-text-size-token-usage로 측정 — globals.css L58-59가 Tailwind 기본 외로 추가 정의한 유일한 커스텀 타이포 토큰 `--text-2xs`(0.6875rem/11px)·`--text-3xs`(0.625rem/10px, DESIGN.md L34-35 정합)이 토큰 유틸로 채택되는지, 아니면 raw px/rem로 우회되는지.
+  이유: `apps/web/src` 전수 측정 — text-2xs 3곳·text-3xs 5곳 전부 토큰 유틸로 사용. raw bracket 타이포 크기(`text-[10px]`/`text-[11px]`/`text-[Nrem]` 등) 0건, 임의 bracket 타이포 크기 전체 0건, 인라인 `fontSize` 스타일 0건. 가장 작은 텍스트 컨텍스트가 전부 토큰 경유 → 우회 없는 완전 채택. font-size-scale-integrity(517)는 스케일 무결성, 본 축은 커스텀 토큰의 채택/우회 여부로 자매 구분. 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 tokens round는 custom-text-size-token-usage 축 재선택 금지(자매 회피). 다음 사이클(563)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 561 Discovery — states area 40th round disabled-state-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 disabled-state-treatment로 측정 — 비활성화 가능 컨트롤(disabled={...})이 일관된 disabled: 시각 처리(opacity·cursor)를 갖는지.
