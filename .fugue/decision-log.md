@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 560 Discovery — aesthetic area 38th round letter-spacing-tracking-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 letter-spacing-tracking-treatment로 측정 — tracking(letter-spacing) 유틸이 DESIGN.md L17 Display/Hero 타이포 역할(tracking-tight)에 정합하게, 일관된 값으로 적용되는지.
+  이유: `apps/web/src` 전수 측정 — tracking 유틸은 `tracking-tight` 단일 값 16곳뿐(tighter/normal/wide/wider/widest·bracket 임의값 0). 16곳 전부 h1/h2 제목 요소이며 `font-bold font-display`와 동반 → DESIGN.md L17 Display 역할(General Sans 700 / Pretendard Bold)에 묶인 일관된 제목 처리. 표본 검증(SearchClient L232/L304, BoardGrid L14, login L44, ProfileEditForm L53, AddToBoardButton L249) 전부 font-display 헤딩. body/UI/data 텍스트에 tracking 적용된 사례 0 → 오용 없음. 단일 값·역할 결속·미오용 → 후보 0건. (어느 헤딩에 tracking-tight가 빠졌는지는 DESIGN.md가 전 헤딩 강제를 명시하지 않으므로 결함화 시 추론, 자체 리뷰 #2.)
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 aesthetic round는 letter-spacing-tracking-treatment 축 재선택 금지(자매 회피). 다음 사이클(561)은 states area.
+
 ## 2026-06-04 — [design] cycle 559 Discovery — responsive area 35th round responsive-layout-direction 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-layout-direction으로 측정 — flex-direction이 브레이크포인트별로 전환되는(flex-col → sm:flex-row) 모바일 우선 레이아웃 패턴의 정합·일관성.
