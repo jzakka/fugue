@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 605 Discovery — aesthetic area 47th round monospace-numeric-metadata-role-conformance 표면 폐기
+결정/변경: 없음. DESIGN.md L20 'Data/Tags: Geist Mono — 태그·메타데이터·수치' 적합성 측정. font-mono 사용 12파일 전수 점검: pin_count(ProfileHeader L48·BoardGrid L29·MyPageClient L155·boards/[id] L65), 태그 칩(TagFilter L64·SearchClient L272·PinCard L198·pins/[id] L152·PinCreateForm L556/L620), 미디어 배지·시간(VideoTrimModal fmt·PinCreateForm L413/417/423) 모두 font-mono 적용 → 수치/태그/메타데이터에 일관 적용. body/heading prose로의 mono 누수 없음(헤딩은 font-display, 본문은 Pretendard 유지). 위반·분기 0건.
+이유: DESIGN.md L20 명시 규칙에 코드가 전수 합치. uppercase/lowercase/capitalize 사용 0건이라 text-transform 축은 부재. font-family-role-deployment(광의 triad)와 구별되는 수치-mono 적합성 narrow sister. backdrop-blur(46th)/letter-spacing(45th)/accent-restraint(44th)와도 구별.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 수치·태그·메타데이터 렌더 12파일. 다음 사이클 606 = states area.
+
 ## 2026-06-04 — [design] cycle 604 Discovery — responsive area 46th round responsive-padding-progression-consistency 표면 폐기
 결정/변경: 없음. 반응형 패딩 진행(breakpoint별 px/py 스케일 변화) 일관성 측정. 반응형 패딩 modifier는 `sm:p-8` 5건뿐이며 전부 동일 스텝(상충 진행 0건), 페이지 거터는 고정 `px-6` 사용. 반응형 prefix 분포는 sm: 26·md: 2·lg: 0으로 sm 중심. 분기 없음, 후보 0건.
 이유: DESIGN.md L70은 breakpoint(sm500/md800/lg1200)를 정의하나 거터/패딩의 breakpoint별 확대를 의무화하지 않으며, L11 'Minimal — 타이포그래피와 여백이 모든 걸 한다'가 고정 여백 기조와 합치. 반응형 패딩이 쓰인 곳은 단일 스텝으로 일관해 정렬 대상 부재. horizontal-scroll-affordance(45th)/viewport-overflow-fixed-width(44th)/responsive-container-max-width(39th)와 구별되는 sister 축.
