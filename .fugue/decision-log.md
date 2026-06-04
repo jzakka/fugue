@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 553 Discovery — a11y area 35th round icon-button-accessible-name 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 icon-button-accessible-name로 측정 — 아이콘 전용 버튼이 접근가능한 이름(aria-label/sr-only/가시 텍스트)을 갖는지.
+  이유: `apps/web/src` `<button>` 43개·`aria-label` 35개. svg를 품은 버튼을 awk로 묶어 검사 → 3개(AddToBoardButton L41·L400, SearchBar L192)가 aria-label 없음으로 1차 플래그되었으나 전부 false positive: L41은 `<BoardIcon/>` + "보드에 추가" 가시 텍스트, L400은 aria-hidden svg + "새 보드 만들기" 텍스트, L192는 aria-hidden 히스토리 아이콘 + 검색어 `{q}` 텍스트 — 모두 가시 텍스트가 접근가능 이름 제공(svg는 aria-hidden 장식). 진짜 아이콘 전용 버튼은 aria-label 보유(35개의 출처). 멀티라인 JSX same-line grep 트랩을 직접 read로 확인. 명시 위반 0(a11y area 구조적 무스펙) → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 a11y round는 icon-button-accessible-name 축 재선택 금지(자매 회피). DESIGN.md/AGENTS.md a11y 명세 부재 지속 시 a11y area 후보화 구조적 불가. 다음 사이클(554)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 552 Discovery — tokens area 31st round radius-token-value-integrity 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 radius-token-value-integrity로 측정 — radius 값이 DESIGN.md L73-77 스케일(sm 6px / md 10px / lg 16px / full)에 정합하는지(값 자체의 무결성).
