@@ -144,6 +144,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 510 Discovery — 정합성 area DB nullable 컬럼 → JSON 응답 직렬화 정합 표면 (후보 1건)
+
+  결정/변경: backlog 후보 1건 append(system-20260604-auth-me-nullstring-empty-vs-null-serialization-divergence, score 8.0, pending). last-6 system Discovery survey(506 보안 / 502 봇 / 500 OpenSpec갭 / 498 에러처리 / 496 동시성 / 494 정합성) 중 정합성이 oldest(494) → 정합성 차례. sister 회피: 494 외래키/JOIN / 482 쓰기쿼리 컬럼집합↔마이그레이션 / 468 DB컬럼 도메인↔입력검증 parity / 456 CHECK·enum·nullable 와 분리한 "DB nullable 컬럼 → Go sql.Null* → JSON 응답 직렬화 정합(출력 매핑 충실도)" 신규 축. 향후 정합성 라운드 이 축 재선택 금지.
+  이유: 코드베이스 정전 출력 매핑은 nullable 컬럼을 `if .Valid { p=&x.String }` 가드 후 *T→JSON null 로 노출(creator/dto.go·pin/dto.go 7곳·boards·feed 30+ site, tag DisplayOrder 도 가드). 유일 이탈: auth/handler.go Me(GET /api/auth/me, JWT) 가 avatar_url(:223)·email(:224) 을 creator.AvatarUrl.String·creator.Email.String 로 .Valid 검사 없이 직접 직렬화 → NULL 컬럼이 ""(빈 문자열)로 노출. 동일 Creator 를 반환하는 GET /api/creators/me(toPrivateDTO)는 같은 필드를 null 로 반환 → 두 JWT 프로필 엔드포인트에서 같은 필드가 ""vs null 발산(null/absent 의미 소실). confidence 4(재현 가능 + 코드베이스 정전 패턴 이탈, 단 auth/me 응답 null 표현을 강제하는 SHALL 스펙 라인은 없음 — auth spec 은 INSERT 절단만 명시).
+  QA: N/A — Discovery 모드, 코드 변경 0건. (처리 시 qa_plan: NULL 필드 Creator JWT 로 /api/auth/me·/api/creators/me 응답 avatar_url·email 동일 null 수렴 확인.)
+  영향 범위: `.fugue/backlog-system.yaml`(+후보 1건)·`.fugue/decision-log.md` 기록만. 코드 무변경. 다음 사이클(512)은 동시성 area(496이 다음 oldest).
+
 ## 2026-06-04 — [reject] cycle 508 — JSON request body cap 후보 false positive 폐기(stale 부모 체크아웃 grep 오인)
 
   결정/변경: cycle 506 이 등록한 system-20260604-json-request-body-size-cap-missing 를 backlog 에서 rejected 로 폐기. 코드 변경 없음. 처리(수정안 적용)하지 않음.

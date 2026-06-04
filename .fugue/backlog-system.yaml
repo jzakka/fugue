@@ -6504,3 +6504,70 @@ items:
       684 커밋 stale 부모 체크아웃(/Users/ivanchung/fugue, local main db2fc40)을 grep 한
       결과였다. 발견 모드 조사를 워크트리(origin/main) 베이스가 아닌 부모 경로로 수행해
       이미 구현된 기능을 갭으로 오인한 사례 — anti-patterns.md cycle 508 항목 참조. 코드 변경 없음.
+
+  - id: system-20260604-auth-me-nullstring-empty-vs-null-serialization-divergence
+    title: "GET /api/auth/me 가 avatar_url·email 을 sql.NullString.String 으로 .Valid 가드 없이 직접 직렬화 → NULL 컬럼이 빈 문자열(\"\")로 노출. 동일 Creator 를 반환하는 GET /api/creators/me(toPrivateDTO) 및 코드베이스 전 DTO 의 정전 패턴(*string→null)과 발산"
+    area: consistency
+    evidence:
+      files:
+        - apps/api/internal/auth/handler.go:223   # "avatar_url": creator.AvatarUrl.String (가드 없음)
+        - apps/api/internal/auth/handler.go:224   # "email": creator.Email.String (가드 없음)
+        - apps/api/internal/creator/dto.go:76      # toPrivateDTO: avatar_url·email 을 *string→null 로 직렬화
+        - apps/api/internal/creator/dto.go:55      # toPublicDTO: avatar_url *string→null
+        - apps/api/internal/pin/dto.go:58          # 코드베이스 정전 패턴 if .Valid { &.String } (pin 7곳)
+        - apps/api/internal/boards/handler.go:662  # 동일 패턴 (boards)
+        - apps/api/internal/feed/handler.go:386    # 동일 패턴 (feed)
+        - apps/api/internal/db/models.go:95        # Creator.AvatarUrl sql.NullString
+        - apps/api/internal/db/models.go:98        # Creator.Email sql.NullString
+        - apps/api/cmd/server/main.go:191          # GET /api/auth/me 라우트 (JWT)
+        - apps/api/cmd/server/main.go:159          # GET /api/creators/me 라우트 (JWT)
+      cite: |
+        정합성 area, sister-axis 회피: 494 외래키/JOIN 관계 / 482 쓰기쿼리 컬럼집합↔마이그레이션
+        제약 / 468 DB컬럼 도메인경계↔핸들러 입력검증 parity / 456 CHECK·enum·nullable 과 분리한
+        "DB nullable 컬럼 → Go sql.Null* → JSON 응답 직렬화 정합(출력 매핑 충실도)" 축.
+
+        근거:
+        1. Creator.AvatarUrl·Creator.Email 은 sql.NullString(models.go:95,98). 코드베이스의
+           정전(canonical) 출력 매핑은 nullable 컬럼을 `*T` 포인터로 변환해 NULL→JSON null 로
+           노출하는 것이다: creator/dto.go toPrivateDTO(:76)·toPublicDTO(:55), pin/dto.go 7개
+           매퍼 전부, boards/handler.go toBoardPinResponse(:662)·toBoardResponse(:733),
+           feed/handler.go(:386,:426) — 모두 `if x.Valid { p = &x.String }` 가드 후 *string 필드.
+           tag/handler.go:83 도 `if t.DisplayOrder.Valid` 가드 보유.
+        2. 유일한 이탈: auth/handler.go Me(GET /api/auth/me, main.go:191 JWT 보호)가
+           `"avatar_url": creator.AvatarUrl.String`(:223)·`"email": creator.Email.String`(:224)
+           로 NullString 의 .String 을 .Valid 검사 없이 직접 map 에 넣는다. NULL 컬럼이면
+           Go zero value "" 가 직렬화되어 JSON 은 `"avatar_url":""`·`"email":""` 를 반환한다.
+        3. 동일 인증 Creator 를 반환하는 GET /api/creators/me(creator.GetMe→toPrivateDTO)는
+           같은 NULL 필드를 `null` 로 반환한다. 즉 같은 엔티티의 같은 필드가 두 JWT 프로필
+           엔드포인트에서 ""(auth/me) vs null(creators/me) 로 발산한다 — null/absent 의미가
+           auth/me 에서 소실되고(빈 문자열 ≠ "아바타 없음") 프로젝트 전역 계약 컨벤션과 모순.
+        4. anti-pattern 비매칭: cycle 460(auth redis op best-effort 로깅 errcheck FP)·466(og
+           err.Error() info-disclosure FP)·456(CHECK 제약 봇 위반 FP)·508(워크트리 베이스 grep)
+           모두 본 후보(NullString 출력 직렬화 발산)와 무관. tag DisplayOrder 는 가드 보유라 제외.
+      repro: |
+        docker-compose up -d && (cd apps/api && go run cmd/server/main.go) 기동 후, avatar_url·
+        email 이 NULL 인 Creator(예: avatar/email 없이 가입했거나 UPDATE 로 비운 계정)의 JWT 로
+        - curl GET /api/auth/me      → {"avatar_url":"","email":""} (빈 문자열)
+        - curl GET /api/creators/me  → {"avatar_url":null,"email":null} (null)
+        두 응답의 avatar_url·email 표현이 발산함을 확인. (DB: UPDATE creators SET avatar_url=NULL,
+        email=NULL WHERE id='<creator>' 로 NULL 상태 강제 후 비교 가능.)
+    qa_plan: |
+      (1) 수정안(가장 보수적, 정전 패턴에 정렬): auth/handler.go Me 가 avatar_url·email 을
+          코드베이스 정전 패턴(if .Valid { p=&x.String } → *string)으로 직렬화하도록 변경.
+          map[string]interface{} 의 두 키를 NULL 시 nil(→JSON null) 로 넣는다. 외부 라우트·
+          그 외 키(id·nickname) 불변. creators/me 와 동일 null 표현으로 수렴(계약 일관).
+      (2) go vet ./... && go build ./... && go test ./... 통과. 신규/보강 단위 테스트:
+          NULL avatar_url·email Creator 의 auth.Me 응답이 avatar_url·email = JSON null 인지,
+          비-NULL 값은 그대로 문자열로 노출되는지 검증.
+      (3) 실 환경 QA(docker-compose up -d + go run cmd/server): NULL 필드 Creator JWT 로
+          GET /api/auth/me 와 GET /api/creators/me 를 각각 curl → 두 응답의 avatar_url·email
+          이 동일하게 null 인지 확인. 값이 있는 Creator 로도 두 엔드포인트가 동일 문자열을
+          반환하는지(회귀 없음) 확인.
+      (4) 회귀: 인접 인증 라우트(GET /api/auth/providers 또는 /api/creators/me 정상 케이스)
+          1개 추가 호출로 무회귀 확인.
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8.0
+    status: pending
