@@ -503,6 +503,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 564 Discovery — 동시성 area atomic 연산 정합성(torn read 혼용·RMW lost-update·atomic-holding 구조체 value-copy) 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(560 정합성/558 보안/556 봇/554 OpenSpec갭/552 에러처리/550 동시성) 중 동시성이 oldest(550) → 동시성 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config) 중복 회피. sister 회피: 550 mutex 임계영역 / 538 외부 런타임 핸들 / 526 singleflight 코얼레싱 / 514 Redis check-then-act 원자성 / 496 타이머 수명주기 / 484 DB lease 경계 / 470 context-cancel·channel lifecycle / 458 goroutine 누수·race 와 분리한 "atomic 연산 정합성 — atomic 갱신값이 non-atomic 하게 읽히는 혼용(torn read), 복합 RMW lost-update, atomic 보유 구조체 value-copy" 신규 축.
+
+  이유: sync/atomic 사용처는 metrics 3파일뿐(harvester_consumer.go·snapshot/metrics.go·media_validator_metrics.go). (1) snapshot/metrics.go 의 plain uint64 successCount/failureCount(:16-17)는 선언 외 모든 접근이 atomic.AddUint64/LoadUint64(&...) 경유 — non-atomic 직접 read 0건(grep 확인), (2) harvester nodeStats(:124-130)·media_validator(:24,:28)는 atomic.Uint64 타입 필드라 .Add()/.Load()/.Store() 외 접근 구조적 불가(safe by construction), (3) RMW lost-update: media_validator RecordRejectionN(:47-58)은 `rejected[r]+=n; totalRej+=n` 를 단일 mu.Lock 임계영역에서 수행, atomic 카운터는 .Add(1)/AddUint64 자체가 atomic RMW → lost-update 불가, (4) value-copy: 모든 구조체가 *포인터로만 전달되고 atomic.Uint64(noCopy 포함) 보유 → go vet copylocks 통과(cycle 562 build 시 vet clean), (5) mutex 보호 필드(rejected map·durations·totalRej)와 atomic 필드가 동일 필드에서 규율 혼용 없이 각자 일관, (6) 비원자적 다중필드 스냅샷(NodeStatsSnapshot:132-144, snapshot Snapshot)은 "trend observation, not invariants"로 문서상 의도된 best-effort. anti-pattern 비매칭(460/456/466/508). confidence=5 literal-violation/reproducible 부재 → 표면 폐기.
+
+  QA: 코드 정적 검증만 수행(발견 모드). sync/atomic importer 전수(grep 3파일) + 각 파일 Read + non-atomic read grep. 실 환경 동시성 재현 미수행(후보 0건).
+
+  영향 범위: 코드 변경 없음. decision-log 항목 1건 추가.
+
 ## 2026-06-04 — [system] cycle 562 Processing — search limit 파라미터 cast-before-clamp int32 overflow 수정 (system-20260604-search-limit-int32-overflow-bypasses-clamp)
 
   결정/변경: search/handler.go(:136-142) limit 파싱을 형제 핸들러(pin/boards/tag) 정전 패턴에 맞춰 narrowing 캐스팅 전에 int 값을 클램프하도록 수정 — `if l > 50 { l = 50 }; limit = int32(l)`. 음수/overflow limit 이 SQL LIMIT 에 도달 불가. 회귀 가드 단위 테스트 4종 추가(handler_limit_clamp_test.go): overflow(2147483648)→50·above-cap(1000000)→50·normal(10)→10·default/invalid→20. offset 및 그 외 로직·외부 계약 불변.
