@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 621 Discovery — states area 51st round pending-loading-spinner-state-treatment-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. 비동기 액션(제출/저장/추가 로드)의 pending·로딩 상태 시각 처리 일관성 점검. 스피너 11곳(PinCreateForm L366/509·SearchClient L428·LoadMorePins L51·VideoThumbnailPicker L121·AddToBoardButton L297/350·MyPageClient L63·PinsGrid L140·FeedContainer L220·SearchBar L254) 전부 동일 레시피 `border-2 border-accent border-t-transparent rounded-full animate-spin`. 유일 변이는 맥락별 크기(인라인=w-4 h-4, 버튼/인라인 로드=w-5 h-5, 페이지 영역 중앙=w-6 h-6). 비동기 상태는 boolean(submitting/saving/loading) 추적 + `disabled={…}`로 중복 제출 차단이 일관(BoardActions L96/109·ProfileEditForm L118/125·LoadMorePins L43·SearchClient L420·LoginButtons L71·LogoutButton L26).
+이유: 11/11 스피너가 동일 레시피·맥락별 크기뿐이고, async 액션이 균일하게 disabled-while-pending → 신규 후보 0건. 스피너 border-accent는 기능적 상태 지시자로 DESIGN.md L38 accent restraint 정합. loading-skeleton(44th, 페이지 스켈레톤)/disabled-state(44th)/disabled-cursor(48th)/error-validation(50th)와 구별되는 inline async-spinner sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` async 액션 스피너 11곳 + pending disabled 게이트. 다음 사이클 622 = tokens area.
+
 ## 2026-06-04 — [design] cycle 620 Discovery — aesthetic area 50th round media-aspect-ratio-treatment-conformance 표면 폐기 (후보 0건)
 결정/변경: 없음. DESIGN.md Card System L82 'Image card … 이미지 종횡비 그대로 유지'·L85 'Video card … 썸네일' 적용 — 미디어 종횡비 처리 점검. aspect 사용 3곳: VideoThumbnailPicker L145 `aspect-video`(16:9 비디오 썸네일 후보, L85 정합), BoardCover L6/L31 `aspect-square`(보드 커버 빈상태·2x2 그리드, 컬렉션 타일). PinCard ImageSection(L47-52)은 `<img className="w-full block object-cover">`로 height/aspect 강제 없음 → 자연 종횡비 보존(L82 정합). 아바타는 rounded-full + 고정 w/h(암묵 1:1).
 이유: 종횡비 처리가 엔티티별로 DESIGN.md card system에 매핑 — 핀 이미지=자연 비율(L82), 비디오 컨텍스트=16:9(L85), 보드 커버=정방 컬렉션 타일, 아바타=원형. 각 선택이 명세/엔티티 의미에 정합하고 분기 없음 → 신규 후보 0건. display-font-heading(49th)/tabular-nums(48th)/backdrop-blur(46th)/shadow-elevation(40th)/gradient(43rd)와 구별되는 sister 축.
