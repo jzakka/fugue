@@ -473,6 +473,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 560 Discovery — 정합성 area 정수 타입 폭 정합(클라이언트 int → sqlc int32 narrowing 시 bound-before-cast 순서) 후보 1건
+
+  결정/변경: backlog 후보 1건 append (system-20260604-search-limit-int32-overflow-bypasses-clamp, score 10.0, pending). last-6 system Discovery survey(558 보안/556 봇/554 OpenSpec갭/552 에러처리/550 동시성/548 정합성) 중 정합성이 oldest(548) → 정합성 차례. openspec/changes/ 비어 있음(이전 in-flight 3건 archive 완료) → 중복 회피 불필요. sister 회피: 548 입력검증상한↔DB제약 / 536 updated_at / 524 JSONB round-trip / 510 nullable→JSON / 494 FK·JOIN / 482 쓰기쿼리↔제약 / 468 도메인경계 parity / 456 CHECK·enum 과 분리한 "정수 타입 폭 정합 — 클라이언트 정수 입력을 int32 파라미터로 narrowing 할 때 bound-before-cast 순서" 신규 축.
+
+  이유: COUNT(*) 집계는 모두 int64 로 매핑되고 소비 코드가 narrowing 하지 않음(tags PinCount int64, pin/boards hasMore 비교 int64) → 집계 측은 정합. BIGINT/BIGSERIAL frontier id 도 int64 일관. 그러나 페이지네이션 limit/offset narrowing(클라이언트 int → sqlc int32)에서 search/handler.go(:136-141)만 `limit = int32(l)` 캐스팅 후 `if limit > 50` 클램프 — l 이 int32 최대치 초과(예: 2147483648)면 음수로 wrap 되어 `>50` 우회, 음수 LIMIT 가 SQL 로 전달돼 Postgres "LIMIT must not be negative" → 500. 형제 핸들러 pin(:558-565)·boards(:230-235)·tag(:108-115)는 모두 int 값 l 을 캐스팅 전 [1,50] 클램프하는 정전 패턴이고, 같은 search 핸들러의 offset(:144-146)도 int o 를 캐스팅 전 가드 → search limit 만 자기 자신/형제와 비일관. /api/search 가 비인증·비-rate-limit 라 confidence=5(재현 가능), impact=2(데이터 손상·보안 없음, 비정상 입력 500), effort=1·risk=1.
+
+  QA: 코드 정적 검증만 수행(발견 모드). 후보는 처리 모드 사이클에서 실 환경 curl QA 예정(repro/qa_plan 백로그에 명시).
+
+  영향 범위: 코드 변경 없음. backlog 후보 1건 + decision-log 항목 1건 추가.
+
 ## 2026-06-04 — [system] cycle 558 Discovery — 보안 area 파일 업로드 검증(content-type magic-byte sniff·declared/sniff 불일치 거부·per-type size cap·object key path-traversal) 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(556 봇/554 OpenSpec갭/552 에러처리/550 동시성/548 정합성/546 보안) 중 보안이 oldest(546) → 보안 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config)은 추적된 갭이라 중복 회피. sister 회피: 546 이전 보안 축들과 분리한 "파일 업로드 보안 — 클라이언트 표기 content-type을 신뢰하지 않고 magic-byte로 검증하는가, S3 object key가 클라이언트 파일명에서 파생되어 path-traversal 가능한가" 신규 축.
