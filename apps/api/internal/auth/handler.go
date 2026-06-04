@@ -217,12 +217,28 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(buildMeResponse(creator))
+}
+
+// buildMeResponse serializes the authenticated creator's profile. Nullable
+// columns (avatar_url, email) are surfaced as nil → JSON null when unset,
+// matching toPrivateDTO (GET /api/creators/me) and the codebase-wide nullable
+// serialization convention rather than emitting an empty string.
+func buildMeResponse(creator db.Creator) map[string]interface{} {
+	var avatarURL *string
+	if creator.AvatarUrl.Valid {
+		avatarURL = &creator.AvatarUrl.String
+	}
+	var email *string
+	if creator.Email.Valid {
+		email = &creator.Email.String
+	}
+	return map[string]interface{}{
 		"id":         creator.ID,
 		"nickname":   creator.Nickname,
-		"avatar_url": creator.AvatarUrl.String,
-		"email":      creator.Email.String,
-	})
+		"avatar_url": avatarURL,
+		"email":      email,
+	}
 }
 
 func (h *Handler) cookieDomain() string {
