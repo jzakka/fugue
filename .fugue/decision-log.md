@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 606 Discovery — states area 48th round disabled-cursor-affordance-consistency (near-miss 발견·후보 보류)
+결정/변경: 없음. 비활성(disabled) 버튼의 커서 affordance 일관성 측정. `disabled:opacity-*`로 dimming 처리하는 비활성 상태가 16건인데 `disabled:cursor-not-allowed`를 함께 두는 건 2건뿐(PinCreateForm L623, LoginButtons L74) → 나머지 ~14개 비활성 버튼은 dimming은 받지만 커서는 pointer/기본 유지(클릭 불가인데 클릭 가능 커서 노출). 2:16 분기.
+이유: DESIGN.md에 cursor/disabled 상태 명세 부재(grep 0건). cursor-not-allowed를 전 비활성 버튼에 의무화할지 DESIGN.md가 지시하지 않아 자율 통일은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. (cycle 586 disabled opacity-50/40 분기와 같은 disabled-state 영역의 다른 facet=커서.) 사용자가 비활성 커서 표준을 결정하면 정렬 사이클로 승격 가능. active-press(47th)/focus-visible(45th)/disabled-opacity(44th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 비활성 버튼 16곳(disabled:opacity). 다음 사이클 607 = tokens area.
+
 ## 2026-06-04 — [design] cycle 605 Discovery — aesthetic area 47th round monospace-numeric-metadata-role-conformance 표면 폐기
 결정/변경: 없음. DESIGN.md L20 'Data/Tags: Geist Mono — 태그·메타데이터·수치' 적합성 측정. font-mono 사용 12파일 전수 점검: pin_count(ProfileHeader L48·BoardGrid L29·MyPageClient L155·boards/[id] L65), 태그 칩(TagFilter L64·SearchClient L272·PinCard L198·pins/[id] L152·PinCreateForm L556/L620), 미디어 배지·시간(VideoTrimModal fmt·PinCreateForm L413/417/423) 모두 font-mono 적용 → 수치/태그/메타데이터에 일관 적용. body/heading prose로의 mono 누수 없음(헤딩은 font-display, 본문은 Pretendard 유지). 위반·분기 0건.
 이유: DESIGN.md L20 명시 규칙에 코드가 전수 합치. uppercase/lowercase/capitalize 사용 0건이라 text-transform 축은 부재. font-family-role-deployment(광의 triad)와 구별되는 수치-mono 적합성 narrow sister. backdrop-blur(46th)/letter-spacing(45th)/accent-restraint(44th)와도 구별.
