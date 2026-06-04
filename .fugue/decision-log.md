@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 566 Discovery — states area 41st round focus-visible-state-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 focus-visible-state-treatment로 측정 — 인터랙티브 요소의 포커스 표시가 일관된 처리를 갖는지, focus-visible:와 plain focus:의 혼용이 원칙적 구분인지.
+  이유: `apps/web/src` 전수 측정 — focus-visible: 유틸 풍부·일관(border-accent 22, text-text-primary 19, bg-accent-hover 9 등 요소 유형별 일관). plain focus:는 (1) `focus:border-accent` 11곳 — 전부 텍스트 input 보유 파일(BoardActions·PinCreateForm·AddToBoardButton·SearchBar·MyPageClient·ProfileEditForm, cycle 558 폼 감사와 동일 집합)이며 `outline-none focus:border-accent transition-colors` 패턴으로 input에 적용(클릭 포커스에도 보더 표시 = input 관용), (2) skip-link reveal 클러스터(`focus:not-sr-only focus:fixed focus:left-2 …`) — 임의 포커스에 노출되어야 하는 표준 패턴. 즉 버튼/링크=focus-visible:(키보드 전용 링), 텍스트 input=focus:(클릭 포커스 보더), skip-link=focus: 노출 — 요소 유형별 원칙적 구분이지 비일관 아님. DESIGN.md focus 명세 전무(grep 0)라 "focus/focus-visible 통일" 강제는 미명시 규칙(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 focus-visible-state-treatment 축 재선택 금지(자매 회피). 다음 사이클(567)은 tokens area.
+
 ## 2026-06-04 — [design] cycle 565 Discovery — aesthetic area 39th round gradient-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 gradient-treatment로 측정 — 그라디언트(bg-gradient-*)의 방향·컬러스톱 팔레트가 브랜드 일관성을 유지하는지. (accent-restraint 광역 축은 DESIGN.md L38 괄호(CTA/호버/선택)가 예시 컨텍스트일 뿐 금지 컨텍스트를 열거하지 않아 use별 "액션 여부" 판정이 자의적 위험 → 본 사이클은 경계가 명확한 gradient-treatment로 측정.)
