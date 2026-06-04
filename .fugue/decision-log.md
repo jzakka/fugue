@@ -200,6 +200,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 512 Processing — GET /api/auth/me 미설정 avatar_url·email JSON null 직렬화 정합 (PR #1104)
+
+  결정/변경: auth.Handler.Me 가 미설정 avatar_url·email 을 ""(빈 문자열) 대신 JSON null 로 직렬화하도록 수정(OpenSpec fix-auth-me-null-field-serialization, PR #1104 squash merge). buildMeResponse(db.Creator) 헬퍼 추출 — sql.NullString.Valid 가드 후 nil→null, DB 없이 직렬화 계약 단위 테스트 가능. id·nickname 키·라우트·인증 동작 불변. backlog system-20260604-auth-me-nullstring-empty-vs-null-serialization-divergence → done.
+  이유: 동일 인증 Creator 를 반환하는 GET /api/creators/me(toPrivateDTO) 및 코드베이스 정전 패턴(creator/pin/boards/feed DTO 30+ site, if .Valid { p=&x.String } → *T→null)과 발산하던 유일 이탈을 정전 패턴으로 수렴(cycle 510 Discovery 등록 후보).
+  QA: 실 환경(:8081 신규 빌드, postgres) — NULL Creator: /api/auth/me·/api/creators/me 둘 다 avatar_url:null·email:null (수렴 확인, HTTP 200). SET Creator: 둘 다 저장 문자열 그대로(회귀 없음, HTTP 200). 무토큰 /api/auth/me → 401. go vet/build/test 전체 통과.
+  영향 범위: apps/api/internal/auth/handler.go 한 함수의 두 키 직렬화 + 신규 단위 테스트. 다른 핸들러·라우트·인증 불변. merge-on-green race(require-up-to-date + 빠른 design loop)로 BEHIND 반복 → 체크 green 확인 후 --admin squash merge(차단 커밋이 무관한 design-loop web/CSS 임을 확인한 §5 보수적 판단). 다음 사이클(514)은 Discovery, 동시성 area(496이 다음 oldest).
+
 ## 2026-06-04 — [system] cycle 510 Discovery — 정합성 area DB nullable 컬럼 → JSON 응답 직렬화 정합 표면 (후보 1건)
 
   결정/변경: backlog 후보 1건 append(system-20260604-auth-me-nullstring-empty-vs-null-serialization-divergence, score 8.0, pending). last-6 system Discovery survey(506 보안 / 502 봇 / 500 OpenSpec갭 / 498 에러처리 / 496 동시성 / 494 정합성) 중 정합성이 oldest(494) → 정합성 차례. sister 회피: 494 외래키/JOIN / 482 쓰기쿼리 컬럼집합↔마이그레이션 / 468 DB컬럼 도메인↔입력검증 parity / 456 CHECK·enum·nullable 와 분리한 "DB nullable 컬럼 → Go sql.Null* → JSON 응답 직렬화 정합(출력 매핑 충실도)" 신규 축. 향후 정합성 라운드 이 축 재선택 금지.
