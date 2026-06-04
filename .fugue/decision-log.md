@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 581 Discovery — states area 44th round loading-skeleton-state-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 loading-skeleton-state-treatment로 측정 — 로딩 상태가 일관된 프리미티브(스켈레톤 시머·스피너)로 표현되는지, 컴포넌트마다 임의 로딩 처리로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — 로딩 표현은 두 프리미티브로 일관: (1) 스켈레톤 시머 — `CardSkeleton`·`ProfileSkeleton` 둘 다 globals.css L97-105에 단일 정의된 `.skeleton-shimmer` 클래스를 `bg-surface-elevated` 플레이스홀더 블록 위에 적용(커스텀 CSS 시머 애니메이션, Tailwind `animate-pulse` 미사용=0건이라 의도적 디자인 토큰), (2) 인라인 스피너 — `animate-spin` 9파일(폼 제출·load more·검색·썸네일 등). 컴포넌트별 임의 로딩 마크업·비일관 시머 0건. DESIGN.md가 로딩 처리를 명세하진 않으나 두 프리미티브가 자의적 등급 부여 없이 전 화면에서 재사용(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. disabled-state-treatment(cycle 561)·focus-visible-state-treatment(cycle 566)·transition-property-treatment(cycle 571)·hover-state-treatment(cycle 576)와 구분되는 로딩/스켈레톤 관점 자매 축. 다음 states round는 loading-skeleton-state-treatment 축 재선택 금지(자매 회피). 다음 사이클(582)은 tokens area.
+
 ## 2026-06-04 — [design] cycle 580 Discovery — aesthetic area 42nd round font-weight-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-weight-treatment로 측정 — 글꼴 두께가 제한된 단계 스케일로 표현되는지, 임의 numeric weight(font-[600] 등)로 발산하는지.
