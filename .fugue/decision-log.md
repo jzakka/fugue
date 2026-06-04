@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 612 Discovery — tokens area 43rd round opacity-utility-value-scale-conformance 표면 폐기 (신규 후보 0건)
+결정/변경: 없음. `opacity-NN` 유틸 값 스케일 일관성 측정. 분포: opacity-50 16(지배적 비활성/de-emphasis)·opacity-100 3·opacity-60 2·opacity-40 2·opacity-0 1. opacity-60 2건은 둘 다 태그 칩 내 카운트 dimming(SearchClient L279, TagFilter L71)으로 동일 역할 일관. opacity-40 2건은 서로 다른 맥락: 비활성 태그 버튼(PinCreateForm L623, 이미 cycle 586 near-miss로 기록된 disabled opacity-40/50 분기)·검색 아이콘 장식 dimming(SearchBar L143, 비활성 아님). 역할별로 정합하며 유일한 분기는 cycle 586에 기 기록.
+이유: opacity 스케일이 역할별(비활성 50, 카운트 60, 토글 0/100)로 coherent하고, 유일한 disabled-opacity 분기는 cycle 586 near-miss로 이미 추적 중이라 신규 후보 없음(중복 등록 금지). transition-duration(42nd)/line-height(41st)/spacing-scale(40th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` opacity 유틸리티 전역. 다음 사이클 613 = a11y area.
+
 ## 2026-06-04 — [design] cycle 611 Discovery — states area 49th round input-placeholder-color-treatment-consistency (near-miss 발견·후보 보류)
 결정/변경: 없음. 입력 필드 placeholder 색 처리 일관성 측정. placeholder= 입력 10곳 중 `placeholder:text-text-dim`(디자인 토큰) 명시는 SearchBar L177 1곳뿐, 나머지 9곳(PinCreateForm L468/484/500/570, BoardActions L78/89, AddToBoardButton L366, MyPageClient L103, ProfileEditForm L95)은 placeholder 색 미지정 → 브라우저 기본 placeholder 색 사용. 1:9 분기로 placeholder 톤이 토큰(text-text-dim)과 브라우저 기본으로 갈림.
 이유: DESIGN.md에 placeholder 색 명세 부재(grep 0건). text-text-dim을 전 입력에 의무화할지 DESIGN.md가 지시하지 않아 자율 통일은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. 사용자가 placeholder 색 정본(예: 전 입력 placeholder:text-text-dim)을 결정하면 정렬 사이클로 승격 가능. disabled-cursor(48th)/active-press(47th)/focus-visible(45th)와 구별되는 sister 축.
