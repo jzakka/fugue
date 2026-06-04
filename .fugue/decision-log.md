@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 568 Discovery — a11y area 38th round image-alt-text-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 image-alt-text-treatment로 측정 — 모든 `<img>`가 alt 속성을 보유하는지, 콘텐츠 이미지엔 서술적 alt·장식 이미지엔 빈 alt(`alt=""`)라는 WCAG 패턴을 따르는지.
+  이유: `apps/web/src` 전수 측정 — `<img>` 17개 : `alt=` 17개 완전 1:1(누락 0). 값 특성도 원칙적: 콘텐츠 이미지는 서술적 alt(pins/[id] `alt={pin.title}`·PinCreateForm/ProfileEditForm `alt="미리보기"`·VideoThumbnailPicker `alt={썸네일…}`·PinCard `alt={pin.title}`·PinCreateForm OG `alt={ogData.title}`), 장식·아바타·브랜드 마크는 빈 alt(ProfileHeader 아바타·BoardCover·NavBar/SearchBar 마스코트·PinCard 배경 등 `alt=""`) — 보조기술이 건너뛰도록 의도된 표준 처리. 위반(alt 누락·중복·잘못된 서술) 0건. 단 a11y는 DESIGN.md/AGENTS.md 명세 전무(구조적 spec-less)라 애초에 추론 기반 측정이며 강제 규칙으로 후보화 불가 — baseline 기록만(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. form-input-label-association(cycle 558)·modal-dialog-aria-semantics(cycle 563)와 구분되는 이미지 대체텍스트 관점 자매 축. 다음 a11y round는 image-alt-text-treatment 축 재선택 금지(자매 회피). 다음 사이클(569)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 567 Discovery — tokens area 34th round text-color-role-hierarchy-bypass 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 text-color-role-hierarchy-bypass로 측정 — 본문 텍스트 색이 DESIGN.md의 3단 역할 위계(primary/muted/dim) 토큰으로 표현되는지, 원시 회색조(gray/zinc/neutral/slate)나 hex로 위계를 우회하는 site가 있는지.
