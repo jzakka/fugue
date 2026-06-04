@@ -394,6 +394,19 @@ func (h *HarvesterConsumer) processOne(ctx context.Context, rawURL string) {
 	// (no retry burn).
 	filterOverlongMediaURLs(&doc, rawURL)
 
+	// Enforce the pins.url VARCHAR(1000) cap before classification/persistence.
+	// CanonicalURL derives from frontier.url (TEXT, unbounded); an overlong
+	// value would fail the pins INSERT and burn retries. Fall back to the
+	// bounded fetch URL, or skip the page if even that overflows (treated like
+	// a non-pinnable page: harvested, no retry burn).
+	if !capCanonicalURLForPin(&doc, rawURL) {
+		h.stats.skipped.Add(1)
+		if err := h.scheduler.SetStatus(rawURL, scheduler.StatusHarvested, nil); err != nil {
+			log.Printf("WARN harvester_consumer: set_status_harvested_url_overflow url=%q err=%v", rawURL, err)
+		}
+		return
+	}
+
 	linkStats := ComputeLinkStats(body)
 	pinnable, reason := h.classifier.Classify(doc, linkStats)
 	doc.OGData.Classifier = &ClassifierVerdict{Pinnable: pinnable, Reason: reason}
@@ -530,6 +543,13 @@ func hostnameOf(rawURL string) string {
 // source of truth.
 const pinsMediaURLRuneCap = 500
 
+// pinsURLRuneCap mirrors the pins.url column type `VARCHAR(1000)` from
+// migration 000003_create_works.up.sql. doc.CanonicalURL is written here
+// verbatim (harvest_pipeline.go ProcessDocument); the upstream
+// harvester_frontier.url is TEXT (unbounded, migration 000026), so the value
+// is not otherwise bounded.
+const pinsURLRuneCap = 1000
+
 // filterOverlongMediaURLs drops media URL candidates from doc whose rune
 // length exceeds pinsMediaURLRuneCap, so that ProcessDocument never feeds an
 // overlong URL to pins.media_url (VARCHAR(500)). doc is mutated in place:
@@ -567,6 +587,38 @@ func filterOverlongMediaURLs(doc *PinDocument, sourceURL string) {
 		kept = append(kept, c)
 	}
 	doc.MediaCandidates = kept
+}
+
+// capCanonicalURLForPin enforces the pins.url VARCHAR(1000) cap on
+// doc.CanonicalURL before persistence. CanonicalURL (and its fetchURL
+// fallback) ultimately derive from harvester_frontier.url, which is TEXT
+// (unbounded), so an overlong value would fail the pins INSERT with
+// PostgreSQL `value too long for type character varying(1000)` — which the
+// consumer misreports as a generic pin_create network error and retries 5×
+// before partial-index permanent omission. This is the same failure class
+// filterOverlongMediaURLs closes for pins.media_url. URLs can't be
+// rune-truncated without destroying identity, so the policy mirrors the
+// media_url skip-not-truncate decision, with one extra step because pins.url
+// is NOT NULL and the dedup key (it can't simply be dropped):
+//   - CanonicalURL within the cap → keep as-is (returns true).
+//   - CanonicalURL over the cap but fetchURL within it → rewrite CanonicalURL
+//     to the bounded fetchURL so the Pin is still created (returns true).
+//   - both over the cap → returns false; the caller skips the page (no Pin,
+//     no retry burn — the row is marked harvested like a non-pinnable page).
+func capCanonicalURLForPin(doc *PinDocument, fetchURL string) bool {
+	canonicalLen := utf8.RuneCountInString(doc.CanonicalURL)
+	if canonicalLen <= pinsURLRuneCap {
+		return true
+	}
+	if utf8.RuneCountInString(fetchURL) <= pinsURLRuneCap {
+		log.Printf("harvest: canonical URL exceeds %d runes, falling back to fetch URL (fetch=%q canonical_len=%d)",
+			pinsURLRuneCap, fetchURL, canonicalLen)
+		doc.CanonicalURL = fetchURL
+		return true
+	}
+	log.Printf("harvest: canonical and fetch URL both exceed %d runes, skipping page (fetch=%q fetch_len=%d canonical_len=%d)",
+		pinsURLRuneCap, fetchURL, utf8.RuneCountInString(fetchURL), canonicalLen)
+	return false
 }
 
 // truncateRunes returns the first n runes of s. Cuts on rune boundaries so
