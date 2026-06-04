@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 614 Discovery — responsive area 48th round overlay-max-height-viewport-constraint 표면 폐기 (후보 0건)
+결정/변경: 없음. 오버레이/모달/미디어의 max-height 제약이 뷰포트 단위를 맥락에 맞게 쓰는지 점검. max-h 8줄: max-h-[80vh](AddToBoardButton L245 모달 패널, 뷰포트 상대)·max-h-[480px](pins/[id] L46/72 상세 미디어)·max-h-[280px](VideoTrimModal L199 모달 내 비디오 프리뷰)·max-h-48(PinCreateForm L393/399/609)·max-h-32(L519) 내부 스크롤/프리뷰 영역. 두 모달 패널이 갈림: AddToBoardButton은 가변 길이 보드 리스트라 max-h-[80vh] 뷰포트 캡으로 짧은 화면에서 스크롤 보장, VideoTrimModal은 패널에 뷰포트 캡 없음(내용이 고정 비디오 max-h-[280px]+트랙으로 본질적으로 짧음).
+이유: 모달 캡 분기(80vh vs 없음)는 content가 unbounded(리스트) vs bounded(단일 비디오)라는 차이로 정당화 — 자의적 아님. 고정 px/rem 캡(480/280/48/32)은 모두 bounded 내부 미디어·스크롤 영역에 적절히 스코프. DESIGN.md는 max-height/viewport 거동 미명세(L44 모달=색, L76 모달 radius만 언급) → 자율 통일은 자의적 해석(자체 리뷰 #2). 각 max-h가 맥락별 정합이라 신규 후보 0건. flex-direction-stacking(47th)/padding-progression(46th)/horizontal-scroll-affordance(45th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` max-h 사용 5파일 8줄. 다음 사이클 615 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 613 Discovery — a11y area 47th round outline-none-focus-visibility-safety 표면 폐기
 결정/변경: 없음. `outline-none`(포커스 외곽선 제거)이 가시적 포커스 대체 표시 없이 쓰여 키보드 포커스가 비가시화되는지 점검. outline-none 17줄(focus-visible:outline-none 6 + bare outline-none 11) 전수 검사: 17/17 모두 동일 className에 가시적 포커스 대체(focus-visible:border-accent / ring / -translate-y / shadow-card-hover / bg)를 동반 → invisible-focus 실패 0건.
 이유: outline 제거가 항상 대체 포커스 표시와 페어링되어 키보드 포커스 가시성 보존. a11y는 DESIGN.md 미명세이나 측정 결과 전수 안전. form-button-type(46th)/tabindex-usage(45th)/decorative-svg-aria-hidden(44th)와 구별되는 sister 축.
