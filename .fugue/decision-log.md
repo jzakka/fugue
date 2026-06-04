@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 599 Discovery — responsive area 45th round horizontal-scroll-affordance-consistency (near-miss 발견·후보 보류)
+결정/변경: 없음. 가로 스크롤 필터/탭 행의 affordance(`overflow-x-auto`+`scrollbar-hide`) 일관성 측정. `overflow-x-auto` 6곳 중 5곳이 `scrollbar-hide`를 동반(FieldFilter L31, TagFilter L47, SearchClient L240·L263, PinCreateForm 카테고리탭 L578)하나 `PinsGrid.tsx:99`(프로필 미디어타입 필터 행)만 `overflow-x-auto pb-2`로 scrollbar-hide 없이 네이티브 스크롤바 노출 → 5:1 분기.
+이유: scrollbar-hide는 DESIGN.md 미명세. 스크롤바를 숨기는 게 정본인지(혹은 PinsGrid처럼 노출이 정본인지) DESIGN.md가 직접 지시하지 않음 → 어느 쪽으로 정렬할지 자체가 자의적 해석(자체 리뷰 #2)이라 자율 변경 불가. 내부 일관성 분기로서 near-miss 기록. 사용자가 가로 스크롤 affordance(scrollbar-hide 적용/미적용)를 정본으로 결정하면 정렬 사이클로 승격 가능. viewport-overflow-fixed-width(44th)/responsive-container-max-width(39th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 가로 스크롤 필터/탭 행 6곳. 다음 사이클 600 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 598 Discovery — a11y area 44th round decorative-svg-aria-hidden-consistency 표면 폐기 (baseline only)
 결정/변경: 없음. 장식용 `<svg>`의 `aria-hidden` 처리 일관성을 점검하려 측정(svg 15곳/7파일, aria-hidden 26곳). 그러나 DESIGN.md에 a11y/aria/스크린리더 적합성 명세가 부재(grep상 'focus'/'Labels' 매칭 3건은 모두 타이포·라벨 폰트 맥락) → 어느 svg에 aria-hidden이 필요/불필요한지 판정할 기준이 코드 외부에 존재하지 않음. "이 장식 svg에 aria-hidden 누락"류 주장은 미작성 표준에 대한 추론이라 자체 리뷰 #2(자의적 해석)에 걸림. 후보 0건, baseline만 기록.
 이유: a11y 영역은 구조적으로 spec-less(DESIGN.md/AGENTS.md a11y 명세 부재). aria-pressed-toggle(43rd)/aria-live(42nd)/icon-button-name(41st)/landmark(40th)와 구별되는 sister 축이나 동일하게 기준 부재로 정렬 대상 도출 불가.
