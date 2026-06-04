@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 565 Discovery — aesthetic area 39th round gradient-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 gradient-treatment로 측정 — 그라디언트(bg-gradient-*)의 방향·컬러스톱 팔레트가 브랜드 일관성을 유지하는지. (accent-restraint 광역 축은 DESIGN.md L38 괄호(CTA/호버/선택)가 예시 컨텍스트일 뿐 금지 컨텍스트를 열거하지 않아 use별 "액션 여부" 판정이 자의적 위험 → 본 사이클은 경계가 명확한 gradient-treatment로 측정.)
+  이유: `apps/web/src` 전수 측정 — 실 그라디언트 7곳(false match인 aria id `to-board-modal-title`·테스트 데이터 `to-1` 제외): 6곳이 동일 브랜드 패턴 `bg-gradient-to-br from-accent to-accent-hover`(아바타/플레이스홀더/로고/아이콘 — pins/[id] L208, SearchClient L334, PinCard L183, NavBar L53, SearchBar L333, ProfileHeader L24), 1곳 PinCard L60 `from-accent/15 to-transparent`(오디오 섹션 미묘한 액센트 베일, 의도적 변형). 7곳 전부 방향 `to-br` 단일·accent 계열 팔레트만 사용 → off-direction·off-palette 0. 지배 브랜드 그라디언트 균일 + 의도적 서브틀 변형 1 → 일관. 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 aesthetic round는 gradient-treatment 축 재선택 금지(자매 회피). 다음 사이클(566)은 states area.
+
 ## 2026-06-04 — [design] cycle 564 Discovery — responsive area 36th round responsive-spacing-scale 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-spacing-scale로 측정 — 브레이크포인트별 padding/margin/gap 전환이 일관된 base→sm 점프와 정전 스페이싱 스케일을 따르는지.
