@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 593 Discovery — a11y area 43rd round aria-pressed-toggle-state-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 aria-pressed-toggle-state-consistency로 측정 — 토글/필터 버튼이 일관되게 aria-pressed로 활성/선택 상태를 노출하는지.
+  이유: `apps/web/src` 전체 aria-pressed 9곳 모두 토글 상태 불리언에 바인딩 — 카테고리 탭(PinCreateForm L583·L597 activeCategory)·미디어타입(L619 selected)·검색 필터(SearchClient L246 activeType·L271 selected)·썸네일 선택(VideoThumbnailPicker L144 selected)·작품 필터(PinsGrid L104 activeType)·분야 필터(FieldFilter L36 current)·태그 토글(TagFilter L63 selected). 모든 토글 버튼 패밀리(탭/필터칩/태그/썸네일)가 균일하게 WCAG 토글 상태 노출. a11y는 DESIGN.md/AGENTS.md 명세 부재로 구조적 추론 영역 → 후보 없음, 베이스라인 기록만. icon-button-name(583)·aria-live(588)·form-label(558)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 594 = responsive area.
+
 ## 2026-06-04 — [design] cycle 592 Discovery — tokens area 39th round font-size-step-token-conformance 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 font-size-step-token-conformance로 측정 — 모든 글자 크기가 명명 스케일 토큰을 쓰는지, 임의 `text-[Npx]`로 발산하는지, 커스텀 스텝 토큰이 @theme에 정의됐는지.
