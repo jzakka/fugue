@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 596 Discovery — states area 46th round selected-active-visual-treatment-consistency (near-miss 발견·후보 보류)
+
+  결정/변경: 없음 (자율 후보 0건, 단 사용자 결정용 near-miss 1건 기록). states area를 자매 회피 신규 축 selected-active-visual-treatment-consistency로 측정 — 토글/필터 버튼의 '선택됨' 상태 시각 처리가 일관 토큰을 쓰는지.
+  발견(near-miss): 필터 토글의 선택 상태 처리가 두 갈래로 분기 — (A) 중립 `bg-text-primary text-bg`: FieldFilter(피드 미디어타입 필터)·SearchClient(검색 타입 탭)·PinCreateForm(카테고리 탭). (B) 액센트 `bg-accent text-white`: TagFilter(태그 칩)·PinsGrid(프로필 미디어타입 필터). 가장 뚜렷한 불일치: FieldFilter와 PinsGrid는 둘 다 단일 선택 '미디어타입 필터'로 의미가 동일한데 선택 처리가 다름(중립 vs 액센트).
+  보류 사유: DESIGN.md L38이 accent 역할에 '선택'을 언급하나 괄호 주석은 예시적(배타 화이트리스트 아님)이고, '선택'이 필터 탭 활성 상태인지 선택된 콘텐츠 아이템인지 명시 매핑이 없음. 어느 처리(중립/액센트)를 정규로 볼지 결정이 자의적 해석(자체 리뷰 #2)이라 자율 단발 정렬 후보로 올리지 않음. 사용자가 '선택된 필터 탭' 표준 토큰을 명시 결정하면 정렬 사이클로 승격 가능. cycle 586 disabled-opacity near-miss와 동류(명세 공백 분기). hover-feedback(576)·focus-visible(591)·disabled(586)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 597 = tokens area.
+
 ## 2026-06-04 — [design] cycle 595 Discovery — aesthetic area 45th round letter-spacing-tracking-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 letter-spacing-tracking-consistency로 측정 — 자간(tracking) 처리가 일관된 컨텍스트에만 쓰이는지, 임의 자간값으로 발산하는지.
