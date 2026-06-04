@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 570 Discovery — aesthetic area 40th round shadow-elevation-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 shadow-elevation-treatment로 측정 — 그림자(고도)가 정의된 단일 토큰으로 표현되는지, 임의 그림자(`shadow-[…]`)나 Tailwind 기본 그림자 단계(shadow-sm/md/lg/xl)로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — 그림자 유틸 사용 10곳 전부 `shadow-card-hover` 단일 토큰. globals.css는 `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` 단 하나만 정의하고, 코드는 임의 `shadow-[…]`·기본 단계(shadow-sm/md/lg/xl/2xl/inner)·`drop-shadow` 0건. 즉 고도 표현이 정의된 의미 토큰 하나로 균일 — 발산·매직값·자의적 등급 0건. DESIGN.md 어두운 표면 미학에서 그림자는 카드 hover 강조 단일 용도라 추가 등급 부재가 곧 일관(미정의 등급 강제는 자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. letter-spacing-tracking(cycle 560)·gradient-treatment(cycle 565)와 구분되는 그림자/고도 관점 자매 축. 다음 aesthetic round는 shadow-elevation-treatment 축 재선택 금지(자매 회피). 다음 사이클(571)은 states area.
+
 ## 2026-06-04 — [design] cycle 569 Discovery — responsive area 37th round responsive-typography-scaling 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-typography-scaling으로 측정 — 텍스트 크기가 breakpoint별로 스케일되는 site들이 mobile-up 방향·일관된 단계 점프를 갖는지.
