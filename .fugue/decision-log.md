@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 617 Discovery — tokens area 44th round color-token-usage-vs-raw-value-conformance 표면 폐기 (후보 0건)
+결정/변경: 없음. DESIGN.md L44-50 색 팔레트의 토큰화 점검 — className에 raw hex/rgb 색이 토큰을 우회하는지. `(text|bg|border|fill|stroke|ring|from|to|via)-[#…]`·`-[rgb…]` arbitrary 색 0건. 팔레트 색은 전부 시멘틱 토큰(border-accent 69·border-border 68·text-text-primary 67·text-text-muted 53·bg-surface-elevated 25·text-error 14 등)으로 흐름. 비토큰 색은 Tailwind 빌트인 black/white뿐: bg-black(비디오 letterbox)·bg-black/40~70(스크림 디밍)·bg-white/70(VideoTrimModal 핸들 그립)·text-white ×18(accent 버튼 전경).
+이유: 시멘틱 팔레트 색 100% 토큰화(raw hex 0)로 L44-50 정합. black/white 빌트인은 토큰 팔레트가 모델링하지 않는 맥락(미디어 letterbox·스크림 디밍·on-accent 대비 전경)에 한정 — 팔레트는 surface/text를 정의하지 on-color/overlay 프리미티브를 정의하지 않음. text-white는 18개 accent 전경에 균일 적용되어 내부 일관(DESIGN.md에 on-accent 전경 토큰 부재라 분기 대상 없음) → 신규 후보 0건. opacity(43rd)/transition-duration(42nd)/font-family(36th)/border-radius(37th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 색 className 전역. 다음 사이클 618 = a11y area.
+
 ## 2026-06-04 — [design] cycle 616 Discovery — states area 50th round error-validation-state-visual-treatment-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. DESIGN.md L50 'Semantic … error #FF3B30' 적용 — 폼/피드 에러·검증 상태 시각 처리 일관성 점검. 에러 메시지 박스 5곳(PinCreateForm L323·BoardActions L69·MyPageClient L94·ProfileEditForm L60·FeedContainer L188)이 동일 레시피 `bg-error/10 border border-error/30 rounded-[6px] text-error` 사용. 유일 변이는 밀도(컴팩트 인라인=p-2/text-xs: BoardActions·MyPageClient, 큰 폼=p-3/text-sm)로 맥락 정합. `role="alert"`이 에러 컨테이너 전수 페어링(L321/67/92/58, login L57, FeedContainer L186), 입력 `aria-invalid` 일관. 필수 표시 `*`도 text-error 토큰. raw text-red 등 토큰 우회 0건.
 이유: 에러 시멘틱 색이 전부 text-error/bg-error/border-error 토큰으로 L50 정합, 에러 박스 레시피가 균일하고 분기는 패딩/텍스트 밀도(맥락)뿐 → 신규 후보 0건. TagFilter L52(clear-filter)·AddToBoardButton L282(상태 토스트)·BoardActions L129(삭제 hover)의 error 토큰도 destructive 시멘틱 재사용으로 일관. placeholder-color(49th)/disabled-cursor(48th)/active-press(47th)/focus-visible(45th)와 구별되는 sister 축.
