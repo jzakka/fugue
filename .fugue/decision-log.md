@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 552 Discovery — tokens area 31st round radius-token-value-integrity 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 radius-token-value-integrity로 측정 — radius 값이 DESIGN.md L73-77 스케일(sm 6px / md 10px / lg 16px / full)에 정합하는지(값 자체의 무결성).
+  이유: `apps/web/src` `rounded-*` 전수 측정 결과 — rounded-full 86, rounded-[6px] 24, rounded-[10px] 18, rounded-[16px] 9는 전부 L73-77 정전 grade를 명시 bracket으로 표현 → 정합. off-scale 명명 유틸(rounded-sm 2, rounded-lg 2, rounded-md 1, rounded-xl 1, rounded-l/r-md 2, rounded-l/r-lg 2, rounded-[8px] 1)은 globals.css에 `--radius` override가 없어 Tailwind 기본값(2/6/8/12px)으로 해석되지만, 전부 L17 anti-pattern 면제 요소에만 배치: 로고박스(NavBar L17 rounded-md), 마스코트박스(login L40 rounded-xl·pins L54 rounded-lg), 작은 아이콘/스와치(PinCard L36·L165 rounded-sm), 비디오 트림 위젯 내부(VideoTrimModal L216 track rounded-lg·L223/227 dimmed rounded-l/r-lg·L248/257 handle rounded-l/r-md·L199 preview rounded-[8px]). DESIGN.md는 이들 요소의 grade를 명시하지 않으므로 bracket grade로 재배정하면 자의적(자체 리뷰 #2). DESIGN.md-graded 표면(카드·모달·인풋·얼럿)은 전부 on-scale bracket 사용. 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 tokens round는 radius-token-value-integrity 축 재선택 금지(자매 회피). 다음 사이클(553)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 551 Discovery — states area 38th round selection-and-active-toggle-state 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 selection-and-active-toggle-state로 측정 — `aria-pressed` 토글 컨트롤의 선택/활성 상태 시각 처리 정합성(DESIGN.md L38 accent=선택, L41 accent-subtle=태그/선택).
