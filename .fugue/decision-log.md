@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 556 Discovery — states area 39th round loading-indicator-presentation 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 loading-indicator-presentation으로 측정 — 활성 로딩 인디케이터(스피너)의 시각·접근성 처리 정합성(스켈레톤 플레이스홀더와 별개).
+  이유: `apps/web/src` 측정 결과 — (1) 스피너 11곳 전부 동일 패턴 `border-2 border-accent border-t-transparent rounded-full animate-spin`, 크기만 컨텍스트별(w/h-4 인라인 / 5 / 6 섹션)로 변주 → 시각 처리 100% 균일. (2) 로딩 상태는 일관 announce: 스피너 wrapper에 `role="status"` + `aria-live="polite"`(PinCreateForm L362/L505/L632·SearchClient L426·LoadMorePins L49·VideoThumbnailPicker L117·AddToBoardButton L293/L348·MyPageClient L59·PinsGrid L118/L136), 모든 async submit 버튼에 `aria-busy`(PinCreateForm L656·BoardActions L97·LoginButtons L72·LogoutButton L27·AddToBoardButton L307/L383·MyPageClient L121·SearchClient L421·LoadMorePins L44). DESIGN.md L94는 skeleton shimmer만 명세하고 스피너는 무명세지만 패턴이 완전 균일 → 플래그할 편차 0. 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 loading-indicator-presentation 축 재선택 금지(자매 회피). 5-area 2순회 완료 → 다음 사이클(557)은 tokens area로 복귀.
+
 ## 2026-06-04 — [design] cycle 555 Discovery — aesthetic area 37th round font-weight-role-deployment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-weight-role-deployment로 측정 — DESIGN.md L17(Display/Hero 700)·L19(UI/Labels 500) 글꼴 두께 역할 배치 정합성.
