@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 604 Discovery — responsive area 46th round responsive-padding-progression-consistency 표면 폐기
+결정/변경: 없음. 반응형 패딩 진행(breakpoint별 px/py 스케일 변화) 일관성 측정. 반응형 패딩 modifier는 `sm:p-8` 5건뿐이며 전부 동일 스텝(상충 진행 0건), 페이지 거터는 고정 `px-6` 사용. 반응형 prefix 분포는 sm: 26·md: 2·lg: 0으로 sm 중심. 분기 없음, 후보 0건.
+이유: DESIGN.md L70은 breakpoint(sm500/md800/lg1200)를 정의하나 거터/패딩의 breakpoint별 확대를 의무화하지 않으며, L11 'Minimal — 타이포그래피와 여백이 모든 걸 한다'가 고정 여백 기조와 합치. 반응형 패딩이 쓰인 곳은 단일 스텝으로 일관해 정렬 대상 부재. horizontal-scroll-affordance(45th)/viewport-overflow-fixed-width(44th)/responsive-container-max-width(39th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 전역 패딩 유틸리티. 다음 사이클 605 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 603 Discovery — a11y area 45th round tabindex-usage-consistency 표면 폐기 (baseline only)
 결정/변경: 없음. `tabIndex` 사용 일관성 측정(3곳). 모달 패널 2곳(VideoTrimModal L182, AddToBoardButton L244)이 일관되게 `tabIndex={-1}`(프로그래매틱 포커스 컨테이너)을 사용하고, PinCreateForm L344 드롭존 div는 `tabIndex={0}`을 `role="button"`+onKeyDown(Enter/Space)+aria-label과 완전 페어링한 커스텀 버튼 패턴 → 두 용도(-1 포커스 컨테이너 vs 0 탭 순서 진입) 모두 맥락상 정확하고 동종끼리 일관. 분기 없음, 후보 0건.
 이유: a11y 영역은 구조적으로 spec-less(DESIGN.md tabindex/keyboard 명세 부재). 측정 결과 사용처가 맥락별로 올바르고 일관해 정렬 대상도 부재. decorative-svg-aria-hidden(44th)/aria-pressed-toggle(43rd)/aria-live(42nd)와 구별되는 sister 축.
