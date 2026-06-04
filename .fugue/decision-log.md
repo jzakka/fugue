@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 579 Discovery — responsive area 39th round responsive-container-max-width 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-container-max-width로 측정 — 콘텐츠 컨테이너가 명명된 width 스케일로 폭 상한을 두는지, fluid-then-capped(작은 화면 꽉참→상한 이상 중앙 고정) 패턴이 일관한지.
+  이유: `apps/web/src` 전수 측정 — 컨테이너 max-w는 명명 스케일 지배: max-w-4xl 3·max-w-5xl 2·max-w-xl/sm/md/2xl 각 1. 페이지 main들이 `max-w-Nxl mx-auto w-full px-6` 관용으로 뷰포트 작을 땐 꽉 차고 상한 이상에선 중앙 고정—반응형 컨테이너 전략 일관. breakpoint별 max-w 변형 0(컨테이너는 고정 상한+뷰포트가 하한 처리라 sm:max-w- 불필요가 정상). 유일 near-miss `max-w-[400px]`(login 카드 1곳)은 Tailwind max-w-sm(384)~md(448) 사이 정밀 폭 의도지만 DESIGN.md가 login 카드→명명 등급 매핑을 미명시라 max-w-sm/md 치환은 자의적 등급 부여(자체 리뷰 #2)—후보 아님. 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. responsive-layout-direction(cycle 559)·responsive-spacing-scale(cycle 564)·responsive-typography-scaling(cycle 569)·responsive-grid-column-scaling(cycle 574)와 구분되는 컨테이너 폭 상한 관점 자매 축. 다음 responsive round는 responsive-container-max-width 축 재선택 금지(자매 회피). 다음 사이클(580)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 578 Discovery — a11y area 40th round landmark-region-semantics 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 landmark-region-semantics로 측정 — 페이지가 시맨틱 랜드마크(main/nav/header)로 구조화되는지, skip-link 타깃이 랜드마크와 연결되는지.
