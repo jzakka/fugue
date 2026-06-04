@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 569 Discovery — responsive area 37th round responsive-typography-scaling 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-typography-scaling으로 측정 — 텍스트 크기가 breakpoint별로 스케일되는 site들이 mobile-up 방향·일관된 단계 점프를 갖는지.
+  이유: `apps/web/src` 전수 측정 — 반응형 텍스트 스케일 site는 5곳(파일 3개: pins/[id]·boards/[id]·ProfileHeader). 패턴이 2종으로 일관: (1) 페이지/프로필 제목 3곳 `text-2xl sm:text-3xl`(전부 font-display·font-bold·tracking-tight 헤딩), (2) 본문 2곳 `text-sm sm:text-base`(leading-relaxed). 모두 mobile-up(작은 화면 작게 → sm↑ 크게) 방향이고 한 단계씩만 점프(2xl→3xl, sm→base) — 역방향·과도 점프·비일관 0건. DESIGN.md는 타입 스케일은 정의하나 breakpoint별 매핑은 미명시(breakpoint 토큰 자체가 anti-patterns L20 보류 영역)라 "어느 텍스트를 어디서 키워라"는 강제 불가 — 현 적용은 자의적 등급 부여 없이 일관(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. responsive-layout-direction(cycle 559)·responsive-spacing-scale(cycle 564)와 구분되는 타이포 스케일 관점 자매 축. 다음 responsive round는 responsive-typography-scaling 축 재선택 금지(자매 회피). 다음 사이클(570)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 568 Discovery — a11y area 38th round image-alt-text-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 image-alt-text-treatment로 측정 — 모든 `<img>`가 alt 속성을 보유하는지, 콘텐츠 이미지엔 서술적 alt·장식 이미지엔 빈 alt(`alt=""`)라는 WCAG 패턴을 따르는지.
