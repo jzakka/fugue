@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 567 Discovery — tokens area 34th round text-color-role-hierarchy-bypass 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 text-color-role-hierarchy-bypass로 측정 — 본문 텍스트 색이 DESIGN.md의 3단 역할 위계(primary/muted/dim) 토큰으로 표현되는지, 원시 회색조(gray/zinc/neutral/slate)나 hex로 위계를 우회하는 site가 있는지.
+  이유: `apps/web/src` 전수 측정 — 역할 위계 토큰이 지배적·완전 채택(text-text-primary 67·text-text-muted 53·text-text-dim 35). 비역할 텍스트 색은 (1) text-accent 22 — CTA/링크/강조(DESIGN.md L38 accent restraint 부합), (2) text-white 18 — 전부 accent fill 위 on-fill 대비(버튼·배지), (3) text-bg 4 — accent/밝은 배경 위 반전 텍스트, (4) text-error 14·text-success 1 — 시맨틱 상태색(cycle 557 감사와 동일). text-white/text-bg는 위계 우회가 아니라 채워진 표면 위 대비 선택이라 역할 토큰과 대체 관계 아님. 원시 회색조·hex 우회 0건(text-gray/zinc/neutral/slate-N·text-black·text-[#…] grep 0). DESIGN.md 색 토큰 위계가 코드 전반에 누락·우회 없이 적용 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. color-token-usage(cycle 512)·hardcoded-hex(cycle 537)와 구분되는 역할 위계 우회 관점 자매 축. 다음 tokens round는 text-color-role-hierarchy-bypass 축 재선택 금지(자매 회피). 다음 사이클(568)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 566 Discovery — states area 41st round focus-visible-state-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 focus-visible-state-treatment로 측정 — 인터랙티브 요소의 포커스 표시가 일관된 처리를 갖는지, focus-visible:와 plain focus:의 혼용이 원칙적 구분인지.
