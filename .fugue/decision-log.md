@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 561 Discovery — states area 40th round disabled-state-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 disabled-state-treatment로 측정 — 비활성화 가능 컨트롤(disabled={...})이 일관된 disabled: 시각 처리(opacity·cursor)를 갖는지.
+  이유: `apps/web/src` 전수 측정 — disabled: 유틸 18개 중 `disabled:opacity-50` 15곳이 지배 관용(주로 1차/액션 버튼), `disabled:cursor-not-allowed` 2곳 보강. 단일 outlier는 PinCreateForm L623 `disabled:opacity-40` — 이는 태그 한도 도달 시 비활성되는 태그 칩(rounded-full, `bg-accent-subtle text-text-muted` 저대비 배경)으로, opacity-50 액션 버튼과 요소 등급이 다르고 저대비 칩에서 비활성 가시성을 위해 약간 더 흐리게(40) 처리한 맥락 차등으로 해석 가능. 핵심: DESIGN.md에 disabled/opacity 명세 전무(grep 0) → "전 disabled opacity 균일화"는 DESIGN.md 미명시 교차 컴포넌트 일관성 규칙이라 결함화 시 자의적(자체 리뷰 #2, cycle 551 PinsGrid↔FieldFilter near-miss와 동형). opacity-40을 near-miss로 기록하되 후보 아님 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 disabled-state-treatment 축 재선택 금지(자매 회피). 다음 사이클(562)은 tokens area.
+
 ## 2026-06-04 — [design] cycle 560 Discovery — aesthetic area 38th round letter-spacing-tracking-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 letter-spacing-tracking-treatment로 측정 — tracking(letter-spacing) 유틸이 DESIGN.md L17 Display/Hero 타이포 역할(tracking-tight)에 정합하게, 일관된 값으로 적용되는지.
