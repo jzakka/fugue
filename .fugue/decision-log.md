@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 626 Discovery — states area 52nd round group-hover-focus-keyboard-parity-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. 부모 hover로 자식 상태를 바꾸는 `group-hover:` affordance가 키보드 포커스 동등(parity)을 갖는지 점검. group-hover 13건 중 12건이 group-focus-visible 대칭 페어(border-accent 6↔6·text-accent 4↔4·shadow-card-hover 2↔2) — 카드 hover affordance가 키보드 포커스에도 동일 적용. 유일 비대칭처럼 보인 SearchBar L223 `group-hover:opacity-100`(최근검색 삭제 버튼 reveal)은 실제로 `group-focus-within:opacity-100`+`focus-visible:opacity-100`을 동반 — 행 키보드 진입(focus-within) 및 버튼 직접 포커스(focus-visible) 시 reveal로 키보드 parity 확보(reveal-on-row 패턴엔 focus-within이 focus-visible보다 적절).
+이유: 모든 group-hover affordance가 키보드 등가 메커니즘(group-focus-visible 또는 group-focus-within+focus-visible)을 갖춰 hover-only 비가시 상태 0건 → 신규 후보 0건. hover-state(43rd, 직접 hover)/focus-visible(45th·41st)/selected-active(46th)와 구별되는 group(부모 트리거) 상태 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` group-hover 사용 6파일 13곳. 다음 사이클 627 = tokens area.
+
 ## 2026-06-04 — [design] cycle 625 Discovery — aesthetic area 51st round text-truncation-line-clamp-treatment-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. 텍스트 오버플로 처리(truncate 단일행 vs line-clamp-2 다행)가 콘텐츠 역할별로 일관적인지 점검. `truncate` ×15: 컴팩트 단일행 라벨/메타데이터(미디어카드 제목·크리에이터명 PinCard L71/72·검색 결과행 SearchClient L337/386·파일명 PinCreateForm L407·보드명 BoardGrid L26·SearchBar 결과 L215/298/335/374 등). `line-clamp-2` ×2: hero 텍스트(텍스트카드 제목 PinCard L157·설명 프리뷰 SearchClient L390). 같은 '제목'도 카드 타입별로 갈림 — 미디어카드=1행 캡션(L71), 텍스트카드=2행 본문(L157).
 이유: truncate(보조 라벨·메타)와 line-clamp-2(주 콘텐츠 제목·설명) 분기가 콘텐츠 위계에 매핑되고, 제목의 1행/2행 차이는 DESIGN.md Card System L82 image card vs L84 text card 구분에 정합(텍스트카드는 이미지가 없어 제목이 hero) → 자의적 분기 아님, 신규 후보 0건. media-aspect-ratio(50th)/display-font(49th)/letter-spacing(45th)/font-weight(42nd)와 구별되는 텍스트 오버플로 sister 축.
