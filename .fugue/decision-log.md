@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 564 Discovery — responsive area 36th round responsive-spacing-scale 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-spacing-scale로 측정 — 브레이크포인트별 padding/margin/gap 전환이 일관된 base→sm 점프와 정전 스페이싱 스케일을 따르는지.
+  이유: `apps/web/src` 전수 측정 — 반응형 스페이싱 유틸은 `sm:p-8` 5곳뿐(boards/[id] L53, pins/[id] L128, ProfileEditForm L51, ProfileHeader L13, ProfileSkeleton L5)이며 전부 base `p-6`과 짝지어 `p-6 sm:p-8`(24px→32px) 동일 패턴. 반응형 margin/gap·임의 bracket 반응형 스페이싱 0건. 단일 값·균일 점프·Tailwind 기본 스페이싱 스케일(커스텀 스페이싱 토큰 미정의라 기본값) → off-scale 0. 브레이크포인트 VALUE 차이(sm=640 vs L70 500)는 보류 anti-pattern L20이라 재제기 안 함. 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 responsive round는 responsive-spacing-scale 축 재선택 금지(자매 회피). 다음 사이클(565)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 563 Discovery — a11y area 37th round modal-dialog-aria-semantics 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 modal-dialog-aria-semantics로 측정 — 오버레이 모달이 dialog 시맨틱 3종(role="dialog" + aria-modal="true" + aria-labelledby→실존 제목 id)을 완비하고 dangling 참조가 없는지.
