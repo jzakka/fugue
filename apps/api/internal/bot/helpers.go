@@ -6,20 +6,36 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/chungsanghwa/fugue/apps/api/internal/httpclient"
 )
 
 // fetchHTMLShared fetches HTML content with timeout, redirect limits, and size limits.
 // Returns (html, finalURL, error) where finalURL is the URL after any redirects.
 // Shared by Pioneer and Harvester.
-func fetchHTMLShared(ctx context.Context, rawURL string) (string, string, error) {
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 5 {
-				return fmt.Errorf("stopped after 5 redirects")
-			}
-			return nil
-		},
+//
+// rawURL is caller-untrusted — it originates from the harvester_frontier, whose
+// rows are URLs Pioneer extracted from arbitrary external HTML. The HTTP client
+// MUST therefore be the SSRF-safe factory (httpclient.NewSSRFSafeClient): its
+// dialer re-resolves every host and refuses to dial private/reserved/metadata IP
+// ranges, and its CheckRedirect re-runs the same check on every redirect hop. The
+// options (ConnectTimeout 5s, TotalTimeout 10s, MaxRedirects 5) mirror Pioneer's
+// DefaultConsumerFetcher (pioneer_consumer.go) so both fetch stages of the bot
+// pipeline share one SSRF policy, satisfying the httpclient package contract that
+// "any code that fetches caller-untrusted URLs ... extracted from crawled HTML"
+// route through this client. TotalTimeout 10s preserves the prior 10s deadline.
+//
+// client is injectable for tests: production callers pass nil to get the
+// SSRF-safe default, while tests can inject an httptest.Server's client to
+// exercise body-limit/2xx/finalURL handling against a loopback server that
+// the SSRF dialer would otherwise (correctly) refuse to dial.
+func fetchHTMLShared(ctx context.Context, client *http.Client, rawURL string) (string, string, error) {
+	if client == nil {
+		client = httpclient.NewSSRFSafeClient(httpclient.Options{
+			ConnectTimeout: 5 * time.Second,
+			TotalTimeout:   10 * time.Second,
+			MaxRedirects:   5,
+		})
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
