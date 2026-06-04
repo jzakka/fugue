@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 577 Discovery — tokens area 36th round font-family-token-usage 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 font-family-token-usage로 측정 — 글꼴 패밀리가 정의된 토큰(font-display/font-mono)으로만 표현되는지, 임의 font-[…]·inline fontFamily로 우회하는 site가 있는지.
+  이유: `apps/web/src` 전수 측정 — 글꼴 유틸은 `font-mono` 23(숫자·tabular 데이터, globals `.font-mono { tabular-nums }` 짝)·`font-display` 16(헤딩·브랜드 타이틀) 둘뿐이고 각각 globals.css `--font-display`('General Sans'…)·`--font-mono`('Geist Mono'…) 토큰에 매핑. 본문은 명시 클래스 없이 기본 sans 상속. 임의 `font-[…]`·`fontFamily` inline 0건. 즉 두 의미 글꼴 토큰이 용도별(제목=display, 수치=mono) 일관 적용, 비토큰 글꼴 발산 0. DESIGN.md 글꼴 방향과 부합하고 용도 매핑이 자의적 등급 부여 없이 일관(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. custom-text-size-token-usage(cycle 562)·text-color-role-hierarchy-bypass(cycle 567)·surface-background-color-token-usage(cycle 572)와 구분되는 글꼴 패밀리 관점 자매 축. 다음 tokens round는 font-family-token-usage 축 재선택 금지(자매 회피). 다음 사이클(578)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 576 Discovery — states area 43rd round hover-state-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 hover-state-treatment로 측정 — 인터랙티브 요소의 hover 피드백이 정의된 토큰/표준 패턴으로 일관 표현되는지, 임의 hover 값으로 발산하는지.
