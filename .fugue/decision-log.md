@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 549 Discovery — responsive area 33rd round responsive-visibility-utilities 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-visibility-utilities로 측정 — breakpoint로 게이트되는 display 토글(`sm:/md:/lg:` × `hidden/block/flex/inline` 등) 정합성.
+  이유: `apps/web/src` 전수 측정 결과 breakpoint 게이트 visibility 토글은 단 1곳 — NavBar L55 `<span className="... hidden sm:block ...">`(사용자명 라벨을 좁은 화면<500px에서 숨기고 sm≥500px에서 표시). mobile-first 방향이며 L70 sm/500px breakpoint 사용으로 일관. (`md:flex`/`grid-cols` 등은 visibility 토글이 아니라 layout utility — 별 축.) DESIGN.md L70은 breakpoint 값(sm 500/md 800/lg 1200)만 정의하고 반응형 가시성 정책은 무명세 → 단일 토글의 적정성 판정은 inference(confidence≤3). 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 responsive round는 responsive-visibility-utilities 축 재선택 금지(자매 회피). 다음 사이클(550)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 548 Discovery — a11y area 34th round image-alt-text-coverage 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 image-alt-text-coverage로 측정 — `<img>` 요소의 `alt` 속성 부착 정합성.
