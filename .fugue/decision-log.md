@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 622 Discovery — tokens area 45th round shadow-token-usage-vs-arbitrary-conformance 표면 폐기 (후보 0건)
+결정/변경: 없음. box-shadow가 정의된 시멘틱 토큰을 거치는지(색 토큰화 round 44와 동형 렌즈) 점검. globals.css 정의 그림자 토큰은 `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` 1개. tsx 그림자 사용은 `shadow-card-hover` ×10 단일 — arbitrary `shadow-[…]` 0건, Tailwind 기본 스케일(shadow-sm/md/lg/xl) 0건. 휴지 상태 그림자(shadow-card)는 미사용.
+이유: 그림자 100% 단일 명명 토큰(shadow-card-hover) 경유, arbitrary/기본 스케일 우회 0건 → 신규 후보 0건. 카드가 휴지 시 평면이고 hover에서만 단일 elevation 토큰으로 떠오르는 패턴이 DESIGN.md L11 'Minimal — 장식 최소' 정합. color-token(44th)/opacity(43rd)/transition-duration(42nd)와 구별되는 box-shadow token-source 렌즈 sister 축(aesthetic 40th shadow-elevation-treatment의 시각 거동과 다른 토큰 출처 차원).
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` box-shadow 사용 전역(shadow-card-hover 10곳). 다음 사이클 623 = a11y area.
+
 ## 2026-06-04 — [design] cycle 621 Discovery — states area 51st round pending-loading-spinner-state-treatment-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. 비동기 액션(제출/저장/추가 로드)의 pending·로딩 상태 시각 처리 일관성 점검. 스피너 11곳(PinCreateForm L366/509·SearchClient L428·LoadMorePins L51·VideoThumbnailPicker L121·AddToBoardButton L297/350·MyPageClient L63·PinsGrid L140·FeedContainer L220·SearchBar L254) 전부 동일 레시피 `border-2 border-accent border-t-transparent rounded-full animate-spin`. 유일 변이는 맥락별 크기(인라인=w-4 h-4, 버튼/인라인 로드=w-5 h-5, 페이지 영역 중앙=w-6 h-6). 비동기 상태는 boolean(submitting/saving/loading) 추적 + `disabled={…}`로 중복 제출 차단이 일관(BoardActions L96/109·ProfileEditForm L118/125·LoadMorePins L43·SearchClient L420·LoginButtons L71·LogoutButton L26).
 이유: 11/11 스피너가 동일 레시피·맥락별 크기뿐이고, async 액션이 균일하게 disabled-while-pending → 신규 후보 0건. 스피너 border-accent는 기능적 상태 지시자로 DESIGN.md L38 accent restraint 정합. loading-skeleton(44th, 페이지 스켈레톤)/disabled-state(44th)/disabled-cursor(48th)/error-validation(50th)와 구별되는 inline async-spinner sister 축.
