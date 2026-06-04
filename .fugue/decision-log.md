@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 550 Discovery — aesthetic area 36th round font-family-role-deployment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-family-role-deployment로 측정 — DESIGN.md L17-21 글꼴 역할 배치 정합성(Display/Hero=font-display, Body=기본 Pretendard, Data/Tags/수치=font-mono).
+  이유: `apps/web/src` 전수 측정 결과 `font-display` 16곳·`font-mono` 24곳·`font-serif`/`font-sans` 명시 오버라이드 0곳. (1) font-display 16곳은 전부 `<h1>/<h2>` 헤딩·NavBar L21 로고 워드마크·모달 타이틀 → L17 Display/Hero 정합. body 텍스트에 font-display 배치 0. (2) font-mono 24곳은 전부 태그 칩(bg-accent-subtle rounded-full: pins L130/L152, PinCreateForm L413/L556/L620, SearchClient L272, boards L69, PinCard L198, TagFilter L52/L64, SearchBar L305)·메타데이터/수치(text-dim 카운트·VideoTrimModal L207/L265 타임코드·ProfileHeader L48 등) → L20 "태그·메타데이터·수치" 정합. (3) 명시 font 오버라이드 없는 body는 기본 Pretendard(L18). 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 aesthetic round는 font-family-role-deployment 축 재선택 금지(자매 회피). 다음 사이클(551)은 states area.
+
 ## 2026-06-04 — [design] cycle 549 Discovery — responsive area 33rd round responsive-visibility-utilities 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-visibility-utilities로 측정 — breakpoint로 게이트되는 display 토글(`sm:/md:/lg:` × `hidden/block/flex/inline` 등) 정합성.
