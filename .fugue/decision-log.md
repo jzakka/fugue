@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 616 Discovery — states area 50th round error-validation-state-visual-treatment-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. DESIGN.md L50 'Semantic … error #FF3B30' 적용 — 폼/피드 에러·검증 상태 시각 처리 일관성 점검. 에러 메시지 박스 5곳(PinCreateForm L323·BoardActions L69·MyPageClient L94·ProfileEditForm L60·FeedContainer L188)이 동일 레시피 `bg-error/10 border border-error/30 rounded-[6px] text-error` 사용. 유일 변이는 밀도(컴팩트 인라인=p-2/text-xs: BoardActions·MyPageClient, 큰 폼=p-3/text-sm)로 맥락 정합. `role="alert"`이 에러 컨테이너 전수 페어링(L321/67/92/58, login L57, FeedContainer L186), 입력 `aria-invalid` 일관. 필수 표시 `*`도 text-error 토큰. raw text-red 등 토큰 우회 0건.
+이유: 에러 시멘틱 색이 전부 text-error/bg-error/border-error 토큰으로 L50 정합, 에러 박스 레시피가 균일하고 분기는 패딩/텍스트 밀도(맥락)뿐 → 신규 후보 0건. TagFilter L52(clear-filter)·AddToBoardButton L282(상태 토스트)·BoardActions L129(삭제 hover)의 error 토큰도 destructive 시멘틱 재사용으로 일관. placeholder-color(49th)/disabled-cursor(48th)/active-press(47th)/focus-visible(45th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 에러/검증 상태 표시 8파일. 다음 사이클 617 = tokens area.
+
 ## 2026-06-04 — [design] cycle 615 Discovery — aesthetic area 49th round display-font-heading-application-conformance 표면 폐기 (후보 0건)
 결정/변경: 없음. DESIGN.md L17 'Display/Hero: General Sans 700'(--font-display: General Sans) 적용 점검 — 제목/헤딩이 font-display 패밀리를 쓰는지. 헤딩 17곳 중 font-display 미적용은 2곳뿐이며 둘 다 `sr-only`(시각 비표시 a11y 랜드마크): search/page L74 `<h1 sr-only>검색`, page L87 `<h1 sr-only>작품 피드`. 나머지 visible 헤딩·display 컨텍스트(NavBar 로고 L21, ProfileHeader L32, BoardGrid L14, 모달 타이틀 VideoTrimModal L186·AddToBoardButton L249, SearchClient 헤딩 4곳 등)는 전수 font-display 적용.
 이유: visible 헤딩 100% font-display 적용으로 L17 정합. 유일한 예외 2건은 sr-only로 시각 폰트가 무의미한 a11y 전용 헤딩이라 font-display 부재가 정당 → 신규 후보 0건. monospace-numeric-metadata-role(47th, 수치=Geist Mono 패밀리)과 구별되는 헤딩=General Sans 패밀리 sister 축. tabular-nums(48th)/backdrop-blur(46th)/letter-spacing(45th)와도 구별.
