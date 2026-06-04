@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 608 Discovery — a11y area 46th round form-button-type-attribute-coverage 표면 폐기 (baseline only)
+결정/변경: 없음. 폼 내 버튼의 `type` 속성 명시로 암묵적 submit 위험 점검. 전역 `<button>` 43개 중 type="button" 14·type="submit" 2·미명시 27. `<form>` 2곳(PinCreateForm, ProfileEditForm)의 모든 내부 버튼은 type 명시(액션=type="button", 제출=type="submit") → 폼 내 암묵적 submit 위험 0. 미명시 27개는 전부 폼 외부 버튼이라 default submit가 무해. 위반 0건.
+이유: a11y/폼 시맨틱은 DESIGN.md 미명세(spec-less)이나 측정 결과 폼 버튼이 전수 정확. tabindex-usage(45th)/decorative-svg-aria-hidden(44th)/aria-pressed-toggle(43rd)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 폼 2곳 내부 버튼. 다음 사이클 609 = responsive area.
+
 ## 2026-06-04 — [design] cycle 607 Discovery — tokens area 42nd round transition-duration-token-conformance 표면 폐기
 결정/변경: 없음. 전역 transition duration 토큰 사용 측정. 명시 duration은 `duration-200` 8건(전부 hover/card-lift/버튼 피드백: SearchClient·LoginButtons·BoardGrid·BoardCover·MyPageClient·PinCard)·`duration-300` 1건(PinCreateForm L381 업로드 진행바 fill, transition-all)뿐이며 나머지 67 transition-colors는 Tailwind 기본(150ms) 사용. duration-300 단일값은 진행바 연속 모션이라 hover 피드백(200ms)과 다른 모션 카테고리 → 맥락상 정당, 임의 분기 아님. 후보 0건.
 이유: duration-300 vs 200은 진행바 vs hover로 모션 맥락이 다름. 추가로 DESIGN.md L86/L92 모션 duration 자체가 내부 모순(anti-patterns.md L21)이라 코드를 특정 값에 정렬하는 것이 자의적 — anti-pattern 사전 매칭. line-height(41st)/spacing-scale(40th)/font-size-step(39th)와 구별되는 sister 축.
