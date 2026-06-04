@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 554 Discovery — responsive area 34th round responsive-grid-column-progression 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-grid-column-progression으로 측정 — breakpoint별 grid 컬럼 수 진행의 정합성(masonry breakpointCols + 일반 CSS grid의 `grid-cols-*` 단계).
+  이유: `apps/web/src` 측정 결과 — (1) **MasonryGrid BREAKPOINT_COLUMNS(default:4/1199:3/799:2/499:1)는 DESIGN.md L70(sm 500/md 800/lg 1200)에 정확 매핑**: <500=1, 500-799=2, 800-1199=3, ≥1200=4 (react-masonry-css max-width 시맨틱). 스펙 지배 그리드 완전 정합. (2) 일반 CSS grid는 전부 단조 증가·합리적: 검색결과 1→2→3(SearchClient L320/L358), 보드 2→3(BoardGrid L17·MyPageClient L143), 프로필 핀 1→2(PinsGrid L118/L126, ProfileSkeleton L19가 미러), BoardCover는 고정 2×2 모자이크(비반응형 의도). PinsGrid(1→2) vs 검색핀결과(1→2→3) 최대 컬럼 차이는 컨텍스트 기반이며 DESIGN.md가 일반 grid 컬럼 수를 미명세 → 정렬 자의적(자체 리뷰 #2). 일반 grid의 Tailwind 기본 sm/md breakpoint vs L70(500/800)는 기존 anti-pattern L20(breakpoint 토큰=광범위 회귀) 보류 항목이지 신규 후보 아님. 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 responsive round는 responsive-grid-column-progression 축 재선택 금지(자매 회피). 다음 사이클(555)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 553 Discovery — a11y area 35th round icon-button-accessible-name 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 icon-button-accessible-name로 측정 — 아이콘 전용 버튼이 접근가능한 이름(aria-label/sr-only/가시 텍스트)을 갖는지.
