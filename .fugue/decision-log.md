@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 590 Discovery — aesthetic area 44th round accent-color-restraint 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 accent-color-restraint로 측정 — DESIGN.md L38(accent = CTA/호버/선택 역할) 범위 내에서만 accent가 쓰이는지, 장식적 본문 텍스트 등 역할 밖으로 남용되는지.
+  이유: `apps/web/src` 전체 accent 사용 166곳 — bg-accent(32, CTA/버튼)·bg-accent-hover(18, 호버)·bg-accent-subtle(12, 선택/배지 배경)·border-accent(69, 대부분 hover/focus 경계)·text-accent(20)·from/to-accent(13, 아바타 플레이스홀더 브랜드 그라디언트). 비-상호작용 bare text-accent 8곳 전수 확인: SearchBar L391·FeedContainer L168(인터랙티브 링크, hover:text-accent-hover/underline), pins L130·PinCreateForm L413(bg-accent-subtle+text-accent 미디어타입/태그 배지 칩), pins L54(aria-hidden 브랜드 아이콘 글리프) — 장식적 본문 텍스트 0건. accent는 CTA/인터랙티브/선택배지/강조/브랜드로 일관 한정, L38 절제 준수. L38 괄호 주석은 예시적이며 배타적 화이트리스트 아님 → 브랜드 아이콘/배지 포함 정당. gradient-direction(585)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 591 = states area.
+
 ## 2026-06-04 — [design] cycle 589 Discovery — responsive area 43rd round breakpoint-vocabulary-restraint 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 메타 축 breakpoint-vocabulary-restraint로 측정 — 실제 사용된 breakpoint 접두 집합이 최소·일관인지, 불필요하게 여러 단계로 흩어지는지.
