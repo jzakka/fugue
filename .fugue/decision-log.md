@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 574 Discovery — responsive area 38th round responsive-grid-column-scaling 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-grid-column-scaling으로 측정 — 그리드 열 수가 breakpoint별로 mobile-up(작은 화면 적은 열 → 큰 화면 많은 열)으로 증가하는지, 역방향·건너뜀이 있는지.
+  이유: `apps/web/src` 전수 측정 — 기본 `grid-cols-1` 5곳에서 `sm:grid-cols-2` 5·`sm:grid-cols-3` 2·`md:grid-cols-3` 2로 스케일. 모든 반응형 그리드가 1→2→3 열 mobile-up 증가 방향이고 한 단계씩 점프(역방향 grid-cols 축소·중간 단계 스킵 0건). 디스플레이 토글(hidden→sm:block/sm:flex/sm:grid)도 작은 화면 숨김→큰 화면 노출의 progressive reveal로 동일 mobile-up 원칙. DESIGN.md breakpoint(L70 sm/md/lg)는 정의되나 어느 그리드가 어느 breakpoint에서 몇 열인지는 미명시라 강제 불가—현 적용은 자의적 매핑 없이 일관(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. responsive-layout-direction(cycle 559, flex 방향)·responsive-spacing-scale(cycle 564, 패딩)·responsive-typography-scaling(cycle 569, 텍스트)와 구분되는 그리드 열 수 관점 자매 축. 다음 responsive round는 responsive-grid-column-scaling 축 재선택 금지(자매 회피). 다음 사이클(575)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 573 Discovery — a11y area 39th round heading-hierarchy-semantics 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 heading-hierarchy-semantics로 측정 — 페이지마다 단일 h1을 갖는지, 헤딩 레벨이 건너뛰기 없이(h1→h2) 순차적인지.
