@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 603 Discovery — a11y area 45th round tabindex-usage-consistency 표면 폐기 (baseline only)
+결정/변경: 없음. `tabIndex` 사용 일관성 측정(3곳). 모달 패널 2곳(VideoTrimModal L182, AddToBoardButton L244)이 일관되게 `tabIndex={-1}`(프로그래매틱 포커스 컨테이너)을 사용하고, PinCreateForm L344 드롭존 div는 `tabIndex={0}`을 `role="button"`+onKeyDown(Enter/Space)+aria-label과 완전 페어링한 커스텀 버튼 패턴 → 두 용도(-1 포커스 컨테이너 vs 0 탭 순서 진입) 모두 맥락상 정확하고 동종끼리 일관. 분기 없음, 후보 0건.
+이유: a11y 영역은 구조적으로 spec-less(DESIGN.md tabindex/keyboard 명세 부재). 측정 결과 사용처가 맥락별로 올바르고 일관해 정렬 대상도 부재. decorative-svg-aria-hidden(44th)/aria-pressed-toggle(43rd)/aria-live(42nd)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` tabIndex 선언 3곳. 다음 사이클 604 = responsive area.
+
 ## 2026-06-04 — [design] cycle 602 Discovery — tokens area 41st round line-height-leading-token-conformance 표면 폐기
 결정/변경: 없음. `apps/web/src` 전역 line-height(`leading-*`) 적용을 측정해 임의값·토큰 오버라이드 여부 점검. leading 사용 총 4건(leading-tight ×2, leading-relaxed ×2) 모두 명명된 Tailwind 기본 토큰, 임의 `leading-[..]` 0건, globals.css `--leading`/line-height 오버라이드 0건 → 단일 기본 스케일 일관 준수.
 이유: DESIGN.md에 line-height/행간 명세 부재이나 코드가 임의값·오버라이드 없이 기본 토큰만 사용해 정렬 대상 부재. spacing-scale(40th)/font-size-step(39th)/z-index(38th)와 구별되는 sister 축.
