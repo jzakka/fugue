@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 555 Discovery — aesthetic area 37th round font-weight-role-deployment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-weight-role-deployment로 측정 — DESIGN.md L17(Display/Hero 700)·L19(UI/Labels 500) 글꼴 두께 역할 배치 정합성.
+  이유: `apps/web/src` 측정 결과 font-bold 16·font-semibold 19·font-medium 19. (1) font-bold(700) 16곳은 전부 `font-display` 헤딩과 동일 라인 공존(font-display 없는 font-bold 0) → L17 Display/Hero 정합. (2) font-medium(500)은 UI 라벨·태그·nav → L19 UI/Labels 정합. (3) font-semibold(600) 19곳은 CTA 버튼(bg-accent rounded-full: pins L223·PinCreateForm L657·NavBar L35 등)과 카드/항목 제목(text-text-primary: PinCard L71/L157·BoardGrid L26·SearchClient L337 등)에 배치 — DESIGN.md는 L17(Display/Hero)·L19(UI/Labels)에만 두께를 지정하고 CTA 버튼/카드 제목의 두께 역할을 명시하지 않으므로 600을 L19(500)로 끌어내려 결함화하면 자의적 매핑(자체 리뷰 #2). 명시 매핑된 역할(Display→bold, UI/Labels→medium)은 전부 정합. body는 normal(L18). 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 aesthetic round는 font-weight-role-deployment 축 재선택 금지(자매 회피). 다음 사이클(556)은 states area.
+
 ## 2026-06-04 — [design] cycle 554 Discovery — responsive area 34th round responsive-grid-column-progression 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-grid-column-progression으로 측정 — breakpoint별 grid 컬럼 수 진행의 정합성(masonry breakpointCols + 일반 CSS grid의 `grid-cols-*` 단계).
