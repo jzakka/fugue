@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 625 Discovery — aesthetic area 51st round text-truncation-line-clamp-treatment-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. 텍스트 오버플로 처리(truncate 단일행 vs line-clamp-2 다행)가 콘텐츠 역할별로 일관적인지 점검. `truncate` ×15: 컴팩트 단일행 라벨/메타데이터(미디어카드 제목·크리에이터명 PinCard L71/72·검색 결과행 SearchClient L337/386·파일명 PinCreateForm L407·보드명 BoardGrid L26·SearchBar 결과 L215/298/335/374 등). `line-clamp-2` ×2: hero 텍스트(텍스트카드 제목 PinCard L157·설명 프리뷰 SearchClient L390). 같은 '제목'도 카드 타입별로 갈림 — 미디어카드=1행 캡션(L71), 텍스트카드=2행 본문(L157).
+이유: truncate(보조 라벨·메타)와 line-clamp-2(주 콘텐츠 제목·설명) 분기가 콘텐츠 위계에 매핑되고, 제목의 1행/2행 차이는 DESIGN.md Card System L82 image card vs L84 text card 구분에 정합(텍스트카드는 이미지가 없어 제목이 hero) → 자의적 분기 아님, 신규 후보 0건. media-aspect-ratio(50th)/display-font(49th)/letter-spacing(45th)/font-weight(42nd)와 구별되는 텍스트 오버플로 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` truncate/line-clamp 사용 6파일 17곳. 다음 사이클 626 = states area.
+
 ## 2026-06-04 — [design] cycle 624 Discovery — responsive area 50th round responsive-grid-gap-scaling-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. 반응형 그리드의 gap이 breakpoint별로 스케일하는지·일관적인지 점검. `(sm|md|lg):gap-*` 반응형 gap 유틸 0건 — 모든 gap이 고정 base 값. 반응형 콘텐츠 그리드 6곳(SearchClient L320/358 grid-cols-1 sm:2 md:3·BoardGrid L17·MyPageClient L143 grid-cols-2 sm:3·ProfileSkeleton L19·PinsGrid L118/126 grid-cols-1 sm:2)이 전부 컬럼은 breakpoint로 스케일하되 gap은 일정하게 `gap-4`(16px). 작은 gap(0.5/1/1.5/2/3)은 비그리드 인라인 맥락(태그 칩·아이콘 클러스터·BoardCover 2x2 썸네일 모자이크 gap-0.5)에 한정.
 이유: 반응형 gap 변형이 전무하고 모든 핀/보드 그리드가 컬럼 reflow와 무관하게 gap-4 거터를 유지 → 분기 없음, 신규 후보 0건. 컬럼 수만 적응하고 거터는 16px 고정 리듬을 지키는 일관된 처리. grid-column-scaling(38th, 컬럼 수)/padding-progression(46th)/spacing-scale(36th)/spacing-and-layout-direction(42nd)와 구별되는 gap 차원 sister 축.
