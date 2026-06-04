@@ -509,6 +509,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 566 Discovery — 에러처리 area write/flush 경로 deferred Close 에러 누락(부분 flush 침묵 성공) 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(564 동시성/560 정합성/558 보안/556 봇/554 OpenSpec갭/552 에러처리) 중 에러처리가 oldest(552) → 에러처리 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config) 중복 회피. sister 회피: 552 panic 가능 경로 / 540 HTTP 응답 직렬화·쓰기 / 528 SQL 트랜잭션 rollback·commit / 516 요청 body 파싱·검증 status 매핑 / 498 sql.ErrNoRows 도메인 매핑 과 분리한 "write/flush 경로에서 Close()/Flush() 반환 에러를 누락해 부분 기록이 침묵 성공하는 결함(deferred Close on write)" 신규 축.
+
+  이유: apps/api 의 deferred Close 전수(grep) 결과 비-생성 코드의 deferred Close 는 cmd/bot/main.go infra.Close()(:148/184/318/427) 4건뿐이며 모두 종료-정리(read/shutdown) 경로 — 데이터 무결성 무관. write/flush 리소스는 3곳뿐이고 모두 Close 에러를 명시 처리: (1) snapshot/store.go gzipBytes(:101-112) — `w.Write` 에러 시 `_ = w.Close()` 후 반환, 정상 경로는 `if err := w.Close(); err != nil { return nil, err }` 로 gzip trailer flush 실패 전파(부분 gzip member 방지), (2) pin/handler.go 비디오 임시파일(:154-181) — `tmpFile.Close()` 에러를 ENOSPC/EIO/NFS write-back 미flush 로 보고 400 fail-closed(주석 :170-176, probeErr fail-closed 와 동형, 15s 초과 거부 SHALL 침묵 우회 차단), (3) bot/cmd/visualize/graphviz.go(:74-88) — DOT 임시파일 `tmpFile.Close()` 에러를 `fmt.Errorf(...%w)` 로 전파. db/*.sql.go 의 `defer rows.Close()` 다수는 sqlc 생성 read 경로라 누락해도 무결성 영향 없음(축 범위 밖). anti-pattern 비매칭(460/456/466/508). confidence=5 literal-violation/reproducible 부재 → 표면 폐기.
+
+  QA: 코드 정적 검증만 수행(발견 모드). deferred Close 전수 grep + write/flush 리소스(gzip/temp-file) 3곳 Read. 실 환경 부분-flush 재현 미수행(후보 0건).
+
+  영향 범위: 코드 변경 없음. decision-log 항목 1건 추가.
+
 ## 2026-06-04 — [system] cycle 564 Discovery — 동시성 area atomic 연산 정합성(torn read 혼용·RMW lost-update·atomic-holding 구조체 value-copy) 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(560 정합성/558 보안/556 봇/554 OpenSpec갭/552 에러처리/550 동시성) 중 동시성이 oldest(550) → 동시성 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config) 중복 회피. sister 회피: 550 mutex 임계영역 / 538 외부 런타임 핸들 / 526 singleflight 코얼레싱 / 514 Redis check-then-act 원자성 / 496 타이머 수명주기 / 484 DB lease 경계 / 470 context-cancel·channel lifecycle / 458 goroutine 누수·race 와 분리한 "atomic 연산 정합성 — atomic 갱신값이 non-atomic 하게 읽히는 혼용(torn read), 복합 RMW lost-update, atomic 보유 구조체 value-copy" 신규 축.
