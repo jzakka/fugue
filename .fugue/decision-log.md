@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 589 Discovery — responsive area 43rd round breakpoint-vocabulary-restraint 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 메타 축 breakpoint-vocabulary-restraint로 측정 — 실제 사용된 breakpoint 접두 집합이 최소·일관인지, 불필요하게 여러 단계로 흩어지는지.
+  이유: `apps/web/src` 전체 breakpoint 접두 = `sm:` 26곳 + `md:` 2곳뿐. `lg:`/`xl:`/`2xl:` 0건. `md:`는 SearchClient 그리드 단일 패턴(`sm:grid-cols-2 md:grid-cols-3`, L320·L358)에서만 3열 점진 강화 tier로 사용 → 어휘 최소·일관. DESIGN.md L70은 sm/md/lg 정의이나 부분집합(sm/md) 사용은 위반 아닌 절제. anti-pattern L20(breakpoint 수치 토큰 override 보류)은 픽셀값 측정이 아니라 접두 어휘 측정이므로 미트리거. typography(569)·grid-columns(574)·spacing-and-layout-direction(584)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 590 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 588 Discovery — a11y area 42nd round aria-live-region-announcement-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 aria-live-region-announcement-consistency로 측정 — 라이브 영역(로딩·상태·에러 알림)의 announcement 의미가 일관되게 매핑되는지.
