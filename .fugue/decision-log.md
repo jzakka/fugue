@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 582 Discovery — tokens area 37th round border-radius-scale-conformance 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 border-radius-scale-conformance로 측정 — DESIGN.md 등급 매핑 요소(입력/카드/모달/버튼)가 명세 px 반경을 쓰는지, 등급 외 임의 반경으로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — DESIGN.md L73-77 반경 스케일(sm 6px=입력/알림·md 10px=카드·lg 16px=모달/패널·full=버튼/칩/아바타)이 등급 요소에 정확 적용: `rounded-[6px]` 24·`rounded-[10px]` 18·`rounded-[16px]` 9·`rounded-full` 86 (globals.css에 `--radius` 토큰 override 부재라 Tailwind named rounded-md/lg(6/8px)가 명세값과 어긋나는 것을 피해 의도적으로 arbitrary px로 명세값 정확 타격). off-spec 반경은 전부 등급 외 sub-element라 anti-patterns L17·자체 리뷰 #2 면제: `rounded-md` 1=NavBar 🐡 마스코트 로고 박스(L17 마스코트 박스 명시 면제), `rounded-sm` 2=PinCard 오디오 파형 바·favicon 아이콘(L17 작은 아이콘 박스 면제), `rounded-lg` 2=VideoTrimModal 스크러버 트랙·홈 비등급 컨테이너, `rounded-xl` 1, `rounded-[8px]` 1=VideoTrimModal 비디오 프리뷰(L17 video-preview 면제), bare `rounded`(4px) 62=스켈레톤 플레이스홀더·장식 sub-element. 등급 요소 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. custom-text-size-token-usage(cycle 562)·text-color-role-hierarchy-bypass(cycle 567)·surface-background-color-token-usage(cycle 572)·font-family-token-usage(cycle 577)와 구분되는 반경 스케일 관점 자매 축. 다음 tokens round는 border-radius-scale-conformance 축 재선택 금지(자매 회피). 다음 사이클(583)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 581 Discovery — states area 44th round loading-skeleton-state-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 loading-skeleton-state-treatment로 측정 — 로딩 상태가 일관된 프리미티브(스켈레톤 시머·스피너)로 표현되는지, 컴포넌트마다 임의 로딩 처리로 발산하는지.
