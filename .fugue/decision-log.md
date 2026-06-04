@@ -235,6 +235,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 516 Discovery — 에러처리 area 요청 body 파싱·검증 에러의 HTTP status 매핑 충실도 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(514 동시성/510 정합성/506 보안/502 봇/500 OpenSpec갭/498 에러처리) 중 에러처리가 oldest(498) → 에러처리 차례. sister 회피: 498 sql.ErrNoRows→404 도메인 매핑 / 486 errorKind 분류→retry/backoff/dead 라우팅 / 472 wrapping·전파·errors.Is/As·rows.Err / 460 panic·ignored-error 와 분리한 "요청 body 파싱·검증 에러 → HTTP status 매핑 충실도(client 입력 오류가 4xx인가 vs 500 누출, server 오류가 500인가 vs 4xx 오분류)" 신규 축.
+  이유: HTTP write 핸들러의 입력 파싱/검증 에러 경로 전수 직접 read. JSON decode 6개 site(creator/handler.go:171 UpdateMe·boards/handler.go:133 Create/:316 Update/:544 AddPin·og/handler.go:73 Fetch·interaction/handler.go:55 Create)가 전부 동일 패턴: `http.MaxBytesReader(cap)` 선적용 → Decode 실패 시 `errors.As(*http.MaxBytesError)`면 400 "요청 본문이 너무 큽니다", else 400 "잘못된 요청 형식입니다" → 이후 필수 필드 누락/형식 오류(빈 이름·빈 URL·잘못된 타입·UUID parse 실패)도 전량 400. multipart 1개 site(pin/handler.go:83 Create)도 동형: ParseMultipartForm 실패→MaxBytesError 400/else 400, title/tag/media 필드 검증 400, uuid.Parse 실패 400. 500 반환은 GetTagsByIDs(pin:131)·GetCreator(creator:188) 등 진짜 서버측 DB 오류에 한정 = 정확. client 입력 오류→400, server 오류→500 분리가 6 JSON + 1 multipart 핸들러 전량 일관 — client 오류의 500 누출(잘못된 alert/retry 유발)·server 오류의 4xx 오분류 0건. 명시 위반·재현 결함 0. (입력 파싱 status 매핑은 정확·일관, 변경 후보 신설은 inference confidence≤3.) → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. apps/api 코드 무변경. 에러처리 area request-body-parse-error-status-mapping axis baseline 등록(다음 에러처리 round 재선택 금지, 498/486/472/460 과 분리). 주: Explore/grep 미신뢰 — creator/boards/og/interaction/pin handler Decode·ParseMultipartForm 직후 status 블록 직접 read 독립 검증. 다음 사이클(518)은 OpenSpec갭 area(516 에러처리 측정 후 last-6 중 500 OpenSpec갭이 oldest).
+
 ## 2026-06-04 — [system] cycle 514 Discovery — 동시성 area 외부 상태저장소(Redis) check-then-act 원자성 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(510 정합성/506 보안/502 봇/500 OpenSpec갭/498 에러처리/496 동시성) 중 동시성이 oldest(496) → 동시성 차례. sister 회피: 496 타이머/티커 리소스 수명주기 / 484 DB claim/lease 트랜잭션 경계(SELECT FOR UPDATE SKIP LOCKED) / 470 context-cancel·channel/goroutine lifecycle·sync-primitive / 458 goroutine 누수·shared-state race 와 분리한 "외부 상태저장소(Redis) check-then-act 원자성(동시 요청 TOCTOU·INCR/GETDEL 단일성·replay)" 신규 축.
