@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 572 Discovery — tokens area 35th round surface-background-color-token-usage 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 surface-background-color-token-usage로 측정 — 표면/배경색이 DESIGN.md 어두운 표면 위계 토큰(bg/surface/surface-elevated/surface-hover)으로 표현되는지, 원시 회색조·hex로 우회하는 site가 있는지.
+  이유: `apps/web/src` 전수 측정 — 표면 위계 토큰 완전 채택(bg-surface-elevated 25·bg-surface 24·bg-surface-hover 12·bg-bg 12). accent 계열(bg-accent 32·bg-accent-hover 18·bg-accent-subtle 12)·시맨틱(bg-error 9·bg-success 1)·border(bg-border, bg-border/30)도 토큰 기반. 원시 회색조·hex 우회 0건(bg-gray/zinc/neutral/slate-N·bg-[#…] grep 0). `bg-black/`·`bg-white/` opacity 변형(black/40·/60·/70, white/70)은 모달 백드롭·비디오 레터박스·핸들 인디케이터 등 스크림/오버레이 프리미티브라 표면 위계 토큰과 대체 관계 아님(중립 오버레이는 팔레트 외 정당). DESIGN.md 표면 위계가 누락·우회 없이 적용 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. custom-text-size-token-usage(cycle 562)·text-color-role-hierarchy-bypass(cycle 567)와 구분되는 배경/표면 색 관점 자매 축. 다음 tokens round는 surface-background-color-token-usage 축 재선택 금지(자매 회피). 다음 사이클(573)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 571 Discovery — states area 42nd round transition-property-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 transition-property-treatment로 측정 — 상태 전이 애니메이션이 변하는 속성만 지정하는지(transition-colors 등), 임의 duration/ease 매직값으로 발산하는지.
