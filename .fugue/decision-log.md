@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 583 Discovery — a11y area 41st round icon-button-accessible-name 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 icon-button-accessible-name으로 측정 — 아이콘만 있는 버튼이 식별 가능한 접근성 이름(aria-label 또는 aria-hidden svg 옆 가시 텍스트)을 갖는지.
+  이유: `apps/web/src` 전체 `<button>` 43개 중 31개가 aria-label 보유. aria-label 없는 12개는 모두 가시 텍스트 라벨을 동반(보드에 추가·전체 결과 보기·취소·선택 완료·load-more·aria-pressed 탭/태그/보드 이름 버튼 등). 아이콘을 동반한 버튼은 aria-label(원본 보기·닫기·최근 검색에서 제거)을 갖거나 `aria-hidden="true"` svg 옆에 가시 텍스트를 둠. 아이콘만 있고 라벨 없는 버튼은 0개. a11y는 DESIGN.md/AGENTS.md에 명세가 없어 구조적으로 추론 영역이나, WCAG 4.1.2 name 패턴이 코드 전반에 일관 적용되어 발산 없음 → 후보 없음. form-label(558)·modal-aria(563)·image-alt(568)·heading-hierarchy(573)·landmark(578)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 584 = responsive area.
+
 ## 2026-06-04 — [design] cycle 582 Discovery — tokens area 37th round border-radius-scale-conformance 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 border-radius-scale-conformance로 측정 — DESIGN.md 등급 매핑 요소(입력/카드/모달/버튼)가 명세 px 반경을 쓰는지, 등급 외 임의 반경으로 발산하는지.
