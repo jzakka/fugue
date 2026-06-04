@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 580 Discovery — aesthetic area 42nd round font-weight-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-weight-treatment로 측정 — 글꼴 두께가 제한된 단계 스케일로 표현되는지, 임의 numeric weight(font-[600] 등)로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — 글꼴 두께 유틸은 `font-medium`(500) 19·`font-semibold`(600) 19·`font-bold`(700) 16 세 단계뿐. thin/extralight/light/normal/extrabold/black 0개, 임의 `font-[NNN]` 0건. 즉 강조 위계가 medium(미묘 강조)→semibold(라벨·버튼)→bold(헤딩) 3단으로 절제·일관되고 과도 단계·매직 weight 발산 0. DESIGN.md 글꼴 방향(General Sans display)과 부합하고 요소별 weight 매핑 강제 규칙은 미명시라 추가 등급 부재가 곧 일관(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. letter-spacing-tracking(cycle 560)·gradient-treatment(cycle 565)·shadow-elevation-treatment(cycle 570)·border-treatment(cycle 575)와 구분되는 글꼴 두께 관점 자매 축. 다음 aesthetic round는 font-weight-treatment 축 재선택 금지(자매 회피). 다음 사이클(581)은 states area.
+
 ## 2026-06-04 — [design] cycle 579 Discovery — responsive area 39th round responsive-container-max-width 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-container-max-width로 측정 — 콘텐츠 컨테이너가 명명된 width 스케일로 폭 상한을 두는지, fluid-then-capped(작은 화면 꽉참→상한 이상 중앙 고정) 패턴이 일관한지.
