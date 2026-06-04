@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 607 Discovery — tokens area 42nd round transition-duration-token-conformance 표면 폐기
+결정/변경: 없음. 전역 transition duration 토큰 사용 측정. 명시 duration은 `duration-200` 8건(전부 hover/card-lift/버튼 피드백: SearchClient·LoginButtons·BoardGrid·BoardCover·MyPageClient·PinCard)·`duration-300` 1건(PinCreateForm L381 업로드 진행바 fill, transition-all)뿐이며 나머지 67 transition-colors는 Tailwind 기본(150ms) 사용. duration-300 단일값은 진행바 연속 모션이라 hover 피드백(200ms)과 다른 모션 카테고리 → 맥락상 정당, 임의 분기 아님. 후보 0건.
+이유: duration-300 vs 200은 진행바 vs hover로 모션 맥락이 다름. 추가로 DESIGN.md L86/L92 모션 duration 자체가 내부 모순(anti-patterns.md L21)이라 코드를 특정 값에 정렬하는 것이 자의적 — anti-pattern 사전 매칭. line-height(41st)/spacing-scale(40th)/font-size-step(39th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` transition duration 유틸리티. 다음 사이클 608 = a11y area.
+
 ## 2026-06-04 — [design] cycle 606 Discovery — states area 48th round disabled-cursor-affordance-consistency (near-miss 발견·후보 보류)
 결정/변경: 없음. 비활성(disabled) 버튼의 커서 affordance 일관성 측정. `disabled:opacity-*`로 dimming 처리하는 비활성 상태가 16건인데 `disabled:cursor-not-allowed`를 함께 두는 건 2건뿐(PinCreateForm L623, LoginButtons L74) → 나머지 ~14개 비활성 버튼은 dimming은 받지만 커서는 pointer/기본 유지(클릭 불가인데 클릭 가능 커서 노출). 2:16 분기.
 이유: DESIGN.md에 cursor/disabled 상태 명세 부재(grep 0건). cursor-not-allowed를 전 비활성 버튼에 의무화할지 DESIGN.md가 지시하지 않아 자율 통일은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. (cycle 586 disabled opacity-50/40 분기와 같은 disabled-state 영역의 다른 facet=커서.) 사용자가 비활성 커서 표준을 결정하면 정렬 사이클로 승격 가능. active-press(47th)/focus-visible(45th)/disabled-opacity(44th)와 구별되는 sister 축.
