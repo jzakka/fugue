@@ -228,6 +228,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 514 Discovery — 동시성 area 외부 상태저장소(Redis) check-then-act 원자성 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(510 정합성/506 보안/502 봇/500 OpenSpec갭/498 에러처리/496 동시성) 중 동시성이 oldest(496) → 동시성 차례. sister 회피: 496 타이머/티커 리소스 수명주기 / 484 DB claim/lease 트랜잭션 경계(SELECT FOR UPDATE SKIP LOCKED) / 470 context-cancel·channel/goroutine lifecycle·sync-primitive / 458 goroutine 누수·shared-state race 와 분리한 "외부 상태저장소(Redis) check-then-act 원자성(동시 요청 TOCTOU·INCR/GETDEL 단일성·replay)" 신규 축.
+  이유: apps/api Redis 터치 5개 site 전수 직접 read 검증. (1) RateLimiter(ratelimit.go:24-30) INCR+EXPIRE 를 Lua EVAL 단일 server-side 스텝으로 → TTL=-1 스트랜드/카운터 폭주 race 불가(ratelimit spec "단일 원자 단위" SHALL 충족). (2) VerifyState(state.go:62) GetDel(GETDEL) 원자 read-and-delete → CSRF state 단일 사용 보장, 동시 콜백 더블소비 불가. (3) feed.GetFeed(handler.go:78/139) cache-aside Get→miss→Set(5m TTL) — 동시 miss 시 양쪽 재계산+Set 은 동일 데이터 last-write-wins 무해(정합성 영향 0). (4) RotateRefreshToken(service.go:227-311) 동시 회전 시 grace(10s)·status="rotated" 분기로 "legitimate concurrent request. Allow it"(L264-265) 명시 — grace 윈도 동시 회전은 의도된 설계(병렬 탭 refresh 허용), grace 후 redis.Nil→단순 401(L246-251 compromise detection 비채택 명시 결정). (5) Store/Revoke* redis op 은 best-effort 로깅(anti-patterns cycle 460 exempt). 단일성/원자성 필요 지점은 전부 atomic 프리미티브(Lua EVAL·GETDEL), 나머지는 의도된 grace 또는 무해 cache-aside. 명시 위반·재현 결함 0. refresh-token 재사용 탐지 신설은 미명시 보안정책 변경(scope 밖·사용자 결정 침범, confidence≤3). → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. apps/api 코드 무변경. 동시성 area redis-check-then-act-atomicity axis baseline 등록(다음 동시성 round 재선택 금지, 496/484/470/458 과 분리). 주: Explore/grep 미신뢰 — ratelimit.go·state.go·service.go·feed/handler.go redis op 블록 직접 read 독립 검증. 다음 사이클(516)은 에러처리 area(514 동시성 측정 후 last-6 = 514동시성/510정합성/506보안/502봇/500OpenSpec갭/498에러처리 중 498 에러처리가 oldest).
+
 ## 2026-06-04 — [system] cycle 512 Processing — GET /api/auth/me 미설정 avatar_url·email JSON null 직렬화 정합 (PR #1104)
 
   결정/변경: auth.Handler.Me 가 미설정 avatar_url·email 을 ""(빈 문자열) 대신 JSON null 로 직렬화하도록 수정(OpenSpec fix-auth-me-null-field-serialization, PR #1104 squash merge). buildMeResponse(db.Creator) 헬퍼 추출 — sql.NullString.Valid 가드 후 nil→null, DB 없이 직렬화 계약 단위 테스트 가능. id·nickname 키·라우트·인증 동작 불변. backlog system-20260604-auth-me-nullstring-empty-vs-null-serialization-divergence → done.
