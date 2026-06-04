@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 602 Discovery — tokens area 41st round line-height-leading-token-conformance 표면 폐기
+결정/변경: 없음. `apps/web/src` 전역 line-height(`leading-*`) 적용을 측정해 임의값·토큰 오버라이드 여부 점검. leading 사용 총 4건(leading-tight ×2, leading-relaxed ×2) 모두 명명된 Tailwind 기본 토큰, 임의 `leading-[..]` 0건, globals.css `--leading`/line-height 오버라이드 0건 → 단일 기본 스케일 일관 준수.
+이유: DESIGN.md에 line-height/행간 명세 부재이나 코드가 임의값·오버라이드 없이 기본 토큰만 사용해 정렬 대상 부재. spacing-scale(40th)/font-size-step(39th)/z-index(38th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 전역 텍스트 line-height 유틸리티. 다음 사이클 603 = a11y area.
+
 ## 2026-06-04 — [design] cycle 601 Discovery — states area 47th round active-press-state-treatment-consistency 표면 폐기
 결정/변경: 없음. 인터랙티브 요소의 누름(`active:`) 시각 상태 처리 일관성 측정. 전 코드베이스 `active:` 사용 1건뿐(`VideoTrimModal.tsx:233 active:cursor-grabbing` — 드래그 윈도우 커서 affordance). 버튼/링크 등 어떤 요소도 visual press 상태(active:scale/bg 등)를 두지 않음 → 누름 시각 처리 부재가 전역 균일. 유일한 active:는 드래그 핸들 커서 변경으로 누름 시각 상태와 다른 맥락. 균일 = 일관 → 분기 없음, 후보 0건.
 이유: DESIGN.md에 active/press 상태 명세 부재. 누름 시각 처리를 도입할지는 신규 상태 시스템 설계라 단발 정렬 범위 밖이며, 현 부재는 전역 균일이라 정렬 대상도 아님. focus-visible(45th)/disabled(44th)/selected-active(46th)와 구별되는 sister 축.
