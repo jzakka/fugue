@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 597 Discovery — tokens area 40th round spacing-scale-token-conformance 표면 폐기
+결정/변경: 없음. `apps/web/src` 전역 spacing(padding/margin/gap/space) 적용을 측정해 임의 px 값 사용 여부와 `--spacing` 토큰 오버라이드 여부를 점검. 임의 spacing(`(p|m|gap|space-[xy])-[Npx]`) 0건, globals.css `--spacing` 오버라이드 0건. 모든 여백은 명명된 Tailwind 기본 스케일 토큰만 사용(px-3=30, gap-2=26, px-6=19, py-2.5=17, py-2=17, gap-3=17, py-1.5=15, px-4=15, gap-4=13, py-8=12 등) → 0.25rem 기준 단일 스케일 일관 준수.
+이유: DESIGN.md spacing 스케일 명세에 대한 코드 정렬 후보를 찾기 위한 점검이었으나 임의값·오버라이드가 없어 정렬 대상 부재. font-size-step(cycle 592)/border-radius(582)/z-index(587)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 전역 spacing 유틸리티. 다음 사이클 598 = a11y area.
+
 ## 2026-06-04 — [design] cycle 596 Discovery — states area 46th round selected-active-visual-treatment-consistency (near-miss 발견·후보 보류)
 
   결정/변경: 없음 (자율 후보 0건, 단 사용자 결정용 near-miss 1건 기록). states area를 자매 회피 신규 축 selected-active-visual-treatment-consistency로 측정 — 토글/필터 버튼의 '선택됨' 상태 시각 처리가 일관 토큰을 쓰는지.
