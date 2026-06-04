@@ -6327,7 +6327,8 @@ items:
     effort: 2
     risk: 2
     score: 5.0
-    status: pending
+    status: done
+    pr: 1034
     note: |
       cycle 478(보안 area, sister 회피: cycle 466 시크릿/SQLi 축과 분리한 SSRF 가드 커버리지 축)
       발견. 6/7 outbound fetch 경로가 NewSSRFSafeClient 를 경유하는데 harvester HTML fallback
@@ -6335,3 +6336,6 @@ items:
       fetches caller-untrusted URLs ... extracted from crawled HTML") + Pioneer HTML fetch 의
       명시적 동일-요구 확장(pioneer_consumer.go:367 "applies here too")으로 HTML fetch 경로도
       계약 대상 — 그래서 명시 위반은 아니나 재현 가능 갭(confidence 4). decision-log 미exempt 확인.
+      cycle 480 처리: fetchHTMLShared 가 NewSSRFSafeClient(5s/10s/5)를 구성, nil 허용 client
+      파라미터로 테스트 주입. 실 환경 QA 로 IMDS/loopback/10.x/redirect-to-loopback 차단 +
+      example.com 200 확인. PR #1034.

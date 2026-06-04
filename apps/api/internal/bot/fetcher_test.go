@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -205,20 +206,44 @@ func TestClassifySnapshotError_StableLabels(t *testing.T) {
 	}
 }
 
-// Smoke test for HTTPFetcher against a local httptest server, primarily to
-// guarantee the default Fetcher still works end-to-end after the refactor.
-func TestHTTPFetcher_Smoke(t *testing.T) {
+// TestHTTPFetcher_SSRFWiring proves the production HTTPFetcher routes through
+// the SSRF-safe client: a loopback target (which an httptest server uses) is
+// refused at dial time. This is the harvester HTML-fallback equivalent of
+// Pioneer's TestDefaultConsumerFetcher_SSRFWiring_Rejects* coverage.
+func TestHTTPFetcher_SSRFWiring(t *testing.T) {
+	for _, target := range []string{
+		"http://127.0.0.1:1/",
+		"http://169.254.169.254/latest/meta-data/",
+	} {
+		_, err := NewHTTPFetcher().Fetch(target)
+		if err == nil {
+			t.Fatalf("Fetch(%q) = nil error, want SSRF block", target)
+		}
+		if !strings.Contains(err.Error(), "blocked private/reserved IP") {
+			t.Errorf("Fetch(%q) error = %q, want \"blocked private/reserved IP\"", target, err)
+		}
+	}
+}
+
+// TestFetchHTMLShared_HappyPath exercises the 2xx/body-limit/finalURL handling
+// against a loopback httptest server by injecting the server's client, which
+// bypasses the SSRF dialer that TestHTTPFetcher_SSRFWiring confirms is wired
+// into the production (nil-client) path.
+func TestFetchHTMLShared_HappyPath(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		_, _ = w.Write([]byte("<html>ok</html>"))
 	}))
 	defer srv.Close()
 
-	body, err := NewHTTPFetcher().Fetch(srv.URL)
+	body, finalURL, err := fetchHTMLShared(context.Background(), srv.Client(), srv.URL)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if string(body) != "<html>ok</html>" {
+	if body != "<html>ok</html>" {
 		t.Errorf("body = %q", body)
+	}
+	if finalURL == "" {
+		t.Errorf("finalURL is empty")
 	}
 }

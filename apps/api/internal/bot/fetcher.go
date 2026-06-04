@@ -41,10 +41,11 @@ type Fetcher interface {
 	Fetch(url string) ([]byte, error)
 }
 
-// HTTPFetcher is the network-side Fetcher. It delegates to fetchHTMLShared
-// so its behavior (10s timeout, 5-redirect cap, 5MB body limit, FugueBot
-// User-Agent) stays identical to Pioneer's current fetch path — the spec
-// requires the two stages to share HTTP settings.
+// HTTPFetcher is the network-side Fetcher. It delegates to fetchHTMLShared,
+// which fetches caller-untrusted harvester_frontier URLs through the
+// SSRF-safe HTTP client (ConnectTimeout 5s, TotalTimeout 10s, 5-redirect
+// cap, 5MB body limit, FugueBot User-Agent) — the same policy Pioneer's
+// DefaultConsumerFetcher uses, so both fetch stages share one SSRF guard.
 type HTTPFetcher struct{}
 
 // NewHTTPFetcher builds the default HTTP Fetcher. The struct is stateless
@@ -56,7 +57,7 @@ func NewHTTPFetcher() *HTTPFetcher { return &HTTPFetcher{} }
 // interface intentionally doesn't propagate ctx; cancellation is bounded
 // by fetchHTMLShared's 10s deadline instead.
 func (f *HTTPFetcher) Fetch(rawURL string) ([]byte, error) {
-	htmlStr, _, err := fetchHTMLShared(context.Background(), rawURL)
+	htmlStr, _, err := fetchHTMLShared(context.Background(), nil, rawURL)
 	if err != nil {
 		return nil, err
 	}
