@@ -130,6 +130,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [reject] cycle 508 — JSON request body cap 후보 false positive 폐기(stale 부모 체크아웃 grep 오인)
+
+  결정/변경: cycle 506 이 등록한 system-20260604-json-request-body-size-cap-missing 를 backlog 에서 rejected 로 폐기. 코드 변경 없음. 처리(수정안 적용)하지 않음.
+  이유: 후보의 핵심 근거("og/creator/boards/interaction 핸들러가 http.MaxBytesReader 없이 r.Body 를 json.Decode, MaxBytesReader 0 matches")가 사실이 아니었다. origin/main 직접 확인 결과 4개 핸들러 전부 이미 본문 상한 가드를 보유: og/handler.go:71 ogRequestBodyCap=8*1024(cycle 99 PR #275), creator/handler.go:169 updateMeRequestBodyCap=8*1024(cycle 101 PR #283), boards/handler.go:131·314·542 boardsRequestBodyCap=8*1024, interaction/handler.go:53 createRequestBodyCap=8*1024 — 모두 json.Decode 직전 r.Body=http.MaxBytesReader 로 감싸고 MaxBytesError 를 400 매핑. cycle 506 의 grep 이 워크트리(origin/main)가 아닌 684 커밋 stale 부모 체크아웃(/Users/ivanchung/fugue, local main db2fc40)을 대상으로 수행돼 이미 머지된 기능을 "부재"로 오인(후보 evidence 라인 og:47·creator:157 등은 캡 추가 전 stale 좌표). 발견·처리 모드 조사는 반드시 워크트리 베이스에서 수행해야 한다는 절차 위반.
+  QA: N/A — 코드 변경 0건. 폐기 결정만.
+  영향 범위: `.fugue/backlog-system.yaml`(항목 rejected + rejected_reason)·`.fugue/anti-patterns.md`(+1줄 [both] 워크트리 베이스 grep 원칙)·`.fugue/decision-log.md` 기록만. 코드 무변경. PR #1089(cycle 506 후보 등록)는 이미 머지됐으나 후보 자체가 무효이므로 본 폐기로 정정. 향후 보안 area 의 "JSON body cap 부재" 축은 anti-patterns 매칭으로 재등록 금지.
+
 ## 2026-06-04 — [system] cycle 506 Discovery — 보안 area JSON request body 크기 상한(http.MaxBytesReader) 커버리지 표면 (후보 1건)
 
   결정/변경: backlog 후보 1건 append(system-20260604-json-request-body-size-cap-missing, score 6.0, pending). last-6 system Discovery survey(502 봇/500 OpenSpec갭/498 에러/496 동시성/494 정합성/492 보안) 중 보안이 oldest(492) → 보안 차례. sister 회피: 492 JWT·신뢰경계 / 478 SSRF / 466 시크릿·SQLi / 454 IDOR·BOLA / 442 crypto·TLS·cookie·CORS / 430 CSRF·redirect 와 분리한 "HTTP 요청 입력 경계 — JSON request body 크기 상한(http.MaxBytesReader) 커버리지" 신규 축 측정. 향후 보안 라운드 이 축 재선택 금지.
