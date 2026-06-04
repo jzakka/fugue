@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 585 Discovery — aesthetic area 43rd round gradient-direction-and-stop-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 gradient-direction-and-stop-consistency로 측정 — 그라디언트가 단일 방향·단일 색 계열로 일관되는지, 임의 방향·임의 색 정지점으로 발산하는지.
+  이유: `apps/web/src` 전체 그라디언트 6곳 모두 동일한 `bg-gradient-to-br from-accent to-accent-hover`(대각선 br 방향, accent→accent-hover 단일 색 계열) — 아바타/아이콘 플레이스홀더 일관 패턴(pins/[id] L208, SearchClient L334, PinCard L183, NavBar L53, SearchBar L333, ProfileHeader L24). `to-br` 외 다른 방향 0건. 별도의 `to-transparent` fade는 스크림 프리미티브로 색 정지점 아닌 투명 페이드라 그라디언트 색 일관성 축과 무관. accent 사용은 DESIGN.md L38 accent 역할(CTA/호버/선택 + 브랜드 강조) 내. shadow(570)·surface-token(572)·font(577)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 586 = states area.
+
 ## 2026-06-04 — [design] cycle 584 Discovery — responsive area 42nd round responsive-spacing-and-layout-direction 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-spacing-and-layout-direction으로 측정 — 여백/사이징/레이아웃 방향 반응형 유틸이 모바일 우선(base=작게/스택, sm:=크게/가로) 단조 진행을 따르는지, 데스크톱 우선(max-*) 역방향 분기가 있는지.
