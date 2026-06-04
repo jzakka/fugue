@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 548 Discovery — a11y area 34th round image-alt-text-coverage 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 image-alt-text-coverage로 측정 — `<img>` 요소의 `alt` 속성 부착 정합성.
+  이유: `apps/web/src` 전수 측정 결과 `<img` 17개 / `alt=` 17개. 멀티라인 JSX(`<img`와 `alt=`이 다른 줄)라 동일 라인 grep은 17개 전부 누락처럼 보이는 false positive 트랩 — awk로 각 `<img …>` 태그 블록을 묶어 검사한 결과 17개 전부 `alt` 부착 확인(누락 0). alt 값이 서술형이어야 하는지/장식용 빈 문자열이어야 하는지의 판정은 DESIGN.md/AGENTS.md에 alt·대체텍스트 명세가 없어 inference(confidence≤3). 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 a11y round는 image-alt-text-coverage 축 재선택 금지(자매 회피). DESIGN.md/AGENTS.md a11y 명세 부재 지속 시 a11y area 후보화 구조적 불가. 다음 사이클(549)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 547 Discovery — tokens area 30th round surface-token-role-deployment 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 surface-token-role-deployment로 측정 — DESIGN.md L43-45 surface 토큰 역할 배치 정합성(surface #161616=카드 배경 / surface-elevated #1E1E1E=드롭다운·모달 / surface-hover #242424=호버).
