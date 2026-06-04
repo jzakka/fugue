@@ -6426,3 +6426,70 @@ items:
       없을 때 모드), url 1000자 → INSERT 성공(stored_url_len 1000) — 가드 출력 경계 안전 확인.
       qa_partial: 전체 라이브 harvester 루프(fetch→extract→guard→INSERT)는 미기동, 변경 핵심
       불변식(DB 컬럼 제약 ↔ 가드 출력)을 실 DB 로 직접 검증. PR #1083.
+
+  - id: system-20260604-json-request-body-size-cap-missing
+    title: "POST/PUT JSON 엔드포인트(creator·boards·og·interaction)가 http.MaxBytesReader 없이 r.Body 를 json.Decode — pin 핸들러만 본문 상한 가드(spec 인용) 보유, 나머지는 무제한 본문 메모리 적재 가능(DoS)"
+    area: security
+    evidence:
+      files:
+        - apps/api/internal/og/handler.go:47
+        - apps/api/internal/creator/handler.go:157
+        - apps/api/internal/boards/handler.go:100
+        - apps/api/internal/boards/handler.go:277
+        - apps/api/internal/boards/handler.go:499
+        - apps/api/internal/interaction/handler.go:39
+        - apps/api/internal/pin/handler.go:82
+        - apps/api/cmd/server/main.go:113-121
+      cite: |
+        보안 area, sister-axis 회피: 492 JWT검증·신뢰경계 / 478 SSRF가드커버리지 /
+        466 시크릿노출·SQLi / 454 IDOR·BOLA / 442 crypto·TLS·cookie·CORS / 430 CSRF·redirect
+        와 분리한 "HTTP 요청 입력 경계 — JSON request body 크기 상한(http.MaxBytesReader)
+        커버리지" 축.
+
+        근거:
+        1. pin 핸들러는 본문 상한 가드를 명시 보유: pin/handler.go:82 가
+           r.Body = http.MaxBytesReader(w, r.Body, requestBodyCap=500MB) 로 감싼 뒤
+           ParseMultipartForm 을 호출하고, MaxBytesError 를 400 으로 매핑한다. 이는
+           openspec/specs/pin/spec.md:32-34 Scenario "서버가 본문을 디스크에 스풀하기 전에
+           본문 상한으로 거절한다"(SHALL)를 enforce 하는 코드다.
+        2. 그러나 나머지 JSON 본문 디코드 site 는 동일 가드가 전혀 없다(직접 grep 확인,
+           MaxBytesReader 0 matches): og/handler.go:47, creator/handler.go:157(UpdateMe
+           PUT /me), boards/handler.go:100(Create)·:277(Update)·:499(AddPin),
+           interaction/handler.go:39 — 모두 json.NewDecoder(r.Body).Decode(&req) 를 상한
+           없이 호출한다.
+        3. 전역 미들웨어에도 본문 상한 없음: cmd/server/main.go:113-121 미들웨어 체인은
+           Logger·Recoverer·RealIP·cors.Handler 뿐이고 http.MaxBytesReader/MaxBytesHandler
+           류 전역 가드가 없다(직접 확인).
+        4. 이 갭은 과거에 이미 "별개 보안 후보"로 명시 인지됨:
+           openspec/changes/archive/2026-05-19-fix-creator-update-avatar-url-input-length-validation/proposal.md:73
+           — "http.MaxBytesReader 적용(JSON body size cap) — 별개 보안 후보." 즉 취향
+           이슈가 아니라 인지된 미처리 보안 항목.
+        5. anti-pattern 비매칭: cycle 466 항목은 og 의 err.Error() 응답 노출(info-disclosure
+           FP)에 관한 것으로 본 후보(본문 크기 상한 부재)와 무관. 그 외 본문/MaxBytes/DoS
+           관련 anti-pattern 없음.
+      repro: |
+        docker-compose up -d && (cd apps/api && go run cmd/server/main.go) 기동 후,
+        인증 토큰으로 POST /api/interactions 또는 PUT /api/creators/me 에 수백 MB~GB 크기의
+        JSON 본문을 전송하면(예: {"...": "<거대 문자열>"}), json.Decoder 가 본문을 상한 없이
+        읽어 메모리에 적재한다. 동일 요청을 pin 생성 라우트(/api/pins)에 보내면 500MB 상한에서
+        400("파일 크기가 제한을 초과했습니다")으로 거절되는 것과 대비된다. og/fetch·auth/refresh
+        등 일부는 미인증/약한 rate-limit 만으로 도달 가능해 표면이 더 넓다.
+    qa_plan: |
+      (1) 수정안(가장 보수적): 각 JSON 디코드 site 의 json.NewDecoder(r.Body) 직전에
+          r.Body = http.MaxBytesReader(w, r.Body, <cap>) 를 적용하고, Decode 에러를
+          errors.As(&http.MaxBytesError) 로 분기해 413 또는 400 으로 매핑. JSON 본문은
+          작은 페이로드(URL·제목·태그ID·boolean)이므로 cap 은 보수적으로 작게(예: 64KiB~1MiB,
+          핸들러별 상수 명명). 외부 계약(라우트·응답 스키마) 불변, 정상 본문 경로 동작 불변.
+          공유 헬퍼(예: httputil.DecodeJSONBody) 도입 가능하나 범위 최소화 위해 site 별 적용도 가능.
+      (2) go vet ./... && go build ./... && go test ./... 통과. 신규 단위 테스트: cap 초과
+          본문 → 413/400, cap 이내 정상 본문 → 정상 디코드/200·201.
+      (3) 실 환경 QA(docker-compose up -d + go run cmd/server): 인증 토큰으로 대상 엔드포인트에
+          - cap 초과 본문 curl → 에러 코드(413/400) + 메모리 미폭증 관찰,
+          - 정상 본문 curl → 기존과 동일 정상 응답(회귀 없음) 관찰.
+      (4) 회귀: pin 생성(/api/pins, 기존 500MB 가드)·인접 정상 GET 라우트 무회귀 확인.
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 1
+    score: 6.0
+    status: pending
