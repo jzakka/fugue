@@ -291,6 +291,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 522 Discovery — 보안 area redirect/CORS 신뢰 경계(OAuth returnTo open-redirect·CORS credential origin·콜백 error param 반사) 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(520 봇/518 OpenSpec갭/516 에러처리/514 동시성/510 정합성/506 보안) 중 보안이 oldest(506) → 보안 차례. sister 회피: 506 JSON body 크기 상한(MaxBytesReader) / 492 JWT 검증 엄격성·신뢰 경계 / 478 SSRF 가드 / 466 시크릿 노출+SQLi / 454 인가·소유권(IDOR/BOLA) 와 분리한 "HTTP redirect/CORS 신뢰 경계: OAuth returnTo open-redirect 방어·CORS AllowCredentials origin 범위·콜백 error param 반사" 신규 축.
+  이유: redirect/CORS 경로 전수 직접 read. (1) OAuth open-redirect: `validateReturnTo`(state.go:78-91)가 returnTo를 sanitize — 빈값→`/`, `/` 미시작→`/`, `//`(protocol-relative)·`\`(backslash trick) 포함→`/`. CreateState(L35)가 Redis 저장 전 검증하고, VerifyState(콜백)는 random 32B state로 조회하므로 attacker가 미검증 ReturnTo 주입 불가. Callback의 `redirectTo = h.frontend + stateData.ReturnTo`(handler.go:144)는 검증된 안전 상대경로만 결합 → `@evil.com`·`https://evil.com`·`//evil.com` 전부 `/`로 환원돼 host 탈취 불가. (2) http.Redirect 전수(handler.go:64/72/83/92/101/109/117/125/132/146): L64는 신뢰된 IdP `provider.AuthCodeURL(random state)`, L72-132는 `h.frontend`+리터럴 상수 또는 `url.QueryEscape(errMsg)`(쿼리스트링 이탈 차단, 코드 주석 명시), L146은 검증된 ReturnTo → open-redirect 사이트 0. (3) CORS(main.go:122-126): `AllowedOrigins: []string{cfg.FrontendURL}` 단일 명시 origin + `AllowCredentials: true` → wildcard-with-credentials 안티패턴 부재, 안전. 명시 위반·재현 결함 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. apps/api 코드 무변경. 보안 area redirect-cors-trust-boundary axis baseline 등록(다음 보안 round 재선택 금지, 506/492/478/466/454 와 분리). 주: Explore/grep 미신뢰 — state.go validateReturnTo·handler.go redirect 전수·main.go CORS 직접 read 독립 검증. 다음 사이클(524)은 정합성 area(522 보안 측정 후 last-6 중 510 정합성이 oldest).
+
 ## 2026-06-04 — [system] cycle 520 Discovery — 봇 area per-site adapter override/fallback 경로(Resolve precedence·N→1 reduction·script-fail→generic) spec 충실도 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(518 OpenSpec갭/516 에러처리/514 동시성/510 정합성/506 보안/502 봇) 중 봇이 oldest(502) → 봇 차례. sister 회피: 502 document→pin 영속화 경계 정규화↔컬럼길이 / 490 fanout 게이팅·robots 정중함 / 476 URL 정규화·dedup↔snapshot_key·url_hash / 464 retry·backoff·idempotency·dispatch / 452 HTTP 리소스 정리 와 분리한 "per-site adapter override 경로의 해석 우선순위·N→1 reduction·script 실패 시 generic fallback wiring" 신규 축(bot/spec.md L431/L453-459/L489/L508/L511-513 대상).
