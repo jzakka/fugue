@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 623 Discovery — a11y area 49th round form-input-label-association-coverage 표면 폐기 (후보 0건)
+결정/변경: 없음. 폼 입력 요소가 프로그래밍적 레이블(label htmlFor 또는 aria-label/labelledby)을 갖는지 점검. input/textarea/select 12개 전수: `<label htmlFor>` 연결 5개(PinCreateForm pin-title/description/url L460/479/492, ProfileEditForm nickname/avatar L68/87), `aria-label` 6개(PinCreateForm 태그검색 L571, BoardActions 이름/설명 L79/90, AddToBoardButton 새보드 L367, MyPageClient 새보드 L104, SearchBar 검색 L176), 숨김 파일 input 1개(L439 className="hidden")는 접근 가능한 드롭존(role="button"+tabIndex=0+aria-label="미디어 파일 선택"+Enter/Space 핸들러 L343-346)이 트리거 → 접근 이름·키보드 활성 대체 제공.
+이유: 12/12 입력이 명시 레이블 또는 접근 가능 대체 컨트롤로 100% 커버 → 신규 후보 0건. 숨김 파일 input은 표준 커스텀 업로드 a11y 패턴(visible proxy가 이름+키보드 담당). a11y는 DESIGN.md 미명세이나 측정 결과 전수 안전. modal-focus-restoration(48th)/outline-none(47th)/form-button-type(46th)/icon-button-name(41th, 아이콘 버튼)와 구별되는 폼 입력 레이블 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 폼 입력 12곳(6파일). 다음 사이클 624 = responsive area.
+
 ## 2026-06-04 — [design] cycle 622 Discovery — tokens area 45th round shadow-token-usage-vs-arbitrary-conformance 표면 폐기 (후보 0건)
 결정/변경: 없음. box-shadow가 정의된 시멘틱 토큰을 거치는지(색 토큰화 round 44와 동형 렌즈) 점검. globals.css 정의 그림자 토큰은 `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` 1개. tsx 그림자 사용은 `shadow-card-hover` ×10 단일 — arbitrary `shadow-[…]` 0건, Tailwind 기본 스케일(shadow-sm/md/lg/xl) 0건. 휴지 상태 그림자(shadow-card)는 미사용.
 이유: 그림자 100% 단일 명명 토큰(shadow-card-hover) 경유, arbitrary/기본 스케일 우회 0건 → 신규 후보 0건. 카드가 휴지 시 평면이고 hover에서만 단일 elevation 토큰으로 떠오르는 패턴이 DESIGN.md L11 'Minimal — 장식 최소' 정합. color-token(44th)/opacity(43rd)/transition-duration(42nd)와 구별되는 box-shadow token-source 렌즈 sister 축(aesthetic 40th shadow-elevation-treatment의 시각 거동과 다른 토큰 출처 차원).
