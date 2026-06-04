@@ -25,6 +25,12 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 500 Discovery — OpenSpec갭 area feed/related 페이지네이션·정렬·limit 계약 충실도 표면 폐기
+결정/변경: backlog append 없음. 6-area rotation 상 last-6 survey(498 에러/496 동시성/494 정합성/492 보안/490 봇/488 OpenSpec갭) 중 OpenSpec갭이 oldest(488) → OpenSpec갭 차례. active change 0건(118 archived)이라 deployed specs(openspec/specs/*) ↔ 코드 cross-walk. sister 회피: 488 active change wiring / 474 scenario 에러 HTTP status / 462 SHALL behavioral cross-walk 회피하고 페이지네이션·정렬·limit 계약 충실도 axis 신규 측정(feed/spec.md 대상). 직접 검증: (1) cold-start 임계: spec L9/L13 "10개 이상 개인화 / 10개 미만 최신순" ↔ feed/handler.go:110 `if pinCount < 10 → buildLatestFeed else buildPersonalizedFeed` 정확. (2) 개인화 페이지네이션 offset 전파(spec L74/L83-86 "모든 underlying 쿼리에 offset 일관 전파"): buildPersonalizedFeed content 소스 RecommendByTags(L209 Offset=offset)·RecommendByMediaType(L243 offset)·ListPinsWithCreator latest(L268 offset)·fill(L292 offset+len(latestRows)) 전량 전파, 프로필 메타 쿼리(GetUserTagFrequency·GetUserMediaTypeFrequency)는 content 소스 아니라 미전파 정당. (3) 연관작품(spec L30-47): RelatedPins 쿼리 = 자기제외(`p.id != $1`)·태그겹침 일치도순(EXISTS pin_tags + ORDER BY count DESC)·동일미디어타입 우선(CASE WHEN media_type=$3 THEN 0)·최대10(LIMIT 10) 4개 scenario 축자 매핑, pin/handler.go:462 `maxRelated=10` + fallback 3-stage가 `remaining=maxRelated-len(pins)`로 총량 ≤10 cap + excludeIDs 누적으로 stage 간 중복/자기 제외. 판정 = feed/related 스펙 계약(임계·offset 전파·max·exclude·정렬) 전량 코드 충실. 명시 위반 0.
+이유: cold-start 임계(<10) 정확, 개인화 offset이 모든 content 소스에 전파(메타 쿼리는 비-content라 정당 미전파), 연관작품 RelatedPins가 exclude-self·tag-match-order·media-type-priority·LIMIT 10 축자 매핑 + 핸들러 maxRelated=10 fallback cap. 스펙↔코드 갭 0. 후보 0건.
+QA: N/A — Discovery 모드 후보 0건.
+영향 범위: 없음 (.fugue/decision-log.md 1줄 기록만, apps/api 코드 변경 0). OpenSpec갭 area baseline. feed-pagination-sort-limit-contract axis polling axis 등록(다음 OpenSpec갭 round 재선택 금지). 주: Explore/grep 미신뢰 — feed/handler.go·pin/handler.go·db/queries/pins.sql·feed/spec.md 직접 read 독립 cross-walk.
+
 ## 2026-06-04 — [design] cycle 550 Discovery — aesthetic area 36th round font-family-role-deployment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-family-role-deployment로 측정 — DESIGN.md L17-21 글꼴 역할 배치 정합성(Display/Hero=font-display, Body=기본 Pretendard, Data/Tags/수치=font-mono).
