@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 615 Discovery — aesthetic area 49th round display-font-heading-application-conformance 표면 폐기 (후보 0건)
+결정/변경: 없음. DESIGN.md L17 'Display/Hero: General Sans 700'(--font-display: General Sans) 적용 점검 — 제목/헤딩이 font-display 패밀리를 쓰는지. 헤딩 17곳 중 font-display 미적용은 2곳뿐이며 둘 다 `sr-only`(시각 비표시 a11y 랜드마크): search/page L74 `<h1 sr-only>검색`, page L87 `<h1 sr-only>작품 피드`. 나머지 visible 헤딩·display 컨텍스트(NavBar 로고 L21, ProfileHeader L32, BoardGrid L14, 모달 타이틀 VideoTrimModal L186·AddToBoardButton L249, SearchClient 헤딩 4곳 등)는 전수 font-display 적용.
+이유: visible 헤딩 100% font-display 적용으로 L17 정합. 유일한 예외 2건은 sr-only로 시각 폰트가 무의미한 a11y 전용 헤딩이라 font-display 부재가 정당 → 신규 후보 0건. monospace-numeric-metadata-role(47th, 수치=Geist Mono 패밀리)과 구별되는 헤딩=General Sans 패밀리 sister 축. tabular-nums(48th)/backdrop-blur(46th)/letter-spacing(45th)와도 구별.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 헤딩 17곳 + font-display 적용 13파일. 다음 사이클 616 = states area.
+
 ## 2026-06-04 — [design] cycle 614 Discovery — responsive area 48th round overlay-max-height-viewport-constraint 표면 폐기 (후보 0건)
 결정/변경: 없음. 오버레이/모달/미디어의 max-height 제약이 뷰포트 단위를 맥락에 맞게 쓰는지 점검. max-h 8줄: max-h-[80vh](AddToBoardButton L245 모달 패널, 뷰포트 상대)·max-h-[480px](pins/[id] L46/72 상세 미디어)·max-h-[280px](VideoTrimModal L199 모달 내 비디오 프리뷰)·max-h-48(PinCreateForm L393/399/609)·max-h-32(L519) 내부 스크롤/프리뷰 영역. 두 모달 패널이 갈림: AddToBoardButton은 가변 길이 보드 리스트라 max-h-[80vh] 뷰포트 캡으로 짧은 화면에서 스크롤 보장, VideoTrimModal은 패널에 뷰포트 캡 없음(내용이 고정 비디오 max-h-[280px]+트랙으로 본질적으로 짧음).
 이유: 모달 캡 분기(80vh vs 없음)는 content가 unbounded(리스트) vs bounded(단일 비디오)라는 차이로 정당화 — 자의적 아님. 고정 px/rem 캡(480/280/48/32)은 모두 bounded 내부 미디어·스크롤 영역에 적절히 스코프. DESIGN.md는 max-height/viewport 거동 미명세(L44 모달=색, L76 모달 radius만 언급) → 자율 통일은 자의적 해석(자체 리뷰 #2). 각 max-h가 맥락별 정합이라 신규 후보 0건. flex-direction-stacking(47th)/padding-progression(46th)/horizontal-scroll-affordance(45th)와 구별되는 sister 축.
