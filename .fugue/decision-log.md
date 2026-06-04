@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 595 Discovery — aesthetic area 45th round letter-spacing-tracking-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 letter-spacing-tracking-consistency로 측정 — 자간(tracking) 처리가 일관된 컨텍스트에만 쓰이는지, 임의 자간값으로 발산하는지.
+  이유: `apps/web/src` 전체 tracking = `tracking-tight` 16곳뿐(tracking-wide/wider/normal 0건). 16곳 전부 font-display + font-bold 디스플레이 헤딩(text-lg/xl/2xl/3xl)에 적용, font-display 없는 tracking-tight 0건. DESIGN.md L17(Display/Hero = General Sans 700)의 디스플레이 타입에 자간 좁힘을 일관 적용한 정합적 타이포 선택. 단일 자간값·단일 컨텍스트, 발산 없음. gradient-direction(585)·accent-restraint(590)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 596 = states area.
+
 ## 2026-06-04 — [design] cycle 594 Discovery — responsive area 44th round viewport-overflow-fixed-width-safety 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 viewport-overflow-fixed-width-safety로 측정 — 고정 `w-[Npx]`/`min-w-[Npx]`가 소형 뷰포트에서 가로 오버플로를 강제하는지(반응형 안전성을 반대 각도에서).
