@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 559 Discovery — responsive area 35th round responsive-layout-direction 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-layout-direction으로 측정 — flex-direction이 브레이크포인트별로 전환되는(flex-col → sm:flex-row) 모바일 우선 레이아웃 패턴의 정합·일관성.
+  이유: `apps/web/src` 전수 측정 — `sm:flex-row` 전환은 ProfileHeader L14, ProfileSkeleton L6 두 곳. 둘 다 동일 패턴(`flex flex-col sm:flex-row gap-6`)으로 모바일 세로 스택→sm+ 가로 배치이며, 동반 유틸(`p-6 sm:p-8`, 아바타 `w-20 h-20 sm:w-24 sm:h-24`)까지 스켈레톤이 실제 컴포넌트를 정확히 미러링 → 로딩 중 레이아웃 시프트 없음. 브레이크포인트 VALUE 차이(Tailwind sm=640px vs DESIGN.md L70 sm=500px)는 globals.css `--breakpoint-*` override 부재로 발생하는 기존 보류 anti-pattern(L20, cycle 18 — 23 사용처×3 bp 광범위 회귀라 단발 사이클 범위 초과)이므로 재제기하지 않음. 방향 전환 자체는 DESIGN.md 미명세라 결함화하면 추론(자체 리뷰 #2). 컴포넌트↔스켈레톤 일관성 정합 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 responsive round는 responsive-layout-direction 축 재선택 금지(자매 회피). 다음 사이클(560)은 aesthetic area.
+
 ## 2026-06-04 — [design] cycle 558 Discovery — a11y area 36th round form-input-label-association 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 form-input-label-association으로 측정 — 모든 폼 컨트롤(input/textarea/select)이 접근 가능한 이름(label htmlFor / aria-label / aria-labelledby)을 갖는지.
