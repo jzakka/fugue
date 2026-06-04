@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 591 Discovery — states area 45th round focus-visible-treatment-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 focus-visible-treatment-consistency로 측정 — `focus-visible:outline-none`이 항상 대체 가시 지시자(accent 경계·카드 리프트·그림자)와 페어링되는지, 지시자 없는 맨몸 outline 제거(키보드 포커스 불가시 회귀)가 있는지.
+  이유: `apps/web/src` 전체 `focus-visible:outline-none` 6곳 전수 확인 — 모두 대체 지시자 페어링: PinCreateForm L346(border-accent), SearchClient L325·L363(-translate-y-0.5+shadow-card-hover+border-accent), BoardGrid L22·MyPageClient L148(-translate-y-0.5 카드 리프트), PinCard L147(-translate-y-0.5+shadow-card-hover+border-accent). 맨몸 outline 제거 0건. 카드형 요소는 hover 리프트와 동일한 -translate-y-0.5를 포커스 지시자로 재사용해 hover/focus 처리 일관. hover-feedback(576)·loading-primitive(581)·disabled(586)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 592 = tokens area.
+
 ## 2026-06-04 — [design] cycle 590 Discovery — aesthetic area 44th round accent-color-restraint 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 accent-color-restraint로 측정 — DESIGN.md L38(accent = CTA/호버/선택 역할) 범위 내에서만 accent가 쓰이는지, 장식적 본문 텍스트 등 역할 밖으로 남용되는지.
