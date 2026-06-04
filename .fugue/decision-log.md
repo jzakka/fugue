@@ -491,6 +491,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 562 Processing — search limit 파라미터 cast-before-clamp int32 overflow 수정 (system-20260604-search-limit-int32-overflow-bypasses-clamp)
+
+  결정/변경: search/handler.go(:136-142) limit 파싱을 형제 핸들러(pin/boards/tag) 정전 패턴에 맞춰 narrowing 캐스팅 전에 int 값을 클램프하도록 수정 — `if l > 50 { l = 50 }; limit = int32(l)`. 음수/overflow limit 이 SQL LIMIT 에 도달 불가. 회귀 가드 단위 테스트 4종 추가(handler_limit_clamp_test.go): overflow(2147483648)→50·above-cap(1000000)→50·normal(10)→10·default/invalid→20. offset 및 그 외 로직·외부 계약 불변.
+
+  이유: 기존 코드는 `limit = int32(l)` 캐스팅 후 `if limit > 50` 클램프라, l 이 int32 최대치(2147483647) 초과 시 int32(l)가 음수로 wrap → `>50` 우회 → 음수 LIMIT 가 searchPins sqlc 파라미터로 전달 → Postgres "LIMIT must not be negative" 500. /api/search 는 비인증·비-rate-limit. 가장 보수적 수정(정전 패턴 정렬, 외부 계약 불변, 롤백 가능).
+
+  QA: docker-compose(postgres/redis/minio Up) 위에서 수정본을 PORT=8099 로 기동, 기존 stale 서버(:8080, 구코드)와 대조 — (1) 구코드 GET /api/search?q=test&limit=2147483648 → HTTP 500(버그 재현), (2) 수정본 동일 요청 → HTTP 200, 응답 `{"has_more":false,"pins":[...]}` 유효 JSON(전체 결과 < cap), (3) 수정본 limit=1000000·10·9999999999999 → 모두 200, (4) 회귀 GET /api/tags/popular?limit=2147483648 → 200·GET /api/search?q=test(default) → 200. go vet/build/test 통과(search 패키지 17 tests pass, 신규 4 포함).
+
+  영향 범위: apps/api/internal/search/handler.go(limit 파싱 7줄), 신규 테스트 1파일. 스키마·마이그레이션·외부 API 변경 없음. PR #(아래).
+
 ## 2026-06-04 — [system] cycle 560 Discovery — 정합성 area 정수 타입 폭 정합(클라이언트 int → sqlc int32 narrowing 시 bound-before-cast 순서) 후보 1건
 
   결정/변경: backlog 후보 1건 append (system-20260604-search-limit-int32-overflow-bypasses-clamp, score 10.0, pending). last-6 system Discovery survey(558 보안/556 봇/554 OpenSpec갭/552 에러처리/550 동시성/548 정합성) 중 정합성이 oldest(548) → 정합성 차례. openspec/changes/ 비어 있음(이전 in-flight 3건 archive 완료) → 중복 회피 불필요. sister 회피: 548 입력검증상한↔DB제약 / 536 updated_at / 524 JSONB round-trip / 510 nullable→JSON / 494 FK·JOIN / 482 쓰기쿼리↔제약 / 468 도메인경계 parity / 456 CHECK·enum 과 분리한 "정수 타입 폭 정합 — 클라이언트 정수 입력을 int32 파라미터로 narrowing 할 때 bound-before-cast 순서" 신규 축.

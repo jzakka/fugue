@@ -135,10 +135,14 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 	limit := int32(20)
 	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
-		limit = int32(l)
-		if limit > 50 {
-			limit = 50
+		// Clamp the int value before narrowing to int32: a limit beyond
+		// int32 max (e.g. 2147483648) would wrap to a negative int32 and
+		// bypass a post-cast `> 50` check, sending a negative LIMIT to
+		// Postgres. Mirrors pin/boards/tag handlers (clamp-before-cast).
+		if l > 50 {
+			l = 50
 		}
+		limit = int32(l)
 	}
 
 	offset := int32(0)
