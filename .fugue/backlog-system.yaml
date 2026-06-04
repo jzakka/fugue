@@ -6262,3 +6262,76 @@ items:
       - "apps/api/db/migrations/000011_create_tags.up.sql — 실제 schema 정의, tag_id cascade 부재"
       - "cycle 138 — ERD ↔ sqlc query ↔ db model 광범위 cross-walk 에서 FK cascade rule 분포 미점검 (cycle 138 후보 0건 baseline 에 본 surface 누락)"
       - "cycle 145 — 정합성 area 직전 round (POST body cap + VARCHAR rune-cap + boards UNIQUE 부재 폐기)"
+
+  - id: system-20260604-harvester-html-fallback-ssrf-bypass
+    title: "Harvester 스냅샷-우선 fetch 의 HTTP fallback(fetchHTMLShared)이 SSRF-safe client 를 우회 — 사설/메타데이터 IP 로의 outbound 연결 미차단"
+    area: security
+    evidence:
+      files:
+        - "apps/api/internal/bot/helpers.go:14-32"
+        - "apps/api/internal/bot/fetcher.go:44-62"
+        - "apps/api/cmd/bot/main.go:251-254"
+        - "apps/api/internal/httpclient/ssrf.go:1-90"
+        - "apps/api/internal/bot/pioneer_consumer.go:360-383"
+      cite: |
+        apps/api/internal/httpclient/ssrf.go:1-6 (패키지 계약): "provides an SSRF-safe
+        *http.Client factory shared by ANY code that fetches caller-untrusted URLs
+        (e.g. URLs extracted from crawled HTML). The dialer resolves every IP,
+        rejects private/reserved ranges before connecting, and CheckRedirect re-runs
+        the same check on every redirect hop."
+        openspec/specs/harvester/spec.md L739 "외부 미디어 fetch는 SSRF-safe HTTP client를
+        경유한다" + Scenario L755 "og:image 가 http://169.254.169.254/... → dialer 가 dial
+        직전 IP 검사로 거부 + 외부 저장소에 응답 바이트 미적재", L763 "redirect hop 사설 IP 거부".
+        pioneer_consumer.go:360-373 (Pioneer HTML fetch 가 동일 요구를 HTML 경로로 명시 확장):
+        "every outbound connection (and every redirect hop) re-resolves the host and
+        refuses to dial private/reserved IP ranges ... the SHALL of harvester spec L739
+        applies here too ... without this guard a 169.254.169.254 a href would land in S3."
+        → Pioneer HTML fetch(DefaultConsumerFetcher), OG(service.go:67), media_validator
+        (:168), robots_filter(:100), harvest_pipeline cacheImage(:154) 6개 outbound 경로
+        전부 NewSSRFSafeClient 경유. Harvester 의 snapshot-miss HTTP fallback 만 우회.
+      repro: |
+        1. cmd/bot/main.go:253 이 bot.NewHTTPFetcher() 를 SnapshotFirstFetcher 의 HTTP
+           fallback 으로 wiring. fetch 대상 URL 은 harvester_frontier(Pioneer 가 임의 외부
+           HTML 에서 추출 → 공격자 영향 가능)에서 Dequeue 된다.
+        2. snapshot 읽기 실패(S3 transient/만료/race) 시 HTTPFetcher.Fetch(rawURL) →
+           fetcher.go:59 fetchHTMLShared(ctx, rawURL) 실행.
+        3. helpers.go:15 `client := &http.Client{Timeout, CheckRedirect}` — Transport/
+           DialContext 미설정 = 기본 transport. IP 검사 전무. 따라서 rawURL 이
+           http://169.254.169.254/latest/meta-data/iam/security-credentials/ 또는
+           http://10.0.0.x 를 가리키면 그대로 연결되어 응답 본문이 harvester 추출 파이프라인/
+           로그/에러 메시지로 흘러든다(metadata 자격증명 유출 SSRF).
+        4. CheckRedirect(helpers.go:17)는 redirect 횟수만 제한하고 hop 의 IP 를 재검사하지
+           않으므로 공개 URL→사설 IP redirect 우회도 가능.
+        5. 동일 입력을 httpclient.NewSSRFSafeClient 경유 시 dial 직전 IsPrivateIP 로 거부
+           ("blocked private/reserved IP"). 두 client 의 동작 차이 = 재현 가능한 갭.
+        주: fetcher.go:45-47 주석은 "stays identical to Pioneer's current fetch path" 라고
+        하나 Pioneer 의 현재 경로는 DefaultConsumerFetcher(SSRF-safe)로 이미 마이그레이션됨 —
+        이 주석의 불변식이 깨진 채 fetchHTMLShared 만 legacy non-SSRF 로 잔존.
+    qa_plan: |
+      (1) 수정안: helpers.go fetchHTMLShared 의 raw &http.Client{} 를 httpclient.
+          NewSSRFSafeClient(Options{ConnectTimeout 5s, TotalTimeout 10s, MaxRedirects 5})
+          로 교체. 5MB body cap, FugueBot UA, HTTPStatusError(4xx/5xx) 분류는 그대로 보존.
+          (TotalTimeout 10s 가 기존 client.Timeout 10s 와 동일하므로 timeout 동작 불변.)
+      (2) go vet ./... && go build ./... && go test ./... 통과.
+      (3) 실 환경 QA: 127.0.0.1 에 바인드한 로컬 HTTP 서버를 띄우고
+          - 수정 전 동작 확인용으로, fetchHTMLShared(혹은 HTTPFetcher.Fetch)를 호출하는
+            짧은 Go harness 또는 기존 테스트 더블로 http://127.0.0.1:<port>/ fetch →
+            수정 후에는 "blocked private/reserved IP" 에러로 거부되는지 확인(loopback 차단).
+          - 양성 케이스: 공개 URL(예: https://example.com) fetch 는 여전히 200 본문 반환.
+      (4) redirect 케이스: 공개 URL 이 302 로 http://127.0.0.1 로 redirect 하는 로컬 서버를
+          세워 CheckRedirect 가 hop IP 를 재검사해 차단하는지 확인.
+      (5) 회귀: 정상 외부 URL 에 대한 harvester snapshot-first-fetch fallback 경로가 여전히
+          HTML 을 받아 추출까지 도달하는지 확인(make 또는 짧은 harvester 실행 + 로그).
+    impact: 5
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 5.0
+    status: pending
+    note: |
+      cycle 478(보안 area, sister 회피: cycle 466 시크릿/SQLi 축과 분리한 SSRF 가드 커버리지 축)
+      발견. 6/7 outbound fetch 경로가 NewSSRFSafeClient 를 경유하는데 harvester HTML fallback
+      만 우회. spec L739 자체는 "미디어 fetch" scope 이나 ssrf.go 패키지 계약("any code that
+      fetches caller-untrusted URLs ... extracted from crawled HTML") + Pioneer HTML fetch 의
+      명시적 동일-요구 확장(pioneer_consumer.go:367 "applies here too")으로 HTML fetch 경로도
+      계약 대상 — 그래서 명시 위반은 아니나 재현 가능 갭(confidence 4). decision-log 미exempt 확인.
