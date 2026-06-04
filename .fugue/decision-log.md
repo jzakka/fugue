@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 619 Discovery — responsive area 49th round responsive-visibility-toggle-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. breakpoint 가시성 토글(hidden↔sm/md/lg:block/inline 등 progressive disclosure) 일관성 점검. 진짜 visibility swap은 전 코드 단 1곳: NavBar L55 `hidden sm:block`(닉네임 라벨 — 모바일<500px 숨김, sm↑ 표시). sm:flex 매칭 2건은 sm:flex-row(ProfileHeader L14·ProfileSkeleton L6, flex-direction, round 47에서 처리)의 prefix 오매칭이라 visibility 토글 아님.
+이유: 가시성 토글이 1개 site(닉네임 보조 라벨 점진 노출)뿐이라 비교할 sister site가 없어 분기 자체 불성립 → 신규 후보 0건. UI가 breakpoint에서 요소를 숨김/표시로 토글하기보다 reflow(flex-direction·grid-cols)로 적응하는 패턴이 DESIGN.md L11 'Minimal — 타이포·여백이 모든 걸 한다'와 정합. overlay-max-height(48th)/flex-direction-stacking(47th)/padding-progression(46th)/horizontal-scroll-affordance(45th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` breakpoint 가시성 토글 1곳(NavBar). 다음 사이클 620 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 618 Discovery — a11y area 48th round modal-dialog-focus-restoration-on-close-consistency (near-miss 발견·후보 보류)
 결정/변경: 없음. 모달 다이얼로그 닫힘 시 트리거로의 포커스 복원(WCAG 2.4.3) 일관성 점검. `fixed inset-0` 모달 2곳(VideoTrimModal·AddToBoardButton) 모두 dialog 계약(role="dialog"+aria-modal+aria-labelledby+panel tabIndex=-1+초기 focus+Escape+Tab focus-trap)을 동일하게 구현. 단 닫힘 시 포커스 복원이 갈림: AddToBoardButton은 `triggerRef.current?.focus()`(L55)로 opener 복원, VideoTrimModal은 triggerRef 없음 — 부모 PinCreateForm의 handleTrimCancel(L155)·handleTrimConfirm(L145)도 `.focus()` 미호출 → 모달 언마운트 후 포커스가 body로 유실.
 이유: 두 모달이 dialog 계약 6/7 요소는 동일한데 focus-restoration-on-close 1요소만 분기(1곳 복원·1곳 유실). a11y는 DESIGN.md 미명세(grep 0건)라 자율 통일은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. 사용자가 '전 모달 닫힘 시 opener 포커스 복원'을 정본으로 결정하면 VideoTrimModal에 triggerRef 복원 추가하는 정렬 사이클로 승격 가능. outline-none-focus-visibility(47th)/form-button-type(46th)/tabindex-usage(45th)/decorative-svg-aria-hidden(44th)와 구별되는 sister 축.
