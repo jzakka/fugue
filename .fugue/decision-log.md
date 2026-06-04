@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 586 Discovery — states area 44th round disabled-state-treatment-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 disabled-state-treatment-consistency로 측정 — 비활성 상태 시각 처리(opacity·cursor)가 일관 토큰/값을 쓰는지.
+  이유: `apps/web/src` 전체 `disabled:` 유틸 = `disabled:opacity-50` 15곳 + `disabled:opacity-40` 1곳(PinCreateForm L623) + `disabled:cursor-not-allowed` 2곳. 근접 미스 관찰: opacity-50 다수(15)와 opacity-40 단일(1)의 15:1 분기 존재. 단, DESIGN.md는 비활성 상태 opacity 값을 명세하지 않음(L49 'Text dim' 색상만, 비활성 처리와 무관) → 어느 값을 정규로 볼지 결정이 자의적 해석(자체 리뷰 #2)이라 단발 정렬 후보로 올리지 않음. opacity-40↔50 차이 10%는 둘 다 '비활성 흐림'으로 동일 의미 전달. 사용자가 비활성 opacity 표준을 명시적으로 결정하기 전까지 보류(near-miss 기록). hover-feedback(576)·loading-primitive(581)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 587 = tokens area.
+
 ## 2026-06-04 — [design] cycle 585 Discovery — aesthetic area 43rd round gradient-direction-and-stop-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 gradient-direction-and-stop-consistency로 측정 — 그라디언트가 단일 방향·단일 색 계열로 일관되는지, 임의 방향·임의 색 정지점으로 발산하는지.
