@@ -509,6 +509,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 568 Discovery — OpenSpec갭 area ratelimit 미들웨어 invariant(원자 INCR+TTL·fail-open·429 Retry-After·per-user/IP-fallback surface·수치/라우트 wiring) ↔ 구현 충실도 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(566 에러처리/564 동시성/560 정합성/558 보안/556 봇/554 OpenSpec갭) 중 OpenSpec갭이 oldest(554) → OpenSpec갭 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config) 중복 회피. sister 회피: 554 interaction piggyback wiring / 542 인증·인가 미들웨어 라우트 wiring / 530 capability UNIQUE 제약 존재성 / 518 엔드포인트 표면 커버리지 / 500 feed·related 페이지네이션 / 488 task[x]↔구현 존재성 / 474 에러·엣지 HTTP status 매핑 / 462 SHALL 값 behavioral cross-walk 과 분리한 "ratelimit capability cross-cutting invariant(미들웨어 측 fixed-window 원자성·fail-open·429 헤더·키 surface) ↔ 미들웨어 구현 + docs/architecture.md 수치 SHALL 라우트 wiring 충실도" 신규 축.
+
+  이유: openspec/specs/ratelimit/spec.md 의 Req 2개·Scenario 10개를 auth/ratelimit.go + cmd/server/main.go 와 전수 cross-walk — 모두 충실. (1) 원자 INCR+TTL: rateLimitScript(:24-30) Lua EVAL 이 `INCR` 후 `if n==1 then EXPIRE` 를 단일 server-side step 으로 수행 → 첫 INCR 만 TTL seed, 후속 INCR 는 TTL 미리셋, TTL=-1 노출 불가(Scenario 1·2·3 충족), (2) fail-open: Redis 에러 시 log 후 next.ServeHTTP, throttle 안 함(:86-101, Scenario 5·spec L11 SHALL NOT 충족), (3) 429+Retry-After: `count > limit` 시 `Retry-After`=window초 헤더 + 429(:103-106, Scenario 4 충족), (4) per-user surface: MiddlewareByCreatorID(:67-74) 가 ctx creator id 를 `creator:<id>` 키로, 부재 시 `ip:<ip>` fallback → 같은 유저 IP 무관 동일 버킷·같은 IP 다른 유저 분리 버킷·인증 부재 시 무제한 통과 방지(Req2 Scenario 4종 충족), (5) 수치·라우트 wiring(docs/architecture.md 소유): main.go pinRL=30/min `MiddlewareByCreatorID`+JWTMiddleware 선행(:104-106,:146)="핀 생성 30/분/유저", ogRL=20/min `Middleware`(:155)="OG fetch 20/분/IP" 정확 매칭. count>limit 비교라 정확히 limit 건 허용(fixed-window 의미 정합). anti-pattern 비매칭(460 redis best-effort 로깅 FP 와 무관 — 본 건은 spec 충실 확인). confidence=5 literal-violation 부재 → 표면 폐기.
+
+  QA: 코드 정적 검증만 수행(발견 모드). ratelimit/spec.md 전문 + auth/ratelimit.go 전문 + main.go wiring grep cross-walk. 실 환경 429/TTL 재현 미수행(후보 0건).
+
+  영향 범위: 코드 변경 없음. decision-log 항목 1건 추가.
+
 ## 2026-06-04 — [system] cycle 566 Discovery — 에러처리 area write/flush 경로 deferred Close 에러 누락(부분 flush 침묵 성공) 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(564 동시성/560 정합성/558 보안/556 봇/554 OpenSpec갭/552 에러처리) 중 에러처리가 oldest(552) → 에러처리 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config) 중복 회피. sister 회피: 552 panic 가능 경로 / 540 HTTP 응답 직렬화·쓰기 / 528 SQL 트랜잭션 rollback·commit / 516 요청 body 파싱·검증 status 매핑 / 498 sql.ErrNoRows 도메인 매핑 과 분리한 "write/flush 경로에서 Close()/Flush() 반환 에러를 누락해 부분 기록이 침묵 성공하는 결함(deferred Close on write)" 신규 축.
