@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 613 Discovery — a11y area 47th round outline-none-focus-visibility-safety 표면 폐기
+결정/변경: 없음. `outline-none`(포커스 외곽선 제거)이 가시적 포커스 대체 표시 없이 쓰여 키보드 포커스가 비가시화되는지 점검. outline-none 17줄(focus-visible:outline-none 6 + bare outline-none 11) 전수 검사: 17/17 모두 동일 className에 가시적 포커스 대체(focus-visible:border-accent / ring / -translate-y / shadow-card-hover / bg)를 동반 → invisible-focus 실패 0건.
+이유: outline 제거가 항상 대체 포커스 표시와 페어링되어 키보드 포커스 가시성 보존. a11y는 DESIGN.md 미명세이나 측정 결과 전수 안전. form-button-type(46th)/tabindex-usage(45th)/decorative-svg-aria-hidden(44th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` outline-none 사용 9파일 17줄. 다음 사이클 614 = responsive area.
+
 ## 2026-06-04 — [design] cycle 612 Discovery — tokens area 43rd round opacity-utility-value-scale-conformance 표면 폐기 (신규 후보 0건)
 결정/변경: 없음. `opacity-NN` 유틸 값 스케일 일관성 측정. 분포: opacity-50 16(지배적 비활성/de-emphasis)·opacity-100 3·opacity-60 2·opacity-40 2·opacity-0 1. opacity-60 2건은 둘 다 태그 칩 내 카운트 dimming(SearchClient L279, TagFilter L71)으로 동일 역할 일관. opacity-40 2건은 서로 다른 맥락: 비활성 태그 버튼(PinCreateForm L623, 이미 cycle 586 near-miss로 기록된 disabled opacity-40/50 분기)·검색 아이콘 장식 dimming(SearchBar L143, 비활성 아님). 역할별로 정합하며 유일한 분기는 cycle 586에 기 기록.
 이유: opacity 스케일이 역할별(비활성 50, 카운트 60, 토글 0/100)로 coherent하고, 유일한 disabled-opacity 분기는 cycle 586 near-miss로 이미 추적 중이라 신규 후보 없음(중복 등록 금지). transition-duration(42nd)/line-height(41st)/spacing-scale(40th)와 구별되는 sister 축.
