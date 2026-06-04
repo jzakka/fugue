@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 584 Discovery — responsive area 42nd round responsive-spacing-and-layout-direction 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-spacing-and-layout-direction으로 측정 — 여백/사이징/레이아웃 방향 반응형 유틸이 모바일 우선(base=작게/스택, sm:=크게/가로) 단조 진행을 따르는지, 데스크톱 우선(max-*) 역방향 분기가 있는지.
+  이유: `apps/web/src` 전체에 데스크톱 우선 `max-(sm|md|lg|xl):` 접두 0건 → 엄격 모바일 우선. 패딩 `p-6 sm:p-8`(증가)·아바타 `w-20 h-20 sm:w-24 sm:h-24`(증가)·레이아웃 방향 `flex-col sm:flex-row`(스택→가로, 2곳)·가시성 `hidden sm:block`(넓은 화면에서 라벨 노출) 모두 base→sm: 단조 가법 진행. 역방향·데스크톱 다운 분기 없음. DESIGN.md L70 breakpoint 수치(sm500/md800/lg1200) 불일치는 anti-pattern L20(breakpoint 토큰 override 보류) 적용 대상이라 본 축에서 제외 — 방향·단조성만 측정. typography(569)·grid-columns(574)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 585 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 583 Discovery — a11y area 41st round icon-button-accessible-name 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 icon-button-accessible-name으로 측정 — 아이콘만 있는 버튼이 식별 가능한 접근성 이름(aria-label 또는 aria-hidden svg 옆 가시 텍스트)을 갖는지.
