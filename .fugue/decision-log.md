@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 620 Discovery — aesthetic area 50th round media-aspect-ratio-treatment-conformance 표면 폐기 (후보 0건)
+결정/변경: 없음. DESIGN.md Card System L82 'Image card … 이미지 종횡비 그대로 유지'·L85 'Video card … 썸네일' 적용 — 미디어 종횡비 처리 점검. aspect 사용 3곳: VideoThumbnailPicker L145 `aspect-video`(16:9 비디오 썸네일 후보, L85 정합), BoardCover L6/L31 `aspect-square`(보드 커버 빈상태·2x2 그리드, 컬렉션 타일). PinCard ImageSection(L47-52)은 `<img className="w-full block object-cover">`로 height/aspect 강제 없음 → 자연 종횡비 보존(L82 정합). 아바타는 rounded-full + 고정 w/h(암묵 1:1).
+이유: 종횡비 처리가 엔티티별로 DESIGN.md card system에 매핑 — 핀 이미지=자연 비율(L82), 비디오 컨텍스트=16:9(L85), 보드 커버=정방 컬렉션 타일, 아바타=원형. 각 선택이 명세/엔티티 의미에 정합하고 분기 없음 → 신규 후보 0건. display-font-heading(49th)/tabular-nums(48th)/backdrop-blur(46th)/shadow-elevation(40th)/gradient(43rd)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 미디어 aspect 처리(PinCard·VideoThumbnailPicker·BoardCover). 다음 사이클 621 = states area.
+
 ## 2026-06-04 — [design] cycle 619 Discovery — responsive area 49th round responsive-visibility-toggle-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. breakpoint 가시성 토글(hidden↔sm/md/lg:block/inline 등 progressive disclosure) 일관성 점검. 진짜 visibility swap은 전 코드 단 1곳: NavBar L55 `hidden sm:block`(닉네임 라벨 — 모바일<500px 숨김, sm↑ 표시). sm:flex 매칭 2건은 sm:flex-row(ProfileHeader L14·ProfileSkeleton L6, flex-direction, round 47에서 처리)의 prefix 오매칭이라 visibility 토글 아님.
 이유: 가시성 토글이 1개 site(닉네임 보조 라벨 점진 노출)뿐이라 비교할 sister site가 없어 분기 자체 불성립 → 신규 후보 0건. UI가 breakpoint에서 요소를 숨김/표시로 토글하기보다 reflow(flex-direction·grid-cols)로 적응하는 패턴이 DESIGN.md L11 'Minimal — 타이포·여백이 모든 걸 한다'와 정합. overlay-max-height(48th)/flex-direction-stacking(47th)/padding-progression(46th)/horizontal-scroll-affordance(45th)와 구별되는 sister 축.
