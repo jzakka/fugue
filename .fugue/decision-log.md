@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 618 Discovery — a11y area 48th round modal-dialog-focus-restoration-on-close-consistency (near-miss 발견·후보 보류)
+결정/변경: 없음. 모달 다이얼로그 닫힘 시 트리거로의 포커스 복원(WCAG 2.4.3) 일관성 점검. `fixed inset-0` 모달 2곳(VideoTrimModal·AddToBoardButton) 모두 dialog 계약(role="dialog"+aria-modal+aria-labelledby+panel tabIndex=-1+초기 focus+Escape+Tab focus-trap)을 동일하게 구현. 단 닫힘 시 포커스 복원이 갈림: AddToBoardButton은 `triggerRef.current?.focus()`(L55)로 opener 복원, VideoTrimModal은 triggerRef 없음 — 부모 PinCreateForm의 handleTrimCancel(L155)·handleTrimConfirm(L145)도 `.focus()` 미호출 → 모달 언마운트 후 포커스가 body로 유실.
+이유: 두 모달이 dialog 계약 6/7 요소는 동일한데 focus-restoration-on-close 1요소만 분기(1곳 복원·1곳 유실). a11y는 DESIGN.md 미명세(grep 0건)라 자율 통일은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. 사용자가 '전 모달 닫힘 시 opener 포커스 복원'을 정본으로 결정하면 VideoTrimModal에 triggerRef 복원 추가하는 정렬 사이클로 승격 가능. outline-none-focus-visibility(47th)/form-button-type(46th)/tabindex-usage(45th)/decorative-svg-aria-hidden(44th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` fixed inset-0 모달 2곳(VideoTrimModal·AddToBoardButton). 다음 사이클 619 = responsive area.
+
 ## 2026-06-04 — [design] cycle 617 Discovery — tokens area 44th round color-token-usage-vs-raw-value-conformance 표면 폐기 (후보 0건)
 결정/변경: 없음. DESIGN.md L44-50 색 팔레트의 토큰화 점검 — className에 raw hex/rgb 색이 토큰을 우회하는지. `(text|bg|border|fill|stroke|ring|from|to|via)-[#…]`·`-[rgb…]` arbitrary 색 0건. 팔레트 색은 전부 시멘틱 토큰(border-accent 69·border-border 68·text-text-primary 67·text-text-muted 53·bg-surface-elevated 25·text-error 14 등)으로 흐름. 비토큰 색은 Tailwind 빌트인 black/white뿐: bg-black(비디오 letterbox)·bg-black/40~70(스크림 디밍)·bg-white/70(VideoTrimModal 핸들 그립)·text-white ×18(accent 버튼 전경).
 이유: 시멘틱 팔레트 색 100% 토큰화(raw hex 0)로 L44-50 정합. black/white 빌트인은 토큰 팔레트가 모델링하지 않는 맥락(미디어 letterbox·스크림 디밍·on-accent 대비 전경)에 한정 — 팔레트는 surface/text를 정의하지 on-color/overlay 프리미티브를 정의하지 않음. text-white는 18개 accent 전경에 균일 적용되어 내부 일관(DESIGN.md에 on-accent 전경 토큰 부재라 분기 대상 없음) → 신규 후보 0건. opacity(43rd)/transition-duration(42nd)/font-family(36th)/border-radius(37th)와 구별되는 sister 축.
