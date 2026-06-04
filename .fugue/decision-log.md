@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 576 Discovery — states area 43rd round hover-state-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 hover-state-treatment로 측정 — 인터랙티브 요소의 hover 피드백이 정의된 토큰/표준 패턴으로 일관 표현되는지, 임의 hover 값으로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — hover: 유틸 88곳이 전부 토큰·표준 속성: hover:text-* 28(색 토큰)·hover:border-* 26(border-accent 강조)·hover:bg-* 20(surface-hover/accent-hover 토큰)·hover:shadow-* 5(shadow-card-hover)·hover:-translate-y-* 5(카드 lift, shadow-card-hover와 짝)·hover:underline 3(링크 관용)·hover:opacity 1. group-hover 13(중첩 reveal). 카드 lift(-translate-y + shadow-card-hover)·색 전환·보더 강조 모두 일관 어포던스, 임의 hover 매직값·비토큰 색 0건. DESIGN.md L38 hover 강조 의도(accent restraint "CTA/호버/선택")와 부합하고 요소별 hover 처리 강제 규칙은 미명시라 자의적 해석 불가(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. disabled-state-treatment(cycle 561)·focus-visible-state-treatment(cycle 566)·transition-property-treatment(cycle 571)와 구분되는 hover 피드백 관점 자매 축. 다음 states round는 hover-state-treatment 축 재선택 금지(자매 회피). 다음 사이클(577)은 tokens area.
+
 ## 2026-06-04 — [design] cycle 575 Discovery — aesthetic area 41st round border-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 border-treatment로 측정 — 테두리 색이 토큰으로 표현되는지, 테두리 폭이 일관된 단계(기본/강조)인지, 임의 폭·원시 색으로 발산하는지.
