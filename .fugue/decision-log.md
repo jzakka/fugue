@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 598 Discovery — a11y area 44th round decorative-svg-aria-hidden-consistency 표면 폐기 (baseline only)
+결정/변경: 없음. 장식용 `<svg>`의 `aria-hidden` 처리 일관성을 점검하려 측정(svg 15곳/7파일, aria-hidden 26곳). 그러나 DESIGN.md에 a11y/aria/스크린리더 적합성 명세가 부재(grep상 'focus'/'Labels' 매칭 3건은 모두 타이포·라벨 폰트 맥락) → 어느 svg에 aria-hidden이 필요/불필요한지 판정할 기준이 코드 외부에 존재하지 않음. "이 장식 svg에 aria-hidden 누락"류 주장은 미작성 표준에 대한 추론이라 자체 리뷰 #2(자의적 해석)에 걸림. 후보 0건, baseline만 기록.
+이유: a11y 영역은 구조적으로 spec-less(DESIGN.md/AGENTS.md a11y 명세 부재). aria-pressed-toggle(43rd)/aria-live(42nd)/icon-button-name(41st)/landmark(40th)와 구별되는 sister 축이나 동일하게 기준 부재로 정렬 대상 도출 불가.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 전역 svg 장식 요소. 다음 사이클 599 = responsive area.
+
 ## 2026-06-04 — [design] cycle 597 Discovery — tokens area 40th round spacing-scale-token-conformance 표면 폐기
 결정/변경: 없음. `apps/web/src` 전역 spacing(padding/margin/gap/space) 적용을 측정해 임의 px 값 사용 여부와 `--spacing` 토큰 오버라이드 여부를 점검. 임의 spacing(`(p|m|gap|space-[xy])-[Npx]`) 0건, globals.css `--spacing` 오버라이드 0건. 모든 여백은 명명된 Tailwind 기본 스케일 토큰만 사용(px-3=30, gap-2=26, px-6=19, py-2.5=17, py-2=17, gap-3=17, py-1.5=15, px-4=15, gap-4=13, py-8=12 등) → 0.25rem 기준 단일 스케일 일관 준수.
 이유: DESIGN.md spacing 스케일 명세에 대한 코드 정렬 후보를 찾기 위한 점검이었으나 임의값·오버라이드가 없어 정렬 대상 부재. font-size-step(cycle 592)/border-radius(582)/z-index(587)와 구별되는 sister 축.
