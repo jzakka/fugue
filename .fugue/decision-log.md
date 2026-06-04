@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 571 Discovery — states area 42nd round transition-property-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 transition-property-treatment로 측정 — 상태 전이 애니메이션이 변하는 속성만 지정하는지(transition-colors 등), 임의 duration/ease 매직값으로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — transition 유틸 76곳: `transition-colors` 67(색 변화 hover/focus에 지배적·의미 정확), `transition-all` 6, `transition-transform` 2, `transition-opacity` 1. duration은 `duration-200` 8·`duration-300` 1(나머지는 Tailwind 기본 150ms 위임), 임의 `duration-[…]`·`ease-[…]`·`transition-[…]` 0건. 변하는 속성만 명시하는 관용이 지배적이고 매직값 발산 0. 두 near-miss는 후보 아님: (1) `transition-all` 6곳은 레이아웃까지 전이해 성능상 비권장이나 DESIGN.md가 transition 속성 선택을 미명시 → 강제 불가(자체 리뷰 #2), (2) `duration-300` 1 vs `duration-200`은 DESIGN.md 모션 명세 자체가 내부 모순(L86 150ms vs L92 200ms, anti-patterns L21)이라 코드를 어느 값에 맞출지가 자의적 → 후보화 보류 영역. 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. disabled-state-treatment(cycle 561)·focus-visible-state-treatment(cycle 566)와 구분되는 전이 속성 관점 자매 축. 다음 states round는 transition-property-treatment 축 재선택 금지(자매 회피). 다음 사이클(572)은 tokens area.
+
 ## 2026-06-04 — [design] cycle 570 Discovery — aesthetic area 40th round shadow-elevation-treatment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 shadow-elevation-treatment로 측정 — 그림자(고도)가 정의된 단일 토큰으로 표현되는지, 임의 그림자(`shadow-[…]`)나 Tailwind 기본 그림자 단계(shadow-sm/md/lg/xl)로 발산하는지.
