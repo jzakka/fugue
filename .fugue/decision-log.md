@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 558 Discovery — a11y area 36th round form-input-label-association 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 form-input-label-association으로 측정 — 모든 폼 컨트롤(input/textarea/select)이 접근 가능한 이름(label htmlFor / aria-label / aria-labelledby)을 갖는지.
+  이유: `apps/web/src` 전수 측정 — input/textarea/select 12개 전부 접근명 보유. 가시 컨트롤은 aria-label(BoardActions L74·L85, AddToBoardButton L362, SearchBar L159, MyPageClient L99, PinCreateForm 태그검색 L566/카테고리 select L577) 또는 `<label htmlFor>`(PinCreateForm pin-title L460/pin-description L479/pin-url L492, ProfileEditForm nickname L68/avatar-url L87)로 연결. 숨김 file input(PinCreateForm L439 `className="hidden"`)은 접근성 트리에서 제외되며 role=button 트리거(L335 aria-label="미디어 파일 선택")가 접근명을 대신 보유 — 표준 프록시 패턴. 위반 0 → 후보 0건. 더불어 a11y는 DESIGN.md/AGENTS.md에 명세 부재라 구조적으로 모든 후보가 추론(confidence ≤ 3 → 폐기)이나, 본 측정은 명세와 무관하게 접근명 정합을 확인.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 a11y round는 form-input-label-association 축 재선택 금지(자매 회피). 다음 사이클(559)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 557 Discovery — tokens area 32nd round semantic-status-color-token-deployment 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 semantic-status-color-token-deployment로 측정 — globals.css L51-54 시맨틱 상태 색 토큰(success/warning/error/info)이 코드에서 토큰 유틸로 적용되는지, 아니면 Tailwind 기본 팔레트(red/green/amber 등)나 하드코딩 hex로 우회되는지.
