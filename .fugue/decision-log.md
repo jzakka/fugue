@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 610 Discovery — aesthetic area 48th round tabular-nums-numeric-figure-treatment (near-miss·해석 모호로 보류)
+결정/변경: 없음. DESIGN.md L20 'Geist Mono … 수치 … (tabular-nums 지원)' 관련 숫자 정렬 변형(tabular-nums) 적용 측정. 코드 전역 `tabular-nums`/`slashed-zero` 유틸 사용 0건. 단, L20의 '(tabular-nums 지원)'은 Geist Mono 폰트가 tabular 숫자를 '지원한다'는 능력 서술(괄호 주석)이지 `tabular-nums` 클래스를 명시 적용하라는 지시로 단정하기 어려움. 모든 수치에 Geist Mono는 이미 적용(cycle 605 확인)되어 능력은 확보된 상태.
+이유: 괄호 주석을 '유틸 적용 의무'로 읽으면 자의적 해석(자체 리뷰 #2; 괄호 주석=예시·설명이지 배타 화이트리스트/의무 아님 원칙). 다만 변동 카운트·세로 정렬 수치에서 tabular-nums가 시각 jitter를 줄이는 실익이 있어 사용자가 'tabular-nums 유틸을 정렬 필요 수치에 명시 적용'을 정본으로 결정하면 정렬 사이클로 승격 가능. monospace-numeric-metadata-role(47th, 폰트 패밀리)과 구별되는 숫자 variant feature sister. backdrop-blur(46th)/letter-spacing(45th)와도 구별.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 수치 렌더(이미 Geist Mono 적용). 다음 사이클 611 = states area.
+
 ## 2026-06-04 — [design] cycle 609 Discovery — responsive area 47th round responsive-flex-direction-stacking-consistency 표면 폐기
 결정/변경: 없음. 반응형 flex 방향 전환(모바일 세로 stack → 데스크톱 가로 row) 일관성 측정. 반응형 방향 전환은 2곳(ProfileHeader L14, ProfileSkeleton L6)뿐이며 둘 다 동일한 `flex flex-col sm:flex-row gap-6`(스켈레톤이 실제 컴포넌트 레이아웃을 미러) → 상충 패턴 0. flex-col 7·flex-row 2(전부 반응형 전환 내). mobile-first(flex-col 베이스 → sm:flex-row) 준수. 분기 없음, 후보 0건.
 이유: DESIGN.md L70 breakpoint(sm500) 준수하며 반응형 방향 전환이 쓰인 곳은 스켈레톤↔컴포넌트가 정합. responsive-padding-progression(46th)/horizontal-scroll-affordance(45th)/viewport-overflow-fixed-width(44th)와 구별되는 sister 축.
