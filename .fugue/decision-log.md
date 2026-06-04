@@ -95,6 +95,13 @@
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 506 Discovery — 보안 area JSON request body 크기 상한(http.MaxBytesReader) 커버리지 표면 (후보 1건)
+
+  결정/변경: backlog 후보 1건 append(system-20260604-json-request-body-size-cap-missing, score 6.0, pending). last-6 system Discovery survey(502 봇/500 OpenSpec갭/498 에러/496 동시성/494 정합성/492 보안) 중 보안이 oldest(492) → 보안 차례. sister 회피: 492 JWT·신뢰경계 / 478 SSRF / 466 시크릿·SQLi / 454 IDOR·BOLA / 442 crypto·TLS·cookie·CORS / 430 CSRF·redirect 와 분리한 "HTTP 요청 입력 경계 — JSON request body 크기 상한(http.MaxBytesReader) 커버리지" 신규 축 측정. 향후 보안 라운드 이 축 재선택 금지.
+  이유: pin/handler.go:82 만 r.Body 를 http.MaxBytesReader(500MB)로 감싸 본문 상한을 enforce(openspec/specs/pin/spec.md:32-34 SHALL)하고, 나머지 JSON 본문 디코드 site(og:47, creator:157, boards:100/277/499, interaction:39)는 json.NewDecoder(r.Body).Decode 를 상한 없이 호출(직접 grep, MaxBytesReader 0 matches). 전역 미들웨어(main.go:113-121 Logger·Recoverer·RealIP·CORS)에도 본문 상한 없음. 이 갭은 archive/2026-05-19-fix-creator-update-avatar-url-input-length-validation/proposal.md:73 이 "http.MaxBytesReader 적용(JSON body size cap) — 별개 보안 후보"로 이미 명시 인지한 미처리 항목 → 취향 아님. confidence 4(재현 가능 + 문서상 인지된 별개 후보, 단 비-pin 엔드포인트에 일반화하는 SHALL 스펙 라인은 없음).
+  QA: N/A — Discovery 모드, 코드 변경 0건. (처리 시 qa_plan: cap 초과 본문 curl → 413/400 + 메모리 미폭증, 정상 본문 무회귀.)
+  영향 범위: `.fugue/backlog-system.yaml`(+후보 1건)·`.fugue/decision-log.md` 기록만. 코드 무변경. anti-pattern cycle 466(og err.Error() 노출 FP)과 비매칭(본문 크기 상한 부재는 별개 표면).
+
 ## 2026-06-04 — [system] cycle 504 처리 — Harvester pins.url(VARCHAR1000) 오버플로 가드 추가
 결정/변경: harvester_consumer.go 에 pinsURLRuneCap(=1000) 상수 + capCanonicalURLForPin 헬퍼를 추가하고, processOne 의 filterOverlongMediaURLs 직후·classify 전에 가드를 배치. doc.CanonicalURL(→pins.url) 이 1000 룬 초과 시 (a) fetchURL ≤1000 이면 CanonicalURL=fetchURL 로 재기록(bounded 원본으로 pin 생성), (b) fetchURL 도 초과면 skip(harvested 처리, retry burn 0). title(200)/body(500)/media_url(500) sibling 가드와 동형, 다만 pins.url 은 NOT NULL·dedup 키라 skip-not-truncate 대신 fetchURL 폴백 1단계 추가. (PR #1083, backlog system-20260604-harvester-pin-url-varchar1000-overflow done)
 이유: pins.url VARCHAR(1000) ← doc.CanonicalURL 무가드 INSERT 인데 상류 frontier.url 은 TEXT(무제한)·extractor canonical 폴백체인도 길이 미검사라 >1000자 URL 이 pinnable 시 pins INSERT "value too long for type character varying(1000)" 실패 → ErrorNetwork "pin_create" 오분류 → 5회 retry burn → 영구 누락. media_url(500) 갭과 동일 클래스(consumer 주석이 명시)인데 url sink 만 미가드였음. 마이그레이션 컬럼 타입은 하드 제약이라 코드↔스키마 lockstep 결함.
