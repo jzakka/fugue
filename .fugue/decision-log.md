@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 588 Discovery — a11y area 42nd round aria-live-region-announcement-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 aria-live-region-announcement-consistency로 측정 — 라이브 영역(로딩·상태·에러 알림)의 announcement 의미가 일관되게 매핑되는지.
+  이유: `apps/web/src` 전체 라이브 영역 = `aria-live="polite"` 12곳(전부 polite, assertive 0) + `role="status"` 16곳(암묵 polite, 로딩/진행) + `role="alert"` 6곳(에러) + `aria-busy` 10곳(status 로딩 영역과 페어링). role=status→로딩/진행 폴라이트 갱신, role=alert→에러로 일관 매핑. WCAG 4.1.3 status messages 패턴 일관 적용, 발산 없음. a11y는 DESIGN.md/AGENTS.md에 명세 부재로 구조적으로 추론 영역 → 후보 없음, 베이스라인 기록만. form-label(558)·modal-aria(563)·image-alt(568)·heading(573)·landmark(578)·icon-button-name(583)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 589 = responsive area.
+
 ## 2026-06-04 — [design] cycle 587 Discovery — tokens area 38th round z-index-layering-scale-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 z-index-layering-scale-consistency로 측정 — 적층(stacking) z값이 의미적으로 일관된 계층을 이루는지, 임의값이 무근거로 발산하는지.
