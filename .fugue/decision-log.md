@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 594 Discovery — responsive area 44th round viewport-overflow-fixed-width-safety 표면 폐기
+
+  결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 viewport-overflow-fixed-width-safety로 측정 — 고정 `w-[Npx]`/`min-w-[Npx]`가 소형 뷰포트에서 가로 오버플로를 강제하는지(반응형 안전성을 반대 각도에서).
+  이유: `apps/web/src` 전체 고정 폭 = login `max-w-[400px]`(L35, 축소 안전 max-cap, cycle 579 near-miss 기록됨) + VideoTrimModal `w-[14px]`(L248·L257 드래그 핸들)·`w-[3px]`(L252·L261 핸들 그립선)뿐. `min-w-[Npx]` 0건, 뷰포트 초과 `w-[Npx]` 0건. 명명 max-w-*(sm/md/xl/2xl/4xl/5xl)는 전부 컨테이너 축소-안전 cap. 14px/3px는 anti-pattern L17 면제 소형 UI 서브요소(핸들/그립)로 어느 뷰포트보다 작아 오버플로 무관. 오버플로 강제 고정/최소 폭 없음. typography(569)·grid-columns(574)·spacing-direction(584)·breakpoint-vocabulary(589)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 595 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 593 Discovery — a11y area 43rd round aria-pressed-toggle-state-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 aria-pressed-toggle-state-consistency로 측정 — 토글/필터 버튼이 일관되게 aria-pressed로 활성/선택 상태를 노출하는지.
