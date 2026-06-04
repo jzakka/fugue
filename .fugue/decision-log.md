@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 587 Discovery — tokens area 38th round z-index-layering-scale-consistency 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 z-index-layering-scale-consistency로 측정 — 적층(stacking) z값이 의미적으로 일관된 계층을 이루는지, 임의값이 무근거로 발산하는지.
+  이유: `apps/web/src` 전체 z값 = z-10(2, VideoTrimModal 트랙 내 핸들 로컬 적층) < z-50(3, NavBar sticky·AddToBoard 모달·skip-link 기본 오버레이 tier) < z-[60](1, SearchBar 드롭다운 — nav z-50 바로 위) < z-[100](1, VideoTrimModal 풀스크린 오버레이 최상단). 의미적으로 일관된 계층(로컬<기본오버레이<nav위드롭다운<풀스크린모달). 임의값 z-[60]/z-[100]은 Tailwind 명명 스케일이 z-50에서 끝나 그 위 정밀 적층을 위한 의도적 선택 — 무근거 발산 아님. DESIGN.md는 z-index 토큰 스케일 미명세 → 정규 토큰 부재라 자의적 매핑 불가(자체 리뷰 #2), 후보 아님. border-radius(582)·shadow(570)·surface(572)와 구별되는 자매 축.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 588 = a11y area.
+
 ## 2026-06-04 — [design] cycle 586 Discovery — states area 44th round disabled-state-treatment-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 disabled-state-treatment-consistency로 측정 — 비활성 상태 시각 처리(opacity·cursor)가 일관 토큰/값을 쓰는지.
