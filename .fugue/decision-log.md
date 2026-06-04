@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 551 Discovery — states area 38th round selection-and-active-toggle-state 표면 폐기
+
+  결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 selection-and-active-toggle-state로 측정 — `aria-pressed` 토글 컨트롤의 선택/활성 상태 시각 처리 정합성(DESIGN.md L38 accent=선택, L41 accent-subtle=태그/선택).
+  이유: `apps/web/src` `aria-pressed` 토글 컨트롤 측정 결과 두 계열로 분리. (1) 태그 칩(TagFilter L66·SearchClient L274·PinCreateForm L619): selected=`bg-accent text-white` / unselected=`bg-accent-subtle` → L38·L41 정합. (2) 세그먼트 필터/탭: SearchClient 타입탭 L249·FieldFilter L39·PinCreateForm 카테고리 L601 = selected `bg-text-primary text-bg`(중립) vs **PinsGrid 미디어타입 필터 L107 = selected `bg-accent text-white`**. PinsGrid(프로필 미디어타입 필터)와 FieldFilter(피드 미디어타입 필터)는 기능 동일한 세그먼트 필터인데 선택 상태 처리가 발산.
+  발산 판정: 후보 아님. DESIGN.md L38은 accent를 "선택"에 쓰는 것을 허용하나 세그먼트 필터의 단일 정전(canonical) 선택 처리를 명시하지 않고, 컴포넌트 간 선택 스타일 일관성도 요구하지 않으며, accent vs text-primary 중 무엇이 정답인지 지정하지 않는다. 둘 다 L38 허용 범위(accent-선택 / 중립-restraint) 내. 발산을 결함화하려면 (a) DESIGN.md에 없는 일관성 규칙을 신설하고 (b) 정렬 대상값을 자의적으로 선택해야 함 → 자체 리뷰 #2(자의적 해석), confidence≤3 → 폐기.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
+
 ## 2026-06-04 — [design] cycle 550 Discovery — aesthetic area 36th round font-family-role-deployment 표면 폐기
 
   결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 font-family-role-deployment로 측정 — DESIGN.md L17-21 글꼴 역할 배치 정합성(Display/Hero=font-display, Body=기본 Pretendard, Data/Tags/수치=font-mono).
