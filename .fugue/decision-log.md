@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 575 Discovery — aesthetic area 41st round border-treatment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). aesthetic area를 자매 회피 신규 축 border-treatment로 측정 — 테두리 색이 토큰으로 표현되는지, 테두리 폭이 일관된 단계(기본/강조)인지, 임의 폭·원시 색으로 발산하는지.
+  이유: `apps/web/src` 전수 측정 — 테두리 색 전부 토큰 기반: border-border 68(기본 구분선)·border-accent 67(hover/focus/active 강조, cycle 566 포커스 감사와 동일 계열)·border-error/30 7·border-transparent 5·border-error 2·border-accent/50 2·border-success/30 1. 원시 회색조·hex 우회 0건(border-gray/zinc/neutral/slate-N·border-[#…]·border-[Npx] grep 0). 테두리 폭은 `border`(1px 기본) 61·`border-2`(강조) 21·방향 border-t/b 소수로 기본/강조 2단 일관, 임의 폭 0. DESIGN.md가 테두리 폭 스케일은 미명시하나 1px 기본+2px 강조 2단은 자의적 등급 부여 없이 일관(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. letter-spacing-tracking(cycle 560)·gradient-treatment(cycle 565)·shadow-elevation-treatment(cycle 570)와 구분되는 테두리 색/폭 관점 자매 축. 다음 aesthetic round는 border-treatment 축 재선택 금지(자매 회피). 다음 사이클(576)은 states area.
+
 ## 2026-06-04 — [design] cycle 574 Discovery — responsive area 38th round responsive-grid-column-scaling 표면 폐기
 
   결정/변경: 없음 (후보 0건). responsive area를 자매 회피 신규 축 responsive-grid-column-scaling으로 측정 — 그리드 열 수가 breakpoint별로 mobile-up(작은 화면 적은 열 → 큰 화면 많은 열)으로 증가하는지, 역방향·건너뜀이 있는지.
