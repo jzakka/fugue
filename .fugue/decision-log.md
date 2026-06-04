@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 600 Discovery — aesthetic area 46th round backdrop-blur-overlay-treatment-consistency (near-miss 발견·후보 보류)
+결정/변경: 없음. 모달 스크림(dim 배경)의 opacity·backdrop-blur 처리 일관성 측정. 풀스크린 모달 2곳의 패널은 `bg-surface-elevated border border-border rounded-[16px]`로 동일하나 스크림이 분기: VideoTrimModal L174 = `bg-black/70 backdrop-blur-sm`(blur 적용), AddToBoardButton L236 = `bg-black/60`(blur 없음). opacity 70 vs 60, blur sm vs none 두 축 모두 차이. (참고: NavBar L12도 backdrop-blur-sm 사용하나 sticky nav glass 효과라 모달 스크림과 다른 맥락.)
+이유: 모달 스크림 opacity/blur는 DESIGN.md 미명세(grep blur/backdrop/scrim/overlay 0건). 어느 값(70/blur vs 60/no-blur)이 정본인지 DESIGN.md가 지시하지 않아 자율 정렬은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. 사용자가 모달 스크림 표준(opacity·blur 적용 여부)을 결정하면 정렬 사이클로 승격 가능. letter-spacing(45th)/accent-restraint(44th)/gradient(43rd)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 모달 스크림 2곳(VideoTrimModal, AddToBoardButton). 다음 사이클 601 = states area.
+
 ## 2026-06-04 — [design] cycle 599 Discovery — responsive area 45th round horizontal-scroll-affordance-consistency (near-miss 발견·후보 보류)
 결정/변경: 없음. 가로 스크롤 필터/탭 행의 affordance(`overflow-x-auto`+`scrollbar-hide`) 일관성 측정. `overflow-x-auto` 6곳 중 5곳이 `scrollbar-hide`를 동반(FieldFilter L31, TagFilter L47, SearchClient L240·L263, PinCreateForm 카테고리탭 L578)하나 `PinsGrid.tsx:99`(프로필 미디어타입 필터 행)만 `overflow-x-auto pb-2`로 scrollbar-hide 없이 네이티브 스크롤바 노출 → 5:1 분기.
 이유: scrollbar-hide는 DESIGN.md 미명세. 스크롤바를 숨기는 게 정본인지(혹은 PinsGrid처럼 노출이 정본인지) DESIGN.md가 직접 지시하지 않음 → 어느 쪽으로 정렬할지 자체가 자의적 해석(자체 리뷰 #2)이라 자율 변경 불가. 내부 일관성 분기로서 near-miss 기록. 사용자가 가로 스크롤 affordance(scrollbar-hide 적용/미적용)를 정본으로 결정하면 정렬 사이클로 승격 가능. viewport-overflow-fixed-width(44th)/responsive-container-max-width(39th)와 구별되는 sister 축.
