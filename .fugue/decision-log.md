@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 601 Discovery — states area 47th round active-press-state-treatment-consistency 표면 폐기
+결정/변경: 없음. 인터랙티브 요소의 누름(`active:`) 시각 상태 처리 일관성 측정. 전 코드베이스 `active:` 사용 1건뿐(`VideoTrimModal.tsx:233 active:cursor-grabbing` — 드래그 윈도우 커서 affordance). 버튼/링크 등 어떤 요소도 visual press 상태(active:scale/bg 등)를 두지 않음 → 누름 시각 처리 부재가 전역 균일. 유일한 active:는 드래그 핸들 커서 변경으로 누름 시각 상태와 다른 맥락. 균일 = 일관 → 분기 없음, 후보 0건.
+이유: DESIGN.md에 active/press 상태 명세 부재. 누름 시각 처리를 도입할지는 신규 상태 시스템 설계라 단발 정렬 범위 밖이며, 현 부재는 전역 균일이라 정렬 대상도 아님. focus-visible(45th)/disabled(44th)/selected-active(46th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 전역 인터랙티브 요소. 다음 사이클 602 = tokens area.
+
 ## 2026-06-04 — [design] cycle 600 Discovery — aesthetic area 46th round backdrop-blur-overlay-treatment-consistency (near-miss 발견·후보 보류)
 결정/변경: 없음. 모달 스크림(dim 배경)의 opacity·backdrop-blur 처리 일관성 측정. 풀스크린 모달 2곳의 패널은 `bg-surface-elevated border border-border rounded-[16px]`로 동일하나 스크림이 분기: VideoTrimModal L174 = `bg-black/70 backdrop-blur-sm`(blur 적용), AddToBoardButton L236 = `bg-black/60`(blur 없음). opacity 70 vs 60, blur sm vs none 두 축 모두 차이. (참고: NavBar L12도 backdrop-blur-sm 사용하나 sticky nav glass 효과라 모달 스크림과 다른 맥락.)
 이유: 모달 스크림 opacity/blur는 DESIGN.md 미명세(grep blur/backdrop/scrim/overlay 0건). 어느 값(70/blur vs 60/no-blur)이 정본인지 DESIGN.md가 지시하지 않아 자율 정렬은 자의적 해석(자체 리뷰 #2). 내부 일관성 분기로 near-miss 기록. 사용자가 모달 스크림 표준(opacity·blur 적용 여부)을 결정하면 정렬 사이클로 승격 가능. letter-spacing(45th)/accent-restraint(44th)/gradient(43rd)와 구별되는 sister 축.
