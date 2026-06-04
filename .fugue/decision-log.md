@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 592 Discovery — tokens area 39th round font-size-step-token-conformance 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 font-size-step-token-conformance로 측정 — 모든 글자 크기가 명명 스케일 토큰을 쓰는지, 임의 `text-[Npx]`로 발산하는지, 커스텀 스텝 토큰이 @theme에 정의됐는지.
+  이유: `apps/web/src` 전체 text-size = text-3xs(5)·text-2xs(3)·text-xs(45)·text-sm(70)·text-base(3)·text-lg(11)·text-xl(2)·text-2xl(8)·text-3xl(5)·text-5xl(1) — 전부 명명 스케일. 임의 `text-[숫자...]` 폰트 크기 0건. 소형단 커스텀 토큰 `--text-2xs: 0.6875rem`·`--text-3xs: 0.625rem`은 globals.css @theme L58-59에 정의됨(L16 미정의 토큰 사용 아님), text-5xl은 Tailwind 기본. 스텝 발산 없음. font-family(577)·font-weight(580)와 구별되는 자매 축(크기 스텝 측정).
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: 없음 (decision-log만 갱신). 다음 사이클 593 = a11y area.
+
 ## 2026-06-04 — [design] cycle 591 Discovery — states area 45th round focus-visible-treatment-consistency 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 focus-visible-treatment-consistency로 측정 — `focus-visible:outline-none`이 항상 대체 가시 지시자(accent 경계·카드 리프트·그림자)와 페어링되는지, 지시자 없는 맨몸 outline 제거(키보드 포커스 불가시 회귀)가 있는지.
