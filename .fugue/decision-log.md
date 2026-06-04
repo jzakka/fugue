@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 573 Discovery — a11y area 39th round heading-hierarchy-semantics 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 heading-hierarchy-semantics로 측정 — 페이지마다 단일 h1을 갖는지, 헤딩 레벨이 건너뛰기 없이(h1→h2) 순차적인지.
+  이유: `apps/web/src` 전수 측정 — 헤딩 태그 h1 8개·h2 9개, h3~h6 0개. h1 보유 파일 8개(page·pins/[id]·search/page·PinCreateForm·boards/[id]·SearchClient·login·ProfileHeader)로 페이지/주요 컴포넌트당 1개. 유일한 중복 우려였던 search route는 `app/search/page.tsx`가 `{q ? <SearchClient/>(h1 L232) : <h1 sr-only>검색</h1> + EmptyState}` 삼항의 상호배타 분기라 한 페이지 상태에 h1 정확히 1개(쿼리 있으면 SearchClient, 없으면 sr-only 제목)—동시 렌더 불가. 레벨 점프 0(h1 다음 h2만, h1→h3 건너뜀 없음). 위반(다중 h1·레벨 스킵·헤딩 누락) 0건. a11y는 DESIGN.md/AGENTS.md 명세 전무(구조적 spec-less)라 강제 규칙으로 후보화 불가—baseline 기록만(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. form-input-label-association(cycle 558)·modal-dialog-aria-semantics(cycle 563)·image-alt-text-treatment(cycle 568)와 구분되는 문서 구조/헤딩 관점 자매 축. 다음 a11y round는 heading-hierarchy-semantics 축 재선택 금지(자매 회피). 다음 사이클(574)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 572 Discovery — tokens area 35th round surface-background-color-token-usage 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 surface-background-color-token-usage로 측정 — 표면/배경색이 DESIGN.md 어두운 표면 위계 토큰(bg/surface/surface-elevated/surface-hover)으로 표현되는지, 원시 회색조·hex로 우회하는 site가 있는지.
