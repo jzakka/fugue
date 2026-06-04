@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 557 Discovery — tokens area 32nd round semantic-status-color-token-deployment 표면 폐기
+
+  결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 semantic-status-color-token-deployment로 측정 — globals.css L51-54 시맨틱 상태 색 토큰(success/warning/error/info)이 코드에서 토큰 유틸로 적용되는지, 아니면 Tailwind 기본 팔레트(red/green/amber 등)나 하드코딩 hex로 우회되는지.
+  이유: `apps/web/src` 전수 측정 결과 — 상태 색은 전부 시맨틱 토큰 유틸로 적용됨(text-error 14, bg-error/10 7, border-error/30 7, bg-error/20 2, border-error 2, text-success 1, bg-success/10 1, border-success/30 1). Tailwind 기본 팔레트 상태 색(`(text|bg|border|ring|fill|stroke)-(red|green|amber|yellow|emerald|rose|lime|orange)-NNN`) 0건, 상태 hex 리터럴(#34C759/#FFB800/#FF3B30/#5AC8FA 등) 0건. warning/info 토큰은 정의됐으나 미사용 — 단 정의-후-미사용 토큰은 DESIGN.md가 전 토큰 사용을 요구하지 않으므로 conformance 결함 아님(자체 리뷰 #2: 미사용을 위반으로 보면 자의적). 명시 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 tokens round는 semantic-status-color-token-deployment 축 재선택 금지(자매 회피). 다음 사이클(558)은 a11y area.
+
 ## 2026-06-04 — [design] cycle 556 Discovery — states area 39th round loading-indicator-presentation 표면 폐기
 
   결정/변경: 없음 (후보 0건). states area를 자매 회피 신규 축 loading-indicator-presentation으로 측정 — 활성 로딩 인디케이터(스피너)의 시각·접근성 처리 정합성(스켈레톤 플레이스홀더와 별개).
