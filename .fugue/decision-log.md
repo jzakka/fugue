@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 578 Discovery — a11y area 40th round landmark-region-semantics 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 landmark-region-semantics로 측정 — 페이지가 시맨틱 랜드마크(main/nav/header)로 구조화되는지, skip-link 타깃이 랜드마크와 연결되는지.
+  이유: `apps/web/src` 전수 측정 — 랜드마크 요소: `<main id="main">` 8개(페이지당 1, id="main" 보유 파일 8개와 일치)·`<nav>` 1·`<header>` 1(공유 NavBar 컴포넌트로 페이지마다 1 네비게이션 랜드마크 렌더)·`<section>` 4. 전역 skip-link(`app/layout.tsx` L32 `href="#main"`)가 모든 페이지의 `<main id="main">`를 타깃—skip-link↔랜드마크 연결 완전. div soup 없이 페이지 주요 영역이 main 랜드마크로 일관 래핑, 누락·다중 main·끊긴 skip-link anchor 0건. a11y는 DESIGN.md/AGENTS.md 명세 전무(구조적 spec-less)라 강제 규칙으로 후보화 불가—baseline 기록만(자체 리뷰 #2). 위반 0 → 후보 0건.
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. form-input-label-association(cycle 558)·modal-dialog-aria-semantics(cycle 563)·image-alt-text-treatment(cycle 568)·heading-hierarchy-semantics(cycle 573)와 구분되는 랜드마크/문서 영역 관점 자매 축. 다음 a11y round는 landmark-region-semantics 축 재선택 금지(자매 회피). 다음 사이클(579)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 577 Discovery — tokens area 36th round font-family-token-usage 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area를 자매 회피 신규 축 font-family-token-usage로 측정 — 글꼴 패밀리가 정의된 토큰(font-display/font-mono)으로만 표현되는지, 임의 font-[…]·inline fontFamily로 우회하는 site가 있는지.
