@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 609 Discovery — responsive area 47th round responsive-flex-direction-stacking-consistency 표면 폐기
+결정/변경: 없음. 반응형 flex 방향 전환(모바일 세로 stack → 데스크톱 가로 row) 일관성 측정. 반응형 방향 전환은 2곳(ProfileHeader L14, ProfileSkeleton L6)뿐이며 둘 다 동일한 `flex flex-col sm:flex-row gap-6`(스켈레톤이 실제 컴포넌트 레이아웃을 미러) → 상충 패턴 0. flex-col 7·flex-row 2(전부 반응형 전환 내). mobile-first(flex-col 베이스 → sm:flex-row) 준수. 분기 없음, 후보 0건.
+이유: DESIGN.md L70 breakpoint(sm500) 준수하며 반응형 방향 전환이 쓰인 곳은 스켈레톤↔컴포넌트가 정합. responsive-padding-progression(46th)/horizontal-scroll-affordance(45th)/viewport-overflow-fixed-width(44th)와 구별되는 sister 축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: `apps/web/src` 반응형 flex 방향 2곳. 다음 사이클 610 = aesthetic area.
+
 ## 2026-06-04 — [design] cycle 608 Discovery — a11y area 46th round form-button-type-attribute-coverage 표면 폐기 (baseline only)
 결정/변경: 없음. 폼 내 버튼의 `type` 속성 명시로 암묵적 submit 위험 점검. 전역 `<button>` 43개 중 type="button" 14·type="submit" 2·미명시 27. `<form>` 2곳(PinCreateForm, ProfileEditForm)의 모든 내부 버튼은 type 명시(액션=type="button", 제출=type="submit") → 폼 내 암묵적 submit 위험 0. 미명시 27개는 전부 폼 외부 버튼이라 default submit가 무해. 위반 0건.
 이유: a11y/폼 시맨틱은 DESIGN.md 미명세(spec-less)이나 측정 결과 폼 버튼이 전수 정확. tabindex-usage(45th)/decorative-svg-aria-hidden(44th)/aria-pressed-toggle(43rd)와 구별되는 sister 축.
