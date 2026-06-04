@@ -6492,4 +6492,15 @@ items:
     effort: 2
     risk: 1
     score: 6.0
-    status: pending
+    status: rejected
+    rejected_reason: |
+      false_positive. origin/main 은 이 갭을 이미 전부 해소한 상태다(직접 확인):
+      og/handler.go:71 ogRequestBodyCap=8*1024 (cycle 99 PR #275),
+      creator/handler.go:169 updateMeRequestBodyCap=8*1024 (cycle 101 PR #283),
+      boards/handler.go:131·314·542 boardsRequestBodyCap=8*1024,
+      interaction/handler.go:53 createRequestBodyCap=8*1024 — 모두 json.Decode 직전
+      r.Body=http.MaxBytesReader 로 감싸고 MaxBytesError 를 400 으로 매핑한다.
+      후보의 evidence 라인번호(og:47, creator:157, boards:100·277·499, interaction:39)는
+      684 커밋 stale 부모 체크아웃(/Users/ivanchung/fugue, local main db2fc40)을 grep 한
+      결과였다. 발견 모드 조사를 워크트리(origin/main) 베이스가 아닌 부모 경로로 수행해
+      이미 구현된 기능을 갭으로 오인한 사례 — anti-patterns.md cycle 508 항목 참조. 코드 변경 없음.
