@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 627 Discovery — tokens area 46th round border-width-scale-conformance 표면 폐기 (후보 0건)
+결정/변경: 없음. `apps/web/src` 전역 border-width 토큰 사용을 점검. 1px 기본(`border`) ×309, 2px 강조(`border-2`) ×22, 임의 폭(`border-[Npx]`) 0건 — 규율 있는 2-값 스케일. `border-2` 22건은 모두 강조 컨텍스트로 역할 한정: 아바타 링(`rounded-full border-2 border-border` — pins/[id] L205/208, SearchClient L331/334, ProfileEditForm L104, ProfileHeader L21/24, NavBar L50/53), 로딩 스피너 11건(`border-2 border-accent border-t-transparent` cycle 621), 대시 드롭존(PinCreateForm L346), 선택 가능 썸네일(VideoThumbnailPicker L145). DESIGN.md L46은 Border 색(#2A2A2A/#E0E0E0)만 정의하고 width 스케일은 미명시이나, 코드가 1px 기본/2px 강조의 일관된 2-값 체계를 자율 준수하며 임의 폭 0건이라 minimal 미학(L11 '타이포·여백이 모든 걸 한다')에 부합.
+이유: DESIGN.md가 border-width 스케일을 명시하지 않으나 코드는 임의값 없이 1px/2px 두 값만 일관 사용하므로 정렬 후보 없음. tokens 트랙 자매 축으로 border-radius(37th)·color-token(44th)와 구별되며, aesthetic 트랙 border-treatment(41st)와도 별개 측정축(폭 스케일 vs 색·처리). globals.css에 `--border-width-*` 오버라이드 부재가 의도적이라는 점도 확인.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: 없음(측정 전용). 다음 사이클 628 = a11y area.
+
 ## 2026-06-04 — [design] cycle 626 Discovery — states area 52nd round group-hover-focus-keyboard-parity-consistency 표면 폐기 (후보 0건)
 결정/변경: 없음. 부모 hover로 자식 상태를 바꾸는 `group-hover:` affordance가 키보드 포커스 동등(parity)을 갖는지 점검. group-hover 13건 중 12건이 group-focus-visible 대칭 페어(border-accent 6↔6·text-accent 4↔4·shadow-card-hover 2↔2) — 카드 hover affordance가 키보드 포커스에도 동일 적용. 유일 비대칭처럼 보인 SearchBar L223 `group-hover:opacity-100`(최근검색 삭제 버튼 reveal)은 실제로 `group-focus-within:opacity-100`+`focus-visible:opacity-100`을 동반 — 행 키보드 진입(focus-within) 및 버튼 직접 포커스(focus-visible) 시 reveal로 키보드 parity 확보(reveal-on-row 패턴엔 focus-within이 focus-visible보다 적절).
 이유: 모든 group-hover affordance가 키보드 등가 메커니즘(group-focus-visible 또는 group-focus-within+focus-visible)을 갖춰 hover-only 비가시 상태 0건 → 신규 후보 0건. hover-state(43rd, 직접 hover)/focus-visible(45th·41st)/selected-active(46th)와 구별되는 group(부모 트리거) 상태 sister 축.
