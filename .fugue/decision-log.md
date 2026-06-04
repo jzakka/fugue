@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-04 — [design] cycle 563 Discovery — a11y area 37th round modal-dialog-aria-semantics 표면 폐기
+
+  결정/변경: 없음 (후보 0건). a11y area를 자매 회피 신규 축 modal-dialog-aria-semantics로 측정 — 오버레이 모달이 dialog 시맨틱 3종(role="dialog" + aria-modal="true" + aria-labelledby→실존 제목 id)을 완비하고 dangling 참조가 없는지.
+  이유: `apps/web/src` 전수 측정 — `fixed inset-0` 오버레이 모달은 VideoTrimModal·AddToBoardButton 두 곳뿐이며 둘 다 role="dialog"(L179/L241) + aria-modal="true"(L180/L242) + aria-labelledby(L181/L243) 완비. aria-labelledby 타깃 4개(video-trim-modal-title→h2 L186, add-to-board-modal-title→h2 L249, profile-edit-form-title→h2 L53, pin-create-form-title→h1 L314) 전부 실존 헤딩에 매칭 → dangling 0. 폼 2개(PinCreateForm·ProfileEditForm)는 오버레이 아님이라 role=dialog 불필요하나 aria-labelledby로 접근명 부여. 위반 0 → 후보 0건. (a11y는 DESIGN.md/AGENTS.md 명세 부재라 구조적으로 후보 추론, 단 본 측정은 dialog 시맨틱 완비/참조 무결성을 명세 무관 확인.)
+  QA: N/A — Discovery 모드, 코드 변경 0건.
+  영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 a11y round는 modal-dialog-aria-semantics 축 재선택 금지(자매 회피). 다음 사이클(564)은 responsive area.
+
 ## 2026-06-04 — [design] cycle 562 Discovery — tokens area 33rd round custom-text-size-token-usage 표면 폐기
 
   결정/변경: 없음 (후보 0건). tokens area 4차 로테이션을 자매 회피 신규 축 custom-text-size-token-usage로 측정 — globals.css L58-59가 Tailwind 기본 외로 추가 정의한 유일한 커스텀 타이포 토큰 `--text-2xs`(0.6875rem/11px)·`--text-3xs`(0.625rem/10px, DESIGN.md L34-35 정합)이 토큰 유틸로 채택되는지, 아니면 raw px/rem로 우회되는지.
