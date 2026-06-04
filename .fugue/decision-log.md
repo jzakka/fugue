@@ -467,6 +467,16 @@ QA: N/A — Discovery 모드, 코드 변경 0건.
   QA: N/A — Discovery 모드, 코드 변경 0건.
   영향 범위: `.fugue/decision-log.md` 기록만. `apps/web` 코드 무변경. 다음 states round는 selection-and-active-toggle-state 축 재선택 금지(자매 회피). PinsGrid↔FieldFilter 선택상태 발산은 사용자가 세그먼트 필터 선택 처리의 정전 값을 DESIGN.md에 명시 propose하기 전까지 후보화 보류. 5-area 1순회 완료 → 다음 사이클(552)은 tokens area로 복귀.
 
+## 2026-06-04 — [system] cycle 558 Discovery — 보안 area 파일 업로드 검증(content-type magic-byte sniff·declared/sniff 불일치 거부·per-type size cap·object key path-traversal) 표면 폐기
+
+  결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(556 봇/554 OpenSpec갭/552 에러처리/550 동시성/548 정합성/546 보안) 중 보안이 oldest(546) → 보안 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config)은 추적된 갭이라 중복 회피. sister 회피: 546 이전 보안 축들과 분리한 "파일 업로드 보안 — 클라이언트 표기 content-type을 신뢰하지 않고 magic-byte로 검증하는가, S3 object key가 클라이언트 파일명에서 파생되어 path-traversal 가능한가" 신규 축.
+
+  이유: storage.Upload(storage.go L141-206)이 (1) `http.DetectContentType(buf[:n])`(L148) magic-byte sniff 후 클라이언트 declared content-type과 sniff 결과 불일치 시 외부 저장소 쓰기 전 거부(L153-156, octet-stream/빈 declared만 skip), (2) `allowedMIME` allow-list 검증(L168-171)으로 미허용 MIME 거부, (3) per-MediaType `maxBytes` size cap(L173-176) — 이때 size 인자는 핸들러 `header.Size`(multipart 파서가 산출한 실제 part 크기, 클라이언트 declared 헤더 아님; 비디오는 트림 후 os.Stat 실측 L255)이라 위조 불가, (4) S3 key를 `fmt.Sprintf("%s/%s%s", mt, uuid.New().String(), ext)`(L180)로 서버 파생 mediatype + 신규 UUID + 서버 파생 ext에서만 구성 → 클라이언트 `header.Filename`이 key에 유입되지 않아 path-traversal 불가, (5) 저장 ContentType도 서버 sniff한 mime(L194)이라 stored 메타데이터 위조 불가. 핸들러(pin/handler.go)는 L82 `http.MaxBytesReader`(500MB requestBodyCap)로 body 상한, 비디오는 probe fail-closed(L264-269)·15초 초과 거부(L270-273)로 길이 검증. 정적 grep이 "클라이언트 content-type을 신뢰"(handler L148 `header.Header.Get("Content-Type")`)처럼 보이나 storage 레이어가 sniff 불일치를 거부하므로 신뢰 site 아님 → false positive. confidence=5 literal-violation/reproducible 부재, 표면 폐기.
+
+  QA: 코드 정적 검증만 수행(루프 범위). storage.go L141-206 Upload·pin/handler.go L140-299 멀티파트 업로드 경로 직접 Read. 실제 엔드포인트 호출 미수행.
+
+  영향 범위: 코드 변경 없음. decision-log 항목 1건 추가.
+
 ## 2026-06-04 — [system] cycle 556 Discovery — 봇 area retry/backoff error-count 갱신 계약(scheduler spec L149·L158·L201 ↔ consumer 성공/실패 dual-call + sqlc) 충실도 표면 폐기
 
   결정/변경: backlog append 없음 (후보 0건). last-6 system Discovery survey(554 OpenSpec갭/552 에러처리/550 동시성/548 정합성/546 보안/544 봇) 중 봇이 oldest(544) → 봇 차례. 진행 중 openspec/changes/ 3건(harvester adapter-fallback-counter·media-validator wiring·scheduler host-rate-limiter config)은 추적된 갭이라 중복 회피. sister 회피: 544 frontier enqueue 초기상태(즉시 claim+depth BFS) / 532 content classifier 판정규칙 / 502 harvester 경로 길이 lockstep 과 분리한 "retry/backoff error-count 갱신 계약 — fetch/harvest 실패 시 error_count++ + next_*_at backoff + cap 5, 성공 시 count=0 + 재크롤 스케줄을 consumer가 실제 수행하는가" 신규 축(scheduler/spec L149 성공·L158 fetch실패·L201 harvest실패 SHALL).
