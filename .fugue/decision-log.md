@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 653 Discovery — responsive area 20th round touch-target-size-conformance 표면 폐기 (후보 0건)
+결정/변경: 모바일 인터랙티브 요소의 터치 타깃 크기가 WCAG 2.5.8(Target Size, Minimum 24×24 CSS px)을 충족하는지 전수 점검(644 breakpoint-grid·648 horizontal-overflow와 구별되는 touch-target 측정축). 후보 0건. 변경 없음.
+이유: 클릭 가능 요소(onClick/`<button>`/`role=button`/cursor-pointer) 중 고정 소형 사이즈를 가진 site 전수 — (1) 최소 타깃은 PinCard 외부링크 아이콘(L116 `w-6 h-6` = 24×24px)로 WCAG 2.5.8 AA 최소(24×24) 정확히 충족. (2) ThemeToggle L34 `w-9 h-9`(36)·AddToBoardButton 닫기 L255 `w-8 h-8`(32)·PinCard 재생버튼 L66 `w-9 h-9`(36, 단 카드 전체 링크의 시각 요소) 등 나머지 인터랙티브는 모두 ≥32px. (3) `w-4 h-4`/`w-5 h-5`/`w-6 h-6` 소형 박스는 로딩 스피너(AddToBoardButton L297/L350·MyPageClient L63·PinsGrid L140·FeedContainer L220)·버튼 내부 SVG 아이콘(LoginButtons L10/L34, 부모 버튼은 py-3 px-4 풀폭)·비-인터랙티브 아바타/썸네일(SearchBar w-7/w-8·NavBar w-9)이라 터치 타깃 아님. (4) 태그/필터 칩은 px-3 py-1.5 텍스트 버튼이라 높이 ≥30px. 24px 미만 터치 타깃 0건 → WCAG 2.5.8 정합. DESIGN.md는 터치 타깃을 명세하지 않으나 WCAG를 객관 근거로 측정 — 위반 없음.
+영향 범위: apps/web 전 인터랙티브 요소 크기. 코드 변경 없음. responsive 자매 축 breakpoint-grid(18th=644)·horizontal-overflow(19th=648)와 구별되는 touch-target 측정축. 다음 사이클 654 = a11y area.
+
 ## 2026-06-05 — [design] cycle 652 Discovery — states area 54th round focus-visible-indicator-conformance 표면 폐기 (후보 0건)
 결정/변경: 인터랙티브 요소(버튼·링크·입력)의 키보드 포커스 가시성(WCAG 2.4.7 Focus Visible)이 일관되게 보장되는지 전수 점검(647 error/empty·626 group-hover-focus-keyboard-parity와 구별되는 focus-indicator 측정축). 후보 0건. 변경 없음.
 이유: `outline-none` 사용 17곳 전수 — 모두 대체 포커스 표시와 짝지어짐. (1) **입력/textarea**(PinCreateForm L473/486/501/572·BoardActions L83/91·AddToBoardButton L371·MyPageClient L109·ProfileEditForm L81/97·SearchBar L177): `outline-none focus:border-accent` — 기본 아웃라인 제거 후 focus 시 accent 테두리로 대체(텍스트 필드는 키보드/마우스 모두 포커스 표시가 표준이라 focus: 적절). (2) **카드/링크**(PinCard L147·SearchClient L325/363·PinCreateForm 드롭존 L346): `focus-visible:border-accent focus-visible:shadow-card-hover focus-visible:-translate-y-0.5 focus-visible:outline-none` — 키보드 포커스 시 hover와 동일 시각(테두리+그림자+이동). (3) **보드 링크**(BoardGrid L22·MyPageClient L148): wrapper는 `focus-visible:-translate-y-0.5`만, 가시 테두리는 자식 BoardCover(L6/L31 `group-focus-visible:border-accent group-focus-visible:shadow-card-hover`)가 제공. (4) 버튼은 `outline-none` 미적용이라 기본 브라우저 포커스 링 유지 + `focus-visible:bg-accent-hover` 강화. 포커스 표시 누락(outline 제거 후 무대체) 0건 → WCAG 2.4.7 정합.
