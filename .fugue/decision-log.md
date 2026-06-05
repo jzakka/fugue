@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 634 Discovery — responsive area 52nd round responsive-container-padding-and-layout-direction-consistency 표면 폐기 (후보 0건)
+결정/변경: 없음. 반응형 컨테이너 여백·레이아웃 방향 적응이 일관적인지 점검. (a) **반응형 패딩**: 패널형 surface 컨테이너 5곳 전부 동일하게 `p-6 sm:p-8`(24px base → sm+ 32px) — boards/[id] L53, pins/[id] L128, ProfileEditForm L51, ProfileHeader L13, ProfileSkeleton L5. (b) **반응형 레이아웃 방향**: `flex flex-col sm:flex-row gap-6` 2곳 — ProfileHeader L14, ProfileSkeleton L6(스켈레톤이 실제 헤더 레이아웃을 미러). 그 외 반응형 패딩/방향 유틸 없음(나머지 반응형은 타이포 text-2xl sm:text-3xl·가시성 hidden sm:block=cycle 629, grid-cols=38th, gap=50th에서 별도 커버).
+이유: (1) 반응형 패딩 5/5 모두 `p-6 sm:p-8` 단일 패턴으로 드리프트 0 — 24px(p-6=lg)·32px(p-8=xl) 둘 다 DESIGN.md Spacing scale(L57-65) 정의값이라 임의 여백 없음. (2) 반응형 방향 전환 2/2 동일 `flex-col sm:flex-row gap-6`이고 스켈레톤이 실제 컴포넌트 레이아웃을 정확히 미러 → 로딩↔콘텐츠 레이아웃 시프트 0. (3) DESIGN.md가 컨테이너 반응형 패딩/방향을 SHALL로 명세하진 않으나 코드가 단일 패턴으로 완전 일관 → 정렬할 위반 없음, confidence < 3. responsive 자매 축 typography-visibility-scaling(51st=629)·grid-gap(50th)·grid-column-scaling(38th)·breakpoint(anti-pattern L20)와 구별되는 컨테이너 패딩·레이아웃 방향 측정축.
+QA: N/A — Discovery 모드, 코드 변경 0건.
+영향 범위: 없음(측정 전용). 다음 사이클 635 = aesthetic area.
+
 ## 2026-06-05 — [design] cycle 633 Discovery — a11y area 51st round icon-only-button-accessible-name-conformance 표면 폐기 (후보 0건)
 결정/변경: 없음. 아이콘만 담은 인터랙티브 요소(button/a/Link)가 WCAG 4.1.2(Name, Role, Value) 접근가능한 이름을 갖는지 점검. svg 15곳 전부 `aria-hidden="true"`로 장식 처리 + 각 인터랙티브 컨테이너가 접근가능 이름 보유 — 두 경로로 분기: (a) **동반 가시 텍스트**(아이콘+텍스트): AddToBoardButton 트리거 BoardIcon+"보드에 추가"(L33/L46), 핀 소속 보드 Link svg+보드명(pins/[id] L169), 원본 링크 svg+텍스트(pins/[id] L225), 검색 보드카드 svg+보드명(SearchClient L367·SearchBar L355), 최근검색 버튼 svg+쿼리텍스트(SearchBar L200), "새 보드 만들기" svg+텍스트(AddToBoardButton L405), 검색 입력 장식 아이콘(SearchBar L144, 인접 input aria-label "검색" L176), 보드커버 placeholder(BoardCover L7, 인접 보드명). (b) **아이콘 단독 + 명시 aria-label**: ThemeToggle 이모지 ☀️/🌙(L35 `aria-label` 동적), 모달 닫기 "닫기"(AddToBoardButton L254), 최근검색 삭제 "최근 검색에서 제거"(SearchBar L222), 핀 원본 보기 "원본 보기"(PinCard L118). 접근가능 이름 누락 0건.
 이유: (1) 모든 svg가 aria-hidden이라 보조기술이 raw path를 읽지 않음 + 아이콘 단독 버튼 4곳 전부 명시 aria-label 보유 → "이름 없는 아이콘 버튼" 0건. (2) ThemeToggle은 이모지가 스크린리더에 announce될 수 있으나 명시 aria-label이 override → 한국어 동작 설명("다크/라이트 모드로 전환")으로 정확. (3) DESIGN.md가 aria-label/접근가능 이름을 명시 SHALL로 두진 않으나(L14 마스코트 언급만) 코드가 WCAG 4.1.2를 누락 0건으로 자율 준수 → 정렬할 위반 없음, confidence < 3. a11y 자매 축 image-alt(50th=628, WCAG 1.1.1 `<img>`)·form-input-label(49th=623)·focus-visible(cycle 173)·aria-live(146/152/164)·landmark(170-172)와 구별되는 아이콘 버튼 접근가능 이름(4.1.2) 측정축.
