@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 647 Discovery — states area 53rd round error-empty-state-display-consistency 표면 폐기 (후보 0건)
+결정/변경: 에러 상태·빈 상태(empty state) 시각 표현이 일관되고 DESIGN.md에 정합하는지 전수 점검. 후보 0건. 변경 없음.
+이유: (1) **에러 상태**: 인라인 에러 박스가 `role="alert"` + `bg-error/10 border border-error/30 rounded-[6px] text-error`로 5+개 컴포넌트(PinCreateForm L321·BoardActions L67·MyPageClient L92·ProfileEditForm L58·FeedContainer L186·AddToBoardButton L282)에서 균일 — error 시맨틱 토큰(`--error #FF3B30`) 일관 사용. login L57은 박스 없는 중앙 정렬 standalone 텍스트(`text-error`)지만 페이지 레벨 인증 에러라 박스형 인라인 검증 에러와 맥락이 달라 허용 변형. TagFilter L52·BoardActions L129 hover의 error 스타일은 파괴적 액션(필터 리셋·삭제) 어포던스라 error 시맨틱과 정합. (2) **빈 상태**: 공유 `EmptyState` 컴포넌트가 전 화면(search·boards·profile·AddToBoardButton·PinsGrid·FeedContainer)에서 사용되며 복어 마스코트(🐡 `text-5xl`) + `text-text-muted` 메시지 구조 → DESIGN.md L14 '마스코트: 빈 상태/온보딩에서 활용' 정합. (3) 로딩 상태(`border-accent border-t-transparent animate-spin`)·skeleton shimmer(globals.css @keyframes)도 기존 라운드에서 정합 확인. 불일치 0건. anti-pattern L19(EmptyState를 작은 팝오버에 적용 시 비대=variant 필요, 후보 제외)는 현 사용처가 모두 페이지 본문이라 비해당.
+영향 범위: apps/web 전 컴포넌트 에러·빈 상태 렌더. 코드 변경 없음. states 자매 축 group-hover-focus-keyboard-parity(52nd=626)·disabled 시각 처리(642 점검)·card hover/skeleton과 구별되는 error/empty 표현 측정축. 다음 사이클 648 = responsive area.
+
 ## 2026-06-05 — [design] cycle 646 Discovery — tokens area 50th round font-size-scale-token-conformance 표면 폐기 (후보 0건)
 결정/변경: 폰트사이즈 토큰·유틸이 DESIGN.md Typography Scale(L26-35, 3xl 42px..3xs 10px)에 정합하는지 전수 점검. 후보 0건. 변경 없음.
 이유: (1) 임의 매직값 `text-[Npx]`/`text-[Nrem]` 0건 — 모든 폰트사이즈가 스케일 유틸(text-3xl/2xl/xl/lg/base/sm/xs/2xs/3xs)로만 표현됨. (2) DESIGN.md 추가 스케일(2xs 11px·3xs 10px)은 `globals.css @theme inline`에 `--text-2xs: 0.6875rem`·`--text-3xs: 0.625rem`로 정확히 정의되고 8곳(2xs 3·3xs 5)에서 사용 — 정합. (3) Tailwind 기본 스케일과 DESIGN.md 값이 다른 등급(3xl 42px vs Tailwind 30px·2xl 32px vs 24px·xl 24px vs 20px·sm 13px vs 14px 등)은 `--text-3xl` 등 토큰으로 덮어쓰면 해당 유틸 전 사용처(text-sm 70곳·text-xs 45곳·text-lg 11곳 등)에 즉시 광범위 시각 회귀 → anti-pattern L16(Tailwind 기본 클래스 의미 덮어쓰기=광범위 회귀, 별도 후보 분리·effort 추정 붕괴) 정확 매칭이라 후보 제외. confidence<3 또는 anti-pattern으로 전 등급 폐기.
