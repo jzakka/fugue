@@ -23,7 +23,7 @@
 QA: N/A — Discovery 모드 후보 0건 시 QA 없음. confidence<3 관찰 없음(6 핸들러·검증 항목 전수가 결정적으로 화이트리스트 struct+길이/타입+context ID). 보안 area는 cycle 584~632 위에 본 cycle 644가 **쓰기 엔드포인트 입력 검증**(typed 화이트리스트 mass-assignment 차단·필드 길이 DB cap 정합·enum/uuid/scheme 타입검증·ID는 context/URL 출처+소유권 체크·body 크기상한) 정합 재검증을 추가해 baseline화. 다음 보안 재진입점: (1) 시크릿/PII 로그 노출(LogAuthEvent·log.Printf의 URL/err/토큰 leak), (2) 스토리지 키 path traversal(snapshot key·S3 object key 정규화), (3) 쿠키/세션 고정(refresh 토큰 회전 시 이전 JTI 무효화 race).
 영향 범위: backlog/anti-patterns 무변경. decision-log 1 entry(이것). 보안 area cross-walk가 cycle 584~632 위에 쓰기 엔드포인트 입력 검증(JSON body 디코딩 6 핸들러 전부 타입드 화이트리스트·필드 길이 DB 컬럼 cap 정합·type/enum/uuid/scheme 검증·ID context/URL 출처+소유권 체크·MaxBytesReader 크기상한)을 누적 — 현행 코드(기능 churn 0, apps/api 마지막 기능 변경 #1176)에서 일관 enforce됨을 확정. 다음 사이클 646 = 정합성 area(last-visited 보안644·봇642·OpenSpec갭640·동시성638·에러처리636·정합성634 중 정합성 634가 가장 오래됨).
 
-## 2026-06-05 — [design] cycle 681 Processing — responsive overflow-wrap-freetext-guard 구현·머지 (PR #1277)
+## 2026-06-05 — [design] cycle 681 Processing — responsive overflow-wrap-freetext-guard 구현·머지 (PR #1278)
 결정/변경: 전문 노출 free-text block 4곳에 `break-words`(overflow-wrap:break-word) 추가 — pins/[id] 제목(L135)·설명(L141), boards/[id] 이름(L56)·설명(L60). backlog design-20260605-overflow-wrap-freetext-guard → done.
 이유: 기본 `overflow-wrap:normal`이 공백 없는 긴 토큰(붙여넣은 URL 등)을 끊지 못해 320px에서 가로 오버플로(WCAG 1.4.10 Reflow AA 위반). 실 브라우저 QA(Chrome headless, 콘텐츠박스 272px=320−px-6): 수정 전 긴 URL scrollWidth 2651>cw 272(overflow true) → `break-words` 후 272==272(overflow false); 공백 포함 일반 텍스트·짧은 제목 대조군 무회귀. line-clamp/truncate 사용처는 overflow:hidden 자기보호라 미수정.
 영향 범위: pins/[id]·boards/[id] 상세 페이지의 제목/이름/설명 텍스트만. line-clamp(검색결과 보드설명)·truncate(카드 닉네임)·whitespace-nowrap(필터칩)은 무변경. lint 0 error·tsc 통과.
