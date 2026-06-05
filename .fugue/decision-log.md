@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 644 Discovery — responsive area 18th round breakpoint-grid-conformance 표면 폐기 (후보 0건)
+결정/변경: 반응형 유틸(`sm:/md:/lg:/xl:`) 전수와 DESIGN.md Layout(L67-77) breakpoint·grid 명세의 정합 점검. 후보 0건. 변경 없음.
+이유: (1) `sm:/md:/lg:` 사용 23곳(10개 파일: pins/[id]·search/SearchClient·boards/[id]·BoardGrid·MyPageClient·PinsGrid·ProfileSkeleton·ProfileEditForm·ProfileHeader·NavBar) 전수 확인 — 패딩 스케일(p-6 sm:p-8)·타이포 스케일(text-2xl sm:text-3xl)·열 수(grid-cols-1 sm:2 md:3 / grid-cols-2 sm:3)·flex 스택(flex-col sm:flex-row)·nav 텍스트 hidden sm:block 모두 graceful한 반응 패턴이라 viewport별 레이아웃 깨짐 0건. (2) DESIGN.md L70 breakpoint(sm500/md800/lg1200)를 직접 명세하는 유일한 그리드는 masonry 피드(L67-69 4/3/2/1)이며, 이는 Tailwind `sm:/md:/lg:`가 아닌 react-masonry-css JS breakpoint(MasonryGrid.tsx `BREAKPOINT_COLUMNS {default:4, 1199:3, 799:2, 499:1}` → min-width 1200/800/500 매핑)로 처리되어 정합 기확인. (3) 나머지 search/board/profile 그리드는 DESIGN.md가 breakpoint를 명세하지 않는 컴포넌트라, `globals.css @theme inline`에 `--breakpoint-*` 토큰 미정의 상태(현재 Tailwind 기본 640/768/1024 사용)를 DESIGN.md 500/800/1200으로 정렬하면 23 사용처 × 3 breakpoint = 69 시각 회귀 → anti-pattern L20(breakpoint 토큰 도입=광범위 회귀, effort=1 초과)에 정확히 매칭되어 후보 제외. 위반 0건.
+영향 범위: apps/web 전 반응형 유틸 사용처. 코드 변경 없음. responsive 자매 축(masonry 열 수·grid gap·페이지 패딩 스케일)과 구별되는 breakpoint-grid 정합 측정축. 다음 사이클 645 = aesthetic area.
+
 ## 2026-06-05 — [design] cycle 643 Discovery — a11y area 53rd round form-input-labeling-conformance 표면 폐기 (후보 0건)
 결정/변경: 모든 폼 입력 컨트롤(`<input>`/`<textarea>`)이 접근 가능한 이름(accessible name)을 갖는지 WCAG 1.3.1(Info and Relationships)·4.1.2(Name, Role, Value) 기준 전수 점검. 후보 0건. 변경 없음.
 이유: 12개 폼 컨트롤 전수 — (1) `<label htmlFor>` + 매칭 id 5곳: pin-title(PinCreateForm L463/L460)·pin-description(L480/L481)·pin-url(L495)·profile-nickname(ProfileEditForm L71)·profile-avatar-url(L90). (2) `aria-label`로 접근명 부여 6곳: SearchBar 검색 L159 '검색'·PinCreateForm 태그검색 L566 '태그 검색'·BoardActions L74 '보드 이름'·L85 '보드 설명'·AddToBoardButton L362 '새 보드 이름'·MyPageClient L99 '새 보드 이름'. (3) 숨김 file input(PinCreateForm L439 `type="file" className="hidden"`)은 display:none이라 a11y 트리 밖이며, 이를 여는 dropzone(L346 `role="button" tabIndex={0} aria-label="미디어 파일 선택"` + Enter/Space 키핸들러→`fileInputRef.current?.click()`)이 접근명·키보드 조작성을 제공 → 파일 업로드 어포던스 완전 접근 가능. 접근명 누락 컨트롤 0건. DESIGN.md/AGENTS.md는 폼 라벨링을 직접 명세하지 않으나 WCAG를 객관 근거로 측정 — 위반 없음.
