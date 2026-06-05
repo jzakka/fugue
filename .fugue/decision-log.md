@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 648 Discovery — responsive area 19th round horizontal-overflow-narrow-viewport 표면 폐기 (후보 0건)
+결정/변경: 좁은 뷰포트(모바일)에서 가로 오버플로를 유발할 수 있는 고정폭·nowrap·모달 요소를 전수 점검(644의 breakpoint-grid와 구별되는 overflow 측정축). 후보 0건. 변경 없음.
+이유: (1) 고정폭 매직값 `w-[..]`은 VideoTrimModal 드래그 핸들(L248 w-[14px]·L252 w-[3px]·L257/L261)뿐 — 모달 내부 작은 요소라 오버플로 무관. (2) 필터 칩 행(PinCreateForm L578·SearchClient L240/L263·PinsGrid L99·FieldFilter L31·TagFilter L47)은 모두 `flex overflow-x-auto scrollbar-hide` + `whitespace-nowrap`으로 좁은 화면에서 의도된 수평 스크롤 — 오버플로가 아닌 설계된 패턴. (3) 모달(VideoTrimModal L183 `w-full max-w-xl mx-4`·AddToBoardButton L245 `w-full max-w-sm mx-4 max-h-[80vh] flex flex-col`)은 `mx-4` 좌우 여백 + `max-h-[80vh]` 세로 스크롤로 좁은 화면 안전. (4) 페이지 컨테이너(pins/[id]·pin/new·search·mypage·boards·creators)는 `max-w-{2xl..5xl} mx-auto w-full px-6`로 max-width 캡 + 좌우 패딩 — 반응형. (5) login 카드(L35 `w-full max-w-[400px]`)는 외부 `px-4`(L34) 패딩 컨테이너 안이라 모바일에서 화면 가장자리에 닿지 않음. 가로 오버플로/좁은 뷰포트 깨짐 0건.
+영향 범위: apps/web 전 화면 가로 레이아웃. 코드 변경 없음. responsive 자매 축 breakpoint-grid(18th=644)와 구별되는 horizontal-overflow 측정축. 다음 사이클 649 = a11y area.
+
 ## 2026-06-05 — [design] cycle 647 Discovery — states area 53rd round error-empty-state-display-consistency 표면 폐기 (후보 0건)
 결정/변경: 에러 상태·빈 상태(empty state) 시각 표현이 일관되고 DESIGN.md에 정합하는지 전수 점검. 후보 0건. 변경 없음.
 이유: (1) **에러 상태**: 인라인 에러 박스가 `role="alert"` + `bg-error/10 border border-error/30 rounded-[6px] text-error`로 5+개 컴포넌트(PinCreateForm L321·BoardActions L67·MyPageClient L92·ProfileEditForm L58·FeedContainer L186·AddToBoardButton L282)에서 균일 — error 시맨틱 토큰(`--error #FF3B30`) 일관 사용. login L57은 박스 없는 중앙 정렬 standalone 텍스트(`text-error`)지만 페이지 레벨 인증 에러라 박스형 인라인 검증 에러와 맥락이 달라 허용 변형. TagFilter L52·BoardActions L129 hover의 error 스타일은 파괴적 액션(필터 리셋·삭제) 어포던스라 error 시맨틱과 정합. (2) **빈 상태**: 공유 `EmptyState` 컴포넌트가 전 화면(search·boards·profile·AddToBoardButton·PinsGrid·FeedContainer)에서 사용되며 복어 마스코트(🐡 `text-5xl`) + `text-text-muted` 메시지 구조 → DESIGN.md L14 '마스코트: 빈 상태/온보딩에서 활용' 정합. (3) 로딩 상태(`border-accent border-t-transparent animate-spin`)·skeleton shimmer(globals.css @keyframes)도 기존 라운드에서 정합 확인. 불일치 0건. anti-pattern L19(EmptyState를 작은 팝오버에 적용 시 비대=variant 필요, 후보 제외)는 현 사용처가 모두 페이지 본문이라 비해당.
