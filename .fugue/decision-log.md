@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 651 Discovery — tokens area 51st round color-token-bypass-conformance 표면 폐기 (후보 0건)
+결정/변경: 색상이 DESIGN.md Color 토큰(`@theme inline`의 bg/surface/text/accent/error 등)을 우회해 raw hex·Tailwind 기본 팔레트로 하드코딩되는 site가 있는지 전수 점검(646 font-size·642 font-family·44th color-palette-self와 구별되는 token-bypass 측정축). 후보 0건. 변경 없음.
+이유: (1) arbitrary 색 매직값 `bg-[#..]`/`text-[#..]`/`[rgb(..)]` 0건. (2) Tailwind 기본 팔레트(gray/red/blue/green/zinc/slate/neutral/orange/amber/rose 등 `-[0-9]00`) 사용 0건 — 모든 시맨틱 색이 토큰 유틸(bg-surface·text-text-muted·border-border·bg-accent·text-error 등)을 거침. (3) white/black 사용은 (a) `text-white` 18곳 = accent 배경 CTA·재생버튼 위 텍스트(accent 위 흰 글씨는 자연 대비 선택, DESIGN.md가 accent-on-text 색을 토큰화하지 않음)·(b) `bg-black/40~70` = 모달 backdrop·영상 오버레이 스크림·(c) `bg-white/70` 2곳 = VideoTrimModal 드래그 핸들 인디케이터 — 모두 DESIGN.md Color 팔레트가 정의하지 않는 오버레이/대비 영역이라 토큰 부재가 위반이 아님(루프 정체성 L9 '셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다', confidence<3). 토큰 우회 하드코딩 0건.
+영향 범위: apps/web 전 컴포넌트 색상 클래스. 코드 변경 없음. tokens 자매 축 font-size(50th=646)·font-family(49th=642)·spacing(48th=637)·color-palette-self(44th)와 구별되는 color-token-bypass 측정축. 다음 사이클 652 = states area.
+
 ## 2026-06-05 — [design] cycle 650 Discovery — aesthetic area 53rd round mascot-usage-context-conformance 표면 폐기 (후보 0건)
 결정/변경: 복어 마스코트(🐡) 활용이 DESIGN.md Aesthetic L14('마스코트: 로고/빈 상태/온보딩에서 활용')에 정합하는지 전수 점검(645 accent-restraint·625 text-truncation과 구별되는 mascot 측정축). 후보 0건. 변경 없음.
 이유: 🐡 사용 3곳 전수 — (1) **로고**: NavBar L19(`bg-accent rounded-md w-8 h-8`)·login L42(`bg-accent rounded-xl w-16 h-16`) → DESIGN.md L14 '로고' 정합(nav 소형·login 히어로 크기 차이는 컨텍스트별 적정). (2) **빈 상태**: EmptyState L16(`text-5xl` aria-hidden) → L14 '빈 상태' 정합, 전 빈 상태 화면에서 공유 컴포넌트로 일관 노출. (3) **온보딩**: 별도 온보딩 플로우 미구현이라 N/A. 마스코트 부재(써야 할 곳에 안 씀)·오용(엉뚱한 곳에 장식) 0건. 로고 박스 radius 차이(rounded-md vs rounded-xl)는 로고/마스코트 박스 자의적 등급 매핑이라 anti-pattern L17로 후보 제외 기확정(aesthetic 아닌 tokens/radius 영역).
