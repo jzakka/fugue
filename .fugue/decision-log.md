@@ -17,7 +17,10 @@
 
 ## 항목
 
-## 2026-06-05 — [design] cycle 638 Discovery — a11y area 52nd round heading-hierarchy-conformance 표면 폐기 (후보 0건)
+## 2026-06-05 — [design] cycle 639 Discovery — responsive area 53rd round masonry-grid-breakpoint-column-and-gap-conformance 표면 폐기 (후보 0건)
+결정/변경: 작품 피드 masonry 그리드(react-masonry-css)의 breakpoint별 컬럼 수·gap이 DESIGN.md L70-71에 정합하는지 점검. 후보 0건. 변경 없음.
+이유: DESIGN.md L70 'Grid: 4(desktop)/3(tablet)/2(mobile)/1(small mobile)' + 'Breakpoints sm500/md800/lg1200' + L71 'Column gap 16px'. MasonryGrid.tsx `BREAKPOINT_COLUMNS={default:4, 1199:3, 799:2, 499:1}`은 react-masonry-css의 max-width 경계(window<=key에서 가장 작은 매칭 적용) 의미라 ≥1200=4·800~1199=3·500~799=2·≤499=1 → DESIGN.md min-width breakpoint 1200/800/500과 정확히 일치(off-by-one 경계값은 라이브러리 max-width 규약상 올바름). globals.css `.masonry-grid_column padding-left:16px`(+`.masonry-grid margin-left:-16px` 컬럼간격)·`> * margin-bottom:16px`(행간격) = 16px gap 일치. 보조 그리드(SearchClient/BoardGrid/PinsGrid/MyPageClient)는 Tailwind 기본 sm/md prefix(640/768) 사용하나 DESIGN.md L70 명세 대상은 masonry 피드 그리드이고, 보조 그리드 컬럼수는 DESIGN.md 미명세(취향)+breakpoint 정렬은 anti-pattern L20(mass-regression) 차단이라 후보 아님. 고정 px(login max-w-[400px]·pins max-h-[480px]·VideoTrim 핸들 14/3px)는 요소 수준 크기라 반응형 깨짐 아님.
+영향 범위: apps/web masonry 피드 그리드 JS config + CSS gap. 코드 변경 없음. responsive 자매 축 container-padding(52nd=634)·typography-visibility(51st=629)·grid-gap(50th)·grid-column-scaling(38th)·breakpoint(anti L20)와 구별되는 masonry JS 컬럼/gap 측정축. 다음 사이클 640 = aesthetic area.
 결정/변경: a11y 트랙 표면(제목 계층 WCAG 1.3.1) 점검 결과 후보 0건. 변경 없음.
 이유: 전 라우트 `<h[1-6]>`·`role="heading"` 전수 조사. 각 페이지 라우트마다 h1 정확히 1개(feed/pins·boards·login·search·mypage·pin/new), 섹션은 h2, h3+ 미사용이라 레벨 건너뜀 없음. search 라우트는 sr-only h1(L74, q 없음 분기)과 SearchClient h1(L232, q 있음 분기)이 상호배타라 동시 렌더 불가. mypage는 ProfileHeader h1(단일) + MyPageClient h2(섹션)로 h1→h2 정상. 모달 제목은 h2(labelledby)로 일관. DESIGN.md/AGENTS.md 위반 없음.
 영향 범위: apps/web 제목 요소 전수. 코드 변경 없음. 다음 사이클 639 = responsive area.
