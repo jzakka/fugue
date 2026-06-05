@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 649 Discovery — a11y area 54th round image-alt-text-conformance 표면 폐기 (후보 0건)
+결정/변경: 모든 `<img>` 요소가 WCAG 1.1.1(Non-text Content) 기준 적절한 대체텍스트를 갖는지 전수 점검(643 form-input-labeling과 구별되는 image-alt 측정축). 후보 0건. 변경 없음.
+이유: 17개 `<img>` 전수 — alt 속성 17/17 보유. (1) **정보성 이미지**는 서술적 alt: 핀 미디어(pins/[id] L45·PinCard L49/L85 `alt={pin.title}`)·영상 썸네일 picker(VideoThumbnailPicker `alt={썸네일 N}`)·업로드 미리보기(PinCreateForm L392 "미리보기"·L522 og title·ProfileEditForm L103 "미리보기") → 콘텐츠 의미 전달. (2) **장식/중복 이미지**는 빈 alt(`alt=""`): 크리에이터 아바타(pins/[id] L204·PinCard L173·SearchClient L330·ProfileHeader L20·NavBar L49·SearchBar L282/L329)·favicon(PinCard L162)·보드 커버 썸네일(BoardCover L36·AddToBoardButton L315) — 모두 인접 텍스트(닉네임·보드명)로 동일 정보가 노출되어 redundant decorative라 WCAG 1.1.1 권고대로 빈 alt가 올바름(예: PinCard 아바타 L173 `alt=""` 바로 옆 L186 `pin.creator.nickname` 텍스트). avatar 없을 때 fallback은 `<div>` gradient(img 아님)라 alt 무관. 누락·부적절 alt 0건.
+영향 범위: apps/web 전 `<img>` 요소. 코드 변경 없음. a11y 자매 축 form-input-labeling(53rd=643)·heading-hierarchy·accessible-name(버튼)과 구별되는 image-alt(1.1.1) 측정축. 다음 사이클 650 = aesthetic area.
+
 ## 2026-06-05 — [design] cycle 648 Discovery — responsive area 19th round horizontal-overflow-narrow-viewport 표면 폐기 (후보 0건)
 결정/변경: 좁은 뷰포트(모바일)에서 가로 오버플로를 유발할 수 있는 고정폭·nowrap·모달 요소를 전수 점검(644의 breakpoint-grid와 구별되는 overflow 측정축). 후보 0건. 변경 없음.
 이유: (1) 고정폭 매직값 `w-[..]`은 VideoTrimModal 드래그 핸들(L248 w-[14px]·L252 w-[3px]·L257/L261)뿐 — 모달 내부 작은 요소라 오버플로 무관. (2) 필터 칩 행(PinCreateForm L578·SearchClient L240/L263·PinsGrid L99·FieldFilter L31·TagFilter L47)은 모두 `flex overflow-x-auto scrollbar-hide` + `whitespace-nowrap`으로 좁은 화면에서 의도된 수평 스크롤 — 오버플로가 아닌 설계된 패턴. (3) 모달(VideoTrimModal L183 `w-full max-w-xl mx-4`·AddToBoardButton L245 `w-full max-w-sm mx-4 max-h-[80vh] flex flex-col`)은 `mx-4` 좌우 여백 + `max-h-[80vh]` 세로 스크롤로 좁은 화면 안전. (4) 페이지 컨테이너(pins/[id]·pin/new·search·mypage·boards·creators)는 `max-w-{2xl..5xl} mx-auto w-full px-6`로 max-width 캡 + 좌우 패딩 — 반응형. (5) login 카드(L35 `w-full max-w-[400px]`)는 외부 `px-4`(L34) 패딩 컨테이너 안이라 모바일에서 화면 가장자리에 닿지 않음. 가로 오버플로/좁은 뷰포트 깨짐 0건.
