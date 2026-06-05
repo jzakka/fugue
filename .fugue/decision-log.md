@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 650 Discovery — aesthetic area 53rd round mascot-usage-context-conformance 표면 폐기 (후보 0건)
+결정/변경: 복어 마스코트(🐡) 활용이 DESIGN.md Aesthetic L14('마스코트: 로고/빈 상태/온보딩에서 활용')에 정합하는지 전수 점검(645 accent-restraint·625 text-truncation과 구별되는 mascot 측정축). 후보 0건. 변경 없음.
+이유: 🐡 사용 3곳 전수 — (1) **로고**: NavBar L19(`bg-accent rounded-md w-8 h-8`)·login L42(`bg-accent rounded-xl w-16 h-16`) → DESIGN.md L14 '로고' 정합(nav 소형·login 히어로 크기 차이는 컨텍스트별 적정). (2) **빈 상태**: EmptyState L16(`text-5xl` aria-hidden) → L14 '빈 상태' 정합, 전 빈 상태 화면에서 공유 컴포넌트로 일관 노출. (3) **온보딩**: 별도 온보딩 플로우 미구현이라 N/A. 마스코트 부재(써야 할 곳에 안 씀)·오용(엉뚱한 곳에 장식) 0건. 로고 박스 radius 차이(rounded-md vs rounded-xl)는 로고/마스코트 박스 자의적 등급 매핑이라 anti-pattern L17로 후보 제외 기확정(aesthetic 아닌 tokens/radius 영역).
+영향 범위: apps/web 마스코트 사용처(로고·빈 상태). 코드 변경 없음. aesthetic 자매 축 accent-restraint(52nd=645)·text-truncation(51st=625)·dark-gallery 미니멀리즘과 구별되는 mascot 활용 측정축. 다음 사이클 651 = tokens area.
+
 ## 2026-06-05 — [design] cycle 649 Discovery — a11y area 54th round image-alt-text-conformance 표면 폐기 (후보 0건)
 결정/변경: 모든 `<img>` 요소가 WCAG 1.1.1(Non-text Content) 기준 적절한 대체텍스트를 갖는지 전수 점검(643 form-input-labeling과 구별되는 image-alt 측정축). 후보 0건. 변경 없음.
 이유: 17개 `<img>` 전수 — alt 속성 17/17 보유. (1) **정보성 이미지**는 서술적 alt: 핀 미디어(pins/[id] L45·PinCard L49/L85 `alt={pin.title}`)·영상 썸네일 picker(VideoThumbnailPicker `alt={썸네일 N}`)·업로드 미리보기(PinCreateForm L392 "미리보기"·L522 og title·ProfileEditForm L103 "미리보기") → 콘텐츠 의미 전달. (2) **장식/중복 이미지**는 빈 alt(`alt=""`): 크리에이터 아바타(pins/[id] L204·PinCard L173·SearchClient L330·ProfileHeader L20·NavBar L49·SearchBar L282/L329)·favicon(PinCard L162)·보드 커버 썸네일(BoardCover L36·AddToBoardButton L315) — 모두 인접 텍스트(닉네임·보드명)로 동일 정보가 노출되어 redundant decorative라 WCAG 1.1.1 권고대로 빈 alt가 올바름(예: PinCard 아바타 L173 `alt=""` 바로 옆 L186 `pin.creator.nickname` 텍스트). avatar 없을 때 fallback은 `<div>` gradient(img 아님)라 alt 무관. 누락·부적절 alt 0건.
