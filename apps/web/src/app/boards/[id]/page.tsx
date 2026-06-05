@@ -53,11 +53,11 @@ export default async function BoardDetailPage({ params }: Props) {
         <div className="bg-surface rounded-[16px] border border-border p-6 sm:p-8 mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display break-words">
                 {board.name}
               </h1>
               {board.description && (
-                <p className="mt-2 text-text-muted text-sm sm:text-base leading-relaxed">
+                <p className="mt-2 text-text-muted text-sm sm:text-base leading-relaxed break-words">
                   {board.description}
                 </p>
               )}

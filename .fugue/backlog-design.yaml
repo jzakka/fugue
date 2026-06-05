@@ -41,8 +41,9 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
-    note: "cycle 680 Discovery(responsive 57th round long-unbroken-string-wrapping-conformance) 발견. 664 truncate-min-w-0(rejected_qa, flex 최소크기 CSS 오해)와 메커니즘 상이 — 본 건은 block 요소 overflow-wrap:normal의 긴 단어 미분할로 명확. confidence 3(메커니즘 확실+WCAG 근거이나 긴 무공백 입력 조건부)."
+    status: done
+    pr: 1278
+    note: "cycle 680 발견 → cycle 681 Processing 완료. pins/[id] 제목 L135·설명 L141, boards/[id] 이름 L56·설명 L60에 `break-words` 추가. 실 브라우저 QA(Chrome headless, 272px=320−px-6 콘텐츠박스): 수정 전 긴 무공백 URL scrollWidth 2651>cw 272(overflow true) → `break-words` 적용 후 272==272(overflow false), 공백 포함 일반 텍스트 대조군 무회귀(overflow false). lint 0 error·tsc 통과."
   - id: "design-20260605-truncate-min-w-0-flex-guard"
     title: "flex 직접 자식인 truncate span에 min-w-0 가드가 없어 ellipsis 대신 하드 클립된다"
     area: responsive

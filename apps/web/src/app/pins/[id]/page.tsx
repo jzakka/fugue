@@ -132,13 +132,13 @@ export default async function PinDetailPage({ params }: Props) {
             </span>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight font-display break-words">
               {pin.title}
             </h1>
 
             {/* Description */}
             {pin.description && (
-              <p className="text-text-muted text-sm sm:text-base leading-relaxed">
+              <p className="text-text-muted text-sm sm:text-base leading-relaxed break-words">
                 {pin.description}
               </p>
             )}
