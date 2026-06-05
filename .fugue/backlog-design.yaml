@@ -24,6 +24,23 @@
 #   note:       (선택) 자유 메모
 
 items:
+  - id: "design-20260605-truncate-min-w-0-flex-guard"
+    title: "flex 직접 자식인 truncate span에 min-w-0 가드가 없어 ellipsis 대신 하드 클립된다"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/components/feed/PinCard.tsx:160-188"
+        - "apps/web/src/components/nav/SearchBar.tsx:198-218"
+      cite: "DESIGN.md L11 — 'Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다' (의도된 ellipsis truncate가 하드 클립으로 깨짐). 코드베이스 내부 관용구: truncate-in-flex 6곳(PinCard L70·SearchBar L297/373·AddToBoardButton L338·ProfileHeader L29·SearchClient L336/385)은 모두 min-w-0 wrapper 사용. WCAG 1.4.10 Reflow 보조 근거."
+      repro: "좁은 뷰포트(320px)에서 긴 크리에이터 닉네임을 가진 핀 카드(피드) 또는 긴 최근 검색어가 있을 때, truncate가 ellipsis(…)를 표시하지 못하고 ancestor overflow-hidden에 의해 텍스트가 단어 중간에서 하드 컷된다. 원인: flex 자식 span이 min-width:auto라 content 폭 미만으로 축소되지 못해 text-overflow:ellipsis가 발동 안 함."
+    qa_plan: "dev 서버에서 (1) 피드(/)의 PinCard 크리에이터명 행을 320px 폭에서 확인 — 긴 닉네임이 '…'로 끝나는가, 카드 경계를 넘지 않는가. (2) 검색바 드롭다운의 긴 최근 검색어가 '…'로 truncate되는가. (3) 인접: SearchClient 결과행(L336/385, 이미 min-w-0)은 회귀 없는가."
+    impact: 2
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 8
+    status: pending
+    note: "수정: PinCard L185 span + SearchBar L215 span에 min-w-0 추가(코드베이스 기존 패턴과 일치). 토큰/API 비변경, 순수 additive."
   - id: "design-20260515-general-sans-not-loaded"
     title: "General Sans 폰트가 로드되지 않아 디스플레이/히어로 타이포가 시스템 sans-serif로 폴백된다"
     area: tokens
