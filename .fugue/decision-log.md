@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 652 Discovery — states area 54th round focus-visible-indicator-conformance 표면 폐기 (후보 0건)
+결정/변경: 인터랙티브 요소(버튼·링크·입력)의 키보드 포커스 가시성(WCAG 2.4.7 Focus Visible)이 일관되게 보장되는지 전수 점검(647 error/empty·626 group-hover-focus-keyboard-parity와 구별되는 focus-indicator 측정축). 후보 0건. 변경 없음.
+이유: `outline-none` 사용 17곳 전수 — 모두 대체 포커스 표시와 짝지어짐. (1) **입력/textarea**(PinCreateForm L473/486/501/572·BoardActions L83/91·AddToBoardButton L371·MyPageClient L109·ProfileEditForm L81/97·SearchBar L177): `outline-none focus:border-accent` — 기본 아웃라인 제거 후 focus 시 accent 테두리로 대체(텍스트 필드는 키보드/마우스 모두 포커스 표시가 표준이라 focus: 적절). (2) **카드/링크**(PinCard L147·SearchClient L325/363·PinCreateForm 드롭존 L346): `focus-visible:border-accent focus-visible:shadow-card-hover focus-visible:-translate-y-0.5 focus-visible:outline-none` — 키보드 포커스 시 hover와 동일 시각(테두리+그림자+이동). (3) **보드 링크**(BoardGrid L22·MyPageClient L148): wrapper는 `focus-visible:-translate-y-0.5`만, 가시 테두리는 자식 BoardCover(L6/L31 `group-focus-visible:border-accent group-focus-visible:shadow-card-hover`)가 제공. (4) 버튼은 `outline-none` 미적용이라 기본 브라우저 포커스 링 유지 + `focus-visible:bg-accent-hover` 강화. 포커스 표시 누락(outline 제거 후 무대체) 0건 → WCAG 2.4.7 정합.
+영향 범위: apps/web 전 인터랙티브 요소 포커스 처리. 코드 변경 없음. states 자매 축 error/empty(53rd=647)·group-hover-focus-keyboard-parity(52nd=626)·disabled·card-hover/skeleton과 구별되는 focus-visible 측정축. 다음 사이클 653 = responsive area.
+
 ## 2026-06-05 — [design] cycle 651 Discovery — tokens area 51st round color-token-bypass-conformance 표면 폐기 (후보 0건)
 결정/변경: 색상이 DESIGN.md Color 토큰(`@theme inline`의 bg/surface/text/accent/error 등)을 우회해 raw hex·Tailwind 기본 팔레트로 하드코딩되는 site가 있는지 전수 점검(646 font-size·642 font-family·44th color-palette-self와 구별되는 token-bypass 측정축). 후보 0건. 변경 없음.
 이유: (1) arbitrary 색 매직값 `bg-[#..]`/`text-[#..]`/`[rgb(..)]` 0건. (2) Tailwind 기본 팔레트(gray/red/blue/green/zinc/slate/neutral/orange/amber/rose 등 `-[0-9]00`) 사용 0건 — 모든 시맨틱 색이 토큰 유틸(bg-surface·text-text-muted·border-border·bg-accent·text-error 등)을 거침. (3) white/black 사용은 (a) `text-white` 18곳 = accent 배경 CTA·재생버튼 위 텍스트(accent 위 흰 글씨는 자연 대비 선택, DESIGN.md가 accent-on-text 색을 토큰화하지 않음)·(b) `bg-black/40~70` = 모달 backdrop·영상 오버레이 스크림·(c) `bg-white/70` 2곳 = VideoTrimModal 드래그 핸들 인디케이터 — 모두 DESIGN.md Color 팔레트가 정의하지 않는 오버레이/대비 영역이라 토큰 부재가 위반이 아님(루프 정체성 L9 '셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다', confidence<3). 토큰 우회 하드코딩 0건.
