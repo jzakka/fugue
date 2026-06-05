@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 646 Discovery — tokens area 50th round font-size-scale-token-conformance 표면 폐기 (후보 0건)
+결정/변경: 폰트사이즈 토큰·유틸이 DESIGN.md Typography Scale(L26-35, 3xl 42px..3xs 10px)에 정합하는지 전수 점검. 후보 0건. 변경 없음.
+이유: (1) 임의 매직값 `text-[Npx]`/`text-[Nrem]` 0건 — 모든 폰트사이즈가 스케일 유틸(text-3xl/2xl/xl/lg/base/sm/xs/2xs/3xs)로만 표현됨. (2) DESIGN.md 추가 스케일(2xs 11px·3xs 10px)은 `globals.css @theme inline`에 `--text-2xs: 0.6875rem`·`--text-3xs: 0.625rem`로 정확히 정의되고 8곳(2xs 3·3xs 5)에서 사용 — 정합. (3) Tailwind 기본 스케일과 DESIGN.md 값이 다른 등급(3xl 42px vs Tailwind 30px·2xl 32px vs 24px·xl 24px vs 20px·sm 13px vs 14px 등)은 `--text-3xl` 등 토큰으로 덮어쓰면 해당 유틸 전 사용처(text-sm 70곳·text-xs 45곳·text-lg 11곳 등)에 즉시 광범위 시각 회귀 → anti-pattern L16(Tailwind 기본 클래스 의미 덮어쓰기=광범위 회귀, 별도 후보 분리·effort 추정 붕괴) 정확 매칭이라 후보 제외. confidence<3 또는 anti-pattern으로 전 등급 폐기.
+영향 범위: apps/web 전 컴포넌트 폰트사이즈 유틸. 코드 변경 없음. tokens 자매 축 font-family(49th=642)·spacing(48th=637)·box-shadow(47th=632)·border-width(46th=627)·color(44th)·radius(37th)와 구별되는 font-size 스케일 측정축. 다음 사이클 647 = states area.
+
 ## 2026-06-05 — [design] cycle 645 Discovery — aesthetic area 52nd round accent-color-restraint-conformance 표면 폐기 (후보 0건)
 결정/변경: accent 색(`bg-accent`/`text-accent`/`border-accent`/`from-accent`/`accent-subtle`/gradient) 전 사용처가 DESIGN.md Aesthetic·Color(L37-41/L83)의 "액센트는 사용자 액션에만" 절제 원칙에 정합하는지 전수 점검. 후보 0건. 변경 없음.
 이유: accent 사용처 90여 곳을 카테고리 분류 — (1) CTA 버튼(`bg-accent text-white`): NavBar·BoardActions·MyPageClient·ProfileEditForm·AddToBoardButton·PinCreateForm·pins/[id]·VideoTrimModal 등 → L38 'CTA' 정합. (2) hover/focus(`hover:border-accent`·`group-hover:text-accent` 등) → L38 '호버' 정합. (3) 선택 상태(`bg-accent text-white` 토글 — TagFilter·PinsGrid·SearchClient·PinCreateForm 미디어칩) → L38 '선택' 정합. (4) 태그 배경·선택 칩(`bg-accent-subtle`) → L41 'accent-subtle=태그 배경, 선택 상태' 정합. (5) audio 카드 그라데이션(PinCard L60 `from-accent/15 to-transparent`은 `AudioSection` 내부) → DESIGN.md L83 audio gradient=accent 정합. 비-액션 사용으로 보이는 (a) 아바타 fallback gradient(`from-accent to-accent-hover` — 이미지 없는 유저 아바타, PinCard/NavBar/SearchBar/ProfileHeader 등 일관)·(b) 로고 박스(`bg-accent` NavBar L17·login L40 = 브랜드/마스코트 맥락 L14)·(c) 로딩 스피너(`border-accent`)는 DESIGN.md/AGENTS.md가 금지하지 않는 일관된 의도 패턴이라 confidence<3(발견 절차 #4 폐기). 작품(핀 이미지/영상)과 경쟁하는 장식적 accent 0건.
