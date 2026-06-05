@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 654 Discovery — a11y area 55th round heading-hierarchy-conformance 표면 폐기 (후보 0건)
+결정/변경: 페이지·컴포넌트의 제목 구조(WCAG 1.3.1 Info and Relationships, 문서 아웃라인)가 h1→h2 순서를 건너뛰지 않고 페이지당 단일 h1을 유지하는지 전수 점검(643 image-alt·649 form-label과 구별되는 heading-hierarchy 측정축). 후보 0건. 변경 없음.
+이유: h1~h6 전수 grep — (1) 페이지별 단일 h1 정합: pins/[id] L135·PinCreateForm L314·boards/[id] L56·login L44·ProfileHeader L32(닉네임). search/page는 `{q ? <SearchClient/>(h1 L232) : <h1 sr-only>검색</h1>+EmptyState}` 상호배타 삼항이라 중복 h1 없음. page.tsx L87 `<h1 sr-only>작품 피드</h1>` 단일. h2는 모두 h1 하위 섹션(SearchClient L304/318/356·BoardGrid L14·AddToBoardButton L249·BoardSection L71 등)이라 레벨 건너뜀 없음. (2) 경계 사례 mypage 편집 모드: MyPageClient가 `{editing ? <ProfileEditForm/>(h2 L53) : <ProfileHeader/>(h1 L32)}` + BoardSection(h2 L71) 구조라 편집 전환 시 h1이 사라지고 h2로 시작 — 그러나 confidence<3로 후보 미등록: WCAG 1.3.1은 h1 존재를 강제하지 않고 레벨 건너뜀(h1→h3 등) 금지가 핵심이라 h2-시작 자체는 엄격 위반 아님(best-practice), 일시적 편집 상태이며, 수정 방식(ProfileEditForm h2→h1 승격 vs 페이지 레벨 h1 추가)이 제목 레벨 판단을 요하는 자의적 선택이라 DESIGN.md SHALL 부재 하에 ≤3. 레벨 건너뜀(skip) 0건 → WCAG 1.3.1 정합.
+영향 범위: apps/web 전 페이지·컴포넌트 제목 구조. 코드 변경 없음. a11y 자매 축 image-alt(643)·form-label(649)·focus(2.4.7는 states 트랙)과 구별되는 heading-hierarchy 측정축. 다음 사이클 655 = responsive area.
+
 ## 2026-06-05 — [design] cycle 653 Discovery — responsive area 20th round touch-target-size-conformance 표면 폐기 (후보 0건)
 결정/변경: 모바일 인터랙티브 요소의 터치 타깃 크기가 WCAG 2.5.8(Target Size, Minimum 24×24 CSS px)을 충족하는지 전수 점검(644 breakpoint-grid·648 horizontal-overflow와 구별되는 touch-target 측정축). 후보 0건. 변경 없음.
 이유: 클릭 가능 요소(onClick/`<button>`/`role=button`/cursor-pointer) 중 고정 소형 사이즈를 가진 site 전수 — (1) 최소 타깃은 PinCard 외부링크 아이콘(L116 `w-6 h-6` = 24×24px)로 WCAG 2.5.8 AA 최소(24×24) 정확히 충족. (2) ThemeToggle L34 `w-9 h-9`(36)·AddToBoardButton 닫기 L255 `w-8 h-8`(32)·PinCard 재생버튼 L66 `w-9 h-9`(36, 단 카드 전체 링크의 시각 요소) 등 나머지 인터랙티브는 모두 ≥32px. (3) `w-4 h-4`/`w-5 h-5`/`w-6 h-6` 소형 박스는 로딩 스피너(AddToBoardButton L297/L350·MyPageClient L63·PinsGrid L140·FeedContainer L220)·버튼 내부 SVG 아이콘(LoginButtons L10/L34, 부모 버튼은 py-3 px-4 풀폭)·비-인터랙티브 아바타/썸네일(SearchBar w-7/w-8·NavBar w-9)이라 터치 타깃 아님. (4) 태그/필터 칩은 px-3 py-1.5 텍스트 버튼이라 높이 ≥30px. 24px 미만 터치 타깃 0건 → WCAG 2.5.8 정합. DESIGN.md는 터치 타깃을 명세하지 않으나 WCAG를 객관 근거로 측정 — 위반 없음.
