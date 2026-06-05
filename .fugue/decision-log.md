@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 656 Discovery — aesthetic area 54th round divider-separator-treatment-conformance 표면 폐기 (후보 0건)
+결정/변경: 구조적 구분(섹션·모달 chrome·nav)이 DESIGN.md L11('Decoration level: Minimal — 타이포그래피와 여백이 모든 걸 한다')과 정합하게 일관된 토큰으로 처리되는지 divider/separator 전수 점검(635/640/645 accent-color-restraint·650 mascot·625 text-truncation·632 box-shadow token과 구별되는 divider-treatment 측정축). 후보 0건. 변경 없음.
+이유: border-t/border-b/divide/hr 전수 7곳 — 전부 `border-border`(DESIGN.md L46 Border 토큰) 1px 균일: (1) 모달 chrome — VideoTrimModal 헤더 L185 `border-b`/푸터 L271 `border-t`, AddToBoardButton 헤더 L248 `border-b`/푸터 L359 `border-t`. (2) nav chrome — NavBar L12 `border-b`. (3) 섹션 구분 — pins/[id] L193 standalone `border-t`. (4) 드롭다운 푸터 — SearchBar L391 '전체 보기' 링크 `border-t`. divide-*/`<hr>` 사용 0건. 모든 구분선이 동일 `border-border` 토큰·1px·무채색이라 드리프트 없음(색 있는·두꺼운·그라디언트 divider 0). DESIGN.md L11의 'Minimal'은 장식 수준을 말하며 border는 L46에서 토큰으로 명시 허용 → 구분선 자체는 위반 아님. '여백으로 대체해야 한다'는 주장은 모달/nav chrome에 부적합하고 자의적 해석(anti-pattern 위험)이라 confidence<3. 장식적 구분선 0건 → L11/L46 정합.
+영향 범위: apps/web 전 divider/separator(border-t·border-b·divide·hr). 코드 변경 없음. aesthetic 자매 축 accent-color-restraint(52nd/53rd=635/640/645)·mascot-usage(53rd=650)·text-truncation(625)과 구별되는 divider-separator-treatment 측정축. 다음 사이클 657 = tokens area.
+
 ## 2026-06-05 — [design] cycle 655 Discovery — responsive area 21st round overlay-viewport-fit-conformance 표면 폐기 (후보 0건)
 결정/변경: 오버레이(모달·드롭다운·portal)가 좁은 뷰포트(≤320px)에서 가로 오버플로 없이 들어맞고 세로로 뷰포트를 넘지 않는지 전수 점검(644 breakpoint-grid·648 horizontal-overflow(페이지 본문)·653 touch-target과 구별되는 overlay-viewport-fit 측정축). 후보 0건. 변경 없음.
 이유: fixed/absolute 오버레이 전수 — (1) VideoTrimModal(L174 `fixed inset-0` 백드롭 / L183 패널 `w-full max-w-xl mx-4 overflow-hidden`, 콘텐츠 비디오 L199 `max-h-[280px] object-contain`): 가로는 w-full+양쪽 mx-4(16px) 마진, 세로는 비디오 280px 캡으로 무한 성장 없음. (2) AddToBoardButton(L232 `fixed inset-0` / L245 패널 `w-full max-w-sm mx-4 max-h-[80vh] flex flex-col`): 가로 w-full+mx-4, 세로 max-h-[80vh]+내부 스크롤. (3) SearchBar 드롭다운(L182 `absolute top-full left-0 right-0`): 부모 검색바(L142 `flex-1 max-w-md`) 폭에 종속되어 자체 오버플로 불가. (4) login(L34 outer `px-4` + L35 `w-full max-w-[400px]`): 400px 미만 뷰포트에서 px-4로 수축. 모든 오버레이가 w-full+max-w-*+mx-4 패턴 → 320px 폭에서 가로 스크롤 0(WCAG 1.4.10 Reflow 충족), 세로 캡 존재. DESIGN.md는 오버레이 반응형을 명세하지 않으나 WCAG 1.4.10을 객관 근거로 측정 — 위반 없음.
