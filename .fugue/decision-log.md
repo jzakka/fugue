@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 638 Discovery — a11y area 52nd round heading-hierarchy-conformance 표면 폐기 (후보 0건)
+결정/변경: a11y 트랙 표면(제목 계층 WCAG 1.3.1) 점검 결과 후보 0건. 변경 없음.
+이유: 전 라우트 `<h[1-6]>`·`role="heading"` 전수 조사. 각 페이지 라우트마다 h1 정확히 1개(feed/pins·boards·login·search·mypage·pin/new), 섹션은 h2, h3+ 미사용이라 레벨 건너뜀 없음. search 라우트는 sr-only h1(L74, q 없음 분기)과 SearchClient h1(L232, q 있음 분기)이 상호배타라 동시 렌더 불가. mypage는 ProfileHeader h1(단일) + MyPageClient h2(섹션)로 h1→h2 정상. 모달 제목은 h2(labelledby)로 일관. DESIGN.md/AGENTS.md 위반 없음.
+영향 범위: apps/web 제목 요소 전수. 코드 변경 없음. 다음 사이클 639 = responsive area.
+
 ## 2026-06-05 — [system] cycle 590 Discovery — 에러처리 area re-survey: sql.ErrNoRows → HTTP 404 매핑 충실도 · context.Canceled/DeadlineExceeded 분류(클라이언트 단절 vs 서버오류) 표면 폐기 (후보 0건)
 결정/변경: backlog append 없음. anti-patterns 무변경. 시스템 트랙 영역 순환에서 가장 오래 미방문(cycle 578 deferred Close write/flush)인 에러처리 area 재선택. cycle 460(auth redis best-effort 로깅)·466(og err.Error() info-disclosure)·578(deferred Close) 누적 위에, 아직 명시 cross-walk 표명 없던 **sql.ErrNoRows → HTTP status 매핑 충실도 + context 취소(Canceled/DeadlineExceeded) 분류** sub-surface 를 신선 검증. 후보 0건.
 이유: 워크트리 베이스(anti-pattern L27) 직접 grep/Read 결과 모두 정합 — (a) **ErrNoRows → 404 균일 매핑**: 핸들러 전 site 가 `if err == sql.ErrNoRows { writeError(w, http.StatusNotFound, ...) ; return }` 형태로 not-found 를 404 로 분기 후 그 외 err 만 500+log — creator/handler.go:74/138/183 · pin/handler.go:390/453 · auth/handler.go:210(`http.Error(w,"Not Found",404)`) · boards/handler.go:196/299/361/564/626. not-found 를 500 으로 잘못 뭉뚱그린 site 0, 반대로 일반 DB 에러를 404 로 누설한 site 0. (b) **context 취소 분류 정확**: tag/handler.go:72 `if r.Context().Err() == context.Canceled { return }` — 클라이언트 단절을 서버오류(500)로 오분류하지 않고 silent return(주석 "client disconnected, not a server error"). 스케줄러/컨슈머 경로의 ctx.Err() 전파(postgres_scheduler.go:443 `errors.Is(err, sql.ErrNoRows)` · url_scheduler/harvester_consumer/pioneer_consumer/bfs_crawler:51 `return ctx.Err()`)는 graceful-shutdown 신호로 상위에 그대로 전달 — 취소를 영구 실패로 오기록하지 않음. (c) auth/service.go:51/107 의 `if err != sql.ErrNoRows` 는 "row 없으면 신규 계정 진행, 그 외 err 만 전파"하는 upsert 분기로 의도된 정상 흐름. anti-pattern 비매칭(L24 og err.Error() info-disclosure 는 본 surface 무관, L27 worktree-base 확인). confidence=5 literal-violation 부재 → 표면 폐기.
