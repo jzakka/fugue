@@ -24,6 +24,25 @@
 #   note:       (선택) 자유 메모
 
 items:
+  - id: "design-20260605-overflow-wrap-freetext-guard"
+    title: "free-text 본문(핀/보드 설명·제목)에 overflow-wrap 가드가 없어 긴 무공백 문자열(URL 등)이 좁은 뷰포트에서 가로 오버플로한다"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/app/pins/[id]/page.tsx:135"
+        - "apps/web/src/app/pins/[id]/page.tsx:140-143"
+        - "apps/web/src/app/boards/[id]/page.tsx:56"
+        - "apps/web/src/app/boards/[id]/page.tsx:59-62"
+      cite: "WCAG 2.1 SC 1.4.10 Reflow (Level AA) — 320px CSS 폭에서 2차원 스크롤 없이 콘텐츠 reflow. block `<p>`/`<h1>`은 기본 `overflow-wrap: normal`이라 공백 없는 긴 토큰(붙여넣은 URL 등)을 끊지 못해 콘텐츠 박스를 넘어 가로 오버플로(또는 가로 스크롤바)를 유발. 코드베이스 전체에 `break-words`/`overflow-wrap` 가드가 0곳 — line-clamp/truncate 사용처(SearchClient 보드설명 L391 line-clamp-2 등)는 `overflow:hidden`으로 자기보호되나, 전문(全文) 노출되는 설명/제목 4곳은 무방비."
+      repro: "dev 서버 320px 폭에서 (1) 긴 무공백 문자열(예: 200자 URL)을 핀 설명에 넣고 /pins/{id} 진입 → 설명 `<p>`(L141)가 우측으로 넘쳐 가로 스크롤 발생. (2) 동일 문자열을 보드 설명/이름에 넣고 /boards/{id} 진입 → 헤더 `<p>`(L60)/`<h1>`(L56) 오버플로. line-clamp 적용된 검색 결과 보드설명은 클립되어 안전(대조군)."
+    qa_plan: "dev 서버 + 헤드리스 브라우저 320px: (1) 긴 무공백 URL을 가진 핀/보드 설명·제목에서 document.scrollWidth > clientWidth 여부(가로 오버플로) 측정 — 수정 전 true 확인. (2) `break-words` 적용 후 동일 측정 false(reflow 정상) 확인. (3) 인접 회귀: 일반 공백 포함 설명·짧은 제목·태그 칩(whitespace-nowrap 의도)·line-clamp 검색결과가 변형되지 않는지."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
+    note: "cycle 680 Discovery(responsive 57th round long-unbroken-string-wrapping-conformance) 발견. 664 truncate-min-w-0(rejected_qa, flex 최소크기 CSS 오해)와 메커니즘 상이 — 본 건은 block 요소 overflow-wrap:normal의 긴 단어 미분할로 명확. confidence 3(메커니즘 확실+WCAG 근거이나 긴 무공백 입력 조건부)."
   - id: "design-20260605-truncate-min-w-0-flex-guard"
     title: "flex 직접 자식인 truncate span에 min-w-0 가드가 없어 ellipsis 대신 하드 클립된다"
     area: responsive
