@@ -39,8 +39,8 @@ items:
     effort: 1
     risk: 1
     score: 8
-    status: pending
-    note: "수정: PinCard L185 span + SearchBar L215 span에 min-w-0 추가(코드베이스 기존 패턴과 일치). 토큰/API 비변경, 순수 additive."
+    status: rejected_qa
+    note: "FALSE POSITIVE (cycle 665 처리 모드 QA). `truncate`는 overflow:hidden을 포함 → CSS Flexbox §4.5상 overflow≠visible인 flex 자식은 자동 최소 크기가 0이라, direct truncate 자식은 min-w-0 없이 이미 정상 truncate됨. 헤드리스 QA(playwright, 320px)에서 PinCard replica·실제 SearchBar 둘 다 min-w-0 토글 전/후 결과 동일(ellipsisActive=true, overflow 없음, clientWidth 불변). 코드베이스 다른 6곳이 min-w-0를 쓰는 건 truncate가 중간 wrapper div(overflow:visible)에 감싸인 경우라 wrapper에 필요한 것. 코드 변경 되돌림(머지 안 함). anti-patterns 기록."
   - id: "design-20260515-general-sans-not-loaded"
     title: "General Sans 폰트가 로드되지 않아 디스플레이/히어로 타이포가 시스템 sans-serif로 폴백된다"
     area: tokens
