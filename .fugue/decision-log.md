@@ -17,6 +17,11 @@
 
 ## 항목
 
+## 2026-06-05 — [design] cycle 655 Discovery — responsive area 21st round overlay-viewport-fit-conformance 표면 폐기 (후보 0건)
+결정/변경: 오버레이(모달·드롭다운·portal)가 좁은 뷰포트(≤320px)에서 가로 오버플로 없이 들어맞고 세로로 뷰포트를 넘지 않는지 전수 점검(644 breakpoint-grid·648 horizontal-overflow(페이지 본문)·653 touch-target과 구별되는 overlay-viewport-fit 측정축). 후보 0건. 변경 없음.
+이유: fixed/absolute 오버레이 전수 — (1) VideoTrimModal(L174 `fixed inset-0` 백드롭 / L183 패널 `w-full max-w-xl mx-4 overflow-hidden`, 콘텐츠 비디오 L199 `max-h-[280px] object-contain`): 가로는 w-full+양쪽 mx-4(16px) 마진, 세로는 비디오 280px 캡으로 무한 성장 없음. (2) AddToBoardButton(L232 `fixed inset-0` / L245 패널 `w-full max-w-sm mx-4 max-h-[80vh] flex flex-col`): 가로 w-full+mx-4, 세로 max-h-[80vh]+내부 스크롤. (3) SearchBar 드롭다운(L182 `absolute top-full left-0 right-0`): 부모 검색바(L142 `flex-1 max-w-md`) 폭에 종속되어 자체 오버플로 불가. (4) login(L34 outer `px-4` + L35 `w-full max-w-[400px]`): 400px 미만 뷰포트에서 px-4로 수축. 모든 오버레이가 w-full+max-w-*+mx-4 패턴 → 320px 폭에서 가로 스크롤 0(WCAG 1.4.10 Reflow 충족), 세로 캡 존재. DESIGN.md는 오버레이 반응형을 명세하지 않으나 WCAG 1.4.10을 객관 근거로 측정 — 위반 없음.
+영향 범위: apps/web 전 오버레이(모달·드롭다운). 코드 변경 없음. responsive 자매 축 breakpoint-grid(18th=644)·horizontal-overflow(19th=648)·touch-target(20th=653)과 구별되는 overlay-viewport-fit 측정축. 다음 사이클 656 = aesthetic area.
+
 ## 2026-06-05 — [design] cycle 654 Discovery — a11y area 55th round heading-hierarchy-conformance 표면 폐기 (후보 0건)
 결정/변경: 페이지·컴포넌트의 제목 구조(WCAG 1.3.1 Info and Relationships, 문서 아웃라인)가 h1→h2 순서를 건너뛰지 않고 페이지당 단일 h1을 유지하는지 전수 점검(643 image-alt·649 form-label과 구별되는 heading-hierarchy 측정축). 후보 0건. 변경 없음.
 이유: h1~h6 전수 grep — (1) 페이지별 단일 h1 정합: pins/[id] L135·PinCreateForm L314·boards/[id] L56·login L44·ProfileHeader L32(닉네임). search/page는 `{q ? <SearchClient/>(h1 L232) : <h1 sr-only>검색</h1>+EmptyState}` 상호배타 삼항이라 중복 h1 없음. page.tsx L87 `<h1 sr-only>작품 피드</h1>` 단일. h2는 모두 h1 하위 섹션(SearchClient L304/318/356·BoardGrid L14·AddToBoardButton L249·BoardSection L71 등)이라 레벨 건너뜀 없음. (2) 경계 사례 mypage 편집 모드: MyPageClient가 `{editing ? <ProfileEditForm/>(h2 L53) : <ProfileHeader/>(h1 L32)}` + BoardSection(h2 L71) 구조라 편집 전환 시 h1이 사라지고 h2로 시작 — 그러나 confidence<3로 후보 미등록: WCAG 1.3.1은 h1 존재를 강제하지 않고 레벨 건너뜀(h1→h3 등) 금지가 핵심이라 h2-시작 자체는 엄격 위반 아님(best-practice), 일시적 편집 상태이며, 수정 방식(ProfileEditForm h2→h1 승격 vs 페이지 레벨 h1 추가)이 제목 레벨 판단을 요하는 자의적 선택이라 DESIGN.md SHALL 부재 하에 ≤3. 레벨 건너뜀(skip) 0건 → WCAG 1.3.1 정합.
