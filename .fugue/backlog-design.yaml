@@ -3186,3 +3186,20 @@ items:
     pr: 417
     note: "cycle 172 Processing 머지. apps/web/src/components/profile/ProfileEditForm.tsx L48 `<form>` 에 aria-labelledby=\"profile-edit-form-title\" + L52 `<h2>` 에 id=\"profile-edit-form-title\" 추가(diff +2 -2, 2 attribute, JSX 구조 비변경, className 모두 그대로). WAI-ARIA 1.2 form landmark + WCAG 2.1 SC 1.3.1 Info & Relationships Level A 충족 — visible heading '프로필 편집' 텍스트가 SR name 으로 그대로 노출되며 form 이 AT landmark navigation 에 'form, 프로필 편집' 으로 등장. cycle 171 PR #411 PinCreateForm `<form>` aria-labelledby 정착 패턴의 인접 갭 해소 (in-codebase form landmark coverage 1 → 2). form 의 nickname input(aria-required/aria-invalid/aria-describedby cycle 152/146/164 라인업) · avatar URL input · cancel button · submit button(aria-busy cycle 161) 모두 미수정 → 동작 변화 0."
 
+  - id: "design-20260608-skip-link-zindex-occluded-by-sticky-nav"
+    title: "skip link(메인 콘텐츠로 건너뛰기)가 sticky NavBar 와 동일 z-50 이라 focus 시 nav 뒤로 가려져 포커스 인디케이터가 보이지 않는다 (WCAG 2.4.7)"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/layout.tsx:30-37"
+        - "apps/web/src/components/nav/NavBar.tsx:12"
+      cite: "WCAG 2.1 SC 2.4.7 Focus Visible (Level AA) — 키보드 조작 UI 는 포커스 인디케이터가 보이는 동작 모드를 가져야 한다. layout.tsx L31-36 skip link `<a href=\"#main\">` 는 body 의 첫 자식이고 focus 시 `focus:fixed focus:top-2 focus:left-2 focus:z-50`(top 8px·left 8px·z-index 50) 로 좌상단에 렌더된다. NavBar.tsx L12 `<nav className=\"sticky top-0 z-50 bg-bg ... backdrop-blur-sm\">` 는 layout 의 {children}(L37) 안에서 skip link 보다 DOM 상 뒤에 위치하며 동일 z-50·불투명 bg-bg. body 는 stacking context 가 아니므로(z-index/opacity/transform 없음) skip link(fixed z-50)와 nav(sticky z-50)는 같은 루트 stacking context 에서 동일 z-index 로 경합 → 동일 z-index 는 DOM 트리 순서로 paint 순서 결정 → 뒤에 오는 nav 가 위에 그려진다. skip link focus 영역(8~44px 세로·8~188px 가로)은 nav 영역(0~64px 세로·전폭) 안에 완전히 포함되고 nav 는 불투명이라, 페이지 진입 후 첫 Tab 으로 포커스된 skip link 가 sticky nav 뒤로 가려져 보이지 않는다(focus indicator 비가시 → 2.4.7 실패). DESIGN.md 는 z-index/레이어 스케일을 정의하지 않음(out-of-scope) — z-index 코드 사용처 7곳(layout:33 z-50 skip·NavBar:12 z-50·SearchBar:182 z-[60] 드롭다운·AddToBoardButton:232 z-50 모달·VideoTrimModal:174 z-[100] 모달·248/257 z-10 핸들) 중 skip link 가 nav 보다 높은 레이어를 갖지 못한 것이 원인. 수정안: skip link 의 `focus:z-50` 을 nav(z-50)·검색 드롭다운(z-[60]) 보다 높은 값(예: `focus:z-[100]`)으로 올려 sticky nav 위에 노출. anti-patterns 무매치 — line 49(outline-none focus-ring 스타일)·line 72(selected×focus 인디케이터)는 포커스 인디케이터 스타일 축이고 본 건은 z-index stacking 가림 축(line 49 는 'focus 불가시화'를 명시적 예외=등록 가능 으로 둠)."
+      repro: "1) cd apps/web && npm run dev → 로그인 후 임의 페이지(/ 또는 /pins/{id} 등 NavBar 가 렌더되는 페이지) 접속. 2) 주소창에 포커스 둔 뒤 페이지 본문 클릭 없이 Tab 1회 → 첫 포커스가 skip link 로 이동. 3) 좌상단(top 8px·left 8px)에 '메인 콘텐츠로 건너뛰기' accent 버튼이 보여야 하나 sticky nav(top 0·전폭·불투명 bg-bg) 뒤에 가려 보이지 않음(또는 일부만). 4) DevTools 로 nav 를 일시 display:none 처리하면 skip link 가 드러남 → nav 가림 확인. 5) 비교: SearchBar 드롭다운 z-[60]·VideoTrimModal z-[100] 은 nav z-50 위에 정상 노출."
+    qa_plan: "1) cd apps/web && npm run dev → NavBar 가 있는 페이지 접속 → 페이지 진입 후 첫 Tab → 수정 전: skip link 가 nav 뒤로 가려져 비가시 / 수정 후: skip link 가 sticky nav 위에 완전히 보임(top-2 left-2 accent 버튼). 2) skip link Enter → #main 으로 점프 동작 유지 확인. 3) 검색 드롭다운(SearchBar z-[60]) 열어 skip link 보다 위/아래 관계 회귀 없는지(드롭다운은 skip link 미포커스 시 정상) 확인. 4) 모달(AddToBoardButton z-50·VideoTrimModal z-[100]) 열린 상태에서 Tab 회귀 없는지 확인. 5) 시각 검사: 평상시(skip link 미포커스) 페이지 외형 변화 0 — z-index 는 focus 시에만 적용되는 sr-only 링크라 일반 렌더 비영향."
+    impact: 3
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 9.0
+    status: pending
+    note: "cycle 714 Discovery 발견. tokens area 63rd round — z-index 레이어 스케일 토큰화 축(cycle 709 재진입점 #3). DESIGN.md z-index 미정의(out-of-scope)지만 WCAG 2.4.7 Focus Visible 객관 backing. confidence=3(CSS stacking 추론 기반·브라우저 미검증 → 처리 모드 7단계 실 브라우저 QA 에서 가림 실증). 수정 폭=skip link z-index 1개 클래스(focus:z-50→focus:z-[100])."
