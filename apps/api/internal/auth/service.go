@@ -115,12 +115,16 @@ func (s *Service) findOrCreateWithEmail(ctx context.Context, profile *UserProfil
 		AvatarUrl: toNullString(truncateAvatarURL(profile.AvatarURL)),
 		Email:     toNullString(email),
 	})
-	if err != nil {
+	// ON CONFLICT (email) DO NOTHING returns zero rows when a concurrent tx won
+	// the insert race; the :one query surfaces that as sql.ErrNoRows. Treat it as
+	// the conflict signal (not a fatal error) so the re-query path below can
+	// recover the winning creator and merge into it.
+	if err != nil && err != sql.ErrNoRows {
 		return uuid.Nil, fmt.Errorf("create creator: %w", err)
 	}
 
 	var creatorID uuid.UUID
-	if newCreator.ID == uuid.Nil {
+	if err == sql.ErrNoRows || newCreator.ID == uuid.Nil {
 		// ON CONFLICT DO NOTHING fired, re-query to get existing
 		existing, err := q.GetCreatorByEmailForUpdate(ctx, sql.NullString{String: email, Valid: true})
 		if err != nil {

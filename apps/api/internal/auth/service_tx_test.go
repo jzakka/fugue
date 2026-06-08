@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -192,5 +193,90 @@ func TestIntegration_CreateNewCreator_RaceNoOrphan(t *testing.T) {
 	}
 	if orphans != 0 {
 		t.Errorf("found %d orphan creator(s) with nickname=%q (BeginTx rollback expected to prevent this)", orphans, nickname)
+	}
+}
+
+// TestIntegration_FindOrCreateWithEmail_OnConflictRecovery pins the
+// concurrent same-email signup recovery: when a competing transaction wins the
+// creators INSERT race, CreateCreatorFromOAuthOnConflict (ON CONFLICT (email)
+// DO NOTHING RETURNING *) returns zero rows, which the sqlc :one query surfaces
+// as sql.ErrNoRows. The losing request MUST treat that as the conflict signal,
+// re-query the winning creator, and merge into it — NOT fail the login.
+//
+// Before the fix, service.go's `if err != nil { return }` guard caught
+// sql.ErrNoRows and returned "create creator: sql: no rows in result set",
+// making the re-query recovery branch (newCreator.ID == uuid.Nil) dead code and
+// failing the losing OAuth callback with /login?error=account_failed.
+//
+// Deterministic: a competing uncommitted INSERT holds the unique email key, so
+// the service call's SELECT sees no row (returns ErrNoRows at the creators
+// lookup) but its INSERT ... ON CONFLICT blocks until we commit the winner —
+// forcing the ON CONFLICT DO NOTHING / ErrNoRows path every run.
+func TestIntegration_FindOrCreateWithEmail_OnConflictRecovery(t *testing.T) {
+	db := openAuthTestDB(t)
+	svc := &Service{db: db}
+
+	email := "conflict-" + uuid.NewString() + "@example.com"
+	nickname := "conflict-test-" + uuid.NewString()[:8]
+
+	t.Cleanup(func() {
+		_, _ = db.Exec(`DELETE FROM creators WHERE email = $1`, email)
+	})
+
+	// Competing transaction inserts the creator with the target email but does
+	// NOT commit yet: invisible to other snapshots (so the service's SELECT
+	// returns no rows) while its uncommitted unique key forces the service's
+	// INSERT ... ON CONFLICT to block, then fire DO NOTHING once we commit.
+	winnerTx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("begin winner tx: %v", err)
+	}
+	defer func() { _ = winnerTx.Rollback() }()
+
+	var winnerID uuid.UUID
+	if err := winnerTx.QueryRow(
+		`INSERT INTO creators (nickname, email) VALUES ($1, $2) RETURNING id`,
+		nickname, email,
+	).Scan(&winnerID); err != nil {
+		t.Fatalf("winner insert: %v", err)
+	}
+
+	type result struct {
+		id  uuid.UUID
+		err error
+	}
+	resCh := make(chan result, 1)
+	go func() {
+		profile := &UserProfile{
+			ProviderID:    "conflict-loser-" + uuid.NewString(),
+			Nickname:      nickname,
+			Email:         email,
+			EmailVerified: true,
+		}
+		id, err := svc.findOrCreateWithEmail(context.Background(), profile, "google", email)
+		resCh <- result{id, err}
+	}()
+
+	// Let the goroutine reach (and block on) the INSERT ... ON CONFLICT, then
+	// commit the winner so the loser's conflict fires and returns zero rows.
+	time.Sleep(200 * time.Millisecond)
+	if err := winnerTx.Commit(); err != nil {
+		t.Fatalf("commit winner: %v", err)
+	}
+
+	res := <-resCh
+	if res.err != nil {
+		t.Fatalf("findOrCreateWithEmail must recover from ON CONFLICT zero-row (sql.ErrNoRows), got error: %v", res.err)
+	}
+	if res.id != winnerID {
+		t.Errorf("loser merged into wrong creator: got %s, want winner %s", res.id, winnerID)
+	}
+
+	var count int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM creators WHERE email = $1`, email).Scan(&count); err != nil {
+		t.Fatalf("count creators: %v", err)
+	}
+	if count != 1 {
+		t.Errorf("expected exactly 1 creators row for email, got %d (ON CONFLICT must not create a duplicate)", count)
 	}
 }
