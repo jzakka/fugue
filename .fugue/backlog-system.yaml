@@ -6688,4 +6688,6 @@ items:
     effort: 1
     risk: 2
     score: 7.5
-    status: pending
+    status: done
+    pr: 1341
+    note: "cycle 708 처리 완료. service.go:118 가드를 `if err != nil && err != sql.ErrNoRows`로, 복구 조건을 `if err == sql.ErrNoRows || newCreator.ID == uuid.Nil`로 수정해 ON CONFLICT zero-row(ErrNoRows) 시 재조회·병합 경로가 살아남. service_tx_test.go에 결정론적 통합 테스트 추가(경쟁 미커밋 INSERT가 unique email 키를 점유→service INSERT가 ON CONFLICT 발동). 실 DB QA: 수정 전 `create creator: sql: no rows in result set` 실패 재현→수정 후 진 요청이 winner creator로 병합·creators 행 정확히 1개 확인."
