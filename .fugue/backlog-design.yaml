@@ -3202,4 +3202,5 @@ items:
     risk: 1
     score: 9.0
     status: done
+    pr: 1348
     note: "cycle 714 Discovery 발견 → cycle 715 Processing 머지. apps/web/src/app/layout.tsx L33 skip link className `focus:z-50`→`focus:z-[100]` 1개 클래스 변경(diff +1 -1, JSX 구조·다른 클래스 비변경). 실 브라우저 QA(playwright chromium-1217 headless, http://localhost:3000/) 로 가림 실증/수정 검증 — 첫 Tab 으로 skip link 포커스 후 `document.elementFromPoint(스킵링크 중심)` 결과: 수정 전 nav 안 'Fugue' 로고 SPAN 반환(occluded=true, skipZ=50·navZ=50), 수정 후 skip link `<a href=#main>` 자신 반환(occluded=false, skipZ=100·navZ=50). #main 점프 동작 유지(Enter→location.hash=#main, main#main 타겟 존재), 평상시(미포커스) skip link sr-only 1x1 absolute 유지로 페이지 외형 변화 0(z-index 는 focus 시에만 적용). lint 0 errors(기존 img 경고 18건 무관). SearchBar 드롭다운 z-[60]·모달 z-50/z-[100] 회귀 없음(skip link 는 미포커스 시 sr-only 라 stacking 비경합). WCAG 2.1 SC 2.4.7 Focus Visible(AA) 충족."
