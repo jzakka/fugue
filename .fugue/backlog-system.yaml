@@ -6633,3 +6633,59 @@ items:
     risk: 1
     score: 10.0
     status: done
+
+  - id: system-20260608-oauth-onconflict-norows-dead-recovery
+    title: "동시 동일-email OAuth 가입 시 CreateCreatorFromOAuthOnConflict가 sql.ErrNoRows를 반환해 race 복구 분기가 죽은 코드가 되고 진 요청이 로그인 실패"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/internal/auth/service.go:111-132"
+        - "apps/api/db/queries/creators.sql:6-10"
+        - "apps/api/internal/db/creators.sql.go:66-78"
+      cite: |
+        openspec/specs/auth/spec.md "소셜 로그인으로 인증한다"
+        - Scenario "이메일 기반 계정 병합": 새 OAuth 로그인의 이메일이 기존 계정과
+          일치하면 기존 계정에 병합한다.
+        - Scenario "첫 로그인 시 계정 자동 생성": 처음 로그인하는 유저는 계정이
+          자동 생성된다.
+        두 동시 요청이 같은 신규 email 로 들어오면 한쪽은 생성, 다른 쪽은 병합으로
+        귀결되어 둘 다 성공해야 한다. 현재는 진 요청이 실패한다.
+      repro: |
+        1. CreateCreatorFromOAuthOnConflict 는 `:one` 어노테이션 + `INSERT ...
+           ON CONFLICT (email) DO NOTHING RETURNING *` 쿼리다(creators.sql:6-10).
+        2. sqlc `:one` 은 QueryRowContext(...).Scan(...) 으로 생성된다
+           (creators.sql.go:73-77). ON CONFLICT DO NOTHING 이 발동하면 RETURNING 이
+           0행을 내므로 Scan 은 sql.ErrNoRows 를 반환한다(zero-value 구조체+nil 아님).
+        3. 동일 신규 email 의 OAuth 콜백 2건이 동시에 findOrCreateWithEmail 에 진입.
+           둘 다 GetCreatorByEmailForUpdate 에서 ErrNoRows(아직 없음) → 둘 다 L113
+           CreateCreatorFromOAuthOnConflict 호출.
+        4. 한 요청이 INSERT 승리, 다른 요청은 ON CONFLICT 발동 → sql.ErrNoRows.
+        5. service.go:118 `if err != nil { return uuid.Nil, fmt.Errorf("create
+           creator: %w", err) }` 가 먼저 작동하여 에러 반환. → 핸들러가
+           /login?error=account_failed 로 리다이렉트, 진 요청 로그인 실패.
+        6. L122-132 의 `if newCreator.ID == uuid.Nil { 재조회 }` race-복구 분기는
+           ErrNoRows 가 L118 에서 이미 return 되므로 절대 도달하지 못하는 죽은 코드다.
+        자가 치유: 유저가 재시도하면 creator 가 이미 존재하므로 병합 경로로 성공.
+        service_tx_test.go 의 RaceNoOrphan 테스트는 auth_accounts UNIQUE 경로만
+        커버하고 이 email ON CONFLICT 경로는 커버하지 않는다.
+    qa_plan: |
+      (1) 수정: service.go:118 가드를 `if err != nil && err != sql.ErrNoRows { return ... }`
+          로, L123 조건을 `if err == sql.ErrNoRows || newCreator.ID == uuid.Nil { 재조회 }`
+          로 바꿔 ON CONFLICT 시 기존 creator 재조회→병합 경로가 살아나게 한다.
+      (2) go vet ./... && go build ./... && go test ./internal/auth/... 통과.
+          단위/통합 테스트 추가: 동일 email 로 CreateCreatorFromOAuthOnConflict 를
+          두 번 호출(두 번째가 ErrNoRows)했을 때 findOrCreateWithEmail 두 호출이
+          모두 같은 creatorID 를 반환하고 에러가 없는지 검증.
+      (3) 실 환경 QA(docker-compose up -d + go run cmd/server): 같은 email 을 가진
+          provider 프로필로 FindOrCreateCreator 동시 2회(goroutine 또는 두 콜백을
+          빠르게) 실행. 둘 다 성공하고 psql `SELECT count(*) FROM creators WHERE
+          email=$1` 이 정확히 1, auth_accounts 행 수가 기대대로인지 확인. 수정 전엔
+          한쪽이 "create creator: sql: no rows in result set" 로 실패함을 먼저 재현.
+      (4) 회귀: 단일 신규 가입(병합 없음), 기존 email 병합(L96 경로), email 없는
+          provider(createNewCreator 경로) 각 1회로 무회귀 확인.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 2
+    score: 7.5
+    status: pending
