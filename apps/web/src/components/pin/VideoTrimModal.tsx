@@ -158,6 +158,27 @@ export default function VideoTrimModal({
 
   const onUp = useCallback(() => setDrag(null), []);
 
+  // Tap (single pointer, no dragging) on the empty track moves the nearest
+  // handle to the tapped position — the WCAG 2.5.7 single-pointer alternative
+  // to dragging the handles. Handles/window call stopPropagation on their own
+  // onPointerDown, so this fires only for taps outside the selection.
+  const onTrackDown = useCallback(
+    (e: React.PointerEvent) => {
+      const t = pxToTime(e.clientX);
+      if (Math.abs(t - start) <= Math.abs(t - end)) {
+        let s = Math.max(0, Math.min(t, end - MIN_CLIP));
+        if (end - s > MAX_CLIP) s = end - MAX_CLIP;
+        setStart(s);
+        if (videoRef.current) videoRef.current.currentTime = s;
+      } else {
+        let en = Math.min(videoDuration, Math.max(t, start + MIN_CLIP));
+        if (en - start > MAX_CLIP) en = start + MAX_CLIP;
+        setEnd(en);
+      }
+    },
+    [pxToTime, start, end, videoDuration]
+  );
+
   function handleOverlayClick(e: React.MouseEvent) {
     if (drag) return;
     if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -214,6 +235,7 @@ export default function VideoTrimModal({
             <div
               ref={trackRef}
               className="relative h-12 bg-border/30 rounded-lg select-none touch-none"
+              onPointerDown={onTrackDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
               onPointerLeave={onUp}
