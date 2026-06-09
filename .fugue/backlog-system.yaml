@@ -1523,6 +1523,83 @@ items:
       = 1500 byte 정상 저장) OK / T6(empty → NULL) OK. 인접 엔드포인트(health,
       providers, login) 회귀 없음. PR & main merge: cycle 12 종료 시 등록.
 
+  - id: system-20260609-list-pagination-tiebreaker
+    title: "검색·보드핀 OFFSET 페이지네이션 쿼리 9건이 고유 tie-breaker 없이 정렬해 페이지 간 행 중복·누락 가능"
+    area: integrity
+    evidence:
+      files:
+        - "apps/api/db/queries/search.sql:20"
+        - "apps/api/db/queries/search.sql:37"
+        - "apps/api/db/queries/search.sql:61"
+        - "apps/api/db/queries/search.sql:80"
+        - "apps/api/db/queries/search.sql:87"
+        - "apps/api/db/queries/search.sql:94"
+        - "apps/api/db/queries/search.sql:103"
+        - "apps/api/db/queries/search.sql:112"
+        - "apps/api/db/queries/boards.sql:48-60"
+        - "apps/api/internal/search/handler.go:90-92"
+        - "apps/api/db/migrations/000003_create_works.up.sql:11"
+        - "apps/api/db/migrations/000008_create_boards.up.sql:16"
+      cite: |
+        정합성(ERD↔sqlc 쿼리↔런타임 결과) 런타임 정확성 결함. 명시 doc SHALL은
+        없으나(검색 capability spec은 openspec/specs/ 에 미배포, archive에만 존재)
+        코드베이스 자체가 tie-breaker 관례를 확립함:
+        - pins.sql ListPinsWithCreator:69 / ListPinsByCreator:93 /
+          ListLatestPinsWithCreator:165 = `ORDER BY p.created_at DESC, p.id DESC`
+        - interactions.sql:56 = `ORDER BY p.created_at DESC, p.id DESC`
+        - feed cycle 776(Processing)이 동일 클래스(페이지 disjoint)를 tie-breaker로 해소.
+        PostgreSQL 의미론: OFFSET 페이지네이션에서 ORDER BY 키가 비고유(동률 존재)면
+        page N·N+1 가 별개 쿼리 실행이라 동률 행의 상대 순서가 보장되지 않아 같은 행이
+        두 페이지에 등장(중복)하거나 누락된다.
+      repro: |
+        ties가 체계적으로 발생함:
+        (1) works(pins).created_at·board_pins.created_at = DEFAULT now()(트랜잭션
+            안정값) → 한 tx에서 다중 INSERT(봇 harvest 벌크 업서트 등)는 동일
+            created_at 공유 → created_at-only 정렬(search ILIKE 변종·ListBoardPins)
+            은 동률 직접 노출.
+        (2) 검색 score = (similarity(title,q)+tag_bonus)::float4 → 다수 결과가
+            동일 score 버킷 공유(태그-only 매칭 전부 0.5·similarity 0 버킷), 2차
+            created_at도 봇 데이터에서 동률 → (score,created_at) 복합 동률.
+        재현: 동일 created_at(같은 tx INSERT)인 핀 N개 + limit=2로 offset=0,2,4…
+        순회 → 동일 pin.id가 두 페이지에 등장하거나 한 페이지 경계에서 누락 관찰.
+        search/handler.go:90-92가 client offset을 8개 쿼리에 전파, boards
+        ListBoardPins는 보드 상세 핀을 offset 페이지네이션(cycle 742 anti-pattern:
+        boards/handler.go offset≤maxBoardsOffset)이라 다중 페이지 도달 가능.
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA(테스트 통과로 대체 불가):
+      1. docker-compose up -d (postgres) + go run cmd/server/main.go.
+      2. psql 로 동일 created_at 핀 시드: 한 트랜잭션에서 동일 title("dup-target")로
+         pins 6행 INSERT(now() 트랜잭션 안정값 → 6행 created_at 동일), 검색 매칭되게
+         tag/title 구성. board_pins도 한 tx에서 board 1개에 핀 6개 동일 created_at INSERT.
+      3. 수정 전 재현: `curl '/api/search?q=dup-target&type=pins&limit=2&offset=0'`,
+         `offset=2`, `offset=4` 3페이지 호출 → pins[].id 수집 → 합집합에 중복 id가
+         있거나(같은 핀 두 페이지) 6개 미만(누락)임을 관찰. `/api/boards/{id}` 핀
+         페이지네이션도 동일 절차로 중복/누락 관찰.
+      4. 수정 후(처리 모드에서 9개 ORDER BY에 `, p.id DESC`(검색 creators는
+         `, id DESC`·boards는 `, b.id DESC`·ListBoardPins는 `, p.id DESC`) 추가 +
+         `sqlc generate`): 동일 3페이지 호출 → pins[].id 합집합이 정확히 6개·중복 0·
+         누락 0(disjoint·완전성) 확인. EXPLAIN 으로 정렬 플랜이 tie-breaker 포함해도
+         기존 인덱스 사용 유지(회귀 없음) 확인.
+      5. 회귀: 동률 없는 일반 검색어로 결과 순서·개수 불변 확인. pins.sql 기존
+         tie-breaker 쿼리(ListPinsByCreator 등) 동작 불변 확인.
+    impact: 3
+    confidence: 3
+    effort: 2
+    risk: 2
+    score: 2.25
+    status: pending
+    note: |
+      Discovery cycle 780 보안 다음 정합성(integrity) 로테이션에서 발굴.
+      신규 fresh sub-surface = "list/pagination 쿼리 ORDER BY 결정성(고유 tie-breaker
+      부재 → OFFSET 페이지 중복/누락)". 기존 정합성 cycle(768 nullability·756 string-CHECK·
+      744 post-pivot·732 updated_at·720 tags·694 media_type·682 constraints·670 codegen·
+      658 FK·646 partial-index·634 UPDATE·622 INSERT)·742 anti-pattern(limit/offset
+      자원고갈 축)·580/774/776(feed cross-소스 interleave 축) 모두와 직교. confidence=3:
+      재현 가능한 비결정성 메커니즘(tx-안정 now() 동률)+코드베이스 tie-breaker 관례
+      배킹이나, 검색·보드 페이지네이션 disjoint를 강제하는 live doc SHALL 부재(검색 spec
+      미배포)·manifest 데이터 의존이라 5 아님. 수정은 마이그레이션 무관(.sql ORDER BY
+      9곳에 고유 컬럼 append + sqlc regen), 외부 계약 불변, 롤백 trivial.
+
   - id: system-20260519-auth-callback-error-query-reflection-no-escape
     title: "OAuth callback handler가 provider error query param을 url.QueryEscape 없이 redirect Location에 반영해 reflected query parameter injection / open redirect 보조 통로 형성"
     area: security
