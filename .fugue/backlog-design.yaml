@@ -3262,3 +3262,22 @@ items:
     status: done
     pr: 1454
     note: "cycle 841 Processing 머지. globals.css :root 에 `color-scheme: dark`·.light 에 `color-scheme: light` 2줄 추가(diff +2). 실 브라우저 QA(Chrome localhost:3000): dark 기본 `getComputedStyle(html).colorScheme`=='dark'·body bg #0C0C0C, `.light` 토글 시 colorScheme=='light'(`.light` 가 :root 동일특이도+후순위로 override)·body bg #F5F5F0, `--bg` custom property·body 배경 정상 flip(테마 토글 회귀 0), HMR 규칙 라이브(:root color-scheme:dark·.light color-scheme:light 둘 다 stylesheet 확인)·콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. 네이티브 UA 크롬(문서 세로 스크롤바·입력 autofill·textarea/file)이 선택 테마에 맞춰 렌더(DESIGN.md dark 기본값 정합·anti-pattern 168 OS-동기화와 구별: OS 미독·자동전환 없는 UA 크롬 선언)."
+  - id: "design-20260609-geist-mono-cdn-link-404-not-loaded"
+    title: "Geist Mono 웹폰트 link 가 404 를 반환해 로드되지 않아 태그/메타데이터/수치/코드(font-mono 전체)가 시스템 monospace 로 폴백된다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/layout.tsx:17-19"
+        - "apps/web/src/app/globals.css:59"
+        - "apps/web/src/app/globals.css:65"
+        - "apps/web/src/app/pins/[id]/page.tsx:130"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:352"
+      cite: "DESIGN.md Typography L20-21 — Data/Tags=Geist Mono(태그·메타데이터·수치)·Code=Geist Mono. L24-25 Loading 이 Geist Mono CDN URL(https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/style.css)을 명시하나 해당 URL 이 HTTP 404(curl 확인: 'Couldn't find the requested file /dist/fonts/geist-mono/style.css in geist.')를 반환. geist@1.2.0 npm 패키지는 next/font 전용 배포라 link 가능한 standalone CSS 가 없어(모든 dist 경로 404) DESIGN.md L25 literal URL 이 stale. 결과로 globals.css:59 `--font-mono: 'Geist Mono', monospace` 의 'Geist Mono' web @font-face 가 로드 0 이고, Geist Mono 미설치 사용자는 font-mono 사용 25곳/13파일(뱃지·치수·pin_count·시간코드·메타데이터)이 전부 시스템 monospace 로 폴백 → DESIGN.md L20-21 Data/Tags/Code=Geist Mono 역할이 렌더 출력에서 site-wide 위반. 선례 design-20260515-general-sans-not-loaded(area tokens, done, Fontshare 로 해결)와 동일 결함류로, Geist Mono 만 동형 미해결 상태. anti-pattern 미해당(폰트 link 로드 실패/404/display 폐기 baseline 부재)."
+      repro: "(a) curl -o /dev/null -w '%{http_code}' 'https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/style.css' → 404 (대조 Pretendard·Fontshare General Sans=200). (b) 실 브라우저에서 Geist Mono link 의 stylesheet 가 sheet=false·rules=no-sheet 로 미적용 확정. (c) Geist Mono 미설치 환경에서 핀 상세 태그(pins/[id]:130/152)·치수(PinCreateForm:352)·시간코드(VideoTrimModal:207/265)가 시스템 monospace 로 렌더 → DESIGN.md '기술적 느낌' 의도와 불일치. 주의: Geist Mono 가 OS 에 설치된 dev 머신은 정상으로 보여 로컬 QA 가 결함을 가릴 수 있음."
+    qa_plan: "실 브라우저(Chrome localhost:3000, Geist Mono 미설치 프로필 또는 web @font-face 강제): Geist Mono 를 로드되는 소스로 교체(next/font/google Geist_Mono·Google Fonts CSS2 link·self-host woff2 중 택1) 후 (1) Network 에서 Geist Mono 글꼴 200 로드·document.fonts 에 등재, (2) font-mono 25곳이 Geist Mono 로 렌더(monospace 폴백 해소), (3) tabular-nums(globals.css:65) 회귀 0, (4) Pretendard/General Sans·테마 토글 회귀 0, (5) DESIGN.md L25 stale URL 갱신, (6) lint/tsc/vitest 통과."
+    impact: 4
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 4.0
+    status: pending
