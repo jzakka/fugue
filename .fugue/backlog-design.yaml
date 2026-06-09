@@ -3222,4 +3222,6 @@ items:
     effort: 1
     risk: 2
     score: 3.0
-    status: pending
+    status: done
+    pr: 1421
+    note: "cycle 799 Processing 머지. SearchBar.tsx L223 최근검색 '제거' 버튼 className `p-1`(20x20) → `inline-flex items-center justify-center w-6 h-6 shrink-0`(24x24) 1줄 변경(diff +1 -1). WCAG 2.5.8 Target Size(Minimum) AA 24x24 직접 충족(타깃 자체 24x24 라 spacing 예외 불요). 실 브라우저 QA(Chrome localhost:3000): fugue_recent_searches 3건 seed → 드롭다운 렌더(콘솔 에러 0), delete 버튼 getBoundingClientRect 수정 전 20x20→후 24x24(3행 모두 display:flex w-6 h-6), hover X reveal+아이콘 중앙정렬, delete 클릭→최근검색 제거(3→2), 인접 검색어 버튼 클릭→/search?q= 정상 네비(회귀 0). lint 0 errors·tsc 0·vitest 47 passed. PinCard:116 w-6 h-6 아이콘 버튼 패턴과 정합."
