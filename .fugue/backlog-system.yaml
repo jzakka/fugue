@@ -1588,7 +1588,7 @@ items:
     risk: 2
     score: 2.25
     status: done
-    pr: 1440
+    pr: 1442
     note: |
       cycle 784(Processing) 완료. search.sql 8건 + boards.sql ListBoardPins 의 OFFSET
       페이지네이션 ORDER BY 에 고유 tie-breaker append(검색 pins `, p.id DESC`·creators
