@@ -6,6 +6,7 @@
    ============================================================ */
 
 :root {
+  color-scheme: dark;
   --bg: #0C0C0C;
   --surface: #161616;
   --surface-elevated: #1E1E1E;
@@ -25,6 +26,7 @@
 }
 
 .light {
+  color-scheme: light;
   --bg: #F5F5F0;
   --surface: #FFFFFF;
   --surface-elevated: #FAFAFA;
