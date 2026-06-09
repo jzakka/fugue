@@ -3242,3 +3242,21 @@ items:
     risk: 2
     score: 3.0
     status: done
+  - id: "design-20260609-globals-no-color-scheme-ua-chrome"
+    title: "globals.css 가 color-scheme 속성을 선언하지 않아 네이티브 UA 크롬(스크롤바·autofill·textarea/file)이 다크 배경에서 라이트로 렌더된다 (CSS color-scheme 미선언)"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/globals.css:8"
+        - "apps/web/src/app/globals.css:27"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:441"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:480"
+      cite: "DESIGN.md Color L37-52 — dark 스펙-강제 기본값(#0C0C0C)·light 토글 전환. globals.css :root(L8 dark)·.light(L27 light) 가 custom properties 만 정의하고 `color-scheme: dark/light` 를 선언하지 않으며(grep color-scheme/colorScheme 전 src 0건) Next layout.tsx 에 viewport.colorScheme 도 부재. color-scheme 미선언 시 브라우저는 네이티브 UA 크롬(문서 세로 스크롤바·입력 autofill 배경·textarea 내부 스크롤바/resize·file 컨트롤)을 라이트 UA 기본값으로 렌더해 #0C0C0C 다크 갤러리 배경과 충돌. anti-pattern 168(cycle 811)과 구별: 168 은 prefers-color-scheme/matchMedia 로 OS 를 읽어 테마를 자동 전환하는 후보(입력-읽기→테마 뒤집기)를 폐기하나, 본 후보는 이미 선택된 테마에 맞춰 color-scheme 속성을 선언(출력-선언→UA 크롬 테마)하는 것으로 OS 미독·자동전환 없음·기본 테마 불변 — 168 이 폐기한 OS 동기화 패턴에 미해당."
+      repro: "dev 서버에서 (a) 메인 피드(마조너리 세로 스크롤) 스크롤바가 #0C0C0C 다크 배경 위에 라이트 트랙/썸으로 렌더, (b) login/검색/프로필 입력에 autofill 시 라이트(노란/흰) 배경, (c) /pin/new textarea(:480) 내부 스크롤바/resize 그립이 라이트로 렌더 → 다크 갤러리 미감과 시각 충돌. globals.css 어디에도 color-scheme 선언 없음."
+    qa_plan: "실 브라우저(Chrome localhost:3000): globals.css :root 에 color-scheme: dark·.light 에 color-scheme: light 추가 후 (1) dark 기본 모드에서 세로 스크롤바/autofill/textarea 가 다크로 렌더, (2) ThemeToggle 로 light 전환 시 UA 크롬이 라이트로 렌더, (3) 기존 custom properties/토큰·테마 토글 회귀 0, (4) lint/tsc/vitest 통과."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 2
+    score: 3.0
+    status: pending
