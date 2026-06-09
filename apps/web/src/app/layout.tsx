@@ -16,7 +16,7 @@ export default function RootLayout({
       <head>
         <link
           rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-mono/style.css"
+          href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap"
         />
         <link
           rel="stylesheet"
