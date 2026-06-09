@@ -394,6 +394,104 @@ func (q *Queries) LinkPinTag(ctx context.Context, arg LinkPinTagParams) error {
 	return err
 }
 
+const listLatestPinsExcludingRecommended = `-- name: ListLatestPinsExcludingRecommended :many
+SELECT
+    p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,
+    p.og_image, p.og_data, p.created_at,
+    c.id AS creator_id_ref,
+    c.nickname AS creator_nickname,
+    c.avatar_url AS creator_avatar_url
+FROM pins p
+JOIN creators c ON c.id = p.creator_id
+WHERE NOT (
+    p.creator_id != $1
+    AND (
+        EXISTS (
+            SELECT 1 FROM pin_tags pt
+            WHERE pt.pin_id = p.id AND pt.tag_id = ANY($2::uuid[])
+        )
+        OR ($3::text[] IS NOT NULL AND p.media_type = ANY($3::text[]))
+    )
+)
+ORDER BY p.created_at DESC, p.id DESC
+LIMIT $4 OFFSET $5
+`
+
+type ListLatestPinsExcludingRecommendedParams struct {
+	CreatorID uuid.UUID
+	Column2   []uuid.UUID
+	Column3   []string
+	Limit     int32
+	Offset    int32
+}
+
+type ListLatestPinsExcludingRecommendedRow struct {
+	ID               uuid.UUID
+	CreatorID        uuid.UUID
+	MediaUrl         string
+	MediaType        string
+	Url              sql.NullString
+	Title            string
+	Description      sql.NullString
+	OgImage          sql.NullString
+	OgData           pqtype.NullRawMessage
+	CreatedAt        time.Time
+	CreatorIDRef     uuid.UUID
+	CreatorNickname  string
+	CreatorAvatarUrl sql.NullString
+}
+
+// Latest ("보충") source for the personalized feed. Excludes the recommendation
+// population — pins by OTHER creators ($1) that match the requester's top tags
+// ($2) or top media types ($3) — so the latest source and the recommended
+// source (RecommendByTags / RecommendByMediaType) draw from disjoint pools. No
+// pin can then appear in both sources within a page or across pages, satisfying
+// the feed `페이지 간 작품 중복을 반환하지 않는다` SHALL. The requester's own pins are
+// never recommended (the recommend queries filter `creator_id != $caller`), so
+// they remain eligible here.
+func (q *Queries) ListLatestPinsExcludingRecommended(ctx context.Context, arg ListLatestPinsExcludingRecommendedParams) ([]ListLatestPinsExcludingRecommendedRow, error) {
+	rows, err := q.db.QueryContext(ctx, listLatestPinsExcludingRecommended,
+		arg.CreatorID,
+		pq.Array(arg.Column2),
+		pq.Array(arg.Column3),
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListLatestPinsExcludingRecommendedRow
+	for rows.Next() {
+		var i ListLatestPinsExcludingRecommendedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.MediaUrl,
+			&i.MediaType,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.OgImage,
+			&i.OgData,
+			&i.CreatedAt,
+			&i.CreatorIDRef,
+			&i.CreatorNickname,
+			&i.CreatorAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLatestPinsWithCreator = `-- name: ListLatestPinsWithCreator :many
 SELECT
     p.id, p.creator_id, p.media_url, p.media_type, p.url, p.title, p.description,

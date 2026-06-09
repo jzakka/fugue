@@ -42,9 +42,10 @@ type recordingQuerier struct {
 	mtFreqErr error
 	mtRecsErr error
 
-	tagCalls    []db.RecommendByTagsParams
-	mtCalls     []db.RecommendByMediaTypeParams
-	latestCalls []db.ListPinsWithCreatorParams
+	tagCalls      []db.RecommendByTagsParams
+	mtCalls       []db.RecommendByMediaTypeParams
+	latestCalls   []db.ListPinsWithCreatorParams
+	excludedCalls []db.ListLatestPinsExcludingRecommendedParams
 }
 
 func (r *recordingQuerier) CountUserPins(_ context.Context, _ uuid.UUID) (int64, error) {
@@ -78,6 +79,31 @@ func (r *recordingQuerier) RecommendByMediaType(_ context.Context, p db.Recommen
 func (r *recordingQuerier) ListPinsWithCreator(_ context.Context, p db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error) {
 	r.latestCalls = append(r.latestCalls, p)
 	return sliceRowsLatest(r.allLatest, int(p.Offset), int(p.Limit)), nil
+}
+
+// ListLatestPinsExcludingRecommended models the production SQL: the latest
+// ("보충") source returns recent pins MINUS the recommendation population. The
+// fake reproduces that effect by dropping any allLatest row whose pin id also
+// appears in the recommendation universes (allRec ∪ allMT) — the behavioral
+// equivalent of the query's `NOT EXISTS tag match / media_type match`. This is
+// what makes the two sources disjoint pools even when their universes overlap.
+func (r *recordingQuerier) ListLatestPinsExcludingRecommended(_ context.Context, p db.ListLatestPinsExcludingRecommendedParams) ([]db.ListLatestPinsExcludingRecommendedRow, error) {
+	r.excludedCalls = append(r.excludedCalls, p)
+	recommendedIDs := make(map[uuid.UUID]struct{}, len(r.allRec)+len(r.allMT))
+	for _, row := range r.allRec {
+		recommendedIDs[row.ID] = struct{}{}
+	}
+	for _, row := range r.allMT {
+		recommendedIDs[row.ID] = struct{}{}
+	}
+	filtered := make([]db.ListLatestPinsExcludingRecommendedRow, 0, len(r.allLatest))
+	for _, row := range r.allLatest {
+		if _, isRec := recommendedIDs[row.ID]; isRec {
+			continue
+		}
+		filtered = append(filtered, db.ListLatestPinsExcludingRecommendedRow(row))
+	}
+	return sliceRows(filtered, int(p.Offset), int(p.Limit)), nil
 }
 
 func sliceRows[T any](src []T, offset, limit int) []T {
@@ -126,6 +152,25 @@ func makeLatestRow(seed int) db.ListPinsWithCreatorRow {
 		Title:           fmt.Sprintf("latest-%d", seed),
 		CreatorIDRef:    creatorID,
 		CreatorNickname: fmt.Sprintf("creator-%d", seed),
+	}
+}
+
+// makeLatestRowWithID builds a latest row that reuses an existing pin id — i.e.
+// a pin that is BOTH recent and part of the recommendation population.
+func makeLatestRowWithID(seed int, id uuid.UUID) db.ListPinsWithCreatorRow {
+	row := makeLatestRow(seed)
+	row.ID = id
+	return row
+}
+
+func assertNoIntraPageDup(t *testing.T, pins []PinResponse, label string) {
+	t.Helper()
+	seen := make(map[string]struct{}, len(pins))
+	for _, p := range pins {
+		if _, dup := seen[p.ID]; dup {
+			t.Fatalf("%s contains duplicate pin id %s within a single page; the recommended and latest sources overlap and are merged without dedup", label, p.ID)
+		}
+		seen[p.ID] = struct{}{}
 	}
 }
 
@@ -221,6 +266,80 @@ func TestPersonalizedFeed_PagesAreDisjoint(t *testing.T) {
 	}
 }
 
+// TestPersonalizedFeed_OverlappingPopulationsAreDisjoint is the regression
+// guard for the cross-source overlap bug. Unlike
+// TestPersonalizedFeed_PagesAreDisjoint (whose recommended and latest universes
+// have completely disjoint pin ids and therefore can never reproduce the bug),
+// here the latest universe deliberately SHARES pin ids with the recommendation
+// universe — modelling a pin that matches the user's tags AND is recent. The
+// two sources order such a pin differently (tag-match rank vs recency rank), so
+// without population-level exclusion it surfaces in two different pages (and can
+// even appear twice within one page). The fix routes the latest source through
+// ListLatestPinsExcludingRecommended, which drops the recommendation
+// population, restoring disjointness. If the handler reverts to plain
+// ListPinsWithCreator for the personalized latest source, this test fails.
+func TestPersonalizedFeed_OverlappingPopulationsAreDisjoint(t *testing.T) {
+	const limit = 20
+
+	allRec := make([]db.RecommendByTagsRow, 60)
+	for i := range allRec {
+		allRec[i] = makeRecRow(i)
+	}
+
+	// The first 30 latest rows ARE recommendation pins (shared ids), scattered
+	// across tag ranks so a pin recent enough for page-1's latest window also
+	// lands in a later page's recommended window. The remaining 50 are
+	// latest-only pins.
+	allLatest := make([]db.ListPinsWithCreatorRow, 80)
+	for j := 0; j < 30; j++ {
+		tagRank := (j*7 + 3) % 60
+		allLatest[j] = makeLatestRowWithID(j, allRec[tagRank].ID)
+	}
+	for j := 30; j < 80; j++ {
+		allLatest[j] = makeLatestRow(j)
+	}
+
+	q := &recordingQuerier{
+		pinCount: 15,
+		tagFreq: []db.GetUserTagFrequencyRow{
+			{TagID: uuid.New(), Freq: 5},
+		},
+		allRec:    allRec,
+		allLatest: allLatest,
+	}
+	h, _ := newTestHandler(t, q)
+
+	userID := uuid.New()
+
+	req1 := authenticatedRequest(t, fmt.Sprintf("/api/feed?limit=%d", limit), userID)
+	rec1 := httptest.NewRecorder()
+	h.GetFeed(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("page 1 status: got %d, want 200; body=%s", rec1.Code, rec1.Body.String())
+	}
+	resp1 := decodeFeedResp(t, rec1.Body.Bytes())
+	if resp1.NextCursor == nil {
+		t.Fatalf("page 1: expected next_cursor to be non-nil (returned %d items)", len(resp1.Pins))
+	}
+	assertNoIntraPageDup(t, resp1.Pins, "page 1")
+
+	req2 := authenticatedRequest(t, fmt.Sprintf("/api/feed?limit=%d&cursor=%s", limit, *resp1.NextCursor), userID)
+	rec2 := httptest.NewRecorder()
+	h.GetFeed(rec2, req2)
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("page 2 status: got %d, want 200; body=%s", rec2.Code, rec2.Body.String())
+	}
+	resp2 := decodeFeedResp(t, rec2.Body.Bytes())
+	assertNoIntraPageDup(t, resp2.Pins, "page 2")
+
+	page1IDs := pinIDSet(resp1.Pins)
+	for _, p := range resp2.Pins {
+		if _, dup := page1IDs[p.ID]; dup {
+			t.Fatalf("page 2 contains pin id %s already on page 1 even though recommended/latest populations overlap; cross-source disjointness violated", p.ID)
+		}
+	}
+}
+
 // TestPersonalizedFeed_OffsetPropagatesToAllSources asserts the SHALL
 // "cursor가 표현하는 페이지 위치(offset)는 응답을 만들 때 사용되는 모든
 // underlying 쿼리에 일관되게 전파되어야 한다" by inspecting the offset values
@@ -266,20 +385,20 @@ func TestPersonalizedFeed_OffsetPropagatesToAllSources(t *testing.T) {
 		}
 	}
 
-	if len(q.latestCalls) == 0 {
-		t.Fatalf("ListPinsWithCreator was never called")
+	if len(q.excludedCalls) == 0 {
+		t.Fatalf("ListLatestPinsExcludingRecommended was never called")
 	}
 	// The first latest call (non-fill-gap) should receive the page offset.
-	firstLatest := q.latestCalls[0]
+	firstLatest := q.excludedCalls[0]
 	if int(firstLatest.Offset) != pageOffset {
-		t.Fatalf("ListPinsWithCreator first call: Offset=%d, want %d (page offset must propagate to latest source)", firstLatest.Offset, pageOffset)
+		t.Fatalf("ListLatestPinsExcludingRecommended first call: Offset=%d, want %d (page offset must propagate to latest source)", firstLatest.Offset, pageOffset)
 	}
 	// If a fill-gap call happened, its offset must be page offset + latest consumed,
 	// not 0 or len(latestRows).
-	if len(q.latestCalls) > 1 {
-		fill := q.latestCalls[1]
+	if len(q.excludedCalls) > 1 {
+		fill := q.excludedCalls[1]
 		if int(fill.Offset) < pageOffset {
-			t.Fatalf("ListPinsWithCreator fill-gap call: Offset=%d, must be >= page offset %d", fill.Offset, pageOffset)
+			t.Fatalf("ListLatestPinsExcludingRecommended fill-gap call: Offset=%d, must be >= page offset %d", fill.Offset, pageOffset)
 		}
 	}
 }

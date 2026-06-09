@@ -6753,5 +6753,5 @@ items:
     effort: 3
     risk: 2
     score: 2.0
-    status: pending
+    status: done
     note: "cycle 774 발견. cross-소스(추천 vs 최신) 정렬 상이 + interleave dedup 부재 + latest 쿼리의 recommended 모집단 미제외가 결합해 feed/spec.md L78-81 연속-페이지 disjoint SHALL 위반. cycle 580 anti-pattern(deficit-fill 축)과 다른 축."
