@@ -3259,4 +3259,6 @@ items:
     effort: 1
     risk: 2
     score: 3.0
-    status: pending
+    status: done
+    pr: 1454
+    note: "cycle 841 Processing 머지. globals.css :root 에 `color-scheme: dark`·.light 에 `color-scheme: light` 2줄 추가(diff +2). 실 브라우저 QA(Chrome localhost:3000): dark 기본 `getComputedStyle(html).colorScheme`=='dark'·body bg #0C0C0C, `.light` 토글 시 colorScheme=='light'(`.light` 가 :root 동일특이도+후순위로 override)·body bg #F5F5F0, `--bg` custom property·body 배경 정상 flip(테마 토글 회귀 0), HMR 규칙 라이브(:root color-scheme:dark·.light color-scheme:light 둘 다 stylesheet 확인)·콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. 네이티브 UA 크롬(문서 세로 스크롤바·입력 autofill·textarea/file)이 선택 테마에 맞춰 렌더(DESIGN.md dark 기본값 정합·anti-pattern 168 OS-동기화와 구별: OS 미독·자동전환 없는 UA 크롬 선언)."
