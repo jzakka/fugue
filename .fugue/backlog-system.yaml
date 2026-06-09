@@ -6691,3 +6691,67 @@ items:
     status: done
     pr: 1341
     note: "cycle 708 처리 완료. service.go:118 가드를 `if err != nil && err != sql.ErrNoRows`로, 복구 조건을 `if err == sql.ErrNoRows || newCreator.ID == uuid.Nil`로 수정해 ON CONFLICT zero-row(ErrNoRows) 시 재조회·병합 경로가 살아남. service_tx_test.go에 결정론적 통합 테스트 추가(경쟁 미커밋 INSERT가 unique email 키를 점유→service INSERT가 ON CONFLICT 발동). 실 DB QA: 수정 전 `create creator: sql: no rows in result set` 실패 재현→수정 후 진 요청이 winner creator로 병합·creators 행 정확히 1개 확인."
+
+  - id: system-20260609-feed-personalized-page-disjoint
+    title: "개인화 피드가 추천 소스와 최신 소스를 dedup 없이 interleave 하여 연속 페이지·동일 페이지에서 같은 작품이 중복 등장(feed disjoint SHALL 위반)"
+    area: openspec-gap
+    evidence:
+      files:
+        - "apps/api/internal/feed/handler.go:186-306"
+        - "apps/api/internal/feed/handler.go:308-325"
+        - "apps/api/db/queries/interactions.sql:26-57"
+        - "apps/api/db/queries/pins.sql:56-66"
+      cite: |
+        openspec/specs/feed/spec.md "개인화 피드의 페이지네이션은 페이지 간 작품 중복을
+        반환하지 않는다" (L70-91)
+        - Scenario "연속한 두 페이지의 작품 ID 교집합은 비어 있다"(L78-81): 콜드스타트
+          임계 이상 인증 호출자가 page1 응답의 next_cursor 를 그대로 다음 cursor 로
+          넘기면 "두 응답의 pins[].id 집합은 disjoint이다. 같은 작품이 두 페이지에
+          모두 등장해서는 안 된다"(SHALL).
+        - L72: "연속한 두 페이지 응답의 작품 식별자 교집합은 비어 있어야 한다(SHALL)".
+        주: openspec 은 판단 1순위가 아니나(AGENTS.md > ... > openspec), 본 Requirement
+        는 명시적 SHALL + 구체 Scenario 라 "취향" 이슈가 아니며 OpenSpec갭 영역 대상이다.
+      repro: |
+        1. buildPersonalizedFeed(handler.go:186)는 두 소스에서 작품을 모은다:
+           - recommended = RecommendByTags(interactions.sql:26-43, ORDER BY
+             태그매칭수 DESC, created_at DESC, id DESC) + (부족 시) RecommendByMediaType
+             (interactions.sql:45-57, ORDER BY created_at DESC, id DESC), 둘 다 Offset=offset.
+           - latest = ListPinsWithCreator(pins.sql:56, Column1="" Column2=nil →
+             전체 핀, ORDER BY created_at DESC, id DESC), Offset=offset.
+        2. interleave(handler.go:308-325)는 두 슬라이스를 번갈아 append 할 뿐
+           dedup 이 전혀 없다. latest 쿼리도 recommended 모집단을 제외하지 않는다
+           (NOT EXISTS/NOT IN 없음). 즉 두 소스의 모집단이 겹친다.
+        3. 두 소스의 정렬 공간이 다르다(태그매칭수 우선 vs 순수 최신). 같은 핀 P의
+           recommended 정렬 위치와 latest 정렬 위치가 서로 다르다.
+        4. 동일 페이지 중복: page1(offset 0)에서 recommended[0:recLimit]와
+           latest[0:latestLimit]에 동시에 드는 핀(유저 선호 태그를 달고 최근에 올라온
+           핀)이 interleave 결과에 두 번 등장 → pins[].id 집합 비-disjoint.
+        5. 연속 페이지 중복: buildNextCursor(handler.go:369)는 returnedCount==limit 일
+           때 next offset = offset+limit. limit=20·recLimit=10·latestLimit=10 가정 시
+           핀 P의 최신순위 5(=page1.latest[0:10] 포함)·태그순위 25(=page2.recommended
+           [20:30] 포함)이면 P가 page1·page2 양쪽에 등장 → L78-81 위반.
+        6. cycle 580 anti-pattern(line 26)은 deficit-fill Offset:offset+len(latestRows)
+           축의 latest-소스 자기 disjoint만 증명했고, 본 cross-소스(recommended vs latest,
+           정렬 상이) 중복은 다루지 않는다 — 다른 축이라 anti-pattern 매칭 아님.
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA(docker-compose up -d + go run cmd/server):
+      (1) 시드: creator A(요청자)에게 핀 >=10개를 특정 태그 T로 생성(콜드스타트 임계
+          돌파 + GetUserTagFrequency 가 T 반환). 다른 creator B가 태그 T를 단 핀을
+          최근 시각으로 다수 생성해 같은 핀이 RecommendByTags 상위 + ListPinsWithCreator
+          상위에 동시에 들도록 한다.
+      (2) A의 JWT로 GET /api/feed (page1) 호출 → pins[].id 집합 P1, next_cursor 수신.
+          GET /api/feed?cursor=<next_cursor> (page2) → pins[].id 집합 P2.
+      (3) 수정 전: |P1 교 P2| > 0 또는 단일 응답 내 중복 id 존재를 먼저 재현(현행 위반).
+          psql 로 시드 데이터·정렬을 직접 확인(두 ORDER BY 정렬 공간 비교).
+      (4) 수정 후: latest 소스가 recommended 모집단을 제외(personalized 분기 latest
+          쿼리에 유저 태그/미디어 매칭 NOT EXISTS 추가 등)하거나 응답 단계 seen-id
+          dedup 적용 → P1 교 P2 == 공집합 이고 단일 응답 내 중복 0 임을 curl 응답으로 확인.
+      (5) 회귀: 콜드스타트(핀<10) 분기·비인증 분기가 기존 최신순 동작을 유지하는지
+          (buildLatestFeed 경로) 각 1회 curl 로 확인.
+    impact: 3
+    confidence: 4
+    effort: 3
+    risk: 2
+    score: 2.0
+    status: pending
+    note: "cycle 774 발견. cross-소스(추천 vs 최신) 정렬 상이 + interleave dedup 부재 + latest 쿼리의 recommended 모집단 미제외가 결합해 feed/spec.md L78-81 연속-페이지 disjoint SHALL 위반. cycle 580 anti-pattern(deficit-fill 축)과 다른 축."
