@@ -3225,3 +3225,20 @@ items:
     status: done
     pr: 1421
     note: "cycle 799 Processing 머지. SearchBar.tsx L223 최근검색 '제거' 버튼 className `p-1`(20x20) → `inline-flex items-center justify-center w-6 h-6 shrink-0`(24x24) 1줄 변경(diff +1 -1). WCAG 2.5.8 Target Size(Minimum) AA 24x24 직접 충족(타깃 자체 24x24 라 spacing 예외 불요). 실 브라우저 QA(Chrome localhost:3000): fugue_recent_searches 3건 seed → 드롭다운 렌더(콘솔 에러 0), delete 버튼 getBoundingClientRect 수정 전 20x20→후 24x24(3행 모두 display:flex w-6 h-6), hover X reveal+아이콘 중앙정렬, delete 클릭→최근검색 제거(3→2), 인접 검색어 버튼 클릭→/search?q= 정상 네비(회귀 0). lint 0 errors·tsc 0·vitest 47 passed. PinCard:116 w-6 h-6 아이콘 버튼 패턴과 정합."
+  - id: "design-20260609-video-trim-drag-no-single-pointer-alt"
+    title: "VideoTrimModal 트림 핸들/window 가 onPointerDown 드래그로만 조작돼 단일 포인터(탭) 대안이 없다 (WCAG 2.5.7 Dragging Movements AA)"
+    area: a11y
+    evidence:
+      files:
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:215-220"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:233-236"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:247-264"
+      cite: "WCAG 2.2 SC 2.5.7 Dragging Movements (Level AA) — 드래그 동작으로 수행하는 모든 기능은 드래그 없이 단일 포인터로도 달성 가능해야 한다(드래그가 essential 한 경우 제외). 트림 시작/종료/window 조정은 핸들/window div 의 onPointerDown→track onPointerMove 드래그로만 가능하며, track div(:215-220)는 onPointerMove/onPointerUp/onPointerLeave 만 갖고 onPointerDown/onClick(탭-투-포지션)이 없어 비-드래그 단일 포인터 경로가 없다. 핸들/window 는 plain <div>(tabindex/role/onKeyDown 없음)라 Tab 포커스 순서에도 없어 키보드 접근(2.1.1 A)도 불가. trim 값 설정은 탭-투-포지션/입력/스텝 버튼으로 대체 가능하므로 essential 예외 미해당."
+      repro: "dev 서버에서 비디오 업로드 → VideoTrimModal 진입 → 마우스 드래그 없이 (a) track 선택영역 바깥을 클릭(탭)만 → 변화 없음(가장 가까운 핸들이 클릭 위치로 이동 안 함), (b) Tab 키로 핸들 포커스 시도 → 핸들이 포커스 순서에 없음. 즉 드래그 외 방법으로 trim start/end 조정 불가."
+    qa_plan: "실 브라우저(Chrome localhost:3000): 비디오 업로드 후 트림 모달에서 (1) 드래그 없이 track 좌/우 클릭 → 가장 가까운 핸들이 클릭 위치로 점프(MIN_CLIP1/MAX_CLIP15 클램프 유지), (2) 기존 핸들/window 드래그 회귀 0, (3) 선택 완료 disabled 게이팅(clip<MIN/>MAX) 정상, (4) (키보드 보강 시) Tab→핸들 포커스·Arrow 조정·aria-value* 노출."
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: pending
