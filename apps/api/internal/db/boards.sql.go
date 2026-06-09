@@ -158,7 +158,7 @@ FROM board_pins bp
 JOIN pins p ON p.id = bp.pin_id
 JOIN creators c ON c.id = p.creator_id
 WHERE bp.board_id = $1
-ORDER BY bp.created_at DESC
+ORDER BY bp.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3
 `
 

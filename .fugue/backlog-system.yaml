@@ -1587,8 +1587,21 @@ items:
     effort: 2
     risk: 2
     score: 2.25
-    status: pending
+    status: done
+    pr: 1442
     note: |
+      cycle 784(Processing) 완료. search.sql 8건 + boards.sql ListBoardPins 의 OFFSET
+      페이지네이션 ORDER BY 에 고유 tie-breaker append(검색 pins `, p.id DESC`·creators
+      `, id DESC`·boards `, b.id DESC`·ListBoardPins `, p.id DESC`) + sqlc generate.
+      top-N(LIMIT-only) 쿼리(SearchTopTags·ListPublicBoardsByPin·ListBoardPinImages)는
+      OFFSET 없어 미수정. 실 DB QA: 동일 created_at(같은 tx now()) 핀 6건 시드 →
+      (1) 수정 전 분석: ORDER BY created_at DESC 단독은 6행 동률에 대해 non-total →
+      두 valid 정렬(id ASC/DESC) 존재로 페이지 경계 미정의(중복/누락 가능)를 psql 로 입증.
+      (2) 수정 후: limit2 offset0/2/4 3페이지를 psql·실엔드포인트(GET /api/search) 양쪽에서
+      walk → 6행/6 distinct(disjoint+complete)·id DESC total-order 결정성·재호출 안정성 확인.
+      회귀: creators 검색·일반어 검색 200·offset=2 재호출 동일·빈 q 400·EXPLAIN 정렬키만
+      추가(플랜 회귀 없음). 마이그레이션 무관·외부 계약 불변.
+      ---
       Discovery cycle 780 보안 다음 정합성(integrity) 로테이션에서 발굴.
       신규 fresh sub-surface = "list/pagination 쿼리 ORDER BY 결정성(고유 tie-breaker
       부재 → OFFSET 페이지 중복/누락)". 기존 정합성 cycle(768 nullability·756 string-CHECK·

@@ -17,7 +17,7 @@ WHERE similarity(p.title, $1) > 0.1
      SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
      WHERE pt.pin_id = p.id AND t.name = $1
    )
-ORDER BY score DESC, p.created_at DESC
+ORDER BY score DESC, p.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchPinsByILIKE :many
@@ -34,7 +34,7 @@ WHERE p.title ILIKE '%' || $1 || '%'
      SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
      WHERE pt.pin_id = p.id AND t.name ILIKE '%' || $1 || '%'
    )
-ORDER BY p.created_at DESC
+ORDER BY p.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchPinsWithTagFilter :many
@@ -58,7 +58,7 @@ WHERE (similarity(p.title, $1) > 0.1
    ))
   AND (SELECT COUNT(*) FROM pin_tags pt2
        WHERE pt2.pin_id = p.id AND pt2.tag_id = ANY($4::uuid[])) = array_length($4::uuid[], 1)
-ORDER BY score DESC, p.created_at DESC
+ORDER BY score DESC, p.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchPinsILIKEWithTagFilter :many
@@ -77,21 +77,21 @@ WHERE (p.title ILIKE '%' || $1 || '%'
    ))
   AND (SELECT COUNT(*) FROM pin_tags pt2
        WHERE pt2.pin_id = p.id AND pt2.tag_id = ANY($4::uuid[])) = array_length($4::uuid[], 1)
-ORDER BY p.created_at DESC
+ORDER BY p.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchCreatorsBySimilarity :many
 SELECT id, nickname, avatar_url, created_at
 FROM creators
 WHERE similarity(nickname, $1) > 0.1
-ORDER BY similarity(nickname, $1) DESC, created_at DESC
+ORDER BY similarity(nickname, $1) DESC, created_at DESC, id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchCreatorsByILIKE :many
 SELECT id, nickname, avatar_url, created_at
 FROM creators
 WHERE nickname ILIKE '%' || $1 || '%'
-ORDER BY created_at DESC
+ORDER BY created_at DESC, id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchBoardsBySimilarity :many
@@ -100,7 +100,7 @@ SELECT b.id, b.creator_id, b.name, b.description, b.is_public, b.created_at, b.u
 FROM boards b
 JOIN creators c ON c.id = b.creator_id
 WHERE b.is_public = true AND similarity(b.name, $1) > 0.1
-ORDER BY similarity(b.name, $1) DESC, b.created_at DESC
+ORDER BY similarity(b.name, $1) DESC, b.created_at DESC, b.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchBoardsByILIKE :many
@@ -109,7 +109,7 @@ SELECT b.id, b.creator_id, b.name, b.description, b.is_public, b.created_at, b.u
 FROM boards b
 JOIN creators c ON c.id = b.creator_id
 WHERE b.is_public = true AND b.name ILIKE '%' || $1 || '%'
-ORDER BY b.created_at DESC
+ORDER BY b.created_at DESC, b.id DESC
 LIMIT $2 OFFSET $3;
 
 -- name: SearchTopTags :many
