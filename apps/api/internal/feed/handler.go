@@ -27,6 +27,7 @@ type FeedQuerier interface {
 	RecommendByTags(ctx context.Context, arg db.RecommendByTagsParams) ([]db.RecommendByTagsRow, error)
 	RecommendByMediaType(ctx context.Context, arg db.RecommendByMediaTypeParams) ([]db.RecommendByMediaTypeRow, error)
 	ListPinsWithCreator(ctx context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error)
+	ListLatestPinsExcludingRecommended(ctx context.Context, arg db.ListLatestPinsExcludingRecommendedParams) ([]db.ListLatestPinsExcludingRecommendedRow, error)
 }
 
 type Handler struct {
@@ -175,6 +176,35 @@ func (h *Handler) buildLatestFeed(ctx context.Context, limit, offset int) (FeedR
 	}, nil
 }
 
+// buildExcludedLatestFeed serves a latest-only page for a personalized caller
+// whose recommendation source is empty at this offset. It draws from the
+// recommendation-excluded pool (the same pool buildPersonalizedFeed's mixed
+// branch uses for its latest portion) so pages stay disjoint across the
+// personalized→latest transition. With empty tagIDs and mediaTypes the
+// exclusion predicate is a no-op, degrading to plain latest.
+func (h *Handler) buildExcludedLatestFeed(ctx context.Context, creatorID uuid.UUID, tagIDs []uuid.UUID, mediaTypes []string, limit, offset int) (FeedResponse, error) {
+	rows, err := h.q.ListLatestPinsExcludingRecommended(ctx, db.ListLatestPinsExcludingRecommendedParams{
+		CreatorID: creatorID,
+		Column2:   tagIDs,
+		Column3:   mediaTypes,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
+	})
+	if err != nil {
+		return FeedResponse{}, fmt.Errorf("ListLatestPinsExcludingRecommended (no-rec fallback): %w", err)
+	}
+
+	pins := make([]PinResponse, 0, len(rows))
+	for _, row := range rows {
+		pins = append(pins, listRowToPinResponse(db.ListPinsWithCreatorRow(row)))
+	}
+
+	return FeedResponse{
+		Pins:       pins,
+		NextCursor: buildNextCursor(offset, limit, len(pins)),
+	}, nil
+}
+
 // buildPersonalizedFeed assembles a personalized feed page for an authenticated
 // caller whose pin count crosses the cold-start threshold. The `offset` argument
 // is the page position decoded from the cursor; it is propagated to every
@@ -198,6 +228,29 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID
 		tagIDs = append(tagIDs, row.TagID)
 	}
 
+	// Resolve the user's top media types up front. Together with tagIDs they
+	// define the recommendation population that the latest ("보충") source must
+	// exclude on EVERY page — otherwise a pin matching the user's tags/media
+	// appears in both the recommended source and the latest source, which order
+	// it differently, so the same pin surfaces in different pages and violates
+	// the feed `페이지 간 작품 중복을 반환하지 않는다` SHALL. mtRows is reused by the
+	// fallback below so GetUserMediaTypeFrequency runs once. Fail-open: a DB
+	// error degrades the exclusion to tag-only (still correct for the tag
+	// population) but stays operator-visible — mirroring the additive-logging
+	// contract from this file's cache branches and the auth silent-error series.
+	var mediaTypes []string
+	mtRows, mtErr := h.q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
+		CreatorID: creatorID,
+		Limit:     3,
+	})
+	if mtErr != nil {
+		log.Printf("feed.buildPersonalizedFeed: GetUserMediaTypeFrequency error: %v (user=%s)", mtErr, creatorID)
+	} else {
+		for _, mr := range mtRows {
+			mediaTypes = append(mediaTypes, mr.MediaType)
+		}
+	}
+
 	recLimit := (limit + 1) / 2
 	var recRows []db.RecommendByTagsRow
 
@@ -213,62 +266,52 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID
 		}
 	}
 
-	// Fallback: if tags produced insufficient results, try media-type-based.
-	// Errors from GetUserMediaTypeFrequency / RecommendByMediaType keep this
-	// branch fail-open (the caller has already produced a valid tag-based
-	// recRows slice, and L243 falls back to latest if recRows is still empty),
-	// but a silent discard hides DB degradation in the personalized path —
-	// operators can't distinguish "user has no media-type history" from
-	// "pin_interactions/pin_tags join is failing" until the
-	// recommended-vs-latest mix collapses to all-latest. Mirrors the
-	// additive-logging contract from this file's cache branches (L96 / L139)
-	// and the auth package silent-error series.
-	if len(recRows) < recLimit {
-		mtRows, err := h.q.GetUserMediaTypeFrequency(ctx, db.GetUserMediaTypeFrequencyParams{
+	// Fallback: if tags produced insufficient results, supplement with
+	// media-type-based recommendations using the media types resolved above.
+	if len(recRows) < recLimit && len(mediaTypes) > 0 {
+		deficit := int32(recLimit - len(recRows))
+		mtRecs, err := h.q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
+			Column1:   mediaTypes,
 			CreatorID: creatorID,
-			Limit:     3,
+			Limit:     deficit,
+			Offset:    int32(offset),
 		})
 		if err != nil {
-			log.Printf("feed.buildPersonalizedFeed: GetUserMediaTypeFrequency error: %v (user=%s)", err, creatorID)
-		} else if len(mtRows) > 0 {
-			types := make([]string, 0, len(mtRows))
-			for _, mr := range mtRows {
-				types = append(types, mr.MediaType)
-			}
-			deficit := int32(recLimit - len(recRows))
-			mtRecs, err := h.q.RecommendByMediaType(ctx, db.RecommendByMediaTypeParams{
-				Column1:   types,
-				CreatorID: creatorID,
-				Limit:     deficit,
-				Offset:    int32(offset),
-			})
-			if err != nil {
-				log.Printf("feed.buildPersonalizedFeed: RecommendByMediaType error: %v (user=%s)", err, creatorID)
-			} else {
-				for _, mr := range mtRecs {
-					recRows = append(recRows, db.RecommendByTagsRow(mr))
-				}
+			log.Printf("feed.buildPersonalizedFeed: RecommendByMediaType error: %v (user=%s)", err, creatorID)
+		} else {
+			for _, mr := range mtRecs {
+				recRows = append(recRows, db.RecommendByTagsRow(mr))
 			}
 		}
 	}
 
-	// If still nothing, fall back to latest
+	// If still nothing, fall back to latest — but for a personalized caller the
+	// fallback MUST draw from the SAME recommendation-excluded pool that the
+	// mixed branch below uses. A later page often depletes the recommendation
+	// source (its offset runs past the recommendation population) and lands
+	// here; using the unfiltered buildLatestFeed would reintroduce pins that
+	// the EARLIER pages already served from their excluded-latest portion (the
+	// two pools are positioned differently, so the same pin resurfaces) —
+	// violating the `페이지 간 작품 중복을 반환하지 않는다` SHALL. The unfiltered
+	// buildLatestFeed stays the right choice only for the cold-start / unauth
+	// branches in GetFeed, which carry no recommendation population.
 	if len(recRows) == 0 {
-		return h.buildLatestFeed(ctx, limit, offset)
+		return h.buildExcludedLatestFeed(ctx, creatorID, tagIDs, mediaTypes, limit, offset)
 	}
 
 	latestLimit := limit / 2
 	if latestLimit < 1 {
 		latestLimit = 1
 	}
-	latestRows, err := h.q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
-		Column1: "",
-		Column2: nil,
-		Limit:   int32(latestLimit),
-		Offset:  int32(offset),
+	latestRows, err := h.q.ListLatestPinsExcludingRecommended(ctx, db.ListLatestPinsExcludingRecommendedParams{
+		CreatorID: creatorID,
+		Column2:   tagIDs,
+		Column3:   mediaTypes,
+		Limit:     int32(latestLimit),
+		Offset:    int32(offset),
 	})
 	if err != nil {
-		return FeedResponse{}, fmt.Errorf("ListPinsWithCreator: %w", err)
+		return FeedResponse{}, fmt.Errorf("ListLatestPinsExcludingRecommended: %w", err)
 	}
 
 	recommended := make([]PinResponse, 0, len(recRows))
@@ -278,24 +321,25 @@ func (h *Handler) buildPersonalizedFeed(ctx context.Context, creatorID uuid.UUID
 
 	latest := make([]PinResponse, 0, len(latestRows))
 	for _, row := range latestRows {
-		latest = append(latest, listRowToPinResponse(row))
+		latest = append(latest, listRowToPinResponse(db.ListPinsWithCreatorRow(row)))
 	}
 
 	pins := interleave(recommended, latest, limit)
 
 	if len(pins) < limit {
 		deficit := limit - len(pins)
-		extraRows, err := h.q.ListPinsWithCreator(ctx, db.ListPinsWithCreatorParams{
-			Column1: "",
-			Column2: nil,
-			Limit:   int32(deficit),
-			Offset:  int32(offset + len(latestRows)),
+		extraRows, err := h.q.ListLatestPinsExcludingRecommended(ctx, db.ListLatestPinsExcludingRecommendedParams{
+			CreatorID: creatorID,
+			Column2:   tagIDs,
+			Column3:   mediaTypes,
+			Limit:     int32(deficit),
+			Offset:    int32(offset + len(latestRows)),
 		})
 		if err != nil {
-			return FeedResponse{}, fmt.Errorf("ListPinsWithCreator (fill): %w", err)
+			return FeedResponse{}, fmt.Errorf("ListLatestPinsExcludingRecommended (fill): %w", err)
 		}
 		for _, row := range extraRows {
-			pins = append(pins, listRowToPinResponse(row))
+			pins = append(pins, listRowToPinResponse(db.ListPinsWithCreatorRow(row)))
 		}
 	}
 

@@ -6753,5 +6753,6 @@ items:
     effort: 3
     risk: 2
     score: 2.0
-    status: pending
-    note: "cycle 774 발견. cross-소스(추천 vs 최신) 정렬 상이 + interleave dedup 부재 + latest 쿼리의 recommended 모집단 미제외가 결합해 feed/spec.md L78-81 연속-페이지 disjoint SHALL 위반. cycle 580 anti-pattern(deficit-fill 축)과 다른 축."
+    status: done
+    pr: 1429
+    note: "cycle 774 발견. cross-소스(추천 vs 최신) 정렬 상이 + interleave dedup 부재 + latest 쿼리의 recommended 모집단 미제외가 결합해 feed/spec.md L78-81 연속-페이지 disjoint SHALL 위반. cycle 580 anti-pattern(deficit-fill 축)과 다른 축. cycle 776 처리 완료(PR #1429): 신규 sqlc 쿼리 ListLatestPinsExcludingRecommended로 latest 소스가 recommended 모집단(creator≠user·상위태그·상위미디어 매칭)을 제외, 추천 고갈 페이지 fallback도 buildExcludedLatestFeed로 동일 제외 풀 사용. 실 DB QA: recommended∩old_latest=10→new_latest=0, A의 page1∩page2=0·페이지내 중복0 확인."
