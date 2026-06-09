@@ -3280,4 +3280,6 @@ items:
     effort: 2
     risk: 2
     score: 4.0
-    status: pending
+    status: done
+    pr: 1459
+    note: "cycle 845 Processing 머지. layout.tsx Geist Mono link href 를 404 jsdelivr(geist@1.2.0 next/font 전용·standalone CSS 없음)에서 Google Fonts CSS2(fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap, font-display:swap)로 교체(diff +1/-1). 실 브라우저 QA: document.fonts 에 Geist Mono variable face 10개 로드·load() loaded·canvas width 로 web 폰트 적용 확인(수정 전 sheet=false·@font-face 0), 홈 22곳·핀 상세 12곳 font-mono 가 'Geist Mono'+tabular-nums 렌더, Pretendard/General Sans·테마 토글 회귀 0·콘솔 에러 0. lint 0·tsc 0·vitest 47 passed. DESIGN.md L25 stale URL 은 레포 루트(apps/web 밖)라 미수정."
