@@ -3299,4 +3299,5 @@ items:
     effort: 2
     risk: 2
     score: 2.25
-    status: pending
+    status: done
+    note: "FeedContainer canonical 패턴 미러링 — error state 추가(setError), reload/loadMore catch 에서 setError 설정, IntersectionObserver 가드에 error 추가, render 에 role=alert+aria-live 에러 블록(bg-error/10 border-error/30 rounded-[6px] text-error)+'다시 시도' retry 추가, grid 분기를 error≠empty 로 재구성. 실브라우저 QA 통과: (1) 정상 0건(음악 탭)→EmptyState 마스코트 정상, 에러블록 없음 (2) 페치 실패(fetch override+이미지 탭)→에러 블록 '작품을 불러올 수 없습니다 다시 시도' 표시(빈상태로 뭉개지지 않음) (3) 다시 시도(fetch 복원)→그리드 복원 (4) 콘솔 에러 0 (5) 인접 회귀: 메인 피드(/) 20핀 정상."
