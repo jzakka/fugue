@@ -27,6 +27,7 @@ export default function PinsGrid({
   const [pins, setPins] = useState(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeType, setActiveType] = useState("");
   const offsetRef = useRef(initialPins.length);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,7 @@ export default function PinsGrid({
   const reload = useCallback(
     async (mediaType: string) => {
       setLoading(true);
+      setError(null);
       offsetRef.current = 0;
       try {
         const data = await fetchPins({
@@ -45,6 +47,7 @@ export default function PinsGrid({
         setHasMore(data.has_more);
         offsetRef.current = data.pins.length;
       } catch {
+        setError("작품을 불러올 수 없습니다");
         setPins([]);
         setHasMore(false);
       } finally {
@@ -62,6 +65,7 @@ export default function PinsGrid({
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchPins({
         creator_id: creatorId,
@@ -73,6 +77,7 @@ export default function PinsGrid({
       setHasMore(data.has_more);
       offsetRef.current += data.pins.length;
     } catch {
+      setError("추가 작품을 불러올 수 없습니다");
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -81,7 +86,7 @@ export default function PinsGrid({
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || loading) return;
+    if (!sentinel || error || loading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -91,7 +96,7 @@ export default function PinsGrid({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loadMore, loading]);
+  }, [loadMore, loading, error]);
 
   return (
     <div>
@@ -113,6 +118,23 @@ export default function PinsGrid({
         ))}
       </div>
 
+      {/* Error */}
+      {error && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mb-4 p-3 bg-error/10 border border-error/30 rounded-[6px] text-sm text-error"
+        >
+          {error}
+          <button
+            onClick={() => reload(activeType)}
+            className="ml-3 text-accent hover:underline focus-visible:underline cursor-pointer"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
       {/* Grid */}
       {loading && pins.length === 0 ? (
         <div role="status" aria-label="작품 로딩 중" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -120,15 +142,15 @@ export default function PinsGrid({
             <CardSkeleton key={i} />
           ))}
         </div>
-      ) : pins.length === 0 ? (
+      ) : pins.length === 0 && !error ? (
         <EmptyState message="아직 등록된 작품이 없습니다" />
-      ) : (
+      ) : pins.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {pins.map((pin) => (
             <PinCard key={pin.id} pin={pin} />
           ))}
         </div>
-      )}
+      ) : null}
 
       {hasMore && <div ref={sentinelRef} className="h-4" />}
       {loading && pins.length > 0 && (
