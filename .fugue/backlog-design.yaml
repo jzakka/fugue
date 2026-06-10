@@ -3283,3 +3283,20 @@ items:
     status: done
     pr: 1459
     note: "cycle 845 Processing 머지. layout.tsx Geist Mono link href 를 404 jsdelivr(geist@1.2.0 next/font 전용·standalone CSS 없음)에서 Google Fonts CSS2(fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap, font-display:swap)로 교체(diff +1/-1). 실 브라우저 QA: document.fonts 에 Geist Mono variable face 10개 로드·load() loaded·canvas width 로 web 폰트 적용 확인(수정 전 sheet=false·@font-face 0), 홈 22곳·핀 상세 12곳 font-mono 가 'Geist Mono'+tabular-nums 렌더, Pretendard/General Sans·테마 토글 회귀 0·콘솔 에러 0. lint 0·tsc 0·vitest 47 passed. DESIGN.md L25 stale URL 은 레포 루트(apps/web 밖)라 미수정."
+  - id: "design-20260609-pinsgrid-tab-reload-error-wipe-to-empty"
+    title: "PinsGrid 미디어타입 탭 전환 페치 실패가 에러 상태 없이 빈 상태('아직 등록된 작품이 없습니다')로 뭉개져 잘못된 정보 표시·기존 핀 소실·retry 부재"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:47-49"
+        - "apps/web/src/components/profile/PinsGrid.tsx:123-124"
+        - "apps/web/src/components/feed/FeedContainer.tsx:184-203"
+      cite: "DESIGN.md L14 — '마스코트: 빈 상태/온보딩에 활용'(EmptyState 는 콘텐츠 부재 신호). 에러 상태를 빈 상태로 표시하면 사용자에게 '작품이 없다'는 거짓 정보를 전달. 동종 client refetch 표면 FeedContainer 는 에러 시 role=alert+aria-live 에러 블록(FeedContainer:184-203 `bg-error/10 border-error/30 rounded-[6px] text-error`)+'다시 시도' retry(setError(null)→reloadPins)를 canonical idiom 으로 제공. PinsGrid 만 동종 client refetch(탭전환 reload)에서 catch(:47-49) setPins([])+setHasMore(false)→EmptyState(:124 '아직 등록된 작품이 없습니다')로 degrade — 에러/빈 구별 소실. anti-pattern 219(cycle 877) carve-out 이 'PinsGrid tab-reload wipe-to-empty 가 UX 결함 confidence≥3 재판정 시 등록 가능' 명시."
+      repro: "프로필/크리에이터 작품 그리드(/creators/{id} 또는 프로필)에서 (1) 작품이 존재하는 상태로 진입(서버 initialPins 렌더) → (2) DevTools Network 오프라인/4xx 강제 → (3) 미디어타입 탭(이미지/음악/영상/전체) 클릭 → reload catch(PinsGrid:47) 가 setPins([])→EmptyState '아직 등록된 작품이 없습니다' 렌더(작품이 실제 존재해도 '없음' 으로 오표시), 기존 핀 wipe, retry 버튼 없음(탭 재클릭/페이지 새로고침만 복구). 대조군: 메인 피드(/) 는 동일 조건에서 role=alert 에러 블록+'다시 시도' 노출."
+    qa_plan: "dev 서버 + 헤드리스 브라우저: (1) 작품 존재 상태 진입 후 Network 오프라인/4xx 강제→미디어타입 탭 전환 → 빈 상태가 아닌 에러 블록(role=alert aria-live)+'다시 시도' 표시, 기존 핀이 무차별 wipe 되지 않거나 retry 로 복구 가능한지 확인. (2) '다시 시도' 클릭→네트워크 복구 후 재페치 성공으로 그리드 복원. (3) 정상 페치(작품 0건)는 여전히 EmptyState 로 정확히 분기(에러 ≠ 빈상태). (4) load-more 경로(:62-80 catch)·인접 표면(FeedContainer/SearchClient/MyPageClient) 회귀 0. (5) lint/tsc/vitest 통과."
+    impact: 3
+    confidence: 3
+    effort: 2
+    risk: 2
+    score: 2.25
+    status: pending
