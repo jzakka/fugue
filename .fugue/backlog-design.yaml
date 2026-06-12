@@ -3320,3 +3320,25 @@ items:
     score: 6.0
     status: done
     note: "pins/[id]/page.tsx audio MediaPlayer 텍스트 래퍼에 min-w-0(flex item 축소 허용)+제목/닉네임 div 에 break-words 추가(diff +0/-0 className 3곳) — PR 1278 이 h1/p 에 확립한 워드브레이킹 정책을 audio 카드로 확장(flex 컨텍스트라 block h1/p 와 달리 min-w-0 추가 필요). 실 브라우저 QA(audio seed 데이터 0건 → 실 pin 상세 article[overflow-hidden]+실 컴파일 Tailwind CSS 에 audio 카드 마크업 주입 측정, qa_partial): 200자 무공백 title 기준 PRE(min-w-0/break-words 없음)=overflow-wrap:normal·1줄·flex overflow 1207px·title 우측끝 2318 > 카드끝 1111(article overflow-hidden 에 클립/뷰포트 오버플로) → POST(min-w-0+break-words)=overflow-wrap:break-word·3줄 wrap·flex overflow 0·title 우측끝 1111=카드끝 1111(완전 포함). 회귀: 짧은 제목 1줄 유지·overflow 0·아이콘 64x64 정렬 유지, 실 페이지 h1 break-words 유지, 실 image MediaPlayer 정상 렌더, 콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. PR #1555."
+  - id: "design-20260612-pinsgrid-filter-rail-scrollbar-hide"
+    title: "마이페이지 미디어타입 필터 레일(PinsGrid)만 가로 스크롤 필터 칩 레일 house idiom 인 scrollbar-hide 를 누락해 classic-scrollbar 환경에서 동일 archetype 6곳 중 1곳만 스크롤바가 노출된다"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:104"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:578"
+        - "apps/web/src/app/search/SearchClient.tsx:240"
+        - "apps/web/src/app/search/SearchClient.tsx:263"
+        - "apps/web/src/components/feed/TagFilter.tsx:47"
+        - "apps/web/src/components/feed/FieldFilter.tsx:31"
+        - "apps/web/src/app/globals.css:112-118"
+      cite: "DESIGN.md 는 스크롤바 처리를 SHALL 하지 않으나(취향 아님·codebase 확립 idiom + 디자인 시스템 일관성 기반, loop 정체성). 가로 스크롤 필터/태그 칩 레일(`flex gap-* overflow-x-auto` + `whitespace-nowrap` pill) 6곳 중 5곳 — PinCreateForm:578(`overflow-x-auto mb-3 scrollbar-hide`)·SearchClient:240(`overflow-x-auto scrollbar-hide`)·SearchClient:263(`overflow-x-auto scrollbar-hide pb-1`)·TagFilter:47(`overflow-x-auto scrollbar-hide`)·FieldFilter:31(`overflow-x-auto scrollbar-hide`) — 이 `scrollbar-hide`(globals.css:112-118 `scrollbar-width:none` + `::-webkit-scrollbar{display:none}`)로 스크롤바를 숨기는 house idiom 을 확립했는데, PinsGrid:104 미디어타입 필터 레일만 `flex gap-2 mb-6 overflow-x-auto pb-2` 로 scrollbar-hide 를 누락. classic(non-overlay) 스크롤바 브라우저(Windows/Linux Chrome·일부 환경)에서 마이페이지 미디어타입 필터 레일만 오버플로 시 가로 스크롤바가 노출돼 동일 archetype(가로 필터 칩 레일)의 cross-surface 시각 일관성이 깨진다(5/6 다수 idiom 에서 1곳 이탈, 목적-바운드 차이 아님 — SearchClient:263 은 `scrollbar-hide pb-1` 로 pb 와 scrollbar-hide 를 함께 써 pb 존재가 스크롤바 노출 의도를 뜻하지 않음). cycle 825(L177)는 이 6곳의 1.4.10 Reflow 안전성만 다뤘고 scrollbar 시각 idiom 일관성은 미대조."
+      repro: "classic 스크롤바 환경(macOS '항상 스크롤 막대 표시' 또는 Windows/Linux Chrome)에서 /mypage 진입 → 미디어타입 필터 탭 레일(전체/이미지/오디오/비디오/글/코드)이 좁은 뷰포트에서 오버플로할 때 레일 하단에 가로 스크롤바 노출. 대조군: /search 필터 레일·피드 태그 필터(TagFilter)·핀 생성 태그 레일은 scrollbar-hide 로 동일 오버플로에도 스크롤바 미노출."
+    qa_plan: "dev 서버 + 헤드리스 브라우저: (1) /mypage 좁은 뷰포트에서 PinsGrid 미디어타입 필터 레일(PinsGrid:104)의 computed scrollbar-width/`::-webkit-scrollbar` 처리가 수정 전 scrollbar-hide 미적용(스크롤바 노출 가능)인지, sibling 레일(SearchClient:240 등)은 scrollbar-width:none 인지 대조 확인. (2) PinsGrid:104 에 scrollbar-hide 추가 후 5개 sibling 레일과 동일하게 scrollbar-width:none 적용 확인. (3) 인접 회귀: /search 필터 레일·TagFilter·FieldFilter·PinCreateForm 태그 레일이 변형되지 않는지, 미디어타입 필터 가로 스크롤(휠/터치) 동작과 필터 탭 클릭/aria-pressed 유지."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
+    note: "cycle 961 발견(responsive area 86th round). 가로 필터 칩 레일 scrollbar-hide house idiom(5/6) 이탈 1곳(PinsGrid:104). 처리 시 PinsGrid:104 className 에 scrollbar-hide 추가(pb-2 유지 또는 sibling 정렬 검토 — SearchClient:263 처럼 scrollbar-hide+pb 공존 가능). 825(L177)의 1.4.10 reflow 축과 구별되는 scrollbar 시각 idiom 일관성."
