@@ -101,7 +101,7 @@ export default function PinsGrid({
   return (
     <div>
       {/* Media type filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
         {MEDIA_TYPES.map((mt) => (
           <button
             key={mt.value}
