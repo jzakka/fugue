@@ -54,9 +54,9 @@ function MediaPlayer({ pin }: { pin: Pin }) {
             <div aria-hidden="true" className="w-16 h-16 rounded-lg bg-accent-subtle flex items-center justify-center text-2xl text-accent">
               ♪
             </div>
-            <div>
-              <div className="text-lg font-semibold">{pin.title}</div>
-              <div className="text-sm text-text-muted">{pin.creator.nickname}</div>
+            <div className="min-w-0">
+              <div className="text-lg font-semibold break-words">{pin.title}</div>
+              <div className="text-sm text-text-muted break-words">{pin.creator.nickname}</div>
             </div>
           </div>
           <audio controls className="w-full" preload="metadata">
