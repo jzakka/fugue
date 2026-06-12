@@ -3340,5 +3340,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
-    note: "cycle 961 발견(responsive area 86th round). 가로 필터 칩 레일 scrollbar-hide house idiom(5/6) 이탈 1곳(PinsGrid:104). 처리 시 PinsGrid:104 className 에 scrollbar-hide 추가(pb-2 유지 또는 sibling 정렬 검토 — SearchClient:263 처럼 scrollbar-hide+pb 공존 가능). 825(L177)의 1.4.10 reflow 축과 구별되는 scrollbar 시각 idiom 일관성."
+    status: done
+    pr: 1577
+    note: "cycle 961 발견(responsive area 86th round), cycle 963 처리(PR#1577 merged). PinsGrid:104 className 에 scrollbar-hide 추가(pb-2 유지, SearchClient:263 선례). QA: 수정 className computed scrollbar-width:none(대조군 auto), /search sibling 레일 none 대조 일치 — qa_partial(실마운트 auth 게이트, 컴파일 유틸 주입 검증 audio-card PR#1555 선례). 825(L177)의 1.4.10 reflow 축과 구별되는 scrollbar 시각 idiom 일관성."
