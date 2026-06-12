@@ -17,7 +17,7 @@
 
 ## 항목
 
-## 2026-06-12 — [design] cycle 937 Processing — design-20260612-audio-card-title-overflow-wrap done (PR #PENDING)
+## 2026-06-12 — [design] cycle 937 Processing — design-20260612-audio-card-title-overflow-wrap done (PR #1555)
 변경: apps/web/src/app/pins/[id]/page.tsx audio MediaPlayer(case "audio") 텍스트 래퍼 `<div>`→`<div className="min-w-0">`, 제목 `<div className="text-lg font-semibold">`→`+break-words`, 닉네임 `<div className="text-sm text-text-muted">`→`+break-words`(className 3곳, 코드 1파일). 왜: cycle 935 가 등록한 후보(score 6.0) — `break-words` 가 pins/[id] h1(L135)·설명 p·boards/[id] h1·설명 p 4곳(PR 1278 design-20260605-overflow-wrap-freetext-guard)에만 적용돼, 동일 `pin.title`/`nickname` 을 전문 렌더하는 audio MediaPlayer 카드가 워드브레이킹 토큰 누락 → 같은 페이지 h1=break-words/audio=무방비 비정합 + WCAG 1.4.10(긴 무공백 토큰 클립/오버플로). flex row 컨텍스트라 block h1/p 와 달리 래퍼에 min-w-0(flex item min-width:auto 축소 차단 해제)도 필요. DESIGN.md 미규정(워드브레이킹 SHALL 없음)이나 PR 1278 확립 정책 정합+WCAG 1.4.10 기반. QA(실 브라우저, audio seed 0건 → 실 pin 상세 article[overflow-hidden]+실 컴파일 Tailwind CSS 에 audio 카드 마크업 주입, qa_partial): 200자 무공백 title PRE(가드 없음)=overflow-wrap:normal·1줄·flex overflow 1207px·title 우측끝 2318>카드끝 1111(클립/오버플로) → POST(min-w-0+break-words)=break-word·3줄 wrap·flex overflow 0·title 우측끝=카드끝 1111(포함). 회귀: 짧은 제목 1줄·overflow 0·아이콘 64x64 정렬 유지, 실 페이지 h1 break-words 유지, 실 image MediaPlayer 정상 렌더, 콘솔 에러 0. lint 0·tsc 0·vitest 47 passed. 영향: 코드 1파일(className 3곳)+backlog(done)+decision-log. 로테이션 = tokens 935→states(다음 디자인 발견 사이클).
 
 ## 2026-06-12 — [design] cycle 935 Discovery — tokens area 85th round word-breaking-token-cross-surface-consistency (긴 무공백 문자열·URL 의 워드브레이킹 토큰(overflow-wrap/break-words/hyphens/word-break)이 표면 간 일관 적용되는지·전문 노출 free-text 표면 중 누락된 곳이 있는지) **후보 1건 등록**
