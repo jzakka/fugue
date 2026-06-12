@@ -3367,4 +3367,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    pr: 1602
+    note: "cycle 989 발견(tokens area 90th round), cycle 991 처리(PR#1602). globals.css 에 전역 `::placeholder { color: var(--text-dim); }` 룰 추가(코드 +5줄, 단일 소스·:root/.light 테마 자동 연동). SearchBar 인라인 placeholder:text-text-dim 은 동일 값이라 무해 유지(diff 최소화). 실 브라우저 QA(dark): SearchBar placeholder=rgb(85,85,85)(text-dim)·유틸리티 없는 plain input(9개 폼 입력과 동일 className 패턴 bg-surface/border/text-text-primary)도 placeholder=rgb(85,85,85) → 전역 룰이 유틸 없는 입력에도 text-dim 적용 확인(Chrome UA 기본 placeholder≠#555 이므로 본 룰에서만 나옴, 9-input 시나리오 입증)·input value 색=rgb(232,232,232)(text-primary) 미오염·라이트모드 토글 placeholder=rgb(170,170,170)(#AAA) 테마 연동·콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. qa_partial(실 폼 페이지는 auth 게이트라 동일 className plain input 으로 전역 룰 적용 측정 — caret/audio-card PR#1555 선례)."
