@@ -3301,3 +3301,21 @@ items:
     score: 2.25
     status: done
     note: "FeedContainer canonical 패턴 미러링 — error state 추가(setError), reload/loadMore catch 에서 setError 설정, IntersectionObserver 가드에 error 추가, render 에 role=alert+aria-live 에러 블록(bg-error/10 border-error/30 rounded-[6px] text-error)+'다시 시도' retry 추가, grid 분기를 error≠empty 로 재구성. 실브라우저 QA 통과: (1) 정상 0건(음악 탭)→EmptyState 마스코트 정상, 에러블록 없음 (2) 페치 실패(fetch override+이미지 탭)→에러 블록 '작품을 불러올 수 없습니다 다시 시도' 표시(빈상태로 뭉개지지 않음) (3) 다시 시도(fetch 복원)→그리드 복원 (4) 콘솔 에러 0 (5) 인접 회귀: 메인 피드(/) 20핀 정상."
+  - id: "design-20260612-audio-card-title-overflow-wrap"
+    title: "핀 상세 audio MediaPlayer 의 제목/작성자(full-text pin.title·nickname)에 break-words 가드가 없어 같은 페이지 h1(break-words 적용)과 워드브레이킹 정책이 갈리고 긴 무공백 문자열이 가로 오버플로한다"
+    area: tokens
+    evidence:
+      files:
+        - "apps/web/src/app/pins/[id]/page.tsx:52-66"
+        - "apps/web/src/app/pins/[id]/page.tsx:57-60"
+        - "apps/web/src/app/pins/[id]/page.tsx:135"
+        - "apps/web/src/app/pins/[id]/page.tsx:140-143"
+      cite: "WCAG 2.1 SC 1.4.10 Reflow (Level AA) + 코드베이스 워드브레이킹 정책 정합(PR 1278 design-20260605-overflow-wrap-freetext-guard). DESIGN.md 는 워드브레이킹(overflow-wrap/break-words)을 SHALL 하지 않으나(취향 아님·WCAG 기반), PR 1278 이 전문(全文) 노출 free-text 표면에 `break-words` 를 codebase 정책으로 확립했다(pins/[id] h1 L135·설명 p L140-143, boards/[id] h1 L56·설명 p L60). 그 정책이 audio 카드 표면을 누락 — MediaPlayer audio case(page.tsx:52-66)가 동일 `pin.title`(L58 `<div className=\"text-lg font-semibold\">`)·`pin.creator.nickname`(L59 `<div className=\"text-sm text-text-muted\">`)을 truncate/line-clamp/break-words 없이 flex row(L53 `flex items-center gap-4`) 안에서 전문 렌더한다. 텍스트 래퍼 `<div>`(L57)에 min-w-0 부재 → flex item min-width:auto 가 무공백 토큰 폭 미만 축소를 막아, 같은 페이지 h1(L135 `pin.title` break-words 적용)과 달리 200자 무공백 URL 류 제목/닉네임이 .p-8 컨테이너→article→뷰포트로 가로 오버플로(320px 2D 스크롤). 같은 콘텐츠(pin.title)가 한 페이지에서 h1=break-words / audio 카드=무방비로 워드브레이킹 토큰 적용이 비정합."
+      repro: "dev 서버 320px 폭: media_type=audio 핀의 title(또는 nickname)에 긴 무공백 문자열(예: 200자 URL)을 넣고 /pins/{id} 진입 → audio MediaPlayer 카드 제목(page.tsx:58)이 우측으로 넘쳐 document.scrollWidth > clientWidth(가로 스크롤). 대조군: 같은 페이지 본문 h1(L135)·설명 p(L141)는 break-words 로 정상 reflow(클립/줄바꿈)."
+    qa_plan: "dev 서버 + 헤드리스 브라우저 320px: (1) audio 핀 상세에서 긴 무공백 title/nickname 으로 audio 카드(page.tsx:52-66) document.scrollWidth > clientWidth 측정 — 수정 전 true 확인. (2) min-w-0(래퍼)+break-words(제목·닉네임) 적용 후 동일 측정 false(정상 reflow) 확인, 같은 페이지 h1/설명과 워드브레이킹 정책 일치. (3) 인접 회귀: image/video/text 핀 상세 MediaPlayer·일반 공백 포함 짧은 제목·아이콘+텍스트 flex 정렬(min-w-0 도입이 아이콘/오디오 레이아웃을 깨지 않는지)·audio 플레이어 컨트롤 정상. (4) lint/tsc/vitest 통과."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
