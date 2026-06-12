@@ -3318,4 +3318,5 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    note: "pins/[id]/page.tsx audio MediaPlayer 텍스트 래퍼에 min-w-0(flex item 축소 허용)+제목/닉네임 div 에 break-words 추가(diff +0/-0 className 3곳) — PR 1278 이 h1/p 에 확립한 워드브레이킹 정책을 audio 카드로 확장(flex 컨텍스트라 block h1/p 와 달리 min-w-0 추가 필요). 실 브라우저 QA(audio seed 데이터 0건 → 실 pin 상세 article[overflow-hidden]+실 컴파일 Tailwind CSS 에 audio 카드 마크업 주입 측정, qa_partial): 200자 무공백 title 기준 PRE(min-w-0/break-words 없음)=overflow-wrap:normal·1줄·flex overflow 1207px·title 우측끝 2318 > 카드끝 1111(article overflow-hidden 에 클립/뷰포트 오버플로) → POST(min-w-0+break-words)=overflow-wrap:break-word·3줄 wrap·flex overflow 0·title 우측끝 1111=카드끝 1111(완전 포함). 회귀: 짧은 제목 1줄 유지·overflow 0·아이콘 64x64 정렬 유지, 실 페이지 h1 break-words 유지, 실 image MediaPlayer 정상 렌더, 콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. PR #1555."
