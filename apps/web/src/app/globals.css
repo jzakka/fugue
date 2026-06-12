@@ -75,6 +75,11 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Form placeholder — de-emphasis text token, theme-aware via :root/.light */
+::placeholder {
+  color: var(--text-dim);
+}
+
 /* Masonry grid gap override for react-masonry-css */
 .masonry-grid {
   display: flex;
