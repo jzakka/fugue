@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-15 — [system] cycle 1044 Discovery — 동시성 area: 아웃바운드 http.Client/Transport goroutine-safe 재사용·커넥션 풀-보존 싱글톤 생성 표면 폐기 (후보 0건)
+컨텍스트: pending=0 → Discovery. 로테이션 OLDEST-unvisited 로 동시성 area(직전 1032) 선택. 동시성은 매우 성숙(21개 가드). 미커버 fresh 표면으로 아웃바운드 `*http.Client`/`http.Transport` 의 goroutine-safe 재사용·커넥션 풀-보존(요청당 Transport 재생성 vs startup-1회 공유)을 조사 — L201 은 in-process 가변 map/전역/버킷 동기화·L435 는 *sql.DB 풀이라 별개, L335 는 HTTP 타임아웃·L232/L350 은 Body lifecycle 이라 별개.
+측정: HTTP 클라이언트 census 전수가 startup-1회-생성·struct-필드-보관·동시요청-공유. (1) SSRF-safe 팩토리 소비처 6곳(og/service.go:67→og.NewHandler() main.go:111 startup 1회 route 핸들러 공유·robots_filter:100·harvest_pipeline:154·media_validator:168·pioneer_consumer:376·helpers:34) 전부 NewSSRFSafeClient(ssrf.go:28, 자체 Transport:44+Client:67)를 1회 생성 후 필드 보관·요청당 재생성 0·http.Client/Transport stdlib goroutine-safe·봇은 프로세스당 단일 순차 Run(cycle 1032/1034). (2) auth provider: Google(provider.go:104-108 oauth2 토큰별 client, base=공유 DefaultTransport 풀)·Discord(provider.go:183 http.DefaultClient 공유 싱글톤) 둘 다 새 Transport 0→풀 보존. (3) 보관 client/Transport 생성 후 mutate 0(불변 공유). (4) crawler/http_fetcher.go:20 DefaultClient 기본값은 비프로덕션(cycle 1034 미배선).
+판정: 후보 0건. 6 SSRF 소비처 startup-1회+불변 공유·oauth provider 공유 DefaultTransport 풀 보존·stdlib goroutine-safe 계약·요청당 Transport 재생성 0 으로 풀 미재사용/공유 변형 race 부재, actionable-defect 부재, confidence<3. anti-patterns.md tail 에 cycle 1044 baseline 가드 append(L189/L201/L246/L317/L435 동시성·L232/L350 에러처리·L335 보안 과 비중첩 명시) + 본 항목 기록. 코드 미변경.
+로테이션: 동시성 1032→1044 갱신. 차기 OLDEST = 봇(직전 1034) → cycle 1046.
+
 ## 2026-06-15 — [design] cycle 1137 Discovery — tokens area 106th round css-scope-at-rule-component-boundary-style-isolation-conformance (CSS `@scope` at-rule(캐스케이드 스코핑 at-rule)을 컴포넌트 경계 토큰/스타일 격리 메커니즘으로 도입하는지·`@scope (root) to (boundary)` 로 토큰 적용 범위를 제한하는지·DESIGN.md 가 스코프드 스타일을 규정하는지) 표면 폐기 (후보 0건)
 - **결정**: clean baseline. apps/web/src(globals.css 포함) 전수에서 `@scope` at-rule 0건 → 스코프 격리 모집단 0(pure-vacuous). 스타일 격리는 Tailwind 유틸리티 클래스(컴포넌트 JSX 인라인 className)+`:root`/`.light` 커스텀 프로퍼티+`@theme inline` 으로 컴포넌트-로컬 달성 → 전역 후손 셀렉터 누수 자체가 없어 @scope 로 격리할 캐스케이드 범위가 부재.
 - **축 선택**: cycle 1129 tokens 재진입 후보 list order (a)`@scope`→(b)`light-dark()`→(c)`@container style()`→(d)`@property`. (b) light-dark()=MATCH(AP395 cycle 1061 "light-dark()(composite 462 M)" 명시)·(d) @property=MATCH(cycle 426/437)·@container 크기 쿼리=MATCH(111) PIVOT. (a) @scope 가 list order 우선·dedicated baseline 부재로 채택(pure-vacuous-0 — light-dark/theme real-population 축은 1061 에서 이미 소진).
