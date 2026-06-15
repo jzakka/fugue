@@ -6918,5 +6918,6 @@ items:
     effort: 2
     risk: 2
     score: 3.0
-    status: pending
-    note: "cycle 994 발견(봇 영역). harvester/spec.md L38-40 body_text fallback 체인 SHALL과 extractor.go:70 + s.bodyText conflation이 두 축에서 어긋남."
+    status: done
+    pr: 1652
+    note: "cycle 994 발견(봇 영역). harvester/spec.md L38-40 body_text fallback 체인 SHALL과 extractor.go:70 + s.bodyText conflation이 두 축에서 어긋남. cycle 996 처리 완료(PR #1652): 충돌 소스를 jsonLDArticleBody/jsonLDDescription/bodyDensityText/ogDescription/metaDescription 5개 scan 필드로 분리해 스펙 순서대로 resolve(JSON-LD description은 동작보존 최하위 fallback). 실 환경 QA(로컬 http 서버 실 fetch→production GenericExtractor): 수정 전 article-vs-jsonld=JSON-LD승·density-vs-ogdesc=og승(위반) → 수정 후 <article>승·본문블록승(준수)로 뒤집힘, 정상 케이스 무회귀. go test ./... 655 passed."
