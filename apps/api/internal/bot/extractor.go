@@ -104,25 +104,25 @@ func (e *GenericExtractor) Extract(htmlBytes []byte, fetchURL string) (PinDocume
 type extractScan struct {
 	base *url.URL
 
-	ogTitle         string
-	ogImage         string
-	ogURL           string
-	ogLocale        string
-	ogPublished     *time.Time
-	ogAuthor        string
-	twTitle         string
-	twImage         string
+	ogTitle           string
+	ogImage           string
+	ogURL             string
+	ogLocale          string
+	ogPublished       *time.Time
+	ogAuthor          string
+	twTitle           string
+	twImage           string
 	jsonLDTitle       string
 	jsonLDArticleBody string
 	jsonLDDescription string
 	jsonLDImage       string
-	jsonLDAuthor    string
-	jsonLDPublished *time.Time
-	htmlTitle       string
-	htmlLang        string
-	h1              string
-	linkCanonical   string
-	timeDatetime    *time.Time
+	jsonLDAuthor      string
+	jsonLDPublished   *time.Time
+	htmlTitle         string
+	htmlLang          string
+	h1                string
+	linkCanonical     string
+	timeDatetime      *time.Time
 
 	articleText       string
 	bodyDensityText   string
