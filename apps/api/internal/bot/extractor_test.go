@@ -114,6 +114,67 @@ func TestExtractor_ArticleTagOnly(t *testing.T) {
 	}
 }
 
+func TestExtractor_BodyTextArticleWinsOverJSONLD(t *testing.T) {
+	// harvester/spec.md body_text chain: <article> textContent is position 1,
+	// JSON-LD articleBody position 2. When both are present, <article> wins.
+	page := `<html><head>
+<script type="application/ld+json">{
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "articleBody":"JSON-LD article body."
+}</script>
+</head><body>
+<article><p>The real article element text.</p></article>
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/post/1")
+	if !strings.Contains(doc.BodyText, "real article element text") {
+		t.Errorf("expected <article> textContent to win over JSON-LD articleBody, got %q", doc.BodyText)
+	}
+}
+
+func TestExtractor_BodyTextDensityBlockWinsOverOGDescription(t *testing.T) {
+	// harvester/spec.md body_text chain: body text block is position 3,
+	// og:description position 4. When both are present (and no <article>/JSON-LD),
+	// the body text block wins.
+	page := `<html><head>
+<meta property="og:description" content="OG fallback description">
+</head><body>
+<p>This is the main body paragraph with the actual content.</p>
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/post/2")
+	if !strings.Contains(doc.BodyText, "main body paragraph") {
+		t.Errorf("expected body text block to win over og:description, got %q", doc.BodyText)
+	}
+}
+
+func TestExtractor_BodyTextMetaDescriptionFallback(t *testing.T) {
+	// With no <article>, no JSON-LD, no body text block, and no og:description,
+	// meta[name=description] (position 5) is used.
+	page := `<html><head>
+<meta name="description" content="Meta description fallback">
+</head><body></body></html>`
+
+	doc := extract(t, page, "https://example.com/post/3")
+	if doc.BodyText != "Meta description fallback" {
+		t.Errorf("expected meta description fallback, got %q", doc.BodyText)
+	}
+}
+
+func TestExtractor_BodyTextOGDescriptionWinsOverMetaDescription(t *testing.T) {
+	// og:description (position 4) precedes meta[name=description] (position 5).
+	page := `<html><head>
+<meta property="og:description" content="OG wins">
+<meta name="description" content="Meta loses">
+</head><body></body></html>`
+
+	doc := extract(t, page, "https://example.com/post/4")
+	if doc.BodyText != "OG wins" {
+		t.Errorf("expected og:description to win over meta description, got %q", doc.BodyText)
+	}
+}
+
 func TestExtractor_NothingPresent(t *testing.T) {
 	page := `<html><body><p>Just some text</p></body></html>`
 	doc := extract(t, page, "https://example.com/empty")

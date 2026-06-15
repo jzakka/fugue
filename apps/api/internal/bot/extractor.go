@@ -67,7 +67,18 @@ func (e *GenericExtractor) Extract(htmlBytes []byte, fetchURL string) (PinDocume
 
 	// Resolve fields with priority chains.
 	doc.Title = pickFirstNonEmpty(scan.ogTitle, scan.twTitle, scan.jsonLDTitle, scan.h1, scan.htmlTitle)
-	doc.BodyText = pickFirstNonEmpty(scan.jsonLDBody, scan.articleText, scan.bodyText)
+	// body_text fallback chain order is fixed by harvester/spec.md ("body_text
+	// 추출 fallback 체인"): <article> textContent → JSON-LD articleBody → body
+	// text block → og:description → meta[name=description]. jsonLDDescription is
+	// kept as the lowest non-spec fallback to preserve prior behavior.
+	doc.BodyText = pickFirstNonEmpty(
+		scan.articleText,
+		scan.jsonLDArticleBody,
+		scan.bodyDensityText,
+		scan.ogDescription,
+		scan.metaDescription,
+		scan.jsonLDDescription,
+	)
 	doc.ThumbnailURL = pickFirstAbsoluteURL(base, scan.ogImage, scan.twImage, scan.jsonLDImage, scan.firstArticleImage)
 	doc.Lang = pickFirstNonEmpty(scan.ogLocale, scan.htmlLang)
 	doc.Author = pickFirstNonEmpty(scan.ogAuthor, scan.jsonLDAuthor)
@@ -101,9 +112,10 @@ type extractScan struct {
 	ogAuthor        string
 	twTitle         string
 	twImage         string
-	jsonLDTitle     string
-	jsonLDBody      string
-	jsonLDImage     string
+	jsonLDTitle       string
+	jsonLDArticleBody string
+	jsonLDDescription string
+	jsonLDImage       string
 	jsonLDAuthor    string
 	jsonLDPublished *time.Time
 	htmlTitle       string
@@ -113,7 +125,9 @@ type extractScan struct {
 	timeDatetime    *time.Time
 
 	articleText       string
-	bodyText          string
+	bodyDensityText   string
+	ogDescription     string
+	metaDescription   string
 	firstArticleImage string
 
 	mediaImages []MediaCandidate
@@ -237,8 +251,8 @@ func (s *extractScan) walk(n *html.Node, inArticle bool) {
 	}
 
 	if n.Type == html.ElementNode && strings.EqualFold(n.Data, "body") {
-		if s.bodyText == "" {
-			s.bodyText = strings.TrimSpace(s.bodyTextBuf.String())
+		if s.bodyDensityText == "" {
+			s.bodyDensityText = strings.TrimSpace(s.bodyTextBuf.String())
 		}
 	}
 }
@@ -268,8 +282,8 @@ func (s *extractScan) handleMeta(n *html.Node) {
 			s.ogLocale = normalizeLang(content)
 		}
 	case "og:description":
-		if s.bodyText == "" {
-			s.bodyText = content
+		if s.ogDescription == "" {
+			s.ogDescription = content
 		}
 	case "article:published_time":
 		if s.ogPublished == nil {
@@ -290,8 +304,8 @@ func (s *extractScan) handleMeta(n *html.Node) {
 			s.twImage = content
 		}
 	case "description":
-		if s.bodyText == "" {
-			s.bodyText = content
+		if s.metaDescription == "" {
+			s.metaDescription = content
 		}
 	}
 }
@@ -340,11 +354,11 @@ func collectJSONLD(v interface{}, s *extractScan) {
 		if str, ok := t["name"].(string); ok && s.jsonLDTitle == "" {
 			s.jsonLDTitle = strings.TrimSpace(str)
 		}
-		if str, ok := t["articleBody"].(string); ok && s.jsonLDBody == "" {
-			s.jsonLDBody = strings.TrimSpace(str)
+		if str, ok := t["articleBody"].(string); ok && s.jsonLDArticleBody == "" {
+			s.jsonLDArticleBody = strings.TrimSpace(str)
 		}
-		if str, ok := t["description"].(string); ok && s.jsonLDBody == "" {
-			s.jsonLDBody = strings.TrimSpace(str)
+		if str, ok := t["description"].(string); ok && s.jsonLDDescription == "" {
+			s.jsonLDDescription = strings.TrimSpace(str)
 		}
 		if img, ok := t["image"]; ok && s.jsonLDImage == "" {
 			s.jsonLDImage = firstStringFromImageField(img)
