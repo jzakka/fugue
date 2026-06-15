@@ -81,7 +81,12 @@ func (e *GenericExtractor) Extract(htmlBytes []byte, fetchURL string) (PinDocume
 	)
 	doc.ThumbnailURL = pickFirstAbsoluteURL(base, scan.ogImage, scan.twImage, scan.jsonLDImage, scan.firstArticleImage)
 	doc.Lang = pickFirstNonEmpty(scan.ogLocale, scan.htmlLang)
-	doc.Author = pickFirstNonEmpty(scan.ogAuthor, scan.jsonLDAuthor)
+	// harvester/spec.md "lang/author/published_at 추출" lists three author
+	// sources: schema.org Author, meta[name=author], og:article:author. The
+	// scenario does not mandate an order ("순으로" is absent), so metaAuthor is
+	// appended last to preserve the prior og/JSON-LD precedence while still
+	// honoring meta[name=author] when it is the only source present.
+	doc.Author = pickFirstNonEmpty(scan.ogAuthor, scan.jsonLDAuthor, scan.metaAuthor)
 
 	if t := pickFirstTime(scan.ogPublished, scan.timeDatetime, scan.jsonLDPublished); t != nil {
 		doc.PublishedAt = t
@@ -112,6 +117,7 @@ type extractScan struct {
 	ogAuthor          string
 	twTitle           string
 	twImage           string
+	metaAuthor        string
 	jsonLDTitle       string
 	jsonLDArticleBody string
 	jsonLDDescription string
@@ -306,6 +312,10 @@ func (s *extractScan) handleMeta(n *html.Node) {
 	case "description":
 		if s.metaDescription == "" {
 			s.metaDescription = content
+		}
+	case "author":
+		if s.metaAuthor == "" {
+			s.metaAuthor = content
 		}
 	}
 }

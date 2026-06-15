@@ -284,6 +284,33 @@ func TestExtractor_TwitterFallbackForTitle(t *testing.T) {
 	}
 }
 
+func TestExtractor_MetaNameAuthorExtracted(t *testing.T) {
+	// harvester/spec.md "lang/author/published_at 추출" lists meta[name=author]
+	// as one of the three author sources. When it is the only author source,
+	// it must populate the author field.
+	page := `<html><head>
+<meta name="author" content="Meta Only Author">
+</head><body></body></html>`
+
+	doc := extract(t, page, "https://example.com/x")
+	if doc.Author != "Meta Only Author" {
+		t.Errorf("author = %q, want Meta Only Author", doc.Author)
+	}
+}
+
+func TestExtractor_OGArticleAuthorWinsOverMetaAuthor(t *testing.T) {
+	// og:article:author precedence is preserved over meta[name=author].
+	page := `<html><head>
+<meta property="article:author" content="OG Article Author">
+<meta name="author" content="Meta Author">
+</head><body></body></html>`
+
+	doc := extract(t, page, "https://example.com/x")
+	if doc.Author != "OG Article Author" {
+		t.Errorf("author = %q, want OG Article Author", doc.Author)
+	}
+}
+
 func TestExtractor_RelativeImageResolved(t *testing.T) {
 	page := `<html><head><meta property="og:image" content="/img/og.jpg"></head><body></body></html>`
 	doc := extract(t, page, "https://example.com/articles/1")
