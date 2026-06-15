@@ -6921,3 +6921,74 @@ items:
     status: done
     pr: 1652
     note: "cycle 994 발견(봇 영역). harvester/spec.md L38-40 body_text fallback 체인 SHALL과 extractor.go:70 + s.bodyText conflation이 두 축에서 어긋남. cycle 996 처리 완료(PR #1652): 충돌 소스를 jsonLDArticleBody/jsonLDDescription/bodyDensityText/ogDescription/metaDescription 5개 scan 필드로 분리해 스펙 순서대로 resolve(JSON-LD description은 동작보존 최하위 fallback). 실 환경 QA(로컬 http 서버 실 fetch→production GenericExtractor): 수정 전 article-vs-jsonld=JSON-LD승·density-vs-ogdesc=og승(위반) → 수정 후 <article>승·본문블록승(준수)로 뒤집힘, 정상 케이스 무회귀. go test ./... 655 passed."
+  - id: system-20260615-bot-meta-author
+    title: "GenericExtractor가 meta[name=author]를 author 소스로 읽지 않아 harvester 스펙이 명시한 author 3소스 중 1개가 누락됨"
+    area: bot
+    evidence:
+      files:
+        - "apps/api/internal/bot/extractor.go:84"
+        - "apps/api/internal/bot/extractor.go:260-311"
+        - "apps/api/internal/bot/extractor.go:297-310"
+      cite: |
+        openspec/specs/harvester/spec.md "lang/author/published_at 추출"
+        Scenario(L54-56): "시스템은 `<html lang>` 또는 `og:locale`로부터 lang을,
+        `schema.org` Author/`meta[name=author]`/`og:article:author`로부터 author를,
+        `schema.org` datePublished/`article:published_time`/`<time datetime>`로부터
+        published_at을 추출한다 (없으면 빈 값/null)". 이 Scenario는 Requirement
+        "PinDocument는 검색 SSOT 최소 필드를 가진다"(SHALL, L68) 및 "Generic
+        HTML→Pin extractor가 default 변환 경로다"(SHALL, L31-32) 하위로, author의
+        소스 3종을 명시한 계약이다(취향 이슈 아님, loop §9).
+      repro: |
+        스펙은 author 소스로 정확히 3종을 명시한다:
+          (1) schema.org Author  → 구현됨 (jsonLDAuthor, collectJSONLD :369-371)
+          (2) meta[name=author]  → **미구현**
+          (3) og:article:author  → 구현됨 (ogAuthor, handleMeta :292-295의
+                                    "article:author" property)
+
+        extractor.go:84
+            doc.Author = pickFirstNonEmpty(scan.ogAuthor, scan.jsonLDAuthor)
+        은 (1)·(3)만 결합하고 (2) meta[name=author]는 후보에 아예 없다.
+
+        handleMeta(:260-311)의 name switch(:297-310)는 "twitter:title",
+        "twitter:image", "description" 3개 case만 가지며 "author" case가 없다.
+        scan 구조체(:104-141)에도 metaAuthor 필드가 없다. 즉 페이지가
+        `<meta name="author" content="...">`만 가지고 JSON-LD author도
+        og:article:author도 없으면(워드프레스·뉴스·블로그에서 매우 흔한 형태)
+        PinDocument.Author는 빈 문자열로 떨어진다 — 스펙이 추출하라고 명시한
+        소스를 침묵 누락.
+
+        기존 봇 anti-pattern 가드(L218 이미지 우선순위·L320 컬럼 cap·기타 17종)와
+        decision-log 봇 항목(cycle 994 body_text 우선순위·1008 url_hash·984
+        linkstats/drain·972 Run budget·960 snapshot-first·948 image-cache-key·936
+        column-cap·924 pattern-analysis)는 모두 author 메타 추출 소스를 다루지
+        않아 매칭 아님. lang(또는/순서 강제 없음)·title h1(strict article-scope로
+        고치면 회귀 위험)은 이번 조사에서 결함 아님으로 폐기, author만 생존.
+    qa_plan: |
+      처리 모드 7단계 실 환경 QA(go test는 사전 조건일 뿐):
+      (1) 단위 재현: extractor_test.go에 `<meta name="author" content="Meta Only">`만
+          있고 JSON-LD author·article:author는 없는 HTML fixture로
+          GenericExtractor.Extract 호출 → 수정 전 doc.Author == "" 임을 먼저 확인
+          (현행 누락 재현). 또 3소스 우선순위 fixture(og:article:author +
+          meta[name=author] + JSON-LD author 동시 존재)로 어느 소스가 채택되는지 확인.
+      (2) 봇 실 실행: docker-compose up -d 후, 위 fixture를 python -m http.server로
+          서빙하고 그 URL을 frontier에 넣어 harvester를 짧은 duration으로 직접 실행.
+          psql로 pins.og_data->>'author'(또는 author 저장 컬럼)에 "Meta Only"가
+          들어갔는지 확인.
+      (3) 수정: handleMeta name switch에 `case "author":`를 추가해 metaAuthor
+          scan 필드에 first-write-wins로 채우고, :84 author 체인을 스펙 순서
+          (schema.org Author → meta[name=author] → og:article:author)에 맞춰
+          pickFirstNonEmpty(scan.jsonLDAuthor, scan.metaAuthor, scan.ogAuthor)로
+          교정. 단, 스펙 L56은 author에 "순으로"를 쓰지 않아 순서 미강제 →
+          기존 동작 보존(§5 보수)을 우선하려면 현행 (ogAuthor, jsonLDAuthor) 뒤에
+          metaAuthor만 추가하는 안도 가능. 처리 사이클에서 보수적 선택 후 decision-log 기록.
+      (4) 수정 후: (1)(2) 재실행해 meta[name=author]만 있는 페이지에서 author가
+          채워짐을 확인.
+      (5) 회귀: og:article:author만·JSON-LD author만 있는 페이지에서 기존과 동일
+          결과인지, title/lang/canonical/thumbnail 추출 무회귀인지 확인.
+    impact: 3
+    confidence: 5
+    effort: 1
+    risk: 1
+    score: 15.0
+    status: pending
+    note: "cycle 1020 발견(봇 영역, OLDEST 로테이션). harvester/spec.md L54-56이 author 소스 3종(schema.org Author/meta[name=author]/og:article:author)을 명시하나 extractor.go:84는 jsonLDAuthor+ogAuthor 2종만 결합하고 handleMeta name switch(:297-310)에 author case가 없어 meta[name=author]를 전혀 읽지 않음. 검증: handleMeta 전체 case 목록·collectJSONLD·scan 구조체 직접 확인."
