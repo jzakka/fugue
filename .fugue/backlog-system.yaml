@@ -6990,5 +6990,6 @@ items:
     effort: 1
     risk: 1
     score: 15.0
-    status: pending
-    note: "cycle 1020 발견(봇 영역, OLDEST 로테이션). harvester/spec.md L54-56이 author 소스 3종(schema.org Author/meta[name=author]/og:article:author)을 명시하나 extractor.go:84는 jsonLDAuthor+ogAuthor 2종만 결합하고 handleMeta name switch(:297-310)에 author case가 없어 meta[name=author]를 전혀 읽지 않음. 검증: handleMeta 전체 case 목록·collectJSONLD·scan 구조체 직접 확인."
+    status: done
+    pr: 1704
+    note: "cycle 1020 발견(봇 영역, OLDEST 로테이션). harvester/spec.md L54-56이 author 소스 3종(schema.org Author/meta[name=author]/og:article:author)을 명시하나 extractor.go:84는 jsonLDAuthor+ogAuthor 2종만 결합하고 handleMeta name switch(:297-310)에 author case가 없어 meta[name=author]를 전혀 읽지 않음. cycle 1022 처리 완료(PR #1704): extractScan에 metaAuthor 필드 + handleMeta에 case author 추가, author 체인 끝에 scan.metaAuthor append(스펙 L56 순서 미강제→기존 og/JSON-LD 우선순위 보존 위해 최하위 가산). 실 환경 QA(httptest 실 HTTP 서버+실 http.Get fetch+production GenericExtractor.Extract): 수정 전 meta-only author=\"\"(버그 재현)→수정 후 \"QA Meta Author\"(준수), og:article:author우선·JSON-LD단독·no-source 무회귀. go test ./... 659 passed."
