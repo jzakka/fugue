@@ -233,7 +233,7 @@ function BoardSelectModal({
       onClick={handleOverlayClick}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       {/* Panel */}
       <div
