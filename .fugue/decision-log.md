@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1197 Discovery — states area 116th round css-any-link-unified-hyperlink-state-pseudo-class-cross-surface-conformance (CSS `:any-link` 통합 링크 상태가 링크 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `:any-link`/`:link`/`:visited` 선언 0건 → 통합 링크 상태 적용 모집단 0. 링크 population 실재(`<Link>`/`<a>` 15곳)하나 베이스 링크 룩을 전역 `:any-link` 규칙이 아닌 per-element Tailwind 클래스(hover:text-accent 7·hover:text-* 21·hover:underline 4·transition-colors 67)로 부여 → `:any-link` 를 일부만 켜 링크 어휘가 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1195(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1189 states 차기 후보(:default·:any-link·:local-link·:placeholder-shown) 중 :placeholder-shown(별개 baseline)·:default(:checked cluster baseline)·:local-link(별개 baseline)은 기 커버 → PIVOT, :any-link=통합 링크 상태(`:link`+`:visited` 합집합) 축, dedicated subject-head 0건(python 확인)·링크 population 실재 → real-context census 로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `:any-link` 통합 링크 상태(`[design][states]`) dedicated subject-head baseline 0건(python 확인). :local-link(현재-페이지 링크)·:placeholder-shown(입력 placeholder)·:default(:checked cluster)·:visited/:link(방문 분기) 매치는 전부 별개 차원(현재페이지/placeholder/기본컨트롤/방문분기 vs 통합 링크 합집합)으로 :any-link 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/상태 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L38 "액센트는 사용자 액션(CTA,호버,선택)에만"·L40 "Accent hover #FF6B3D"는 호버(`:hover`) accent 정책 SHALL 이고 per-element hover variant 가 충족 — 베이스 링크 상태(`:any-link`) 메커니즘 자체는 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: `:any-link`/통합 링크 상태 grep 0건. L38/40 호버 accent 정책만 SHALL — :any-link 메커니즘 미명시(silent), per-element hover variant 가 호버 accent 충족.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `:any-link`/`:link`/`:visited` grep(0건) + 링크 15곳 hover variant(hover:text-accent/underline/transition-colors) 균일 + DESIGN.md L38/40.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `:target` URL 프래그먼트 타겟 상태(현 0); (2) `:user-valid`/`:user-invalid` 사용자 상호작용 후 검증 상태(현 0); (3) `:autofill` 브라우저 자동완성 입력 상태(현 0).
+
 ## 2026-06-18 — [design] cycle 1195 Discovery — aesthetic area 116th round css-text-spacing-trim-text-autospace-cjk-punctuation-boundary-spacing-cross-surface-conformance (CSS `text-spacing-trim`/`text-autospace` CJK 구두점·경계 간격 트리밍이 텍스트 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `text-spacing-trim`/`text-autospace`/`[text-spacing`/`[text-autospace` 선언 0건 → CJK 간격 트리밍 적용 모집단 0. 한글 CJK 텍스트 population 은 실재(Pretendard Variable)하나 구두점/경계 간격을 전부 브라우저 기본(normal 상속)으로 둠 → trim/autospace 를 일부만 켜 간격 어휘가 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1193(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1187 aesthetic 차기 후보(text-spacing-trim/text-autospace·font-kerning·font-synthesis) 중 (1)text-spacing-trim/text-autospace=CJK 구두점·경계 간격 트리밍 축, dedicated subject-head 0건(python 확인)·한글 CJK 텍스트 실재(브라우저 기본 간격) → real-context census 로 확정. font-kerning/font-synthesis 는 차기 후보로 보존.
