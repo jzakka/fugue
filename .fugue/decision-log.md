@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1173 Discovery — states area 113th round css-autofill-input-state-ua-background-override-cross-surface-conformance (자동완성으로 채워진 input 의 UA 배경/글자색 상태 CSS `:autofill`/`:-webkit-autofill` 재정의가 입력 표면 간 일관·부재한지)
+- **결정**: clean baseline. apps/web/src 전수에서 `:autofill`/`autofill:`/`:-webkit-autofill` 선언 0건 → autofill 상태 스타일 모집단 0. autofill-적격 input(type=text 8·url 2)은 실재하나 전부 UA 기본 자동완성 거동(노랑/파랑 배경)에 균일 위임(uniform)이라 표면 간 비정합 자체가 없음 — defect class 미성립.
+- **축 선택**: cycle 1171(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1165 states 재진입 후보 중 폼 상태 의사클래스 차원으로 (1):autofill→(2):user-valid/:user-invalid→(3):in-range/:out-of-range 순. real-population 우선: (1):autofill = 선언 0·input 실재하나 UA 위임 → 표면 census.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `:autofill`/자동완성 상태(`[design][states]`) dedicated baseline 0건. :dir()(cycle 1139)·:blank(1147)·:state()(1157)·WebVTT cue(1165) 매치는 전부 별개 차원(방향/빈값/커스텀상태/자막)으로 autofill 채움 상태와 비중첩. ::placeholder(globals.css 토큰)는 빈값 표시 상태로 autofill 채움과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 상태 SHALL 위반/상태 처리 표면 간 비정합 결함클래스로만 판정. DESIGN.md(104줄)에 autofill/자동완성 input 상태 규정 없음(silent). loop rule line 9 미명시 취향 문제는 이슈 아님.
+- **DESIGN.md 확인**: autofill/자동완성 grep 0건 — Color(L37-52)·Form placeholder 외 자동완성 채움 상태의 배경/글자색 토큰 정합 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `:autofill`/`autofill:`/`:-webkit-autofill` grep(0건) + text/url input population 의 autofill 거동 균일 위임 확인.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `:user-valid`/`:user-invalid` 사용자-상호작용 후 폼 검증 상태(현 0·PinCreateForm/ProfileEditForm 폼 실재); (2) `:in-range`/`:out-of-range` 수치 입력 범위 상태(현 0·number input 0 pure-vacuous); (3) `:indeterminate` 체크박스/progress 중간 상태(현 0·해당 컨트롤 0 pure-vacuous).
+
 ## 2026-06-18 — [design] cycle 1171 Discovery — aesthetic area 113th round css-text-wrap-balance-pretty-heading-paragraph-line-balancing-cross-surface-conformance (제목/본문 멀티라인 줄바꿈 밸런싱 CSS `text-wrap: balance`/`pretty`(text-wrap-style)가 표면 간 일관·부재한지)
 - **결정**: clean baseline. apps/web/src(globals.css 포함) 전수에서 `text-wrap`/`text-balance`/`text-pretty`/`wrap-balance`/`wrap-pretty` 선언 0건 → 밸런싱 적용 모집단 0. 제목/본문 population(h1~h3·PinCard title line-clamp-2 등)은 실재하나 전부 brower 기본 greedy 줄바꿈에 위임(uniform)이라 표면 간 비정합 자체가 없음 — defect class 미성립.
 - **축 선택**: cycle 1169(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1163 aesthetic 재진입 후보 중 타이포 줄바꿈 미학 차원으로 (1)text-wrap balance/pretty→(2)hyphens 하이픈네이션→(3)text-spacing-trim CJK 간격 순. real-population 우선: (1)text-wrap = 선언 0·population 실재하나 uniform 위임 → 표면 census.
