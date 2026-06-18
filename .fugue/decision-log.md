@@ -26,7 +26,7 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `(sm|md|lg|xl):whitespace-*` grep(0건) + 정적 whitespace-nowrap 8건 population(칩 레일 라벨) 의 단일 모드 균일 위임 확인.
 - **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `hyphens` 하이픈네이션 BP 전이(현 0); (2) `text-align` 정렬 BP 전이(현 정적만); (3) `columns`/multi-column count BP 전이(현 masonry 라이브러리 컬럼 외 0).
 
-## 2026-06-18 — [system] cycle 1072 Processing — 봇 handleSource srcset 첫 후보 URL 파싱(깨진 media_candidate URL 교정) (PR #PRNUM)
+## 2026-06-18 — [system] cycle 1072 Processing — 봇 handleSource srcset 첫 후보 URL 파싱(깨진 media_candidate URL 교정) (PR #1763)
 - **변경**: extractor.go handleSource가 `<source>`의 `src` 부재 시 `srcset` 원문을 그대로 쓰던 것을, 신규 `firstSrcsetURL` 헬퍼로 첫 콤마 후보의 URL 토큰(`strings.SplitN(",",2)[0]` → `strings.Fields[0]`)만 추출하도록 교정. 빈 결과면 후보 미수집(기존 빈 src 가드 재사용). 단일 함수 변경, 시그니처/호출부 불변. OpenSpec change `fix-harvester-source-srcset-url-parse` 아카이브, harvester/spec.md "media_candidates 수집" Requirement에 "source의 srcset 다중 후보에서 첫 URL만 수집" Scenario 동기화.
 - **이유**: harvester/spec.md "media_candidates 수집" SHALL("절대 경로로 변환") 위반. srcset은 URL+디스크립터 콤마 목록이라 원문 전체가 단일 URL이 아니고, absolutize가 공백/콤마를 퍼센트 인코딩해 ok=true로 통과시켜 페치 불가 URL이 수집됨. 백로그 `system-20260618-source-srcset-raw-url`(score 3.0) 처리.
 - **QA(실 환경)**: httptest 실 HTTP 서버에 `<picture><source srcset="a.webp 1x, b.webp 2x" type=image/webp>` + video `<source srcset="clip.webm 1x">` fixture 서빙 → 실 http.Get 페치 → production NewGenericExtractor().Extract. 수정 전: `.../article/a.webp%201x,%20b.webp%202x`·`clip.webm%201x`(깨짐 재현). 수정 후: `.../article/a.webp`·`clip.webm`(교정), `<img src=fallback.jpg>`는 정상 절대화(무회귀). go test ./... 659 passed, go vet 무이슈.
