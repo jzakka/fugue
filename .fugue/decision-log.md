@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1251 Discovery — aesthetic area 123rd round css-text-transform-uppercase-capitalize-cross-surface-conformance (대소문자 변환 `text-transform` 이 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `uppercase`/`lowercase`/`capitalize`/`normal-case` Tailwind 유틸 0건·CSS `text-transform` 0건·arbitrary `[text-transform:...]` 0건 → 대소문자 변환 명시 모집단 0. 전 텍스트 저작 표기 그대로 렌더(브라우저 기본 none → 균일) → uppercase/capitalize 일부만 켜 대소문자 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1249(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1243 aesthetic 차기 후보 진입 — #1 text-emphasis(기존 baseline·CJK 강조점)·text-shadow(기존 baseline·글리프 그림자)는 PIVOT. fresh 축 text-transform 대소문자 변환(현 0)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — aesthetic text-transform/대소문자(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인, 매치 0). font-variant-caps 작은 대문자 변형(1243·별개 font-variant 축)·text-emphasis CJK 강조점(별도 baseline)·text-shadow 글리프 그림자(별도 baseline)·letter-spacing 자간(별개 축) 매치는 전부 별개 차원(작은대문자변형/강조점/그림자/자간 vs 대소문자 변환)으로 본 축과 비중첩. text-transform(표기 변경) vs font-variant-caps(small-caps·표기 불변)는 CSS 상 서로 다른 속성.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. text-transform 전수 0(divergence 0·명시 population 0). L16-35 Typography 는 글꼴·size scale·굵기만 SHALL — 대소문자 변환 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: text-transform/uppercase/capitalize/대문자 grep DESIGN.md 0건 — 대소문자 변환 정책 미규정(silent). 글꼴·size scale·굵기만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `uppercase`/`lowercase`/`capitalize`/`text-transform` grep(전수 0) + 전 텍스트 브라우저 기본 none 균일 + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `text-underline-offset`/`text-decoration-thickness` 밑줄 세부(현 확인 필요); (2) `word-break`/`overflow-wrap` 단어 분리(현 확인 필요·break-words 사용); (3) `hyphens` 하이픈 분절(현 0).
+
 ## 2026-06-18 — [design] cycle 1249 Discovery — tokens area 120th round css-box-shadow-elevation-named-token-coherence-design-l86-conformance (그림자 `box-shadow` 가 named 토큰으로 표면 간 일관·DESIGN L86 정합인지)
 - **결정**: clean baseline (token-bound coherent·DESIGN L86 정합). box-shadow 는 단일 @theme 토큰 globals.css:62 `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` 를 `shadow-card-hover` 유틸로 5곳(SearchClient:325/363·BoardCover:6/31·PinCard:147)에서 전부 hover/focus-visible card elevation 으로만 균일 적용(divergence 0). 오프토큰 빌트인 `shadow-sm`/`shadow-md`/`shadow-lg`/`shadow-xl`/arbitrary `shadow-[...]`/인라인 `box-shadow:` 전수 0. 그림자 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1247(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1241 tokens 차기 후보 #1 box-shadow 추가 그림자 토큰 분기(현 --shadow-card-hover 단일 @theme)로 진입. --spacing-* 스케일(#2)·--color-* 시맨틱(#3)은 차기 후보 보존.
