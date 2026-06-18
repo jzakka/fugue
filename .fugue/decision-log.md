@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-06-18 — [system] cycle 1076 Discovery — 보안 cycle 1062 차기 재진입 후보 3건(refresh토큰 Redis 저장값·OAuth state CSRF/예측가능성·IDOR 소유권) 정밀 census 표면 폐기 (후보 0건)
+- **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1062가 남긴 보안 재진입 후보 3건을 정밀 조사한 결과 전부 이미 닫혀 있어 결함 클래스 미성립.
+- **축 선택**: rotation 상 보안 area가 OLDEST(직전 1062). pending=0이라 Discovery. fresh sub-surface census 대신 cycle 1062 decision-log가 명시한 "차기 보안 재진입 후보 3건"을 우선 정밀 검증.
+- **후보(1) refresh 토큰 Redis 저장값 시크릿/PII 노출**: 폐기. `StoreRefreshToken`(service.go:200)은 `rt:{JTI}` 키에 `{creator_id(UUID), status}`만 JSON 저장 — 원본 refresh 토큰 문자열 미저장(JTI는 키, 값은 UUID+상태). UUID는 PII 아님. RotateRefreshToken/RevokeRefreshToken도 동일 스키마. 노출 시크릿 없음.
+- **후보(2) OAuth state CSRF·예측가능성**: 폐기. `CreateState`(state.go:34)는 `crypto/rand` 32바이트(256비트) → base64url, Redis 10분 TTL 저장. `VerifyState`(state.go:60)는 atomic `GETDEL` — 단일 사용/리플레이 차단. `validateReturnTo`(state.go:78)는 protocol-relative(`//`)·역슬래시 거부로 open-redirect 차단. 예측 불가·CSRF 바인딩·재사용 방지 전부 충족.
+- **후보(3) IDOR 소유권 체크 누락 잔여 site**: 폐기. boards/handler.go 비공개 보드 조회(L209), 수정(L309 `current.CreatorID != creatorID`→403), 핀 추가(L573)·삭제(L635) 전부 소유권 검증. pin/handler.go 삭제는 `DeletePinParams{ID, CreatorID}`(L363)로 쿼리 스코프 강제. 누락 site 미발견.
+- **MANDATORY 체크**: anti-patterns + decision-log grep — 위 3 후보 모두 신규 결함 후보 미생성(census이므로 등록 항목 없음). cycle 1062 census(JWT alg-confusion·issuer/exp 검증·세션 쿠키 속성·OptionalJWT fail-open)와 비중첩.
+- **근거**: AGENTS.md > CLAUDE.md 기준 — 보안 area는 실증 가능한 공격 표면 결함만 판정. 3 후보 전부 방어 코드가 존재하여 confidence<3 미만으로 등록 대상 아님.
+- **QA**: Discovery 0-candidate census라 코드 변경 없음 → 런타임 QA 불요. 코드 확인은 state.go(crypto/rand+GETDEL)·service.go(StoreRefreshToken 스키마)·boards/pin handler 소유권 분기 Read로 수행.
+- **차기 보안 재진입 후보**(list order, 선점 시 PIVOT): (1) rate limiter 우회(IP 스푸핑 헤더 신뢰 여부); (2) 봇 크롤러 SSRF(URLScheduler 입력 URL 사설망 차단); (3) 파일 업로드 MIME/확장자 검증 우회.
+
 ## 2026-06-18 — [design] cycle 1181 Discovery — states area 114th round css-checked-pseudo-class-native-checkable-control-selection-state-cross-surface-conformance (네이티브 `:checked` 체크/선택 상태 의사클래스가 선택 가능 컨트롤 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 네이티브 체크 가능 컨트롤(`type="checkbox"`/`type="radio"`/`<option>`/`checked`/`defaultChecked`) 0건 + `:checked`/`checked:` variant 0건 → `:checked` 매칭 모집단 0. 선택/토글 UI 는 전부 커스텀 `<button aria-pressed={boolean}>` idiom(PinCreateForm·SearchClient·VideoThumbnailPicker·PinsGrid·TagFilter·FieldFilter 9곳)으로 선택 상태를 조건부 className 으로 균일 표현 → 표면 간 갈림 없음, defect class 미성립.
 - **축 선택**: cycle 1179(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1173 states 차기 후보(:user-valid/:in-range/:indeterminate)는 전부 기 baseline(L336/L397/L372)이라 PIVOT. 폼/선택 상태 의사클래스 미커버 재탐색: :read-only(L359)·:placeholder-shown(L377)·:target(L386)·:modal(L402)·:popover-open(L407)·:required/:optional(L411)·:open(L419)·:visited(L318)·미디어재생(L415) 전부 기covered PIVOT 후 → (1):checked=체크/선택 상태 축, dedicated subject-head 0건(python [] 확인)·네이티브 체크 컨트롤 0(pure-vacuous, 커스텀 aria-pressed 토글만) → 확정.
