@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1231 Discovery — responsive area 116th round css-responsive-type-scale-breakpoint-font-size-transition-cross-surface-conformance (BP-접두 반응형 타입 스케일(`sm:text-3xl` 등 글꼴 크기 전이)이 표면 간 일관·역할-바운드인지)
+- **결정**: clean baseline (role-bound coherent). BP-접두 글꼴 크기 전이 모집단 실재하나 역할로 일관 — 반응형 h1 `text-2xl sm:text-3xl` 3곳 전부 엔티티-콘텐츠 상세 제목(pins/[id]:135 핀제목·boards/[id]:56 보드명·ProfileHeader:32 프로필명, 동적 데이터·pins/boards break-words)·고정 h1 `text-2xl` 3곳 전부 앱-크롬/폼 제목(PinCreateForm:314·SearchClient:232·login:44, 정적 문자열)·본문 `text-sm sm:text-base` 2곳 일관(pins/[id]:141·boards/[id]:60). 콘텐츠-상세 제목=BP 확대 전이 / 크롬·폼 제목=고정 역할 구분(혼용 없음, divergence 0). 일부 동종 제목만 BP 전이로 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1229(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). 차기 responsive 후보 진입 — aspect-ratio(#1)·multi-column(#2)·place-items/place-content(#3) 3연속 기존 baseline 보유 → PIVOT 후 fresh 축 BP-접두 반응형 타입 스케일(글꼴 크기 BP 전이)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive 반응형 타입 스케일/BP 글꼴 크기(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, 41개 중 type-related 는 전부 별개 축). 텍스트 정렬 BP 전이(정렬축)·아바타 크기 전이(w-20 sm:w-24, 요소-크기축)·clamp()/vw 유체 사이징(별개 메커니즘)·BP 글자색 전이·truncate/line-clamp BP·text-indent BP·text-align-last BP 는 전부 별개 차원(정렬/요소크기/유체함수/글자색/절단/들여쓰기 vs 글꼴 크기 BP 전이)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. BP 글꼴 크기 전이는 엔티티-콘텐츠 상세 제목(3곳)·본문(2곳)에 일관·크롬/폼 제목(3곳)은 일관 고정 → 역할로 일관. DESIGN.md L16-35 Typography 는 글꼴·9단계 size scale·굵기만 SHALL — 반응형 타입 스케일(BP 글꼴 전이) 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: 반응형 타입 스케일/BP 글꼴 전이/sm:text grep DESIGN.md 0건 — L16-35 Typography 는 글꼴 families·9단계 size scale·굵기만 SHALL, 브레이크포인트별 글꼴 크기 전이 정책 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `sm:text-3xl`/`sm:text-base`/`text-2xl` h1 grep(반응형 3곳 전부 엔티티-상세·고정 3곳 전부 크롬/폼)·본문 2곳 일관 + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `@container` 컨테이너 쿼리(현 0); (2) BP-접두 `rounded-*` 모서리 반경 전이(현 확인 필요); (3) BP-접두 `gap-*` 그리드/플렉스 간격 전이(현 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1229 Discovery — states area 120th round css-aria-pressed-toggle-filter-selected-state-cross-surface-conformance (토글/필터 선택 버튼 `aria-pressed` 가 표면 간 일관·부재한지)
 - **결정**: clean baseline (role-bound coherent). aria-pressed 9곳 전부 토글/필터 선택 버튼(PinCreateForm:583/597/619·SearchClient:246/271·VideoThumbnailPicker:144·PinsGrid:109·TagFilter:63·FieldFilter:36)에 `aria-pressed={선택불리언}` 일관 부착·액션 버튼(제출/취소/더보기/생성)은 aria-pressed 미적용(혼용 없음). 선택 시각 채움 토큰(bg-accent/bg-text-primary) 페어링. 일부 토글만 aria-pressed 로 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1227(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1221 states 차기 후보 #1(`:read-only`)·#2(`aria-invalid`/`:invalid`)·#3(`:placeholder-shown`) 전부 기존 baseline 보유(read-only 편집상태·네이티브검증 의사클래스(aria-invalid idiom 포함)·빈/채움 입력상태) → 3연속 PIVOT 후 fresh 축 aria-pressed(토글 선택 상태)로 확정.
