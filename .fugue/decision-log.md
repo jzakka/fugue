@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1223 Discovery — responsive area 115th round css-text-align-last-justified-last-line-breakpoint-transition-cross-surface-conformance (양쪽정렬 마지막 줄 정렬 `text-align-last` 가 BP 전이/표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `text-align-last`/`[text-align-last` 선언 0건·`text-justify`/양쪽 정렬(`justify`) 텍스트 0건 → 마지막 줄 정렬 적용 모집단 0. text-align 유틸 9곳 실재하나 전부 단순 좌/중/우 블록 정렬(`justify` 미사용) → text-align-last(양쪽 정렬일 때만 유의미) 적용 대상 없음. BP-접두 정렬 전이 0건 → 일부만 BP 로 마지막 줄 정렬 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1221(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1215 responsive 차기 후보 #1(`scroll-margin`/`scroll-padding`)은 scroll-snap cluster(cycle 1181)에서 scroll-padding 명시 포함 → 중첩으로 PIVOT, 후보 #2(`text-align-last` 마지막 줄 정렬 BP)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive `text-align-last`/`text-justify`/마지막 줄(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인). list-style-position 마커(1215)·scroll-snap/scroll-padding(1181)·grid 컬럼 BP·gap BP 매치는 전부 별개 차원(마커 위치/스크롤 스냅·오프셋/그리드 컬럼/간격 vs 마지막 줄 정렬)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴·size scale·굵기만 SHALL — 마지막 줄 정렬 정책 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: text-align-last/justify/마지막 줄 정렬 grep DESIGN.md 0건 — 정렬 정책 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `text-align-last`/`[text-align-last`/`text-justify` grep(전수 0) + text-align 단순 좌/중/우 9곳(justify 0) + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `aspect-ratio` BP 전이(현 카드 종횡비 고정 여부 확인 필요); (2) `columns`/CSS multi-column BP 전이(현 0, masonry 와 구별 필요); (3) `place-items`/`place-content` 그리드 배치 단축 BP 전이(현 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1221 Discovery — states area 119th round css-disabled-vs-aria-disabled-inactive-state-expression-cross-surface-conformance (비활성 상태를 네이티브 `disabled`/`aria-disabled` 중 일관 표현하는지)
 - **결정**: clean baseline (role-bound coherent). 네이티브 `disabled={...}` 16곳 전부 네이티브 폼 컨트롤(`<button>`/`<input>`)·`aria-disabled` 0건 → 비활성=네이티브 `disabled` 단일 어휘(혼용 없음·divergence 0). 비활성 시각도 `disabled:opacity-50`(1209 정렬)·`disabled:cursor-not-allowed` 일관. 일부만 aria-disabled 로 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1219(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1213 states 차기 후보 #1(`focus-within`/`group-focus-within`)은 이미 dedicated baseline 보유(SearchBar 2곳 컨테이너 상태) → PIVOT 후보 #2(`aria-disabled` vs `disabled` 비활성 표현)로 확정.
