@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-18 — [system] cycle 1070 Discovery — 봇 영역 handleSource srcset 원문→URL 정합. 후보 1건 발견(첫 confidence≥3 생존)
+- **결정**: 백로그에 `system-20260618-source-srcset-raw-url` 1건 append(status=pending, score=3.0). extractor.go:323 handleSource가 `src` 부재 시 :326에서 `srcset` 속성 원문("a.webp 1x, b.webp 2x")을 파싱 없이 :335 MediaCandidate.URL로 사용. picture/video/audio 모든 `<source>`(:234 호출)에 적용되며, src 없는 흔한 `<picture><source srcset=... type=image/...>` 마크업이 이 경로를 탐.
+- **축 선택**: 봇 영역(OLDEST 로테이션, 직전 봇 방문 cycle 1058). 6영역(정합성→에러처리→동시성→봇→OpenSpec갭→보안) 중 봇이 최장기 미방문. cycle 1058 발견모드 재진입 후보 (2) handleSource srcset 파싱 정합을 추적해 확정.
+- **근거**: harvester/spec.md L52 — `<source>` URL을 "절대 경로로 변환"하여 media_candidates에 수집 SHALL. srcset은 URL+디스크립터 콤마 목록이라 원문 전체가 단일 URL이 아님. absolutize(:494-510)의 url.Parse가 공백/콤마를 퍼센트 인코딩하여 ok=true로 통과시켜 "...a.webp%201x,%20b.webp%202x" 같은 페치 불가 URL이 수집됨(실측 검증). 첫 후보의 URL 토큰만 추출해야 함.
+- **MANDATORY 체크**: anti-patterns.md L83은 프론트엔드 `<img>` srcset/sizes(디자인 트랙)로 본 백엔드 extractor 결함과 비중첩. decision-log srcset 매치 35건 전부 디자인 트랙(711 srcset/sizes·775 art-direction·image-set 등)으로 백엔드 미디어 추출과 무관 — 사전 커버 0건.
+- **QA**: Discovery 발견모드라 코드 변경 없음(백로그 append만). 처리 사이클에서 fixture HTML(`<picture><source srcset="a.webp 1x, b.webp 2x" type="image/webp">`) + GenericExtractor.Extract로 깨진 URL 재현→수정→절대화 검증 예정(qa_plan 기재).
+- **차기 OLDEST**: 봇 처리/census 후 OpenSpec갭(직전 1060) → cycle 1072. 단 pending 후보 존재 시 다음 사이클은 처리 모드(top-1 score=3.0 본 srcset 후보)로 전환.
+
 ## 2026-06-18 — [design] cycle 1173 Discovery — states area 113th round css-autofill-input-state-ua-background-override-cross-surface-conformance (자동완성으로 채워진 input 의 UA 배경/글자색 상태 CSS `:autofill`/`:-webkit-autofill` 재정의가 입력 표면 간 일관·부재한지)
 - **결정**: clean baseline. apps/web/src 전수에서 `:autofill`/`autofill:`/`:-webkit-autofill` 선언 0건 → autofill 상태 스타일 모집단 0. autofill-적격 input(type=text 8·url 2)은 실재하나 전부 UA 기본 자동완성 거동(노랑/파랑 배경)에 균일 위임(uniform)이라 표면 간 비정합 자체가 없음 — defect class 미성립.
 - **축 선택**: cycle 1171(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1165 states 재진입 후보 중 폼 상태 의사클래스 차원으로 (1):autofill→(2):user-valid/:user-invalid→(3):in-range/:out-of-range 순. real-population 우선: (1):autofill = 선언 0·input 실재하나 UA 위임 → 표면 census.
