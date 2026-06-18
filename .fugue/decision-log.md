@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1209 Fix — tokens area 115th round css-opacity-disabled-dimming-cross-surface-conformance (불투명도 opacity 디밍이 표면 간 일관한지 — disabled outlier 정렬)
+- **결정**: real defect 1건 발견·수정. disabled 상태 디밍이 앱 전역 `disabled:opacity-50` 15곳 표준인데 PinCreateForm:623 태그칩만 `disabled:opacity-40` outlier(동종 비활성 컨트롤인데 디밍값 40 vs 표준 50) → cross-surface 토큰 비정합. PinCreateForm:623 `disabled:opacity-40` → `disabled:opacity-50` 1줄 수정으로 정렬. 수정 후 disabled:opacity-40 0건·disabled:opacity-50 16곳 균일.
+- **축 선택**: cycle 1207(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1201 tokens 차기 후보(opacity·blur·easing) 중 (1)opacity=불투명도 토큰 vs 빌트인 축, real-population(opacity-N 다수 실재)·dedicated subject-head 0건(python 확인) → real-context census 중 disabled 디밍 outlier 1건 검출 → FIX.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `opacity` 토큰화(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인). letter-spacing(1185)·line-height(1193)·z-index(1201)·font-weight(L164) 매치는 전부 별개 차원(자간/행간/쌓임순서/굵기 vs 불투명도)으로 opacity 축과 비중첩. color-alpha 슬래시(`/N`)는 색 알파채널 별개 축.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰 정의의 표면 간 비정합 결함클래스. DESIGN.md(105줄) opacity grep 0건(silent)이나, opacity-50 가 disabled 디밍 de-facto 토큰으로 15곳 균일 확립 → 1곳(opacity-40) 일탈은 cross-surface 비정합(loop 의 표면 간 일관성 결함). opacity-N 빌트인 유틸 자체는 결함 아님(cycle 1185/1193/1201 idiom)이나 동종 역할 디밍값 갈림은 결함.
+- **DESIGN.md 확인**: opacity/불투명도/disabled grep DESIGN.md 0건(silent) — 불투명도 named 토큰/스케일 미규정. disabled 디밍 일관성은 de-facto idiom(opacity-50) 기준.
+- **QA**: 코드 변경 1건(PinCreateForm:623 Tailwind 클래스 값 opacity-40→opacity-50, 디밍 40%→50%). 정적 conformance 검증 — disabled:opacity-40 grep 0건·disabled:opacity-50 grep 16곳 균일 확인, 신규 진단 0(245줄 FormEvent deprecation 은 기존 무관). 로직/빌드 위험 없는 순수 Tailwind opacity 유틸 값 변경. 비활성 칩이 max 태그 도달 시 타 disabled 컨트롤과 동일 50% 디밍. 풀 브라우저 QA(태그를 TAG_MAX 까지 채워 칩 disabled 디밍 관찰)는 풀스택+데이터 시드 필요로 비례성 낮아 정적 토큰 conformance 로 검증.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `blur`/backdrop-blur 토큰화(현 backdrop-blur-sm 빌트인); (2) `transition-timing-function` easing named 토큰(현 ease 빌트인·DESIGN L86 Easing SHALL); (3) `border-width` 스케일 토큰화(현 border/border-2 빌트인).
+
 ## 2026-06-18 — [design] cycle 1207 Discovery — responsive area 113th round css-caption-side-table-caption-position-breakpoint-transition-cross-surface-conformance (CSS `caption-side` 표 캡션 위치가 브레이크포인트 간 전이 시 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `caption-side`/`<table>`/`<caption>`/`<th>`/`<td>` 선언 0건 → 표/캡션 적용 모집단 0(표 구조 자체 부재), 따라서 BP-conditional 캡션 위치(`sm:caption-top`/`md:caption-bottom`) 도 0. 데이터/메타 표현(태그·수치)은 실재하나 전부 flex/grid+Geist Mono idiom 으로 처리, `<table>` 미사용 → caption-side 를 일부 BP 에서만 켜 캡션 위치가 뷰포트/표면 간 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1205(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1199 responsive 차기 후보(caption-side·scroll-margin/padding·list-style-position) 중 (1)caption-side=표 캡션 위치 BP 전이 축, dedicated subject-head 0건(python 확인)·표 구조 0/0 fully clean → pure-vacuous census 로 확정. scroll-margin/padding(scroll-snap cluster 구별)·list-style-position 은 차기 후보로 보존.
