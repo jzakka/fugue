@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1257 Discovery — tokens area 121st round css-color-semantic-theme-token-coherence-design-l37-conformance (색이 @theme 시맨틱 토큰으로 표면 간 일관·DESIGN L37-53 정합인지)
+- **결정**: clean baseline (token-bound coherent·DESIGN L37-53 정합). 색은 globals.css:43-57 `@theme inline` 16 시맨틱 토큰(`--color-bg`/surface(4종)/text(3종)/accent(3종)/semantic(4종)/border)으로 통일·컴포넌트는 전부 토큰 유틸(border-accent 69·border-border 68·text-text-primary 67·bg-accent 32 등). globals 밖 raw hex 0·Tailwind 기본 팔레트(gray/red/…) 0·arbitrary `bg-[#..]`/`[rgb/oklch]` 0. white/black 은 fixed-contrast 역할 한정(text-white 18곳 中 17곳 bg-accent 버튼·bg-black 7곳 미디어 배경/모달 스크림·bg-white 2곳 트림 핸들). 색 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1255(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1249 tokens 차기 후보 진입 — #1 `--spacing-*` 간격 스케일은 px-3(12px)·py-2.5(10px)·py-1.5(6px)·px-5(20px) 등 DESIGN L54-65 스케일(2/4/8/16/24/32/48/64) 밖 값 광범위(px-3 30곳·gap-3 17곳) → clean baseline 불가·단일 변경 불가라 PIVOT. fresh 축 #2 `--color-*` 시맨틱 색 토큰 일관성으로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — tokens 시맨틱 색/팔레트(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인, color 매치는 contrast-color() 함수 1건=별개 CSS Color5 축). caret-color(별개 캐럿색)·accent-color(별개 폼 컨트롤)·contrast-color()(별개 대비함수)·relative color/gradient color space(별개) 매치는 전부 별개 차원(캐럿/폼컨트롤/대비함수/상대색/보간 vs 시맨틱 팔레트 일관성)으로 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰/스케일 정의의 표면 간 비정합 결함클래스. 색 16 시맨틱 토큰 균일·우회 색 전수 0·white/black 은 fixed-contrast 역할 한정(divergence 0). precedent(box-shadow 1249·radius 1241): named 토큰/빌트인을 DESIGN 역할 정합으로 쓰고 비-시맨틱 요소 silent 면 결함 아님. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: L37-53 accent #E85A2A/accent-hover/subtle·bg/surface(4)/border·text(3)·semantic(4) 16색 팔레트 SHALL — @theme 토큰이 정확히 구현. 흰 글자(액센트 대비)·미디어 스크림 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 raw hex/Tailwind 팔레트/arbitrary 색 grep(전수 0)·토큰 유틸 grep(전수 토큰)·white/black 사용처 Read(고정 대비 역할)·globals.css:43-57 Read(@theme 16토큰) + DESIGN.md L37-53.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `--font-size-*`/타입 스케일 named 토큰(현 text-* 빌트인+text-2xs/3xs @theme·DESIGN 9단계 scale L26-32); (2) `--leading-*` 행간 토큰(기존 baseline 확인 필요); (3) `--z-*` 레이어 스케일(기존 baseline 보유).
+
 ## 2026-06-18 — [design] cycle 1255 Discovery — responsive area 119th round css-breakpoint-prefixed-space-y-space-x-child-spacing-transition-cross-surface-conformance (BP-접두 자식 간격 `(sm|md):space-y-*` 이 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous on BP axis). apps/web/src 전수에서 BP-접두 `space-y-*`/`space-x-*` 0건(`(sm|md|lg|xl|2xl):space-` grep 0) → 자식 간격 BP 전이 명시 모집단 0. 정적 space-y 는 실재(space-y-6 ×4·space-y-3 ×4·space-y-2 ×2·space-y-8/5/1·총 13곳·space-x 0)하나 전부 BP 접두 없는 정적값(전 BP 균일·전이 없음) → BP별 자식 간격 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1253(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1247 responsive 차기 후보 진입 — flex-direction `flex-col sm:flex-row`(기존 baseline ProfileHeader:14·ProfileSkeleton:6)는 PIVOT. fresh 축 #1 BP-접두 space-y/space-x 자식 간격 전이(현 0)로 확정.
