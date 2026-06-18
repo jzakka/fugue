@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1229 Discovery — states area 120th round css-aria-pressed-toggle-filter-selected-state-cross-surface-conformance (토글/필터 선택 버튼 `aria-pressed` 가 표면 간 일관·부재한지)
+- **결정**: clean baseline (role-bound coherent). aria-pressed 9곳 전부 토글/필터 선택 버튼(PinCreateForm:583/597/619·SearchClient:246/271·VideoThumbnailPicker:144·PinsGrid:109·TagFilter:63·FieldFilter:36)에 `aria-pressed={선택불리언}` 일관 부착·액션 버튼(제출/취소/더보기/생성)은 aria-pressed 미적용(혼용 없음). 선택 시각 채움 토큰(bg-accent/bg-text-primary) 페어링. 일부 토글만 aria-pressed 로 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1227(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1221 states 차기 후보 #1(`:read-only`)·#2(`aria-invalid`/`:invalid`)·#3(`:placeholder-shown`) 전부 기존 baseline 보유(read-only 편집상태·네이티브검증 의사클래스(aria-invalid idiom 포함)·빈/채움 입력상태) → 3연속 PIVOT 후 fresh 축 aria-pressed(토글 선택 상태)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — states `aria-pressed`/토글 선택(`[design][states]`) dedicated subject-head baseline 0건(python 확인). aria-busy 버튼 로딩(별도 baseline·버튼 요소-바운드)·:active 누름순간(별도 baseline)·aria-invalid 검증(별도 baseline)·focus-visible 패리티(1205)·로딩/에러/빈 3-way 매치는 전부 별개 차원(로딩/누름순간/검증/포커스/데이터상태 vs 토글 선택 눌림)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. aria-pressed 9곳 전부 토글 선택 버튼·액션 버튼 일관 미적용 → 요소 역할로 일관. DESIGN L41 "선택 상태"는 accent-subtle 색 토큰(시각)이지 aria-pressed 속성 아님(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: aria-pressed/토글 접근성 grep DESIGN.md 0건(L41 accent-subtle 선택 상태=색 토큰·L52/L104 토글=라이트/다크 모드) — 버튼 선택 상태 접근성 속성 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `aria-pressed` grep(9곳 전부 토글/필터 선택)·FieldFilter:36 등 필터 컴포넌트 Read(전 토글 aria-pressed)·액션 버튼 미적용 + DESIGN.md silent.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `aria-expanded` 디스클로저 펼침 상태(현 MyPageClient:76 1곳·타 디스클로저 확인 필요); (2) `aria-current` 현재 페이지/스텝 표식(현 확인 필요); (3) `:checked`/accent-color 체크박스·라디오 폼 컨트롤 상태(현 0).
+
 ## 2026-06-18 — [design] cycle 1227 Discovery — aesthetic area 120th round css-font-feature-settings-font-variant-ligatures-opentype-ligature-cross-surface-conformance (OpenType 합자 `font-feature-settings`/`font-variant-ligatures` 가 텍스트 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-feature-settings`/`font-variant-ligatures`/`[font-feature` 선언 0건 → 합자 명시 제어 모집단 0. globals:66 `font-variant-numeric: tabular-nums` 는 숫자 변형(별개 축). 텍스트 population 실재(가변폰트)하나 합자 미명시(전부 브라우저 기본 `normal` → common/contextual 합자 자동 활성·균일) → 일부만 바꿔 합자 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1225(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1219 aesthetic 차기 후보 #1(`font-feature-settings`/`font-variant-ligatures` OpenType 합자, 현 0) 진입. text-rendering·font-variant-caps 는 차기 후보로 보존.
