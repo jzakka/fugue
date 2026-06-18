@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1211 Discovery — aesthetic area 118th round css-font-synthesis-synthetic-bold-italic-suppression-cross-surface-conformance (CSS `font-synthesis` 합성 굵기/기울임 억제가 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-synthesis`/`[font-synthesis` 선언 0건 → 합성 명시 적용 모집단 0. 텍스트 population 실재(General Sans·Pretendard Variable 가변폰트·Geist Mono)하나 합성 미명시(전부 브라우저 기본 상속 → 가변폰트 실제 weight 축으로 합성 거의 미발생·균일) → font-synthesis 를 일부만 none 으로 바꿔 합성 어휘가 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1209(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1203 aesthetic 차기 후보(font-synthesis·font-feature-settings/ligatures·font-optical-sizing) 중 (1)font-synthesis=합성 굵기/기울임 억제 축, dedicated subject-head 0건(python 확인)·텍스트 population 실재(가변폰트 실제 weight) → real-context census 로 확정. font-feature-settings/font-optical-sizing 은 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `font-synthesis`/합성(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인). font-kerning 커닝(1203)·letter-spacing 자간(1185)·text-spacing-trim CJK(1195)·font-optical-sizing 광학(차기)·font-variant-numeric tabular-nums(globals .font-mono) 매치는 전부 별개 차원(커닝/자간/CJK 간격/광학/숫자변형 vs 굵기·기울임 합성)으로 font-synthesis 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴 패밀리·9단계 size scale·굵기(실제 weight)만 SHALL — 합성 억제 정책 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: font-synthesis/합성/synthesis grep DESIGN.md 0건 — 합성 억제 정책 미규정(silent). 글꼴·size scale·실제 weight 만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `font-synthesis`/`[font-synthesis` grep(0건) + 가변폰트 실제 weight 사용(합성 미발생)·전 텍스트 브라우저 기본 합성 균일 + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `font-optical-sizing` 광학 사이징(현 0·variable font 실재); (2) `font-feature-settings`/`font-variant-ligatures` OpenType 합자 세부 제어(현 0); (3) `text-rendering` 렌더링 힌트(현 0).
+
 ## 2026-06-18 — [design] cycle 1209 Fix — tokens area 115th round css-opacity-disabled-dimming-cross-surface-conformance (불투명도 opacity 디밍이 표면 간 일관한지 — disabled outlier 정렬)
 - **결정**: real defect 1건 발견·수정. disabled 상태 디밍이 앱 전역 `disabled:opacity-50` 15곳 표준인데 PinCreateForm:623 태그칩만 `disabled:opacity-40` outlier(동종 비활성 컨트롤인데 디밍값 40 vs 표준 50) → cross-surface 토큰 비정합. PinCreateForm:623 `disabled:opacity-40` → `disabled:opacity-50` 1줄 수정으로 정렬. 수정 후 disabled:opacity-40 0건·disabled:opacity-50 16곳 균일.
 - **축 선택**: cycle 1207(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1201 tokens 차기 후보(opacity·blur·easing) 중 (1)opacity=불투명도 토큰 vs 빌트인 축, real-population(opacity-N 다수 실재)·dedicated subject-head 0건(python 확인) → real-context census 중 disabled 디밍 outlier 1건 검출 → FIX.
