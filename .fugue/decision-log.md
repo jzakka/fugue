@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1217 Discovery — tokens area 116th round css-blur-backdrop-blur-intensity-token-cross-surface-conformance (블러 강도가 named 토큰 없이 표면 간 일관한지)
+- **결정**: clean baseline (role-bound coherent). `backdrop-blur-sm` 2곳 전부 동일값·동일 역할(반투명 표면 뒤 콘텐츠 흐림): VideoTrimModal:195 모달 오버레이·NavBar:12 스티키 네비. element blur(`blur-*`) 0건·named blur 토큰(`--blur-*`) @theme 0건(빌트인 유틸 idiom). 일부만 다른 강도로 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1215(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1209 tokens 차기 후보 #1(`blur`/backdrop-blur 토큰화) 진입. transition-timing easing·border-width 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — tokens `blur`/블러(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인, tokens heads 42개 중 blur/블러/backdrop 매치 0). opacity(1209)·z-index(1201)·letter-spacing(1185)·line-height(1193) 매치는 전부 별개 차원(불투명도/쌓임순서/자간/행간 vs 블러 반경)으로 본 축과 비중첩. color-alpha 슬래시(`/N`)는 색 알파채널 별개 축.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰 정의의 표면 간 비정합 결함클래스. DESIGN.md(105줄) blur grep 0건(silent)이나, backdrop-blur-sm 가 반투명 표면 backdrop 흐림 de-facto 값으로 2곳 균일 → 비정합 0. 빌트인 유틸 사용 자체는 결함 아님(cycle 1185/1193/1201/1209 idiom).
+- **DESIGN.md 확인**: blur/블러/backdrop grep DESIGN.md 0건(silent) — 블러 강도 named 토큰/스케일 미규정. backdrop 흐림 일관성은 de-facto idiom(backdrop-blur-sm) 기준.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `backdrop-blur`/`blur-` grep(backdrop-blur-sm 2곳 동일·element blur 0) + `--blur-*` @theme grep(0건) + DESIGN.md silent.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `transition-timing-function` easing named 토큰(현 ease 빌트인·DESIGN L86 Easing SHALL); (2) `border-width` 스케일 토큰화(현 border/border-2 빌트인); (3) `box-shadow` 그림자 named 토큰(현 shadow-* 빌트인 여부 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1215 Discovery — responsive area 114th round css-list-style-position-marker-placement-breakpoint-transition-cross-surface-conformance (리스트 마커 위치 `list-style-position` 가 BP 전이/표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `list-style-position`/`list-inside`/`list-outside`/`list-disc`/`marker:` 선언 0건·시맨틱 `<ul>`/`<ol>`/`<li>` 요소 0건 → 마커 적용 모집단 0. 리스트형 UI(피드·태그칩·검색결과)는 전부 div flex/grid 렌더(마커 미발생) → 일부 리스트만 BP 로 마커 위치 바꿔 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1213(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1207 responsive 차기 후보 #1(`list-style-position` 마커 위치 BP 전이, 현 0) 진입. scroll-margin/scroll-padding·text-align-last 는 차기 후보로 보존.
