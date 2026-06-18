@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1215 Discovery — responsive area 114th round css-list-style-position-marker-placement-breakpoint-transition-cross-surface-conformance (리스트 마커 위치 `list-style-position` 가 BP 전이/표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `list-style-position`/`list-inside`/`list-outside`/`list-disc`/`marker:` 선언 0건·시맨틱 `<ul>`/`<ol>`/`<li>` 요소 0건 → 마커 적용 모집단 0. 리스트형 UI(피드·태그칩·검색결과)는 전부 div flex/grid 렌더(마커 미발생) → 일부 리스트만 BP 로 마커 위치 바꿔 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1213(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1207 responsive 차기 후보 #1(`list-style-position` 마커 위치 BP 전이, 현 0) 진입. scroll-margin/scroll-padding·text-align-last 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive `list-style`/마커(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, responsive heads 39개 중 list/marker/리스트/마커 매치 0). scroll-snap cluster·grid 컬럼 BP·gap BP·order BP 매치는 전부 별개 차원(스크롤 스냅/그리드 컬럼/간격/순서 vs 리스트 마커 위치)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L67-77 Layout 은 masonry·grid 4/3/2/1 컬럼·브레이크포인트만 SHALL — 리스트 마커 위치 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: list-style/마커/리스트 마커 grep DESIGN.md 0건 — 리스트 마커 위치 정책 미규정(silent). masonry·grid 컬럼·BP 만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `list-style-position`/`list-inside`/`list-outside`/`marker:`/`<ul>`/`<ol>`/`<li>` grep(전수 0) + 리스트 UI div flex/grid 렌더(마커 미발생) + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `scroll-margin`/`scroll-padding` 스크롤 오프셋 BP 전이(현 0, scroll-snap cluster 와 구별 필요); (2) `text-align-last` 마지막 줄 정렬 BP 전이(현 0); (3) `aspect-ratio` BP 전이(현 카드 종횡비 고정 여부 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1213 Discovery — states area 118th round css-plain-focus-vs-focus-visible-role-split-cross-surface-conformance (플레인 `:focus`와 `:focus-visible`가 요소 역할로 일관 분리되는지)
 - **결정**: clean baseline (role-bound coherent). 플레인 `focus:border-accent` 11곳 전부 폼 텍스트 입력(`<input>`/`<textarea>`)·`focus-visible:` 22곳은 비입력 클릭 컨트롤(버튼/링크/카드) → 혼용이 아니라 요소 역할 기반 의미 분리(텍스트 입력=마우스+키보드 보더 하이라이트 정상, 클릭 컨트롤=키보드 전용 링 정상). 일부만 focus-visible 로 갈리는 동종 site 0, defect class 미성립.
 - **축 선택**: cycle 1211(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1205 states 차기 후보 #1(`:focus` 플레인 vs `:focus-visible` 분리) 진입. `:active`(active:cursor-grabbing 1곳, baseline 보유) 선점되어 PIVOT → 플레인:focus 축으로 확정. 11곳 요소 타입 Read 확인 전부 입력.
