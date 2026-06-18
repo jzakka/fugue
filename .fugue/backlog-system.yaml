@@ -6993,3 +6993,59 @@ items:
     status: done
     pr: 1704
     note: "cycle 1020 발견(봇 영역, OLDEST 로테이션). harvester/spec.md L54-56이 author 소스 3종(schema.org Author/meta[name=author]/og:article:author)을 명시하나 extractor.go:84는 jsonLDAuthor+ogAuthor 2종만 결합하고 handleMeta name switch(:297-310)에 author case가 없어 meta[name=author]를 전혀 읽지 않음. cycle 1022 처리 완료(PR #1704): extractScan에 metaAuthor 필드 + handleMeta에 case author 추가, author 체인 끝에 scan.metaAuthor append(스펙 L56 순서 미강제→기존 og/JSON-LD 우선순위 보존 위해 최하위 가산). 실 환경 QA(httptest 실 HTTP 서버+실 http.Get fetch+production GenericExtractor.Extract): 수정 전 meta-only author=\"\"(버그 재현)→수정 후 \"QA Meta Author\"(준수), og:article:author우선·JSON-LD단독·no-source 무회귀. go test ./... 659 passed."
+
+  - id: system-20260618-source-srcset-raw-url
+    title: "handleSource가 <source srcset>의 디스크립터 포함 원문을 파싱 없이 URL로 사용해 media_candidates에 깨진 URL이 수집됨"
+    area: bot
+    evidence:
+      files:
+        - "apps/api/internal/bot/extractor.go:323-344"
+        - "apps/api/internal/bot/extractor.go:494-510"
+        - "apps/api/internal/bot/extractor.go:234"
+      cite: |
+        openspec/specs/harvester/spec.md L52: "시스템은 본문 범위 내 `<img>`,
+        `<video>`, `<audio>`, `<source>` 태그의 URL을 절대 경로로 변환하여
+        type(image/video/audio)과 함께 `media_candidates` 배열에 수집한다."
+        → `<source>`에서 수집되는 값은 "절대 경로(유효한 절대 URL)"여야 한다.
+        그러나 srcset 속성은 `"a.webp 1x, b.webp 2x"`처럼 URL + 디스크립터의
+        콤마 구분 후보 목록이라 원문 전체는 단일 URL이 아니다.
+      repro: |
+        1. extractor.go:323 handleSource는 `src` 속성이 비면 :326에서
+           `srcset` 속성 원문을 그대로 `src` 변수에 대입한다.
+        2. :335 `MediaCandidate{Type: mediaType, URL: src}` — srcset 원문
+           ("a.webp 1x, b.webp 2x")이 파싱 없이 URL 필드로 들어간다.
+        3. handleSource는 :234에서 picture/video/audio 내 모든 `<source>`에
+           대해 호출되므로, `<picture><source srcset="a.webp 1x, b.webp 2x"
+           type="image/webp"></picture>`처럼 src 없는 흔한 picture 마크업이
+           이 경로를 탄다.
+        4. buildMediaCandidates(:512+)가 absolutize(:494-510)를 호출하는데,
+           url.Parse는 공백/콤마를 거부하지 않고 퍼센트 인코딩하므로
+           ok=true로 통과한다. 실측: base="https://example.com/article/" +
+           "a.webp 1x, b.webp 2x" →
+           "https://example.com/article/a.webp%201x,%20b.webp%202x" (유효한
+           절대 URL이 아닌 깨진 문자열).
+        5. 결과: media_candidates 배열에 디스크립터가 박힌 페치 불가능한 URL이
+           수집됨 = 스펙 L52 "절대 경로로 변환" SHALL 위반. 첫 후보 URL만
+           뽑아 절대화해야 한다.
+    qa_plan: |
+      (1) 재현: extractor_test.go에 fixture HTML
+          `<article><picture><source srcset="a.webp 1x, b.webp 2x"
+          type="image/webp"><img src="fallback.jpg"></picture></article>`를
+          base="https://example.com/article/page"로 GenericExtractor.Extract
+          돌려 media_candidates에 "...a.webp%201x,%20b.webp%202x" 같은 깨진
+          URL이 들어가는지 확인(수정 전 버그 재현).
+      (2) 수정: handleSource에서 srcset 분기 시 첫 콤마 구분 후보의 URL
+          토큰만(공백 앞부분) 추출하도록 파싱. 예: 첫 후보를 콤마로 split →
+          앞 토큰 → 공백 split → [0]. 빈 결과면 return.
+      (3) 수정 후: (1) 재실행해 media_candidates에 절대화된 "a.webp" →
+          "https://example.com/article/a.webp"가 수집됨을 확인.
+      (4) 회귀: src 속성이 있는 <source>, video/audio <source>, srcset 단일
+          URL(디스크립터 없음), 본문 범위 밖 source 무수집이 기존과 동일한지
+          go test ./internal/bot/... 로 확인.
+    impact: 3
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 3.0
+    status: pending
+    note: "cycle 1070 발견(봇 영역, OLDEST 로테이션, 직전 봇 방문 1058). cycle 1058 발견모드 재진입 후보 (2) handleSource srcset 파싱의 정합을 추적해 확정. anti-patterns.md L83은 프론트엔드 <img> srcset/sizes(디자인 트랙)라 본 백엔드 extractor 결함을 커버하지 않음. decision-log srcset 매치 35건은 전부 디자인 트랙(711 srcset/sizes·775 art-direction 등)으로 백엔드 미디어 추출과 무관. confidence=4(스펙 L52 위반 + absolutize ok=true 실측 검증), 첫 confidence≥3 생존 후보."
