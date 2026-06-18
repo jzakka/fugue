@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1225 Discovery — tokens area 117th round css-transition-timing-function-easing-token-design-l90-conformance (이징 `transition-timing-function` 이 named 토큰 없이 DESIGN L90 정합·표면 간 일관한지)
+- **결정**: clean baseline (builtin-default uniform·DESIGN L90 정합). 트랜지션 76곳(transition-colors 67·all 6·transform 2·opacity 1) 전부 hover/focus 상태전환("move"류)·명시 `ease-*` 0건·globals `--ease-*`/cubic-bezier 0건 → 전 트랜지션 Tailwind 기본 이징 `cubic-bezier(0.4,0,0.2,1)`(in-out 계열)로 균일(divergence 0). DESIGN L90 move=ease-in-out 과 정합. enter(ease-out)/exit(ease-in)은 적용 대상(모달/드롭다운 마운트 트랜지션) 0건 → vacuous. animate-* 는 전부 무한 스피너/shimmer(enter/exit 아님). defect class 미성립.
+- **축 선택**: cycle 1223(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1217 tokens 차기 후보 #1(`transition-timing-function` easing named 토큰·DESIGN L86/L90 Easing SHALL) 진입. border-width·box-shadow 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — tokens `easing`/`transition-timing`/이징(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인; text-sizing head 1건 false 매치). opacity(1209)·z-index(1201)·blur(1217)·letter-spacing(1185) 매치는 전부 별개 차원(불투명도/쌓임순서/블러/자간 vs 이징 곡선)으로 본 축과 비중첩. duration 지속시간은 별개 축.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰 정의의 표면 간 비정합 결함클래스. DESIGN.md L90 `Easing: enter(ease-out) exit(ease-in) move(ease-in-out)` SHALL — 적용 모집단 move 트랜지션은 기본 in-out 이징으로 정합·enter/exit 트랜지션 0(vacuous). 빌트인 기본 이징 균일 사용은 결함 아님(cross-surface divergence 0).
+- **DESIGN.md 확인**: L86 "150ms ease"·L90 "Easing: enter(ease-out) exit(ease-in) move(ease-in-out)"·L92 "200ms ease" — 이징 정책 명시(SHALL). move 류 트랜지션 기본 in-out 정합·enter/exit 마운트 트랜지션 미존재로 vacuous.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `ease-*`/`transition-timing`/`cubic` grep(0건)·globals 커스텀 이징 grep(0건)·트랜지션 76곳 전부 move 류·animate-* 전부 무한 스피너/shimmer + DESIGN L90 move 정합.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `border-width` 스케일 토큰화(현 border/border-2 빌트인); (2) `box-shadow` named 토큰(현 shadow-card-hover 등 @theme 정의 여부 확인 필요); (3) `transition-duration` 지속시간 named 토큰(현 duration-200/300 빌트인·DESIGN L86/L92 150/200ms SHALL).
+
 ## 2026-06-18 — [design] cycle 1223 Discovery — responsive area 115th round css-text-align-last-justified-last-line-breakpoint-transition-cross-surface-conformance (양쪽정렬 마지막 줄 정렬 `text-align-last` 가 BP 전이/표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `text-align-last`/`[text-align-last` 선언 0건·`text-justify`/양쪽 정렬(`justify`) 텍스트 0건 → 마지막 줄 정렬 적용 모집단 0. text-align 유틸 9곳 실재하나 전부 단순 좌/중/우 블록 정렬(`justify` 미사용) → text-align-last(양쪽 정렬일 때만 유의미) 적용 대상 없음. BP-접두 정렬 전이 0건 → 일부만 BP 로 마지막 줄 정렬 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1221(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1215 responsive 차기 후보 #1(`scroll-margin`/`scroll-padding`)은 scroll-snap cluster(cycle 1181)에서 scroll-padding 명시 포함 → 중첩으로 PIVOT, 후보 #2(`text-align-last` 마지막 줄 정렬 BP)로 확정.
