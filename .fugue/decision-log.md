@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1203 Discovery — aesthetic area 117th round css-font-kerning-glyph-pair-kerning-cross-surface-conformance (CSS `font-kerning` 글자쌍 커닝 적용 여부가 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-kerning`/`[font-kerning` 선언 0건 → 커닝 명시 적용 모집단 0. 텍스트 population 실재(General Sans 제목·Pretendard Variable 본문·Geist Mono 데이터)하나 커닝 미명시(전부 브라우저 기본 auto 상속 → 폰트 내장 커닝 테이블 자동 적용 균일) → font-kerning 을 일부만 none/normal 로 바꿔 커닝 어휘가 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1201(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1195 aesthetic 차기 후보(font-kerning·font-synthesis·font-feature-settings) 중 (1)font-kerning=글자쌍 커닝 축, dedicated subject-head 0건(python 확인)·텍스트 population 실재(브라우저 기본 커닝) → real-context census 로 확정. font-synthesis/font-feature-settings 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `font-kerning`/커닝(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인). letter-spacing 자간(1185)·text-spacing-trim/autospace CJK 간격(1195)·font-synthesis 합성(차기)·font-variant-numeric tabular-nums(globals .font-mono) 매치는 전부 별개 차원(트래킹/CJK 구두점/합성/숫자변형 vs 글자쌍 커닝)으로 font-kerning 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴 패밀리·9단계 size scale 만 SHALL — 커닝 적용 정책 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: font-kerning/커닝/ligature/font-feature grep DESIGN.md 0건 — 커닝 정책 미규정(silent). 글꼴·size scale 만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `font-kerning`/`[font-kerning` grep(0건) + 전 텍스트 브라우저 기본 커닝(auto) 균일 + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `font-synthesis` 합성 굵기/기울임 억제(현 0·variable font 실재); (2) `font-feature-settings`/`font-variant-ligatures` OpenType 합자 세부 제어(현 0); (3) `font-optical-sizing` 광학 사이징(현 0·variable font 실재).
+
 ## 2026-06-18 — [design] cycle 1201 Discovery — tokens area 114th round css-z-index-stacking-order-named-token-vs-builtin-utility-cross-surface-conformance (쌓임 순서 z-index 를 named 레이어 토큰 아닌 빌트인/arbitrary 유틸로 표현하는 것이 표면 간 일관·부재한지)
 - **결정**: clean baseline. z-index 적용이 역할-바운드 4-tier 레이어로 일관 — z-10(모달 내부 로컬 핸들 VideoTrimModal:270·279) < z-50(앱 크롬/오버레이: NavBar:12 sticky 헤더·AddToBoardButton:232 fixed inset-0 오버레이) < z-[60](드롭다운 SearchBar:182, nav 위) < z-[100](최상위: layout:33 skip-link a11y·VideoTrimModal:195 풀스크린 모달). 드롭다운 60>nav 50 정합·named z 토큰(--z-*) @theme 0 → divergence 0, defect class 미성립.
 - **축 선택**: cycle 1199(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1193 tokens 차기 후보(z-index·opacity·blur) 중 (1)z-index=쌓임순서 named 토큰 vs 빌트인 유틸 축, real-population(z 7곳·4값 실재)·dedicated subject-head 0건(python 확인) → real-context census 로 확정. opacity/blur 는 차기 후보로 보존.
