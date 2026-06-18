@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1171 Discovery — aesthetic area 113th round css-text-wrap-balance-pretty-heading-paragraph-line-balancing-cross-surface-conformance (제목/본문 멀티라인 줄바꿈 밸런싱 CSS `text-wrap: balance`/`pretty`(text-wrap-style)가 표면 간 일관·부재한지)
+- **결정**: clean baseline. apps/web/src(globals.css 포함) 전수에서 `text-wrap`/`text-balance`/`text-pretty`/`wrap-balance`/`wrap-pretty` 선언 0건 → 밸런싱 적용 모집단 0. 제목/본문 population(h1~h3·PinCard title line-clamp-2 등)은 실재하나 전부 brower 기본 greedy 줄바꿈에 위임(uniform)이라 표면 간 비정합 자체가 없음 — defect class 미성립.
+- **축 선택**: cycle 1169(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1163 aesthetic 재진입 후보 중 타이포 줄바꿈 미학 차원으로 (1)text-wrap balance/pretty→(2)hyphens 하이픈네이션→(3)text-spacing-trim CJK 간격 순. real-population 우선: (1)text-wrap = 선언 0·population 실재하나 uniform 위임 → 표면 census.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `text-wrap`/balance/pretty 줄바꿈 밸런싱(`[design][aesthetic]`) dedicated baseline 0건. caret-shape(cycle 1155)·color-scheme(1151)·spelling/grammar-error(1143)·target-text(1163) 매치는 전부 별개 차원(캐럿/스킴/오류강조/스크롤타깃)으로 text-wrap 줄바꿈과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(104줄) L16-35 Typography 는 글꼴 패밀리(General Sans/Pretendard/Geist Mono)·size scale(3xl 42px~3xs 10px)만 SHALL — 줄바꿈 스타일(balance/pretty) 미규정(silent). L11 "Decoration level: Minimal"은 장식 레벨이지 text-wrap enhancement 미명시. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: typography/줄바꿈 grep 은 L16-35 글꼴·size scale 뿐 — 멀티라인 제목 줄바꿈 밸런싱(balance/pretty/orphan 완화) 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `text-wrap`/`text-balance`/`text-pretty` grep(0건) + h1~h3·card title population 의 줄바꿈 위임 균일성 확인.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `hyphens`/`overflow-wrap: anywhere` 하이픈네이션(현 text-wrap 무관 차원); (2) `text-spacing-trim` CJK 구두점 간격 트리밍(현 0); (3) `initial-letter` 드롭캡(text card 발췌 본문, 현 0 pure-vacuous).
+
 ## 2026-06-18 — [design] cycle 1169 Discovery — tokens area 110th round css-form-control-accent-color-native-widget-tokenization-cross-surface-conformance (네이티브 폼 컨트롤 강조색 CSS `accent-color` 토큰을 디자인 accent(--accent #E85A2A)에 정합시키는 것이 표면 간 일관·부재한지)
 - **결정**: clean baseline. apps/web/src 전수에서 `accent-color` 영향 네이티브 컨트롤(checkbox/radio/range/progress/meter/select) 0건 → accent-color 토큰화 모집단 0(pure-vacuous). 실재 input type 은 button(14)/file(1)/submit(2)/text(8)/url(2) 뿐으로 전부 accent-color 비대상 위젯이며 `accent-color`/`accent-[` 선언도 0건.
 - **축 선택**: cycle 1167(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). native-widget 토큰화 차원 후보 (1)accent-color(native 강조색)→(2)caret-color 토큰화→(3)scrollbar-color 토큰화 순. real-population 우선 평가: (1)accent-color = 대상 컨트롤 0 pure-vacuous → 표면 census.
