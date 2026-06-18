@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1227 Discovery — aesthetic area 120th round css-font-feature-settings-font-variant-ligatures-opentype-ligature-cross-surface-conformance (OpenType 합자 `font-feature-settings`/`font-variant-ligatures` 가 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-feature-settings`/`font-variant-ligatures`/`[font-feature` 선언 0건 → 합자 명시 제어 모집단 0. globals:66 `font-variant-numeric: tabular-nums` 는 숫자 변형(별개 축). 텍스트 population 실재(가변폰트)하나 합자 미명시(전부 브라우저 기본 `normal` → common/contextual 합자 자동 활성·균일) → 일부만 바꿔 합자 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1225(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1219 aesthetic 차기 후보 #1(`font-feature-settings`/`font-variant-ligatures` OpenType 합자, 현 0) 진입. text-rendering·font-variant-caps 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — aesthetic `font-feature-settings`/`font-variant-ligatures`/합자(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인). font-synthesis 합성(1211)·font-optical-sizing 광학(1219)·font-kerning 커닝(1203)·letter-spacing 자간(1185)·font-variant-numeric tabular 매치는 전부 별개 차원(합성/광학/커닝/자간/숫자변형 vs 합자)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴·size scale·굵기만 SHALL — 합자 정책 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: font-feature-settings/ligatures/합자 grep DESIGN.md 0건 — 합자 정책 미규정(silent). 글꼴·size scale·굵기만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `font-feature-settings`/`font-variant-ligatures`/`[font-feature` grep(전수 0)·tabular-nums 별개 숫자축 + 가변폰트 브라우저 기본 normal 합자 균일 + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `text-rendering` 렌더링 힌트 optimizeLegibility/geometricPrecision(현 0); (2) `font-variant-caps` small-caps/petite-caps 대문자 변형(현 0); (3) `text-emphasis` 강조점(현 0, CJK 강조 마크).
+
 ## 2026-06-18 — [design] cycle 1225 Discovery — tokens area 117th round css-transition-timing-function-easing-token-design-l90-conformance (이징 `transition-timing-function` 이 named 토큰 없이 DESIGN L90 정합·표면 간 일관한지)
 - **결정**: clean baseline (builtin-default uniform·DESIGN L90 정합). 트랜지션 76곳(transition-colors 67·all 6·transform 2·opacity 1) 전부 hover/focus 상태전환("move"류)·명시 `ease-*` 0건·globals `--ease-*`/cubic-bezier 0건 → 전 트랜지션 Tailwind 기본 이징 `cubic-bezier(0.4,0,0.2,1)`(in-out 계열)로 균일(divergence 0). DESIGN L90 move=ease-in-out 과 정합. enter(ease-out)/exit(ease-in)은 적용 대상(모달/드롭다운 마운트 트랜지션) 0건 → vacuous. animate-* 는 전부 무한 스피너/shimmer(enter/exit 아님). defect class 미성립.
 - **축 선택**: cycle 1223(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1217 tokens 차기 후보 #1(`transition-timing-function` easing named 토큰·DESIGN L86/L90 Easing SHALL) 진입. border-width·box-shadow 는 차기 후보로 보존.
