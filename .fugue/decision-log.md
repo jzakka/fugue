@@ -17,6 +17,18 @@
 
 ## 항목
 
+## 2026-06-18 — [system] cycle 1100 Discovery — 보안 area cycle 1088 재진입 후보 3종(CORS allowlist 정합·JWT 알고리즘 confusion·Redis 키 네임스페이스/세션 고정) fresh 평가. 표면 폐기 (후보 0건)
+- **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1088 보안 차기 재진입 후보 3종 전부 fresh 재확인 후 confidence<3.
+- **축 선택**: rotation 상 보안 area가 OLDEST(직전 1088). pending=0이라 Discovery. cycle 1088 차기 후보 list (1)CORS allowlist↔배포 origin 정합 (2)JWT 검증·만료·알고리즘 confusion (3)Redis 키 네임스페이스 충돌·세션 고정 순차 fresh 평가.
+- **후보 (1) CORS allowlist**: 폐기(정상 가드). cmd/server/main.go:122-127 `cors.Handler` 가 `AllowedOrigins: []string{cfg.FrontendURL}`(L123, 단일 설정 origin·와일드카드 `*` 아님)·`AllowedMethods` GET/POST/PUT/DELETE/OPTIONS·`AllowedHeaders` Accept/Content-Type/Authorization·`AllowCredentials: true`(L126). go-chi/cors 는 `*`+credentials 조합을 거부하는데 origin 이 구체값이라 credentials 안전·reflect-any-origin 취약점 부재. cfg.FrontendURL 은 배포 프론트 origin(env). confidence<3.
+- **후보 (2) JWT 알고리즘 confusion**: 폐기(정상 가드). auth/jwt.go:85-100 ValidateToken 의 keyfunc(L87-88) `if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok { return error }` 가 비-HMAC 알고리즘(alg=none·RS256 공개키-as-HMAC-시크릿) 거부 → 알고리즘 confusion 차단. L91 `jwt.WithIssuer(issuer)` issuer 검증·jwt v5 라이브러리가 Parse 시 exp 검증·L96 `token.Valid` 체크·L95 claims 타입단언. 서명 HS256(L45/L61). 교과서적 검증. confidence<3.
+- **후보 (3) Redis 키 네임스페이스/세션 고정**: 폐기(분리·단일소비). Redis 키 prefix 5종 전부 distinct — `rl:`(ratelimit.go:14, rate limit `%s%s:%s` path+bucketKey L82)·`oauth_state:`(state.go:16)·`rt:`(service.go:19 refresh token jti)·`rt_index:`(service.go:20 jti index set)·`feed:`(feed cache), 충돌 0. 세션 고정 방지 — OAuth state 는 GenerateState(crypto/rand)+GetDel(state.go:62 단일소비, 재사용 불가)·refresh token 은 jti 고유(rotate 시 SRem/Del 무효화 service.go:301-310). confidence<3.
+- **MANDATORY 체크**: anti-patterns 전수 grep — IP 신뢰경계(392)·SSRF(92)·MIME(156/192) dedicated baseline 이 cycle 1088 census 한 직전 3축, 본 3 후보(CORS/JWT/Redis)는 별개 공격면으로 비중첩·전부 표준 가드 실재. decision-log L168-177(cycle 1088 보안 census + 재진입 list)·1076(refresh/state/IDOR) 직전 보안 census 확인, 본 census 신규 후보 미생성.
+- **근거**: AGENTS.md > CLAUDE.md > docs/architecture.md > docs/erd.md > openspec/ 기준 — 보안은 명시 계약 위반/실증 가능 공격면으로만 판정. 3 후보 전부 (1)CORS 단일 origin+credentials 정상·(2)JWT 비-HMAC 거부+issuer/exp 검증·(3)Redis prefix 분리+state 단일소비 → 실증 공격면·계약 위반 부재, confidence<3, 후보 0건. NO backlog·NO code change.
+- **로테이션**: 보안 1088→1100. 6-area 방문 이력 정합성=1090·에러처리=1092·동시성=1094·봇=1096·OpenSpec갭=1098·보안=1100 → 차기 OLDEST = 정합성(직전 1090) → cycle 1102.
+- **QA**: Discovery 0-candidate census라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 cmd/server/main.go:122-127(CORS)·auth/jwt.go:85-100(JWT keyfunc)·auth/{ratelimit,service,state}.go Redis prefix 상수 직접 Read + Redis Set/Get 키 구성 grep.
+- **차기 보안 재진입 후보**(선점 시 PIVOT): (1) OAuth state payload(state.go) 의 redirect/nonce 필드 검증·open redirect 경계; (2) rate limiter Lua script(ratelimit.go:24-27) 의 INCR/EXPIRE 원자성·키 폭증(per-path+per-IP) DoS 경계; (3) refresh token grace TTL(rtGrace) 재사용 탐지(rotate 후 옛 토큰 재제출) 정합. 진입 전 MANDATORY anti-patterns+decision-log 전수 grep.
+
 ## 2026-06-18 — [system] cycle 1098 Discovery — OpenSpec갭 11 capability inventory 재-census(불변) + 3 orphaned change 갭 production 재검증(전부 닫힘) + interaction 2 Requirement fresh cross-walk 전수 배선 확인. 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. capability inventory 불변·신규 spec 0·orphaned 갭 3건 전부 production 닫힘·interaction 2 Req 전수 배선 → confidence<3.
 - **축 선택**: rotation 상 OpenSpec갭 area가 OLDEST(직전 1086). pending=0이라 Discovery. cycle 1086 차기 후보 list (1)신규 spec 모니터링 (2)신규 Scenario 가드이탈 (3)orphaned change 추적 순차 fresh 평가 + fresh capability cross-walk.
