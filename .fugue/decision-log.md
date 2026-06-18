@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1255 Discovery — responsive area 119th round css-breakpoint-prefixed-space-y-space-x-child-spacing-transition-cross-surface-conformance (BP-접두 자식 간격 `(sm|md):space-y-*` 이 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous on BP axis). apps/web/src 전수에서 BP-접두 `space-y-*`/`space-x-*` 0건(`(sm|md|lg|xl|2xl):space-` grep 0) → 자식 간격 BP 전이 명시 모집단 0. 정적 space-y 는 실재(space-y-6 ×4·space-y-3 ×4·space-y-2 ×2·space-y-8/5/1·총 13곳·space-x 0)하나 전부 BP 접두 없는 정적값(전 BP 균일·전이 없음) → BP별 자식 간격 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1253(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1247 responsive 차기 후보 진입 — flex-direction `flex-col sm:flex-row`(기존 baseline ProfileHeader:14·ProfileSkeleton:6)는 PIVOT. fresh 축 #1 BP-접두 space-y/space-x 자식 간격 전이(현 0)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive space-y/자식 간격(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, space-y/space-x 매치 0). BP gap(별도 baseline·컨테이너 간격)·BP padding(1247·여백)·flex-direction(별도 baseline·방향)·정적 space-y(별개·BP 비전이) 매치는 전부 별개 차원(컨테이너 gap/패딩/방향/정적 vs BP 자식 간격 전이)으로 비중첩. space-y(인접 형제 마진 child spacing) vs gap(컨테이너 간격)은 서로 다른 메커니즘.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/브레이크포인트별 비정합 결함클래스로만 판정. BP-접두 space-y/space-x 전수 0(divergence 0·BP 모집단 0). 정적 space-y 는 전 BP 균일. precedent(gap 1239·padding 1247): BP-접두 간격 유틸 0이면 BP 전이 모집단 부재로 갈릴 자리 없음. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: `sm:space-`/반응형 자식 간격 grep DESIGN.md 0건 — 반응형 자식 간격 정책 미규정(silent). spacing scale 은 정적 간격만, BP별 자식 간격 전이 미명시.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `(sm|md|lg):space-` grep(0)·정적 `space-[xy]-*` grep(13곳 전부 BP 비전이) + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `gap-x-*`/`gap-y-*` 축 분리 BP 전이(현 확인 필요); (2) BP-접두 `items-*`/`self-*` 교차축 정렬 전이(현 0); (3) BP-접두 `text-(left|center|right)` 정렬 전이(현 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1253 Discovery — states area 123rd round css-aria-invalid-form-field-validation-error-state-cross-surface-conformance (폼 입력 검증 오류를 `aria-invalid` 로 노출하는지가 표면 간 일관인지)
 - **결정**: clean baseline (role-bound coherent). aria-invalid 는 검증-오류 경로를 가진 폼 4곳(PinCreateForm:471·BoardActions:81·MyPageClient:106·ProfileEditForm:79)에 전부 동일 표현 `aria-invalid={!!error && !<field>.trim()}` + aria-required + aria-describedby + role="alert" 로 일관(divergence 0). 이 4 폼은 submit-then-validate(제출 버튼 disabled={saving|creating}, 빈 값 제출 허용→setError→aria-invalid true). AddToBoardButton:362-378 새 보드명 입력은 disable-prevent 모델(submit `disabled={creating || !newBoardName.trim()}`, 빈 값 차단)이라 필드 검증 오류 상태에 도달 불가→aria-invalid vacuous, 생략이 의미상 정상. aria-invalid 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1251(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1245 states 차기 후보 진입 — #2 aria-busy(기존 baseline·비동기 로딩)는 PIVOT. fresh 축 #1 aria-invalid 필드 검증 오류 상태(현 4곳)로 확정.
