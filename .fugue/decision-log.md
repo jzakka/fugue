@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1253 Discovery — states area 123rd round css-aria-invalid-form-field-validation-error-state-cross-surface-conformance (폼 입력 검증 오류를 `aria-invalid` 로 노출하는지가 표면 간 일관인지)
+- **결정**: clean baseline (role-bound coherent). aria-invalid 는 검증-오류 경로를 가진 폼 4곳(PinCreateForm:471·BoardActions:81·MyPageClient:106·ProfileEditForm:79)에 전부 동일 표현 `aria-invalid={!!error && !<field>.trim()}` + aria-required + aria-describedby + role="alert" 로 일관(divergence 0). 이 4 폼은 submit-then-validate(제출 버튼 disabled={saving|creating}, 빈 값 제출 허용→setError→aria-invalid true). AddToBoardButton:362-378 새 보드명 입력은 disable-prevent 모델(submit `disabled={creating || !newBoardName.trim()}`, 빈 값 차단)이라 필드 검증 오류 상태에 도달 불가→aria-invalid vacuous, 생략이 의미상 정상. aria-invalid 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1251(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1245 states 차기 후보 진입 — #2 aria-busy(기존 baseline·비동기 로딩)는 PIVOT. fresh 축 #1 aria-invalid 필드 검증 오류 상태(현 4곳)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — states aria-invalid/검증 오류(`[design][states]`) dedicated subject-head baseline 0건(python 확인, 매치는 CSS `:invalid`/`:user-invalid` 네이티브 제약검증 의사클래스 1건=별개 축). CSS :invalid 의사클래스(별도 baseline·브라우저 스타일링)·aria-required 필수표식(별개·요구 여부)·aria-busy 로딩(별도 baseline)·aria-describedby 설명(별개) 매치는 전부 별개 차원(CSS검증의사클래스/필수/로딩/설명 vs ARIA 오류상태 노출)으로 비중첩. aria-invalid(ARIA 오류 상태 시맨틱) vs CSS :invalid(브라우저 제약검증 의사클래스 스타일링)는 서로 다른 axis.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/표면 간 상태 비정합 결함클래스로만 판정. aria-invalid 는 검증-오류 경로 폼 4곳 전부 동일 표현 일관·AddToBoardButton 은 disable-prevent 라 오류 상태 부재(divergence 0). aria-invalid 존재/부재가 각 폼의 실제 검증 모델을 정확히 반영(coherent). 검증 전략(disable-prevent vs submit-then-error)은 DESIGN silent·loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: aria-invalid/검증/validation grep DESIGN.md 0건 — 필드 검증 오류 접근성 정책 미규정(silent). L50 semantic error #FF3B30 은 색 토큰만, 접근성 속성 미명시.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `aria-invalid`/`aria-required` grep(검증 폼 4곳 동일 표현·AddToBoardButton aria-required 만)·submit disabled 조건 Read(submit-then-validate vs disable-prevent) + DESIGN.md silent.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `aria-live` 동적 영역 알림(현 14곳 polite·일관성 확인); (2) `aria-describedby` 오류/도움말 연결(현 4곳·일관성 확인); (3) `:placeholder-shown` 빈/채움 입력(기존 baseline 확인 필요).
+
 ## 2026-06-18 — [design] cycle 1251 Discovery — aesthetic area 123rd round css-text-transform-uppercase-capitalize-cross-surface-conformance (대소문자 변환 `text-transform` 이 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `uppercase`/`lowercase`/`capitalize`/`normal-case` Tailwind 유틸 0건·CSS `text-transform` 0건·arbitrary `[text-transform:...]` 0건 → 대소문자 변환 명시 모집단 0. 전 텍스트 저작 표기 그대로 렌더(브라우저 기본 none → 균일) → uppercase/capitalize 일부만 켜 대소문자 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1249(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1243 aesthetic 차기 후보 진입 — #1 text-emphasis(기존 baseline·CJK 강조점)·text-shadow(기존 baseline·글리프 그림자)는 PIVOT. fresh 축 text-transform 대소문자 변환(현 0)로 확정.
