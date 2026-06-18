@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1195 Discovery — aesthetic area 116th round css-text-spacing-trim-text-autospace-cjk-punctuation-boundary-spacing-cross-surface-conformance (CSS `text-spacing-trim`/`text-autospace` CJK 구두점·경계 간격 트리밍이 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `text-spacing-trim`/`text-autospace`/`[text-spacing`/`[text-autospace` 선언 0건 → CJK 간격 트리밍 적용 모집단 0. 한글 CJK 텍스트 population 은 실재(Pretendard Variable)하나 구두점/경계 간격을 전부 브라우저 기본(normal 상속)으로 둠 → trim/autospace 를 일부만 켜 간격 어휘가 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1193(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1187 aesthetic 차기 후보(text-spacing-trim/text-autospace·font-kerning·font-synthesis) 중 (1)text-spacing-trim/text-autospace=CJK 구두점·경계 간격 트리밍 축, dedicated subject-head 0건(python 확인)·한글 CJK 텍스트 실재(브라우저 기본 간격) → real-context census 로 확정. font-kerning/font-synthesis 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `text-spacing-trim`/`text-autospace` CJK 간격(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인). font-kerning 커닝·font-synthesis 합성·letter-spacing 자간(cycle 1185)·word-spacing(L157)·text-emphasis 강조점(cycle 1187) 매치는 전부 별개 차원(커닝/합성/자간/단어간격/강조점 vs CJK 구두점·경계 간격)으로 trim/autospace 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴 패밀리(Pretendard Variable 한글)·9단계 size scale 만 SHALL — CJK 구두점 트리밍/autospace 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: text-spacing-trim/text-autospace/CJK 구두점 간격 grep DESIGN.md 0건 — CJK 조판 간격 미규정(silent). 글꼴·size scale 만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `text-spacing-trim`/`text-autospace`/`[text-spacing`/`[text-autospace` grep(0건) + CJK 텍스트 브라우저 기본 간격 균일 + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `font-kerning` 커닝 제어(현 0·Pretendard/General Sans 실재); (2) `font-synthesis` 합성 굵기/기울임 억제(현 0·variable font 실재); (3) `font-feature-settings` OpenType 세부 기능(현 0).
+
 ## 2026-06-18 — [design] cycle 1193 Discovery — tokens area 113th round css-line-height-leading-named-token-vs-builtin-utility-cross-surface-conformance (행간 line-height 을 named 토큰 아닌 Tailwind 빌트인 leading-tight/relaxed 로 표현하는 것이 표면 간 일관·부재한지)
 - **결정**: clean baseline. 행간 적용이 전부 역할-바운드 빌트인 유틸 `leading-tight`(제목)·`leading-relaxed`(본문/설명) → 표면 간 갈릴 모집단 없음. leading-tight 2곳 전부 제목(pins/[id]:135 h1 font-display·PinCard:157 카드 제목)·leading-relaxed 2곳 전부 설명 단락(pins/[id]:141·boards/[id]:60)·기타 행간값(none/snug/normal/loose/numeric/arbitrary/인라인 lineHeight) 전수 0·named 행간 토큰(--leading-*) @theme 0 → divergence 0, defect class 미성립.
 - **축 선택**: cycle 1191(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1185 tokens 차기 후보(line-height/leading·z-index·opacity) 중 (1)line-height/leading=행간 named 토큰 vs 빌트인 유틸 축, real-population(leading 4곳 실재)·dedicated subject-head 0건(python 확인) → real-context census 로 확정. z-index/opacity 는 차기 후보로 보존.
