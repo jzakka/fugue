@@ -43,6 +43,16 @@
 - **DESIGN.md 확인**: list-style/마커/리스트 마커 grep DESIGN.md 0건 — 리스트 마커 위치 정책 미규정(silent). masonry·grid 컬럼·BP 만 SHALL.
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `list-style-position`/`list-inside`/`list-outside`/`marker:`/`<ul>`/`<ol>`/`<li>` grep(전수 0) + 리스트 UI div flex/grid 렌더(마커 미발생) + DESIGN.md silent.
 - **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `scroll-margin`/`scroll-padding` 스크롤 오프셋 BP 전이(현 0, scroll-snap cluster 와 구별 필요); (2) `text-align-last` 마지막 줄 정렬 BP 전이(현 0); (3) `aspect-ratio` BP 전이(현 카드 종횡비 고정 여부 확인 필요).
+## 2026-06-18 — [system] cycle 1088 Discovery — 보안 area cycle 1076 재진입 후보 3종(rate-limit IP 스푸핑·봇 SSRF·업로드 MIME) 전수 census 재확인 + RealIP 신뢰경계 exception clause fresh 재검증. 표면 폐기 (후보 0건)
+- **결정**: 후보 0건. cycle 1076 보안 census 가 지목한 차기 재진입 후보 3종이 전부 기존 가드로 커버됨을 재확인 — 신규 결함 표면 부재 → NO backlog·NO code change.
+- **축 선택**: 보안 area 6-area 로테이션 진입(직전 보안=cycle 1076 가 OLDEST). cycle 1076 재진입 후보(list order): (1) rate limiter 우회(IP 스푸핑 헤더 신뢰); (2) 봇 크롤러 SSRF(URLScheduler 입력 URL 사설망 차단); (3) 파일 업로드 MIME/확장자 검증 우회 — 3종 순차 평가.
+- **후보 (1) rate-limit IP 스푸핑**: 기census anti-patterns.md:392(cycle 1012 baseline) — 전역 `middleware.RealIP`(main.go:121)가 XFF/X-Real-IP→RemoteAddr 덮어쓰고 extractIP(ratelimit.go:114-119)가 per-IP 키로 사용하나 문서 토폴로지(docs/architecture.md L7 `Next.js→Go API→PostgreSQL`)와 부합. exception clause(terraform/helm 이 API 를 ALB/ingress 직접 노출·raw XFF 직파싱)를 **fresh 재검증**: helm/fugue/templates = cronjob-bot.yaml 단일(API용 Ingress/Service/LoadBalancer 0)·terraform ingress/alb/aws_lb 0·raw XFF 파싱 site 0(유일 매치는 ratelimit.go:115 주석). exception 여전히 vacuous → confidence<3 유지.
+- **후보 (2) 봇 SSRF**: 기census anti-patterns.md:92(중앙 SSRF-safe HTTP client). 가드 baseline 실재 — SSRF 테스트 4종(harvest_pipeline/media_validator/pioneer_consumer/robots_filter _ssrf_test.go)·media_validator.go·pioneer_consumer.go 가 사설망 차단 커버. fresh 결함 부재.
+- **후보 (3) 업로드 MIME**: 기census anti-patterns.md:156(cycle 766, MIME 위조로 SVG/HTML stored XSS)·L192(미디어 업로드/비디오 처리 경로). pin/handler.go 가 declared↔DetectContentType sniff 검증 보유. fresh 결함 부재.
+- **MANDATORY 체크**: anti-patterns 전수 grep — IP 신뢰경계(392)·SSRF(92)·MIME(156/192) dedicated baseline 전부 실재·exception clause 미충족. 3종 모두 기존 가드 범위 내.
+- **근거**: AGENTS.md > CLAUDE.md > docs/architecture.md > docs/erd.md > openspec 기준 — 보안은 명시 계약 위반/실증 가능 공격면으로만 판정. 3 후보 전부 문서 토폴로지·기존 가드와 정합, confidence<3.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 helm/terraform 노출 부재 grep·raw XFF grep(0)·SSRF 테스트 4종 존재·pin/handler.go MIME 가드.
+- **차기 보안 재진입 후보**(list order, 선점 시 PIVOT): (1) CORS allowlist(cmd/server/main.go:122)↔배포 origin 정합; (2) JWT 검증·만료·알고리즘 confusion 경계; (3) Redis 키 네임스페이스 충돌·세션 고정.
 
 ## 2026-06-18 — [design] cycle 1213 Discovery — states area 118th round css-plain-focus-vs-focus-visible-role-split-cross-surface-conformance (플레인 `:focus`와 `:focus-visible`가 요소 역할로 일관 분리되는지)
 - **결정**: clean baseline (role-bound coherent). 플레인 `focus:border-accent` 11곳 전부 폼 텍스트 입력(`<input>`/`<textarea>`)·`focus-visible:` 22곳은 비입력 클릭 컨트롤(버튼/링크/카드) → 혼용이 아니라 요소 역할 기반 의미 분리(텍스트 입력=마우스+키보드 보더 하이라이트 정상, 클릭 컨트롤=키보드 전용 링 정상). 일부만 focus-visible 로 갈리는 동종 site 0, defect class 미성립.
