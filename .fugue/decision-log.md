@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1183 Discovery — responsive area 110th round css-scroll-snap-type-align-horizontal-rail-snap-behavior-breakpoint-transition-cross-surface-conformance (CSS 스크롤 스냅(scroll-snap-type/align)의 BP별 스냅 거동 전이가 가로 스크롤 레일 표면 간 일관·부재한지)
+- **결정**: clean baseline. apps/web/src 전수에서 `scroll-snap`/`snap-x`/`snap-mandatory`/`snap-start`/`snap-center`/`snap-align` 선언 0건 + BP-접두 `(sm|md|lg|xl):snap-*` 0건 → 스냅 적용 모집단 0(전이 부재=전 폭 균일). 가로 스크롤 레일 6곳(PinCreateForm:578·SearchClient:240/263·FieldFilter:31·TagFilter:47·PinsGrid:104, 전부 `flex gap-* overflow-x-auto scrollbar-hide` 칩/태그 필터 레일)은 실재하나 전부 brower 기본 자유 가로 스크롤에 균일 위임(uniform)·스냅 캐러셀 idiom 0 → 표면 간 비정합 없음, defect class 미성립.
+- **축 선택**: cycle 1181(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1175 responsive 차기 후보(hyphens BP/text-align BP/columns BP)는 text-align(L181)·columns(L378) 기 baseline·hyphens 는 c1179 aesthetic 처리라 PIVOT. BP 전이 차원 재탐색: font-weight(L441)·display/visibility(L160/327)·background(L425)·sizing max-w/avatar(L152/196)·aspect(L203)·backdrop-blur(L448) 전부 기covered PIVOT 후 → (1)scroll-snap=가로 레일 스냅 거동 BP 전이 축, dedicated subject-head 0건(python 확인, L155 매치는 mode-toggle false match)·real rail population(overflow-x-auto 6곳) → 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `scroll-snap`/스냅 거동 BP 전이(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인). overflow-mode 전이(c973)·object/aspect BP(L203/859)·display/visibility(L160/327)·멀티컬럼(L378)·scrollbar-hide(스크롤바 가시성 유틸) 매치는 전부 별개 차원(오버플로우 모드/종횡비/표시숨김/컬럼/스크롤바 가시성)으로 스크롤 스냅 정렬 거동과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/BP 전이 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L67-77 Layout 은 masonry 컬럼·breakpoint·border-radius 만 SHALL — scroll-snap 가로 레일 스냅 거동 BP 전이 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: scroll-snap/스냅/캐러셀 grep 0건 — 가로 레일 스냅 정렬·BP별 스냅 전이 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `snap-*`/`scroll-snap` grep(0건) + overflow-x-auto 레일 6곳 population 의 자유 스크롤 균일 위임 확인.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `scroll-margin`/`scroll-padding` 스크롤 오프셋 BP 전이(현 0); (2) `text-indent` 들여쓰기 BP 전이(현 0 pure-vacuous); (3) `mix-blend-mode` 블렌드 모드 BP 전이(현 0 pure-vacuous).
+
 ## 2026-06-18 — [system] cycle 1076 Discovery — 보안 cycle 1062 차기 재진입 후보 3건(refresh토큰 Redis 저장값·OAuth state CSRF/예측가능성·IDOR 소유권) 정밀 census 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1062가 남긴 보안 재진입 후보 3건을 정밀 조사한 결과 전부 이미 닫혀 있어 결함 클래스 미성립.
 - **축 선택**: rotation 상 보안 area가 OLDEST(직전 1062). pending=0이라 Discovery. fresh sub-surface census 대신 cycle 1062 decision-log가 명시한 "차기 보안 재진입 후보 3건"을 우선 정밀 검증.
