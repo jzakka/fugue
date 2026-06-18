@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1199 Discovery — responsive area 112th round css-mix-blend-mode-background-blend-mode-breakpoint-transition-cross-surface-conformance (CSS `mix-blend-mode`/`background-blend-mode` 블렌드 합성이 브레이크포인트 간 전이 시 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `mix-blend`/`background-blend`/`bg-blend` 선언 0건 → 블렌드 적용 모집단 0, 따라서 BP-conditional 블렌드(`sm:mix-blend-*`/`md:mix-blend-*`) 도 0. 카드/썸네일/오버레이 population 실재하나 블렌드 모드 전혀 미사용(전부 normal 기본=불투명 합성 균일) → mix-blend 를 일부 BP 에서만 켜 블렌드가 뷰포트/표면 간 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1197(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1191 responsive 차기 후보(mix-blend-mode·scroll-margin/scroll-padding·caption-side) 중 (1)mix-blend-mode=블렌드 합성 BP 전이 축, dedicated subject-head 0건(python 확인)·code 0/0 fully clean → pure-vacuous census 로 확정. scroll-margin/padding(scroll-snap cluster 구별 필요)·caption-side 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `mix-blend-mode`/블렌드 BP 전이(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, 전 area 0건). scroll-padding(scroll-snap cluster)·text-indent(cycle 1191)·opacity(tokens 차기) 매치는 전부 별개 차원(스크롤 오프셋/들여쓰기/불투명도 vs 레이어 블렌드)으로 mix-blend 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/BP 전이 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) blend grep → L101 "혼합 피드"는 미디어타입 혼합 피드 컨셉이지 CSS mix-blend-mode 아님(silent). L67-77 Layout·L86-93 Motion 어디에도 블렌드 BP 전이 미규정. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: mix-blend-mode/background-blend-mode/블렌드 모드 grep 0건(L101 혼합 피드는 미디어 혼합 컨셉, CSS 블렌드 아님) — 블렌드 BP 전이 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `mix-blend`/`background-blend`/`bg-blend` grep(0건) + 카드/오버레이 블렌드 미사용 균일(normal) + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `caption-side` 표 캡션 위치 BP 전이(현 0); (2) `scroll-margin`/`scroll-padding` 스크롤 오프셋 BP 전이(현 0, scroll-snap cluster 와 구별 필요); (3) `list-style-position` 리스트 마커 위치 BP 전이(현 0).
+
 ## 2026-06-18 — [design] cycle 1197 Discovery — states area 116th round css-any-link-unified-hyperlink-state-pseudo-class-cross-surface-conformance (CSS `:any-link` 통합 링크 상태가 링크 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `:any-link`/`:link`/`:visited` 선언 0건 → 통합 링크 상태 적용 모집단 0. 링크 population 실재(`<Link>`/`<a>` 15곳)하나 베이스 링크 룩을 전역 `:any-link` 규칙이 아닌 per-element Tailwind 클래스(hover:text-accent 7·hover:text-* 21·hover:underline 4·transition-colors 67)로 부여 → `:any-link` 를 일부만 켜 링크 어휘가 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1195(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1189 states 차기 후보(:default·:any-link·:local-link·:placeholder-shown) 중 :placeholder-shown(별개 baseline)·:default(:checked cluster baseline)·:local-link(별개 baseline)은 기 커버 → PIVOT, :any-link=통합 링크 상태(`:link`+`:visited` 합집합) 축, dedicated subject-head 0건(python 확인)·링크 population 실재 → real-context census 로 확정.
