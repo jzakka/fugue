@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1189 Discovery — states area 115th round css-empty-structural-empty-element-state-pseudo-class-cross-surface-conformance (CSS `:empty` 빈 엘리먼트 구조 상태가 빈 상태 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `:empty`/`empty:` 선언 0건 → CSS 빈-상태 적용 모집단 0. 빈 상태 population 은 실재하나 전부 React 조건부 렌더링(`.length` 체크 77건)으로 분기해 공유 `EmptyState` 컴포넌트(8표면) 렌더 단일 idiom 으로 일관 처리 → `:empty` 를 일부만 켜 빈 상태 어휘가 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1187(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1181 states 차기 후보(`:default`/`:empty`/`:any-link`/`:local-link`) 중 (1)`:empty`=빈 엘리먼트 구조 상태 축, dedicated subject-head 0건(python 확인)·빈 상태 population 실재(EmptyState 8표면·복어 마스코트) → real-context census 로 확정. `:default`/`:any-link`/`:local-link`/`:placeholder-shown`/`:read-only`/`:required` 는 별개 차원이라 PIVOT 불요.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `:empty` 빈 엘리먼트 구조 상태(`[design][states]`) dedicated subject-head baseline 0건(python 확인). `:default`(폼 기본값)·`:any-link`/`:local-link`(링크)·`:placeholder-shown`(placeholder)·`:read-only`/`:required`(검증) 매치는 전부 별개 차원(폼 기본값/링크/placeholder/검증 vs 빈 컨테이너 구조)으로 빈-엘리먼트 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/상태 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L14 "Mascot … 로고/빈 상태/온보딩에서 활용"은 빈 상태에 마스코트를 쓰라는 컨셉 SHALL 이고 공유 EmptyState(🐡)가 충족 — CSS `:empty` 메커니즘 자체는 미규정(silent), 빈 상태를 pseudo-class 로 강제 안 함. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: `:empty`/empty variant grep 0건. L14 빈 상태 마스코트 컨셉만 SHALL — CSS :empty 메커니즘 미명시(silent), 공유 EmptyState 컴포넌트가 마스코트 컨셉 충족.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `:empty`/`empty:` grep(0건) + EmptyState 사용처 8표면 열거(복어 마스코트+muted/dim 텍스트 균일) + `.length` 조건부 77건 + DESIGN.md L14.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `:default` 폼 컨트롤 기본 선택값 상태(현 0); (2) `:any-link`/`:local-link` 링크 상태 통합(현 0); (3) `:placeholder-shown` 입력 placeholder 표시 상태(현 0·input placeholder 실재).
+
 ## 2026-06-18 — [design] cycle 1187 Discovery — aesthetic area 115th round css-text-emphasis-cjk-boten-emphasis-mark-style-color-cross-surface-conformance (CSS `text-emphasis` CJK 강조점/방점이 강조 텍스트 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `text-emphasis`/`text-emphasis-style`/`text-emphasis-color`/`text-emphasis-position`/`[text-emphasis` 선언 0건 → 강조점 적용 모집단 0. 텍스트 강조 population 은 실재하나 전부 굵기(font-bold 16·font-semibold 19)·색(text-accent 23) idiom 으로 일관 처리 → 강조점을 일부만 켜 강조 어휘가 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1185(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1179 aesthetic 차기 후보(text-emphasis/text-spacing-trim/font-kerning) 중 (1)text-emphasis=CJK 강조점 미학 축, dedicated subject-head 0건(python [] 확인)·한글 플랫폼 강조 텍스트 실재(굵기/색 idiom) → real-context census 로 확정. text-box-trim(L405)·hanging-punctuation(L367)·underline-position(L376)은 별개 차원이라 PIVOT 불요.
