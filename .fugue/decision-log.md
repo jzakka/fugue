@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1281 Discovery — tokens area 125th round css-min-width-zero-flex-child-overflow-shrink-guard-truncation-idiom-cross-surface-conformance (flex/grid 자식 오버플로 수축 가드 `min-w-0` 이 표면 간 역할-정합·일관인지)
+- **결정**: clean baseline (overflow-shrink-guard role-bound coherent). min-w-0 수축 가드가 역할별로 일관 — (a) truncate/line-clamp 를 품은 flex 자식 12곳 전부 `min-w-0`(주로 `flex-1 min-w-0`): pins/[id]:57·SearchClient:336·385·boards/[id]:55·AddToBoardButton:338·ProfileHeader:29·31·PinCard:70·194·SearchBar:198·297·373, (b) min-w 유틸 전부 단일 값 0(min-w-[Npx]/min-w-fit 0건), (c) idiom 정합 — flex 아이템 기본 min-width:auto 를 0 으로 덮어 자식이 콘텐츠보다 작게 수축 가능케 해 truncate(overflow:hidden+ellipsis) 활성화. 수축 가드 갈리는 site 0·단일 값 균일, defect class 미성립.
+- **축 선택**: cycle 1279(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1277 tokens 차기 후보 — #1 font-size(1265 PIVOT·broad FIX·QA 필요 deferred)·#2 background-size/position/repeat(TSX 유틸 0건 vacuous·CSS 발생은 shimmer 내부=keyframe 1273 baseline)는 보류, #3 min-w/min-h/max-h 중 min-w-0 수축 가드를 fresh 축으로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — tokens min-width 수축 가드(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인). 매치 1건은 별개 차원 — truncate/line-clamp/text-ellipsis/overflow-hidden 텍스트 절단 유틸(별개 절단-방식축·responsive 기존 baseline·무엇을 어떻게 자르나)은 본 축(min-width:auto→0 수축 가드 idiom=truncate 활성화 전제조건)과 메커니즘 분리. overflow-hidden 클리핑·flex-1/grow/shrink flex 증감·min-h/max-h 높이 제약과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 디자인 토큰/메커니즘의 표면 간 비정합 결함클래스. truncate 품은 flex 자식 전수 min-w-0·단일 값 0 균일(divergence 0)·idiom 정합. precedent(truncate·flex-direction·grid-cols): 동종 역할이 단일 idiom/값으로 균일하면 결함 아님. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: min-width/min-w/수축/flex 자식 grep DESIGN.md 0건 — 수축 가드 idiom 미규정(silent). min-w-0 는 디자인 규범이 아닌 기술적 레이아웃 idiom(flex truncate 활성화).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `min-w-0` grep(12곳 전부 flex 자식 수축 가드)·truncate↔min-w-0 페어링·다른 min-width 값 grep(0)·background utils grep(TSX 0·CSS shimmer=1273) + DESIGN.md grep(0).
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `max-h-*`/`min-h-*` 높이 제약 값 일관(현 max-h arbitrary 280/480/80vh·48·32·min-h-screen/full·확인 필요); (2) `font-size`/타입 스케일 빌트인↔DESIGN L26-35 divergence(broad FIX·QA 필요); (3) `gap-*` 간격 토큰↔DESIGN L54-65 spacing scale 정합(확인 필요).
+
 ## 2026-06-18 — [system] cycle 1132 Discovery — 봇 area cycle 1120 재진입 후보 3종(ScriptAdapter media_candidates 50 cap+first-RawItem·image_picker 썸네일 우선순위·snapshot-first-fetch errorKind 4종 경계) fresh 평가. 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1120 봇 차기 재진입 후보 3종 전부 fresh 재확인 후 confidence<3(후보 1·2·3 모두 기존 anti-pattern census 커버).
 - **축 선택**: rotation 상 봇 area가 OLDEST(직전 1120). pending=0이라 Discovery. cycle 1120 차기 후보 list (1)ScriptAdapter N RawItems→1 PinDocument 환원 시 media_candidates 50 cap+first-RawItem canonical-meta 규칙 (2)image_picker PickPrimaryImage 썸네일 우선순위 계약(og→twitter→article→JSON-LD 4단계) (3)snapshot-first-fetch 진입점 errorKind 4종 분류 경계 순차 fresh 평가.
