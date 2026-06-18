@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1219 Discovery — aesthetic area 119th round css-font-optical-sizing-opsz-axis-cross-surface-conformance (가변폰트 광학 사이징 `font-optical-sizing` 이 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-optical-sizing`/`optical-sizing`/`[font-optical` 선언 0건 → 광학 사이징 명시 적용 모집단 0. 텍스트 population 실재(가변폰트 General Sans·Pretendard Variable)하나 광학 미명시(전부 브라우저 기본 `auto` 상속 → opsz 축 가변폰트 자동 광학 적용·균일) → 일부만 none 으로 바꿔 광학 어휘 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1217(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1211 aesthetic 차기 후보 #1(`font-optical-sizing` 광학 사이징, 현 0·variable font 실재) 진입. font-feature-settings/font-variant-ligatures·text-rendering 은 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — aesthetic `font-optical-sizing`/광학(`[design][aesthetic]`) dedicated subject-head baseline 0건(python 확인, aesthetic heads 44개 중 optical/광학 매치 0). font-synthesis 합성(1211)·font-kerning 커닝(1203)·letter-spacing 자간(1185)·text-spacing-trim CJK(1195)·font-variant-numeric tabular 매치는 전부 별개 차원(합성/커닝/자간/CJK 간격/숫자변형 vs opsz 광학)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — aesthetic 은 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴 패밀리·9단계 size scale·굵기만 SHALL — 광학 사이징 정책 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: font-optical-sizing/광학/opsz grep DESIGN.md 0건 — 광학 사이징 정책 미규정(silent). 글꼴·size scale·굵기만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `font-optical-sizing`/`optical-sizing`/`[font-optical` grep(전수 0) + 가변폰트 브라우저 기본 `auto` 균일(opsz 자동 적용) + DESIGN.md silent.
+- **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `font-feature-settings`/`font-variant-ligatures` OpenType 합자 세부 제어(현 0); (2) `text-rendering` 렌더링 힌트 optimizeLegibility 등(현 0); (3) `font-variant-caps` small-caps 등 대문자 변형(현 0).
+
 ## 2026-06-18 — [design] cycle 1217 Discovery — tokens area 116th round css-blur-backdrop-blur-intensity-token-cross-surface-conformance (블러 강도가 named 토큰 없이 표면 간 일관한지)
 - **결정**: clean baseline (role-bound coherent). `backdrop-blur-sm` 2곳 전부 동일값·동일 역할(반투명 표면 뒤 콘텐츠 흐림): VideoTrimModal:195 모달 오버레이·NavBar:12 스티키 네비. element blur(`blur-*`) 0건·named blur 토큰(`--blur-*`) @theme 0건(빌트인 유틸 idiom). 일부만 다른 강도로 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1215(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1209 tokens 차기 후보 #1(`blur`/backdrop-blur 토큰화) 진입. transition-timing easing·border-width 는 차기 후보로 보존.
