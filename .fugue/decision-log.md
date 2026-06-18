@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1249 Discovery — tokens area 120th round css-box-shadow-elevation-named-token-coherence-design-l86-conformance (그림자 `box-shadow` 가 named 토큰으로 표면 간 일관·DESIGN L86 정합인지)
+- **결정**: clean baseline (token-bound coherent·DESIGN L86 정합). box-shadow 는 단일 @theme 토큰 globals.css:62 `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` 를 `shadow-card-hover` 유틸로 5곳(SearchClient:325/363·BoardCover:6/31·PinCard:147)에서 전부 hover/focus-visible card elevation 으로만 균일 적용(divergence 0). 오프토큰 빌트인 `shadow-sm`/`shadow-md`/`shadow-lg`/`shadow-xl`/arbitrary `shadow-[...]`/인라인 `box-shadow:` 전수 0. 그림자 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1247(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1241 tokens 차기 후보 #1 box-shadow 추가 그림자 토큰 분기(현 --shadow-card-hover 단일 @theme)로 진입. --spacing-* 스케일(#2)·--color-* 시맨틱(#3)은 차기 후보 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — tokens box-shadow/그림자(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인, shadow/그림자 매치 0). caret-color(별개 색축)·z-index(별개 층위축)·duration(별개 지속시간축)·radius(별개 반경축) 매치는 전부 별개 차원(캐럿색/층위/지속시간/반경 vs 그림자)으로 비중첩. responsive box-shadow BP 전이(별도 baseline·브레이크포인트축)와도 별개(토큰 일관성 vs BP 전이).
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰/스케일 정의의 표면 간 비정합 결함클래스. box-shadow 단일 @theme 토큰 균일·오프토큰 0·전부 card-hover elevation 단일 역할(divergence 0). precedent(radius 1241·easing 1225): 단일/빌트인 토큰을 다단계 스케일 없이 써도 DESIGN 역할 정합·추가 레벨 silent 면 결함 아님. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: L86 "Hover state: translateY(-2px) + box-shadow 확대 + accent border. 150ms ease" — hover 그림자 확대만 SHALL, 다단계 elevation 스케일/named 레벨(rest/raised/overlay) 미규정(silent). 단일 --shadow-card-hover + -translate-y-0.5 + accent border 가 L86 정확히 충족.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `shadow-*` grep(shadow-card-hover 5건만·shadow-sm/md/lg 0)·globals.css Read(--shadow-card-hover 단일 @theme) + DESIGN.md L86.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `--spacing-*` 간격 스케일 토큰(현 p-*/gap-* 빌트인·DESIGN spacing 명시 여부 확인); (2) `--color-*` 시맨틱 색 토큰 추가 분기(현 accent/surface/text-* @theme); (3) `--font-size-*`/타입 스케일 named 토큰(현 text-* 빌트인·DESIGN 9단계 scale).
+
 ## 2026-06-18 — [system] cycle 1112 Discovery — 보안 area cycle 1100 재진입 후보 3종(OAuth state open redirect·ratelimit Lua 원자성/키폭증 DoS·refresh token rotate 재사용 탐지) fresh 평가. 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1100 보안 차기 재진입 후보 3종 전부 fresh 재확인 후 confidence<3.
 - **축 선택**: rotation 상 보안 area가 OLDEST(직전 1100). pending=0이라 Discovery. cycle 1100 차기 후보 list (1)OAuth state payload redirect/nonce 검증·open redirect 경계 (2)rate limiter Lua INCR/EXPIRE 원자성·키 폭증 DoS 경계 (3)refresh token grace TTL rotate 후 옛 토큰 재제출 정합 순차 fresh 평가.
