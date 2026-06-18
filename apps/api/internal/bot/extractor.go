@@ -323,7 +323,7 @@ func (s *extractScan) handleMeta(n *html.Node) {
 func (s *extractScan) handleSource(n *html.Node) {
 	src := getAttr(n, "src")
 	if src == "" {
-		src = getAttr(n, "srcset")
+		src = firstSrcsetURL(getAttr(n, "srcset"))
 	}
 	if src == "" {
 		return
@@ -341,6 +341,20 @@ func (s *extractScan) handleSource(n *html.Node) {
 	case "audio":
 		s.mediaAudios = append(s.mediaAudios, cand)
 	}
+}
+
+// firstSrcsetURL extracts the URL token of the first candidate from a srcset
+// attribute value. A srcset is a comma-separated list of "URL [descriptor]"
+// candidates (e.g. "a.webp 1x, b.webp 2x"); only the first candidate's URL is
+// taken so absolutize receives a single valid URL rather than the raw list.
+// Returns "" when no URL token is present.
+func firstSrcsetURL(raw string) string {
+	first := strings.SplitN(raw, ",", 2)[0]
+	fields := strings.Fields(first)
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
 }
 
 func (s *extractScan) handleJSONLD(body string) {

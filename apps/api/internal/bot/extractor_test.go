@@ -260,6 +260,54 @@ func TestExtractor_MediaCandidatesLimit(t *testing.T) {
 	}
 }
 
+func TestExtractor_SourceSrcsetFirstURLOnly(t *testing.T) {
+	// harvester/spec.md "source의 srcset 다중 후보에서 첫 URL만 수집":
+	// a <source srcset="..."> with descriptor-bearing comma-separated
+	// candidates must collect only the first candidate's URL, absolutized,
+	// with no descriptor or comma leaking into the URL.
+	page := `<html><body><article>
+<picture>
+<source srcset="a.webp 1x, b.webp 2x" type="image/webp">
+<img src="fallback.jpg" alt="x">
+</picture>
+</article></body></html>`
+
+	doc := extract(t, page, "https://example.com/article/page")
+	var got string
+	for _, c := range doc.MediaCandidates {
+		if c.Type == "image" && strings.Contains(c.URL, "a.webp") {
+			got = c.URL
+		}
+		if strings.ContainsAny(c.URL, " ,") || strings.Contains(c.URL, "%20") || strings.Contains(c.URL, "%2C") {
+			t.Errorf("media candidate URL contains descriptor/comma artifact: %q", c.URL)
+		}
+	}
+	if got != "https://example.com/article/a.webp" {
+		t.Errorf("first srcset URL = %q, want https://example.com/article/a.webp (candidates: %v)", got, doc.MediaCandidates)
+	}
+}
+
+func TestExtractor_SourceSrcsetSingleURLNoDescriptor(t *testing.T) {
+	// Regression: a single-URL srcset without descriptor must still be
+	// collected unchanged.
+	page := `<html><body><article>
+<picture>
+<source srcset="https://cdn.example.com/only.webp" type="image/webp">
+</picture>
+</article></body></html>`
+
+	doc := extract(t, page, "https://example.com/x")
+	found := false
+	for _, c := range doc.MediaCandidates {
+		if c.Type == "image" && c.URL == "https://cdn.example.com/only.webp" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("single-URL srcset not collected: %v", doc.MediaCandidates)
+	}
+}
+
 func TestExtractor_OGTitleWinsOverHTMLTitle(t *testing.T) {
 	page := `<html><head>
 <title>HTML Title</title>
