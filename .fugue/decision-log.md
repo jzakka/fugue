@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1193 Discovery — tokens area 113th round css-line-height-leading-named-token-vs-builtin-utility-cross-surface-conformance (행간 line-height 을 named 토큰 아닌 Tailwind 빌트인 leading-tight/relaxed 로 표현하는 것이 표면 간 일관·부재한지)
+- **결정**: clean baseline. 행간 적용이 전부 역할-바운드 빌트인 유틸 `leading-tight`(제목)·`leading-relaxed`(본문/설명) → 표면 간 갈릴 모집단 없음. leading-tight 2곳 전부 제목(pins/[id]:135 h1 font-display·PinCard:157 카드 제목)·leading-relaxed 2곳 전부 설명 단락(pins/[id]:141·boards/[id]:60)·기타 행간값(none/snug/normal/loose/numeric/arbitrary/인라인 lineHeight) 전수 0·named 행간 토큰(--leading-*) @theme 0 → divergence 0, defect class 미성립.
+- **축 선택**: cycle 1191(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1185 tokens 차기 후보(line-height/leading·z-index·opacity) 중 (1)line-height/leading=행간 named 토큰 vs 빌트인 유틸 축, real-population(leading 4곳 실재)·dedicated subject-head 0건(python 확인) → real-context census 로 확정. z-index/opacity 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `line-height`/leading 행간 토큰화(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인). letter-spacing 자간 토큰(cycle 1185)·font-weight 빌트인(L164)·font-optical-sizing/text-size-adjust(L272)·word-spacing/text-indent(L157)·OpenType feature(L207) 매치는 전부 별개 차원(자간/굵기/광학·사이징/단어간격·들여쓰기/합자)으로 행간 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰 정의의 표면 간 비정합/미적용 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴 패밀리·9단계 size scale 만 SHALL·line-height/행간/leading 미규정(silent). cycle 1185 letter-spacing·font-weight L164 처럼 빌트인 유틸 사용은 결함 아님(named 토큰 강제 SHALL 부재). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: line-height/leading/행간 grep DESIGN.md 0건 — 행간 named 토큰/스케일 미규정(silent). size scale·글꼴만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `leading-*`/`lineHeight` grep(leading-tight 2·leading-relaxed 2·기타 0) + @theme `--leading` grep(0) + 제목=tight·본문=relaxed 역할-바운드 균일 확인 + DESIGN.md silent.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `z-index` 스케일 토큰화(현 z-N 빌트인); (2) `opacity` 스케일 토큰화(현 opacity-N 빌트인); (3) `blur`/backdrop-blur 토큰화(현 빌트인 유틸).
+
 ## 2026-06-18 — [design] cycle 1191 Discovery — responsive area 111th round css-text-indent-first-line-indent-breakpoint-transition-cross-surface-conformance (CSS `text-indent` 첫 줄 들여쓰기가 브레이크포인트 간 전이 시 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `text-indent`/`indent-`/`[text-indent` 선언 0건 → 들여쓰기 적용 모집단 0, 따라서 BP-conditional 들여쓰기(`sm:indent-*`/`md:indent-*`) 도 0. 텍스트 블록 population 실재하나 첫 줄 들여쓰기 전혀 미사용(0 균일) → `text-indent` 를 일부 BP 에서만 켜 들여쓰기가 뷰포트/표면 간 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1189(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1183 responsive 차기 후보(scroll-margin/scroll-padding·text-indent·mix-blend-mode) 중 (1)scroll-margin/scroll-padding 은 scroll-snap cluster(cycle 1183)에서 scroll-padding 언급되어 오버랩 → PIVOT, (2)text-indent=첫 줄 들여쓰기 BP 전이 축, dedicated subject-head 0건(python 확인)·code 0/0 fully clean → pure-vacuous census 로 확정. mix-blend-mode 는 차기 후보로 보존.
