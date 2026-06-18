@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1213 Discovery — states area 118th round css-plain-focus-vs-focus-visible-role-split-cross-surface-conformance (플레인 `:focus`와 `:focus-visible`가 요소 역할로 일관 분리되는지)
+- **결정**: clean baseline (role-bound coherent). 플레인 `focus:border-accent` 11곳 전부 폼 텍스트 입력(`<input>`/`<textarea>`)·`focus-visible:` 22곳은 비입력 클릭 컨트롤(버튼/링크/카드) → 혼용이 아니라 요소 역할 기반 의미 분리(텍스트 입력=마우스+키보드 보더 하이라이트 정상, 클릭 컨트롤=키보드 전용 링 정상). 일부만 focus-visible 로 갈리는 동종 site 0, defect class 미성립.
+- **축 선택**: cycle 1211(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1205 states 차기 후보 #1(`:focus` 플레인 vs `:focus-visible` 분리) 진입. `:active`(active:cursor-grabbing 1곳, baseline 보유) 선점되어 PIVOT → 플레인:focus 축으로 확정. 11곳 요소 타입 Read 확인 전부 입력.
+- **MANDATORY 체크**: anti-patterns 전수 grep — states `:focus`(플레인) dedicated subject-head baseline 0건(python 확인). focus-visible 존재/패리티(1205)·focus-within 컨테이너·autoFocus 초기포커스·transition-delay hover-intent 매치는 전부 별개 차원(포커스 표시 존재/컨테이너 포커스/초기 포커스/지연 vs 플레인:focus↔:focus-visible 요소 역할 분리)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. 플레인 `:focus` 11곳 전부 텍스트 입력(`<input>`/`<textarea>`, grep+Read 확인)·`focus-visible:` 22곳 클릭 컨트롤·skip-link 플레인:focus 의도적 → 요소 역할로 일관. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: :focus/:focus-visible/포커스 grep DESIGN.md 0건 — 포커스 의사클래스 선택 정책 미규정(silent). 포커스 표시 존재 자체만 접근성 idiom.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `focus:border-accent` 11곳 요소 타입 Read(전부 input/textarea) + `focus-visible:` 22곳 클릭 컨트롤 + DESIGN.md silent.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `:focus-within`/`group-focus-within` 컨테이너 포커스 전파(현 SearchBar 2곳); (2) `aria-disabled` vs `disabled` 비활성 상태 표현 일관성; (3) `:read-only`/`:disabled` 폼 상태 의사클래스.
+
 ## 2026-06-18 — [design] cycle 1211 Discovery — aesthetic area 118th round css-font-synthesis-synthetic-bold-italic-suppression-cross-surface-conformance (CSS `font-synthesis` 합성 굵기/기울임 억제가 텍스트 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-synthesis`/`[font-synthesis` 선언 0건 → 합성 명시 적용 모집단 0. 텍스트 population 실재(General Sans·Pretendard Variable 가변폰트·Geist Mono)하나 합성 미명시(전부 브라우저 기본 상속 → 가변폰트 실제 weight 축으로 합성 거의 미발생·균일) → font-synthesis 를 일부만 none 으로 바꿔 합성 어휘가 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1209(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1203 aesthetic 차기 후보(font-synthesis·font-feature-settings/ligatures·font-optical-sizing) 중 (1)font-synthesis=합성 굵기/기울임 억제 축, dedicated subject-head 0건(python 확인)·텍스트 population 실재(가변폰트 실제 weight) → real-context census 로 확정. font-feature-settings/font-optical-sizing 은 차기 후보로 보존.
