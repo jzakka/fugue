@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1191 Discovery — responsive area 111th round css-text-indent-first-line-indent-breakpoint-transition-cross-surface-conformance (CSS `text-indent` 첫 줄 들여쓰기가 브레이크포인트 간 전이 시 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `text-indent`/`indent-`/`[text-indent` 선언 0건 → 들여쓰기 적용 모집단 0, 따라서 BP-conditional 들여쓰기(`sm:indent-*`/`md:indent-*`) 도 0. 텍스트 블록 population 실재하나 첫 줄 들여쓰기 전혀 미사용(0 균일) → `text-indent` 를 일부 BP 에서만 켜 들여쓰기가 뷰포트/표면 간 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1189(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1183 responsive 차기 후보(scroll-margin/scroll-padding·text-indent·mix-blend-mode) 중 (1)scroll-margin/scroll-padding 은 scroll-snap cluster(cycle 1183)에서 scroll-padding 언급되어 오버랩 → PIVOT, (2)text-indent=첫 줄 들여쓰기 BP 전이 축, dedicated subject-head 0건(python 확인)·code 0/0 fully clean → pure-vacuous census 로 확정. mix-blend-mode 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `text-indent`/들여쓰기 BP 전이(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인). scroll-padding 매치는 scroll-snap cluster(스크롤 스냅 축)·word-spacing(tokens L157)·mix-blend(미커버) 매치는 전부 별개 차원(스크롤 스냅/단어간격/블렌드 vs 첫줄 들여쓰기)으로 text-indent 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/BP 전이 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L16-35 Typography 는 글꼴·9단계 size scale 만 SHALL — 첫 줄 들여쓰기(text-indent) BP 전이 미규정(silent). L67-77 Layout 의 breakpoints(sm/md/lg)는 masonry 컬럼 BP 이지 들여쓰기 BP 미명시. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: text-indent/들여쓰기/indent grep 0건 — 첫 줄 들여쓰기 BP 스케일 미규정(silent). size scale·글꼴·masonry BP 만 SHALL.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `text-indent`/`indent-`/`[text-indent` grep(0건) + 텍스트 블록 들여쓰기 미사용 균일 + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `mix-blend-mode` 블렌드 모드 BP 전이(현 0 pure-vacuous); (2) `scroll-margin`/`scroll-padding` 스크롤 오프셋 BP 전이(현 0, scroll-snap cluster 와 구별 필요); (3) `caption-side` 표 캡션 위치 BP 전이(현 0).
+
 ## 2026-06-18 — [design] cycle 1189 Discovery — states area 115th round css-empty-structural-empty-element-state-pseudo-class-cross-surface-conformance (CSS `:empty` 빈 엘리먼트 구조 상태가 빈 상태 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `:empty`/`empty:` 선언 0건 → CSS 빈-상태 적용 모집단 0. 빈 상태 population 은 실재하나 전부 React 조건부 렌더링(`.length` 체크 77건)으로 분기해 공유 `EmptyState` 컴포넌트(8표면) 렌더 단일 idiom 으로 일관 처리 → `:empty` 를 일부만 켜 빈 상태 어휘가 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1187(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1181 states 차기 후보(`:default`/`:empty`/`:any-link`/`:local-link`) 중 (1)`:empty`=빈 엘리먼트 구조 상태 축, dedicated subject-head 0건(python 확인)·빈 상태 population 실재(EmptyState 8표면·복어 마스코트) → real-context census 로 확정. `:default`/`:any-link`/`:local-link`/`:placeholder-shown`/`:read-only`/`:required` 는 별개 차원이라 PIVOT 불요.
