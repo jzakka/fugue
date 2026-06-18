@@ -620,7 +620,7 @@ export default function PinCreateForm() {
                     className={`px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors font-mono ${
                       selected
                         ? "bg-accent text-white"
-                        : "bg-accent-subtle text-text-muted hover:bg-accent/20 focus-visible:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                        : "bg-accent-subtle text-text-muted hover:bg-accent/20 focus-visible:bg-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     }`}
                   >
                     {tag.name}
