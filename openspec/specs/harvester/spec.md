@@ -71,8 +71,6 @@ Bot이 만드는 Pin은 검색 SSOT 역할을 하며, 한 원본 페이지(canon
 - **WHEN** 어떤 사이트에 대해 PerSiteAdapter가 등록되어 있지 않은 상태에서 일반 HTML 페이지를 harvest할 때
 - **THEN** generic extractor가 동작하여 PinDocument가 생성되고, classifier가 통과시키면 Pin이 DB에 upsert된다
 
----
-
 ### Requirement: PinDocument는 검색 SSOT 최소 필드를 가진다
 Generic extractor 또는 PerSiteAdapter가 반환하는 `PinDocument`는 다음 최소 필드를 가져야 한다(SHALL): `title`, `body_text`, `canonical_url`, `thumbnail_url`, `media_candidates`, `lang`, `author`, `published_at`, `og_data`. 추출 실패 또는 부재 필드는 빈 값/빈 배열/null로 표현해야 하며, 객체 자체는 항상 반환되어야 한다(SHALL).
 
@@ -783,7 +781,6 @@ Harvester가 외부 미디어 응답 본문을 stream으로 객체 저장소에 
 - **WHEN** 외부 서버가 응답 본문을 매우 느린 속도(예: 1바이트/초)로 전송하여 SSRF-safe client에 설정된 total timeout 안에 응답이 끝나지 않는 경우
 - **THEN** client는 timeout 에러로 종료하고 호출자는 fetch 에러로 인식하며, Harvester 워커는 다음 작업으로 진행한다. 외부 저장소에는 미완료 부분 응답이 적재되지 않는다.
 
-
 ---
 
 ### Requirement: title은 pins.title 컬럼 cap에 맞춰 rune-safe 사전 절단된다
@@ -807,7 +804,6 @@ Harvester가 외부 미디어 응답 본문을 stream으로 객체 저장소에 
 #### Scenario: classifier 입력은 절단되지 않은 원본 title을 받는다
 - **WHEN** classifier가 PinDocument를 평가할 때
 - **THEN** classifier는 잘리지 않은 원본 title로 판정을 수행하며, `pins.title`에 저장되는 값은 이와 무관하게 200 rune으로 잘린 형태다 (description rune-cap 정책과 대칭)
-
 
 ---
 
@@ -834,3 +830,4 @@ URL은 의미 단위가 rune 경계에 정렬되지 않으므로 시스템은 �
 #### Scenario: 멀티바이트 media URL은 rune 단위로 검사된다
 - **WHEN** media URL이 percent-encoded 한국어/일본어/이모지 등 멀티바이트 시퀀스를 포함하여 rune 수가 500을 초과하지만 바이트 수는 더 클 때
 - **THEN** 시스템은 rune 카운트 기준으로 차단 여부를 판정하며 바이트 카운트로 잘못 판정하지 않는다
+
