@@ -7047,5 +7047,5 @@ items:
     effort: 2
     risk: 2
     score: 3.0
-    status: pending
+    status: done
     note: "cycle 1070 발견(봇 영역, OLDEST 로테이션, 직전 봇 방문 1058). cycle 1058 발견모드 재진입 후보 (2) handleSource srcset 파싱의 정합을 추적해 확정. anti-patterns.md L83은 프론트엔드 <img> srcset/sizes(디자인 트랙)라 본 백엔드 extractor 결함을 커버하지 않음. decision-log srcset 매치 35건은 전부 디자인 트랙(711 srcset/sizes·775 art-direction 등)으로 백엔드 미디어 추출과 무관. confidence=4(스펙 L52 위반 + absolutize ok=true 실측 검증), 첫 confidence≥3 생존 후보."
