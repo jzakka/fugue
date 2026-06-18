@@ -30,6 +30,15 @@
 - **QA**: Discovery 0-candidate census라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `^### Requirement` grep(11 capability 카운트)·git log openspec/(d8fe4a7)·creator/handler.go:64-180·boards.sql:28-35·cmd/server/main.go:146/165-175·auth/ratelimit.go:25-115 직접 Read.
 - **차기 OpenSpec갭 재진입 후보**(선점 시 PIVOT): (1) feed(4 Req) fresh cross-walk 재확인(직전 1086, recommend/latest 분리·페이지 중복 SHALL); (2) auth(6 Req) capability fresh cross-walk(미탐침, OAuth state/refresh/me); (3) pin(20 Req) capability 중 미탐침 Scenario sampling. 진입 전 MANDATORY anti-patterns+decision-log 전수 grep + inventory 불변 재census.
 
+## 2026-06-18 — [design] cycle 1247 Discovery — responsive area 118th round css-breakpoint-prefixed-padding-spacing-transition-surface-panel-conformance (BP-접두 패딩 `(sm|md):p-*` 이 표면 간 일관·부재한지)
+- **결정**: clean baseline (role-bound coherent). BP-접두 패딩/마진은 `p-6 sm:p-8` 5건뿐이고 전부 동일 스텝(24px→32px)으로 동일 surface-panel 역할에만 — pins/[id]:128·boards/[id]:53·ProfileEditForm:51·ProfileSkeleton:5·ProfileHeader:13(전부 `bg-surface rounded-[16px] border border-border` 카드 패널). 동종 패널 전부 단일 스텝 일관(divergence 0). BP-접두 마진 0·arbitrary BP 패딩 0. 패딩 스텝 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1245(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1239 responsive 차기 후보 진입 — BP-접두 rounded(기존 baseline `rounded-none sm:rounded-lg`)·BP-접두 gap(기존 baseline `(sm|md):gap-*`)는 PIVOT. fresh 축 BP-접두 padding(`(sm|md):p-*`)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive padding/여백(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, 매치는 scroll-padding 스크롤스냅 1건=별개 축). BP gap(별도 baseline·컨테이너 간격)·BP type-scale(별도 baseline·글꼴 크기)·BP border-radius 전이(별도 baseline·반경)·정적 p-*(BP 비전이·별개) 매치는 전부 별개 차원(간격/글꼴크기/반경/정적 vs BP 패딩 전이)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/브레이크포인트별 비정합 결함클래스로만 판정. BP-접두 패딩 5건 전부 `p-6 sm:p-8` 단일 스텝·동일 surface-panel 역할(divergence 0). precedent(gap 1239·type-scale): BP-접두 유틸 named 토큰 없이 써도 동종 역할 단일 스텝 일관·DESIGN silent 면 결함 아님. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: `sm:p-`/반응형 패딩 스텝 grep DESIGN.md 0건 — 반응형 패딩 정책 미규정(silent). spacing scale 은 정적 간격만, BP별 패딩 전이 미명시.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `(sm|md|lg):p*-`/`m*-` grep(p-6 sm:p-8 5건만·BP 마진 0)·사용처 Read(전부 surface 카드 패널 동일 스텝) + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) BP-접두 `space-y-*`/`space-x-*` 자식 간격 전이(현 확인 필요); (2) `gap-x-*`/`gap-y-*` 축 분리 BP 전이(현 확인 필요); (3) BP-접두 `items-*`/`self-*` 교차축 정렬 전이(현 확인 필요).
+
 ## 2026-06-18 — [system] cycle 1108 Discovery — 봇 area extractor cycle 1096 재진입 후보 3종(og:image 다중출현 first-wins↔DOM순서·mediaTypeFromMIME 미지원 MIME skip 경계·parseTime layout 커버리지) fresh 평가. 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1096 봇 차기 재진입 후보 3종 전부 fresh 재확인 후 confidence<3.
 - **축 선택**: rotation 상 봇 area가 OLDEST(직전 1096). pending=0이라 Discovery. cycle 1096 차기 후보 list (1)handleMeta og:image 다중 출현 first-wins↔spec L816 DOM순서 정합 (2)mediaTypeFromMIME 가 image/video/audio 외 MIME 을 ""로 skip 하는 경계 spec 정합 (3)parseTime layout 목록이 article:published_time ISO 변형 커버하는지 순차 fresh 평가.
