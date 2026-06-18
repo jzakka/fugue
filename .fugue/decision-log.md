@@ -28,6 +28,14 @@
 - **로테이션**: 정합성 1090→1102. 6-area 방문 이력 에러처리=1092·동시성=1094·봇=1096·OpenSpec갭=1098·보안=1100·정합성=1102 → 차기 OLDEST = 에러처리(직전 1092) → cycle 1104.
 - **QA**: Discovery 0-candidate census라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 db/queries/pins.sql:6-25(upsert)·56-196(페이지네이션 ORDER BY)·frontier.sql:140-216(claim/in-flight/status lease) 직접 Read로 tiebreaker·컬럼 정합·lease 가시성 검증.
 - **차기 정합성 재진입 후보**(선점 시 PIVOT): (1) SetStatusHarvested(frontier.sql:201) RETURNING↔Go struct 매핑·harvested_at/harvest_error_count reset 정합; (2) InsertHarvesterFrontierPins(frontier.sql:216) 배치 INSERT 컬럼↔pioneer enqueue 컬럼 정합; (3) RelatedPins(pins.sql:134) tag overlap count 서브쿼리↔pin_tags 인덱스 정합. 진입 전 MANDATORY anti-patterns+decision-log 전수 grep.
+## 2026-06-18 — [design] cycle 1239 Discovery — responsive area 117th round css-container-query-container-type-element-responsive-cross-surface-conformance (컨테이너 쿼리 `@container` 가 표면 간 일관·부재한지)
+- **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `@container`/`container-type`/`container-name` 선언 0건 → 컨테이너 쿼리(요소-기반 반응형) 명시 모집단 0. 전 반응형은 뷰포트 미디어쿼리(`sm:`/`md:` BP 접두 유틸·react-masonry-css breakpointCols)로 일관. gap(69)·rounded(149) 유틸은 실재하나 전부 고정값(BP/컨테이너 전이 아님) → 일부만 컨테이너 쿼리로 반응 기준 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1237(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1231 responsive 차기 후보 #1(`@container` 컨테이너 쿼리·현 0) 진입. BP-접두 rounded 반경 전이(#2, 현 0)·BP-접두 gap 간격 전이(#3, 현 0)는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — responsive 컨테이너 쿼리/@container(`[design][responsive]`) dedicated subject-head baseline 0건(python 확인, 42개 중 container 매치는 max-w 페이지너비·flex-wrap 줄바꿈·justify-content 분배 3건=전부 별개 축). max-w 컨테이너 너비(별개 baseline)·flex-wrap 줄바꿈(별개 baseline)·justify-content 주축 분배(별개 baseline)·BP 타입 스케일(1231) 매치는 전부 별개 차원(너비/줄바꿈/분배/글꼴크기 vs 컨테이너 쿼리 반응 기준)으로 본 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. @container 전수 0(divergence 0). DESIGN.md 컨테이너 쿼리 미규정(silent). 전 반응형 뷰포트 미디어쿼리 일관. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: @container/container-type/container-name/컨테이너 쿼리 grep DESIGN.md 0건 — 컨테이너 쿼리 정책 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `@container`/`container-type`/`container-name` grep(전수 0)·BP 접두 유틸(sm:/md:)·react-masonry-css breakpointCols 뷰포트 기준 일관 + DESIGN.md silent.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) BP-접두 `rounded-*` 모서리 반경 전이(현 0); (2) BP-접두 `gap-*` 그리드/플렉스 간격 전이(현 0); (3) BP-접두 `p-*`/`px-*`/`py-*` 패딩 전이(현 확인 필요).
 
 ## 2026-06-18 — [system] cycle 1100 Discovery — 보안 area cycle 1088 재진입 후보 3종(CORS allowlist 정합·JWT 알고리즘 confusion·Redis 키 네임스페이스/세션 고정) fresh 평가. 표면 폐기 (후보 0건)
 - **결정**: 0-candidate census. 코드/백로그/PR 변경 없음. cycle 1088 보안 차기 재진입 후보 3종 전부 fresh 재확인 후 confidence<3.
