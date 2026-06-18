@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1201 Discovery — tokens area 114th round css-z-index-stacking-order-named-token-vs-builtin-utility-cross-surface-conformance (쌓임 순서 z-index 를 named 레이어 토큰 아닌 빌트인/arbitrary 유틸로 표현하는 것이 표면 간 일관·부재한지)
+- **결정**: clean baseline. z-index 적용이 역할-바운드 4-tier 레이어로 일관 — z-10(모달 내부 로컬 핸들 VideoTrimModal:270·279) < z-50(앱 크롬/오버레이: NavBar:12 sticky 헤더·AddToBoardButton:232 fixed inset-0 오버레이) < z-[60](드롭다운 SearchBar:182, nav 위) < z-[100](최상위: layout:33 skip-link a11y·VideoTrimModal:195 풀스크린 모달). 드롭다운 60>nav 50 정합·named z 토큰(--z-*) @theme 0 → divergence 0, defect class 미성립.
+- **축 선택**: cycle 1199(responsive) 후 tokens area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1193 tokens 차기 후보(z-index·opacity·blur) 중 (1)z-index=쌓임순서 named 토큰 vs 빌트인 유틸 축, real-population(z 7곳·4값 실재)·dedicated subject-head 0건(python 확인) → real-context census 로 확정. opacity/blur 는 차기 후보로 보존.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `z-index`/stacking 토큰화(`[design][tokens]`) dedicated subject-head baseline 0건(python 확인). letter-spacing 자간(1185)·line-height 행간(1193)·font-weight 빌트인(L164)·opacity/blur(차기) 매치는 전부 별개 차원(자간/행간/굵기/불투명도·블러 vs 쌓임순서)으로 z-index 축과 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — tokens 는 명시 토큰 정의의 표면 간 비정합/미적용 결함클래스로만 판정. DESIGN.md(105줄) z-index/stacking/레이어 grep 0건(silent). cycle 1185 letter-spacing·1193 line-height·font-weight L164 처럼 빌트인+arbitrary 유틸 사용은 결함 아님(named 토큰 강제 SHALL 부재). z-50 모달(AddToBoardButton)과 z-50 nav 동일값은 DOM 순서로 모달이 후순위 paint(오버레이가 nav 위)·기능 정상, DESIGN.md silent 라 결함 아님. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: z-index/stacking/레이어/층위 grep DESIGN.md 0건 — 레이어 스케일/z 토큰 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `z-*`/`zIndex` grep(z-10 2·z-50 2·z-[60] 1·z-[100] 2) + @theme `--z` grep(0) + 4-tier 역할-바운드 레이어(로컬<크롬<드롭다운<top) 확인 + DESIGN.md silent.
+- **차기 tokens 재진입 후보**(list order, 선점 시 PIVOT): (1) `opacity` 스케일 토큰화(현 opacity-N 빌트인·bg-black/70 등 실재); (2) `blur`/backdrop-blur 토큰화(현 backdrop-blur-sm 빌트인); (3) `transition-timing-function` easing named 토큰(현 ease 빌트인).
+
 ## 2026-06-18 — [design] cycle 1199 Discovery — responsive area 112th round css-mix-blend-mode-background-blend-mode-breakpoint-transition-cross-surface-conformance (CSS `mix-blend-mode`/`background-blend-mode` 블렌드 합성이 브레이크포인트 간 전이 시 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src 전수에서 `mix-blend`/`background-blend`/`bg-blend` 선언 0건 → 블렌드 적용 모집단 0, 따라서 BP-conditional 블렌드(`sm:mix-blend-*`/`md:mix-blend-*`) 도 0. 카드/썸네일/오버레이 population 실재하나 블렌드 모드 전혀 미사용(전부 normal 기본=불투명 합성 균일) → mix-blend 를 일부 BP 에서만 켜 블렌드가 뷰포트/표면 간 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1197(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1191 responsive 차기 후보(mix-blend-mode·scroll-margin/scroll-padding·caption-side) 중 (1)mix-blend-mode=블렌드 합성 BP 전이 축, dedicated subject-head 0건(python 확인)·code 0/0 fully clean → pure-vacuous census 로 확정. scroll-margin/padding(scroll-snap cluster 구별 필요)·caption-side 는 차기 후보로 보존.
