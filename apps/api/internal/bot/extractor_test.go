@@ -308,6 +308,41 @@ func TestExtractor_SourceSrcsetSingleURLNoDescriptor(t *testing.T) {
 	}
 }
 
+func TestExtractor_MediaCandidatesExcludesOutsideArticleWhenEmptyInside(t *testing.T) {
+	// harvester/spec.md "media_candidates는 <article> 밖 미디어를 제외한다":
+	// when an <article> exists but holds no eligible media, media outside it
+	// (nav/header/footer) must NOT be collected — media_candidates is empty.
+	page := `<html><body>
+<img src="/nav-logo.png" alt="logo" width="200" height="80">
+<article><p>본문 텍스트입니다.</p></article>
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/article/page")
+	if len(doc.MediaCandidates) != 0 {
+		t.Errorf("expected no media candidates (article has none, nav-logo is outside), got %v", doc.MediaCandidates)
+	}
+}
+
+func TestExtractor_MediaCandidatesArticleScopeWhenBothPresent(t *testing.T) {
+	// When media exists both inside and outside the <article>, only the
+	// article-internal media is collected.
+	page := `<html><body>
+<img src="/nav-logo.png" alt="logo" width="200" height="80">
+<article>
+<img src="/inside.jpg" alt="inside" width="300" height="300">
+</article>
+<img src="/footer.png" alt="footer" width="200" height="80">
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/article/page")
+	if len(doc.MediaCandidates) != 1 {
+		t.Fatalf("expected exactly 1 article-scoped candidate, got %d: %v", len(doc.MediaCandidates), doc.MediaCandidates)
+	}
+	if doc.MediaCandidates[0].URL != "https://example.com/inside.jpg" {
+		t.Errorf("candidate = %q, want https://example.com/inside.jpg", doc.MediaCandidates[0].URL)
+	}
+}
+
 func TestExtractor_OGTitleWinsOverHTMLTitle(t *testing.T) {
 	page := `<html><head>
 <title>HTML Title</title>

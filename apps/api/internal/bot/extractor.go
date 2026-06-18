@@ -136,9 +136,17 @@ type extractScan struct {
 	metaDescription   string
 	firstArticleImage string
 
-	mediaImages []MediaCandidate
-	mediaVideos []MediaCandidate
-	mediaAudios []MediaCandidate
+	// Media candidates are split by content scope so buildMediaCandidates can
+	// honor the spec's body-range definition: when an <article> exists the
+	// scope is its interior, otherwise the whole <body>. body* buckets collect
+	// media outside any <article>; article* buckets collect media inside one.
+	// This mirrors the articleTextBuf/bodyTextBuf split used for body_text.
+	bodyImages    []MediaCandidate
+	bodyVideos    []MediaCandidate
+	bodyAudios    []MediaCandidate
+	articleImages []MediaCandidate
+	articleVideos []MediaCandidate
+	articleAudios []MediaCandidate
 
 	// State for body-text and density tracking.
 	sawArticle     bool
@@ -203,35 +211,50 @@ func (s *extractScan) walk(n *html.Node, inArticle bool) {
 				// content. Same gate as image_picker.go buildArticleImgCandidate:
 				// width and height both ≥ 100, OR non-empty alt.
 				if (w >= 100 && h >= 100) || alt != "" {
-					s.mediaImages = append(s.mediaImages, MediaCandidate{
+					cand := MediaCandidate{
 						Type:   "image",
 						URL:    src,
 						Width:  w,
 						Height: h,
-					})
-					if inArticle && s.firstArticleImage == "" {
-						s.firstArticleImage = src
+					}
+					if inArticle {
+						s.articleImages = append(s.articleImages, cand)
+						if s.firstArticleImage == "" {
+							s.firstArticleImage = src
+						}
+					} else {
+						s.bodyImages = append(s.bodyImages, cand)
 					}
 				}
 			}
 		case "video":
 			if src := getAttr(n, "src"); src != "" {
-				s.mediaVideos = append(s.mediaVideos, MediaCandidate{
+				cand := MediaCandidate{
 					Type:   "video",
 					URL:    src,
 					Width:  parseIntAttr(getAttr(n, "width")),
 					Height: parseIntAttr(getAttr(n, "height")),
-				})
+				}
+				if inArticle {
+					s.articleVideos = append(s.articleVideos, cand)
+				} else {
+					s.bodyVideos = append(s.bodyVideos, cand)
+				}
 			}
 		case "audio":
 			if src := getAttr(n, "src"); src != "" {
-				s.mediaAudios = append(s.mediaAudios, MediaCandidate{
+				cand := MediaCandidate{
 					Type: "audio",
 					URL:  src,
-				})
+				}
+				if inArticle {
+					s.articleAudios = append(s.articleAudios, cand)
+				} else {
+					s.bodyAudios = append(s.bodyAudios, cand)
+				}
 			}
 		case "source":
-			s.handleSource(n)
+			s.handleSource(n, inArticle)
 		case "script":
 			if strings.EqualFold(getAttr(n, "type"), "application/ld+json") {
 				s.handleJSONLD(textContent(n))
@@ -320,7 +343,7 @@ func (s *extractScan) handleMeta(n *html.Node) {
 	}
 }
 
-func (s *extractScan) handleSource(n *html.Node) {
+func (s *extractScan) handleSource(n *html.Node, inArticle bool) {
 	src := getAttr(n, "src")
 	if src == "" {
 		src = firstSrcsetURL(getAttr(n, "srcset"))
@@ -335,11 +358,23 @@ func (s *extractScan) handleSource(n *html.Node) {
 	cand := MediaCandidate{Type: mediaType, URL: src}
 	switch mediaType {
 	case "image":
-		s.mediaImages = append(s.mediaImages, cand)
+		if inArticle {
+			s.articleImages = append(s.articleImages, cand)
+		} else {
+			s.bodyImages = append(s.bodyImages, cand)
+		}
 	case "video":
-		s.mediaVideos = append(s.mediaVideos, cand)
+		if inArticle {
+			s.articleVideos = append(s.articleVideos, cand)
+		} else {
+			s.bodyVideos = append(s.bodyVideos, cand)
+		}
 	case "audio":
-		s.mediaAudios = append(s.mediaAudios, cand)
+		if inArticle {
+			s.articleAudios = append(s.articleAudios, cand)
+		} else {
+			s.bodyAudios = append(s.bodyAudios, cand)
+		}
 	}
 }
 
@@ -524,10 +559,16 @@ func absolutize(base *url.URL, raw string) (string, bool) {
 }
 
 func buildMediaCandidates(base *url.URL, s *extractScan, limit int) []MediaCandidate {
-	all := make([]MediaCandidate, 0, len(s.mediaImages)+len(s.mediaVideos)+len(s.mediaAudios))
-	all = append(all, s.mediaImages...)
-	all = append(all, s.mediaVideos...)
-	all = append(all, s.mediaAudios...)
+	// Body range per spec: <article> interior when one exists, else whole <body>.
+	images, videos, audios := s.bodyImages, s.bodyVideos, s.bodyAudios
+	if s.sawArticle {
+		images, videos, audios = s.articleImages, s.articleVideos, s.articleAudios
+	}
+
+	all := make([]MediaCandidate, 0, len(images)+len(videos)+len(audios))
+	all = append(all, images...)
+	all = append(all, videos...)
+	all = append(all, audios...)
 
 	out := make([]MediaCandidate, 0, len(all))
 	seen := make(map[string]struct{}, len(all))
