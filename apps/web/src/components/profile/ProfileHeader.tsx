@@ -28,8 +28,8 @@ export default function ProfileHeader({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-display break-words">
                 {creator.nickname}
               </h1>
             </div>
