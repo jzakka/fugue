@@ -51,6 +51,10 @@ Bot이 만드는 Pin은 검색 SSOT 역할을 하며, 한 원본 페이지(canon
 - **WHEN** generic extractor가 본문에서 미디어 후보를 수집할 때
 - **THEN** 시스템은 본문 범위 내 `<img>`, `<video>`, `<audio>`, `<source>` 태그의 URL을 절대 경로로 변환하여 type(image/video/audio)과 함께 `media_candidates` 배열에 수집한다. 본문 범위는 `<article>` 태그가 있으면 그 내부, 없으면 `<body>` 전체로 정의된다
 
+#### Scenario: media_candidates는 <article> 밖 미디어를 제외한다
+- **WHEN** HTML에 `<article>` 태그가 존재하고, 그 내부와 외부(헤더/네비/사이드바/푸터/관련글 등) 모두에 `<img>`/`<video>`/`<audio>`/`<source>` 미디어가 있을 때
+- **THEN** 시스템은 `<article>` 내부 미디어만 `media_candidates`에 수집하고 외부 미디어는 제외한다. `<article>` 내부에 적격 미디어가 없으면 `media_candidates`는 빈 배열이다
+
 #### Scenario: source의 srcset 다중 후보에서 첫 URL만 수집
 - **WHEN** `<source>` 태그가 `src` 속성 없이 `srcset` 속성만 가지며, 그 값이 `"a.webp 1x, b.webp 2x"`처럼 디스크립터를 포함한 콤마 구분 후보 목록일 때
 - **THEN** 시스템은 첫 후보의 URL 토큰(콤마 분리 후 첫 후보의 공백 앞부분)만 추출하여 절대 경로로 변환해 `media_candidates`에 수집하고, 디스크립터(`1x`/`640w` 등)와 나머지 후보는 버린다. 추출된 URL 토큰이 비어 있으면 해당 `<source>`는 후보로 수집하지 않는다

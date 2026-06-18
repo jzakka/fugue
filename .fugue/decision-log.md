@@ -35,6 +35,13 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `transform-origin`/`origin-*` grep(0)+변형 census(-translate-y-0.5 5 호버부상·animate-spin 11 중심회전·scale/rotate 임의 0)+DESIGN.md grep(Scale=Type/Spacing·origin 무관).
 - **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): (1) `text-decoration-skip-ink` 밑줄 글자 하강부 건너뛰기(현 vacuous 확인); (2) `list-style-image` 리스트 마커 이미지(현 0·확인 필요); (3) `decoration-wavy`/`decoration-dotted` 밑줄 선스타일 일관(확인 필요).
 
+## 2026-06-18 — [system] cycle 1158 Processing — 봇 media_candidates article-scope 정합 (OpenSpec change fix-harvester-media-candidates-article-scope)
+- **결정/변경**: GenericExtractor가 `<article>` 존재 시 media_candidates를 article 내부 미디어로만 한정하도록 수정. extractScan에 body*/article* 이중 버킷(images/videos/audios) 도입, walk()의 img/video/audio 분기와 handleSource(source)가 inArticle 게이트로 분기 append, buildMediaCandidates가 sawArticle이면 article 버킷 사용(절대화/dedup/50cap 파이프라인 보존). 단위테스트 2건 추가, live spec harvester L52에 "media_candidates는 <article> 밖 미디어를 제외한다" Scenario 명문화.
+- **이유**: spec L52 "본문 범위는 <article> 있으면 그 내부"(SHALL) 위반. 기존 walk()는 inArticle 무관 whole-tree 수집 → og_data.media_candidates가 헤더/네비/푸터 미디어로 오염되고, ThumbnailURL 빈 페이지에서 pickMediaForPin이 article 밖 첫 후보를 대표 미디어로 채택해 스펙대로면 no_primary_media skip 될 페이지가 Pin 생성. 동일 추출기의 thumbnail/articleText는 article-scoped라 내부 불일치.
+- **QA(실 환경)**: httptest 서버에 article 밖 4 미디어(logo/banner/related/footer)+article 내부 2 미디어(hero.jpg image, clip.mp4 video) 페이지를 서빙, production GenericExtractor.Extract 페치+추출 → media_candidates=[hero.jpg, clip.mp4] 정확히 2건, article 밖 4건 제외, thumbnail_url=hero.jpg 관찰. 전체 테스트 431 passed. openspec validate --strict valid.
+- **영향 범위**: apps/api bot generic extractor의 media_candidates 수집 범위에만 적용. <article> 없는 페이지는 무회귀(body 전체 수집 유지). thumbnail/articleText/srcset 첫 URL/50cap 기존 동작 보존.
+- **rotation**: 봇 1156(Discovery)→1158(Processing) 완료. pending=0 복귀 → 차기 Discovery OLDEST = OpenSpec갭(직전 1146).
+
 ## 2026-06-18 — [system] cycle 1156 Discovery — 봇 area cycle 1144 이월 후보 (2) media_candidates 본문 범위 추적 → spec L52 article-scope 위반 확정. 후보 1건 등록(backlog system-20260618-media-candidates-article-scope)
 - **결정**: 후보 1건 백로그 등록(pending). cycle 1144 봇 census 차기 재진입 후보 (1)(2)(3) 중 (1)·(3) 폐기, (2) media_candidates 본문 범위 정합이 confidence=4 생존 후보로 확정 — 다음 사이클 Processing 모드 진입.
 - **축 선택**: rotation 상 봇 area가 OLDEST(직전 1144). pending=0이라 Discovery. cycle 1144 차기 봇 재진입 후보 3종 순차 fresh 평가(extractor.go walk()/buildMediaCandidates 전수 Read·harvester spec L42-69 대조·harvest_pipeline pickMediaForPin Read).
