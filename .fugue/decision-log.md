@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1175 Discovery — responsive area 109th round css-white-space-line-breaking-mode-nowrap-normal-prewrap-breakpoint-transition-cross-surface-conformance (CSS `white-space` 줄바꿈 모드(nowrap↔normal/pre-wrap)를 브레이크포인트별로 전환하는 BP 줄바꿈 거동 전이가 텍스트 표면 간 일관·부재한지)
+- **결정**: clean baseline. apps/web/src 전수에서 BP-접두 `(sm|md|lg|xl):whitespace-*` 선언 0건 → 줄바꿈 모드 BP 전이 모집단 0(전이 부재=전 폭 균일). 정적 `whitespace-nowrap` 8건은 실재하나 전부 가로 필터/태그 칩 레일 안 칩 pill 짧은 라벨(태그/카테고리명 한 줄 유지) 역할-바운드 단일 모드라 균일(uniform)·whitespace-normal/pre/pre-wrap 0·본문 nowrap 0 → 표면 간 비정합 자체 없음, defect class 미성립.
+- **축 선택**: cycle 1173(states) 후 responsive area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1167 responsive 후 BP 전이 차원 후보 중 텍스트 줄바꿈 차원으로 (1)white-space 줄바꿈 모드 BP 전이→(2)hyphens BP 전이→(3)text-align BP 전이 순. real-population 우선: (1)white-space = BP 선언 0·정적 nowrap 8 실재하나 uniform 위임 → 표면 census. PIVOT 이력: place-items/justify-items(L292 cycle 951)·truncate/line-clamp(L408 cycle 1085)·order(L292)·whitespace-nowrap a11y reflow(L177/825) 는 전부 별개 축이라 dedupe 제외 후 white-space 줄바꿈 모드 BP 전이로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — `white-space`/줄바꿈 모드 BP 전이(`[design][responsive]`) dedicated baseline 0건. L177/825 whitespace-nowrap 칩 reflow(a11y 1.4.10 가로 스크롤)·L408(1085) truncate/line-clamp BP 전이(텍스트 절단 라인수/모드)·L357 overflow-wrap/word-break(정적 장문 줄바꿈 tokens)·L292(951) order/place-items BP 재배치 매치는 전부 별개 차원(reflow/절단/정적줄바꿈/재배치)으로 BP 줄바꿈 모드 전이와 비중첩.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — responsive 는 명시 SHALL 위반/BP 전이 표면 간 비정합 결함클래스로만 판정. DESIGN.md(105줄) L67-77 Layout 은 masonry 컬럼·breakpoint(sm500/md800/lg1200)·border-radius 만 SHALL — white-space 줄바꿈 모드의 BP별 전이는 미규정(silent). loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: white-space/줄바꿈/nowrap grep 0건 — BP별 줄바꿈 모드 전환(nowrap↔normal) 정합 미규정(silent).
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 apps/web/src 의 `(sm|md|lg|xl):whitespace-*` grep(0건) + 정적 whitespace-nowrap 8건 population(칩 레일 라벨) 의 단일 모드 균일 위임 확인.
+- **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): (1) `hyphens` 하이픈네이션 BP 전이(현 0); (2) `text-align` 정렬 BP 전이(현 정적만); (3) `columns`/multi-column count BP 전이(현 masonry 라이브러리 컬럼 외 0).
+
 ## 2026-06-18 — [system] cycle 1070 Discovery — 봇 영역 handleSource srcset 원문→URL 정합. 후보 1건 발견(첫 confidence≥3 생존)
 - **결정**: 백로그에 `system-20260618-source-srcset-raw-url` 1건 append(status=pending, score=3.0). extractor.go:323 handleSource가 `src` 부재 시 :326에서 `srcset` 속성 원문("a.webp 1x, b.webp 2x")을 파싱 없이 :335 MediaCandidate.URL로 사용. picture/video/audio 모든 `<source>`(:234 호출)에 적용되며, src 없는 흔한 `<picture><source srcset=... type=image/...>` 마크업이 이 경로를 탐.
 - **축 선택**: 봇 영역(OLDEST 로테이션, 직전 봇 방문 cycle 1058). 6영역(정합성→에러처리→동시성→봇→OpenSpec갭→보안) 중 봇이 최장기 미방문. cycle 1058 발견모드 재진입 후보 (2) handleSource srcset 파싱 정합을 추적해 확정.
