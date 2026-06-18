@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-18 — [design] cycle 1221 Discovery — states area 119th round css-disabled-vs-aria-disabled-inactive-state-expression-cross-surface-conformance (비활성 상태를 네이티브 `disabled`/`aria-disabled` 중 일관 표현하는지)
+- **결정**: clean baseline (role-bound coherent). 네이티브 `disabled={...}` 16곳 전부 네이티브 폼 컨트롤(`<button>`/`<input>`)·`aria-disabled` 0건 → 비활성=네이티브 `disabled` 단일 어휘(혼용 없음·divergence 0). 비활성 시각도 `disabled:opacity-50`(1209 정렬)·`disabled:cursor-not-allowed` 일관. 일부만 aria-disabled 로 갈리는 site 0, defect class 미성립.
+- **축 선택**: cycle 1219(aesthetic) 후 states area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1213 states 차기 후보 #1(`focus-within`/`group-focus-within`)은 이미 dedicated baseline 보유(SearchBar 2곳 컨테이너 상태) → PIVOT 후보 #2(`aria-disabled` vs `disabled` 비활성 표현)로 확정.
+- **MANDATORY 체크**: anti-patterns 전수 grep — states `aria-disabled` dedicated subject-head baseline 0건(python 확인, aria-disabled heads 0). focus-within 컨테이너(별도 baseline)·focus-visible 패리티(1205)·플레인:focus 역할분리(1213)·autoFocus 초기포커스·transition-delay 매치는 전부 별개 차원(컨테이너 포커스/포커스 표시/포커스 의사클래스/초기 포커스/지연 vs 비활성 표현 의사속성)으로 본 축과 비중첩. disabled 디밍 opacity(1209)는 tokens 축(디밍값) 별개.
+- **근거**: DESIGN.md > AGENTS.md > CLAUDE.md 기준 — states 는 명시 SHALL 위반/표면 간 비정합 결함클래스로만 판정. 네이티브 `disabled` 16곳 전부 네이티브 폼 컨트롤(실제 `<button>`/`<input>` 에는 네이티브 disabled 가 정답·자동 포커스 제외·AT 안내)·`aria-disabled` 0(혼용 없음) → 일관. loop rule line 9 미명시 취향.
+- **DESIGN.md 확인**: disabled/aria-disabled/비활성 grep DESIGN.md 0건 — 비활성 표현 정책 미규정(silent). 비활성 시각 일관성은 de-facto idiom(disabled:opacity-50/cursor-not-allowed) 기준.
+- **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `disabled=`(16곳 네이티브 폼 컨트롤)·`aria-disabled`(0건) grep + disabled:opacity-50/cursor-not-allowed 페어링 + DESIGN.md silent.
+- **차기 states 재진입 후보**(list order, 선점 시 PIVOT): (1) `:read-only`/`readOnly` 폼 읽기전용 상태 의사클래스(현 확인 필요); (2) `:invalid`/`aria-invalid` 폼 검증 상태 표현 일관성(현 aria-invalid 일부 사용); (3) `:placeholder-shown` 플레이스홀더 표시 상태(현 0).
+
 ## 2026-06-18 — [design] cycle 1219 Discovery — aesthetic area 119th round css-font-optical-sizing-opsz-axis-cross-surface-conformance (가변폰트 광학 사이징 `font-optical-sizing` 이 텍스트 표면 간 일관·부재한지)
 - **결정**: clean baseline (pure-vacuous). apps/web/src(globals.css 포함) 전수에서 `font-optical-sizing`/`optical-sizing`/`[font-optical` 선언 0건 → 광학 사이징 명시 적용 모집단 0. 텍스트 population 실재(가변폰트 General Sans·Pretendard Variable)하나 광학 미명시(전부 브라우저 기본 `auto` 상속 → opsz 축 가변폰트 자동 광학 적용·균일) → 일부만 none 으로 바꿔 광학 어휘 갈리는 site 0, defect class 미성립.
 - **축 선택**: cycle 1217(tokens) 후 aesthetic area 재진입(rotation tokens→aesthetic→states→responsive). cycle 1211 aesthetic 차기 후보 #1(`font-optical-sizing` 광학 사이징, 현 0·variable font 실재) 진입. font-feature-settings/font-variant-ligatures·text-rendering 은 차기 후보로 보존.
