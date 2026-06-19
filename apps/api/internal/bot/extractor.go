@@ -182,7 +182,9 @@ func (s *extractScan) walk(n *html.Node, inArticle bool) {
 				}
 			}
 		case "h1":
-			if s.h1 == "" {
+			// harvester spec title fallback scopes the h1 step to <article> 내 <h1>;
+			// a non-article h1 must not become the title.
+			if inArticle && s.h1 == "" {
 				if txt := strings.TrimSpace(textContent(n)); txt != "" {
 					s.h1 = txt
 				}
