@@ -367,6 +367,35 @@ func TestExtractor_TwitterFallbackForTitle(t *testing.T) {
 	}
 }
 
+func TestExtractor_TitleH1OnlyFromArticle(t *testing.T) {
+	// harvester spec title fallback scopes the h1 step to <article> 내 <h1>.
+	// With no og/twitter/JSON-LD title, an h1 outside <article> must not become
+	// the title; the article's h1 wins.
+	page := `<html><head><title>HTML Title</title></head><body>
+<header><h1>Site Name</h1></header>
+<article><h1>Post Title</h1><p>The body.</p></article>
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/post/1")
+	if doc.Title != "Post Title" {
+		t.Errorf("title = %q, want Post Title", doc.Title)
+	}
+}
+
+func TestExtractor_TitleNonArticleH1NotUsed(t *testing.T) {
+	// When no <article> exists, the h1 step of the title fallback does not match
+	// (spec scopes it to <article> 내 <h1>), so the title falls back to <title>.
+	page := `<html><head><title>HTML Title</title></head><body>
+<header><h1>Site Name</h1></header>
+<div><p>Some content without an article element.</p></div>
+</body></html>`
+
+	doc := extract(t, page, "https://example.com/x")
+	if doc.Title != "HTML Title" {
+		t.Errorf("title = %q, want HTML Title", doc.Title)
+	}
+}
+
 func TestExtractor_MetaNameAuthorExtracted(t *testing.T) {
 	// harvester/spec.md "lang/author/published_at 추출" lists meta[name=author]
 	// as one of the three author sources. When it is the only author source,
