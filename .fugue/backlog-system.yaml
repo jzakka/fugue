@@ -7117,3 +7117,55 @@ items:
     score: 1.33
     status: done
     note: "cycle 1158 완료. OpenSpec change fix-harvester-media-candidates-article-scope (PR 후속 머지). cycle 1156 발견(봇 영역, OLDEST 로테이션, 직전 봇 방문 1144). cycle 1144 봇 census 재진입 후보 (2) media_candidates 본문 범위 정합을 추적해 확정. anti-patterns L218은 image_picker.go PickPrimaryImage(썸네일, article-scoped)를 커버하나 extractor.go buildMediaCandidates는 미커버. L354는 media_candidates 50cap/og_data 영속화만 census하고 article 범위는 미census. cycle 1070(PR1763)은 handleSource srcset 파싱 결함으로 본 범위 결함과 별개 축. 진행 중 3개 변경(adapter-fallback-counter·wire-media-validator·scheduler-host-rate-limiter)과 비중첩 — media-validator는 후보 필터(SSRF/content-type/ffprobe)이지 수집 범위가 아님. confidence=4(spec L52 명시 SHALL + walk() whole-tree 직접 read 검증)."
+
+  - id: system-20260619-bot-title-h1-article-scope
+    title: "GenericExtractor title fallback의 h1 단계가 <article> 내부로 스코프되지 않아 article 밖 h1을 제목으로 채택(spec L34-36 위반)"
+    area: bot
+    evidence:
+      files:
+        - "apps/api/internal/bot/extractor.go:69"
+        - "apps/api/internal/bot/extractor.go:184-189"
+        - "apps/api/internal/bot/extractor.go:196-204"
+        - "apps/api/internal/bot/extractor_test.go:91-105"
+      cite: |
+        openspec/specs/harvester/spec.md L34-36 "Scenario: title 추출 fallback
+        체인 — 시스템은 og:title, twitter:title, <article> 내 <h1>, <title> 태그
+        순으로 검사하여 처음 발견된 비어있지 않은 값을 사용한다". L32 일반 체인은
+        OpenGraph → Twitter Card → JSON-LD → semantic HTML(<article>, <title>).
+        코드(extractor.go:69)는 doc.Title = pickFirstNonEmpty(ogTitle, twTitle,
+        jsonLDTitle, h1, htmlTitle)인데 scan.h1(:184-189 case "h1")이 inArticle
+        게이트 없이 DOM 순서상 첫 h1을 전역 수집 → spec이 명시한 "<article> 내
+        <h1>" 스코프 위반. 동일 추출기의 body_text(articleText)·media(article/body
+        버킷)는 article-scoped인데 h1만 전역이라 내부 비대칭.
+      repro: |
+        og:title/twitter:title/JSON-LD title이 모두 없고 <article> 밖 h1이 article
+        h1보다 DOM 앞에 오는 페이지(예: <header><h1>My Blog</h1></header>
+        <article><h1>Actual Post Title</h1>...</article>)를 GenericExtractor.Extract
+        하면 doc.Title="My Blog"(전역 첫 h1)이 채택됨. spec대로면 "Actual Post
+        Title"(<article> 내 h1)이어야 함. 또한 article이 전혀 없는 페이지에서도
+        전역 h1을 title 소스로 사용 → spec scenario("<article> 내 h1")는 article
+        부재 시 h1 단계가 매칭 안 되고 <title>로 폴백해야 함.
+    qa_plan: |
+      (1) 재현: extractor_test.go에 fixture
+          `<body><header><h1>Site Name</h1></header>
+          <article><h1>Post Title</h1><p>본문</p></article></body>`
+          (og/tw/jsonld title 모두 부재)를 extract → 현 구현이 title="Site Name"
+          채택함을 확인(수정 전 버그 재현).
+      (2) 기대: sawArticle=true이면 title의 h1 단계는 <article> 내부 h1만 사용
+          → 위 fixture에서 title="Post Title". article 없는 페이지는 h1 단계
+          미매칭 → <title>로 폴백.
+      (3) 수정: case "h1"(extractor.go:184-189)에 inArticle 게이트 추가
+          (articleText/firstArticleImage가 쓰는 article-scoped 패턴 동일)
+          — `if inArticle && s.h1 == ""`로 article 내부 h1만 s.h1에 저장.
+      (4) 회귀: TestExtractor_ArticleTagOnly(article 내 h1)·OGTitleWins·
+          TwitterFallback·JSONLD title·빈 title 등 기존 title 테스트가
+          go test ./internal/bot/... 로 동일 통과하는지 확인.
+      (5) 실 QA: make crawl로 og:title 없는 <article> 페이지를 harvest →
+          psql로 pins.title이 article 내부 h1과 일치(article 밖 h1 아님)하는지 확인.
+    impact: 2
+    confidence: 4
+    effort: 2
+    risk: 2
+    score: 2.0
+    status: pending
+    note: "cycle 1230 발견(봇 영역, OLDEST 로테이션, 직전 봇 방문 1218). 봇 extractor 메타추출 표면이 광범위 census(og:title wins/twitter fallback/jsonld/og:image first-wins/mediaTypeFromMIME/parseTime/source srcset/article-scope media/canonical resolution) 되었으나 title fallback의 h1 단계 article-스코핑은 미census fresh. anti-patterns의 h1 매치는 전부 [design] 프론트 heading(L100/L101/L213/L238)이고 봇 extractor h1/title 체인 baseline 부재. spec L34-36은 '<article> 내 <h1>' 명시 SHALL이라 loop rule line 9 '미명시 취향' 예외 아님(문서 명시 위반). 머지-게이트 후보(fix-harvester-wire-media-validator·fix-harvester-adapter-fallback-counter)는 openspec/changes/ 잔존으로 여전히 carry-forward. confidence=4(spec 명시 + walk()/case h1 직접 read + test gap 검증)."
