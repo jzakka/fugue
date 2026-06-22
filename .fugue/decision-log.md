@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-06-22 — [system] cycle 1358 Discovery — 정합성 area: `:many` 빈 결과 응답 직렬화 shape(`[]` vs `null`) 표면 census (후보 0건, 신규 baseline 1건)
+- **결정**: clean — 정합성 area 의 리스트/컬렉션 응답 직렬화 shape(sqlc `:many` nil 슬라이스→JSON `null` vs `make`→`[]`) 정합성을 검토. 후보 0건. 신규 `[system][정합성]` baseline 1건 등록(전 리스트 핸들러가 `make([]T,0,cap)` 정규화로 빈 결과도 `[]` 보장하는 OUTPUT 직렬화 shape FP-prone 표면). 코드 변경 없음.
+- **축 선택**: 6-area 로테이션에서 정합성이 OLDEST(직전 1346)라 재진입. ~28 baseline 으로 광범위 포화. 미커버 fresh surface 탐색 → L349(배열 파라미터 INPUT NULL-vs-빈배열 바인딩)는 커버이나 그 **OUTPUT 역방향**(`:many` 빈 결과 응답 직렬화 `[]`/`null`)은 미커버 확인.
+- **fresh surface 발견**: sqlc `:many` 가 0행에 nil 슬라이스를 반환 → "리스트 핸들러가 nil 을 그대로 직렬화해 JSON `null`·동종 엔드포인트 응답 shape `[]`/`null` 갈림" 처럼 보이는 FP-prone 표면. L349(INPUT 바인딩)와 정반대 방향(OUTPUT 직렬화)이라 비중첩.
+- **FP 판정 근거(전수 확인)**: 모든 리스트/컬렉션 핸들러가 raw sqlc nil 결과를 직렬화하지 않고 새 `make([]T,0,cap)` 응답 슬라이스로 매핑 → 빈 결과도 `[]`. (1) pin List(handler.go:604/643)·Related(:463→:524)·태그 hydration(:694). (2) boards 상세(:255→BoardDetailResponse{Pins}). (3) feed buildLatestFeed(:168)·buildExcludedLatestFeed(:197)→FeedResponse{Pins}. (4) tag List(:80)·PopularTags(:124-127 명시적 nil-guard+make). (5) search searchPins→mapPins*(:377/390/403/416 make)·creators(:317/332)·boards(:350)·top_tags(:219 make+:230/266 `[]TopTag{}` fallback).
+- **MANDATORY 체크**: 후보 0건이므로 confidence/anti-pattern 매칭 N/A. 신규 baseline 1건(fresh FP-prone surface = `:many` 빈 결과 응답 직렬화 shape, OUTPUT 방향). L349(INPUT 배열 바인딩)·L314(:one 카디널리티)·L337(:exec/:execrows)·L264(OFFSET 정렬)·L358(JOIN 임베드)와 비중첩 확인.
+- **근거**: pin/handler.go:604/643/463/694 + boards/handler.go:255 + feed/handler.go:168/197 + tag/handler.go:80/124-127 + search/handler.go:317/332/350/377/390/403/416/219/230/266 (전부 make([]T,0,...) 정규화) read.
+- **QA**: 코드 변경 없음(census-only + baseline 등록). 빌드/런타임 영향 0.
+- **차기 정합성 재진입 후보**: 신규 리스트 핸들러가 sqlc `:many` 결과를 make/nil-guard 없이 직렬화하거나·응답 struct 슬라이스 필드를 nil 인 채 반환하면 재census 가치 발생(baseline 예외 조항 트리거).
+- **로테이션**: 정합성 1346→1358 완료. 6-area 직전 봇=1352·OpenSpec갭=1354·보안=1356·정합성=1358·에러처리=1348·동시성=1350 → 차기 OLDEST = 에러처리(직전 1348) → cycle 1360.
+
 ## 2026-06-22 — [system] cycle 1356 Discovery — 보안 area: 인증/PII 응답 캐시 억제(Cache-Control: no-store, CWE-525) 표면 census (후보 0건, 신규 baseline 1건)
 - **결정**: clean — 보안 area 의 인증/PII 응답 캐시 억제 헤더(Cache-Control: no-store) posture 를 검토. 후보 0건. 신규 `[system][보안]` baseline 1건 등록(인증 토큰 본문 부재[Set-Cookie 전용]·콜백 302·PII GET 인증게이트 동적 JSON·no-store 문서 미mandate 의 CWE-525 FP-prone 표면). 코드 변경 없음.
 - **축 선택**: 6-area 로테이션에서 보안이 OLDEST(직전 1344)라 재진입. 보안은 ~30 baseline 으로 광범위 포화. 미커버 fresh surface 탐색 → 보안 응답 헤더(L429 nosniff/CSP/HSTS)·쿠키 보안속성(L465)은 커버이나 **응답 캐시 억제(Cache-Control: no-store, CWE-525)** 는 미커버 확인.
