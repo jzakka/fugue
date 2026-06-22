@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-06-22 — [system] cycle 1356 Discovery — 보안 area: 인증/PII 응답 캐시 억제(Cache-Control: no-store, CWE-525) 표면 census (후보 0건, 신규 baseline 1건)
+- **결정**: clean — 보안 area 의 인증/PII 응답 캐시 억제 헤더(Cache-Control: no-store) posture 를 검토. 후보 0건. 신규 `[system][보안]` baseline 1건 등록(인증 토큰 본문 부재[Set-Cookie 전용]·콜백 302·PII GET 인증게이트 동적 JSON·no-store 문서 미mandate 의 CWE-525 FP-prone 표면). 코드 변경 없음.
+- **축 선택**: 6-area 로테이션에서 보안이 OLDEST(직전 1344)라 재진입. 보안은 ~30 baseline 으로 광범위 포화. 미커버 fresh surface 탐색 → 보안 응답 헤더(L429 nosniff/CSP/HSTS)·쿠키 보안속성(L465)은 커버이나 **응답 캐시 억제(Cache-Control: no-store, CWE-525)** 는 미커버 확인.
+- **fresh surface 발견**: `Cache-Control`/`no-store`/`CWE-525`/`Pragma` 가 anti-patterns 전 baseline 0건·apps/api 코드 0건. 정적으로 "인증/PII 응답에 no-store 부재 → 토큰·PII 브라우저/프록시 캐시 누출" 처럼 보이는 FP-prone 표면(L429 보안 헤더 축과 별개 = 캐시 억제 차원).
+- **FP 판정 근거(전수 확인)**: (1) 토큰은 응답 본문 0건·HttpOnly Set-Cookie 전용(setAuthCookies handler.go:260-274 HttpOnly:true·클리어 :178-192·콜백 :137/164) → RFC 7234 상 공유 캐시가 Set-Cookie 미저장 → 토큰 본문 캐싱 구조적 불가. (2) OAuth 콜백 `/api/auth/{provider}/callback`(main.go:188)은 전 분기 `http.Redirect(...StatusFound)`(handler.go:64/146) 302 → 캐시 가능 200 본문 아님. (3) PII GET = 인증 게이트 동적 JSON: `/api/creators/me`(main.go:159)·`/api/auth/me`(main.go:191) JWTMiddleware 뒤·공개 프로필 `/api/creators/{id}`(main.go:161)는 의도적 public(민감정보 비포함)·동적 JSON 은 Expires/Last-Modified/ETag validator 부재로 heuristic 캐싱 실질 미적용. (4) no-store SHALL 문서 부재: AGENTS.md/architecture/erd/auth·profile spec 의 cache 언급은 RobotsFilter(AGENTS.md:129-131)·Redis 추천(architecture.md:126)·og_image(erd.md:63)뿐, HTTP 응답 Cache-Control 무관.
+- **MANDATORY 체크**: 후보 0건이므로 confidence/anti-pattern 매칭 N/A. 신규 baseline 1건(fresh FP-prone surface = 인증/PII 응답 캐시 억제 ↔ 토큰 본문 부재·캐시 validator 부재, CWE-525). L429(보안 응답 헤더 nosniff/CSP·로깅 CWE-532/117)·L465(쿠키 보안속성)와 비중첩 확인.
+- **근거**: `Cache-Control`/`no-store` grep(코드 0·baseline 0·문서 0) + setAuthCookies(handler.go:260-274) + 콜백 http.Redirect(handler.go:64/146) + 라우터 인증 게이팅(main.go:159/161/191) + 문서 cache grep(RobotsFilter/Redis/og_image 만).
+- **QA**: 코드 변경 없음(census-only + baseline 등록). 빌드/런타임 영향 0.
+- **차기 보안 재진입 후보**: 보안은 신규 엔드포인트가 토큰/민감 PII 를 캐시 가능 GET 본문에 직렬화하거나·캐시 validator 를 붙이거나·문서가 no-store 를 신규 SHALL 하면 재census 가치 발생(baseline 예외 조항 트리거).
+- **로테이션**: 보안 1344→1356 완료. 6-area 직전 봇=1352·OpenSpec갭=1354·보안=1356·정합성=1346·에러처리=1348·동시성=1350 → 차기 OLDEST = 정합성(직전 1346) → cycle 1358.
+
 ## 2026-06-22 — [system] cycle 1354 Discovery — OpenSpec갭 area 전면 census (후보 0건, 신규 baseline 0건 — 영역 포화)
 - **결정**: clean — OpenSpec갭 area 의 (a) 안정 spec.md capability Requirement coverage 와 (b) 활성(non-archived) change delta 구현 상태를 전수 재확인. 후보 0건. 신규 baseline 0건(기존 24 baseline 이 모든 capability Requirement·in-flight change delta 를 망라, fresh FP-prone surface 부재). 코드 변경 없음. cycle 1338/1350 과 동일한 포화 결론.
 - **축 선택**: 6-area 로테이션에서 OpenSpec갭이 OLDEST(직전 1342)라 재진입. 직전 1342 가 활성 change delta 표면(L734)을 신규 baseline 으로 등록하며 마무리한 영역이라, 활성 change set·안정 spec Requirement 가 변동됐는지 전수 재검증 우선.
