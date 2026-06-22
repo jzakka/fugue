@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-06-22 — [system] cycle 1350 Discovery — 동시성 area 전면 census (후보 0건, 신규 baseline 0건 — 영역 포화)
+- **결정**: clean — 동시성 프리미티브 모집단을 전수 재확인. 후보 0건. 신규 baseline 0건(기존 25 baseline 이 모든 프리미티브·각도를 망라, fresh FP-prone surface 부재). 코드 변경 없음. cycle 1338 과 동일한 포화 결론.
+- **축 선택**: 6-area 로테이션에서 동시성이 OLDEST(직전 1338)라 재진입. 직전 1338 도 신규 baseline 0건(포화)으로 종료한 영역이라, 신규 프리미티브/각도가 추가됐는지 전수 재검증 우선.
+- **모집단 전수 재확인(grep)**: (1) non-test goroutine spawn = **3건**(cmd/server/main.go:231·goja_executor.go:47·playwright_fetcher.go:114) — L183/L338/L760 커버. (2) sync.Mutex/RWMutex = **정확히 7건**(host_rate_limiter.go:35·backoff.go:55·media_validator_metrics.go:18·playwright_fetcher.go:24·robots_filter.go:71·adapter.go:44·snapshot/metrics.go:19) — L227(per-lock 규율)·L371(copylocks+lock-ordering) 커버. (3) sync.WaitGroup/Once/Map/Pool/Cond/errgroup = **0건**(non-test) — L421/L760 커버. (4) atomic.Value/Pointer/Bool = **0건**; atomic.Uint64/AddUint64 카운터 = L278/L294/L361 커버.
+- **각도 망라 확인**: 보조 goroutine leak(L183)·host-key concurrent map(L189)·HTTP 공유상태(L201)·time.After 타이머(L215)·mutex 규율(L227)·OAuth state lifecycle(L233)·ctx 전파(L246)·teardown 순서(L257)·Redis fixed-window TOCTOU(L268)·워커 메트릭 카운터(L278/L294/L361)·single-flight coalescer(L304/L706)·cancel func 규율(L317)·채널 소유권(L330)·PRNG 공유(L340)·frontier double-claim(L352)·mutex copylocks+**lock-ordering 데드락**(L371, RobotsFilter→HostRateLimiter 중첩 lock 0건 명시)·ctx-무시 blocking(L387)·select-default busy-spin+지연초기화 프리미티브 부재(L421)·sql.DB 풀(L435)·http.Client 재사용(L446)·third-party stateful(goja/playwright, L460)·scheduler bootstrap 필드(L636). 모든 프리미티브·각도가 기존 baseline 에 매핑됨.
+- **MANDATORY 체크**: 신규 후보 0건이므로 confidence/anti-pattern 매칭 N/A. 신규 baseline 0건(fresh FP-prone surface 부재 — 신규 프리미티브 미발견·신규 각도 미발견).
+- **근거**: apps/api 전수 grep(go func/sync.*/atomic.*/Lock·RLock count) + L371 본문(lock-ordering·중첩lock 0건) 재확인.
+- **QA**: 코드 변경 없음(census-only). 빌드/런타임 영향 0.
+- **차기 재진입 후보**: 동시성은 신규 프리미티브·goroutine spawn·mutex 가 추가될 때만 재census 가치 발생. 그 전까지는 census 비용만 발생 → 다음 동시성 턴에서도 모집단(3 goroutine/7 mutex/0 WaitGroup) 불변이면 동일 포화 census.
+- **로테이션**: 동시성 1338→1350 완료. 6-area 직전 봇=1340·OpenSpec갭=1342·보안=1344·정합성=1346·에러처리=1348·동시성=1350 → 차기 OLDEST = 봇(직전 1340) → cycle 1352.
+
 ## 2026-06-22 — [system] cycle 1348 Discovery — 에러처리 area, PG 제약위반 SQLSTATE(23505/23503/23514) → HTTP status 매핑 census (후보 0건, 신규 baseline 1건)
 - **결정**: clean — 핸들러가 PostgreSQL 제약위반 에러코드를 검사해 4xx 로 매핑하는 surface 를 census. 후보 0건. 코드 변경 없음(.fugue 상태파일만). 신규 baseline 1건 등록.
 - **축 선택**: 6-area 로테이션에서 에러처리가 OLDEST(직전 1336)라 재진입. 에러처리 baseline 28건이 saturated(config/recover/decode-tx/500노출/ErrNoRows/outbound-timeout/temp-file/tx/context/panic/strconv/redis/teardown/sentinel/bg-goroutine/body-close/json-encode/json-marshal/log.Fatal/rows.Err/cancel/file-write/best-effort 등)이므로, 기존 가드와 비중첩 fresh sub-surface = **PG 드라이버 SQLSTATE 제약위반(unique/FK/check) → HTTP status 매핑** 축을 선택.
