@@ -26,6 +26,17 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `anchor-name`/`anchor(`/`position-try` grep(0)+앵커/팝오버 census(popover 0·top-layer 0·tooltip 은 네이티브 title·anchor() 0)+DESIGN.md grep(anchor/position-try/popover 0·L70 은 뷰포트 브레이크포인트).
 - **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): responsive fresh 축 사실상 소진 — (1) `contain-intrinsic-size`(ded=0·tot=1·content-visibility baseline subsume·PIVOT); (2) `@media (height`/`@media (grid`(ded=0·tot=0·dimension/legacy media subsume·PIVOT); anchor positioning/@container/@container scroll-state/@media overflow/svh/dvh/aspect-ratio 등은 baseline/처리됨 — PIVOT; anchor 처리 후 잔여 대부분 baseline/subsume·신규 axis 거의 없음. 알려진 실제 divergence: font-size↔DESIGN L26-35 Type Scale 는 브라우저 QA 환경 제약으로 보류.
 
+## 2026-06-22 — [system] cycle 1352 Discovery — 봇 NodeType/NodeTypePriority vestigial 표면 census (후보 0건, 신규 baseline 1건)
+- **결정**: clean — 봇 area 의 노드타입 우선순위 코드(`NodeType`/`NodeTypePriority`)를 전수 검증. 후보 0건. 신규 `[system][봇]` baseline 1건 등록(NodeTypePriority/NodeType vestigial dead code + 크롤 우선순위 score-based 이관 + 스펙 node_type 의존 금지 FP-prone 표면). 코드 변경 없음.
+- **축 선택**: 6-area 로테이션에서 봇이 OLDEST(직전 1340)라 재진입. image_picker.go 등 기존 봇 표면(baseline 218 등)은 커버 확인 → 미커버 fresh surface(노드타입 우선순위)를 탐색.
+- **fresh surface 발견**: domain.go:61-74 `NodeTypePriority(nt NodeType) int`(list=100/detail=10/skip=0·주석 "for BFS traversal")가 정적으로 "정의돼 있는데 크롤 순서에 적용 안 됨·harvester 로 thread 안 됨" 처럼 보이는 FP-prone 표면. 기존 봇 baseline 미커버.
+- **FP 판정 근거(전수 확인)**: (1) `NodeTypePriority` 호출처 0건(정의 1건 외 apps/api 전무) → vestigial dead code. (2) harvester_consumer.go:469 주석 "NodeType was previously threaded through from bot_graph_nodes."·:473 `WithNodeType(ctx, "")` 빈 노드타입 의도적 전달(과거 thread 경로 제거). (3) 크롤 우선순위는 frontier.sql:150 `ORDER BY score DESC, next_fetch_at ASC`(Pioneer)·:161(Harvester)로 score-based DB ordering 에 이관. (4) harvester/spec.md:92 "classifier 는 ... 외부 상태(node_type 등)에 의존하지 않아야 한다(SHALL)"·:306 in-memory BFS 부재·:440 score 기반 우선순위·scheduler/spec.md L19/L40/L78 score DOUBLE PRECISION + score DESC index. → 노드타입 우선순위는 스펙상 폐기, score 기반 ordering 이 권위.
+- **MANDATORY 체크**: 후보 0건이므로 confidence/anti-pattern 매칭 N/A. 신규 baseline 1건(fresh FP-prone surface = 노드타입 우선순위 코드 vestigial ↔ score-based ordering 이관·spec node_type 의존 금지).
+- **근거**: `NodeTypePriority` grep(정의 1·호출 0) + domain.go:54-74 + harvester_consumer.go:469-473 + frontier.sql:150/161 + harvester/spec.md:92/306/440 + scheduler/spec.md L19/L40/L78.
+- **QA**: 코드 변경 없음(census-only + baseline 등록). 빌드/런타임 영향 0.
+- **차기 재진입 후보**: 봇은 신규 스펙이 node-type-weighted ordering 을 SHALL 하거나·NodeTypePriority 가 다시 호출되기 시작하면 재census 가치 발생(baseline 예외 조항 트리거).
+- **로테이션**: 봇 1340→1352 완료. 6-area 직전 OpenSpec갭=1342·보안=1344·정합성=1346·에러처리=1348·동시성=1350·봇=1352 → 차기 OLDEST = OpenSpec갭(직전 1342) → cycle 1354.
+
 ## 2026-06-22 — [system] cycle 1350 Discovery — 동시성 area 전면 census (후보 0건, 신규 baseline 0건 — 영역 포화)
 - **결정**: clean — 동시성 프리미티브 모집단을 전수 재확인. 후보 0건. 신규 baseline 0건(기존 25 baseline 이 모든 프리미티브·각도를 망라, fresh FP-prone surface 부재). 코드 변경 없음. cycle 1338 과 동일한 포화 결론.
 - **축 선택**: 6-area 로테이션에서 동시성이 OLDEST(직전 1338)라 재진입. 직전 1338 도 신규 baseline 0건(포화)으로 종료한 영역이라, 신규 프리미티브/각도가 추가됐는지 전수 재검증 우선.
