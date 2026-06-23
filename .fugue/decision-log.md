@@ -26,6 +26,13 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `sm:bg-clip`/`md:bg-clip` grep(0·RC=1)+background-clip census(베이스 globals.css:92 padding-box 단일 site·화면폭별 토글 0)+DESIGN.md grep(background-clip/배경 클립 0).
 - **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): responsive fresh 축 — 반응형 배경 첨부 토글 sm:bg-fixed/sm:bg-local(background-attachment 화면폭별·bg-clip 인접 의심)·반응형 종횡비 토글 sm:aspect-square/sm:aspect-video(aspect-ratio 화면폭별)·반응형 소스 세트 sizes 속성 화면폭별(img sizes). 잔여 baseline/subsume(반응형 가시성 sm:hidden cycle 1863·반응형 배경 크기 sm:bg-cover cycle 1871·반응형 오브젝트 맞춤 sm:object-cover cycle 1887·반응형 배경 반복 sm:bg-repeat cycle 1895·반응형 합성 힌트 sm:will-change cycle 1903·반응형 배경 원점 sm:bg-origin cycle 1911·min-w cycle 1729·breakpoint-prefixed text-decoration cycle 1159). 알려진 실제 divergence: 없음(responsive 는 clean).
 
+## 2026-06-23 — [system] cycle 1584 Discovery — 보안(직전 1572) area continued-saturation census (auth setAuthCookies 보안 속성 covered-by-186) 표면 폐기 (후보 0건)
+- 모드: Discovery (PENDING=0). 영역 회전 OLDEST = 보안(직전 cycle 1572). 직전 1572는 JWT ValidateToken alg-pin 점검 → 본 사이클은 동일 영역 인접 axis(쿠키 보안 속성) 점검.
+- 표면 점검: `apps/api/internal/auth/handler.go` setAuthCookies:260 — fugue_access/fugue_refresh 쿠키 모두 `HttpOnly: true`:270/:280, `Secure: !devMode`:271/:281, `SameSite: http.SameSiteLaxMode`:272/:282, MaxAge가 토큰 수명과 일치(access 15m:269, refresh 7d:279), Path=`/`, Domain은 cookieDomain():244 통해 host-only(분리 호스트 배포 시 추측 금지·명시 설정 요구). legacy Path=/api/auth refresh 쿠키 만료 처리:285-291.
+- FP 분석: 신선 axis(인증 쿠키 보안 속성 HttpOnly/Secure/SameSite/host-only Domain)는 기존 baseline 186(JWT ValidateToken alg-pin + 쿠키 보안 속성)이 동일 FP-trigger + 동일 refuting evidence로 이미 커버. 신규 baseline 불필요(covered-by-186).
+- 동결 증거: GOPOP(apps/api Go since 2026-06-20)=0, md5(prompts/loop-system.md)=484124c2497f495e1d7681ffe8fd1ce7 일치.
+- 결론: 신규 후보 0건. 보안 영역 continued-saturation. 차기 OLDEST = 정합성(직전 1574) → cycle 1586.
+
 ## 2026-06-23 — [system] cycle 1582 Discovery — OpenSpec갭(직전 1570) area continued-saturation census (활성 change 3건 워크플로 상태 불변 covered-by-734) 표면 폐기 (후보 0건)
 - 모드: Discovery (PENDING=0). 영역 회전 OLDEST = OpenSpec갭(직전 cycle 1570).
 - 표면 점검: `openspec/changes/` 비-archive 활성 change = 정확히 3건: fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring. 직전 census 대비 추가/삭제/상태 변동 없음.
