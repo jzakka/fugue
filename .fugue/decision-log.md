@@ -26,6 +26,13 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 hue 방향 키워드(shorter/longer/increasing/decreasing hue) grep(0)+그라데이션 census(보간 색공간조차 미지정·기본 sRGB·Tailwind from/via/to·globals.css L105 시머·극좌표 보간 0)+DESIGN.md grep(hue 보간 방향/색상환 0).
 - **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): aesthetic fresh 축 — 그라데이션 보간 정밀도/easing(보간 색공간 line 414 인접 의심)·shape-image-threshold 셰이프 알파 임계값(shape-outside line 8xx 인접·ded=0 tot=1 carve-out 의심)·text-emphasis-position 강조 부호 위치(text-emphasis line 6xx 인접·ded=0 tot=1 carve-out 의심). 잔여 baseline/subsume(보간 색공간 in oklch/in srgb line 414·색 보간 힌트 bare % cycle 1907·색 정지점 위치 from-%/via-%/to-% line 840·conic/radial 그라디언트 종류 line 590·방향+색 구성 line 530·CIE Lab 색 함수 lab()/lch() cycle 1899·상대 색 syntax line 384·device-cmyk line 717·will-change/backface-visibility line 531·background-size line 757·background-repeat line 807·background-origin line 594·mix-blend-mode·filter·color-mix). 알려진 실제 divergence: 없음(aesthetic 는 clean).
 
+## 2026-06-23 — [system] cycle 1580 Discovery — 봇(직전 1568) area continued-saturation census (GenericExtractor 부가메타 추출 spec 정합 covered-by-cycle1058) 표면 폐기 (후보 0건)
+- 모드: Discovery (PENDING=0). 영역 회전 OLDEST = 봇(직전 cycle 1568).
+- 표면 점검: `apps/api/internal/bot/extractor.go` GenericExtractor.Extract:40 — lang/author/published_at 부가메타 추출. Author는 `pickFirstNonEmpty(scan.ogAuthor, scan.jsonLDAuthor, scan.metaAuthor)`:89 (harvester/spec.md "순으로" 미명시 → 순서 비강제, meta[name=author] 단독 소스도 존중), description fallback 체인:79, published_time/article:published_time parseTime:194/:321. handleMeta:291 가 og:title/image/url/locale/description/article:published_time/article:author/author 분기 처리.
+- FP 분석: 신선 axis(GenericExtractor 부가메타 추출 + parseTime 레이아웃의 harvester spec 정합)는 cycle 1058 census(봇 GenericExtractor 부가메타(lang/author/published_at) 추출+parseTime 레이아웃 spec 정합, 후보 0건)가 동일 표면을 이미 폐기. spec "순으로" 미명시 판단도 in-code 주석:84-88 로 명문화됨. 신규 baseline 불필요(covered-by-cycle1058).
+- 동결 증거: GOPOP(apps/api Go since 2026-06-20)=0, md5(prompts/loop-system.md)=484124c2497f495e1d7681ffe8fd1ce7 일치.
+- 결론: 신규 후보 0건. 봇 영역 continued-saturation. 차기 OLDEST = OpenSpec갭(직전 1570) → cycle 1582.
+
 ## 2026-06-23 — [system] cycle 1578 Discovery — 동시성(직전 1566) area continued-saturation census (host_rate_limiter DCL lazy-init covered-by-37/227) 표면 폐기 (후보 0건)
 - 모드: Discovery (PENDING=0). 영역 회전 OLDEST = 동시성(직전 cycle 1566).
 - 표면 점검: `apps/api/internal/scheduler/host_rate_limiter.go` — `mu sync.RWMutex`:35 보호 맵 `limiters[host]`. getOrCreate:99 가 double-checked locking: RLock fast-path:100-102 → 미스 시 Lock + 재확인:106-110 → 생성·저장:111-113. SetHostRate:87-89 write-lock 하에 교체. read 경로 lock-free 일반 케이스.
