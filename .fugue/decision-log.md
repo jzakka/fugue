@@ -25,6 +25,19 @@
 - **DESIGN.md 확인**: font-stretch/font-width/condensed/expanded/글자 너비 grep 0건(RC=1·자형 너비/반응형 글자 너비 무규정·L26-35 Type Scale 은 글꼴 크기/weight 만·L17 Display/Hero 는 헤딩 글꼴만) → 반응형 글자 너비 토글 정책 미규정(silent·BP-prefixed `font-stretch` 는 자형 가로폭의 브레이크포인트별 토글·베이스 글자 너비 변형/반응형 GPU 합성 힌트 토글/반응형 배경 크기·위치 토글/반응형 대체요소 맞춤 토글/반응형 스크롤 거동 토글이 아니라 반응형 글자 너비 토글·미사용 시 적용 대상 아님·가변/다중너비 폰트가 아니면 효력 없음).
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `(sm|md|lg|xl):font-stretch` grep(0·RC=1)+베이스 자형 너비 census(font-stretch 0·자형 너비 정적 normal)+DESIGN.md grep(font-stretch/글자 너비 0).
 - **차기 responsive 재진입 후보**(list order, 선점 시 PIVOT): responsive BP-prefixed 토글 fresh 축 — `sm:hyphens-auto`/`md:hyphens-none` 반응형 하이픈네이션 토글(베이스 hyphens aesthetic baseline·자동 하이픈 화면폭별 토글)·`sm:field-sizing-content`/`md:field-sizing-fixed` 반응형 필드 자동크기 토글(베이스 field-sizing aesthetic baseline·textarea 자동크기 화면폭별 토글)·`sm:box-decoration-clone`/`md:box-decoration-slice` 반응형 박스 장식 분절 토글(베이스 box-decoration-break aesthetic baseline). 잔여 baseline/subsume(visibility sm:hidden·bg-size·object-fit/position·bg-repeat·will-change·bg-origin·bg-clip·bg-fixed·isolate·scroll-smooth·place-content BP 토글·mix-blend line 482·overscroll line 549·columns line 851·break-inside line 378·cursor/pointer-events line 420·snap line 474·line-clamp line 277·backdrop-filter line 448·touch line 553·content-visibility line 560·resize 토글·caption-side 토글). 알려진 실제 divergence: 없음(responsive 는 clean).
+
+## 2026-06-23 — [system] cycle 1622 Discovery — 정합성 area (직전 1610) continued-saturation census, 후보 0건
+- 대상 축: pin 핸들러 입력 길이 검증 cap ↔ pins(works) 테이블 VARCHAR 컬럼 길이 정합. 직전 1574는 boards 핸들러를 다룸; pin은 별개 표면.
+- pins 스키마 `apps/api/db/migrations/000003_create_works.up.sql` (이후 000010 rename works→pins): url VARCHAR(1000):4, title VARCHAR(200):5, description VARCHAR(500):6, og_image VARCHAR(1000):9.
+- pin 핸들러 `apps/api/internal/pin/handler.go` (`utf8.RuneCountInString` 검증):
+  - title `> 200`:98 ↔ VARCHAR(200) **일치**.
+  - description `> 500`:305 ↔ VARCHAR(500) **일치**.
+  - url `> 1000`:314 ↔ VARCHAR(1000) **일치**.
+  - og_image `> 1000`:323 ↔ og_image VARCHAR(1000) **일치**.
+- 판정: 신규 결함 아님. 4개 cap 모두 DB 컬럼 길이와 정확히 일치 (rune 기준 검증이 DB 쓰기 전 400으로 거부 → DB 5xx/silent truncation 방지). baseline 193 (handler caps↔VARCHAR 정합 패턴, 전 핸들러)으로 커버됨. FP-트리거(핸들러 cap이 DB 길이와 발산) → 4축 동일치로 반박. covered-by census.
+- freeze 증거: GOPOP `git log --since=2026-06-20 -- 'apps/api/**/*.go'` = 0, md5 = 484124c2497f495e1d7681ffe8fd1ce7 일치, PENDING=0.
+- 차기 OLDEST = 에러처리 (직전 1612) → cycle 1624.
+
 ## 2026-06-23 — [system] cycle 1620 Discovery — 보안 area (직전 1608) continued-saturation census, 후보 0건
 - 대상 축: 인증(authn) 미들웨어 토큰 추출·검증·principal 확립 경계. `apps/api/internal/auth/middleware.go`:
   - `extractToken`:97 — cookie `fugue_access` 우선:99-101 → `Authorization: Bearer ` 폴백:104-107, 둘 다 없으면 빈 문자열.
