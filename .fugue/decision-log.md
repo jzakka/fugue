@@ -26,6 +26,15 @@
 - **QA**: Discovery 0-candidate census 라 코드 변경 없음 → 런타임 QA 불요(상태파일 가드만). 코드 확인은 `baseline-source` grep(0·RC=1)+인라인 정렬 census(vertical-align 0·인라인-블록 줄 정렬 비-사용)+DESIGN.md grep(baseline-source/기준선 0).
 - **차기 aesthetic 재진입 후보**(list order, 선점 시 PIVOT): aesthetic fresh 축 — linear() 점-기반 이징 함수(line 893 steps 라인이 "linear" 키워드를 연속 이징 이웃으로 언급하나 linear() 함수는 미열거·키워드 linear 와 혼동 주의)·shape-inside CSS Shapes 2 내부 흐름(shape-outside/shape-margin baseline 인접 subsume 위험 주의)·column-fill 다단 채움 균형(line 378 멀티컬럼 모듈 전체 비-사용 baseline 인접 subsume 위험 주의). 잔여 baseline/subsume(두문자 정렬 메트릭 cycle 1955 line 909·두문자 줄바꿈 형상 cycle 1963·SVG dominant-baseline line 640·계단형 이징 cycle 1923·text-decoration-style line 794·line-break line 660 tokens·initial-letter line 375·mask longhand line 558·text-emphasis line 476/901·스크롤 연동 cycle 1667 line 740·다수 폰트/색/필터 속성 ded≥1). 알려진 실제 divergence: 없음(aesthetic 는 clean).
 
+## 2026-06-23 — [system] cycle 1636 Discovery — 에러처리 area (직전 1624) continued-saturation census, 후보 0건
+- 대상 축: harvester 미디어 다운로드+업로드 실패 경로 에러 처리·degradation 방향. `apps/api/internal/bot/harvest_pipeline.go`:
+  - `downloadAndUpload`:349 (primary media — 핀 필수 의존): create request err:351-352, download err:356-357, `defer resp.Body.Close()`:359 (err-check 후 등록), ContentLength oversize:389, read oversize:397, min-bytes:400, decode 실패:404, dims 미달:407, upload err:429-430 — 전 경로 `fmt.Errorf %w` wrap, `""` 반환(caller 가 item skip).
+  - `cacheImage`:485 (og 이미지 — 부가 의존): 동형 가드(:492-544)이되 실패 시 **원본 `candidateURL` 반환**(graceful degrade, 핀 생성 진행).
+  - 에러 sentinel: errImageOversize/errImageInvalidMedia `%w` 래핑.
+- 판정: 신규 결함 아님. cycle 1252 baseline (downloadAndUpload :349-434 — 전 실패경로 %w wrap+호출처 log 삼킴없음·resp.Body.Close defer :359·LimitReader 캡·primary media mandatory-skip vs cacheImage og best-effort degrade L142 방향 contrast)으로 정밀 커버 (동일 site·동일 반박증거). body Close lifecycle(baseline 350)·LimitReader OOM cap(baseline 436)과도 정합. covered-by census.
+- freeze 증거: GOPOP `git log --since=2026-06-20 -- 'apps/api/**/*.go'` = 0, md5 = 484124c2497f495e1d7681ffe8fd1ce7 일치, PENDING=0.
+- 차기 OLDEST = 동시성 (직전 1626) → cycle 1638.
+
 ## 2026-06-23 — [system] cycle 1634 Discovery — 정합성 area (직전 1622) continued-saturation census, 후보 0건
 - 대상 축: OFFSET 페이지네이션 쿼리의 정렬 전순서(total-order) 결정성 — tie-breaker 부재 시 OFFSET 페이지 경계에서 동률 행 skip/duplicate.
 - OFFSET 사용 쿼리 4파일 전수 (`apps/api/db/queries/`):
