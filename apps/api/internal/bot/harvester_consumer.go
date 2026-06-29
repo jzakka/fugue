@@ -567,6 +567,13 @@ func filterOverlongMediaURLs(doc *PinDocument, sourceURL string) {
 	if doc == nil {
 		return
 	}
+	// Snapshot whether og_data.media_candidates was tracking candidates before
+	// filtering. FilterValidMedia (media_validator.go step 4) ran just upstream
+	// and synced og_data.media_candidates to the validated list, so any drop we
+	// make here must be re-mirrored or og_data persists the overlong URL we just
+	// removed from doc.MediaCandidates (pin_document.go:69 invariant:
+	// "MediaCandidates duplicates PinDocument.MediaCandidates for persistence").
+	ogHadCandidates := len(doc.OGData.MediaCandidates) > 0
 	if doc.ThumbnailURL != "" {
 		if n := utf8.RuneCountInString(doc.ThumbnailURL); n > pinsMediaURLRuneCap {
 			log.Printf("harvest: media URL exceeds %d runes, skipping thumbnail (source=%q url=%q len=%d)",
@@ -587,6 +594,15 @@ func filterOverlongMediaURLs(doc *PinDocument, sourceURL string) {
 		kept = append(kept, c)
 	}
 	doc.MediaCandidates = kept
+	// Re-mirror to og_data.media_candidates. Copy into a fresh slice (not the
+	// kept[:0]-aliased backing array) so og_data and doc.MediaCandidates don't
+	// share storage. Only mirror when og_data was tracking candidates, so we
+	// don't fabricate an og_data list for documents that never had one.
+	if ogHadCandidates {
+		synced := make([]MediaCandidate, len(doc.MediaCandidates))
+		copy(synced, doc.MediaCandidates)
+		doc.OGData.MediaCandidates = synced
+	}
 }
 
 // capCanonicalURLForPin enforces the pins.url VARCHAR(1000) cap on
