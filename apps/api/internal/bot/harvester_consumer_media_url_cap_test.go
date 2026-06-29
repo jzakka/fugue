@@ -162,4 +162,72 @@ func TestFilterOverlongMediaURLs(t *testing.T) {
 		// Should not panic.
 		filterOverlongMediaURLs(nil, "http://src.example/page")
 	})
+
+	// og_data.media_candidates must stay in lockstep with doc.MediaCandidates
+	// after overlong URLs are dropped. FilterValidMedia runs just upstream and
+	// syncs og_data to the validated list; without re-mirroring here the
+	// overlong URL we just removed from doc.MediaCandidates would persist into
+	// og_data jsonb via MarshalOGData, violating the pin_document.go:69
+	// invariant ("MediaCandidates duplicates PinDocument.MediaCandidates").
+	t.Run("og_data.media_candidates is re-synced after dropping overlong", func(t *testing.T) {
+		good := "https://cdn.example.com/good.jpg"
+		// og_data starts in sync with doc (as FilterValidMedia would leave it):
+		// both hold [good, overlongASCII].
+		doc := PinDocument{
+			MediaCandidates: []MediaCandidate{
+				{Type: "image", URL: good},
+				{Type: "image", URL: overlongASCII},
+			},
+		}
+		doc.OGData.MediaCandidates = []MediaCandidate{
+			{Type: "image", URL: good},
+			{Type: "image", URL: overlongASCII},
+		}
+		filterOverlongMediaURLs(&doc, "http://src.example/page")
+
+		if len(doc.OGData.MediaCandidates) != 1 || doc.OGData.MediaCandidates[0].URL != good {
+			t.Errorf("OGData.MediaCandidates = %+v, want [{image %q}] (overlong must be dropped from og_data too)",
+				doc.OGData.MediaCandidates, good)
+		}
+		for _, c := range doc.OGData.MediaCandidates {
+			if c.URL == overlongASCII {
+				t.Errorf("overlong URL leaked into og_data.media_candidates: %q", c.URL)
+			}
+		}
+	})
+
+	// All candidates overlong → og_data list becomes empty (non-nil), matching
+	// FilterValidMedia's "explicit zero-length slice" contract so the emptied
+	// state is distinguishable from "never tracked candidates".
+	t.Run("og_data.media_candidates emptied when all candidates overlong", func(t *testing.T) {
+		doc := PinDocument{
+			MediaCandidates: []MediaCandidate{
+				{Type: "image", URL: overlongASCII},
+			},
+		}
+		doc.OGData.MediaCandidates = []MediaCandidate{
+			{Type: "image", URL: overlongASCII},
+		}
+		filterOverlongMediaURLs(&doc, "http://src.example/page")
+
+		if len(doc.OGData.MediaCandidates) != 0 {
+			t.Errorf("OGData.MediaCandidates = %+v, want empty (all overlong dropped)", doc.OGData.MediaCandidates)
+		}
+	})
+
+	// When og_data never tracked candidates, the filter must not fabricate one.
+	t.Run("og_data untouched when it never tracked candidates", func(t *testing.T) {
+		doc := PinDocument{
+			MediaCandidates: []MediaCandidate{
+				{Type: "image", URL: overlongASCII},
+				{Type: "image", URL: shortURL},
+			},
+		}
+		// doc.OGData.MediaCandidates intentionally left nil.
+		filterOverlongMediaURLs(&doc, "http://src.example/page")
+
+		if doc.OGData.MediaCandidates != nil {
+			t.Errorf("OGData.MediaCandidates = %+v, want nil (must not fabricate an og_data list)", doc.OGData.MediaCandidates)
+		}
+	})
 }
