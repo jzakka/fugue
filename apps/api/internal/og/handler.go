@@ -32,6 +32,14 @@ const ogRequestBodyCap = 8 * 1024
 // unbounded in length cost.
 const maxOGURLRunes = 500
 
+// ogFetchErrorMessage is the generic, non-revealing message returned to the
+// client when an OG fetch fails. The raw error (which can include the resolved
+// internal IP from the SSRF guard, e.g. "blocked private/reserved IP 10.x.x.x",
+// or upstream HTTP details) is logged server-side only — surfacing it to the
+// unauthenticated /api/og/fetch caller would turn the SSRF block into an
+// internal-network reconnaissance oracle (CWE-209).
+const ogFetchErrorMessage = "메타데이터를 가져오지 못했습니다"
+
 // Handler handles OG metadata fetch HTTP requests.
 type Handler struct {
 	svc *Service
@@ -115,7 +123,7 @@ func (h *Handler) Fetch(w http.ResponseWriter, r *http.Request) {
 				URL:           result.URL,
 				DetectedField: result.DetectedField,
 				SuggestedTags: SuggestTags(result.Title, result.Description, 5),
-				Error:         err.Error(),
+				Error:         ogFetchErrorMessage,
 			})
 			return
 		}
@@ -124,7 +132,7 @@ func (h *Handler) Fetch(w http.ResponseWriter, r *http.Request) {
 			URL:           req.URL,
 			DetectedField: detectField(parsed.Hostname()),
 			SuggestedTags: []string{},
-			Error:         err.Error(),
+			Error:         ogFetchErrorMessage,
 		})
 		return
 	}

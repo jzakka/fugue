@@ -41,6 +41,38 @@ func TestFetch_BodyTooLarge(t *testing.T) {
 	}
 }
 
+// TestFetch_FetchFailure_DoesNotLeakInternalError verifies that when svc.Fetch
+// fails — here because the SSRF guard blocks a loopback URL — the JSON response
+// surfaces only the generic, non-revealing message and never the raw error,
+// which contains the resolved internal IP ("blocked private/reserved IP
+// 127.0.0.1 ..."). Leaking it to the unauthenticated /api/og/fetch caller would
+// be an internal-network reconnaissance oracle (CWE-209). 127.0.0.1 resolves
+// locally so this stays hermetic (no external DNS/network).
+func TestFetch_FetchFailure_DoesNotLeakInternalError(t *testing.T) {
+	h := NewHandler()
+	payload, _ := json.Marshal(map[string]string{"url": "http://127.0.0.1/"})
+	req := httptest.NewRequest(http.MethodPost, "/api/og/fetch", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.Fetch(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 with error field, got %d; body=%s", rec.Code, rec.Body.String())
+	}
+	var resp fetchResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.Error != ogFetchErrorMessage {
+		t.Errorf("error field should be the generic message %q, got %q", ogFetchErrorMessage, resp.Error)
+	}
+	for _, leak := range []string{"127.0.0.1", "blocked", "private", "httpclient", "og:"} {
+		if strings.Contains(resp.Error, leak) {
+			t.Errorf("error field leaks internal detail %q: %q", leak, resp.Error)
+		}
+	}
+}
+
 // TestFetch_URLTooLong_ASCII verifies the URL rune cap pre-empts further
 // processing before service.Fetch or http.NewRequest is touched. 501 ASCII
 // runes (cap=500) must produce 400. Handler is reachable with a nil svc
