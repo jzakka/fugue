@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2409 tokens 284th round — 뷰 프로그레스 타임라인 이름 longhand `view-timeline-name` 표면 폐기 (doubly-vacuous, view-timeline longhand 쌍 carve 완주)
+
+- **결정**: CSS Scroll-driven Animations `view-timeline-name`(뷰 진행 타임라인에 이름을 부여해 자손 `animation-timeline` 이 참조하게 하는 longhand, shorthand `view-timeline` 의 name 성분)을 tokens 후보로 올리지 않고 표면 폐기. 코드 변경 0. 본 census 로 **view-timeline longhand 쌍(name+axis) carve 완주**(axis 2401·name 2409).
+- **축 선택**: tokens 영역 284th round. cycle 2401 이 명시한 차기 후보(timeline carve 잔여 형제 view-timeline-name·anti=3 형제 enumerate뿐·dedicated 부재 신선). scroll-driven 타임라인 longhand carve 연속(inset 2377·scroll-axis 2385·scroll-name 2393·view-axis 2401 후속).
+- **MANDATORY 체크**: `view-timeline-name` src 0건 + view-timeline family(name/axis/inset/shorthand) 0건 + scroll-driven 타임라인 family(scroll-timeline/animation-timeline/timeline-scope/animation-range) 0건 → doubly-vacuous(이름 longhand 0 AND `animation-timeline: --name` 소비자 0). globals.css L99-108 shimmer 는 시간 기반이라 명명 타임라인 미정의/미참조. anti=3 은 inset(AP1160)/scroll-name(AP1173)/view-axis(AP1178) census 본문 enumerate뿐(dedicated 부재) → 신선. markers=0.
+- **근거**: scroll-progress 형제·view 형제 이미 dedicated — `scroll-timeline-name`(2393 AP1173)·`view-timeline-axis`(2401 AP1178)·`view-timeline-inset`(2377 AP1160). 본 축은 view-progress 의 name 성분(자손 참조 이름)으로 scroll-name(스크롤 위치)과 진행 의미 다르고 같은 view 의 axis(진행 측정 축)와 차원 별개 → view-timeline 쌍(name+axis) carve 완주.
+- **DESIGN.md 확인**: L54-65 Spacing 간격 스케일 값만·L99-108 애니메이션은 시간 기반 shimmer 만·스크롤/뷰 연동 타임라인 이름 미SHALL(timeline/scroll-driven grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
+- **차기 tokens 재진입 후보**: view-timeline longhand 쌍 carve 완주. 다음 timeline carve = shorthand `view-timeline`(name+axis 통합)·`scroll-timeline`(통합) 또는 `animation-range-start`/`-end`(진행 구간 경계) freshness 재검.
+
 ## 2026-06-30 — [design] cycle 2407 states 261st round — 표준 레인지 슬라이더 트랙 의사요소 `::slider-track` 표면 폐기 (doubly-vacuous)
 
 - **결정**: 표준 CSS Forms `::slider-track`(커스터마이즈블 `<input type=range>` 의 thumb 가 이동하는 트랙(레일) 전체 의사요소, 벤더 `::-webkit-slider-runnable-track`/`::-moz-range-track` 트랙의 표준 대체)을 states 후보로 올리지 않고 표면 폐기. 코드 변경 0. 표준 슬라이더 의사요소 carve 진행(fill 2399 → track 2407).
