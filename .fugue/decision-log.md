@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2383 states 258th round — 스크롤바 버튼(화살표) sub-pseudo `::-webkit-scrollbar-button` 표면 폐기 (host-present + uniform-hidden)
+## 2026-06-30 — [design] cycle 2385 tokens 281st round — 스크롤 프로그레스 타임라인 축 longhand `scroll-timeline-axis` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 scroll-driven scroll-progress 타임라인 longhand `scroll-timeline-axis` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: tokens 영역 281번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-driven 토큰 carve(animation-range 2361/2369·view-timeline-inset 2377 후속)의 scroll-timeline axis longhand.
+- MANDATORY 체크: 코드 timeline family(animation-timeline/scroll-timeline/view-timeline/timeline-scope) 0건. anti `scroll-timeline-axis` 0건(부수 언급조차 0·완전 신선). markers=0.
+- 근거: doubly-vacuous — 스크롤 주도 애니메이션·스크롤 프로그레스 타임라인 자체가 부재라 타임라인 원천 축을 지정할 대상이 없음(타임라인 없으면 scroll-timeline-axis 효력 없음).
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition)·L11 Decoration Minimal 모두 scroll-driven/scroll-timeline silent. prefers-reduced-motion 존중(globals.css L111) → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 tokens 재진입 후보: scroll-timeline family 잔여 `scroll-timeline-name`(anti=0) 또는 view-timeline family `view-timeline-axis`/`view-timeline-name`(anti=2·incidental).
 
 - 결정: `apps/web/` 의 WebKit 스크롤바 sub-pseudo `::-webkit-scrollbar-button` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: states 영역 258번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 스크롤바 sub-pseudo carve(thumb 2359·track-piece 2367·corner 2375 후속)의 증감 버튼 sub-pseudo.
