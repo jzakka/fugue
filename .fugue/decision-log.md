@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2343 states 253rd round — WebKit 날짜/시간 입력 값-표시 의사요소 `::-webkit-date-and-time-value`(편집 필드 그룹 `::-webkit-datetime-edit`(별 census)와 별개 값 텍스트 레이아웃) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-date-and-time-value`(date/time 입력의 표시 값 텍스트)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-date-and-time-value` 0건(apps/web/src 전수 0·anti 전수 0 완전 fresh). (2) host `<input type=date|time|datetime-local>` 자체 부재 — `type=date` 0·`type=time` 0·`datetime` 0이라 값 텍스트 스타일 적용 대상 없음. 검색/필터 입력은 text/search 단일. (3) DESIGN.md(105줄) date/time input/datetime silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2341(responsive) 후 states area 재진입. 직전 states=cycle 2335 `::-webkit-meter-optimum-value`. round 252nd→253rd. 차기 후보였던 `::-webkit-details-marker` 는 이미 dedicated states census 존재(taken)·`::-webkit-datetime-edit`(편집 필드 그룹)도 별 census 존재 → 값-표시 `::-webkit-date-and-time-value` 는 anti 전수 0 완전 fresh 신선 축.
+- **MANDATORY 체크**: `::-webkit-date-and-time-value` anti=0(전수 mention 없음·완전 fresh)·code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: date/time input/datetime/날짜 입력 전 항목 silent(L82-88 Interaction/State·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 states 재진입 후보**: `::-webkit-calendar-picker-indicator`(날짜 입력 달력 아이콘, date input 부재 vacuous·anti 9 dedicated 여부 확인 필요), `::-webkit-color-swatch-wrapper`(color input 견본 래퍼, anti 1). 차기 area = tokens(직전 cycle 2337 `-webkit-text-stroke-width`) → cycle 2345, round tokens 275th→276th.
+
 ## 2026-06-30 — [design] cycle 2341 responsive 254th round — content-visibility 예약 크기 shorthand `contain-intrinsic-size`(논리 longhand inline(2159)+block(2333)·물리 longhand width/height(2237)를 묶는 단축·family 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `contain-intrinsic-size`(두 축 placeholder 고유 크기 일괄 지정 shorthand)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `contain-intrinsic-size`/`contain-intrinsic`(전형태) 0건. (2) size containment 호스트 전무 — `content-visibility`(auto 포함) 0건·`contain`(전형태) 0건이라 placeholder 크기 일괄 예약할 size-contained 요소 자체 부재. 마스너리 카드는 자연 흐름 레이아웃. (3) DESIGN.md(105줄) content-visibility/contain/intrinsic silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2339(aesthetic) 후 responsive area 재진입. 직전 responsive=cycle 2333 `contain-intrinsic-block-size`. round 253rd→254th. inline-size(2159)/block-size(2333) 논리 longhand·width/height(2237) 물리 longhand 가 모두 dedicated census 됐으나 묶음 shorthand `contain-intrinsic-size` 는 그 census 들의 형제 enumerate(anti=18)뿐 shorthand 를 subject 로 한 dedicated census 없는 신선 축 — shorthand carve 로 contain-intrinsic family 전체 완결.
