@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2367 states 256th round — 스크롤바 트랙-조각 UA 섀도 의사요소 `::-webkit-scrollbar-track-piece` 표면 폐기 (host-present + uniform-hidden)
+- 결정: `::-webkit-scrollbar-track-piece`(WebKit 스크롤바 썸이 안 차지한 트랙 영역 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: states 영역. 스크롤바 섀도 sub-pseudo 패밀리 carve: cycle 2359 thumb(드래그 손잡이)에 이은 트랙-조각 차원(corner/button 형제 잔여).
+- MANDATORY 체크: `::-webkit-scrollbar-track-piece` 0건(anti=1 은 cycle 2359 thumb census 형제 enumerate 부수 언급)·track-piece 커스텀 색/그라디언트 0건. 신선 축.
+- 근거: 코드 유일 `::-webkit-scrollbar` 사용처는 globals.css L122-124 `.scrollbar-hide::-webkit-scrollbar { display: none }`(+L119 scrollbar-width:none). 스크롤바 균일 숨김·트랙-조각 별도 스타일 0 → 적용 표면=전체 숨김(트랙-조각도)/미적용 표면=UA 기본, 둘 다 track-piece 커스텀 외관 0 → 비정합 모집단 0.
+- DESIGN.md 확인: 105줄 scrollbar/스크롤바 트랙 silent·L11 Decoration Minimal. 숨김은 `.scrollbar-hide` 유틸 일괄 처리.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 webkit-scrollbar-track-piece=0, host `.scrollbar-hide::-webkit-scrollbar`=display:none(L122) 확인.
+- 차기 states 재진입 후보: 스크롤바 섀도 sub-pseudo carve 잔여(`::-webkit-scrollbar-corner`·`::-webkit-scrollbar-button` 둘 다 anti=0).
+
 ## 2026-06-30 — [design] cycle 2365 responsive 257th round — 스크롤 패딩 인라인-시작 단일변 longhand `scroll-padding-inline-start` 표면 폐기 (doubly-vacuous)
 - 결정: `scroll-padding-inline-start`(스냅포트 인라인 방향 시작 가장자리 한 변 안쪽 오프셋 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: responsive 영역. cycle 2301 scroll-padding-block·2309 scroll-padding-inline(2값 shorthand)·2349 block-start·2357 block-end 에 이은 per-scroll-padding-edge-longhand carve. inline-start 단일 가장자리(inline-end 형제 잔여).
