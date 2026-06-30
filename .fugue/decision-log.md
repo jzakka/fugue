@@ -24,6 +24,15 @@
 - 안착 census: **L331(OpenSpec갭)** = profile 공개프로필 페이로드 계약 5-Scenario 전수(두 키·빈배열·공개보드만·상한·404 no-fetch) 동일 매핑 → 본 probe 와 정확 일치. 그 외 L202(profile 3 Requirement)·L274(pin_count 노출)·L463(비-봇트랙 전 capability 스윕)도 profile 축 포괄. 신선 축 부재.
 - 예외(차기 등록 가능): 신규 코드가 (a) 공개보드 쿼리를 ListBoardsByCreator(is_public 무필터)로 바꿔 비공개 보드를 프로필 응답에 누출하거나·(b) boards/pins 를 nil 슬라이스로 만들어 빈 경우 `null` 직렬화/키 누락하거나·(c) GetCreator 404 분기를 board/pin fetch **뒤로** 옮겨 존재하지 않는 유저에도 불필요 쿼리를 실행하거나·(d) Limit 상한을 제거해 전량 반환하는 격리 site.
 - 영향 범위: profile OpenSpec 정합 census 확인만. 코드 0 변경. 차기 area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 1896. 후보: 업로드 MIME/매직바이트 검증·SSRF outbound 경계·OAuth state 검증·PII 응답 캐시헤더·creator self-scope IDOR 중 미수록 sub-axis.
+## 2026-06-30 — [design] cycle 2411 aesthetic 285th round — 9-slice 테두리 이미지 슬라이스 분할 longhand `border-image-slice` 표면 폐기 (doubly-vacuous)
+
+- **결정**: CSS `border-image-slice`(border-image-source 이미지를 4 오프셋으로 잘라 9영역 분할하는 longhand, shorthand `border-image` 의 slice 성분)를 aesthetic 후보로 올리지 않고 표면 폐기. 코드 변경 0. border-image 개별 longhand carve 진행(outset 1101·repeat 1106·width 1110 → slice 2411).
+- **축 선택**: aesthetic 영역 285th round. cycle 2403 차기 후보였던 offset 모션패스 family 는 joint GROUP census(AP726)+offset-position dedicated(AP1045)로 covered → border-image longhand 개별 carve 로 피벗(loop 이 outset/repeat/width 를 그룹 census AP707 밖에서 개별 census 한 선례 follow). 잔여 fresh = `border-image-slice`(dedicated 부재·anti=4 enumerate뿐) → 핵심 분할 longhand 선택.
+- **MANDATORY 체크**: `border-image-slice` src 0건 + border-image family(source/slice/width/outset/repeat/shorthand) 전체 0건 → doubly-vacuous(분할 longhand 0 AND `border-image-source` 이미지 테두리 호스트 0). 테두리는 전부 단색 `--border` 토큰(#2A2A2A/#E0E0E0)으로만 그림. anti=4 는 그룹(AP707)/형제(AP1101/1106/1110) census 본문 enumerate뿐(dedicated 부재) → 신선. markers=0.
+- **근거**: 형제 3종 dedicated 별 census(outset AP1101·repeat AP1106·width AP1110)·shorthand 그룹 census(AP707). 본 축은 slice 성분(소스를 9영역으로 자르는 분할 오프셋)으로 source/width/outset/repeat 과 비중첩. 잔여 형제 `border-image-source` 도 dedicated 부재 신선. border-image-source 부재로 slice 효력 vacuous.
+- **DESIGN.md 확인**: L11 "Decoration level: Minimal"(이미지 테두리는 장식 과잉)·테두리는 단색 `--border` 토큰만·L82-88 Card 도 surface/border 색만(border-image/9-slice grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
+- **차기 aesthetic 재진입 후보**: border-image 마지막 잔여 longhand `border-image-source`(이미지/그라디언트 소스·dedicated 부재 신선)로 border-image 5-longhand carve 완주.
 
 ## 2026-06-30 — [design] cycle 2409 tokens 284th round — 뷰 프로그레스 타임라인 이름 longhand `view-timeline-name` 표면 폐기 (doubly-vacuous, view-timeline longhand 쌍 carve 완주)
 
