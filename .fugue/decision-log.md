@@ -24,6 +24,15 @@
 - 검증: `ls openspec/changes`(미아카이브 3건) · 3 proposal.md READ · processOne grep · NewHostRateLimiter 호출처 grep · L1037/L1144 baseline READ.
 - track: `system`. covered-by-census(미충족 OpenSpec갭 없음). 코드·anti-patterns 변경 없음.
 - 차기 area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 1884. 후보: JWT alg confusion·세션 고정·민감 헤더 로깅·rate-limit 우회·파일 업로드 polyglot·XXE/SVG.
+## 2026-06-30 — [design] cycle 2399 states 260th round — 표준 레인지 슬라이더 채움 의사요소 `::slider-fill` 표면 폐기 (doubly-vacuous)
+
+- **결정**: 표준 CSS Forms `::slider-fill`(커스터마이즈블 `<input type=range>` 의 thumb 앞 진행 채움 구간 의사요소, 벤더 `::-moz-range-progress`/`::-webkit-slider-runnable-track` 채움의 표준 대체)을 states 후보로 올리지 않고 표면 폐기. 코드 변경 0.
+- **축 선택**: states 영역 260th round. 직전 states(2391) 차기 후보였던 scrollbar 서브-의사 그룹(thumb/track-piece/track/corner/button/resizer)이 사실상 완주됨 → 폼-컨트롤 의사요소/의사클래스로 피벗. 후보 probe 결과 file-selector-button(AP652)·details-content(AP443)·user-valid/invalid(AP336)·placeholder-shown(AP377)·spelling/grammar-error(AP449 cycle1143)·media-state(:playing/:paused/:muted/:volume-locked AP415)·:picture-in-picture(AP424)·:blank(AP452)·:in-range/:out-of-range(AP397)·:any-link(AP481)·:local-link(AP430)·:dir()/:lang()·:heading(AP993)·view-transition 트리(joint GROUP)·field-sizing 모두 dedicated/그룹 censused. 잔여 fresh = 표준 슬라이더 의사요소 `::slider-fill`/`::slider-track`(anti=0) → fill 차원 선택.
+- **MANDATORY 체크**: `::slider-fill` src 전수 0건 + 표준 형제 `::slider-track`/`::slider-thumb` 0건 + 네이티브 `<input type=range>` 0건(11개 `<input>` 전부 비-range, VideoTrim UI 는 커스텀 div 드래그) → doubly-vacuous(채움 선언 0 AND 적용 대상 range 호스트 0). anti-patterns 신선(`slider-fill` anti=0·`slider-track` anti=0, em-dash/`::` 블라인드스팟 무관).
+- **근거**: 벤더 프리픽스 형제는 이미 별축 — `::-webkit-slider-thumb`(AP1024)·`::-moz-range-thumb`(AP1108)·`::-moz-range-progress`(Firefox 진행 채움, AP1117) 각각 dedicated. 본 축은 그 표준 사양 대체 이름 `::slider-fill`(=진행 채움)의 표준-네임 carve 로, fill 차원이 thumb/track 서브파트와 비중첩.
+- **DESIGN.md 확인**: L11 "Decoration level: Minimal"·L82-88 Card/Interaction/State 는 hover/transition 만 SHALL, 슬라이더 트랙/채움/thumb 색·진행 강조 미SHALL(slider/range/fill grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9(셋 중 미명시 취향은 비이슈).
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(표면 폐기 census). 회귀 표면 0.
+- **차기 states 재진입 후보**: 표준 슬라이더 의사요소 잔여 형제 `::slider-track`(트랙·anti=0 신선)/`::slider-thumb`(핸들 표준-네임·anti=0 신선, 벤더 `::-webkit/-moz-range-thumb` 와 별개)로 slider 표준-네임 carve 완주. 또는 customizable-select `::picker(select)`(AP5)/`::checkmark`(anti=3) freshness 재검.
 
 ## 2026-06-30 — [design] cycle 2397 responsive 261st round — 스크롤 스냅 마진 인라인-시작 longhand `scroll-margin-inline-start` 표면 폐기 (doubly-vacuous)
 
