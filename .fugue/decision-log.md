@@ -25,6 +25,15 @@
 - 예외(실결함 조건): 저장형 denorm 집계 컬럼 신규 추가 + INSERT/DELETE 증감 트랜잭션 미결합/누락/이중증가/race · count underflow(음수)/overflow · stored vs computed 혼용으로 엔드포인트별 수치 불일치.
 - track: `system`. anti-patterns.md 1줄 추가(clean baseline), 코드 변경 없음.
 - 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1876. 후보: error wrapping(%w) 체인 단절·sentinel error 비교·defer Close 에러 무시·context 취소 전파·partial write 롤백.
+## 2026-06-30 — [design] cycle 2391 states 259th round — 스크롤바 트랙(전체 홈) sub-pseudo `::-webkit-scrollbar-track` 표면 폐기 (host-present + uniform-hidden)
+
+- 결정: `apps/web/` 의 WebKit 스크롤바 sub-pseudo `::-webkit-scrollbar-track`(트랙 전체, track-piece 와 구분) 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: states 영역 259번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 스크롤바 sub-pseudo carve(thumb 2359·track-piece 2367·corner 2375·button 2383 후속)의 트랙 전체 sub-pseudo.
+- MANDATORY 체크: 코드 `::-webkit-scrollbar-track` 0건. anti 의 `scrollbar-track` 전 occurrence(6)가 모두 `scrollbar-track-piece`(2367) — standalone track dedicated 0. `::-webkit-scrollbar` 호스트는 globals.css L122 display:none 단 1곳. markers=0.
+- 근거: host-present + uniform-hidden — `::-webkit-scrollbar` 호스트가 스크롤바를 균일 숨김하므로 자식 트랙 홈도 렌더 안 됨. scrollbar-width/color 표준 속성도 부재라 styled scrollbar 모집단 0.
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition)·L11 Decoration Minimal 모두 스크롤바 커스텀/트랙 silent. scrollbar-hide 는 의도적 숨김 유틸 → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 states 재진입 후보: 스크롤바 sub-pseudo 군 사실상 완주(thumb/track-piece/track/corner/button/resizer 폐기) → 폼 컨트롤 의사요소(`::file-selector-button`·`::details-content` 등) 또는 `:user-valid`/`:user-invalid` 폼 상태 pseudo-class.
 
 ## 2026-06-30 — [system] cycle 1872 Discovery — 보안: CRLF/HTTP 헤더 인젝션 (NEW baseline)
 - 결정: 사용자 입력이 응답 헤더/리다이렉트 Location/Set-Cookie 값으로 흘러 CRLF 인젝션(CWE-113 response splitting)을 일으키는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1872 baseline)`).
