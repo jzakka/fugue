@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2345 tokens 276th round — 텍스트 입력 캐럿 깜박임 토큰 `caret-animation`(캐럿 모양 caret-shape(1155)·캐럿 색 caret-color(307)와 별개 깜박임 거동 차원·캐럿 외관 패밀리 3차원 완결) 표면 폐기(host-present + UA-default uniform) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `caret-animation`(캐럿 깜박임 auto/manual)이 표면 간 갈리는지 census. **host-present + UA-default uniform**: (1) `caret-animation` 0건(apps/web/src 0·globals 0). (2) 편집 필드(input 11 + textarea 1 = 12)가 존재하나 전부 caret-animation 미선언으로 UA 기본 깜박임에 균일 위임(coherent absence)·contenteditable 0건. (3) DESIGN.md(105줄) caret/깜박임/blink silent(L11 Minimal). 설정 모집단 0·divergence 0.
+- **축 선택**: cycle 2343(states) 후 tokens area 재진입. 직전 tokens=cycle 2337 `-webkit-text-stroke-width`. round 275th→276th. 캐럿 외관 패밀리에서 색 caret-color 가 cycle 307·모양 caret-shape 가 cycle 1155 에서 census 됐으나 깜박임 거동 `caret-animation` 은 1155 caret-shape census 가 묶어 언급한 부수(anti=11)뿐 subject dedicated census 없는 신선 축 — 색(307)/모양(1155)/깜박임(2345)로 캐럿 외관 3차원 완결.
+- **MANDATORY 체크**: `caret-animation` anti=11 — 전부 cycle 1155 caret-shape census 의 caret-shape/caret-animation 묶음 언급 + forward-pointer·subject dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 편집 필드 12개 전수 UA 기본 깜박임 균일(divergence 0) + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: caret/캐럿/깜박임/blink 전 항목 silent(L11 Decoration Minimal·caret 외관 미규정). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 tokens 재진입 후보**: `text-emphasis-color`(동아시아 강조점 색, text-emphasis 미사용·anti 14 dedicated 확인 필요), `font-size-adjust`(x-height 보정, anti 13). 차기 area = aesthetic(직전 cycle 2339 `mask-border-mode`) → cycle 2347, round aesthetic 276th→277th, 후보 `mask-border-source`(mask-border family 마지막 longhand).
+
 ## 2026-06-30 — [design] cycle 2343 states 253rd round — WebKit 날짜/시간 입력 값-표시 의사요소 `::-webkit-date-and-time-value`(편집 필드 그룹 `::-webkit-datetime-edit`(별 census)와 별개 값 텍스트 레이아웃) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-date-and-time-value`(date/time 입력의 표시 값 텍스트)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-date-and-time-value` 0건(apps/web/src 전수 0·anti 전수 0 완전 fresh). (2) host `<input type=date|time|datetime-local>` 자체 부재 — `type=date` 0·`type=time` 0·`datetime` 0이라 값 텍스트 스타일 적용 대상 없음. 검색/필터 입력은 text/search 단일. (3) DESIGN.md(105줄) date/time input/datetime silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2341(responsive) 후 states area 재진입. 직전 states=cycle 2335 `::-webkit-meter-optimum-value`. round 252nd→253rd. 차기 후보였던 `::-webkit-details-marker` 는 이미 dedicated states census 존재(taken)·`::-webkit-datetime-edit`(편집 필드 그룹)도 별 census 존재 → 값-표시 `::-webkit-date-and-time-value` 는 anti 전수 0 완전 fresh 신선 축.
