@@ -24,6 +24,15 @@
 - probe3(interactions.type 생산자↔소비자 값집합): write 측은 isValidInteractionType("view"/"pin"/"board_add", handler.go:92)로 검증, **read 측(recommend) 부재** — GetUserTagFrequency/GetUserMediaTypeFrequency/RecommendByTags/RecommendByMediaType 전부 interactions 테이블/type 미참조(사용자 본인 핀 `p.creator_id=$1` 기반)라 type 소비자 vacuous → **L1071(interactions.type 값도메인)·L702(event-log) 커버**.
 - 결론: 정합성 area 40+ baseline 포화. 세 후보 전부 refuted+covered → covered-by-census.
 - 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1888. 후보: defer 리소스 해제 누락·에러 wrap/sentinel 손실·partial write rollback·context 취소 전파·goroutine 에러 채널.
+## 2026-06-30 — [design] cycle 2403 aesthetic 284th round — 리듬 사이징 블록-스텝 반올림 longhand `block-step-round` 표면 폐기 (doubly-vacuous, block-step 4-longhand carve 완주)
+
+- **결정**: CSS Rhythmic Sizing `block-step-round`(블록 축 크기를 step 배수로 양자화할 때 반올림 방향(up/down/nearest)을 정하는 longhand, shorthand `block-step` 의 round 성분)을 aesthetic 후보로 올리지 않고 표면 폐기. 코드 변경 0. 본 census 로 **block-step 4-longhand 표면 carve 완주**(size 2379·insert 2387·align 2395·round 2403).
+- **축 선택**: aesthetic 영역 284th round. block-step(Rhythmic Sizing) family carve 의 마지막 잔여 longhand. 후보 probe 결과 mask longhand(mask-composite/clip/origin/mode/type)는 joint GROUP census(AP558)로 covered·offset-* 모션패스·shape-margin/threshold·paint-order·blend-mode 등도 censused. 잔여 fresh = block-step carve 마지막 형제 `block-step-round`(형제 size/insert/align census 본문 enumerate 부수 언급뿐·dedicated 부재·anti=3) → round 차원 선택.
+- **MANDATORY 체크**: `block-step-round` src 0건 + block-step family(size/insert/align/round/shorthand) 전체 0건 → doubly-vacuous(반올림 longhand 0 AND block-step 양자화 호스트 0). 마소너리 카드 높이는 콘텐츠 자연 높이로 흐르고 step 격자 양자화 미사용 → 반올림 대상 0. anti=3 은 형제 census(AP1162/1166/1174) 본문 enumerate뿐(dedicated 부재) → 신선. markers=0.
+- **근거**: 형제 longhand 3종 이미 dedicated 별 census — `block-step-size`(2379 AP1162)·`block-step-insert`(2387 AP1166)·`block-step-align`(2395 AP1174). 본 축은 round 성분(콘텐츠 크기를 step 격자에 맞추는 반올림 방향)으로 size(단위)·insert(삽입 위치)·align(정렬)과 비중첩한 4번째이자 마지막 longhand → block-step 4-longhand carve 완주.
+- **DESIGN.md 확인**: L67-72 Layout 은 masonry/breakpoint/column-gap 만·수직 리듬 grid/block-step/baseline grid silent·L16-35 Typography 는 font-size 스케일·weight 만·L11 Decoration Minimal(block/step/리듬 grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
+- **차기 aesthetic 재진입 후보**: block-step family carve 완주. 다음 미학 carve 후보 = 모션패스 offset family(`offset-path`/`offset-distance`/`offset-rotate`/`offset-anchor`·anti=2 각각·dedicated 여부 재검) 또는 backdrop-filter/필터 함수 freshness 재검.
 
 ## 2026-06-30 — [system] cycle 1884 Discovery — 보안: 보안 민감 토큰 난수 생성기 CWE-330/338 (NEW baseline, anti-patterns 등록)
 - 결정: 보안 민감 토큰/식별자(OAuth state·refresh JTI·세션값)가 예측가능 비암호 PRNG(`math/rand`)·고정시드·V1/V2 UUID·과소 truncation 으로 추측 가능한지 전수 조사 → 모든 보안값이 crypto/rand·crypto-backed uuid V4 로 생성됨이 확인되는 **refuted FP-pattern**. anti-patterns.md L1176(cycle 1884) NEW baseline 등록.
