@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1872 Discovery — 보안: CRLF/HTTP 헤더 인젝션 (NEW baseline)
+- 결정: 사용자 입력이 응답 헤더/리다이렉트 Location/Set-Cookie 값으로 흘러 CRLF 인젝션(CWE-113 response splitting)을 일으키는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1872 baseline)`).
+- 신선성: 보안 baseline 전수(L175~L1148) 중 CRLF/헤더 분리 축은 부재. L236=open-redirect(목적지 도메인 allowlist), L784=보안응답헤더 존재, L429=로그 CWE-532/117, L465=쿠키 보안속성 으로 모두 별축.
+- probe: (1) `w.Header().Set` 동적값 전수 = 상수 또는 `strconv.Itoa(Retry-After)` (ratelimit.go:104) — 유저입력 직접 sink 0. (2) `http.Redirect` 5분기(handler.go:71-146) = `h.frontend`(config) + `url.QueryEscape(errMsg)`/상수/`stateData.ReturnTo`. (3) `validateReturnTo`(state.go:78)가 `//`·`\`만 차단하고 `\r`/`\n` 통과(정적분석 FP 유발) BUT Go 1.26.1 `headerNewlineToSpace`(header.go:139, writeSubset:206)가 직렬화 시 `\r\n`→공백 치환으로 무해화. (4) Set-Cookie = `http.SetCookie`(4곳) + 서버발급 JWT/빈값. (5) 아웃바운드 `req.Header.Set` 전수 = 상수/OAuth 서버토큰. (6) `Hijack`/`Fprintf(w` 0건.
+- 검증: `w.Header().Set` grep · `http.Redirect` READ · validateReturnTo READ · `http.SetCookie` READ · `req.Header.Set` grep · `Hijack`/`Fprintf(w` grep(0) · go1.26.1 stdlib `headerNewlineToSpace` 확인.
+- 예외(실결함 조건): Hijack/raw conn 헤더 직렬화로 writeSubset 우회 · Set-Cookie raw 수동조립 + 유저값 · 유저값 정제없이 Location/커스텀헤더 직접 주입 · net/http 외 클라이언트로 아웃바운드 헤더 주입.
+- track: `system`. anti-patterns.md 1줄 추가, 코드 변경 없음.
+- 차기 area = 정합성 (6-area rotation OpenSpec갭→보안→정합성) → cycle 1874. 후보: 카운터/집계 컬럼 derived-vs-stored 일관성·timestamp 단조성·enum/status 전이 정합·FK 고아행·dedup 키 정규화 일치.
+
 ## 2026-06-30 — [system] cycle 1870 Discovery — OpenSpec갭: harvester 미디어검증기 bootstrap wiring 이 기존 census 로 covered (anti-patterns 변경 없음)
 - 결정: 미아카이브 change `fix-harvester-wire-media-validator` 의 ADDED Requirement(부트스트랩이 미디어검증기 wire + 외부 관찰 가능) 구현 정합을 probe 했으나 L1037 이 이미 carve → covered-by-census. NEW baseline 등록 안 함(decision-log only).
 - probe: ADDED Requirement 2 Scenario(① production 부트스트랩이 wiring 수행·② 외부에서 wiring 상태 관찰) 구현 확인 → buildHarvesterConsumer(harvester_consumer_builder.go:29-31)가 NewHarvesterConsumer(...).WithMediaValidator(NewDefaultMediaValidator()) 호출·main.go:263 이 유일 production 호출처(SHALL NOT 충족)·HasMediaValidator() accessor(harvester_consumer.go:207)·회귀 테스트(harvester_consumer_builder_test.go) 존재 → 4 미디어검증 SHALL Requirement production enforce. FP(proposal 의 Why 가 기술한 갭은 이미 닫힘).
