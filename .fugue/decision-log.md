@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2363 aesthetic 279th round — SVG 세로쓰기 글리프 방향 `glyph-orientation-vertical` 표면 폐기 (doubly-vacuous)
+- 결정: `glyph-orientation-vertical`(세로쓰기 SVG 텍스트 글리프를 baseline 에 대해 회전·정렬하는 deprecated 속성·text-orientation 으로 대체) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: aesthetic 영역. SVG 텍스트 기준선/정렬 패밀리(alignment-baseline 2355·dominant-baseline 2019·baseline-shift 2035·text-anchor 2027)의 세로쓰기 글리프 회전 차원. cycle 2355 후보였던 glyph-orientation-vertical(anti=0) 진입.
+- MANDATORY 체크: `glyph-orientation-vertical` 0건·`glyph-orientation-horizontal` 0건·SVG 텍스트 콘텐츠 `<text>`/`<tspan>`/`<textPath>` 0건·`writing-mode`/`text-orientation` 0건 doubly-vacuous. anti=0 신선 축.
+- 근거: SVG 텍스트 글리프 + 세로쓰기 모드 둘 다 부재(코드 전수 0). `<svg>` 15개는 아이콘 래퍼(path/shape, 텍스트 없음)라 글리프 방향 무의미·세로쓰기 텍스트 미사용 → 비정합 모집단 0. deprecated 속성이라 신규 도입 가능성도 낮음.
+- DESIGN.md 확인: L16-35 Typography 는 가로쓰기 HTML 텍스트만·SVG 세로쓰기 글리프 방향/writing-mode silent·L11 Decoration Minimal.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 glyph-orientation-vertical/-horizontal/<text>/writing-mode 전부 0 확인.
+- 차기 aesthetic 재진입 후보: SVG paint family `marker-mid`(anti=6)·SVG filter `flood-opacity`(anti=10) carve. SVG 기준선/글리프 family 는 본 census 로 5차원(정렬/우세/이동/앵커/세로글리프) 커버.
+
 ## 2026-06-30 — [design] cycle 2361 tokens 278th round — 스크롤 연동 애니메이션 시작 경계 longhand `animation-range-start` 표면 폐기 (doubly-vacuous)
 - 결정: `animation-range-start`(scroll-driven 애니메이션이 타임라인 어느 지점에서 시작할지 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: tokens 영역. animation-range shorthand(cycle 2025)의 start 경계 longhand carve(animation-range-end 형제). font-variant longhand 는 전부 anti≥24 로 이미 census 확인 후 scroll-driven 애니메이션 토큰으로 전환.
