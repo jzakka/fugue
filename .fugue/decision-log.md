@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2329 tokens 274th round — 글리프 외곽선 스트로크 색 토큰 `-webkit-text-stroke-color`(단축 `-webkit-text-stroke`(cycle 422)의 색 longhand·채움 색 `-webkit-text-fill-color`(cycle 2209)의 외곽선 대응물) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `-webkit-text-stroke-color`(글리프 외곽선의 색만 지정하는 longhand)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `-webkit-text-stroke-color` 0건(apps/web/src 전수 0). (2) 외곽선 텍스트 호스트 전무 — 단축 `-webkit-text-stroke`/`text-stroke` 전수 0건(cycle 422 확인)이라 색을 지정할 외곽선 스트로크 자체 부재. 텍스트 강조는 전부 솔리드 fill 색(color/text-*)+font-weight 단일 메커니즘. (3) DESIGN.md(105줄) text-stroke/외곽선/스트로크 색 silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2327(states) 후 tokens area 재진입. 직전 tokens=cycle 2321 `scrollbar-color`. round 273rd→274th. 단축 `-webkit-text-stroke`(width+color)가 cycle 422(aesthetic)에서 census 됐고 채움 색 `-webkit-text-fill-color` 가 cycle 2209(tokens)에서 census 됐으나 외곽선 *색* longhand `-webkit-text-stroke-color` 는 cycle 422 본문의 longhand 쌍 enumerate 부수 언급(anti=1)뿐 dedicated census 없는 신선 축.
+- **MANDATORY 체크**: `-webkit-text-stroke-color` anti=1 — cycle 422 단축 census 본문의 longhand(`-webkit-text-stroke-width`/`-webkit-text-stroke-color`) enumerate 부수 언급·dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: text-stroke/외곽선/스트로크 색 전 항목 silent(L16-35 Typography 폰트/weight/스케일만 SHALL·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 tokens 재진입 후보**: `-webkit-text-stroke-width`(외곽선 두께 longhand, 422 enumerate 부수 언급뿐 — 색(2329)+두께로 stroke longhand 쌍 완결 가능), `font-variation-settings` 축 변이(가변폰트 미사용). 차기 area = aesthetic(직전 cycle 2323 `mask-border-outset`) → cycle 2331, round aesthetic 274th→275th.
+
 ## 2026-06-30 — [design] cycle 2327 states 251st round — 네이티브 `<progress>` 트랙 컨테이너 pseudo-element `::-webkit-progress-bar`/`::-moz-progress-bar`(채움 `::-webkit-progress-value`(cycle 2157)의 트랙 짝·진행 막대 배경 그루브) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-progress-bar`/`::-moz-progress-bar`(진행 막대의 채워지지 않은 트랙 컨테이너)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-progress-bar`/`::-moz-progress-bar` code 0건(apps/web/src 전수 0). (2) 네이티브 `<progress>` 요소 자체 부재 — `<progress` 0건·`progress-value`(채움) 0건이라 트랙 컨테이너 장식 대상 자체 없음. 진행 UI는 div+width% 커스텀 바 가능성만 있고 네이티브 요소 미사용. (3) DESIGN.md(105줄) progress/진행 막대/트랙 silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2325(responsive) 후 states area 재진입. 직전 states=cycle 2319 `::-moz-meter-bar`(미터 트랙). round 250th→251st. cycle 2157이 채움 `::-webkit-progress-value` 를 dedicated census 했으므로 트랙 컨테이너 `::-webkit-progress-bar`/`::-moz-progress-bar` 는 형제 enumeration(2157 census 본문 내 "vs `::-webkit-progress-bar` 트랙")로만 언급된 신선 축 — 채움(2157)+트랙(2327)로 progress UA pseudo 짝 완결.
