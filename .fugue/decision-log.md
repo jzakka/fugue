@@ -23,6 +23,16 @@
 - covered 근거: **L1037**(봇 워커 부트스트랩이 스펙-필수 capability wire — 미아카이브 fix-proposal 3건)이 point②에서 "harvester MediaValidator wiring 닫힘: buildHarvesterConsumer.WithMediaValidator + HasMediaValidator + 회귀테스트" 를 명시 carve. **L734**(미아카이브 change delta 3건)가 그룹으로 carve. 나머지 2 change 도 1858(adapter-fallback)·1834(host-rate-limiter) carve.
 - 차기 area = 보안 (직전 1860) → cycle 1872. 후보: outbound SSRF(크롤러가 user/크롤 입력 URL 로 내부망 fetch)·인증 토큰 로깅 노출·SQL injection(sqlc 외 raw)·CORS/CSRF·업로드 파일 MIME/확장자 검증·경로 traversal.
 
+## 2026-06-30 — [design] cycle 2387 aesthetic 282nd round — 리듬 사이징 블록-스텝 삽입 longhand `block-step-insert` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 CSS Rhythmic Sizing longhand `block-step-insert` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: aesthetic 영역 282번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. block-step family carve(size 2379 후속)의 insert longhand.
+- MANDATORY 체크: 코드 block-step family(block-step/size/insert/align/round) 0건. anti `block-step-insert` 0건(anti=2 는 2379 block-step-size census 형제 enumerate 부수 언급·subj 0). markers=0.
+- 근거: doubly-vacuous — 수직 리듬 grid 양자화 메커니즘 자체가 부재라(masonry 카드 높이는 콘텐츠 자연 높이) step 여분 공간 삽입 위치를 지정할 대상이 없음(block-step 없으면 block-step-insert 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L16-35 Typography(font-size 스케일/weight)·L11 Minimal 모두 수직 리듬 grid/block-step silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 aesthetic 재진입 후보: block-step family 잔여 `block-step-align`/`block-step-round`(anti=2·신선) 또는 offset-position(line 1045 별축).
+
 ## 2026-06-30 — [design] cycle 2385 tokens 281st round — 스크롤 프로그레스 타임라인 축 longhand `scroll-timeline-axis` 표면 폐기 (doubly-vacuous)
 
 - 결정: `apps/web/` 의 scroll-driven scroll-progress 타임라인 longhand `scroll-timeline-axis` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
