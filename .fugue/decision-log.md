@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2337 tokens 275th round — 글리프 외곽선 스트로크 두께 토큰 `-webkit-text-stroke-width`(색 longhand `-webkit-text-stroke-color`(cycle 2329)와 함께 단축 `-webkit-text-stroke`(cycle 422) 분해·stroke longhand 쌍 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `-webkit-text-stroke-width`(글리프 외곽선의 두께만 지정하는 longhand)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `-webkit-text-stroke-width` 0건(apps/web/src 전수 0). (2) 외곽선 텍스트 호스트 전무 — 단축 `-webkit-text-stroke`/`text-stroke` 전수 0건(cycle 422 확인)이라 두께를 지정할 외곽선 스트로크 자체 부재. 텍스트 강조는 전부 솔리드 fill 색(color/text-*)+font-weight 단일 메커니즘. (3) DESIGN.md(105줄) text-stroke/외곽선/스트로크 두께 silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2335(states) 후 tokens area 재진입. 직전 tokens=cycle 2329 `-webkit-text-stroke-color`. round 274th→275th. 단축 `-webkit-text-stroke`(width+color)가 cycle 422(aesthetic)에서·외곽선 색 `-webkit-text-stroke-color` 가 cycle 2329(tokens)에서 census 됐으나 외곽선 *두께* longhand `-webkit-text-stroke-width` 는 cycle 422 longhand 쌍 enumerate + 2329 형제 언급(anti=4)뿐 dedicated census 없는 신선 축 — color(2329)+width(2337)로 stroke longhand 쌍 완결.
+- **MANDATORY 체크**: `-webkit-text-stroke-width` anti=4 — cycle 422 단축 census 의 longhand 쌍 enumerate + cycle 2329 stroke-color census 형제 언급·dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: text-stroke/외곽선/스트로크 두께 전 항목 silent(L16-35 Typography 폰트/weight/스케일만 SHALL·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 tokens 재진입 후보**: `font-variation-settings`(가변폰트 축 변이, 가변폰트 미사용 vacuous), `font-feature-settings`(OpenType feature, font-variant-numeric 만 사용). 차기 area = aesthetic(직전 cycle 2331 `mask-border-repeat`) → cycle 2339, round aesthetic 275th→276th, 후보 `mask-border-mode`(mask-border family 마지막 longhand).
+
 ## 2026-06-30 — [design] cycle 2335 states 252nd round — WebKit 미터 게이지 값(채움) 의사요소 `::-webkit-meter-optimum-value`(트랙 `::-webkit-meter-bar`/`::-moz-meter-bar`(cycle 2319)의 값-채움 짝·meter family 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-meter-optimum-value`(<meter> optimum 범위 채움 막대)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-meter-optimum-value`/suboptimum/even-less-good-value code 0건. (2) host `<meter>` 요소 자체 부재 — `<meter` 0건·`meter` 전체 0건이라 게이지 값 막대 그릴 대상 없음. 진행/측정 표시는 커스텀 div/숫자. (3) DESIGN.md(L82-88 Interaction/State) meter/gauge silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2333(responsive) 후 states area 재진입. 직전 states=cycle 2327 `::-webkit-progress-bar`. round 251st→252nd. cycle 2319 가 트랙 배경 `::-moz-meter-bar`/`::-webkit-meter-bar` 를 census 했으므로 값-채움 `::-webkit-meter-optimum-value` 는 2319 census 의 webkit 대응 enumerate(anti=1)뿐 dedicated census 없는 신선 축 — 트랙(2319)+값(2335)로 meter family 완결.
