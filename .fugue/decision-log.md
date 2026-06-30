@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1904 Discovery — 봇: 문서 내 미디어 후보 dedup (절대화 후 seen-맵 중복 제거·og:image vs <img> 중복) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 2주기째 완주, 동시성→봇)에서 "단일 PinDocument 가 같은 미디어 URL 을 MediaCandidates 에 중복 적재(og:image 가 첫 <img> 와 동일 URL·상대형/절대형 동일 리소스 미합산)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = extractor.go buildMediaCandidates 의 문서 내(intra-document) 미디어 후보 중복 제거.
+- 확인: (1) **buildMediaCandidates 가 absolutize 후 seen-맵 dedup 보유**: 후보를 `absolutize(base, c.URL)` 절대화→실패 skip→`seen` 맵(절대 URL 키)으로 `if _, dup := seen[abs]; dup { continue }` 중복 제거→`len(out) >= limit` 캡(MaxMediaCandidates=50)→out 0 이면 nil. 상대/절대 동일 리소스가 절대화 후 같은 키로 합쳐져 중복 제거가 옳음. (2) **og:image 는 MediaCandidates 모집단 부재**: og:image/twitter:image/JSON-LD image 는 doc.ThumbnailURL 단수 썸네일 소스(별개 축)이고 MediaCandidates 는 DOM <img>/<video>/<audio>/<source> 만 수집 → "og:image == <img> 중복" 전제 자체가 성립 안 함(두 소스가 다른 필드). (3) **수집 시점 article/body 버킷 분리 후 sawArticle 선택** → 본문 범위 한정, 이중 적재 아님.
+- 안착 census: **L699(봇, cycle 1316)** = buildMediaCandidates + 토크나이저 img/video/audio/source 버킷팅의 본문범위 한정·**absolutize 후 dedup(point 3)**·limit 캡·empty→nil 정합 — 본 probe 의 절대화-후 seen-맵 중복 제거와 정확히 동일 매핑. **L676**(썸네일 소스 vs 미디어 후보 소스 분리, og:image 가 MediaCandidates 와 별개 축)·**L1096**(doc.MediaCandidates vs OGData.MediaCandidates 이중 필드 lockstep)·**L1140**(MediaType 도메인)·**L630**(<source> srcset 다중 후보)도 인접 포괄. 신선 축 부재(intra-doc dedup = L699 point3 기수록).
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 3주기째 시작) → cycle 1906. 후보: scheduler frontier-table 컬럼 정합·robots Crawl-delay rate 반영·pioneer link-filter policy·harvester og_data 영속화 SHALL 중 미수록 Requirement/Scenario sub-axis.
+
 ## 2026-06-30 — [system] cycle 1902 Discovery — 동시성: 보조 watcher goroutine lifecycle·sync.Once lazy-init·3rd-party stateful 객체 cross-goroutine 접점 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성)에서 "playwright watcher goroutine 이 page.Close() 를 main 의 Goto 와 동시 호출해 race·goroutine leak·sync.Once lazy-init 이중초기화 race" 후보를 probe → 전부 기존 census/vacuous 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = 보조 watcher goroutine lifecycle + sync.Once lazy-init race + 비-goroutine-safe 3rd-party 객체 cross-goroutine 접점.
