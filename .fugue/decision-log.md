@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2331 aesthetic 275th round — 마스크 보더 9-slice 타일링/반복 longhand `mask-border-repeat`(border-image-repeat 의 마스크 대응물·slice(2307)/width(2315)/outset(2323) 에 이은 per-mask-border-longhand carve) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `mask-border-repeat`(9분할 마스크 가장자리를 stretch/repeat/round/space 로 타일링)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `mask-border-repeat` 0건(apps/web/src 전수 0). (2) 마스크 메커니즘 전무 — `mask-border`(source/slice/width/outset/mode 포함) 0건·상위 `mask`(전체) 0건이라 타일링할 9-slice 마스크 보더 자체 부재. 테두리는 단색 토큰 보더(border/border-radius). (3) DESIGN.md(105줄) mask-border/마스크 silent(L46 단색 보더·L11 Decoration Minimal). 모집단 0·divergence 0.
+- **축 선택**: cycle 2329(tokens) 후 aesthetic area 재진입. 직전 aesthetic=cycle 2323 `mask-border-outset`. round 274th→275th. cycle 1643 이 mask-border 속성군 전체를 vacuous census 했고 이후 slice(2307)/width(2315)/outset(2323) per-longhand carve 를 진행 — repeat 는 1643 군집 census 와 각 longhand census 의 형제 enumerate(anti=1)뿐 dedicated census 없는 신선 축.
+- **MANDATORY 체크**: `mask-border-repeat` anti=1 — cycle 1643 mask-border 속성군 census 의 longhand enumerate 부수 언급·dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: mask-border/마스크/9-slice 타일링 전 항목 silent(L46 단색 보더·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 aesthetic 재진입 후보**: `mask-border-mode`(luminance/alpha 마스크 모드 longhand — repeat(2331) 후 source 와 함께 mask-border family 마지막 carve), `mask-border-source`(마스크 이미지 소스 longhand). 차기 area = responsive(직전 cycle 2325 `overscroll-behavior-inline`) → cycle 2333, round responsive 252nd→253rd.
+
 ## 2026-06-30 — [design] cycle 2329 tokens 274th round — 글리프 외곽선 스트로크 색 토큰 `-webkit-text-stroke-color`(단축 `-webkit-text-stroke`(cycle 422)의 색 longhand·채움 색 `-webkit-text-fill-color`(cycle 2209)의 외곽선 대응물) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `-webkit-text-stroke-color`(글리프 외곽선의 색만 지정하는 longhand)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `-webkit-text-stroke-color` 0건(apps/web/src 전수 0). (2) 외곽선 텍스트 호스트 전무 — 단축 `-webkit-text-stroke`/`text-stroke` 전수 0건(cycle 422 확인)이라 색을 지정할 외곽선 스트로크 자체 부재. 텍스트 강조는 전부 솔리드 fill 색(color/text-*)+font-weight 단일 메커니즘. (3) DESIGN.md(105줄) text-stroke/외곽선/스트로크 색 silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2327(states) 후 tokens area 재진입. 직전 tokens=cycle 2321 `scrollbar-color`. round 273rd→274th. 단축 `-webkit-text-stroke`(width+color)가 cycle 422(aesthetic)에서 census 됐고 채움 색 `-webkit-text-fill-color` 가 cycle 2209(tokens)에서 census 됐으나 외곽선 *색* longhand `-webkit-text-stroke-color` 는 cycle 422 본문의 longhand 쌍 enumerate 부수 언급(anti=1)뿐 dedicated census 없는 신선 축.
