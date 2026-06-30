@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1884 Discovery — 보안: 보안 민감 토큰 난수 생성기 CWE-330/338 (NEW baseline, anti-patterns 등록)
+- 결정: 보안 민감 토큰/식별자(OAuth state·refresh JTI·세션값)가 예측가능 비암호 PRNG(`math/rand`)·고정시드·V1/V2 UUID·과소 truncation 으로 추측 가능한지 전수 조사 → 모든 보안값이 crypto/rand·crypto-backed uuid V4 로 생성됨이 확인되는 **refuted FP-pattern**. anti-patterns.md L1176(cycle 1884) NEW baseline 등록.
+- 신선성: 기존 보안 census 와 비중첩 — L381(config secret 적재시점 검증)·L736(constant-time 비교)·L1029(타이밍 부채널)은 검증/비교 측, 본 축은 **런타임 난수 생성 측**(엔트로피 품질·PRNG 선택·시드). L186/L175(JWT alg/secret 구조), L189/L371(rand mutex=동시성)과도 별축.
+- 모집단/refute 증거: (1) OAuth state=state.go:38 `crypto/rand.Read(32바이트)`→base64url(256bit·fail-closed·GETDEL one-time). (2) refresh JTI=jwt.go:50 `uuid.New()`=V4(google/uuid 가 crypto/rand.Reader 에서 122bit·entropy 부족 시 panic). (3) storage 키·bot 파일명·username suffix 도 전부 uuid V4. (4) **유일한 math/rand**=backoff.go:54 jitter(±10% retry delay·주석 :46-48 "not a security primitive"·시드 UnixNano 도 비보안). `math/rand` grep=backoff.go 유일, `crypto/rand` grep=state.go 유일.
+- 예외(실결함 등록 조건): 신규 코드가 (a) 보안 토큰(세션ID·비밀번호 재설정·API키·OAuth state·CSRF·JTI·인증코드)을 math/rand 로 생성·(b) 보안 PRNG 를 상수/예측가능 시드로 초기화·(c) 보안 식별자에 UUID V1/V2 사용·(d) unguessable 토큰을 128bit 미만으로 truncate·(e) backoff math/rand 를 보안값 생성에 재사용 시.
+- 차기 area = 정합성 (6-area rotation 보안→정합성) → cycle 1886. 후보: cross-read 엔티티 필드 정합·enum/CHECK 도메인 일치·timestamp 단조성·counter 파생 vs 집계·페이지네이션 경계.
+
 ## 2026-06-30 — [system] cycle 1882 Discovery — OpenSpec갭: 미아카이브 change 3건 전수 구현 검증 (covered-by-census, anti-patterns 변경 없음)
 - 결정: `openspec/changes/` 미아카이브 change 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring)의 ADDED/MODIFIED Requirement가 production 코드에 구현됐는지 전수 대조 → 전부 구현됨·기존 census로 covered. **anti-patterns 변경 없음**(decision-log만).
 - 신선성/커버: L1037이 3 proposal 갭(운영자 설정 미반영·MediaValidator 미연결·AdapterFallback 미증가)이 전부 코드에서 닫혀 있음을 명시 카브, L1144가 adapter-fallback-counter MODIFIED Requirement(7 Scenario)를 상세 카브, L734가 미아카이브 change delta 일반을 카브.
