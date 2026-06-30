@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2379 aesthetic 281st round — 리듬 사이징 블록-스텝 크기 longhand `block-step-size` 표면 폐기 (doubly-vacuous)
+## 2026-06-30 — [design] cycle 2381 responsive 259th round — 스크롤 스냅 마진 블록-시작 longhand `scroll-margin-block-start` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-margin-block-start` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: responsive 영역 259번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-padding 4-edge carve(2373 완주) 후 자매 family scroll-margin 논리변 carve 시작.
+- MANDATORY 체크: 코드 scroll-margin family 0건·scroll-snap family 0건. anti `scroll-margin-block-start` 0건(anti=1 은 scroll-margin-block shorthand 설명의 start/end 묶음 enumerate 부수 언급·subj 0). markers=0.
+- 근거: doubly-vacuous — 스크롤 스냅 컨테이너 자체가 부재라(masonry 일반 스크롤) 스냅 자식 정렬 마진을 적용할 표면이 구조적으로 없음(scroll-snap 없으면 scroll-margin 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L11 Minimal·L82-88 Interaction/State 모두 scroll-snap/스냅 마진 silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 responsive 재진입 후보: scroll-margin 논리변 carve 속행 `scroll-margin-block-end`/`scroll-margin-inline-start`/`scroll-margin-inline-end`(anti≤1·신선).
 
 - 결정: `apps/web/` 의 CSS Rhythmic Sizing longhand `block-step-size` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: aesthetic 영역 281번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. anchor-positioning family 가 dedicated/joint census 로 소진(anchor-scope·position-try-order 까지 완주, 잔여 longhand 은 family group census 가 커버)되어 신규 family 로 피벗 — block-step(수직 리듬 grid 양자화).
