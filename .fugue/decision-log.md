@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2417 Discovery — tokens 285th round CSS 중첩 카운터 문자열 생성 함수 `counters()` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
+- 결정: tokens area(4-area rotation aesthetic→responsive→states→tokens)에서 "다층 번호를 `counters()` 로 안 만들고 ol 기본/JS 인덱스 → 중첩 카운터 토큰 미사용·다층 번호 비정합·counters() 누락" tokens 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
+- 축 선택: tokens. 후보축 = CSS Lists 3 *복수형* 중첩 카운터 문자열 생성 함수 `counters(name, separator)`(조상~자손 동명 카운터를 구분자로 이어 다층 번호 1.2.3 생성)의 cross-surface 사용 일관.
+- MANDATORY 체크: ① `counters(` grep 0건(design 범위 apps/web/src·globals.css 전수)·doubly-vacuous(선언 0 AND 카운터 메커니즘 전체 비-사용 counter-reset/increment/counter()/content:counter 0). ② family census cycle 401 은 `counter()` *singular* 만 enumerate·*plural* `counters()` 는 미열거(중첩-카운터 구분자 연결은 별개 sub-function). ③ line 294 `counters(` 매치는 [system] Go atomic 엔트리로 CSS 무관.
+- 근거: counters() 선언 0(pure vacuous)·카운터 메커니즘 자체 비-사용(번호는 ol 기본/JS 인덱스)·family 401 은 counter() singular 만 enumerate. counter() singular(401)·counter-set(936)·@counter-style(634)·symbols()(999)와 담당 차원 분리(중첩-카운터 구분자 연결).
+- DESIGN.md 확인: L11 Decoration Minimal·L16-35 Typography·L37-52 Color·L54-65 Spacing — 다층 번호/중첩 카운터/counters() silent(grep 0) → mechanism vacuous.
+- QA: 코드 변경 없음(표면 폐기·anti-patterns tail 1줄 census 추가만). CSS 카운터 메커니즘 자체가 비-사용이라 counters() 적용 대상 0.
+- 차기 tokens 재진입 후보: CSS 값 함수 잔여 carve(예: `mod()`/`rem()`/`round()`(CSS Values 4 step-value 함수)·`abs()`/`sign()`·`hypot()`/`sqrt()`/`pow()`(지수/삼각 외 잔여 수학 함수) 중 dedicated 미census·anti=0 확인 후 진입).
+
 ## 2026-06-30 — [design] cycle 2415 Discovery — states 262nd round 표준 레인지 슬라이더 핸들 의사요소 `::slider-thumb` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
 - 결정: states area(4-area rotation aesthetic→responsive→states→tokens)에서 "일부 슬라이더만 `::slider-thumb` 으로 핸들을 커스텀하고 동종은 브라우저 기본이라 핸들 표시가 갈림·thumb 토큰 불일치·DESIGN.md 가 레인지 슬라이더 핸들을 규정하는지" states 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
 - 축 선택: states. 후보축 = 표준 CSS Forms `<input type=range>` 핸들 의사요소 `::slider-thumb`(드래그 핸들)의 cross-surface 커스텀 일관 — 표준 슬라이더 3-파트(fill 2399·track 2407·thumb 본 cycle) carve 완주.
