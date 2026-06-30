@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2341 responsive 254th round — content-visibility 예약 크기 shorthand `contain-intrinsic-size`(논리 longhand inline(2159)+block(2333)·물리 longhand width/height(2237)를 묶는 단축·family 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `contain-intrinsic-size`(두 축 placeholder 고유 크기 일괄 지정 shorthand)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `contain-intrinsic-size`/`contain-intrinsic`(전형태) 0건. (2) size containment 호스트 전무 — `content-visibility`(auto 포함) 0건·`contain`(전형태) 0건이라 placeholder 크기 일괄 예약할 size-contained 요소 자체 부재. 마스너리 카드는 자연 흐름 레이아웃. (3) DESIGN.md(105줄) content-visibility/contain/intrinsic silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2339(aesthetic) 후 responsive area 재진입. 직전 responsive=cycle 2333 `contain-intrinsic-block-size`. round 253rd→254th. inline-size(2159)/block-size(2333) 논리 longhand·width/height(2237) 물리 longhand 가 모두 dedicated census 됐으나 묶음 shorthand `contain-intrinsic-size` 는 그 census 들의 형제 enumerate(anti=18)뿐 shorthand 를 subject 로 한 dedicated census 없는 신선 축 — shorthand carve 로 contain-intrinsic family 전체 완결.
+- **MANDATORY 체크**: `contain-intrinsic-size`(literal) anti=18 — 전부 inline/block/물리 longhand census 들의 묶음 shorthand 형제 enumerate 부수 언급·shorthand subject dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: content-visibility/contain/intrinsic 전 항목 silent(L67-72 Layout breakpoint 만 규정). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 responsive 재진입 후보**: `overflow-clip-margin`(overflow:clip 클립 여백, overflow:clip 미사용 vacuous), `scroll-snap-align` 변형(스냅 미사용). 차기 area = states(직전 cycle 2335 `::-webkit-meter-optimum-value`) → cycle 2343, round states 252nd→253rd, 후보 `::-webkit-details-marker`(<details> 부재).
+
 ## 2026-06-30 — [design] cycle 2339 aesthetic 276th round — 마스크 보더 마스크 모드 longhand `mask-border-mode`(luminance/alpha 마스크 해석 모드·slice(2307)/width(2315)/outset(2323)/repeat(2331) 에 이은 per-mask-border-longhand carve, source 만 잔여) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `mask-border-mode`(mask-border-source 를 luminance/alpha 마스크로 해석)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `mask-border-mode` 0건(apps/web/src 전수 0). (2) 마스크 메커니즘 전무 — `mask-border`(전 longhand) 0건·상위 `mask`(전체) 0건이라 픽셀 해석할 9-slice 마스크 보더 자체 부재. 테두리는 단색 토큰 보더(border/border-radius). (3) DESIGN.md(105줄) mask-border/마스크 silent(L46 단색 보더·L11 Decoration Minimal). 모집단 0·divergence 0.
 - **축 선택**: cycle 2337(tokens) 후 aesthetic area 재진입. 직전 aesthetic=cycle 2331 `mask-border-repeat`. round 275th→276th. cycle 1643 이 mask-border 속성군 전체를 vacuous census 했고 이후 slice(2307)/width(2315)/outset(2323)/repeat(2331) per-longhand carve 진행 — mode 는 1643 군집 census 의 형제 enumerate(anti=1)뿐 dedicated census 없는 신선 축. mode(2339) 완료 후 source 만 잔여.
