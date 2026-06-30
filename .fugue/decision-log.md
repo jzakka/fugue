@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1894 Discovery — OpenSpec갭: profile 공개프로필 응답 보드/핀 요약 페이로드 계약 (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 새 1주기 시작)에서 profile capability "공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다"(profile/spec.md L33-66) Requirement 의 spec↔handler↔query↔DTO 정합을 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = profile 공개프로필 페이로드 5-Scenario(두 키 항상 포함·빈배열 직렬화·공개보드만 SHALL NOT·상한 bounded·404 short-circuit no-fetch).
+- 확인: creator/handler.go:64 `GetByID` 전수 정합 — (1) 두 키 = toPublicDTO(creator,workCount,boards,pins):126·dto `boards`/`pins` 키. (2) 빈배열 = `make([]BoardSummary,0,…)`:117·`make([]PinSummary,0,…)`:121 non-nil 슬라이스 → `[]` 직렬화. (3) 공개보드만 = ListPublicBoardsByCreatorLimited(boards.sql:33-37 `WHERE creator_id=$1 AND is_public=true`) DB레벨 필터. (4) 상한 = maxPublicProfileBoards=20:36·maxPublicProfileRecentPins=12:42 를 Limit 전달. (5) 404 short-circuit = GetCreator ErrNoRows(:74)→writeError(404) 즉시 return 이 board/pin fetch(:94/:104) **전**에 위치 → 404 시 두 fetch 미발생·두 키 부재.
+- 안착 census: **L331(OpenSpec갭)** = profile 공개프로필 페이로드 계약 5-Scenario 전수(두 키·빈배열·공개보드만·상한·404 no-fetch) 동일 매핑 → 본 probe 와 정확 일치. 그 외 L202(profile 3 Requirement)·L274(pin_count 노출)·L463(비-봇트랙 전 capability 스윕)도 profile 축 포괄. 신선 축 부재.
+- 예외(차기 등록 가능): 신규 코드가 (a) 공개보드 쿼리를 ListBoardsByCreator(is_public 무필터)로 바꿔 비공개 보드를 프로필 응답에 누출하거나·(b) boards/pins 를 nil 슬라이스로 만들어 빈 경우 `null` 직렬화/키 누락하거나·(c) GetCreator 404 분기를 board/pin fetch **뒤로** 옮겨 존재하지 않는 유저에도 불필요 쿼리를 실행하거나·(d) Limit 상한을 제거해 전량 반환하는 격리 site.
+- 영향 범위: profile OpenSpec 정합 census 확인만. 코드 0 변경. 차기 area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 1896. 후보: 업로드 MIME/매직바이트 검증·SSRF outbound 경계·OAuth state 검증·PII 응답 캐시헤더·creator self-scope IDOR 중 미수록 sub-axis.
+
 ## 2026-06-30 — [design] cycle 2409 tokens 284th round — 뷰 프로그레스 타임라인 이름 longhand `view-timeline-name` 표면 폐기 (doubly-vacuous, view-timeline longhand 쌍 carve 완주)
 
 - **결정**: CSS Scroll-driven Animations `view-timeline-name`(뷰 진행 타임라인에 이름을 부여해 자손 `animation-timeline` 이 참조하게 하는 longhand, shorthand `view-timeline` 의 name 성분)을 tokens 후보로 올리지 않고 표면 폐기. 코드 변경 0. 본 census 로 **view-timeline longhand 쌍(name+axis) carve 완주**(axis 2401·name 2409).
