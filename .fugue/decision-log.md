@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2413 Discovery — responsive 263rd round 논리 축 오버플로 longhand 속성 `overflow-inline`/`overflow-block` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
+- 결정: responsive area(4-area rotation aesthetic→responsive→states→tokens)에서 "넘침을 물리 `overflow-x`/`overflow-y` 로만 처리하고 논리 축 longhand `overflow-inline`/`overflow-block` 0 → 논리 축 오버플로 미사용·writing-mode 적응 넘침 부재·논리-축 longhand 누락" responsive 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
+- 축 선택: responsive. 후보축 = `overflow` shorthand 의 flow-relative 축별 longhand 속성(`overflow-inline`=인라인축·`overflow-block`=블록축 넘침 처리)의 cross-surface 사용 일관.
+- MANDATORY 체크: ① `overflow-inline`/`overflow-block` 속성 grep 0건(apps/web/src tsx·globals.css 전수 0·논리-축 넘침 longhand 속성 비-사용). ② 넘침 메커니즘 자체는 물리 축 `overflow-x`(6)/`overflow-y`(2)+모드 `overflow-hidden`(17)으로 충족(mechanism-present-but-logical-vacuous). ③ anti dedicated 0(line 600 `@media (overflow-block: paged)` 는 동명 **미디어 피처** census·cycle 1431/1439·속성이 아닌 device-capability 차원으로 별개).
+- 근거: 논리 축 오버플로 longhand 속성 0건(pure vacuous)·넘침은 물리 축 overflow-x/overflow-y+모드 overflow-hidden 으로 일관 처리·Korean LTR-fixed 라 물리 축으로 충분·논리-속성 메커니즘 비-사용. 오버플로-모드축(`overflow`/`overflow-hidden` 973/1085)·오버플로-미디어축(`@media (overflow-block)` 1431/1439)·클립-여백축(`overflow-clip-margin` 1655)·물리 축 longhand(overflow-x/overflow-y host)와 담당 차원 분리.
+- DESIGN.md 확인: L67-72 Layout 은 masonry/breakpoint(sm500·md800·lg1200)/column-gap 16px 만 규정·overflow/scroll silent·L11 Decoration Minimal·L82-88 Interaction/State hover/transition 만 → overflow 논리/물리 축 모두 silent(mechanism vacuous).
+- QA: 코드 변경 없음(표면 폐기·anti-patterns tail 1줄 census 추가만). 논리 축 오버플로 longhand 미도입은 미명시 enhancement(writing-mode 가변 다국어 표면용)이지 결함 아님(loop rule line 9 미명시 취향).
+- 차기 responsive 재진입 후보: writing-mode 의존 논리 길이/위치 longhand 잔여 carve(예: `inset-block`/`inset-inline` 단일변·`margin-block-start` 등 논리 박스 모델 longhand 중 dedicated 미census 잔여) — anti dedicated 0 확인 후 진입.
+
 ## 2026-06-30 — [system] cycle 1896 Discovery — 보안: 미디어 업로드 스토리지 객체키 경로조작(CWE-22) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안)에서 "업로드 핸들러가 header.Filename(사용자 제어)을 store.Upload 에 넘기므로 S3 객체 키 경로조작(../ 타 객체 덮어쓰기·경로 탈출)·확장자 위조가 가능하다" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = 미디어 업로드 스토리지 객체키 파생(CWE-22 path traversal / 확장자 위조).
