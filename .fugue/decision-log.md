@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2327 states 251st round — 네이티브 `<progress>` 트랙 컨테이너 pseudo-element `::-webkit-progress-bar`/`::-moz-progress-bar`(채움 `::-webkit-progress-value`(cycle 2157)의 트랙 짝·진행 막대 배경 그루브) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-progress-bar`/`::-moz-progress-bar`(진행 막대의 채워지지 않은 트랙 컨테이너)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-progress-bar`/`::-moz-progress-bar` code 0건(apps/web/src 전수 0). (2) 네이티브 `<progress>` 요소 자체 부재 — `<progress` 0건·`progress-value`(채움) 0건이라 트랙 컨테이너 장식 대상 자체 없음. 진행 UI는 div+width% 커스텀 바 가능성만 있고 네이티브 요소 미사용. (3) DESIGN.md(105줄) progress/진행 막대/트랙 silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2325(responsive) 후 states area 재진입. 직전 states=cycle 2319 `::-moz-meter-bar`(미터 트랙). round 250th→251st. cycle 2157이 채움 `::-webkit-progress-value` 를 dedicated census 했으므로 트랙 컨테이너 `::-webkit-progress-bar`/`::-moz-progress-bar` 는 형제 enumeration(2157 census 본문 내 "vs `::-webkit-progress-bar` 트랙")로만 언급된 신선 축 — 채움(2157)+트랙(2327)로 progress UA pseudo 짝 완결.
+- **MANDATORY 체크**: `::-webkit-progress-bar` anti=1·`::-moz-progress-bar` anti=2 — 전부 incidental(2157 progress-value census 형제 enumeration·미터/range-thumb census forward-pointer)·dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: progress/진행 막대/트랙/그루브 전 항목 silent(L82-88 Card/Interaction/State·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 states 재진입 후보**: `::-webkit-meter-even-less-good-value`/`::-webkit-meter-optimum-value`(meter 게이지 값 구간, <meter> 부재 doubly-vacuous), `::-webkit-details-marker`(details 부재). 차기 area = tokens(직전 cycle 2321 `scrollbar-color`) → cycle 2329, round tokens 273rd→274th.
+
 ## 2026-06-30 — [design] cycle 2325 responsive 252nd round — 스크롤 연쇄/바운스 차단 인라인축 logical longhand `overscroll-behavior-inline`(overscroll-behavior-x 의 logical 대응물·overscroll-behavior-block(cycle 2317)의 인라인축 짝·logical pair 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `overscroll-behavior-inline`(인라인축 스크롤 연쇄/바운스 차단)이 표면 간 갈리는지 census. **doubly-vacuous**: (1) `overscroll-behavior-inline` 0건(apps/web/src 전수 0). (2) 스크롤 연쇄 제어 메커니즘 전무 — `overscroll`(상위 overscroll-behavior/-x/-y/-block 포함) 전체 0건이라 인라인축 연쇄 차단 대상 자체 부재. 가로 필터/칩 스트립도 `contain` 미지정. (3) DESIGN.md(105줄) overscroll-behavior/스크롤 연쇄 silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2323(aesthetic) 후 responsive area 재진입. 직전 responsive=cycle 2317 `overscroll-behavior-block`(블록축). round 251st→252nd. block(2317)+inline(2325)로 overscroll-behavior logical-axis pair 완결.
