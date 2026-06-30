@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2369 tokens 279th round — 스크롤 연동 애니메이션 끝 경계 longhand `animation-range-end` 표면 폐기 (doubly-vacuous)
+- 결정: `animation-range-end`(scroll-driven 애니메이션이 타임라인 어느 지점에서 끝날지 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: tokens 영역. animation-range shorthand(cycle 2025)의 end 경계 longhand·animation-range-start(cycle 2361) 형제로 range longhand 쌍 완주.
+- MANDATORY 체크: `animation-range-end` 0건(anti=1 은 cycle 2361 range-start census 형제 enumerate 부수 언급)·`animation-range`(shorthand/start 포함) 전체 0건·`animation-timeline`/`scroll-timeline`/`view-timeline` 전체 0건 doubly-vacuous. 신선 축.
+- 근거: 스크롤 연동 애니메이션 메커니즘 자체 부재(코드 전수 0). 타임라인이 없으면 range-end 효력 없음 → 비정합 모집단 0(pure vacuous).
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition 만)·scroll-driven/animation-range/타임라인 silent·L11 Decoration Minimal·prefers-reduced-motion 존중(globals.css L111).
+- QA: 코드 변경 없음(표면 폐기). grep census 로 animation-range-end/animation-range/animation-timeline 전부 0 확인.
+- 차기 tokens 재진입 후보: scroll-driven 토큰 family carve(`scroll-timeline-name`·`scroll-timeline-axis`·`view-timeline-name`·`timeline-scope` 등). transition longhand `transition-behavior`(anti=29 census 확인 필요).
+
 ## 2026-06-30 — [design] cycle 2367 states 256th round — 스크롤바 트랙-조각 UA 섀도 의사요소 `::-webkit-scrollbar-track-piece` 표면 폐기 (host-present + uniform-hidden)
 - 결정: `::-webkit-scrollbar-track-piece`(WebKit 스크롤바 썸이 안 차지한 트랙 영역 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: states 영역. 스크롤바 섀도 sub-pseudo 패밀리 carve: cycle 2359 thumb(드래그 손잡이)에 이은 트랙-조각 차원(corner/button 형제 잔여).
