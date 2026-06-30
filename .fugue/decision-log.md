@@ -50,6 +50,15 @@
 - DESIGN.md 확인: L11 Decoration Minimal·L67-72 Layout(masonry/breakpoint/column-gap 만 규정)·L82-88 Interaction/State(hover/transition 만) 모두 anchor positioning/적응 재배치 silent → 위반 대상 부재.
 - QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요(렌더 변경 0).
 - 차기 aesthetic 재진입 후보: anchor-positioning family 잔여 `anchor-scope`(미열거 longhand·anti=형제 부수 언급만) 또는 `anchor-size()` 함수 표기.
+## 2026-06-30 — [system] cycle 1866 Discovery — 동시성: RWMutex read-lock(RLock) 으로 공유쓰기 보호(read-lock 오용) NEW baseline
+- 결정: "RLock 구간에서 공유 map/필드를 변형하거나 RLock→Lock 승급 사이 race" 동시성 후보를 올리지 않고 NEW baseline 등록(anti-patterns.md EOF, cycle 1866 baseline).
+- 축 선택: 동시성 영역(직전 1854). 첫 후보(torn atomic snapshot read)는 L98/L361 이 이미 carve → covered. ctx 전파도 cycle 728/760/840 covered. 47개 동시성 baseline 중 미카버 각도로 "RWMutex read-lock vs write-lock *선택* 정확성"을 특정.
+- 근거: RLock 구간 전수 4곳(host_rate_limiter.go:100-102 DCL fast-path·robots_filter.go:151-153 cache fast-path·adapter.go:84-93 Lookup·media_validator_metrics.go:99-105 Snapshot)이 전부 공유 상태 *읽기 전용*(Snapshot 은 로컬 defensive copy 만 씀)이고 모든 공유 *쓰기*는 full Lock 하·lazy-init 은 DCL 정석(RLock 읽기→RUnlock→Lock→재확인→쓰기). RLock 중 공유쓰기 0. FP.
+- 비중첩: L138(Unlock 규율)·L371(lock 정체성 값-복사)·L75(mutex+atomic 부분보호)·L189(host-키 map 무동기화)·L1007(AB-BA) 과 별축 — read-lock 오용 각도.
+- 예외(등록 가능): (a) RLock 하 공유 map[k]=v/append/필드 대입·(b) RLock 후 같은 mutex Lock 중첩 self-deadlock·(c) lock-upgrade 사이 double-check 누락 lost-update·(d) snapshot 이 공유 컬렉션 직접 변형·(e) 쓰기 경로가 Lock 빠뜨린 무보호 쓰기.
+- 차기 area = 봇 (직전 1856) → cycle 1868. 후보: harvester adapter fallback 분기·classifier no_primary_media 판정·frontier enqueue 멱등성·robots Crawl-delay 환산·extractor 미디어 후보 추출·pioneer BFS depth/budget.
+
+## 2026-06-30 — [design] cycle 2369 tokens 279th round — 스크롤 연동 애니메이션 끝 경계 longhand `animation-range-end` 표면 폐기 (doubly-vacuous)
 - 결정: `animation-range-end`(scroll-driven 애니메이션이 타임라인 어느 지점에서 끝날지 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: tokens 영역. animation-range shorthand(cycle 2025)의 end 경계 longhand·animation-range-start(cycle 2361) 형제로 range longhand 쌍 완주.
 - MANDATORY 체크: `animation-range-end` 0건(anti=1 은 cycle 2361 range-start census 형제 enumerate 부수 언급)·`animation-range`(shorthand/start 포함) 전체 0건·`animation-timeline`/`scroll-timeline`/`view-timeline` 전체 0건 doubly-vacuous. 신선 축.
