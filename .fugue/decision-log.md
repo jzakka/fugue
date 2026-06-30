@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2361 tokens 278th round — 스크롤 연동 애니메이션 시작 경계 longhand `animation-range-start` 표면 폐기 (doubly-vacuous)
+- 결정: `animation-range-start`(scroll-driven 애니메이션이 타임라인 어느 지점에서 시작할지 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: tokens 영역. animation-range shorthand(cycle 2025)의 start 경계 longhand carve(animation-range-end 형제). font-variant longhand 는 전부 anti≥24 로 이미 census 확인 후 scroll-driven 애니메이션 토큰으로 전환.
+- MANDATORY 체크: `animation-range-start` 0건·`animation-range`(shorthand/end 포함) 전체 0건·`animation-timeline`/`scroll-timeline`/`view-timeline` 전체 0건 doubly-vacuous. anti=0 신선 축.
+- 근거: 스크롤 연동 애니메이션 메커니즘 자체 부재(코드 전수 0). 타임라인이 없으면 range-start 효력 없음 → 비정합 모집단 0(pure vacuous).
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition 만)·scroll-driven/animation-range/타임라인 silent·L11 Decoration Minimal·prefers-reduced-motion 존중(globals.css L111).
+- QA: 코드 변경 없음(표면 폐기). grep census 로 animation-range-start/animation-range/animation-timeline 전부 0 확인.
+- 차기 tokens 재진입 후보: `animation-range-end`(start 형제·anti=0). scroll-driven 애니메이션 토큰 family carve(animation-timeline/scroll-timeline-name 등).
+
 ## 2026-06-30 — [design] cycle 2359 states 255th round — 스크롤바 썸 UA 섀도 의사요소 `::-webkit-scrollbar-thumb` 표면 폐기 (host-present + uniform-hidden)
 - 결정: `::-webkit-scrollbar-thumb`(WebKit 커스텀 스크롤바 드래그 썸 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: states 영역. spin/search/autofill UA 의사요소가 joint group census(2141/2149)로 소진 확인 후, 코드에 실제 host(`::-webkit-scrollbar`)가 있는 스크롤바 섀도 sub-pseudo 패밀리(thumb/track-piece/corner/button)로 전환. thumb=드래그 손잡이 차원.
