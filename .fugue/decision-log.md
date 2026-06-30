@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1870 Discovery — OpenSpec갭: harvester 미디어검증기 bootstrap wiring 이 기존 census 로 covered (anti-patterns 변경 없음)
+- 결정: 미아카이브 change `fix-harvester-wire-media-validator` 의 ADDED Requirement(부트스트랩이 미디어검증기 wire + 외부 관찰 가능) 구현 정합을 probe 했으나 L1037 이 이미 carve → covered-by-census. NEW baseline 등록 안 함(decision-log only).
+- probe: ADDED Requirement 2 Scenario(① production 부트스트랩이 wiring 수행·② 외부에서 wiring 상태 관찰) 구현 확인 → buildHarvesterConsumer(harvester_consumer_builder.go:29-31)가 NewHarvesterConsumer(...).WithMediaValidator(NewDefaultMediaValidator()) 호출·main.go:263 이 유일 production 호출처(SHALL NOT 충족)·HasMediaValidator() accessor(harvester_consumer.go:207)·회귀 테스트(harvester_consumer_builder_test.go) 존재 → 4 미디어검증 SHALL Requirement production enforce. FP(proposal 의 Why 가 기술한 갭은 이미 닫힘).
+- covered 근거: **L1037**(봇 워커 부트스트랩이 스펙-필수 capability wire — 미아카이브 fix-proposal 3건)이 point②에서 "harvester MediaValidator wiring 닫힘: buildHarvesterConsumer.WithMediaValidator + HasMediaValidator + 회귀테스트" 를 명시 carve. **L734**(미아카이브 change delta 3건)가 그룹으로 carve. 나머지 2 change 도 1858(adapter-fallback)·1834(host-rate-limiter) carve.
+- 차기 area = 보안 (직전 1860) → cycle 1872. 후보: outbound SSRF(크롤러가 user/크롤 입력 URL 로 내부망 fetch)·인증 토큰 로깅 노출·SQL injection(sqlc 외 raw)·CORS/CSRF·업로드 파일 MIME/확장자 검증·경로 traversal.
+
 ## 2026-06-30 — [design] cycle 2385 tokens 281st round — 스크롤 프로그레스 타임라인 축 longhand `scroll-timeline-axis` 표면 폐기 (doubly-vacuous)
 
 - 결정: `apps/web/` 의 scroll-driven scroll-progress 타임라인 longhand `scroll-timeline-axis` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
