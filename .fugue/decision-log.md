@@ -25,6 +25,15 @@
 - 예외(실결함 조건): `if err{writeError} return 누락`→성공바디 이중쓰기 · 미들웨어 http.Error 후 return 없이 next.ServeHTTP · 에러 후 추가 w.Write/WriteHeader 중복 커밋.
 - track: `system`. anti-patterns.md 1줄 추가, 코드 변경 없음.
 - 차기 area = 동시성 (6-area rotation 에러처리→동시성) → cycle 1878. 후보: goroutine 누수·channel close race·atomic vs mutex 혼용·map 동시쓰기·sync.Once 오용·WaitGroup Add/Done 불균형.
+## 2026-06-30 — [design] cycle 2393 tokens 282nd round — 스크롤 프로그레스 타임라인 이름 longhand `scroll-timeline-name` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 scroll-driven scroll-progress 타임라인 longhand `scroll-timeline-name` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: tokens 영역 282번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-timeline longhand carve(axis 2385 후속)의 name 으로 쌍 완주.
+- MANDATORY 체크: 코드 timeline family(animation-timeline/scroll-timeline/view-timeline/timeline-scope) 0건. anti `scroll-timeline-name` 0건(anti=2 는 2385 scroll-timeline-axis census 형제 enumerate 부수 언급·subj 0). markers=0.
+- 근거: doubly-vacuous — 스크롤 주도 애니메이션·스크롤 프로그레스 타임라인 자체가 부재라 타임라인을 명명해 참조시킬 대상이 없음(타임라인 없으면 scroll-timeline-name 효력 없음).
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition)·L11 Decoration Minimal 모두 scroll-driven/scroll-timeline silent. prefers-reduced-motion 존중(globals.css L111) → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 tokens 재진입 후보: view-timeline longhand `view-timeline-axis`(anti=3)/`view-timeline-name`(anti=2) 또는 `timeline-scope`(타임라인 이름 스코프 상위).
 
 ## 2026-06-30 — [system] cycle 1874 Discovery — 정합성: denormalized 집계 카운터 drift (clean baseline)
 - 결정: 저장형 denormalized 집계 카운터(별 테이블 row 수 미러)가 source-of-truth와 drift하는 축을 조사 → **clean baseline 등록**(모집단 0/vacuous, anti-patterns.md 말미 `(cycle 1874 baseline)`).
