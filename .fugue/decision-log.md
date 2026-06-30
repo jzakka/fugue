@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1874 Discovery — 정합성: denormalized 집계 카운터 drift (clean baseline)
+- 결정: 저장형 denormalized 집계 카운터(별 테이블 row 수 미러)가 source-of-truth와 drift하는 축을 조사 → **clean baseline 등록**(모집단 0/vacuous, anti-patterns.md 말미 `(cycle 1874 baseline)`).
+- 신선성: 정합성 baseline 전수(L187~L1154) 중 "저장 집계 카운터 drift" 축은 부재. L274=pin_count derived(응답 필드 출처), L391/L140=in-memory scheduler error_count, L702/L1128=interactions dedup 으로 모두 별축.
+- probe: (1) per-엔티티 카운트 전부 read-time `COUNT(*)`: tags.sql:25 `COUNT(*) AS pin_count`, interactions.sql:6/19 freq, search.sql:116 count — 저장 아님. like/save/view/follower 저장 카운터 grep 0건. (2) 유일했던 저장 카운터 `works.pin_count`(000009:14 추가)는 000012:15-18 `DROP COLUMN IF EXISTS pin_count`로 제거. (3) 유일 저장 정수 카운터 = frontier `fetch_error_count`/`harvest_error_count`(000026)는 authoritative retry 카운터(미러 아님): 증가 `LEAST(+1,5)` cap(frontier.sql:47/69), 성공 reset 0(:189/206/117/136), 게이팅 `< 5`(:148/159) 일관.
+- 검증: `_count`/`like_count`/`view_count`/`follower` 마이그레이션 grep · `COUNT(` 쿼리 grep · frontier.sql:34-214 READ · 000009/000012 pin_count add→drop 확인.
+- 예외(실결함 조건): 저장형 denorm 집계 컬럼 신규 추가 + INSERT/DELETE 증감 트랜잭션 미결합/누락/이중증가/race · count underflow(음수)/overflow · stored vs computed 혼용으로 엔드포인트별 수치 불일치.
+- track: `system`. anti-patterns.md 1줄 추가(clean baseline), 코드 변경 없음.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1876. 후보: error wrapping(%w) 체인 단절·sentinel error 비교·defer Close 에러 무시·context 취소 전파·partial write 롤백.
+
 ## 2026-06-30 — [system] cycle 1872 Discovery — 보안: CRLF/HTTP 헤더 인젝션 (NEW baseline)
 - 결정: 사용자 입력이 응답 헤더/리다이렉트 Location/Set-Cookie 값으로 흘러 CRLF 인젝션(CWE-113 response splitting)을 일으키는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1872 baseline)`).
 - 신선성: 보안 baseline 전수(L175~L1148) 중 CRLF/헤더 분리 축은 부재. L236=open-redirect(목적지 도메인 allowlist), L784=보안응답헤더 존재, L429=로그 CWE-532/117, L465=쿠키 보안속성 으로 모두 별축.
