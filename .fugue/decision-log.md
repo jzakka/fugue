@@ -26,6 +26,12 @@
 - **DESIGN.md 확인**: L67-72 Layout masonry/breakpoint/column-gap 만·scroll-snap/스냅 마진 silent·L11 Decoration Minimal·L82-88 hover/transition 만. AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
 - **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
 - **차기 responsive 재진입 후보**: scroll-margin 4-edge 논리변 carve 완주. 다음 responsive carve 후보 = `overscroll-behavior-inline`/`-block`(스크롤 체이닝 논리축) 또는 `scroll-snap-stop`/`scroll-snap-align` 의 개별 차원 freshness 재검.
+## 2026-06-30 — [system] cycle 1888 Discovery — 에러처리: 봇 컨슈머 graceful-shutdown 취소 vs fetch 실패 에러회계 (NEW baseline, anti-patterns 등록)
+- 결정: 봇 컨슈머(pioneer/harvester)가 graceful-shutdown context.Canceled 를 fetch 실패와 구분하지 않고 ErrorNetwork 로 분류해 frontier error_count 를 오염시키는지 조사 → bounded+recoverable+most-lenient-bucket 으로 **refuted FP-pattern**. anti-patterns.md L1179(cycle 1888) NEW baseline 등록.
+- 신선성: L653(per-URL 실패 격리+dual-call 기록)·L188(per-item recover 부재)·L266(ctx 전파)·L433(cancel defer 누수)와 비중첩 — 본 축은 **취소 오분류의 에러 회계(frontier 오염 여부)**.
+- refute 증거: (1) classifyFetchError(pioneer_consumer.go:305-327)가 취소를 ErrorNetwork(default)로 분류→frontier.sql:47 `LEAST(count+1,5)` **incremental**(4xx 의 :34 `=5` instant-dead 와 대조). (2) Run 루프 최상단 `ctx.Err()` 가드(pioneer:157·harvester:274)+dequeue select ctx.Done(:171/291)로 취소 후 신규 dequeue 차단→**≤1 URL/worker/shutdown** bounded. (3) 성공 시 frontier.sql:189/117 `error_count=0` reset→dead(=5) 도달엔 동일 URL 5회 연속 shutdown-interrupt 필요(실무 불가). (4) harvester 대칭(:336/340/524 동형). (5) 취소=transient blip 동일처리=fail-safe.
+- 예외(실결함 등록 조건): 신규 코드가 (a) 취소를 instant-dead(`=5`)/permanent 로 분류·(b) Run top-of-loop ctx.Err() 가드 제거로 취소 후 다수 URL 오분류·(c) ErrorNetwork 를 reset 없는 단조증가 dead 로 변경·(d) 취소를 RecordHarvestError(permanent)로 기록해 reset 무력화 시.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성) → cycle 1890. 후보: WaitGroup Add/Done 짝·channel close 경합·context 취소 race·atomic vs mutex 혼용·map concurrent access.
 
 ## 2026-06-30 — [system] cycle 1886 Discovery — 정합성: 페이지네이션/COUNT 술어·interactions.type 생산소비 정합 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area 신선 후보 3축 probe → 전부 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
