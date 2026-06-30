@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1906 Discovery — OpenSpec갭: scheduler exponential backoff 공식 Requirement (30s*2^(n-1)·uniform ±10% jitter·단일 UPDATE·count cap 5) (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 3주기째 시작)에서 "scheduler 가 http_5xx/network/timeout 실패에 exponential backoff 공식을 미준수(delay 공식 어긋남·jitter 범위/부호 오류·error_count 5 초과·찢어진 관측·int64 overflow)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = scheduler/spec.md:378-440 "http_5xx/network/timeout 에러는 exponential backoff 공식을 적용한다" + :417-470 "재시도 한도 5 dead claim 제외" Requirement.
+- 확인: (1) **exponential 공식 충실**: backoff.go computeBackoff `backoffBase(30s) * 1<<(n-1)`(n 1..5 clamp→최대 480s, int64 ns overflow 불가)·defaultJitterer `(rand.Float64()*2-1)*0.10*delay` uniform[-0.1*delay,+0.1*delay](mutex 보호)·recordError 단일 T_report `now := s.clock.Now()` 로 5 candidate 선계산→`UpdateFetchErrorBackoff` 단일 UPDATE 로 `fetch_error_count = LEAST(+1, 5)`·`next_fetch_at = CASE LEAST WHEN 1..4 ... ELSE next5`·`last_updated_at=now()` → next=T_report+delay+jitter·count≤5 원자 반영. (2) **dead claim 제외**: claim partial index `fetch_error_count < 5`·`harvested_at IS NULL AND harvest_error_count < 5` 가 count=5 행 자동 제외·별도 is_dead 컬럼 부재·cleanup 미수행 모두 정합.
+- 안착 census: **L319(OpenSpec갭)** = scheduler 실패보고 backoff/dead-letter 계약(spec L353-470) 3계층(spec↔frontier.sql↔url_scheduler.go) 전수 정합 — http_4xx 즉시 dead·non-4xx exponential 30s*2^(n-1)·uniform jitter·count cap·partial index dead 제외 — 본 probe 의 exponential 공식+dead claim 제외 두 Requirement 와 정확히 동일 매핑. **L185**(backoff.go computeBackoff·url_scheduler.go recordError 재시도 계산)·**L140**(RecordFetchError/RecordHarvestError errorKind 분류 dispatch)·**L391**(성공측 상태전이/lease marker)·**L977**(frontier-table 정의 Requirement 군)·**L1097**(robots Crawl-delay→rate)·**L1120**(token bucket disable)·**L1012**(token bucket Allow/SetHostRate)도 인접 포괄. 비-봇트랙 전 capability 는 **L463** 메타-baseline(auth·board·feed·interaction·pin·profile·ratelimit Requirement 전수)·interaction piggyback 은 **L216** 으로 포괄 → scheduler 전 Requirement 사실상 포화. 신선 축 부재.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 1908. 후보: 출력 인코딩/XSS·SSRF outbound fetch·경로 traversal·인증 게이팅·rate-limit 우회·시크릿 로깅 중 미수록 sub-axis.
+
 ## 2026-06-30 — [system] cycle 1904 Discovery — 봇: 문서 내 미디어 후보 dedup (절대화 후 seen-맵 중복 제거·og:image vs <img> 중복) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 2주기째 완주, 동시성→봇)에서 "단일 PinDocument 가 같은 미디어 URL 을 MediaCandidates 에 중복 적재(og:image 가 첫 <img> 와 동일 URL·상대형/절대형 동일 리소스 미합산)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = extractor.go buildMediaCandidates 의 문서 내(intra-document) 미디어 후보 중복 제거.
