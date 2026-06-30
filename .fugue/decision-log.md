@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1878 Discovery — 동시성: sync.Once 오용·핸들러 fire-and-forget goroutine (covered-by-census, anti-patterns 변경 없음)
+- 결정: sync.Once lazy-init 오용·sync.Map·핸들러에서 요청 context를 물려받는 fire-and-forget goroutine 축을 조사 → 전부 zero-population 또는 기존 census로 covered. **anti-patterns 변경 없음**(decision-log만).
+- probe: (1) `sync.Once` grep 0건·`sync.Map` grep 0건 → Once.Do 에러유실/재시도불가·concurrent-map 원시동기화 모집단 0(공유상태는 RWMutex=L227/L371/L1161·atomic=L361·채널=L330 으로만 동기화). (2) `go func`/goroutine spawn은 internal 전체에 단 2곳: `playwright_fetcher.go:114`(ctx-cancel watcher, `defer close(done)`로 바운드·누수 없음)·`goja_executor.go:47`(timeout Interrupt helper, `timeoutCtx.Done()`+`defer cancel()`로 바운드) — 둘 다 **L183(타임아웃/Interrupt 보조 goroutine 3곳·goja_ 명시)** 이 카브. (3) 핸들러(`internal/interaction/handler.go` 등)에 `go func` 0건 → best-effort Record는 동기 호출이라 요청 context 조기취소로 background work가 죽는 표면 부재(L201 요청핸들러 공유상태·L246 워커 context blocking IO 와도 별개로 애초 spawn 없음).
+- 검증: `sync.Once`/`sync.Map` grep(0) · `go func` grep(2곳) · playwright_fetcher.go:108-120 READ(done 바운드) · goja_executor.go:40-60 READ(timeoutCtx 바운드) · interaction handler go func grep(0).
+- track: `system`. covered-by-census(신규 결함클래스 미성립·기존 L183/L361/L227 카브). 코드·anti-patterns 변경 없음.
+- 차기 area = 봇 (6-area rotation 동시성→봇) → cycle 1880. 후보: 크롤 graph 사이클/중복 노드·harvester script 디스패치·미디어 후보 선정·snapshot 저장 키 정규화·classifier 분류 판정.
+
 ## 2026-06-30 — [system] cycle 1876 Discovery — 에러처리: 에러 응답 후 return 누락 (NEW baseline)
 - 결정: HTTP 핸들러/미들웨어가 에러 응답을 쓴 뒤 `return`을 빠뜨려 성공 본문 fallthrough·이중 WriteHeader·에러-then-next를 내는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1876 baseline)`).
 - 신선성: 에러처리 baseline 전수 중 "에러 응답 후 흐름제어(return 누락)" 축은 부재. L212=에러 본문 내부상세 노출, L360=JSON Encode 출력에러, L276=panic recover, L739=SQLSTATE 매핑 으로 모두 별축.
