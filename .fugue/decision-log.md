@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2397 responsive 261st round — 스크롤 스냅 마진 인라인-시작 longhand `scroll-margin-inline-start` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-margin-inline-start` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: responsive 영역 261번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-margin 논리변 4-edge carve(block-start 2381·block-end 2389 후속)의 inline-start.
+- MANDATORY 체크: 코드 scroll-margin family 0건·scroll-snap family 0건. anti `scroll-margin-inline-start` 0건(anti=1 은 scroll-margin-inline shorthand 설명의 start/end 묶음 enumerate 부수 언급·subj 0). markers=0.
+- 근거: doubly-vacuous — 스크롤 스냅 컨테이너 자체가 부재라(masonry 일반 스크롤) 스냅 자식 정렬 마진을 적용할 표면이 구조적으로 없음(scroll-snap 없으면 scroll-margin 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L11 Minimal·L82-88 Interaction/State 모두 scroll-snap/스냅 마진 silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 responsive 재진입 후보: scroll-margin 4-edge 마지막 `scroll-margin-inline-end`(anti=0·신선)으로 carve 완주.
+
 ## 2026-06-30 — [system] cycle 1878 Discovery — 동시성: sync.Once 오용·핸들러 fire-and-forget goroutine (covered-by-census, anti-patterns 변경 없음)
 - 결정: sync.Once lazy-init 오용·sync.Map·핸들러에서 요청 context를 물려받는 fire-and-forget goroutine 축을 조사 → 전부 zero-population 또는 기존 census로 covered. **anti-patterns 변경 없음**(decision-log만).
 - probe: (1) `sync.Once` grep 0건·`sync.Map` grep 0건 → Once.Do 에러유실/재시도불가·concurrent-map 원시동기화 모집단 0(공유상태는 RWMutex=L227/L371/L1161·atomic=L361·채널=L330 으로만 동기화). (2) `go func`/goroutine spawn은 internal 전체에 단 2곳: `playwright_fetcher.go:114`(ctx-cancel watcher, `defer close(done)`로 바운드·누수 없음)·`goja_executor.go:47`(timeout Interrupt helper, `timeoutCtx.Done()`+`defer cancel()`로 바운드) — 둘 다 **L183(타임아웃/Interrupt 보조 goroutine 3곳·goja_ 명시)** 이 카브. (3) 핸들러(`internal/interaction/handler.go` 등)에 `go func` 0건 → best-effort Record는 동기 호출이라 요청 context 조기취소로 background work가 죽는 표면 부재(L201 요청핸들러 공유상태·L246 워커 context blocking IO 와도 별개로 애초 spawn 없음).
