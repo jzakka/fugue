@@ -50,6 +50,16 @@
 - DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L16-35 Typography(font-size 스케일/weight)·L11 Minimal 모두 수직 리듬 grid/block-step silent → 위반 대상 부재.
 - QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
 - 차기 aesthetic 재진입 후보: block-step family 잔여 `block-step-insert`/`block-step-align`/`block-step-round`(anti=0·신선) 또는 offset-position(line 1045 별축 확인 후).
+## 2026-06-30 — [system] cycle 1868 Discovery — 봇: 다중 하위표면 전수가 기존 census 로 covered (anti-patterns 변경 없음)
+- 결정: 봇 영역(직전 1856)에서 4개 하위표면을 probe 했으나 전부 기존 baseline 이 carve → covered-by-census. NEW baseline 등록하지 않음(decision-log only).
+- probe①: image_picker.go PickPrimaryImage 4단계 우선순위(og:image→twitter→article img→JSON-LD)·validity·tracking-pixel → **cycle 828 이 carve**.
+- probe②: trie_merge.go mergeOnePrefix 엣지-재연결(self-loop/dedup/ON CONFLICT) → **L154(764) carve**, 대표선택+URL템플릿+멱등 → **cycle 1748 carve**, 비-tx 4-write 그래프머지 → **L731 carve**.
+- probe③: snapshot_first_fetch.go classifyFetchFailure errorKind 4종 precedence(ctx→net.Timeout→4xx→5xx→else network) + fallback orchestration → **L344 가 :133-157 라인까지 명시 carve**.
+- probe④: link_stats.go ComputeLinkStats 링크/단어 카운팅(script/style 제외·a 태그·whitespace 토큰) → **L364 가 "내부 계산 정확성 guard" 로 carve**.
+- 판정 근거: 각 파일 READ + anti-patterns grep(ComputeLinkStats/og:image/classifyFetchFailure/trie_merge) 교차. 봇 census 가 고도 포화(이미지·트라이머지·snapshot-first·classifier·링크통계·media_candidates·robots·node-stats·frontier·backoff·column-cap·extractor·UA 전부 carve).
+- 차기 area = OpenSpec갭 (직전 1858) → cycle 1870. 후보: 미아카이브 change 의 MODIFIED Requirement 정합·spec SHALL/SHALL NOT 경계·scheduler/harvester/bot/auth capability 의 미구현 Scenario·spec 테이블정의 컬럼리스트 정합.
+
+## 2026-06-30 — [design] cycle 2377 tokens 280th round — 뷰 프로그레스 타임라인 inset longhand `view-timeline-inset` 표면 폐기 (doubly-vacuous)
 
 - 결정: `apps/web/` 의 scroll-driven view-progress 타임라인 longhand `view-timeline-inset` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: tokens 영역 280번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-driven 애니메이션 토큰 carve(animation-range-start 2361·end 2369 후속)의 view-timeline inset longhand.
