@@ -26,6 +26,14 @@
 - **DESIGN.md 확인**: L11 "Decoration level: Minimal"·L82-88 Card/Interaction/State 는 hover/transition 만 SHALL, 슬라이더 트랙/레일/채움/thumb 색·높이 미SHALL(slider/range/track grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
 - **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
 - **차기 states 재진입 후보**: 표준 슬라이더 의사요소 마지막 형제 `::slider-thumb`(드래그 핸들 표준-네임·anti=0 신선, 벤더 `::-webkit/-moz-range-thumb` 와 별개)로 slider 표준-네임 3-파트(fill/track/thumb) carve 완주.
+## 2026-06-30 — [system] cycle 1890 Discovery — 동시성: atomic check-then-act·metrics 맵 race·핸들러 goroutine (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area 신선 후보 다축 probe → 전부 기존 census/vacuous 안착. **anti-patterns 변경 없음**(decision-log만).
+- probe1(atomic check-then-act 복합연산 race): 전 atomic.Uint64 사용처가 독립 단일 Add/Load/Store(harvester_consumer.go:338-444·media_validator_metrics.go:68-90·snapshot/metrics.go:42-79)·`if Load()<N { Add(1) }` 류 CAS-필요 복합연산 0건 → vacuous, **L361 커버**.
+- probe2(MediaValidationMetrics perReason 맵 concurrent 접근): rejected 맵+totalRej 가 `mu sync.RWMutex` 로 완전 보호(write RecordRejectionN:51-57 Lock·read Snapshot:99-105 RLock·Reset:85-88 Lock)·concurrent-map-write 불가 → **L361 (5)항 명시 카브**(map RWMutex 도메인 atomic 도메인과 독립 일관).
+- probe3(mixed mutex+atomic snapshot tearing): Snapshot 이 atomic 을 락 밖 Load(:106)·Reset 이 atomic 을 락 밖 Store(:89-90)라 cross-field 토른 가능하나 비계약 observability 메트릭(tasks.md §5 "운영 가이드")의 acknowledged tearing → **L361 by-design 카브**.
+- probe4(핸들러 goroutine append race): feed/pin/boards/search/creator/interaction 핸들러 `go func` 0건(전부 순차 쿼리), production goroutine 3곳(playwright_fetcher:114·goja_executor:47·main:231)은 L183/L460/L330 커버 → vacuous.
+- 결론: 동시성 area 30+ baseline 포화. 후보 전부 covered/vacuous → covered-by-census.
+- 차기 area = 봇 (6-area rotation 동시성→봇) → cycle 1892. 후보: 추출기 미디어후보 dedup·robots fail-open·snapshot 키 파생·필터체인 순서·하베스터 어댑터 폴백.
 
 ## 2026-06-30 — [design] cycle 2405 responsive 262nd round — 스크롤 스냅 마진 인라인-끝 longhand `scroll-margin-inline-end` 표면 폐기 (doubly-vacuous, scroll-margin 4-edge 논리변 carve 완주)
 
