@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2349 responsive 255th round — 스크롤 패딩 블록-시작 단일변 longhand `scroll-padding-block-start` 표면 폐기 (doubly-vacuous)
+- 결정: `scroll-padding-block-start`(스냅포트 블록 방향 시작 가장자리 한 변 안쪽 오프셋 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: responsive 영역. cycle 2301 scroll-padding-block·2309 scroll-padding-inline(2값 logical shorthand)에 이은 per-scroll-padding-edge-longhand carve. block-start 단일 가장자리 longhand(block-end/inline-start/inline-end 형제).
+- MANDATORY 체크: `scroll-padding-block-start` 0건·`scroll-padding`(block/inline/단일변 포함) 전체 0건·`scroll-snap`/`scroll-margin`/`scroll-behavior` 전체 0건 doubly-vacuous. anti=0 신선 축.
+- 근거: 스크롤 스냅 메커니즘 자체 부재(코드·CSS 전수 0). 스냅 컨테이너가 없으면 scroll-padding 효력 없음 → "일부 표면만 블록-시작 패딩·동종은 안 줘 스냅 오프셋 갈림" 모집단 0(pure vacuous).
+- DESIGN.md 확인: L67-72 masonry/breakpoint 레이아웃·L11 Decoration Minimal. scroll-snap/scroll-padding silent → 스냅포트 오프셋 정책 미규정.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 scroll-padding-block-start/scroll-padding/scroll-snap 전부 0 확인.
+- 차기 responsive 재진입 후보: scroll-padding 단일변 carve 잔여(`scroll-padding-block-end`·`scroll-padding-inline-start`·`scroll-padding-inline-end`). 형제 family `scroll-margin-*` 단일변 longhand carve 도 후보.
+
 ## 2026-06-30 — [design] cycle 2347 aesthetic 277th round — 마스크 보더 소스 이미지 longhand `mask-border-source` 표면 폐기 (doubly-vacuous)
 - 결정: `mask-border-source`(보더 박스 가장자리 9-slice 마스크로 입힐 원본 이미지/그라디언트 소스 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: aesthetic 영역. cycle 2307 slice·2315 width·2323 outset·2331 repeat·2339 mode 에 이은 per-mask-border-longhand carve 의 마지막 longhand(source 로 family 완주). mask-border-source 는 slice/width/outset/repeat/mode 형제가 가리키는 원본 이미지.
