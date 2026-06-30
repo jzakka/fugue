@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2347 aesthetic 277th round — 마스크 보더 소스 이미지 longhand `mask-border-source` 표면 폐기 (doubly-vacuous)
+- 결정: `mask-border-source`(보더 박스 가장자리 9-slice 마스크로 입힐 원본 이미지/그라디언트 소스 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: aesthetic 영역. cycle 2307 slice·2315 width·2323 outset·2331 repeat·2339 mode 에 이은 per-mask-border-longhand carve 의 마지막 longhand(source 로 family 완주). mask-border-source 는 slice/width/outset/repeat/mode 형제가 가리키는 원본 이미지.
+- MANDATORY 체크: `mask-border-source` 0건·`mask-border`(slice/width/outset/repeat/mode 포함) 전체 0건·`mask`(상위 포함) 전체 0건 doubly-vacuous. anti=4 는 cycle 1643 mask-border 속성군 census 의 longhand enumerate 부수 언급·2307 slice census 본문·2339 mode census 본문 언급으로 모두 incidental, dedicated census 0.
+- 근거: 마스크 메커니즘 자체 부재(코드·CSS 전수 0). 9-slice 마스크에 입힐 소스 이미지를 지정하는 표면이 0건이라 "일부 표면만 source 지정·동종은 안 줘 보더 마스크 갈림" 모집단 0(pure vacuous).
+- DESIGN.md 확인: L46 단색 보더(#2A2A2A/#E0E0E0)·L11 Decoration Minimal. mask-border/마스크 silent → 보더 마스크 소스 정책 미규정.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 mask-border-source/mask-border/mask 전부 0 확인.
+- 차기 aesthetic 재진입 후보: mask-border family longhand carve 완주(source 가 마지막). 대칭 family `border-image-source`(border-image 9-slice 장식 이미지 소스 longhand·border-image-slice/width/outset/repeat 형제) 로 carve 전환 후보.
+
 ## 2026-06-30 — [design] cycle 2345 tokens 276th round — 텍스트 입력 캐럿 깜박임 토큰 `caret-animation`(캐럿 모양 caret-shape(1155)·캐럿 색 caret-color(307)와 별개 깜박임 거동 차원·캐럿 외관 패밀리 3차원 완결) 표면 폐기(host-present + UA-default uniform) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `caret-animation`(캐럿 깜박임 auto/manual)이 표면 간 갈리는지 census. **host-present + UA-default uniform**: (1) `caret-animation` 0건(apps/web/src 0·globals 0). (2) 편집 필드(input 11 + textarea 1 = 12)가 존재하나 전부 caret-animation 미선언으로 UA 기본 깜박임에 균일 위임(coherent absence)·contenteditable 0건. (3) DESIGN.md(105줄) caret/깜박임/blink silent(L11 Minimal). 설정 모집단 0·divergence 0.
 - **축 선택**: cycle 2343(states) 후 tokens area 재진입. 직전 tokens=cycle 2337 `-webkit-text-stroke-width`. round 275th→276th. 캐럿 외관 패밀리에서 색 caret-color 가 cycle 307·모양 caret-shape 가 cycle 1155 에서 census 됐으나 깜박임 거동 `caret-animation` 은 1155 caret-shape census 가 묶어 언급한 부수(anti=11)뿐 subject dedicated census 없는 신선 축 — 색(307)/모양(1155)/깜박임(2345)로 캐럿 외관 3차원 완결.
