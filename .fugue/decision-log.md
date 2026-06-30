@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1876 Discovery — 에러처리: 에러 응답 후 return 누락 (NEW baseline)
+- 결정: HTTP 핸들러/미들웨어가 에러 응답을 쓴 뒤 `return`을 빠뜨려 성공 본문 fallthrough·이중 WriteHeader·에러-then-next를 내는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1876 baseline)`).
+- 신선성: 에러처리 baseline 전수 중 "에러 응답 후 흐름제어(return 누락)" 축은 부재. L212=에러 본문 내부상세 노출, L360=JSON Encode 출력에러, L276=panic recover, L739=SQLSTATE 매핑 으로 모두 별축.
+- probe: (1) 핸들러 `writeError`/`http.Error` 호출 150곳을 「호출 다음 비공백·비주석 라인이 return 인지」 awk 스캔 → 위반 0건(func 정의 제외). (2) 미들웨어: JWTMiddleware http.Error 3분기(middleware.go:36/46/51) 전부 직후 return, next.ServeHTTP(:56) 미도달. ratelimit 429(:104-106) return, fail-open `next.ServeHTTP; return`(:99-100) — 에러-then-next 부재. (3) writeError = WriteHeader 1회 + Encode 후 호출부 return → superfluous WriteHeader 경로 구조적 부재.
+- 검증: `writeError`/`http.Error` grep(150) · call→다음라인 return awk 스캔(위반 0) · middleware.go:31-58 READ · ratelimit.go:95-110 READ.
+- 예외(실결함 조건): `if err{writeError} return 누락`→성공바디 이중쓰기 · 미들웨어 http.Error 후 return 없이 next.ServeHTTP · 에러 후 추가 w.Write/WriteHeader 중복 커밋.
+- track: `system`. anti-patterns.md 1줄 추가, 코드 변경 없음.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성) → cycle 1878. 후보: goroutine 누수·channel close race·atomic vs mutex 혼용·map 동시쓰기·sync.Once 오용·WaitGroup Add/Done 불균형.
+
 ## 2026-06-30 — [system] cycle 1874 Discovery — 정합성: denormalized 집계 카운터 drift (clean baseline)
 - 결정: 저장형 denormalized 집계 카운터(별 테이블 row 수 미러)가 source-of-truth와 drift하는 축을 조사 → **clean baseline 등록**(모집단 0/vacuous, anti-patterns.md 말미 `(cycle 1874 baseline)`).
 - 신선성: 정합성 baseline 전수(L187~L1154) 중 "저장 집계 카운터 drift" 축은 부재. L274=pin_count derived(응답 필드 출처), L391/L140=in-memory scheduler error_count, L702/L1128=interactions dedup 으로 모두 별축.
