@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1896 Discovery — 보안: 미디어 업로드 스토리지 객체키 경로조작(CWE-22) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안)에서 "업로드 핸들러가 header.Filename(사용자 제어)을 store.Upload 에 넘기므로 S3 객체 키 경로조작(../ 타 객체 덮어쓰기·경로 탈출)·확장자 위조가 가능하다" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = 미디어 업로드 스토리지 객체키 파생(CWE-22 path traversal / 확장자 위조).
+- 확인: pin/handler.go:287/:333 `h.store.Upload(ctx, header.Filename, …)` 이 사용자 filename 을 넘기나, storage.go:178-180 가 S3 키를 `<mt>/<uuid.New()><ext>` 로 구성 — uuid 는 시스템 랜덤·ext 는 `extensionForMIME(detected MIME)`(allowlist canonical) 파생이고 **`filename` 파라미터는 키 구성에 전혀 사용 안 됨**(unused param). 추가로 declared↔sniffed MIME 불일치 거부(:153-156)·allowedMIME allowlist 미포함 거부(:168-170)·size cap(:173-176). → traversal/확장자 위조 구조적 불가.
+- 안착 census: **L47(cycle 668)** = 공격자 제어 입력(크롤 URL·업로드 filename)→object storage 키/로컬 FS 경로 path-traversal/LFI 종합 baseline, "(2) media Upload 키(`<const mediatype>/<uuid>.<고정 switch ext>`)는 `filename` 파라미터를 키 구성에 아예 쓰지 않으며" 로 본 축 명시 포함. **L192**(업로드 경로 filename ffmpeg 명령주입 포함)·**L156**(클라 Content-Type 맹신) 도 인접 포괄. 신선 축 부재.
+- 예외(차기 등록 가능): 신규 코드가 (a) S3 키 구성을 uuid 대신 `header.Filename`/URL segment 를 sanitize 없이 직접 연결하도록 바꿔 `../` traversal·타 객체 덮어쓰기를 허용하거나·(b) ext 를 detected MIME 대신 filename 의 `path.Ext` 가 아닌 마지막-dot-이후-아닌 방식으로 뽑아 이중확장자 위조를 허용하거나·(c) MIME declared↔sniffed 불일치 거부를 제거해 octet-stream/SVG stored XSS 를 흘리는 격리 site.
+- 영향 범위: 업로드 스토리지 키 파생 보안 census 확인만. 코드 0 변경. 차기 area = 정합성 (6-area rotation 보안→정합성) → cycle 1898. 후보: INSERT 컬럼리스트 완전성·OFFSET ORDER BY tiebreaker·cross-endpoint 직렬화 shape·TIMESTAMPTZ 시간대·has_more/COUNT-LIST predicate parity 중 미수록 sub-axis.
+
 ## 2026-06-30 — [system] cycle 1894 Discovery — OpenSpec갭: profile 공개프로필 응답 보드/핀 요약 페이로드 계약 (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 새 1주기 시작)에서 profile capability "공개 프로필 조회 응답에 보드 요약과 핀 요약을 포함한다"(profile/spec.md L33-66) Requirement 의 spec↔handler↔query↔DTO 정합을 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = profile 공개프로필 페이로드 5-Scenario(두 키 항상 포함·빈배열 직렬화·공개보드만 SHALL NOT·상한 bounded·404 short-circuit no-fetch).
