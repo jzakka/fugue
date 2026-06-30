@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2371 aesthetic 280th round — 앵커 적응 재배치 시도 순서 longhand `position-try-order` 표면 폐기 (doubly-vacuous)
+## 2026-06-30 — [design] cycle 2373 responsive 258th round — 스크롤 스냅 인라인-끝 패딩 longhand `scroll-padding-inline-end` 표면 폐기 (doubly-vacuous, 4-edge carve 완주)
+
+- 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-padding-inline-end` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: responsive 영역 258번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-padding 4-edge 논리변 carve 의 마지막 변(block-start 2349·block-end 2357·inline-start 2365 후속)으로 완주.
+- MANDATORY 체크: 코드 scroll-padding family 0건·scroll-snap family(scroll-snap-type/align/stop/scroll-margin-*) 0건. anti dedicated census 0건. decision-log 는 forward-pointer 후보만 보유(anti=0 명시). markers=0.
+- 근거: doubly-vacuous — 스크롤 스냅 컨테이너 자체가 부재라(masonry 는 일반 스크롤) 스냅포트 인라인-끝 패딩을 적용할 표면이 구조적으로 없음(scroll-snap 없으면 scroll-padding 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap 16px 만)·L11 Decoration Minimal·L82-88 Interaction/State(hover/transition) 모두 scroll-snap/스냅 패딩 silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 responsive 재진입 후보: scroll-margin 논리변 carve 시작(`scroll-margin-block-start` 등 anti=0) 또는 overscroll-behavior longhand(`overscroll-behavior-inline`).
 
 - 결정: `apps/web/` 의 anchor-positioning fallback 정렬 longhand `position-try-order` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: aesthetic 영역 280번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 직전 anchor-positioning family 폐기 본문에서 미열거(enumerate 안 함)로 남겨둔 `position-try-order` longhand 를 신선 축으로 선정.
