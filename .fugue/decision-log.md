@@ -26,6 +26,14 @@
 - DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L11 Minimal·L82-88 Interaction/State 모두 scroll-snap/스냅 마진 silent → 위반 대상 부재.
 - QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
 - 차기 responsive 재진입 후보: scroll-margin 4-edge 마지막 `scroll-margin-inline-end`(anti=0·신선)으로 carve 완주.
+## 2026-06-30 — [system] cycle 1880 Discovery — 봇: snapshot READ-path Gunzip-bomb·압축해제 에러처리 (NEW baseline)
+- 결정: 하베스터 snapshot READ 경로(reader.go S3Reader.Get→Gunzip)가 S3 gzip 스냅샷 압축해제 시 gzip-bomb·손상 gz·GetObject 실패를 무방비로 처리하는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1880 baseline)`).
+- 신선성: 봇 baseline 전수 중 "snapshot READ-side Gunzip 압축해제 무해화" 축은 부재. L1048=아웃바운드 HTTP transport 압축(원격 Content-Encoding), L1156=write측 gzip flush-Close, L436=아웃바운드 fetch body cap, L261/L344=snapshot 키/fallback 시퀀스 로 모두 별축(코드경로·신뢰경계 다름).
+- probe: reader.go(:75-182) 전수 하드닝 확인 — (1) 입력 cap `io.LimitReader(out.Body, 10MB)`(:87-88). (2) 출력 cap = gzip-bomb 차단: Gunzip(:138-152) `io.ReadAll(io.LimitReader(zr, 100MB+1))`(:144) + `len>100MB → error "suspected gzip bomb"`(:148-150), gzip.NewReader 헤더에러 즉시 반환(:140). (3) GetObject 에러 5종 sentinel 분류 classifyGetError(:82,156-182). (4) 전 실패 CompositeFetcher fail-open→HTTP fallback(snapshot_first_fetch.go:107).
+- 검증: `gzip.NewReader` grep(reader.go:139 유일) · reader.go 전체 READ · snapshot_first_fetch.go:99-112 READ.
+- 예외(실결함 조건): `io.ReadAll(zr)` 출력 cap 없이 호출(OOM) · 출력 cap 초과를 silent truncation 으로 변경 · gzip.NewReader 헤더/CRC 에러 무시 · GetObject 에러 sentinel/fail-open 없이 전파.
+- track: `system`. anti-patterns.md 1줄 추가, 코드 변경 없음.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 1882. 후보: 미아카이브 change 의 ADDED Requirement 미구현·spec SHALL/SHALL NOT 위반·scenario 미충족·capability 경계 위반.
 
 ## 2026-06-30 — [system] cycle 1878 Discovery — 동시성: sync.Once 오용·핸들러 fire-and-forget goroutine (covered-by-census, anti-patterns 변경 없음)
 - 결정: sync.Once lazy-init 오용·sync.Map·핸들러에서 요청 context를 물려받는 fire-and-forget goroutine 축을 조사 → 전부 zero-population 또는 기존 census로 covered. **anti-patterns 변경 없음**(decision-log만).
