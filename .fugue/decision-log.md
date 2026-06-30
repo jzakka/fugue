@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2365 responsive 257th round — 스크롤 패딩 인라인-시작 단일변 longhand `scroll-padding-inline-start` 표면 폐기 (doubly-vacuous)
+- 결정: `scroll-padding-inline-start`(스냅포트 인라인 방향 시작 가장자리 한 변 안쪽 오프셋 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: responsive 영역. cycle 2301 scroll-padding-block·2309 scroll-padding-inline(2값 shorthand)·2349 block-start·2357 block-end 에 이은 per-scroll-padding-edge-longhand carve. inline-start 단일 가장자리(inline-end 형제 잔여).
+- MANDATORY 체크: `scroll-padding-inline-start` 0건·`scroll-padding`(block/inline/단일변 포함) 전체 0건·`scroll-snap`/`scroll-margin`/`scroll-behavior` 전체 0건 doubly-vacuous. anti=0 신선 축.
+- 근거: 스크롤 스냅 메커니즘 자체 부재(코드·CSS 전수 0). 스냅 컨테이너 부재 시 scroll-padding 효력 없음 → 비정합 모집단 0(pure vacuous).
+- DESIGN.md 확인: L67-72 masonry/breakpoint 레이아웃·L11 Decoration Minimal. scroll-snap/scroll-padding silent.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 scroll-padding-inline-start/scroll-padding/scroll-snap 전부 0 확인.
+- 차기 responsive 재진입 후보: scroll-padding 단일변 carve 마지막 `scroll-padding-inline-end`(anti=0)로 4-edge 완주. 이후 형제 `scroll-margin-*` 단일변 longhand carve.
+
 ## 2026-06-30 — [design] cycle 2363 aesthetic 279th round — SVG 세로쓰기 글리프 방향 `glyph-orientation-vertical` 표면 폐기 (doubly-vacuous)
 - 결정: `glyph-orientation-vertical`(세로쓰기 SVG 텍스트 글리프를 baseline 에 대해 회전·정렬하는 deprecated 속성·text-orientation 으로 대체) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: aesthetic 영역. SVG 텍스트 기준선/정렬 패밀리(alignment-baseline 2355·dominant-baseline 2019·baseline-shift 2035·text-anchor 2027)의 세로쓰기 글리프 회전 차원. cycle 2355 후보였던 glyph-orientation-vertical(anti=0) 진입.
