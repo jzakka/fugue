@@ -23,6 +23,15 @@
 - 검증: `sync.Once`/`sync.Map` grep(0) · `go func` grep(2곳) · playwright_fetcher.go:108-120 READ(done 바운드) · goja_executor.go:40-60 READ(timeoutCtx 바운드) · interaction handler go func grep(0).
 - track: `system`. covered-by-census(신규 결함클래스 미성립·기존 L183/L361/L227 카브). 코드·anti-patterns 변경 없음.
 - 차기 area = 봇 (6-area rotation 동시성→봇) → cycle 1880. 후보: 크롤 graph 사이클/중복 노드·harvester script 디스패치·미디어 후보 선정·snapshot 저장 키 정규화·classifier 분류 판정.
+## 2026-06-30 — [design] cycle 2395 aesthetic 283rd round — 리듬 사이징 블록-스텝 정렬 longhand `block-step-align` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 CSS Rhythmic Sizing longhand `block-step-align` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: aesthetic 영역 283번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. block-step family carve(size 2379·insert 2387 후속)의 align longhand.
+- MANDATORY 체크: 코드 block-step family(block-step/size/insert/align/round) 0건. anti `block-step-align` 0건(anti=4 는 2379/2387 census 형제 enumerate 부수 언급·subj 0). markers=0.
+- 근거: doubly-vacuous — 수직 리듬 grid 양자화 메커니즘 자체가 부재라(masonry 카드 높이는 콘텐츠 자연 높이) step 여분 공간 내 정렬을 지정할 대상이 없음(block-step 없으면 block-step-align 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L16-35 Typography(font-size 스케일/weight)·L11 Minimal 모두 수직 리듬 grid/block-step silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 aesthetic 재진입 후보: block-step family 마지막 `block-step-round`(anti=4·신선)으로 family 완주 후 offset-position(line 1045 별축).
 
 ## 2026-06-30 — [system] cycle 1876 Discovery — 에러처리: 에러 응답 후 return 누락 (NEW baseline)
 - 결정: HTTP 핸들러/미들웨어가 에러 응답을 쓴 뒤 `return`을 빠뜨려 성공 본문 fallthrough·이중 WriteHeader·에러-then-next를 내는 축을 조사 → **NEW baseline 등록**(anti-patterns.md 말미 `(cycle 1876 baseline)`).
