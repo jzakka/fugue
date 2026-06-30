@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1886 Discovery — 정합성: 페이지네이션/COUNT 술어·interactions.type 생산소비 정합 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area 신선 후보 3축 probe → 전부 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- probe1(ORDER BY 결정성 tiebreaker): 모든 OFFSET/keyset 페이지네이션 쿼리가 `, p.id DESC` 유일 tiebreaker 보유(pins.sql:69/99/195·boards.sql:59·search.sql 전수), tiebreaker 없는 쿼리(ListBoardsByCreator LIMIT무·FallbackRelated/ListBoardPinImages LIMIT-only)는 OFFSET 미사용 top-N → **L264(cycle 880)이 전수 카브**.
+- probe2(COUNT↔LIST 술어 정합): CountPins↔ListPinsWithCreator·CountPinsByCreatorFiltered↔ListPinsByCreator WHERE **완전 동일**, CountBoardPins↔ListBoardPins는 board_pins.pin_id `REFERENCES works ON DELETE CASCADE`(000008:15)로 orphan 부재→INNER JOIN 카디널리티 일치 → **L1018(cycle 1730)이 FK 카디널리티 논증 포함 명시 카브**.
+- probe3(interactions.type 생산자↔소비자 값집합): write 측은 isValidInteractionType("view"/"pin"/"board_add", handler.go:92)로 검증, **read 측(recommend) 부재** — GetUserTagFrequency/GetUserMediaTypeFrequency/RecommendByTags/RecommendByMediaType 전부 interactions 테이블/type 미참조(사용자 본인 핀 `p.creator_id=$1` 기반)라 type 소비자 vacuous → **L1071(interactions.type 값도메인)·L702(event-log) 커버**.
+- 결론: 정합성 area 40+ baseline 포화. 세 후보 전부 refuted+covered → covered-by-census.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1888. 후보: defer 리소스 해제 누락·에러 wrap/sentinel 손실·partial write rollback·context 취소 전파·goroutine 에러 채널.
+
 ## 2026-06-30 — [system] cycle 1884 Discovery — 보안: 보안 민감 토큰 난수 생성기 CWE-330/338 (NEW baseline, anti-patterns 등록)
 - 결정: 보안 민감 토큰/식별자(OAuth state·refresh JTI·세션값)가 예측가능 비암호 PRNG(`math/rand`)·고정시드·V1/V2 UUID·과소 truncation 으로 추측 가능한지 전수 조사 → 모든 보안값이 crypto/rand·crypto-backed uuid V4 로 생성됨이 확인되는 **refuted FP-pattern**. anti-patterns.md L1176(cycle 1884) NEW baseline 등록.
 - 신선성: 기존 보안 census 와 비중첩 — L381(config secret 적재시점 검증)·L736(constant-time 비교)·L1029(타이밍 부채널)은 검증/비교 측, 본 축은 **런타임 난수 생성 측**(엔트로피 품질·PRNG 선택·시드). L186/L175(JWT alg/secret 구조), L189/L371(rand mutex=동시성)과도 별축.
