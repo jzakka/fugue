@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2359 states 255th round — 스크롤바 썸 UA 섀도 의사요소 `::-webkit-scrollbar-thumb` 표면 폐기 (host-present + uniform-hidden)
+- 결정: `::-webkit-scrollbar-thumb`(WebKit 커스텀 스크롤바 드래그 썸 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: states 영역. spin/search/autofill UA 의사요소가 joint group census(2141/2149)로 소진 확인 후, 코드에 실제 host(`::-webkit-scrollbar`)가 있는 스크롤바 섀도 sub-pseudo 패밀리(thumb/track-piece/corner/button)로 전환. thumb=드래그 손잡이 차원.
+- MANDATORY 체크: `::-webkit-scrollbar-thumb` 0건·thumb 커스텀 색/radius/border 0건. anti=0 신선 축. (주의: spin-button 쌍은 cycle 2149 joint census 가 이미 dismiss·`::` prefix 라 dedicated-start grep blind spot 으로 재확인함)
+- 근거: 코드 유일 `::-webkit-scrollbar` 사용처는 globals.css L122-124 `.scrollbar-hide::-webkit-scrollbar { display: none }`(+L119 scrollbar-width:none). 스크롤바를 균일하게 숨김·썸 sub-pseudo 별도 스타일 0 → 적용 표면=전체 숨김(썸도 숨김)/미적용 표면=UA 기본 썸, 둘 다 thumb 커스텀 외관 0 → 비정합 모집단 0.
+- DESIGN.md 확인: 105줄 scrollbar/스크롤바 썸 silent·L11 Decoration Minimal. 숨김은 `.scrollbar-hide` 유틸 일괄 처리.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 webkit-scrollbar-thumb=0, host `.scrollbar-hide::-webkit-scrollbar`=display:none(L122) 확인.
+- 차기 states 재진입 후보: 스크롤바 섀도 sub-pseudo carve 잔여(`::-webkit-scrollbar-track-piece`·`::-webkit-scrollbar-corner`·`::-webkit-scrollbar-button` 전부 anti=0).
+
 ## 2026-06-30 — [design] cycle 2357 responsive 256th round — 스크롤 패딩 블록-끝 단일변 longhand `scroll-padding-block-end` 표면 폐기 (doubly-vacuous)
 - 결정: `scroll-padding-block-end`(스냅포트 블록 방향 끝 가장자리 한 변 안쪽 오프셋 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: responsive 영역. cycle 2301 scroll-padding-block·2309 scroll-padding-inline(2값 shorthand)·2349 block-start 에 이은 per-scroll-padding-edge-longhand carve. block-end 단일 가장자리(inline-start/inline-end 형제 잔여).
