@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2335 states 252nd round — WebKit 미터 게이지 값(채움) 의사요소 `::-webkit-meter-optimum-value`(트랙 `::-webkit-meter-bar`/`::-moz-meter-bar`(cycle 2319)의 값-채움 짝·meter family 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `::-webkit-meter-optimum-value`(<meter> optimum 범위 채움 막대)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `::-webkit-meter-optimum-value`/suboptimum/even-less-good-value code 0건. (2) host `<meter>` 요소 자체 부재 — `<meter` 0건·`meter` 전체 0건이라 게이지 값 막대 그릴 대상 없음. 진행/측정 표시는 커스텀 div/숫자. (3) DESIGN.md(L82-88 Interaction/State) meter/gauge silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2333(responsive) 후 states area 재진입. 직전 states=cycle 2327 `::-webkit-progress-bar`. round 251st→252nd. cycle 2319 가 트랙 배경 `::-moz-meter-bar`/`::-webkit-meter-bar` 를 census 했으므로 값-채움 `::-webkit-meter-optimum-value` 는 2319 census 의 webkit 대응 enumerate(anti=1)뿐 dedicated census 없는 신선 축 — 트랙(2319)+값(2335)로 meter family 완결.
+- **MANDATORY 체크**: `::-webkit-meter-optimum-value` anti=1(2319 census enumerate)·suboptimum/even-less-good-value anti=0·dedicated census 없음. code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: meter/gauge/게이지 전 항목 silent(L82-88 Interaction/State·L11 Decoration Minimal). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 states 재진입 후보**: `::-webkit-details-marker`(<details> 펼침 마커, details 부재 doubly-vacuous, anti 3), `::-webkit-meter-inner-element`(meter 내부 래퍼). 차기 area = tokens(직전 cycle 2329 `-webkit-text-stroke-color`) → cycle 2337, round tokens 274th→275th, 후보 `-webkit-text-stroke-width`(stroke longhand 쌍 완결).
+
 ## 2026-06-30 — [design] cycle 2333 responsive 253rd round — content-visibility 예약 크기 블록축 longhand `contain-intrinsic-block-size`(인라인축 `contain-intrinsic-inline-size`(cycle 2159)의 블록축 짝·logical pair 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `contain-intrinsic-block-size`(size-contained 요소의 세로축 placeholder 고유 크기)가 표면 간 갈리는지 census. **doubly-vacuous**: (1) `contain-intrinsic-block-size`/`contain-intrinsic`(전형태) 0건. (2) size containment 호스트 전무 — `content-visibility`(auto 포함) 0건·`contain`(전형태) 0건이라 placeholder 줄 size-contained 요소 자체 부재. 마스너리 카드는 자연 흐름 레이아웃. (3) DESIGN.md(105줄) content-visibility/contain/intrinsic silent. 모집단 0·divergence 0.
 - **축 선택**: cycle 2331(aesthetic) 후 responsive area 재진입. 직전 responsive=cycle 2325 `overscroll-behavior-inline`. round 252nd→253rd. cycle 2159 가 인라인축 `contain-intrinsic-inline-size` 를 dedicated census 했으므로 블록축 `contain-intrinsic-block-size` 는 2159 census 의 형제 enumerate(anti=3)뿐 dedicated census 없는 신선 축 — inline(2159)+block(2333)로 contain-intrinsic logical-axis pair 완결.
