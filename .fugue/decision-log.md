@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2325 responsive 252nd round — 스크롤 연쇄/바운스 차단 인라인축 logical longhand `overscroll-behavior-inline`(overscroll-behavior-x 의 logical 대응물·overscroll-behavior-block(cycle 2317)의 인라인축 짝·logical pair 완결) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
+- **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `overscroll-behavior-inline`(인라인축 스크롤 연쇄/바운스 차단)이 표면 간 갈리는지 census. **doubly-vacuous**: (1) `overscroll-behavior-inline` 0건(apps/web/src 전수 0). (2) 스크롤 연쇄 제어 메커니즘 전무 — `overscroll`(상위 overscroll-behavior/-x/-y/-block 포함) 전체 0건이라 인라인축 연쇄 차단 대상 자체 부재. 가로 필터/칩 스트립도 `contain` 미지정. (3) DESIGN.md(105줄) overscroll-behavior/스크롤 연쇄 silent. 모집단 0·divergence 0.
+- **축 선택**: cycle 2323(aesthetic) 후 responsive area 재진입. 직전 responsive=cycle 2317 `overscroll-behavior-block`(블록축). round 251st→252nd. block(2317)+inline(2325)로 overscroll-behavior logical-axis pair 완결.
+- **MANDATORY 체크**: `overscroll-behavior-inline` anti-patterns.md 전수 0건·code(apps/web/src) 0건. `overscroll`(전 family) anti 전수 dedicated census 없음·code 0건. 신선 축 확정.
+- **근거**: 셋(코드·DESIGN.md·표준 기본값) 중 어느 것도 갈림을 명시하지 않는 취향 문제 → 이슈 미성립. 모집단 0 + DESIGN.md silent = 결함 클래스 미성립.
+- **DESIGN.md 확인**: overscroll-behavior/스크롤 연쇄/바운스 전 항목 silent(L46 단색 보더·L67-72 Layout masonry·L82-88 Card/Interaction). 위반 근거 없음.
+- **QA**: 코드 변경 없음(표면 폐기). census 2줄만 기록(anti-patterns.md tail 1줄 + decision-log.md top 1줄).
+- **차기 responsive 재진입 후보**: `contain-intrinsic-block-size`/`contain-intrinsic-inline-size`(content-visibility 미사용 doubly-vacuous, anti 3), `scroll-snap-stop`(스냅 미사용). 차기 area = states(직전 cycle 2319 `::-moz-meter-bar`) → cycle 2327, round states 250th→251st, 후보 `::-moz-progress-bar`/`::-webkit-progress-value`(<progress> 부재 doubly-vacuous).
+
 ## 2026-06-30 — [design] cycle 2323 aesthetic 274th round — 마스크 보더 박스 외부 확장 longhand `mask-border-outset`(mask-border 9분할 마스크를 보더 박스 가장자리 바깥으로 확장(outset)해 마스크 영역을 박스 경계 너머로 밀어내는 longhand·border-image-outset 의 마스크 대응물·source/slice/width/repeat 형제·마스크보더-확장축) 표면 폐기(doubly-vacuous) → 신규 anti-patterns baseline 등록
 - **결정**: 표면 폐기(0-candidate census·신규 baseline 등록). `mask-border-outset`(mask-border 마스크 박스 외부 확장)이 표면 간 갈리는지 census. **doubly-vacuous**: (1) `mask-border-outset` 0건(apps/web/src 전수 0). (2) 마스크 메커니즘 전무 — `mask-border`(source/slice/width/outset/repeat 포함) 0건이고 상위 `mask`(전체) 도 0건이라 확장할 마스크 보더 자체 부재. 테두리는 전부 단색 토큰 보더(Tailwind `border-*`×199·1px solid+radius). (3) DESIGN.md(105줄) mask-border/마스크/확장 silent(L46 단색 보더·L11 Decoration Minimal). 모집단 0·divergence 0.
 - **축 선택**: cycle 2321(tokens) 후 aesthetic area 재진입(design rotation tokens→aesthetic→responsive→states·직전 aesthetic=2315 mask-border-width). aesthetic round 273rd→274th. cycle 2315 forward-pointer 가 지목한 mask-border longhand family 잔여 `mask-border-outset`(anti=1 family 열거 부수 언급·dedicated census 부재·fresh) 선택(per-mask-border-longhand carve, slice(2307)/width(2315)에 이은 family 진행).
