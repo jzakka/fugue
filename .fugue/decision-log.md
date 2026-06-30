@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2415 Discovery — states 262nd round 표준 레인지 슬라이더 핸들 의사요소 `::slider-thumb` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
+- 결정: states area(4-area rotation aesthetic→responsive→states→tokens)에서 "일부 슬라이더만 `::slider-thumb` 으로 핸들을 커스텀하고 동종은 브라우저 기본이라 핸들 표시가 갈림·thumb 토큰 불일치·DESIGN.md 가 레인지 슬라이더 핸들을 규정하는지" states 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
+- 축 선택: states. 후보축 = 표준 CSS Forms `<input type=range>` 핸들 의사요소 `::slider-thumb`(드래그 핸들)의 cross-surface 커스텀 일관 — 표준 슬라이더 3-파트(fill 2399·track 2407·thumb 본 cycle) carve 완주.
+- MANDATORY 체크: ① `::slider-thumb` 선언 grep 0건(apps/web/src·globals.css 전수)·표준 형제 `::slider-fill`/`::slider-track` 도 0. ② 네이티브 range 호스트 부재 — `<input type=range>` grep 0건(11개 input 비-range·VideoTrimModal/VideoThumbnailPicker 는 커스텀 div 드래그)·doubly-vacuous(선언 0 AND 호스트 0). ③ 벤더 형제 `::-webkit-slider-thumb`(AP1024)·`::-moz-range-thumb`(AP1108) 는 dedicated 별축·본 축은 표준-네임.
+- 근거: thumb 선언 0 + 네이티브 type=range 호스트 0(doubly-vacuous)·핸들 차원이 fill(thumb 앞 진행 채움 2399)·track(thumb 이동 레일 2407)과 비중첩·벤더 thumb census(1024/1108)와 표준-네임 별개. 표준 슬라이더 의사요소 3-파트(fill/track/thumb) carve 완주.
+- DESIGN.md 확인: L11 Decoration Minimal·L82-88 Card/Interaction/State 는 hover/transition 만 SHALL·슬라이더 트랙/채움/thumb 색·크기·그림자 미SHALL(slider/range/thumb grep 0)·AGENTS/CLAUDE 미규정(loop rule line 9 미명시 취향).
+- QA: 코드 변경 없음(표면 폐기·anti-patterns tail 1줄 census 추가만). 네이티브 range 슬라이더 자체가 부재라 thumb 의사요소 적용 대상 0.
+- 차기 states 재진입 후보: 표준 폼 컨트롤 의사요소 잔여 carve(예: `::picker(select)`/`::picker-icon`(customizable select)·`::checkmark`·`::details-content` 등 신생 CSS Forms 의사요소 중 dedicated 미census·anti=0·호스트 부재 확인 후 진입).
+
 ## 2026-06-30 — [design] cycle 2413 Discovery — responsive 263rd round 논리 축 오버플로 longhand 속성 `overflow-inline`/`overflow-block` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
 - 결정: responsive area(4-area rotation aesthetic→responsive→states→tokens)에서 "넘침을 물리 `overflow-x`/`overflow-y` 로만 처리하고 논리 축 longhand `overflow-inline`/`overflow-block` 0 → 논리 축 오버플로 미사용·writing-mode 적응 넘침 부재·논리-축 longhand 누락" responsive 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
 - 축 선택: responsive. 후보축 = `overflow` shorthand 의 flow-relative 축별 longhand 속성(`overflow-inline`=인라인축·`overflow-block`=블록축 넘침 처리)의 cross-surface 사용 일관.
