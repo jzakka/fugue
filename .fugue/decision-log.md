@@ -25,6 +25,13 @@
 - DESIGN.md 확인: L82-88 Interaction/State(hover/transition 만)·scroll-driven/animation-range/타임라인 silent·L11 Decoration Minimal·prefers-reduced-motion 존중(globals.css L111).
 - QA: 코드 변경 없음(표면 폐기). grep census 로 animation-range-end/animation-range/animation-timeline 전부 0 확인.
 - 차기 tokens 재진입 후보: scroll-driven 토큰 family carve(`scroll-timeline-name`·`scroll-timeline-axis`·`view-timeline-name`·`timeline-scope` 등). transition longhand `transition-behavior`(anti=29 census 확인 필요).
+## 2026-06-30 — [system] cycle 1864 Discovery — 에러처리: 버퍼링 writer flush 경로 Close 에러 무시(gzip 스냅샷 무결성) NEW baseline
+- 결정: "gzip/버퍼링 writer 의 flush-Close 에러 swallow → truncated/corrupt 블롭 영속" 에러처리 후보를 올리지 않고 NEW baseline 등록(anti-patterns.md EOF, cycle 1864 baseline).
+- 축 선택: 에러처리 영역(직전 1852). cycle 1852 후보군 중 "deferred Close 에러 무시" 축을 WRITE/flush 경로(압축 무결성)로 특정. errgroup/sync.WaitGroup 프로덕션 부재 확인 → 유일 flush-Close 경로 gzipBytes 로 모집단 한정.
+- 근거: snapshot/store.go:101-112 gzipBytes 가 Write 에러 즉시 전파(:104)·flush-Close 에러 명시 체크 전파(:108, deferred-swallow 아님)·호출자 Put(:75-78) fail-closed(압축 실패 시 :82 PutObject 미실행). `defer.*Close()` writer 프로덕션 0·`.Flush()` 0·`NewWriter` gzip 1(prod)+test 1 → 모집단=gzipBytes 단일, 전수 안전. FP.
+- 비중첩: L244(에러처리 temp file/os.File lifecycle·io.Copy/Close 누수)·L225(ErrNoRows→404)·L27(nullable Scan) 과 별축 — WRITE/flush Close 무결성 각도.
+- 예외(등록 가능): 신규 코드가 (a) 버퍼링 writer 를 defer-Close 로 닫아 flush(tail/CRC) 에러 swallow·(b) bufio Flush 미체크·(c) Write 에러 무시 진행·(d) 압축 실패에도 fail-closed 없이 부분 블롭 영속·(e) multipart/csv 종료 flush 에러 swallow.
+- 차기 area = 동시성 (직전 1854) → cycle 1866. 후보: select default 비차단 송수신 드롭(L189 인접)·atomic 복합연산 비원자(load-modify-store race)·sync.Once/Map 오용·context cancel 전파 누락·WaitGroup Add/Done 카운트 불일치.
 
 ## 2026-06-30 — [design] cycle 2367 states 256th round — 스크롤바 트랙-조각 UA 섀도 의사요소 `::-webkit-scrollbar-track-piece` 표면 폐기 (host-present + uniform-hidden)
 - 결정: `::-webkit-scrollbar-track-piece`(WebKit 스크롤바 썸이 안 차지한 트랙 영역 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
