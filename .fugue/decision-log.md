@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1902 Discovery — 동시성: 보조 watcher goroutine lifecycle·sync.Once lazy-init·3rd-party stateful 객체 cross-goroutine 접점 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성)에서 "playwright watcher goroutine 이 page.Close() 를 main 의 Goto 와 동시 호출해 race·goroutine leak·sync.Once lazy-init 이중초기화 race" 후보를 probe → 전부 기존 census/vacuous 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = 보조 watcher goroutine lifecycle + sync.Once lazy-init race + 비-goroutine-safe 3rd-party 객체 cross-goroutine 접점.
+- 확인: (1) **sync.Once = vacuous**: production `sync.Once`/`.Do(func` 0건 → lazy-init 이중초기화 race 모집단 0. (2) **playwright watcher goroutine = leak 없음(safe)**: playwright_fetcher.go:113 `done:=make(chan struct{})` + `defer close(done)`(:113) → :114 `go func(){ select{ case <-ctx.Done(): page.Close(); case <-done: } }()` 가 함수 return 시 done close 로 unblock·종료(leak 0). (3) **page.Close cross-goroutine 접점 = 의도된 early-abort(safe)**: watcher 의 page.Close() 가 main 의 blocking Goto 를 중단시키는 documented 패턴·per-call 신규 BrowserContext/Page 라 동시 Execute 간 미공유.
+- 안착 census: **L460(동시성)** = 비-goroutine-safe 3rd-party stateful 객체(goja.Runtime VM·playwright BrowserContext/Page) per-call 격리 + 유일 cross-goroutine 접점이 documented thread-safe 종료 API(Interrupt/Close), 본 probe 와 동일 매핑(playwright Page Close 명시 포함). **L183**(timeout/Interrupt 보조 goroutine lifecycle·done 신호 종료)·**L810**(fan-out-join WaitGroup)·**L1134**(for-loop goroutine spawn)도 인접 포괄. 신선 축 부재(sync.Once vacuous).
+- 예외(차기 등록 가능): 신규 코드가 (a) goja.Runtime/playwright Page 를 구조체 필드로 저장해 동시 Execute 가 공유(인터프리터/페이지 상태 race)하거나·(b) watcher goroutine 의 done 신호(`defer close(done)`)를 제거해 ctx 미취소 시 goroutine leak 내거나·(c) sync.Once 없이 lazy 싱글톤을 double-checked locking 오류로 초기화하거나·(d) page.Close/vm.Interrupt 아닌 비-thread-safe 메서드를 watcher goroutine 에서 호출하는 격리 site.
+- 영향 범위: 동시성 보조 goroutine/3rd-party 객체 격리 census 확인만. 코드 0 변경. 차기 area = 봇 (6-area rotation 동시성→봇, 2주기째 완주) → cycle 1904. 후보: 추출기 미디어후보 dedup·robots fail-open·snapshot 키 파생·필터체인 순서·하베스터 어댑터 폴백 중 미수록 sub-axis.
+
 ## 2026-06-30 — [design] cycle 2417 Discovery — tokens 285th round CSS 중첩 카운터 문자열 생성 함수 `counters()` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
 - 결정: tokens area(4-area rotation aesthetic→responsive→states→tokens)에서 "다층 번호를 `counters()` 로 안 만들고 ol 기본/JS 인덱스 → 중첩 카운터 토큰 미사용·다층 번호 비정합·counters() 누락" tokens 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
 - 축 선택: tokens. 후보축 = CSS Lists 3 *복수형* 중첩 카운터 문자열 생성 함수 `counters(name, separator)`(조상~자손 동명 카운터를 구분자로 이어 다층 번호 1.2.3 생성)의 cross-surface 사용 일관.
