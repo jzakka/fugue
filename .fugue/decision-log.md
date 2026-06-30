@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2405 responsive 262nd round — 스크롤 스냅 마진 인라인-끝 longhand `scroll-margin-inline-end` 표면 폐기 (doubly-vacuous, scroll-margin 4-edge 논리변 carve 완주)
+
+- **결정**: `scroll-margin-inline-end`(스냅 자식의 inline 축 끝(LTR 오른쪽) 정렬 바깥 여백 논리 longhand, shorthand `scroll-margin-inline` 의 inline-end 성분)을 responsive 후보로 올리지 않고 표면 폐기. 코드 변경 0. 본 census 로 **scroll-margin 4-edge 논리변 carve 완주**(block-start 2381·block-end 2389·inline-start 2397·inline-end 2405).
+- **축 선택**: responsive 영역 262nd round. cycle 2397 이 명시한 차기 후보(scroll-margin 4-edge 마지막 inline-end·anti=0·신선). scroll-margin 논리변 4면 carve 의 마지막 longhand.
+- **MANDATORY 체크**: `scroll-margin-inline-end` src 0건·anti=0(완전 신선·dedicated/형제 enumerate 언급조차 없음) + scroll-margin family(물리변 4·논리변 4·shorthand) 전체 0건 + scroll-snap family(type/align/stop) 전체 0건 → doubly-vacuous(마진 longhand 0 AND scroll-snap 컨테이너 호스트 0). masonry 는 일반 스크롤·스냅 미사용. markers=0.
+- **근거**: 형제 3종 이미 별 census — block-start(2381)·block-end(2389)·inline-start(2397). 본 축 inline-end 가 4면 carve 의 마지막으로 inline-start(LTR 왼쪽)와 끝(오른쪽)이 비중첩 → scroll-margin 4-edge 논리변 carve 완주. scroll-snap 부재로 효력 자체가 vacuous.
+- **DESIGN.md 확인**: L67-72 Layout masonry/breakpoint/column-gap 만·scroll-snap/스냅 마진 silent·L11 Decoration Minimal·L82-88 hover/transition 만. AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
+- **차기 responsive 재진입 후보**: scroll-margin 4-edge 논리변 carve 완주. 다음 responsive carve 후보 = `overscroll-behavior-inline`/`-block`(스크롤 체이닝 논리축) 또는 `scroll-snap-stop`/`scroll-snap-align` 의 개별 차원 freshness 재검.
+
 ## 2026-06-30 — [system] cycle 1886 Discovery — 정합성: 페이지네이션/COUNT 술어·interactions.type 생산소비 정합 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area 신선 후보 3축 probe → 전부 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - probe1(ORDER BY 결정성 tiebreaker): 모든 OFFSET/keyset 페이지네이션 쿼리가 `, p.id DESC` 유일 tiebreaker 보유(pins.sql:69/99/195·boards.sql:59·search.sql 전수), tiebreaker 없는 쿼리(ListBoardsByCreator LIMIT무·FallbackRelated/ListBoardPinImages LIMIT-only)는 OFFSET 미사용 top-N → **L264(cycle 880)이 전수 카브**.
