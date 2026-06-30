@@ -25,6 +25,13 @@
 - DESIGN.md 확인: L11 Decoration Minimal·L16-35 Typography·L37-52 Color·L54-65 Spacing — 다층 번호/중첩 카운터/counters() silent(grep 0) → mechanism vacuous.
 - QA: 코드 변경 없음(표면 폐기·anti-patterns tail 1줄 census 추가만). CSS 카운터 메커니즘 자체가 비-사용이라 counters() 적용 대상 0.
 - 차기 tokens 재진입 후보: CSS 값 함수 잔여 carve(예: `mod()`/`rem()`/`round()`(CSS Values 4 step-value 함수)·`abs()`/`sign()`·`hypot()`/`sqrt()`/`pow()`(지수/삼각 외 잔여 수학 함수) 중 dedicated 미census·anti=0 확인 후 진입).
+## 2026-06-30 — [system] cycle 1900 Discovery — 에러처리: 동시 fan-out 에러 집계·비신뢰 goja 스크립트 panic 워커 격리 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리)에서 "동시 fan-out(errgroup/WaitGroup)이 첫 에러를 누락/삼키거나·비신뢰 goja 봇 스크립트 실행 panic 이 recover 없이 워커/프로세스를 크래시시킨다" 후보를 probe → 전부 기존 census/vacuous 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 에러처리. 후보축 = 동시 fan-out 에러 집계 + 비신뢰 스크립트 실행 panic 격리.
+- 확인: (1) **errgroup/WaitGroup fan-out = vacuous**: production `errgroup`/`sync.WaitGroup` 0건, `go func()` 는 2곳(playwright_fetcher.go:114·goja_executor.go:47)뿐이고 둘 다 timeout-interrupt 대기 goroutine(데이터 fan-out·에러 집계 아님) → 첫-에러 누락 모집단 0. (2) **goja 비신뢰 스크립트 panic = 에러반환 가드(safe)**: goja_executor.go:109 `vm.RunString(script)` 가 모든 종료를 에러로 반환(:111 InterruptedError→timeout·:114 script error·:118 convertResult err) → JS 예외/타임아웃이 panic 아닌 err 로 표면화. (3) **워커 per-item recover 부재 = 의도된 fail-fast(safe)**: 봇 Run 루프 recover() 0건은 docs/architecture.md L267 "워커 크래시 시 10분 뒤 lease 자동 회수" 의 문서화된 fail-fast+lease-reclaim 복원 모델(recover 추가가 오히려 이탈).
+- 안착 census: **L188(에러처리)** = 봇 워커 per-item recover() 부재 + goja 종료경로 에러반환(cycle 728/L102 가드) + fail-fast lease-reclaim 정당성, 본 probe 와 동일 매핑. **L653**(pioneer per-URL 실패 격리)·**L1032**(goroutine panic HTTP recover 미적용)·**L1181**(봇 컨슈머 fetch 에러 분류)도 인접 포괄. 신선 축 부재(fan-out 은 vacuous).
+- 예외(차기 등록 가능): 신규 코드가 (a) `errgroup`/`WaitGroup` 로 동시 fan-out 하면서 첫 에러를 무시(`_ = g.Wait()`)하거나 race 로 에러를 덮어쓰거나·(b) goja 종료 경로(InterruptedError/script error/convertResult)를 제거해 panic 을 흘리거나·(c) injected DOM helper 가 panic 하면서 RunString 밖으로 전파되는데 워커가 recover 도 fail-fast lease-reclaim 도 안 해 row 가 영구 claim 되는 격리 site.
+- 영향 범위: 에러처리 fan-out/스크립트 panic 격리 census 확인만. 코드 0 변경. 차기 area = 동시성 (6-area rotation 에러처리→동시성) → cycle 1902. 후보: mutex/RWMutex lifecycle·atomic 복합연산·channel close/send·time.After in-loop·worker-local metrics 중 미수록 sub-axis.
 
 ## 2026-06-30 — [design] cycle 2415 Discovery — states 262nd round 표준 레인지 슬라이더 핸들 의사요소 `::slider-thumb` 표면 폐기 (covered-by-census, anti-patterns tail 1줄 추가)
 - 결정: states area(4-area rotation aesthetic→responsive→states→tokens)에서 "일부 슬라이더만 `::slider-thumb` 으로 핸들을 커스텀하고 동종은 브라우저 기본이라 핸들 표시가 갈림·thumb 토큰 불일치·DESIGN.md 가 레인지 슬라이더 핸들을 규정하는지" states 후보를 probe → 결함 클래스 미성립. anti-patterns tail census 1줄 추가.
