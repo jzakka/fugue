@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2355 aesthetic 278th round — SVG 텍스트 정렬-기준선 `alignment-baseline` 표면 폐기 (doubly-vacuous)
+- 결정: `alignment-baseline`(SVG 텍스트 콘텐츠 글리프를 부모의 어느 기준선에 맞춰 정렬할지) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: aesthetic 영역. SVG 텍스트 기준선/정렬 패밀리 carve: dominant-baseline(2019)·baseline-shift(2035)·text-anchor(2027)에 이은 정렬-기준선 차원. (cycle 2347 border-image-source 후보는 border-image longhand 전부 dedicated census 존재로 family 소진 확인 → SVG 기준선 family 로 전환)
+- MANDATORY 체크: `alignment-baseline` 0건·SVG 텍스트 콘텐츠 호스트 `<text>`/`<tspan>`/`<textPath>` 0건 doubly-vacuous. anti=1 은 형제 baseline census 본문 부수 언급, dedicated census 0.
+- 근거: SVG 텍스트 글리프 자체 부재(`<text>` 등 0). `<svg>` 15개는 전부 아이콘 래퍼(path/shape, 텍스트 글리프 없음)라 alignment-baseline 적용 불가 → 비정합 모집단 0.
+- DESIGN.md 확인: L16-35 Typography 는 HTML 텍스트(General Sans/Pretendard) weight·size scale 만·SVG 텍스트 기준선/정렬 silent·L11 Decoration Minimal.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 alignment-baseline/<text>/<tspan> 전부 0, <svg>=15(아이콘 래퍼) 확인.
+- 차기 aesthetic 재진입 후보: SVG 텍스트 기준선 family carve 잔여(`glyph-orientation-vertical` anti=0 신선·deprecated SVG 세로쓰기 글리프 방향). 형제 SVG paint family `marker-mid`(anti=6)·SVG filter `flood-opacity`(anti=10) carve 후보.
+
 ## 2026-06-30 — [design] cycle 2353 tokens 277th round — 폰트 합성 작은대문자 longhand `font-synthesis-small-caps` 표면 폐기 (doubly-vacuous)
 - 결정: `font-synthesis-small-caps`(폰트에 small-caps 자형이 없을 때 합성 작은대문자 허용 auto/금지 none longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: tokens 영역. font-synthesis shorthand 의 longhand carve: weight(2281)·style(2289)·position(2041)에 이은 **마지막 longhand**(small-caps 로 family 완주).
