@@ -26,6 +26,13 @@
 - **DESIGN.md 확인**: L54-65 Spacing 간격 스케일 값만·L99-108 애니메이션은 시간 기반 shimmer 만·스크롤/뷰 연동 타임라인 이름 미SHALL(timeline/scroll-driven grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
 - **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
 - **차기 tokens 재진입 후보**: view-timeline longhand 쌍 carve 완주. 다음 timeline carve = shorthand `view-timeline`(name+axis 통합)·`scroll-timeline`(통합) 또는 `animation-range-start`/`-end`(진행 구간 경계) freshness 재검.
+## 2026-06-30 — [system] cycle 1892 Discovery — 봇: 하베스터 Pin 생성 dedup/upsert 멱등성·동시 크롤 TOCTOU (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area 에서 "하베스터 Pin 생성 중복방지가 check-then-insert(BotPinExistsByURL 확인 후 CreatePin)라 TOCTOU 경쟁으로 동일 canonical URL 이중삽입·동시 크롤 중복 row" 후보를 probe → 전부 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇 area(6-area rotation 동시성→봇). 후보축 = 하베스터 Pin 생성 dedup 의 원자성(check-then-insert vs atomic upsert)·동시 크롤 TOCTOU.
+- 확인: (1) **생산 경로 = 원자 upsert**: harvester_consumer.go:507 `ProcessDocument` → harvest_pipeline.go:288 `UpsertBotPinByURL` = pins.sql `INSERT ... ON CONFLICT (url) WHERE creator_id='…f096' DO UPDATE`(partial unique index, `row.Inserted` 로 신규/갱신 구분) → 동시 동일 URL 도 DB 레벨 원자 upsert 라 이중삽입 불가. (2) **check-then-insert 경로(Process)는 dead**: harvest_pipeline.go:180 `Process`(:193 BotPinExistsByURL→:232 CreatePin)는 비-test 생산 호출처 0건(`.Process(` grep). (3) BotPinExistsByURL 은 `creator_id=BotCreatorID` 봇-스코프라 일반 사용자 Pin 오탐 0.
+- 안착 census: **L79(cycle 702)** = HarvestPipeline.Process batch+DB 2단계 dedup 계약(ProcessDocument upsert 는 cycle 606 별개 명시)·**cycle 606** = ProcessDocument 단일 doc canonical-URL upsert·**L126** = 동시 봇 크롤(같은 URL) check-then-act→ON CONFLICT/UNIQUE 원자성·**L221** = ON CONFLICT arbiter↔partial-index drift·**L191** = frontier enqueue UPSERT 멱등성. 신선 축 부재(전수 기수록).
+- 예외(차기 등록 가능): 신규 코드가 (a) 생산 경로를 atomic upsert 에서 check-then-insert 로 회귀시켜 동시 동일 URL 이중삽입을 내거나·(b) UpsertBotPinByURL 의 ON CONFLICT partial predicate(`creator_id='…f096'`)를 BotCreatorID/000027 migration 과 어긋나게 바꿔 arbiter 추론 실패(런타임 에러)나 무-upsert 를 내는 격리 site.
+- 영향 범위: 봇 dedup/upsert 정합성 census 확인만. 코드 0 변경. 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 1주기 완주) → cycle 1894. 후보: scheduler frontier 테이블정의·robots Crawl-delay 반영·harvester capability 상태전이·pioneer fanout producer 계약 중 미수록 Requirement.
 
 ## 2026-06-30 — [design] cycle 2407 states 261st round — 표준 레인지 슬라이더 트랙 의사요소 `::slider-track` 표면 폐기 (doubly-vacuous)
 
