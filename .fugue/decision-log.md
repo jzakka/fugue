@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2373 responsive 258th round — 스크롤 스냅 인라인-끝 패딩 longhand `scroll-padding-inline-end` 표면 폐기 (doubly-vacuous, 4-edge carve 완주)
+## 2026-06-30 — [design] cycle 2375 states 257th round — 스크롤바 모서리 사각 sub-pseudo `::-webkit-scrollbar-corner` 표면 폐기 (host-present + uniform-hidden)
+
+- 결정: `apps/web/` 의 WebKit 스크롤바 sub-pseudo `::-webkit-scrollbar-corner` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: states 영역 257번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 스크롤바 sub-pseudo carve(thumb 2359·track-piece 2367 후속)의 모서리 sub-pseudo.
+- MANDATORY 체크: 코드 `::-webkit-scrollbar-corner` 0건. `::-webkit-scrollbar` 호스트는 globals.css L122 `.scrollbar-hide::-webkit-scrollbar { display: none }` 단 1곳(숨김 전용). anti dedicated census 0건(thumb/track-piece census 형제 enumerate 부수 언급만·grep 사각지대 주의: `::` 주어는 line-leading 검사로 확인). markers=0.
+- 근거: host-present + uniform-hidden — `::-webkit-scrollbar` 호스트가 display:none 으로 스크롤바 자체를 균일 숨김하므로 자식 corner 사각도 렌더되지 않음. scrollbar-width/color 표준 속성도 부재라 styled scrollbar 모집단 0.
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition)·L11 Decoration Minimal 모두 스크롤바 커스텀/모서리 silent. scrollbar-hide 는 의도적 숨김 유틸 → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 states 재진입 후보: scrollbar sub-pseudo 잔여 `::-webkit-scrollbar-button`(형제 enumerate 만·dedicated 0) 또는 `::-webkit-resizer`.
 
 - 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-padding-inline-end` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: responsive 영역 258번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-padding 4-edge 논리변 carve 의 마지막 변(block-start 2349·block-end 2357·inline-start 2365 후속)으로 완주.
