@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2353 tokens 277th round — 폰트 합성 작은대문자 longhand `font-synthesis-small-caps` 표면 폐기 (doubly-vacuous)
+- 결정: `font-synthesis-small-caps`(폰트에 small-caps 자형이 없을 때 합성 작은대문자 허용 auto/금지 none longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: tokens 영역. font-synthesis shorthand 의 longhand carve: weight(2281)·style(2289)·position(2041)에 이은 **마지막 longhand**(small-caps 로 family 완주).
+- MANDATORY 체크: `font-synthesis-small-caps` 0건·`font-synthesis`(weight/style/position/shorthand 포함) 전체 0건 doubly-vacuous. anti=8 은 1211 속성군 census + weight/style/position longhand census 본문 형제 언급뿐, dedicated census 0.
+- 근거: 폰트 합성 제어 선언 자체 부재(코드 전수 0). 합성 작은대문자 허용/금지를 명시 제어한 표면이 0건 → "일부만 none·동종은 auto 비정합" 모집단 0(pure vacuous).
+- DESIGN.md 확인: L16-35 Typography(General Sans 700·weight/size scale 만)·L11 Decoration Minimal. font-synthesis/작은대문자/합성 자형 silent.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 font-synthesis-small-caps/font-synthesis 전부 0 확인.
+- 차기 tokens 재진입 후보: font-synthesis longhand carve 완주(weight/style/position/small-caps). 형제 `font-variant-*` longhand(ligatures/caps/numeric/alternates/east-asian/position) carve 후보.
+
 ## 2026-06-30 — [design] cycle 2351 states 254th round — 진행률 막대 최외곽 섀도 래퍼 UA 의사요소 `::-webkit-progress-inner-element` 표면 폐기 (doubly-vacuous)
 - 결정: `::-webkit-progress-inner-element`(`<progress>` 섀도 DOM 최외곽 컨테이너 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: states 영역. progress UA 의사요소 패밀리 carve: cycle 2157 progress-value(채워진 값)·2327 progress-bar(트랙)에 이은 최외곽 래퍼 계층(inner-element ⊃ bar ⊃ value 3계층 섀도 구조의 가장 바깥).
