@@ -34,6 +34,13 @@
 - DESIGN.md 확인: L67-72 Layout 은 masonry/breakpoint(sm500·md800·lg1200)/column-gap 16px 만 규정·overflow/scroll silent·L11 Decoration Minimal·L82-88 Interaction/State hover/transition 만 → overflow 논리/물리 축 모두 silent(mechanism vacuous).
 - QA: 코드 변경 없음(표면 폐기·anti-patterns tail 1줄 census 추가만). 논리 축 오버플로 longhand 미도입은 미명시 enhancement(writing-mode 가변 다국어 표면용)이지 결함 아님(loop rule line 9 미명시 취향).
 - 차기 responsive 재진입 후보: writing-mode 의존 논리 길이/위치 longhand 잔여 carve(예: `inset-block`/`inset-inline` 단일변·`margin-block-start` 등 논리 박스 모델 longhand 중 dedicated 미census 잔여) — anti dedicated 0 확인 후 진입.
+## 2026-06-30 — [system] cycle 1898 Discovery — 정합성: 태그 이름 정규화/중복-tag 정합 (clean baseline, anti-patterns 추가)
+- 결정: 정합성 area(6-area rotation 보안→정합성)에서 "pin Create 가 사용자 입력 태그를 받으므로 태그 이름 case-folding/trim 정규화 불일치로 'Music'/'music' 중복 tag row·동일 논리 태그 분열" 후보를 probe → **vacuous/clean**. **anti-patterns 신규 등록**(clean baseline) + decision-log.
+- 축 선택: 정합성. 후보축 = 태그 이름 정규화(lowercase/trim) 일관성·중복 tag 방지.
+- 확인: tags 는 **seed 전용 reference 데이터** — (1) tags.sql 전수 read-only(ListTags·SearchTags·GetTagsByIDs 등 6쿼리), `CreateTag`/`INSERT INTO tags` 런타임 쿼리 0건(`INSERT INTO tags` grep = seed_tags.sql 유일). (2) pin/handler.go:118 사용자 태그를 `uuid.Parse(TrimSpace)` UUID 파싱 → :128 GetTagsByIDs 존재조회 → :134-137 불일치 시 400 거부 → :358 LinkPinTag 링크만. 사용자/봇은 고정 taxonomy 의 tag_id 만 참조·태그 *이름* 을 서버에 안 보냄. → 런타임 태그-이름 정규화/생성 write 경로 부재 → 중복/분열 모집단 vacuous.
+- 등록 근거(clean baseline): 결함 클래스 미성립(population 0). 기존 정합성 baseline 과 비중첩 — L456(pin_tags 복합 PK↔LinkPinTag 링크 멱등)은 *링크 중복방지*·L349(배열 param uuid[]/text[] 바인딩)·L1071/L1140(interactions.type·media_type 값-도메인 CHECK)와 별축. → anti-patterns 신규 라인(cycle 1898) 등록.
+- 예외(차기 등록 가능): 신규 코드가 (a) 자유텍스트 태그를 런타임 `INSERT INTO tags`/UpsertTag 로 mint 하며 정규화를 한쪽 경로만 적용·(b) 태그를 이름 문자열로 받아 정규화 비대칭으로 동일 태그 분열·(c) slug 파생을 정규화 없이 해 slug UNIQUE 충돌/불일치 내는 격리 site.
+- 영향 범위: 정합성 태그 정규화 축 clean baseline 등록. 코드 0 변경. 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1900. 후보: DB tx commit/rollback·:one sql.ErrNoRows 404 매핑·JSON 디코드 에러·downloadAndUpload 부분실패·context 전파 중 미수록 sub-axis.
 
 ## 2026-06-30 — [system] cycle 1896 Discovery — 보안: 미디어 업로드 스토리지 객체키 경로조작(CWE-22) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안)에서 "업로드 핸들러가 header.Filename(사용자 제어)을 store.Upload 에 넘기므로 S3 객체 키 경로조작(../ 타 객체 덮어쓰기·경로 탈출)·확장자 위조가 가능하다" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
