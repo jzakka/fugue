@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2407 states 261st round — 표준 레인지 슬라이더 트랙 의사요소 `::slider-track` 표면 폐기 (doubly-vacuous)
+
+- **결정**: 표준 CSS Forms `::slider-track`(커스터마이즈블 `<input type=range>` 의 thumb 가 이동하는 트랙(레일) 전체 의사요소, 벤더 `::-webkit-slider-runnable-track`/`::-moz-range-track` 트랙의 표준 대체)을 states 후보로 올리지 않고 표면 폐기. 코드 변경 0. 표준 슬라이더 의사요소 carve 진행(fill 2399 → track 2407).
+- **축 선택**: states 영역 261st round. cycle 2399 가 명시한 차기 후보(표준 슬라이더 잔여 형제 `::slider-track`/`::slider-thumb`·anti=0 신선). 채움(fill) 다음 트랙(track) 차원.
+- **MANDATORY 체크**: `::slider-track` src 0건 + 표준 형제 `::slider-fill`(2399)/`::slider-thumb` 0건 + 네이티브 `<input type=range>` 0건(11개 `<input>` 전부 비-range, VideoTrim UI 는 커스텀 div 드래그) → doubly-vacuous(트랙 선언 0 AND 적용 대상 range 호스트 0). anti=1 은 cycle 2399 slider-fill census(AP1176) 본문의 형제 enumerate뿐(dedicated 부재) → 신선. markers=0.
+- **근거**: 벤더 프리픽스 트랙 형제(`::-webkit-slider-runnable-track`/`::-moz-range-track`)는 벤더 census·표준 채움 `::slider-fill`(2399 AP1176)은 별 census 완료. 본 축은 표준 트랙 이름 `::slider-track`(thumb 이동 레일 전체)으로, track 차원이 fill(thumb 앞 진행 구간)·thumb(핸들)과 비중첩. `::slider-thumb`(핸들) 은 anti=0 잔여 fresh(다음 carve).
+- **DESIGN.md 확인**: L11 "Decoration level: Minimal"·L82-88 Card/Interaction/State 는 hover/transition 만 SHALL, 슬라이더 트랙/레일/채움/thumb 색·높이 미SHALL(slider/range/track grep 0). AGENTS.md/CLAUDE.md 미규정 → loop rule line 9.
+- **QA**: 코드 변경 없음 → 실 브라우저 QA 불요(census-only). 회귀 표면 0.
+- **차기 states 재진입 후보**: 표준 슬라이더 의사요소 마지막 형제 `::slider-thumb`(드래그 핸들 표준-네임·anti=0 신선, 벤더 `::-webkit/-moz-range-thumb` 와 별개)로 slider 표준-네임 3-파트(fill/track/thumb) carve 완주.
+
 ## 2026-06-30 — [design] cycle 2405 responsive 262nd round — 스크롤 스냅 마진 인라인-끝 longhand `scroll-margin-inline-end` 표면 폐기 (doubly-vacuous, scroll-margin 4-edge 논리변 carve 완주)
 
 - **결정**: `scroll-margin-inline-end`(스냅 자식의 inline 축 끝(LTR 오른쪽) 정렬 바깥 여백 논리 longhand, shorthand `scroll-margin-inline` 의 inline-end 성분)을 responsive 후보로 올리지 않고 표면 폐기. 코드 변경 0. 본 census 로 **scroll-margin 4-edge 논리변 carve 완주**(block-start 2381·block-end 2389·inline-start 2397·inline-end 2405).
