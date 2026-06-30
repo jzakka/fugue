@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-06-30 — [system] cycle 1882 Discovery — OpenSpec갭: 미아카이브 change 3건 전수 구현 검증 (covered-by-census, anti-patterns 변경 없음)
+- 결정: `openspec/changes/` 미아카이브 change 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring)의 ADDED/MODIFIED Requirement가 production 코드에 구현됐는지 전수 대조 → 전부 구현됨·기존 census로 covered. **anti-patterns 변경 없음**(decision-log만).
+- 신선성/커버: L1037이 3 proposal 갭(운영자 설정 미반영·MediaValidator 미연결·AdapterFallback 미증가)이 전부 코드에서 닫혀 있음을 명시 카브, L1144가 adapter-fallback-counter MODIFIED Requirement(7 Scenario)를 상세 카브, L734가 미아카이브 change delta 일반을 카브.
+- probe(현재 코드 재확인): (1) adapter-fallback: harvester_consumer.go processOne `if fellBack { adapterFallback.Add(1) }`(:25-27)가 `if extractErr != nil {...return}`(:29-32) **앞에** 배치(주석 :22-24 순서 불변식 명시). (2) media-validator: main.go:263 buildHarvesterConsumer→`.WithMediaValidator(NewDefaultMediaValidator())` + HasMediaValidator() + 회귀테스트. (3) host-rate config wiring: main.go:261(pioneer)/477(harvester) `buildHostRateLimiter(config.LoadSchedulerHostConfig())`→host_rate_limiter.go:13 `NewHostRateLimiter(cfg.DefaultRatePerSec, cfg.DefaultBurst, cfg.Enabled)`(FactoryDefault 하드코딩 아님).
+- 검증: `ls openspec/changes`(미아카이브 3건) · 3 proposal.md READ · processOne grep · NewHostRateLimiter 호출처 grep · L1037/L1144 baseline READ.
+- track: `system`. covered-by-census(미충족 OpenSpec갭 없음). 코드·anti-patterns 변경 없음.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 1884. 후보: JWT alg confusion·세션 고정·민감 헤더 로깅·rate-limit 우회·파일 업로드 polyglot·XXE/SVG.
+
 ## 2026-06-30 — [design] cycle 2397 responsive 261st round — 스크롤 스냅 마진 인라인-시작 longhand `scroll-margin-inline-start` 표면 폐기 (doubly-vacuous)
 
 - 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-margin-inline-start` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
