@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-06-30 — [design] cycle 2351 states 254th round — 진행률 막대 최외곽 섀도 래퍼 UA 의사요소 `::-webkit-progress-inner-element` 표면 폐기 (doubly-vacuous)
+- 결정: `::-webkit-progress-inner-element`(`<progress>` 섀도 DOM 최외곽 컨테이너 의사요소) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
+- 축 선택: states 영역. progress UA 의사요소 패밀리 carve: cycle 2157 progress-value(채워진 값)·2327 progress-bar(트랙)에 이은 최외곽 래퍼 계층(inner-element ⊃ bar ⊃ value 3계층 섀도 구조의 가장 바깥).
+- MANDATORY 체크: `::-webkit-progress-inner-element` 0건·`<progress>` 0건·progress 값/막대 의사요소 전체 0건 doubly-vacuous. anti=0 신선 축.
+- 근거: `<progress>` 요소 자체 부재(코드 전수 0). progress 요소가 없으면 섀도 의사요소도 존재하지 않음 → 최외곽 래퍼 스타일 적용 대상 0(pure vacuous).
+- DESIGN.md 확인: 105줄 progress/진행률 막대 silent·L11 Decoration Minimal. 로딩은 skeleton-shimmer(globals.css L99-115)로 처리하고 native `<progress>` 미사용.
+- QA: 코드 변경 없음(표면 폐기). grep census 로 webkit-progress-inner-element/<progress>/progress 의사요소 전부 0 확인.
+- 차기 states 재진입 후보: progress 섀도 의사요소 3계층 carve 완주(inner-element/bar/value). 형제 form UA 의사요소 `::-webkit-outer-spin-button`(number input 스피너·anti=1 incidental)·`::-webkit-search-results-button` carve 후보.
+
 ## 2026-06-30 — [design] cycle 2349 responsive 255th round — 스크롤 패딩 블록-시작 단일변 longhand `scroll-padding-block-start` 표면 폐기 (doubly-vacuous)
 - 결정: `scroll-padding-block-start`(스냅포트 블록 방향 시작 가장자리 한 변 안쪽 오프셋 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: responsive 영역. cycle 2301 scroll-padding-block·2309 scroll-padding-inline(2값 logical shorthand)에 이은 per-scroll-padding-edge-longhand carve. block-start 단일 가장자리 longhand(block-end/inline-start/inline-end 형제).
