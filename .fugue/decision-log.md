@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2381 responsive 259th round — 스크롤 스냅 마진 블록-시작 longhand `scroll-margin-block-start` 표면 폐기 (doubly-vacuous)
+## 2026-06-30 — [design] cycle 2383 states 258th round — 스크롤바 버튼(화살표) sub-pseudo `::-webkit-scrollbar-button` 표면 폐기 (host-present + uniform-hidden)
+
+- 결정: `apps/web/` 의 WebKit 스크롤바 sub-pseudo `::-webkit-scrollbar-button` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: states 영역 258번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 스크롤바 sub-pseudo carve(thumb 2359·track-piece 2367·corner 2375 후속)의 증감 버튼 sub-pseudo.
+- MANDATORY 체크: 코드 `::-webkit-scrollbar-button` 0건. `::-webkit-scrollbar` 호스트는 globals.css L122 display:none 단 1곳(숨김 전용). anti dedicated census 0건(thumb/track-piece census 형제 enumerate 부수 언급만·`::` grep 사각지대 주의해 line-leading 검사). markers=0.
+- 근거: host-present + uniform-hidden — `::-webkit-scrollbar` 호스트가 스크롤바를 균일 숨김하므로 자식 증감 버튼도 렌더 안 됨. scrollbar-width/color 표준 속성도 부재라 styled scrollbar 모집단 0.
+- DESIGN.md 확인: L82-88 Interaction/State(hover/transition)·L11 Decoration Minimal 모두 스크롤바 커스텀/증감 버튼 silent. scrollbar-hide 는 의도적 숨김 유틸 → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 states 재진입 후보: scrollbar sub-pseudo 잔여 `::-webkit-resizer`(anti≈18·dedicated 미상·line-leading 확인 필요) 또는 `::-webkit-scrollbar-track`(thumb 형제 track 전체).
 
 - 결정: `apps/web/` 의 스크롤 스냅 논리 longhand `scroll-margin-block-start` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: responsive 영역 259번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-padding 4-edge carve(2373 완주) 후 자매 family scroll-margin 논리변 carve 시작.
