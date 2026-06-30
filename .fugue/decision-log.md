@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2377 tokens 280th round — 뷰 프로그레스 타임라인 inset longhand `view-timeline-inset` 표면 폐기 (doubly-vacuous)
+## 2026-06-30 — [design] cycle 2379 aesthetic 281st round — 리듬 사이징 블록-스텝 크기 longhand `block-step-size` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 CSS Rhythmic Sizing longhand `block-step-size` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: aesthetic 영역 281번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. anchor-positioning family 가 dedicated/joint census 로 소진(anchor-scope·position-try-order 까지 완주, 잔여 longhand 은 family group census 가 커버)되어 신규 family 로 피벗 — block-step(수직 리듬 grid 양자화).
+- MANDATORY 체크: 코드 block-step family(block-step/size/insert/align/round) 0건. anti `block-step-size` 0건(부수 언급조차 0·완전 신선). markers=0.
+- 근거: doubly-vacuous — 수직 리듬 grid 양자화 메커니즘 자체가 부재라(masonry 카드 높이는 콘텐츠 자연 높이) step 크기를 지정할 대상이 없음(block-step 없으면 block-step-size 효력 없음).
+- DESIGN.md 확인: L67-72 Layout(masonry/breakpoint/column-gap)·L16-35 Typography(font-size 스케일/weight)·L11 Minimal 모두 수직 리듬 grid/block-step silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요.
+- 차기 aesthetic 재진입 후보: block-step family 잔여 `block-step-insert`/`block-step-align`/`block-step-round`(anti=0·신선) 또는 offset-position(line 1045 별축 확인 후).
 
 - 결정: `apps/web/` 의 scroll-driven view-progress 타임라인 longhand `view-timeline-inset` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
 - 축 선택: tokens 영역 280번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. scroll-driven 애니메이션 토큰 carve(animation-range-start 2361·end 2369 후속)의 view-timeline inset longhand.
