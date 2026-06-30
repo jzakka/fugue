@@ -17,7 +17,15 @@
 
 ## 항목
 
-## 2026-06-30 — [design] cycle 2369 tokens 279th round — 스크롤 연동 애니메이션 끝 경계 longhand `animation-range-end` 표면 폐기 (doubly-vacuous)
+## 2026-06-30 — [design] cycle 2371 aesthetic 280th round — 앵커 적응 재배치 시도 순서 longhand `position-try-order` 표면 폐기 (doubly-vacuous)
+
+- 결정: `apps/web/` 의 anchor-positioning fallback 정렬 longhand `position-try-order` 를 결함 클래스 미성립으로 표면 폐기. 코드 변경 없음.
+- 축 선택: aesthetic 영역 280번째 라운드. 발견 모드(pending=0) 0-candidate 센서스. 직전 anchor-positioning family 폐기 본문에서 미열거(enumerate 안 함)로 남겨둔 `position-try-order` longhand 를 신선 축으로 선정.
+- MANDATORY 체크: 코드 `position-try-order` 0건·anchor-positioning family(position-try/position-try-fallbacks/position-area/anchor-name/position-anchor/anchor-scope/anchor()/anchor-size()) 전체 0건. anti dedicated census 0건(anti=1 은 family 본문의 미열거 명시 부수 언급). decision-log 의 잔여후보 forward-pointer 만 존재(dedicated 아님). markers=0.
+- 근거: doubly-vacuous — 앵커 포지셔닝 메커니즘 자체가 부재라 재배치 fallback 후보가 없고, 따라서 그 정렬 순서를 정할 표면도 구조적으로 없음(anchor 없으면 position-try-order 효력 없음).
+- DESIGN.md 확인: L11 Decoration Minimal·L67-72 Layout(masonry/breakpoint/column-gap 만 규정)·L82-88 Interaction/State(hover/transition 만) 모두 anchor positioning/적응 재배치 silent → 위반 대상 부재.
+- QA: 코드 변경 없음(표면 폐기). 실 브라우저 QA 불요(렌더 변경 0).
+- 차기 aesthetic 재진입 후보: anchor-positioning family 잔여 `anchor-scope`(미열거 longhand·anti=형제 부수 언급만) 또는 `anchor-size()` 함수 표기.
 - 결정: `animation-range-end`(scroll-driven 애니메이션이 타임라인 어느 지점에서 끝날지 longhand) cross-surface 비정합 후보를 올리지 않고 표면 폐기.
 - 축 선택: tokens 영역. animation-range shorthand(cycle 2025)의 end 경계 longhand·animation-range-start(cycle 2361) 형제로 range longhand 쌍 완주.
 - MANDATORY 체크: `animation-range-end` 0건(anti=1 은 cycle 2361 range-start census 형제 enumerate 부수 언급)·`animation-range`(shorthand/start 포함) 전체 0건·`animation-timeline`/`scroll-timeline`/`view-timeline` 전체 0건 doubly-vacuous. 신선 축.
