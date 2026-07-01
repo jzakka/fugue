@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1926 Discovery — 동시성: 봇 consumer 의 워커 동시성 모델과 공유 통계(h.stats/fetchFailureCount) race (N>1 워커 하 in-memory 공유상태 데이터레이스) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 4주기째)에서 "harvester/pioneer consumer 가 N>1 워커로 실행될 때 공유 통계 카운터(nodeStats·fetchFailureCount)나 host rate-limiter map 을 동시 변형해 데이터레이스·double-claim" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = consumer 워커 동시성 모델(프로세스 내 goroutine pool vs 프로세스 다중화)과 in-memory 공유상태 race.
+- 검증: (1) 워커 모델 = 프로세스당 단일 Run 루프: cmd/bot/main.go:263-279 이 consumer 1개 생성 후 `consumer.Run(runCtx)` 단일 goroutine 순차 실행(harvester_consumer.go:273 `for{}` 안 순차 DequeueCtx→processOne). N>1 워커는 **이 command 를 N개 프로세스로 실행**해 달성(:258 "even when this command runs N times concurrently"·harvester_consumer.go:247 "Duplicate-URL prevention for N>1 workers is delegated to..."). (2) cross-process 중복 claim 방지 = DB-level: :257 `FOR UPDATE SKIP LOCKED` 가 두 워커 프로세스가 같은 frontier row 를 claim 못 하게 보장 → in-memory 공유 없이 DB 가 조정. (3) 프로세스 내 h.stats(nodeStats)·fetchFailureCount 는 typed `atomic.Uint64`(harvester_consumer.go:338-444 `.Add(1)`)라 설령 동일 프로세스가 향후 다중 goroutine 이 돼도 카운터 race 불가. 각 프로세스는 자기 consumer/stats 인스턴스만 소유(프로세스 간 in-memory 공유 0).
+- 판정: **covered-by-census** — L352(동시 워커 frontier claim double-claim 방지 FOR UPDATE SKIP LOCKED)·L361/L278(typed/raw atomic 카운터 정합)·L189(host-키 공유 concurrent map)가 커버. confidence<3.
+- 영향 범위: 봇 consumer 워커 동시성 모델·공유 통계만. anti-patterns 미변경. 신규 코드가 한 프로세스 안에서 `for i:=0;i<N;i++ { go consumer.Run(ctx) }` 로 **동일 consumer 인스턴스를 다중 goroutine 공유**시키면서 non-atomic 필드를 도입하면 L352/L361 예외로 등록 가능.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 4주기째) → cycle 1928. 후보: FilterChain 순서·robots fail-open·미디어 후보 파이프라인·snapshot key 파생·adapter fallback 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1924 Discovery — 에러처리: outbound *http.Client 의 total Timeout 바운딩 (SSRF-safe client·OG fetch client 가 hung-upstream 에 goroutine 을 매달지 않는가) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 4주기째)에서 "아웃바운드 HTTP 클라이언트(SSRF-safe·OG fetch)가 http.Client.Timeout 을 설정하지 않아 slow/hung upstream 이 요청 goroutine 을 무한 blocking·deadline-less ctx 에만 의존해 hang" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 에러처리. 후보축 = 외부(공격자 제어 가능) 원격에 대한 outbound 요청이 client-level timeout 으로 바운드되는가.
