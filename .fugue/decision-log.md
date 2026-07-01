@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2004 Discovery — 보안: 미디어 업로드 저장소 object-key 가 사용자 제어 filename 으로 path traversal(CWE-22) 되는가 (NEW baseline L1206)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 20주기째)에서 "업로드 파일명 경로조작·`../` 버킷탈출·절대경로 주입·filename→로컬 임의쓰기·확장자 위조" probe → **FP 확정, NEW clean baseline L1206 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 보안. 후보축 = 미디어 업로드 저장소 object-key/경로 구성의 filename 기반 path traversal(CWE-22).
+- 확인: (1) S3 key = `<mediatype>/<uuid>.<ext>`(storage.go:180)로만 조립 — mt=allowlist enum·uuid=서버생성 난수·ext=extensionForMIME 고정 switch → 세 구성요소 모두 사용자 입력 무관. (2) 사용자 제어 `filename` 파라미터(pin/handler.go:287/:333 `header.Filename`)는 Upload 본문(:141-206)에서 한 번도 참조 안 됨 = dead 파라미터(시그니처 :141 에만 등장). (3) 업로드 바디는 bytes.Reader→S3 PutObject 직접 스트리밍·filename 이 os.Create/filepath.Join 등 로컬 경로 조립에 미사용 → traversal 시퀀스가 key 진입할 문법적 경로 부재.
+- 비중첩: L192(업로드 MIME 위조/CORS/ffmpeg 명령주입=content/injection 축)·L1148(ffmpeg temp 파일 CWE-377/378=임시파일 축)와 별개(object-key CWE-22 축).
+- 예외(등록 가능): key 를 header.Filename 으로 조립+Clean/Base 검사 없음·`filepath.Join(dir,userFilename)` 로컬 저장·사용자 확장자 그대로 key 부착(이중확장자)·UUID 대신 사용자 식별자 key site.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 21주기째) → cycle 2006. 후보: pin/board/interaction/frontier DB 제약·트랜잭션 원자성·dedup 정규화·상태전이 정합 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2000 Discovery — 봇: firstSrcsetURL 이 공격자 제어 crawled srcset 을 파싱해 URL 토큰을 오추출/무효 영속하는가 (NEW baseline L1204)
 - 결정: 봇 area(6-area rotation 동시성→봇, 18주기째)에서 "srcset URL 토큰 오추출·URL 내 콤마 오split·descriptor 를 URL 로 오인·빈/공백 crash·malformed 무효 미디어 영속" probe → **FP 확정, NEW clean baseline L1204 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 봇. 후보축 = srcset 첫 후보 URL 토큰 추출(firstSrcsetURL)의 공격자 입력 견고성.
