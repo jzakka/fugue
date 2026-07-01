@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1988 Discovery — 봇: 추출 title/body_text 를 pins.title(200)/description(500) cap 으로 절단할 때 멀티바이트 UTF-8 rune 을 중간에 잘라 invalid UTF-8 을 저장하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 12주기째)에서 "title/body 절단이 byte 슬라이싱이라 멀티바이트 문자 중간 절단→깨진 UTF-8 DB 저장" probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = title/body_text 컬럼 cap 절단의 rune-boundary 안전성.
+- 검증: harvester_consumer.go:431-432 `doc.BodyText=truncateRunes(doc.BodyText,500)`·`doc.Title=truncateRunes(doc.Title,200)`. truncateRunes 는 (a) `utf8.RuneCountInString(s)<=n` 시 원본 반환·(b) 초과 시 `for i := range s`(range 는 rune 경계 byte-index 산출) 로 순회하다 `count==n` 에서 `s[:i]` 반환 → 정확히 n rune·rune 경계 절단이라 멀티바이트 미분할. ProcessDocument 前 실행이라 BodyText/Title verbatim write 前 cap.
+- 판정: **covered-by-census** — L320(하베스터 DB 컬럼 cap 사전 enforcement 계약)이 정확히 "title 200 rune 절단 harvester_consumer.go:432 truncateRunes·utf8.RuneCountInString+rune 경계 슬라이싱으로 멀티바이트 미분할·description 500 rune·rune 아닌 byte 단위 cap 검사 금지" 를 명시 커버. confidence<3. 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 13주기째) → cycle 1990. 후보: harvester Canonical-URL 멱등 upsert·PinDocument SSOT 최소필드·harvester snapshot READ·pioneer errorKind 분류 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1986 Discovery — 동시성: context.Context 를 구조체 필드로 저장(containedctx)해 취소된/타 요청 ctx 를 재사용하는가 (NEW baseline L1199, anti-patterns 등록)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 11주기째)에서 "ctx 를 struct 필드에 캡처해 stale ctx 재사용·cross-request deadline 누수" probe → context.Context struct 필드 0건(refuted vacuous)·기존 census 미커버 → **NEW baseline L1199 등록**(양쪽).
 - 축 선택: 동시성. 후보축 = containedctx(ctx 를 first-param 아닌 struct 멤버로 보관).
