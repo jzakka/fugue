@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1920 Discovery — 보안: 미디어 업로드 object-key 파생의 path traversal/key injection (user multipart filename → S3 key) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 4주기째)에서 "클라 제어 multipart filename(header.Filename)이 storage.Upload 를 거쳐 S3 object key 로 흘러 path traversal(`../`)·key injection 을 허용하거나·CORS wildcard+credentials·JWT alg confusion·인바운드 body cap 누락" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = 업로드 object-key 파생이 user-controlled filename 을 신뢰하는가 (pin/handler.go:287·:333 이 header.Filename 을 Upload 로 전달).
+- 검증: (1) storage.go:141 `Upload(ctx, filename, contentType, size, body)` 는 filename 인자를 받지만 key 파생에 **미사용** — :178-180 `key = fmt.Sprintf("%s/%s%s", mt, uuid.New().String(), ext)` 로 mt(allowlist 상수)·`uuid.New()`(server)·`extensionForMIME(mime)`(server MIME→ext 맵) 3요소 전부 서버 파생 → user 입력이 key 에 도달 못 함(traversal/injection 불가). (2) :148 http.DetectContentType sniff ↔ :153-156 declared Content-Type 불일치 거부(MIME 위조 차단)·:168-171 allowlist 검증·:173-176 per-type size cap. (3) pprof/expvar/debug 엔드포인트 등록 0건(grep) — 미인증 디버그 표면 부재(vacuous).
+- 판정: **covered-by-census** — L156(cycle 766, 보안: "user filename 을 object key 에 써서 path traversal/key injection" 후보 금지, ":178-180 object key=mediatype/UUID.ext 로 server UUID 파생·filename 인자 본문 미사용(traversal 불가, 6 호출처 동일 funnel)" 명시)이 정확히 커버. 교차 참조: L192(CORS)·L186(JWT alg confusion + 쿠키 HttpOnly/Secure/SameSite)·L440/L831(인바운드 MaxBytesReader body cap)·L156(MIME 위조 stored XSS)로 probe 한 모든 sub-axis 안착. confidence<3.
+- 영향 범위: 미디어 업로드 object-key 파생 경로만. anti-patterns 미변경. 신규 코드가 filename 을 key 에 직접 삽입(`fmt.Sprintf("%s/%s", mt, header.Filename)`)하거나 filepath.Join 에 user 경로 세그먼트를 끼우면 L156 예외로 등록 가능.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 4주기째) → cycle 1922. 후보: DTO nullable 직렬화·time zone TIMESTAMPTZ·JSONB 왕복·에러 envelope 모양 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1918 Discovery — OpenSpec갭: harvester consumer 의 snapshot-first 진입점 경계 계약 (진입점만 경유·(ctx,url) 입력·3-tuple 반환) (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 4주기째 시작)에서 "consumer 가 Fetcher.Fetch 를 직접 호출하거나 net/http·ObjectStorage SDK 를 직접 생성해 snapshot-first 경계를 위반·스냅샷 키를 재계산해 넘김·3-tuple 반환 의미론 위반" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = harvester/spec.md:569-600 3 Requirement(진입점만 경유 SHALL NOT 저수준 Fetch·(ctx,url) 입력·3-tuple (html,errorKind,err) 반환).
