@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1928 Discovery — 봇: handleMeta 의 meta 속성 소스 정합 (og:* ← property 속성, twitter:*/description/author ← name 속성) + first-wins + content 정규화 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 4주기째)에서 "extractor.handleMeta 가 OG(property 속성)와 Twitter Card(name 속성) meta 를 잘못된 속성에서 읽어 twitter:image/og:image 를 놓치거나·last-wins 로 덮어써 우선순위 역전·빈 content 를 채택" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = meta 태그 속성 소스 매핑 정확성(OG spec=property·Twitter Cards=name) + first-wins + 정규화.
+- 검증: extractor.go:291-346 handleMeta — (1) 속성 소스 정합: :298 `switch property` 로 og:title/og:image/og:url/og:locale/og:description/article:published_time/article:author 를 **property 속성**에서(OG 프로토콜 규약)·:328 `switch name` 으로 twitter:title/twitter:image/description/author 를 **name 속성**에서(Twitter Cards 규약) 읽음 → 속성-소스 혼동 없음. (2) first-wins: 모든 case 가 `if s.X == "" { s.X = content }` 로 첫 비어있지않은 값 채택(last-wins 덮어쓰기 아님). (3) content 정규화: :294 `strings.TrimSpace(getAttr(n,"content"))`·:295-297 빈 content 는 early return(빈/공백 메타 미채택). 이 필드들은 pickFirstNonEmpty title/thumbnail/body_text/author 체인에 공급됨.
+- 판정: **covered-by-census** — L832(title/body_text 소스 우선순위 fallback + first-wins + TrimSpace: ogTitle/twTitle/ogDescription/metaDescription 채택)·L676(썸네일 소스 og:image/twitter:image/JSON-LD image 우선순위)·L462(lang·author·published_at 추출 fallback + parseTime: ogLocale/ogAuthor/metaAuthor/ogPublished)가 handleMeta 산출 필드를 전수 커버·L842(canonical/og url). confidence<3.
+- 영향 범위: handleMeta 의 meta 속성 파싱만. anti-patterns 미변경. 신규 코드가 twitter:* 를 property 에서(또는 og:* 를 name 에서) 읽거나·first-wins 를 last-wins 로 바꾸거나·빈 content early-return 을 제거하면 L832/L676/L462 예외로 등록 가능.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 5주기째 시작) → cycle 1930. 후보: scheduler politeness·pioneer worker-budget·harvester snapshot fallback·pattern-analysis Requirement 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1926 Discovery — 동시성: 봇 consumer 의 워커 동시성 모델과 공유 통계(h.stats/fetchFailureCount) race (N>1 워커 하 in-memory 공유상태 데이터레이스) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 4주기째)에서 "harvester/pioneer consumer 가 N>1 워커로 실행될 때 공유 통계 카운터(nodeStats·fetchFailureCount)나 host rate-limiter map 을 동시 변형해 데이터레이스·double-claim" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = consumer 워커 동시성 모델(프로세스 내 goroutine pool vs 프로세스 다중화)과 in-memory 공유상태 race.
