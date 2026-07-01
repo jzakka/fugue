@@ -25,6 +25,13 @@
 - DESIGN.md 확인: Typography(L16-35)·Interaction(L82-88 hover/transition)은 밑줄을 화면폭별로 전이하라 SHALL 없음(loop-design.md L9 취향 축).
 - QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1218줄로 +1.
 - 차기 responsive 재진입 후보: sm:tracking(letter-spacing BP 토글) 축, sm:leading(line-height BP 토글) 축.
+## 2026-07-02 — [system] cycle 2038 Discovery — 보안: ffmpeg/ffprobe exec 인자주입(CWE-78/88, 사용자 trim float·leading-dash 경로가 옵션으로 해석) (covered-by-census)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 37주기째)에서 "pin 비디오 처리의 `exec.CommandContext(\"ffmpeg\"/\"ffprobe\", ...)` 에 사용자 제어 trim_start/trim_duration(float)·임시파일 경로가 흘러들어 (a) leading-dash 값이 ffmpeg 옵션으로 재해석되거나 (b) 쉘 메타문자로 명령이 주입되는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 보안. ffmpeg/ffprobe 자식 프로세스 인자 경계 — 사용자 제어 float/경로가 execve 인자 배열로 전달될 때 옵션 오해석·명령 주입 표면.
+- MANDATORY 체크: (1) pin/handler.go READ — `trimVideoRange`(:729-743) `exec.CommandContext(ctx,"ffmpeg","-ss",fmt.Sprintf("%.3f",start),"-i",inputPath,"-t",fmt.Sprintf("%.3f",duration),"-c","copy",...,outputPath)`·`reencodeVideoRange`(:747-765)·`probeDuration`(:769-780) `exec.CommandContext(ctx,"ffprobe","-v","error","-show_entries","format=duration",...,path)`. (2) 사용자 float 은 `%.3f` 포맷(순수 숫자·부호 무·메타문자 무)이라 `-ss`/`-t` 뒤 flag-value 로만 소비. (3) inputPath/outputPath 는 `os.CreateTemp` 절대경로(/tmp/... — 사용자 파일명 무·leading-dash 무). (4) `exec.CommandContext` 는 execve 직접 호출(쉘 미경유 → 메타문자 주입 불가).
+- 근거: 본 축은 **L192 refutation body 가 명시적으로 "ffmpeg/ffprobe 명령 주입(filename/경로/trim 메타문자)" 를 4개 refuted surface 중 하나로 열거**하여 이미 census 편입(L192 = "미디어 업로드/비디오 처리 경로에서 사용자 제어 입력을 자식 프로세스로 흘린다" 축). 보강: L1148(ffmpeg 임시경로 CWE-377/378)·L1208(exec 에러캡처). trim float=%.3f flag-value·경로=os.CreateTemp 절대경로·execve 쉘미경유 3중으로 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 38주기째) → cycle 2040. 후보: pins.media_url↔og_data.media_candidates persist lockstep 외 축, frontier url_hash 정규화 공유, INSERT 컬럼리스트 완전성, classifier 판정 파생필드 동기화 중 미수록 sub-axis.
 
 ## 2026-07-02 — [design] cycle 2427 aesthetic 287th round — CSS 어간-공백 변환 word-space-transform 표면 폐기 (doubly-vacuous)
 - 결정: aesthetic area(287th round)에서 "CSS `word-space-transform`(CSS Text 4 — 전각 이데오그래픽 스페이스/구두점 문자의 진출폭을 변환·트림하는 CJK 어간-폭 속성)으로 전각 공백 남용 텍스트의 어간 리듬을 균일화하는데 일부 텍스트만 변환하고 동종 다른 텍스트는 미변환이라 어간 공백 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
