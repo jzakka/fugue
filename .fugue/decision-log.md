@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1992 Discovery — 보안: 공격자-제어 입력(크롤 HTML/URL·에러문자열·검색어)이 catastrophic backtracking 정규식에 매칭돼 ReDoS(CWE-1333)를 유발하는가 (NEW baseline L1200)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 14주기째)에서 "중첩 수량자·(a+)+ 백트래킹·attacker-controlled×backtracking regex·정규식 DoS" probe → **FP 확정, NEW clean/vacuous baseline L1200 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 보안. 후보축 = ReDoS(정규식 catastrophic backtracking) 공격면.
+- 확인: (1) 프로덕션 regexp 전수 = **단 1곳** — pioneer_consumer.go:332 `regexp.MustCompile(`+"`"+`status code (\d{3})`+"`"+`)`, Go stdlib `regexp`=RE2(선형시간·백트래킹 엔진 부재)라 어떤 패턴·입력에도 지수폭발 구조적 불가. (2) 유일 패턴이 trivially-linear(리터럴+경계 `\d{3}`)이고 statusCodeFromErr(:334-347) 입력이 fetchHTMLShared 내부 에러문자열(err.Error())이지 raw HTML/유저입력 아님. (3) 백트래킹 엔진 dlclark/regexp2 는 go.mod:49 `// indirect`(dop251/goja 가 끌어옴)·apps/api direct import 0·goja direct import 0 → 공격자 입력이 backtracking 엔진으로 흐르는 코드경로 부재. (4) 유저-제어 패턴 컴파일(`regexp.Compile(userInput)`) 0.
+- 신규성: 기존 보안 census(L1125/L1048/L209 SSRF·L1194 XXE·L251/L827 pagination/search 파라미터·L756 untrusted content·L335 HTTP 타임아웃)에 ReDoS/정규식 백트래킹 축 부재 → 신규.
+- 예외(등록 가능 조건): 공격자-제어 입력을 (a+)+·(.*)*·백레퍼런스형 pathological 패턴에 매칭하며 regexp2 등 backtracking 엔진을 direct 사용하거나·goja 로 공격자 JS/정규식 실행하거나·`regexp.Compile` 에 유저-제어 패턴을 넘기는 격리 site.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 15주기째) → cycle 1994. 후보: pins.og_data JSONB 직렬화 round-trip·frontier next_fetch_at CASE 백오프 단조성·pin media_type↔확장자 매핑·board_pins position 정렬 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1990 Discovery — OpenSpec갭: interaction capability 의 piggyback wiring(GET pins·POST pins·POST boards/{id}/pins 인증 호출자 best-effort 기록) + 독립 POST /api/interactions 엔드포인트 검증 계약이 spec 을 충족하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 13주기째)에서 "interaction 3-Scenario piggyback wiring 누락·미인증 GET view 기록·best-effort 위반·standalone 엔드포인트 subject 위조/type 미검증" probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = interaction capability piggyback wiring 3-Scenario + 독립 POST /api/interactions 검증.
