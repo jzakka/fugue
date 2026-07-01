@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1944 Discovery — 보안: 검색 ILIKE 패턴의 유저 제어 `%`/`_` 와일드카드 메타문자 미이스케이프 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "검색어 `q` 가 `ILIKE '%' || $1 || '%'` 로 결합되는데 `$1` 내부의 `%`/`_`/`\` 메타문자가 이스케이프 안 돼 SQL injection·wildcard 과다매칭·leading-% ReDoS 성 DoS" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = 유저 제어 검색어의 ILIKE 패턴 메타문자 처리.
+- 검증: search.sql:32/35/73/76/93/111·tags.sql:15 전수 `ILIKE '%' || $1 || '%'` — `$1` 은 sqlc 파라미터 바인딩(SQL 텍스트 미보간·주입 불가)·`%` 와일드카드는 SQL 내 `||` 결합(Go 조립 아님). `$1` 내부 `%`/`_` 는 Postgres 가 pattern operand 로 해석하나 이는 **기능적 과다매칭 quirk**(예 "50%" 검색이 wildcard 로 확장)일 뿐 권한/데이터 유출 없음·ILIKE 는 정규식 아님(catastrophic backtracking 없음)·leading-% 는 유저입력 무관하게 이미 seq scan 이라 DoS 증폭 없음.
+- 판정: **covered-by-census** — L312("ILIKE 패턴 메타문자 주입"을 명시적으로 refuted 열거: 전 DB 접근 $N 파라미터 바인딩으로 주입 불가)·L827(ILIKE 와일드카드도 SQL 내 $1 결합이라 검색어가 SQL 구문 해석 불가·주입 불가능)가 커버. 보안 각도(injection)는 전수 refuted·wildcard 과다매칭은 기능 quirk(비-보안). confidence<3.
+- 영향 범위: 검색 ILIKE 패턴 메타문자 보안 각도만. anti-patterns 미변경. 신규 코드가 검색어를 sqlc 파라미터 아닌 `fmt.Sprintf`/문자열 결합으로 SQL 에 보간하거나·`%`/`_` 를 ORDER BY/컬럼명 등 식별자 위치에 흘리면 L312/L827 예외로 실결함 등록 가능.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 5주기째) → cycle 1946. 후보: 컬럼 타입/CHECK/FK/UNIQUE·denormalized 카운터·enum 도메인 정합 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1942 Discovery — OpenSpec갭: auth "토큰이 존재할 때 선택적으로 인증 컨텍스트를 노출한다"(OptionalJWTMiddleware) Requirement 의 SHALL-NOT-401 wiring (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째)에서 "OptionalJWTMiddleware 가 토큰 부재/만료/서명불일치/파싱실패 시 401 을 반환(SHALL NOT 위반)하거나·유효 토큰인데 creatorID 컨텍스트를 안 노출" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = auth Req4(선택적 인증 surface)의 3 Scenario(토큰없음/유효/유효하지않음) wiring 정합.
