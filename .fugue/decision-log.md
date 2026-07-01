@@ -25,6 +25,12 @@
 - DESIGN.md 확인: L11 "Decoration level: Minimal" 기조상 정교 CJK 조판 튜닝 비지향, Typography(L16-35)는 폰트/weight/스케일만 SHALL·전각 공백 진출폭 변환 미규정(loop-design.md L9 취향 축).
 - QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1216줄로 +1.
 - 차기 aesthetic 재진입 후보: ruby 조판 정렬 ruby-align/ruby-overhang 축, line-fit-edge leading-trim 축.
+## 2026-07-02 — [system] cycle 2036 Discovery — OpenSpec갭: auth capability "인증된 유저의 프로필을 노출한다"(GET /api/auth/me NULL avatar_url/email→JSON null·cross-endpoint 일관) Requirement 정합 (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 36주기째)에서 "auth spec L103-130 '인증된 유저의 프로필을 노출한다' Requirement(GET /api/auth/me 가 미설정 avatar_url/email 을 빈문자열로 직렬화·키 누락·GET /api/creators/me 와 null 표현 불일치)가 미구현/미정합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. auth /me 프로필 응답의 nullable(avatar_url/email) 직렬화 SHALL(→JSON null)·SHALL NOT(→"")·cross-endpoint(auth/me↔creators/me) 일관 계약.
+- 확인: 이 축은 census 가 전수 소유 — (1) **L116 = auth 6 Requirement 열거에 "me-null직렬화" 명시 포함**: "auth capability spec.md 6 Requirement(소셜로그인·토큰상태·인증보호·OptionalJWT·프로필절단·me-null직렬화)" 로 본 Requirement 를 6번째로 열거하고 "me 빈문자열 직렬화" 후보를 refute(빈문자열 아닌 null 직렬화 확인). (2) **L828 = nullable DTO 직렬화 규약 소유**: 클라이언트-대면 응답 DTO 전수가 포인터→null/[]슬라이스(omitempty 0건)로 키 항상 노출·buildMeResponse 주석 auth/handler.go:223-226 "nullable → nil → JSON null" 명시·creator dto AvatarURL/Email `*string` no-omitempty. (3) **L1030 = cross-endpoint 직렬화 shape 정합**: 동일 엔티티의 엔드포인트 간 필드명/shape 정합 축.
+- 비중첩 확인: forward-pointer 후보 전수 기수록 — scheduler frontier=frontier-table baseline·harvester budget=work-budget 3 Req baseline·image cache 키파생=L333(봇)·robots Crawl-delay=scheduler Crawl-delay baseline·classifier pinnable=L296(봇). OpenSpec갭 37개 baseline + L116(auth 전 Requirement)로 11개 capability 전 Requirement 포화, 신규 sub-axis 부재.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 37주기째) → cycle 2038. 후보: 업로드 파일 크기/개수 제한·JWT 쿠키 SameSite·OAuth state 만료·경로 traversal·rate-limit 우회 중 미수록 sub-axis.
 
 ## 2026-07-02 — [design] cycle 2425 tokens 286th round — CSS 리스트 무작위 선택 함수 random-item() 표면 폐기 (doubly-vacuous)
 - 결정: tokens area(286th round)에서 "CSS `random-item()`(값 목록 중 요소별/고정 시드로 하나를 무작위 선택하는 CSS Values 5 함수)로 장식 색 팔레트·요소별 간격/각도 프리셋을 무작위 배정하는데 일부 표면만 random-item() 을 쓰고 동종 다른 표면은 고정값/JS 로 처리해 목록 무작위 선택 방식이 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
