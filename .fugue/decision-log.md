@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1936 Discovery — 에러처리: BeginTx 트랜잭션이 에러/조기-return·commit 후 경로에서 Rollback 규율을 지켜 커넥션 누수·이중 rollback·삼킨 commit 실패를 안 내는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "BeginTx 로 연 tx 가 early-return 지점마다 Rollback 이 빠져 conn 누수/dangling tx·commit 성공 후 무조건 defer Rollback 이 이중 rollback·commit 에러를 삼킴" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 에러처리. 후보축 = DB 트랜잭션 생명주기(BeginTx→query→Commit/Rollback)의 에러/조기-return 경로 정리 규율.
+- 검증: BeginTx 호출 전수(4곳) grep — auth/service.go:70/158 `defer func(){ _ = tx.Rollback() }()`(무조건 defer·commit 후 sql.ErrTxDone 무해하므로 의도적 `_=` 무시)·postgres_scheduler.go:272/429 `committed:=false; defer{ if !committed { _ = tx.Rollback() } }`(성공 경로 이중 rollback 회피)·전 query err `%w` wrap+early-return·tx.Commit err 검사 후 committed=true. 어느 경로도 Rollback 누락·conn 누수 없음.
+- 판정: **covered-by-census** — L255(트랜잭션 commit/rollback 에러 처리 규율: BeginTx err 검사·defer Rollback committed-flag guard·sql.ErrTxDone 무관용·Commit err 검사·query %w wrap)·L1094(BeginTx early-return/commit-후 경로 Rollback 누락→conn leak/dangling tx 없음: 무조건 defer + committed 플래그 두 shape 전수)가 커버. confidence<3.
+- 영향 범위: BeginTx 트랜잭션 생명주기 에러 정리만. anti-patterns 미변경. 신규 코드가 BeginTx 후 Rollback defer 없이 inline Rollback 만 두어 일부 early-return 을 놓치거나·committed 플래그 없이 성공 경로에서도 Rollback 을 돌려 이중 rollback/commit 에러를 삼키면 L255/L1094 예외로 등록 가능.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 5주기째) → cycle 1938. 후보: goroutine 누수·WaitGroup Add/Done 짝·context 취소 전파·atomic vs mutex 카운터 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1934 Discovery — 정합성: Pin(works) 삭제 시 child 테이블 ON DELETE fan-out 일관성 (board_pins/pin_tags/frontier_pins CASCADE + interactions SET NULL) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "pin 하드삭제 시 일부 child FK 가 CASCADE 누락(NO ACTION default)이라 삭제가 차단되거나·orphan row 잔존·이벤트 로그(interactions)가 잘못 CASCADE 로 소실" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = pin 삭제의 child 참조 무결성 fan-out 이 erd 명세와 정합하는가.
