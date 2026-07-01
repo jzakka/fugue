@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1960 Discovery — 에러처리: ffmpeg/ffprobe 자식프로세스 실패(non-zero exit·stderr·ctx timeout→SIGKILL)가 stderr 캡처 없이 삼켜지거나 오분류되는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "비디오 trim/probe 자식프로세스(exec.CommandContext ffmpeg/ffprobe) 실패가 stderr 를 버려 원인불명 에러를 내거나·ctx 취소 시 자식이 고아로 남거나·non-zero exit 를 성공으로 오분류" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 에러처리. 후보축 = ffmpeg/ffprobe 자식프로세스 실패의 stderr 캡처·ctx-바인딩 SIGKILL·에러 래핑 충실도.
+- 검증: pin/handler.go:730 `exec.CommandContext(ctx,"ffmpeg",...)` trimVideoRange·:770 `exec.CommandContext(ctx,"ffprobe",...)` probeDuration 은 (a) ctx-바인딩이라 요청취소/Shutdown drain(25s) 시 자식에 SIGKILL 전파(:722-727 주석 PR#353 앵커)·(b) `cmd.CombinedOutput()` 로 stdout+stderr 캡처 후 :739-740 `fmt.Errorf("ffmpeg copy: %w: %s",err,string(out))`·:761-762 reencode 동일 `%w` 래핑으로 exit-code 에러+stderr 를 상위 전파·(c) probeDuration 실패는 상위 Create 에서 fail-closed 400(길이 미확정 거부). non-zero exit 는 CombinedOutput 이 non-nil err 반환 → 성공 오분류 불가.
+- 판정: **covered-by-census** — L704(핀 생성 multipart/서버사이드 비디오 파이프라인의 실패-경로 status 3분류·probeDuration/reencode 자식프로세스 실패를 정확히 500 또는 fail-closed 400 으로 분류·서버-내부 I/O 는 500)가 자식프로세스 실패 status 분류를 커버·L192(동일 ffmpeg/ffprobe exec 의 command-injection 보안축)·L266(r.Context() 전파로 자식프로세스 ctx-취소)·L316(teardown 다중에러 집계) 보조. %w+CombinedOutput stderr 캡처는 L704 "서버-내부 I/O 실패는 정확히 500" 주장의 세부 facet. confidence<3. 차기 area = 동시성 (6-area rotation 에러처리→동시성, 5주기째) → cycle 1962. 후보: worker-pool goroutine 수명·채널 fan-out backpressure·atomic-vs-mutex 혼용·sync.Once init 경합 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1958 Discovery — 정합성: interactions.type(VARCHAR(20)) 가 DB CHECK 없이 app-only 도메인 강제라 도메인 밖 type 이 영속되는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "interactions.type 이 pins.media_type(chk_pins_media_type CHECK)과 달리 DB CHECK 제약 없이 애플리케이션 레이어에서만 {view,pin,board_add} 도메인 강제 → 미검증 INSERT 경로가 도메인 밖 type 영속·추천엔진 입력 오염" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = interactions.type 값-도메인의 DB-vs-app enforcement 정합.
