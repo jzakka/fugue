@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1954 Discovery — OpenSpec갭: feed Req3 "피드 라우트는 선택적 인증 미들웨어로 보호된다" wiring (GET /api/feed OptionalJWT·SHALL-NOT-401) (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째)에서 "feed 라우트가 OptionalJWTMiddleware 미배선이거나·JWTMiddleware 로 게이트돼 토큰 부재 시 401·유효 토큰인데 creatorID 미노출" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = feed Req3(피드 라우트 선택적 인증 wiring)의 3 Scenario(토큰/부재/무효) 정합.
+- 검증: main.go:180-182 `r.With(auth.OptionalJWTMiddleware(jwtSvc)).Get("/api/feed", feedHandler.GetFeed)`+spec 인용 주석 :181 READ — 피드 라우트가 OptionalJWTMiddleware 로 배선(JWTMiddleware 아님)·토큰 존재 시 creatorID 컨텍스트 노출·부재/무효 시 빈 컨텍스트 진입(401 없음). middleware.go:70-95 OptionalJWT 이 invalid/absent 전부 next.ServeHTTP(cycle 1942 검증).
+- 판정: **covered-by-census** — L356(라우터 인증 게이팅 전 22 라우트 매핑, "GET /api/feed(:176) OptionalJWT(feed spec '피드 라우트 선택적 인증')" 명시)+L116(4)(OptionalJWT surface: 부재/만료/서명불일치/파싱실패 전부 next.ServeHTTP·401 미반환)가 feed Req3 3 Scenario 전수 커버. L281(feed Req1 개인화 분기) 보조. confidence<3.
+- 영향 범위: feed Req3 라우트 wiring 축만. anti-patterns 미변경. 신규 코드가 /api/feed 를 JWTMiddleware 로 게이트해 미인증 401 을 내거나·OptionalJWT 배선을 제거해 creatorID 노출을 빠뜨리면 L356/L116 예외로 실결함 등록 가능.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 5주기째) → cycle 1956. 후보: SSRF·경로 traversal·인가 우회·시크릿·헤더 인젝션·CSRF 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1952 Discovery — 봇: parseTime 이 신뢰불가 크롤 날짜문자열(article:published_time·JSON-LD datePublished)을 파싱 실패 시 zero-time 오염·panic 을 내는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "parseTime 이 외부 HTML 의 날짜문자열을 다중 레이아웃으로 파싱하는데 어느 포맷과도 안 맞으면 zero-time(0001-01-01)을 반환해 published_at 오염·잘못 파싱·panic" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = 신뢰불가 크롤 날짜 파싱의 실패 처리 견고성.
