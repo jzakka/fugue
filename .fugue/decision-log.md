@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1970 Discovery — 정합성: scheduler Go Status enum(fetched/fetch_failed/harvested/harvest_failed) ↔ DB 영속 status enum 컬럼 drift 가능한가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 6주기째)에서 "url_scheduler.go Status 4-value enum 이 frontier 테이블의 영속 status/state enum 컬럼과 값집합 drift → SetStatus 가 미정의 status 를 DB 에 쓰거나 DB CHECK 와 어긋남" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = Go Status enum ↔ DB 영속 status 컬럼 값-도메인 정합.
+- 검증: frontier 테이블(migration 000026)에 **status/state string enum 컬럼 자체가 부재** — 상태는 marker 컬럼 기반(pioneer: `last_fetched_at` NULL-vs-set·harvester: `snapshot_key`+`harvested_at`·양쪽 `*_error_count`). claim 자격은 partial index `WHERE harvested_at IS NULL AND harvest_error_count < 5`(:46) 로 marker 에서 파생. Go Status enum(url_scheduler.go:31-36 fetched/fetch_failed/harvested/harvest_failed)은 SetStatusCtx 가 status 별로 SetStatusFetched/SetStatusFetchFailed/SetStatusHarvested/SetStatusHarvestFailed UPDATE 로 dispatch 하는 **transient API 파라미터**(영속 enum 아님)·미정의 status 는 ErrUnknownStatus(postgres_scheduler.go:38) 반환. 즉 DB 에 쓰이는 enum 문자열 컬럼이 없어 drift 대상 부재.
+- 판정: **covered-by-census** — L977(scheduler-frontier-table 테이블 정의 Requirement: "`status` enum/text 컬럼 부재(spec L5-17 SHALL NOT)" 를 migration 000026 과 cross-walk 로 명시 커버 — marker 기반 설계가 spec-필수)가 정확히 이 축. L391(성공측 상태전이/lease marker: SetStatusFetched→last_fetched_at/next_fetch_at/error_count UPDATE marker 의미)·L466(TIMESTAMPTZ marker 컬럼 타입)·L1071(값-도메인 문자열 컬럼 app-only enforcement) 보조. confidence<3. 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 6주기째) → cycle 1972. 후보: resp.Body.Close defer·partial-write·context deadline 전파·sentinel err 래핑·panic recover 경계 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1968 Discovery — 보안: XML 외부 엔티티(XXE·CWE-611) — 봇이 외부 sitemap/RSS/XML 을 파싱하며 외부 엔티티 확장으로 SSRF/파일유출 되는가 (NEW clean baseline L1194)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 6주기째)에서 "봇 크롤 파이프라인이 신뢰불가 외부 sitemap.xml·RSS/Atom·XML 응답을 encoding/xml 로 파싱하며 XXE→사설망 SSRF·로컬 파일 유출·billion-laughs DoS" 후보를 probe → **XML 파싱 표면 pure vacuous(0 사용)** 확인 → **NEW clean baseline L1194 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 보안. 후보축 = XML 외부 엔티티 확장(XXE) 공격면.
