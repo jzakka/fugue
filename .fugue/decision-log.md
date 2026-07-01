@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1922 Discovery — 정합성: media_type 도메인 enum 의 3계층 정합 (DB CHECK ↔ storage MediaType 상수 ↔ allowedMIME 맵) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 4주기째)에서 "media_type 값 도메인이 DB CHECK 제약·storage 레이어 상수·MIME allowlist 사이에서 drift 해 한 계층에서 유효한 값이 다른 계층에서 거부되거나·핸들러가 client 제어 media_type 임의값을 검증 없이 INSERT" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = media_type 값-도메인이 여러 정의처(DB/storage/MIME)에서 일치하는가.
+- 검증: (1) DB CHECK: 000012_pivot_pins_media.up.sql:10 `chk_pins_media_type CHECK (media_type IN ('image','audio','video'))`. (2) storage 상수: storage.go:21-24 `MediaImage="image"·MediaAudio="audio"·MediaVideo="video"` — DB CHECK 3값과 정확히 동일. (3) allowedMIME(:27-38) 이 jpeg/png/gif/webp→image·mpeg/wav/ogg/flac→audio·mp4/webm→video 로 모든 MIME 을 이 3 MediaType 중 하나로 매핑 → 도메인 밖 값 산출 불가. (4) media_type 은 client 원시입력이 아니라 storage.Upload 의 서버 파생 결과(`UploadResult.MediaType`)에서 옴 → 임의값 INSERT 불가.
+- 판정: **covered-by-census** — L253(테이블 CHECK 제약 chk_pins_media_type 도메인 정합)·L193(핸들러 도메인 enum ↔ DB 스키마 CHECK, "type 도메인 미검증 임의값 INSERT" refuted)가 커버. confidence<3.
+- 영향 범위: pins.media_type 도메인 정합만. anti-patterns 미변경. 신규 코드가 4번째 media_type(예: "text"/"code")을 storage 상수/allowedMIME 에만 추가하고 DB CHECK 갱신 migration 을 빠뜨리면(또는 그 역) L253/L193 예외로 등록 가능.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 4주기째) → cycle 1924. 후보: 응답 write 후 return 누락·resp.Body.Close 누수·백그라운드 goroutine panic·에러 삼킴 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1920 Discovery — 보안: 미디어 업로드 object-key 파생의 path traversal/key injection (user multipart filename → S3 key) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 4주기째)에서 "클라 제어 multipart filename(header.Filename)이 storage.Upload 를 거쳐 S3 object key 로 흘러 path traversal(`../`)·key injection 을 허용하거나·CORS wildcard+credentials·JWT alg confusion·인바운드 body cap 누락" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = 업로드 object-key 파생이 user-controlled filename 을 신뢰하는가 (pin/handler.go:287·:333 이 header.Filename 을 Upload 로 전달).
