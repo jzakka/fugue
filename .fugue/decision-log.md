@@ -24,6 +24,13 @@
 - 비중첩: L192(업로드 MIME 위조/CORS/ffmpeg 명령주입=content/injection 축)·L1148(ffmpeg temp 파일 CWE-377/378=임시파일 축)와 별개(object-key CWE-22 축).
 - 예외(등록 가능): key 를 header.Filename 으로 조립+Clean/Base 검사 없음·`filepath.Join(dir,userFilename)` 로컬 저장·사용자 확장자 그대로 key 부착(이중확장자)·UUID 대신 사용자 식별자 key site.
 - 차기 area = 정합성 (6-area rotation 보안→정합성, 21주기째) → cycle 2006. 후보: pin/board/interaction/frontier DB 제약·트랜잭션 원자성·dedup 정규화·상태전이 정합 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2006 Discovery — 정합성: OFFSET/keyset 페이지네이션 목록 쿼리의 ORDER BY 결정성(unique tie-breaker)이 cross-page 중복/누락을 막는가 (NEW baseline L1207)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 21주기째)에서 "페이지네이션 ORDER BY 비결정성·tie-breaker 부재로 cross-page 중복/누락·동일 timestamp 순서 흔들림·OFFSET skip" probe → **FP 확정, NEW clean baseline L1207 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 정합성. 후보축 = OFFSET/keyset 페이지네이션 쿼리의 ORDER BY unique tie-breaker 결정성.
+- 확인: (1) OFFSET 쿼리 14곳 전부 마지막 ORDER BY 항으로 unique 컬럼(id/pin_id) DESC 포함 — pins.sql:70/100/124·boards.sql:60·interactions.sql:43/57·search.sql:21/38/62/81/88/95/104/113 → PK DESC 가 전순서 확정, OFFSET 경계 안정정렬. (2) tie-breaker 없는 7곳(pins.sql:165/178·boards.sql:26/31/36/68/79)은 전부 OFFSET 없는 LIMIT-only 단일 fetch 또는 full-list → cross-page 개념 부재, 동률 tie 는 cosmetic 표시순서 비결정(중복/누락 아님). (3) keyset 경로(pins.sql:195)도 커서 (created_at,id) 복합비교 + ORDER BY created_at DESC, id DESC 로 tie-broken.
+- 비중첩: L264(OFFSET $-파라미터 바인딩/음수 offset)·L1018(has_more 산출식)·L774(페이지네이션 신호 규약)와 별개(ORDER BY 정렬 결정성 축).
+- 예외(등록 가능): OFFSET/keyset 새 쿼리에 tie-breaker 누락·기존 `,id DESC` 종단 제거·keyset 커서 timestamp 단독 비교·표현식(similarity/score) 정렬만+unique tie-breaker 없이 OFFSET site.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 22주기째) → cycle 2008. 후보: best-effort Record 로그·DB 에러 분류·partial-failure fail-closed·retry/backoff·panic recover 중 미수록 sub-axis.
 
 ## 2026-07-01 — [system] cycle 2000 Discovery — 봇: firstSrcsetURL 이 공격자 제어 crawled srcset 을 파싱해 URL 토큰을 오추출/무효 영속하는가 (NEW baseline L1204)
 - 결정: 봇 area(6-area rotation 동시성→봇, 18주기째)에서 "srcset URL 토큰 오추출·URL 내 콤마 오split·descriptor 를 URL 로 오인·빈/공백 crash·malformed 무효 미디어 영속" probe → **FP 확정, NEW clean baseline L1204 등록**(anti-patterns + decision-log 양쪽).
