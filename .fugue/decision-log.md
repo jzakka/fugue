@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1994 Discovery — 정합성: 스케줄러 재시도 지수 백오프의 지연 시퀀스가 단조증가·경계·overflow·next_*_at 미래보장(hot re-claim)·CASE 매핑·jitter 밴드 정합을 깨는가 (NEW baseline L1201)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 15주기째)에서 "지수 백오프 int64 overflow·음수 shift panic·jitter 로 next_at 과거값→즉시 재클레임 hot-loop·candidate[i]↔WHEN n off-by-one·지연 역전" probe → **FP 확정, NEW clean baseline L1201 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 정합성. 후보축 = frontier 재시도 지수 백오프 지연 시퀀스 정합(단조·경계·미래보장·CASE 매핑·원자성).
+- 확인: (1) delay(n)=30s·2^(n-1), n∈{1..5}=30/60/120/240/480s 순단조·최대 480s(int64 여유 ≫), n clamp [1,5](backoff.go:73-82, 음수 shift panic 방지). (2) jitter ∈ [-0.1·delay,+0.1·delay) → next_at-now = delay·(1+frac) ≥ delay·0.9 ≥ 27s > 0 항상 미래(url_scheduler.go:384) → ClaimPioneerCandidates `next_fetch_at<=now()` hot re-claim 불가·jitter 밴드 비중첩. (3) 단일 T_report(url_scheduler.go:379 now 한 번 캡처)·candidates[i]↔frontier.sql:48-54 WHEN(i+1) 정매핑·count 증가와 next_at 갱신이 단일 원자 UPDATE(LEAST 동일 스냅샷 두 번 평가). (4) 4xx 는 UpdateFetchErrorDead(count=5·next_at 미변경)로 backoff CASE 직교.
+- 신규성: 기존 census(L57 refresh grace TTL·L229 claim/lease visibility·L250 partial index 술어·L41 errorBackoff build-const·L1197 ErrorKind dispatch enum·L1198 divide-by-zero)에 백오프 지연 공식 단조성/overflow/미래보장/CASE 매핑 축 부재 → 신규.
+- 예외(등록 가능 조건): n clamp 제거로 음수 shift/overflow·jitter 하한 -100% 이하 또는 부호오류로 next_at≤now hot-loop·candidates↔WHEN off-by-one·T_report 루프내 재캡처·count/next_at 별도 UPDATE tear 격리 site.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 16주기째) → cycle 1996. 후보: sql.ErrNoRows 분기 누락·defer Close 에러 무시·errors.As/Is 타입 검사·partial write 후 rollback 로그 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1992 Discovery — 보안: 공격자-제어 입력(크롤 HTML/URL·에러문자열·검색어)이 catastrophic backtracking 정규식에 매칭돼 ReDoS(CWE-1333)를 유발하는가 (NEW baseline L1200)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 14주기째)에서 "중첩 수량자·(a+)+ 백트래킹·attacker-controlled×backtracking regex·정규식 DoS" probe → **FP 확정, NEW clean/vacuous baseline L1200 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 보안. 후보축 = ReDoS(정규식 catastrophic backtracking) 공격면.
