@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1918 Discovery — OpenSpec갭: harvester consumer 의 snapshot-first 진입점 경계 계약 (진입점만 경유·(ctx,url) 입력·3-tuple 반환) (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 4주기째 시작)에서 "consumer 가 Fetcher.Fetch 를 직접 호출하거나 net/http·ObjectStorage SDK 를 직접 생성해 snapshot-first 경계를 위반·스냅샷 키를 재계산해 넘김·3-tuple 반환 의미론 위반" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = harvester/spec.md:569-600 3 Requirement(진입점만 경유 SHALL NOT 저수준 Fetch·(ctx,url) 입력·3-tuple (html,errorKind,err) 반환).
+- 확인: (1) **진입점만 경유·클라이언트 직접참조 부재**: harvester_consumer.go 가 net/http·ObjectStorage SDK 를 import/생성 안 함, fetch 의존을 `fetcher SnapshotFirstFetch` 인터페이스 주입으로만 받음, 구체 구현체는 SnapshotFirstFetcher 내부에만 존재. (2) **입력 (ctx,url)·키 재계산 안 함**: processOne `h.fetcher.Fetch(ctx, rawURL)` 가 Dequeue URL 만 전달, snapshot_key 인자 추가/재계산/별도 SELECT 없음. (3) **3-tuple 반환**: Fetch 성공→(body,"",nil)·실패→(nil,kind,err), consumer 는 fetchErr 로만 성공/실패 판정, 성공 경로에서 errorKind 분기 안 함.
+- 안착 census: **L344(봇)** = harvester-snapshot-first-fetch capability(5 Requirement)의 진입점 fallback orchestration·errorKind 4종·**consumer 경계 계약** — point (1) 진입점만 경유·클라이언트 부재·(2) (ctx,url) 입력·키 재계산 부재·(3) 3-tuple 반환 을 명시 — 본 probe 의 3 Requirement 와 정확히 동일 매핑. **L261(봇)** = snapshot-first-fetch 키 도출(write/read 대칭·날짜 segment)·**L32**(harvester read-path snapshot_key 소비)·**L90**(consumer 상태전이 dual-call)·**L1144**(미아카이브 change adapter-fallback-counter)도 인접 포괄. 신선 축 부재.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 4주기째) → cycle 1920. 후보: 응답 헤더 CRLF·업로드 stored-XSS·CORS·JWT 검증·MaxBytesReader body cap 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1916 Discovery — 봇: 미디어 후보 URL 의 위험 스킴 필터 (absolutize http/https 화이트리스트로 data:/javascript: reject·scheme-relative resolve) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 3주기째 완주) 에서 "extractor 가 `<img src=\"data:...\">`·`<img src=\"javascript:...\">` 같은 위험 스킴 미디어 URL 을 MediaCandidates 에 그대로 담거나·scheme-relative `//host/x.jpg` 를 해석 못 해 누락" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = extractor.go absolutize(:545) 의 scheme 화이트리스트 + ResolveReference 가 미디어 후보 수집에 적용되는 경로.
