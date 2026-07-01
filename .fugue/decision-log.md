@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1990 Discovery — OpenSpec갭: interaction capability 의 piggyback wiring(GET pins·POST pins·POST boards/{id}/pins 인증 호출자 best-effort 기록) + 독립 POST /api/interactions 엔드포인트 검증 계약이 spec 을 충족하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 13주기째)에서 "interaction 3-Scenario piggyback wiring 누락·미인증 GET view 기록·best-effort 위반·standalone 엔드포인트 subject 위조/type 미검증" probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = interaction capability piggyback wiring 3-Scenario + 독립 POST /api/interactions 검증.
+- 확인: (1) piggyback 3곳 전부 성공-후·응답-직전 Record 호출 — pin/handler.go:374 Create→`Record(...,"pin")`·:404 GetByID→`if CreatorIDFromContext ok { Record(...,"view") }`·boards/handler.go:594 AddPin→`Record(...,"board_add")`(rowsAffected≠0 409 early-return 후). (2) 라우트 미들웨어 정합 — main.go:149 GET /pins/{id}=OptionalJWTMiddleware(미인증 무-context→view 미기록·401 안 받음)·:146 POST /pins=JWTMiddleware·:173 POST /boards/{id}/pins=JWTMiddleware. (3) best-effort — recorder.go:27-39 Record 가 void 시그니처, isValidInteractionType 실패·CreateInteraction DB 에러를 log.Printf 만 하고 반환 없음→원래 응답 status/body 불변. (4) 독립 POST /api/interactions(handler.go:46-88) — creatorID=CreatorIDFromContext(:47, 401 guard)·UserID=creatorID(:77, body 에 user_id 필드 없음→subject 위조 불가)·type=isValidInteractionType(:65)·body cap 8KB(:53 MaxBytesReader)·pin_id 는 UUID format 만 검증(존재검증 없으나 spec 요구 없음, FK 위반은 500 로그).
+- 안착 근거: **L88(cycle 714)·L216(cycle 826)** = interaction piggyback wiring 3-Scenario 전수(3 site Record·OptionalJWT 미인증 미기록·void best-effort·type allowlist)로 정확히 중첩. **L118(cycle 730)** = POST /api/interactions subject 위조 불가(UserID=context, body 에 creator_id/user_id 미수용). **L145(cycle 756)·L193(cycle 808)** = interactions.type allowlist(isValidInteractionType {view,pin,board_add}) 도메인 enforce. 신규 축 없음.
+- 예외(등록 가능 조건): 3 핸들러 중 하나가 성공 경로에서 Record 를 빠뜨리거나·GET /pins/{id} 가 필수 JWT 로 바뀌어 미인증 401 을 받거나·Record 가 err 반환으로 바뀌어 원래 응답을 깨뜨리거나·중복 보드추가(rowsAffected==0)에서 board_add 기록하거나·standalone 엔드포인트가 body user_id 를 subject 로 신뢰하거나·type allowlist 검증이 제거되는 격리 site.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 14주기째) → cycle 1992. 후보: storage presigned URL 만료·JWT refresh 재사용 탐지·OAuth state 엔트로피·핀 미디어 MIME sniff 우회 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1988 Discovery — 봇: 추출 title/body_text 를 pins.title(200)/description(500) cap 으로 절단할 때 멀티바이트 UTF-8 rune 을 중간에 잘라 invalid UTF-8 을 저장하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 12주기째)에서 "title/body 절단이 byte 슬라이싱이라 멀티바이트 문자 중간 절단→깨진 UTF-8 DB 저장" probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = title/body_text 컬럼 cap 절단의 rune-boundary 안전성.
