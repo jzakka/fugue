@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1914 Discovery — 동시성: 64-bit atomic 필드 정렬 (raw uint64 32-bit 8-byte 미정렬 panic·atomic.Uint64 self-align) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 3주기째)에서 "메트릭 카운터가 raw uint64 필드를 atomic.AddUint64 로 증분하는데 32-bit 플랫폼에서 8-byte 미정렬로 atomic panic·구조체 내 mutex 뒤 배치로 정렬 깨짐" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = snapshot/metrics.go raw uint64 + media_validator_metrics.go/harvester_consumer.go atomic.Uint64 카운터의 64-bit 정렬 안전성.
+- 확인: (1) **snapshot raw uint64 = 정렬 안전 배치**: Metrics{successCount uint64(offset 0 struct 선두)·failureCount uint64(offset 8)·그 뒤 mu sync.Mutex} → 두 카운터가 struct 선두(offset 0/8, 8의 배수)라 32-bit 에서도 "첫 워드는 64-bit 정렬 보장"(sync/atomic 문서)에 걸려 atomic.AddUint64/LoadUint64 panic 없음. mutex 를 카운터 *뒤* 배치해 정렬 파괴 회피. (2) **media_validator/harvester = typed atomic.Uint64(self-align)**: Go 1.19+ atomic.Uint64 struct 타입은 내부 정렬 보장 + noCopy 라 필드 오프셋 무관하게 정렬 안전·`.Add`/`.Load` 메서드만 노출해 plain 혼용 컴파일 차단.
+- 안착 census: **L278(동시성)** = 워커-로컬 메트릭 카운터(snapshot raw uint64·harvester atomic.Uint64)가 "raw uint64 가 32-bit 에서 8-byte 미정렬로 atomic panic" 을 명시 refute + point (2) "raw uint64 정렬 안전: successCount(offset 0 struct 선두)·failureCount(offset 8)" — 본 probe 의 정렬 분석과 정확히 동일 매핑. **L361(동시성)** = typed atomic.Uint64 래퍼 카운터 increment↔snapshot-load 원자성·noCopy·plain 혼용 차단. **L98/L294**(snapshot 5-tuple 비원자 tear by-design)·**L75**(mutex+atomic 동거 구조체)도 인접 포괄. 신선 축 부재.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 3주기째 완주) → cycle 1916. 후보: charset 디코딩·robots fail-open·snapshot 키 파생·필터체인 순서·하베스터 어댑터 폴백 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1912 Discovery — 에러처리: 봇 extractor 의 신뢰경계-밖 HTML 속성 tolerant 파싱 (parseTime→nil·parseIntAttr→0 best-effort) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 3주기째)에서 "extractor 가 크롤한 HTML 의 malformed 속성(잘못된 datetime·비숫자 width/height)에서 파싱 에러를 침묵 무시해 zero-time(0001년) published_at 오염·잘못된 dimension 진행" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 에러처리. 후보축 = extractor.go parseTime(:620) + image_picker.go parseIntAttr(:205) 의 tolerant 파싱 실패 처리.
