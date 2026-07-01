@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1968 Discovery — 보안: XML 외부 엔티티(XXE·CWE-611) — 봇이 외부 sitemap/RSS/XML 을 파싱하며 외부 엔티티 확장으로 SSRF/파일유출 되는가 (NEW clean baseline L1194)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 6주기째)에서 "봇 크롤 파이프라인이 신뢰불가 외부 sitemap.xml·RSS/Atom·XML 응답을 encoding/xml 로 파싱하며 XXE→사설망 SSRF·로컬 파일 유출·billion-laughs DoS" 후보를 probe → **XML 파싱 표면 pure vacuous(0 사용)** 확인 → **NEW clean baseline L1194 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 보안. 후보축 = XML 외부 엔티티 확장(XXE) 공격면.
+- 검증: `encoding/xml` import 0건·`xml.Unmarshal`/`xml.NewDecoder`/`xml.Decoder`/`xml.Marshal` 호출 0건(apps/api 전수, _test 제외). `sitemap`/`RSS`/`Atom` grep 0(media_validator.go:149 은 "RSS enclosures" 미디어 소스 종류 언급 주석뿐, 실제 파서 없음). 봇이 파싱하는 신뢰불가 콘텐츠는 HTML(x/net/html·goquery — XML 아님)·JSON-LD(json.Unmarshal — 엔티티 확장 없음)·robots.txt(plain-text)뿐. 써드파티 XML 파서 의존 부재.
+- 판정: **NEW clean baseline (L1194)** — XXE 공격면 모집단 0. 기존 보안 baseline 과 비중첩: L756(ReDoS RE2 정규식 축)·L1125(unbounded body/gz bomb 크기 DoS 축)·L1048(SSRF outbound URL 검증 축)·L771(DisallowUnknownFields JSON 파서 축) 어느 것도 XML-엔티티-확장(DTD/외부엔티티) 축을 커버 안 함. 예외조건: 신규 encoding/xml 커스텀 엔티티 맵·써드파티 XML 라이브러리 도입·깊이제한 없는 신뢰불가 XML 파싱 site 는 등록 가능. 차기 area = 정합성 (6-area rotation 보안→정합성, 6주기째) → cycle 1970. 후보: FK ON DELETE·timestamptz·enum/nullability 캡·INSERT 컬럼리스트 완전성 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1966 Discovery — OpenSpec갭: pins(url) UNIQUE 인덱스(mig 000027)가 "같은 URL 여러 유저 핀 가능(URL 유니크 제약 없음)" SHALL 을 위반하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 6주기째)에서 pin capability "외부 URL을 핀으로 저장한다"(pin/spec.md:289-318)의 Scenario "같은 URL을 여러 유저가 핀할 수 있다(URL 유니크 제약 없음)"(:312-314) ↔ migration 000027 `pins_url_bot_unique` UNIQUE INDEX 정합 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = pins 테이블의 url UNIQUE 제약이 user-facing "URL 유니크 제약 없음" 시나리오와 정합하는가.
