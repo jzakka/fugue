@@ -24,6 +24,12 @@
 - 비중첩: L704(비디오 파이프라인 실패 status 400/500 분류·probe fail-closed = caller-side degradation)·L192(보안 ffmpeg 명령주입)·L1148(보안 ffmpeg temp CWE-377)·L1202(워커 ctx.Err() DeadlineExceeded↔Canceled)와 별개(exec boundary 캡처/전파 축). `duration,_:=probeDuration`(:199) 폐기는 trimDuration 캡(:201) 강제로 안전하며 그 probe-silent-pass 축은 L704 도메인.
 - 예외(등록 가능): exec `Run()`만 호출+출력 폐기·ctx 없는 `exec.Command` 로 hang/좀비·probe 에러 무시+빈출력 ParseFloat(15s 우회)·CombinedOutput 에러 `_` 폐기+산출물 미검증 업로드 site.
 - 차기 area = 동시성 (6-area rotation 에러처리→동시성, 23주기째) → cycle 2010. 후보: goroutine 수명·채널 close/send·mutex/RWMutex lifecycle·atomic·frontier claim race·select 타이머 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2010 Discovery — 동시성: spawn goroutine leak·채널 close 소유권·metrics Snapshot map-copy race (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 23주기째)에서 "보조 goroutine leak·done 채널 double-close/send hang·Snapshot 이 내부 map 을 참조로 반환해 동시 read/write race" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. 후보축 = spawn goroutine 수명/채널 close 소유권 + metrics Snapshot map 복사 방어.
+- 확인: (1) apps/api 의 goroutine spawn 은 3곳뿐(goja_executor.go:47·playwright_fetcher.go:114·main.go:231)이고 전부 leak 없음 — playwright 는 `defer close(done)`(:113)+`select{ctx.Done()/done}`(:115-119, close 사용 send 아님)로 Fetch 반환 시 종료 보장·ctx cancel 시 page.Close 로 상위 unblock. (2) MediaValidationMetrics.Snapshot(:95-106)은 RLock 하에 `make(map)+range 복사`로 방어적 map 반환(주석 :93-94 "defensive copy" 명시)·atomic 은 .Load() → 참조 escape race 부재.
+- 커버 확인(census 중첩): **L183 이 3개 보조 goroutine(goja·playwright:114·main serverErr)을 명시적으로 전수 커버**(playwright 는 `defer close(done)` 종료보장 명시)·**L330 이 채널 send/close 소유권(watcher leak·done double-close·unbuffered serverErr)** 커버·**L294/L361/L1161/L1203 이 metrics 구조체 동시성(atomic 카운터·RWMutex·copylocks)** 커버 → probe 한 축 전부 기존 baseline 에 포함, 미충족 갭·신규 FP 패턴 없음.
+- 차기 area = OpenSpec갭 (6-area rotation 동시성→OpenSpec갭, 24주기째) → cycle 2012. 후보: bot capability URL정규화/링크필터·pin OG메타·harvester work-budget·scheduler dead-letter 중 미수록 sub-axis.
 
 ## 2026-07-01 — [system] cycle 2004 Discovery — 보안: 미디어 업로드 저장소 object-key 가 사용자 제어 filename 으로 path traversal(CWE-22) 되는가 (NEW baseline L1206)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 20주기째)에서 "업로드 파일명 경로조작·`../` 버킷탈출·절대경로 주입·filename→로컬 임의쓰기·확장자 위조" probe → **FP 확정, NEW clean baseline L1206 등록**(anti-patterns + decision-log 양쪽).
