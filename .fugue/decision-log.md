@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1964 Discovery — 봇: 봇 fetch 의 HTTP 상태코드 기반 재시도 분류(4xx 영구 vs 5xx/429 일시적)가 4xx 를 무한 재시도해 예산을 낭비하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "pioneer/harvester fetch 실패 시 HTTP 404/410(영구)과 503/429(일시적)을 구분 없이 동일 재시도 모델로 처리 → 4xx 영구 실패를 5회 재시도해 크롤 예산 낭비·또는 5xx 를 즉시 dead 처리해 일시장애를 영구화" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = HTTP 상태코드 기반 재시도 분류(4xx permanent short-circuit vs non-4xx backoff)의 정합.
+- 검증: fetch 경로가 statusCode 를 상위 전파(pioneer_consumer.go:402-417 `resp.StatusCode` 반환·helpers.go:65 `HTTPStatusError{Code}`). scheduler recordError(url_scheduler.go:359) `if errorKind == ErrorHTTP4xx { ops.dead(...) }` → 4xx 는 즉시 dead(count=5·backoff 공식 미적용·next_*_at 불변). non-4xx 는 :380-388 5-candidate backoff(computeBackoff `30s*2^(n-1)`, n 1..5 clamp) 적용. 즉 4xx=영구(재시도 안 함)·5xx/기타=backoff 재시도로 정확히 분류.
+- 판정: **covered-by-census** — L185(scheduler 재시도/backoff: "http_4xx → 공식 미적용 즉시 count=5·next_*_at 불변·last_updated_at 별도 갱신"·computeBackoff n 1..5 clamp·error_count=5 도달 시 partial index 제외를 명시 커버)가 정확히 이 축. L229(frontier claim/lease visibility-timeout)·L355(harvester Run 루프 budget 종료) 보조. confidence<3. 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 6주기째) → cycle 1966. 후보: interaction piggyback wiring·harvester partial-index·scheduler frontier·pin 비디오 길이 SHALL 중 미수록 Requirement/Scenario sub-axis.
+
 ## 2026-07-01 — [system] cycle 1962 Discovery — 동시성: sync.Once/Map/Pool/Cond 부재로 수동 지연초기화 double-init race 나 비안전 lazy-singleton 이 있는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "sync.Once 없는 수동 lazy-init 이 double-init race·sync.Map/Pool/Cond 미사용으로 비안전 concurrent-map/object-reuse/condition-wait 를 자체 구현" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = one-time lazy-init/concurrent-map/object-pool/condition-var 표준 프리미티브 부재로 인한 자체구현 race.
