@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1950 Discovery — 동시성: Metrics.Snapshot() 이 두 atomic 카운터를 분리 Load 해 torn(비원자) 다중-카운터 스냅샷을 내는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "Snapshot 이 successCount·failureCount 를 두 번의 atomic.Load 로 읽어 그 사이 동시 증분이 끼면 torn 스냅샷(카운터 간 비일관)·increment 는 mutex 밖 atomic.Add 라 Snapshot 의 mu.Lock 이 증분과 직렬화 안 됨" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = 다중 atomic 카운터의 스냅샷 원자성(torn read).
+- 검증: metrics.go:70-81 Snapshot READ — :78-79 `atomic.LoadUint64(&successCount)`+`atomic.LoadUint64(&failureCount)` 분리 Load(mu.Lock 하위·but 증분 RecordSuccess:42/RecordFailure:50 은 `atomic.AddUint64` 로 mu 미획득→Lock 이 증분과 직렬화 안 됨). 그러나 두 카운터는 **독립 monotonic**이라 cross-counter 불변식(예 success+failure=total) 없음 → torn read(success=6·failure=3 순간 관측)가 의미적으로 무해(각각 단조증가 유효값). durations 링버퍼만 mu 로 copy 보호.
+- 판정: **covered-by-census** — L278("다중 카운터 스냅샷이 torn 으로 내부 비일관"을 명시 refuted: 순수 Add/Load 라 torn-update 없고 비원자 스냅샷은 문서화된 의도)·L294("counter↔ring snapshot 불일치"·Snapshot 이 mu.Lock 안에서 atomic.Load+ring copy 반환·필드별 일관 보호)가 정확히 이 Snapshot 을 커버. L361(typed atomic.Uint64 카운터) 보조. confidence<3.
+- 영향 범위: Metrics/MediaValidationMetrics Snapshot 원자성 축만. anti-patterns 미변경. 신규 코드가 카운터 간 불변식(합계·비율 등)을 요구하는 다중 카운터를 개별 atomic.Load 로 스냅샷해 torn 으로 불변식을 깨거나·같은 카운터를 atomic 과 mutex 로 혼용 보호하면 L278/L294 예외로 실결함 등록 가능.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 5주기째) → cycle 1952. 후보: harvester 추출·pioneer 필터·robots·frontier·snapshot 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1948 Discovery — 에러처리: bare 타입단언(`x.(T)`) panic — 신뢰불가 크롤 JSON-LD 를 recover 없는 워커에서 단언 시 크래시 (NEW baseline L1193)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "extractor 가 신뢰불가 크롤 JSON-LD 를 comma-ok 없는 bare `.(string)` 로 단언 → 값 타입 confusion(배열/숫자) 시 panic → HTTP recover 밖 하베스터 워커 크래시" 후보를 probe → 기존 census 미커버 fresh 축·정적으로 그럴듯하나 refuted FP → **NEW baseline 등록**(anti-patterns L1193 + decision-log).
 - 축 선택: 에러처리. 후보축 = 타입 단언의 comma-ok 가드 + 신뢰불가 입력 타입 confusion panic.
