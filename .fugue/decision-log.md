@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1934 Discovery — 정합성: Pin(works) 삭제 시 child 테이블 ON DELETE fan-out 일관성 (board_pins/pin_tags/frontier_pins CASCADE + interactions SET NULL) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "pin 하드삭제 시 일부 child FK 가 CASCADE 누락(NO ACTION default)이라 삭제가 차단되거나·orphan row 잔존·이벤트 로그(interactions)가 잘못 CASCADE 로 소실" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = pin 삭제의 child 참조 무결성 fan-out 이 erd 명세와 정합하는가.
+- 검증: pins(works) 참조 FK 전수(migration grep) — board_pins.work_id→works CASCADE(000008:15)·pin_tags.pin_id→pins CASCADE(000011:12)·harvester_frontier_pins.pin_id→pins CASCADE(000026:50)·interactions.work_id→works **SET NULL**(000009:4). → pin 삭제 시 join/보조 row(board_pins·pin_tags·frontier_pins)는 CASCADE 정리·interactions 는 SET NULL 로 이벤트 로그 보존(target 익명화). NO ACTION 으로 삭제 차단되는 child 0·orphan 0.
+- 판정: **covered-by-census** — L210(FK ON DELETE 참조무결성 ERD↔migration cross-walk: board_pins/pin_tags/harvester_frontier_pins CASCADE·interactions.work_id SET NULL 전수 매핑)·L719(interactions.work_id ON DELETE SET NULL 이벤트로그 보존)가 커버. confidence<3.
+- 영향 범위: pins 참조 child FK ON DELETE fan-out 만. anti-patterns 미변경. 신규 코드가 pins 를 참조하는 새 child 테이블을 ON DELETE 미지정(NO ACTION default)으로 추가해 pin 삭제를 차단하거나·이벤트 로그 성격 테이블을 CASCADE 로 잘못 걸어 감사 이력을 소실시키면 L210/L719 예외로 등록 가능.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 5주기째) → cycle 1936. 후보: 응답 write 후 return·resp.Body.Close·tx rollback·sentinel err 래핑 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1932 Discovery — 보안: rate-limit IP 키잉이 client-supplied X-Forwarded-For(Chi RealIP)를 신뢰해 IP 스푸핑으로 per-IP 빈도제한 우회 가능한가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "auth rate limiter 가 extractIP 로 RemoteAddr(Chi middleware.RealIP 가 X-Forwarded-For/X-Real-IP 로 세팅)를 키잉하는데, 공격자가 XFF 헤더를 위조해 IP 를 회전시켜 per-IP 빈도제한(로그인/OG fetch)을 우회" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = 보안 결정(rate-limit 키잉)이 client-controllable forwarding 헤더를 신뢰하는가.
