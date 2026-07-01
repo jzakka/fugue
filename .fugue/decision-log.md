@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1996 Discovery — 에러처리: 워커/핸들러의 ctx.Err() 반환이 context.DeadlineExceeded(타임아웃)와 context.Canceled(취소)를 구분 안 해 오처리하는가 (NEW baseline L1202)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 16주기째)에서 "타임아웃을 취소로 오인·타임아웃이면 재시도해야 하는데 abort·상위 취소가 하위 타임아웃 상한 우회" probe → **FP 확정, NEW clean baseline L1202 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 에러처리. 후보축 = context 에러종(DeadlineExceeded vs Canceled) 구분/오처리.
+- 확인: (1) shutdown 체크포인트(postgres_scheduler.go:98/146/229/241/377·url_scheduler.go:349·harvester_consumer.go:274/291·pioneer_consumer.go:157·bfs_crawler.go:51·snapshot_first_fetch.go:93/103/140) 전부 `ctx.Err()!=nil→return` — 취소든 데드라인이든 "루프 이탈"이 동일 정답이라 kind 분기 불요. (2) 구분 중요한 유일 site goja_executor.go:47-64 는 `<-timeoutCtx.Done(); vm.Interrupt(timeoutCtx.Err())` 로 Done()-watch(양종 발화) 하여 DeadlineExceeded·Canceled 모두 인터럽트 — 주석이 명시하듯 데드라인만 처리하면 SIGTERM 취소가 10s 상한 우회→무한점유, kind-무관 인터럽트가 정답. (3) fetch 타임아웃은 pioneer_consumer.go:309-311 `errors.As(err,&netErr)&&netErr.Timeout()→ErrorTimeout` 로 별도 분류(ctx.Err() shutdown 과 직교).
+- 신규성: 기존 census(L433 cancel() defer 누수·L266 ctx 전파·L188/L653 per-URL 실패 격리·L302 redis.Nil sentinel)에 context 에러종 구분/오처리 축 부재 → 신규.
+- 예외(등록 가능 조건): DeadlineExceeded 만 처리하고 Canceled 누락(또는 반대)해 상위 취소가 하위 타임아웃 상한 우회·데드라인 만료를 영구실패로 오분류(재시도 가능 요청 dead)·per-요청 데드라인을 net.Error.Timeout()과 혼동해 errorKind 오매핑 격리 site.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 17주기째) → cycle 1998. 후보: atomic.Value 로드-저장 원자성·sync.Once 재사용·WaitGroup Add-after-Wait·channel 방향성 오용 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1994 Discovery — 정합성: 스케줄러 재시도 지수 백오프의 지연 시퀀스가 단조증가·경계·overflow·next_*_at 미래보장(hot re-claim)·CASE 매핑·jitter 밴드 정합을 깨는가 (NEW baseline L1201)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 15주기째)에서 "지수 백오프 int64 overflow·음수 shift panic·jitter 로 next_at 과거값→즉시 재클레임 hot-loop·candidate[i]↔WHEN n off-by-one·지연 역전" probe → **FP 확정, NEW clean baseline L1201 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 정합성. 후보축 = frontier 재시도 지수 백오프 지연 시퀀스 정합(단조·경계·미래보장·CASE 매핑·원자성).
