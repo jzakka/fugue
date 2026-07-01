@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1952 Discovery — 봇: parseTime 이 신뢰불가 크롤 날짜문자열(article:published_time·JSON-LD datePublished)을 파싱 실패 시 zero-time 오염·panic 을 내는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "parseTime 이 외부 HTML 의 날짜문자열을 다중 레이아웃으로 파싱하는데 어느 포맷과도 안 맞으면 zero-time(0001-01-01)을 반환해 published_at 오염·잘못 파싱·panic" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = 신뢰불가 크롤 날짜 파싱의 실패 처리 견고성.
+- 검증: extractor.go:620-637 parseTime READ — TrimSpace·빈문자→nil·layouts 4종(RFC3339·RFC3339Nano·`2006-01-02T15:04:05`·`2006-01-02`) 순회·`time.Parse` err==nil 만 `&t` 반환·전 레이아웃 미매치→**nil 반환**(zero-time 아님·panic 없음). :321/428 ogPublished/jsonLDPublished 에 parseTime 결과 대입·:91 pickFirstTime 이 첫 비-nil 선택·전부 nil 이면 doc.PublishedAt=nil(omitempty). 신뢰불가 값이 garbage 여도 nil 로 graceful skip.
+- 판정: **covered-by-census** — L462(GenericExtractor 부가 메타 lang/author/published_at fallback + "parseTime 다중 레이아웃" + "파싱 실패 시 zero-time 이 저장돼 1년 0001 published_at 오염"·"날짜 포맷 안 맞으면 잘못 파싱되거나 panic" 명시 refuted)가 정확히 이 parseTime 을 커버. L1193(bare 타입단언 — JSON-LD datePublished 는 comma-ok) 보조. confidence<3.
+- 영향 범위: parseTime 날짜 파싱 실패 처리 축만. anti-patterns 미변경. 신규 코드가 파싱 실패를 nil 아닌 `time.Time{}`(zero) 로 반환해 0001 published_at 을 영속하거나·time.Parse 결과의 err 를 무시하고 zero-time 을 대입하면 L462 예외로 실결함 등록 가능.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 5주기째) → cycle 1954. 후보: scheduler·harvester·bot·feed·pin·auth·board·interaction·profile capability 미수록 Requirement/Scenario 갭.
+
 ## 2026-07-01 — [system] cycle 1950 Discovery — 동시성: Metrics.Snapshot() 이 두 atomic 카운터를 분리 Load 해 torn(비원자) 다중-카운터 스냅샷을 내는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "Snapshot 이 successCount·failureCount 를 두 번의 atomic.Load 로 읽어 그 사이 동시 증분이 끼면 torn 스냅샷(카운터 간 비일관)·increment 는 mutex 밖 atomic.Add 라 Snapshot 의 mu.Lock 이 증분과 직렬화 안 됨" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = 다중 atomic 카운터의 스냅샷 원자성(torn read).
