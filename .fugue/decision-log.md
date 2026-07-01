@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1980 Discovery — 보안: 업로드 filename·크롤 URL 이 object storage 키/FS 경로에 흘러 path traversal(CWE-22)을 내는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 8주기째)에서 "multipart header.Filename·크롤 URL 이 S3 키/로컬 경로 구성에 sanitize 없이 흘러 `../` traversal/키 인젝션" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = path traversal(CWE-22) via 업로드 filename / 크롤 URL → storage key.
+- 검증: (a) media storage.Client.Upload(storage.go:141-206) 키 :180 `<mediatype>/<uuid>.<ext>` — `filename` 파라미터(:141)는 함수 본문에서 **아예 미사용**·mt 는 allowedMIME(:168)·uuid.New()·ext 는 detected MIME 유도(:179 extensionForMIME) → 사용자 문자열 키 미도달. (b) bot StorageAdapter.Upload(storage.go:24-29)는 동일 Client 위임. (c) snapshot key(snapshot/key.go:49-52) `snapshots/<sha256 64hex>/<UTC yyyymmdd>.html.gz` — URL 을 sha256→hex.EncodeToString(=[0-9a-f] 64자)로만 통과(:40-43)·날짜는 서버 UTC → 원본 URL 바이트 키 미도달. (d) 로컬 FS 는 pin/handler.go:154 `os.CreateTemp("","fugue-video-*.tmp")` OS 랜덤 suffix.
+- 판정: **covered-by-census** — L47(cycle 668, "공격자 제어 입력(크롤 URL·업로드 filename)이 object storage 키/로컬 FS 경로 구성에 흘러든다 → path traversal/LFI" 후보 금지; SnapshotKey sha256 64hex·image cache 키·media Upload 키 filename 미사용·path.Ext 의 / 배제·os.CreateTemp 랜덤·test-only filepath.Join FileFetcher 전수 커버)가 정확히 동일 모집단·동일 refutation 을 커버. L156/L192(업로드 MIME/CORS)·L1148(ffmpeg)와 비중첩이나 traversal 축은 L47 이 primary. confidence<3. 차기 area = 정합성 (6-area rotation 보안→정합성, 9주기째) → cycle 1982. 후보: sqlc↔ERD drift·enum↔CHECK 제약 정합·트랜잭션 원자성·타임스탬프 tz 일관·JSONB 필드 lockstep 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1978 Discovery — OpenSpec갭: harvester 워커 work-budget(100회 Dequeue 종료·진행중 완료 후 종료·per-worker 카운터) 계약이 harvester_consumer.go 구현과 어긋나는가 (NEW baseline L1196, anti-patterns 등록)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 7주기째)에서 harvester capability 의 워커 work-budget 3 Requirement(harvester/spec.md L476-565) ↔ harvester_consumer.go 정합을 probe → 전수 충실 구현(refuted)이고 기존 census 미커버(L342 는 pioneer 전용) → **NEW baseline L1196 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: OpenSpec갭. 후보축 = harvester-worker-budget(100회 Dequeue 후 exit 0·성공 Dequeue 직후 카운터 증가·빈/오류 미카운트·100회째 최종 상태전이 완료 후 종료·실패경로 dual-call 완결·budget 빌드타임 상수·per-worker 인메모리).
