@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1958 Discovery — 정합성: interactions.type(VARCHAR(20)) 가 DB CHECK 없이 app-only 도메인 강제라 도메인 밖 type 이 영속되는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "interactions.type 이 pins.media_type(chk_pins_media_type CHECK)과 달리 DB CHECK 제약 없이 애플리케이션 레이어에서만 {view,pin,board_add} 도메인 강제 → 미검증 INSERT 경로가 도메인 밖 type 영속·추천엔진 입력 오염" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = interactions.type 값-도메인의 DB-vs-app enforcement 정합.
+- 검증: migration 000009:5 `type VARCHAR(20) NOT NULL`(CHECK 부재)·:11 비-unique 인덱스. INSERT 경로 2곳 — (a) 외부입력 handler.go:79 `Type:req.Type` 는 :92 `case "view","pin","board_add":` allowlist 검증 후에만 진입(도메인 밖→거부)·(b) 내부 piggyback recorder.go:35 `Type:kind` 의 kind 는 호출처 하드코딩 리터럴("view"/"pin"/"board_add"). 도메인 밖 값이 DB 도달 불가.
+- 판정: **covered-by-census** — L1071(interactions.type VARCHAR(20) DB CHECK 없이 app-only 도메인 강제·모든 INSERT 경로가 Go 에서 {view,pin,board_add} 강제라 도메인 밖 값 DB 도달 불가·media_type 은 DB-enforced 이나 type 은 app-only 가 의도적 비정합 허용)가 정확히 이 컬럼을 커버. L253(chk_pins_media_type)·L273(interaction write-path 인가) 보조. confidence<3.
+- 영향 범위: interactions.type 값-도메인 enforcement 축만. anti-patterns 미변경. 신규 코드가 검증 없는 새 INSERT 경로(직접 CreateInteraction 호출)를 추가해 도메인 밖 type 을 영속하거나·handler allowlist(:92)를 우회하면 L1071 예외로 실결함 등록 가능.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 5주기째) → cycle 1960. 후보: 응답 write 후 return·resp.Body.Close·partial-write·context deadline·sentinel err 래핑 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1956 Discovery — 보안: 전역 CORS 미들웨어가 wildcard origin+AllowCredentials 조합으로 credential 동반 cross-origin 요청을 허용하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "CORS 가 AllowedOrigins `*` 또는 반사된 Origin 을 AllowCredentials:true 와 결합해 임의 사이트가 쿠키 동반 API 호출(CSRF-성 credential 탈취)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = 전역 CORS 정책의 origin allowlist ↔ credential 허용 조합 안전성.
