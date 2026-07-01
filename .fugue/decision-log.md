@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2032 Discovery — 동시성: manual(비-defer) Unlock 다중분기 exit 짝맞춤 + lock-release-before-IO(단일플라이트 refresh) 축 (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 34주기째)에서 "manual(non-deferred) Unlock 을 쓰는 임계영역이 다중 early-return 분기에서 한 경로가 Unlock 을 빠뜨려 데드락·다른 경로가 이중 Unlock 해 panic·write lock 을 잡은 채 네트워크 fetch 를 실행해 host 직렬화 stall·sync.Once/Cond/Pool/Map 부재로 lazy-init race" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. 후보축 = 비-defer Unlock 의 분기별 정확-1회 해제 + 블로킹 IO 전 lock 해제 규율. 발견: robots_filter.go:163 refresh 가 단일 Lock 아래 3분기(:167 cache-hit·:173 inflight-wait·:179 register)를 각각 정확히 1회 manual Unlock 하고, :182 네트워크 fetch 는 의도적으로 lock **밖**에서 실행(`defer Unlock` 이면 GET 동안 write-lock 보유 → 전 host 직렬화 버그) → manual unlock 이 정답. media_validator_metrics.go:51/85/99·host_rate_limiter.go:87/100 도 동일 manual 짝맞춤.
+- 확인: 이 축은 census 가 전수 소유 — (1) **L227 = 정확히 본 축 소유**: "robots_filter single-flight (L:2 U:4 비대칭 정당): refresh(:162) Lock(:163) 아래 3분기가 각각 정확히 1회 Unlock" + "lock-across-blocking 데드락"(IO 전 해제) refute. (2) **L304 = mutex-during-IO stall refute**: "fetch 가 lock 보유 중 실행돼 mutex-during-IO stall" 을 명시 반박. (3) **L706 = Unlock 이후 결과 게시 race**: pending.result 를 2차 Unlock(:187) 이후 write(:189)해도 채널 close happens-before 로 안전. (4) **sync.Once/Cond/Pool/Map = 코드 전수 0건**(grep 0) → lazy-init race 모집단 vacuous.
+- 비중첩 확인: forward-pointer 후보 전수 기수록 — atomic 사용정합=L361, 채널 close-once=L330, WaitGroup Add/Done 짝=fan-out-join baseline, shared-map RWMutex=L189/L201/L371, goroutine leak=L183/L317/L330, RWMutex RLock 오용/loop-var capture/containedctx/AB-BA/context.Value 키=L371 및 EOF 최근 baseline. 동시성 33개 baseline 로 area 포화, 신규 sub-axis 부재.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 35주기째) → cycle 2034. 후보: harvester source script 경로규약·pioneer 링크필터 정책·snapshot-first fetch·node_type 분류·미디어 후보 추출 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2030 Discovery — 에러처리: HTTP 핸들러의 client-disconnect(r.Context().Err()==context.Canceled) → 500 오분류 축 (covered-by-census)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 33주기째)에서 "핸들러가 클라이언트 단절(context.Canceled)을 sql.ErrNoRows 아닌 일반 에러로 보아 writeError(500) 로 오분류·에러 로그/메트릭 오염·취소 처리 비일관·요청 context 미전파·Canceled↔DeadlineExceeded 미구분" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 에러처리. 후보축 = HTTP 핸들러의 요청-context 취소(client disconnect/deadline) 관측·전파·분류. pin/handler.go:388-396 GetByID 처럼 DB 에러가 sql.ErrNoRows 면 404·그 외 `log.Printf+writeError(500)+return` 인데 client-disconnect 시 GetPinWithCreator 이 context.Canceled 반환 → 500 오분류(로그 노이즈).
