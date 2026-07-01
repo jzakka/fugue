@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2016 Discovery — 정합성: 다중 statement write(핀 생성 CreatePin+N×LinkPinTag)의 트랜잭션 경계 — BeginTx 미사용 시 보상삭제+FK CASCADE 롤백 (NEW baseline)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 26주기째)에서 "핀 생성이 CreatePin 후 태그 INSERT 를 BeginTx 없이 순차 발행 → 중간 실패 시 부분 태그·orphan pin 으로 partial-write 정합 깨짐" probe → **FP 확정, NEW clean baseline 등록**(anti-patterns EOF + decision-log 양쪽).
+- 축 선택: 정합성. 후보축 = CREATE 경로의 트랜잭션 경계/보상롤백(L456 pin_tags 멱등성·L187 부모행 삭제 cascade 와 다른 축).
+- 확인: 두 정합 패턴 공존 — (A) DB 트랜잭션: OAuth 가입(auth/service.go FindOrCreateCreator:40)이 creators+auth_accounts 를 `s.db.BeginTx`(:70/:158)+defer Rollback+Commit 로 원자 커밋. (B) 보상삭제+CASCADE: pin/handler.go Create 가 CreatePin(:345)→LinkPinTag 루프(:357) 중 실패 시 보상 DeletePin(:363) 발행, `pin_tags.pin_id ... ON DELETE CASCADE`(000011:12)로 이미 연결된 부분 pin_tags 도 CASCADE 삭제 → no-pin 완전 롤백. 보상실패·rowsAffected==0 로그 가시화(:366-371), S3 미디어 고아는 DB 정합 결함 아닌 알려진 누수 tradeoff(주석 명시).
+- 비중첩: L456(pin_tags 중복키 멱등성)·L1187(태그 이름 정규화)·L187(유저대면 DeletePin 단일 DELETE)·L210(FK ON DELETE 규약)·L738/L1085(INSERT DEFAULT)와 별축. 본 축은 CREATE 트랜잭션 경계/보상롤백 자체.
+- 예외(등록 가능): 새 multi-write 를 BeginTx 도 보상삭제도 없이 발행+self-heal 불능·보상삭제 대상 FK 가 CASCADE/SET NULL 아니라 롤백 불능·BeginTx 후 defer Rollback 누락·트랜잭션 내 외부 부작용(S3/HTTP)으로 롤백 불가역.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 27주기째) → cycle 2018. 후보: HTTP 핸들러 에러 status 매핑·sql.ErrNoRows 분기·context 취소/타임아웃 전파·재시도/백오프·panic recovery·부분실패 로깅 중 미수록 sub-axis.
 ## 2026-07-01 — [system] cycle 2012 Discovery — OpenSpec갭: ratelimit "유저 단위 빈도 제한 surface를 노출한다" Requirement(per-user/per-IP 버킷 분리·인증부재 IP fallback) (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 동시성→OpenSpec갭, 24주기째)에서 ratelimit capability 2번째 Requirement(spec.md L40-66 유저 단위 surface·4 Scenario: 인증→creator버킷·같은유저 IP무관 같은버킷·같은IP 두유저 분리·인증부재 IP fallback 무제한통과 금지) probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. 후보축 = ratelimit per-user surface(MiddlewareByCreatorID)의 버킷 키 선택·인증부재 fallback 계약. (auth me-null 직렬화=L116·feed 연관작품=L228 이미 covered 라 pivot.)
