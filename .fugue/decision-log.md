@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1956 Discovery — 보안: 전역 CORS 미들웨어가 wildcard origin+AllowCredentials 조합으로 credential 동반 cross-origin 요청을 허용하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "CORS 가 AllowedOrigins `*` 또는 반사된 Origin 을 AllowCredentials:true 와 결합해 임의 사이트가 쿠키 동반 API 호출(CSRF-성 credential 탈취)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = 전역 CORS 정책의 origin allowlist ↔ credential 허용 조합 안전성.
+- 검증: main.go:122-126 `r.Use(cors.Handler(cors.Options{ AllowedOrigins:[]string{cfg.FrontendURL}, ..., AllowCredentials:true }))` READ — AllowedOrigins 가 **단일 명시 origin(cfg.FrontendURL)** 이고 wildcard(`*`)·Origin 반사 부재 → AllowCredentials:true 여도 신뢰된 프론트엔드 origin 하나만 credential 동반 cross-origin 허용(임의 사이트 불가). go-chi/cors 는 `*`+credentials 조합을 브라우저 스펙상 무의미하게 처리하나 여기선 애초에 wildcard 부재.
+- 판정: **covered-by-census** — L192("CORS wildcard+credentials origin reflection" 명시 refuted: `AllowedOrigins:[]string{cfg.FrontendURL}` 단일 origin+AllowCredentials:true 로 wildcard 부재→credential 동반 cross-origin 반영 없음)가 정확히 이 CORS 설정을 커버. L465(쿠키 SameSite)·L356(라우터 게이팅) 보조. confidence<3.
+- 영향 범위: 전역 CORS origin/credential 조합 축만. anti-patterns 미변경. 신규 코드가 AllowedOrigins 를 `*`/AllowOriginFunc 반사로 바꾸면서 AllowCredentials:true 를 유지하거나·다중 origin 에 신뢰불가 도메인을 추가하면 L192 예외로 실결함 등록 가능.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 5주기째) → cycle 1958. 후보: 컬럼 타입/CHECK/FK/UNIQUE·denormalized 카운터·enum 도메인·JSONB round-trip 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1954 Discovery — OpenSpec갭: feed Req3 "피드 라우트는 선택적 인증 미들웨어로 보호된다" wiring (GET /api/feed OptionalJWT·SHALL-NOT-401) (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째)에서 "feed 라우트가 OptionalJWTMiddleware 미배선이거나·JWTMiddleware 로 게이트돼 토큰 부재 시 401·유효 토큰인데 creatorID 미노출" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = feed Req3(피드 라우트 선택적 인증 wiring)의 3 Scenario(토큰/부재/무효) 정합.
