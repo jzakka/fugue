@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2008 Discovery — 에러처리: 비디오 처리 os/exec(ffmpeg/ffprobe) 실행 경계가 에러 캡처/stderr/kill 전파/killed-output 오파싱을 올바로 처리하는가 (NEW baseline L1208)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 22주기째)에서 "ffmpeg/ffprobe exec 에러 swallow·stderr 유실·ctx-cancel SIGKILL 시 hang·killed/빈 출력을 duration 오파싱해 15s 캡 우회·exit code 무시" probe → **FP 확정, NEW clean baseline L1208 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 에러처리. 후보축 = os/exec 자식프로세스(ffmpeg/ffprobe) 실행 경계의 에러 캡처·전파 메커니즘.
+- 확인: (1) trim/reencode(:739/:761) `CombinedOutput()` 에러 시 `fmt.Errorf(...: %w: %s, err, string(out))` 로 stderr 임베드+전파(swallow 없음). (2) probeDuration(:776-778) exec 에러 시 ParseFloat(:779) 전에 `0,err` 조기반환 → killed/빈 stdout 이 가짜 duration 으로 파싱 불가. (3) 세 함수 모두 `exec.CommandContext(ctx,...)` + 호출부 `r.Context()` 전달 → cancel/timeout 시 자식 SIGKILL, CombinedOutput/Output 즉시 unblock(hang 부재, Shutdown 드레인 내 종료).
+- 비중첩: L704(비디오 파이프라인 실패 status 400/500 분류·probe fail-closed = caller-side degradation)·L192(보안 ffmpeg 명령주입)·L1148(보안 ffmpeg temp CWE-377)·L1202(워커 ctx.Err() DeadlineExceeded↔Canceled)와 별개(exec boundary 캡처/전파 축). `duration,_:=probeDuration`(:199) 폐기는 trimDuration 캡(:201) 강제로 안전하며 그 probe-silent-pass 축은 L704 도메인.
+- 예외(등록 가능): exec `Run()`만 호출+출력 폐기·ctx 없는 `exec.Command` 로 hang/좀비·probe 에러 무시+빈출력 ParseFloat(15s 우회)·CombinedOutput 에러 `_` 폐기+산출물 미검증 업로드 site.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 23주기째) → cycle 2010. 후보: goroutine 수명·채널 close/send·mutex/RWMutex lifecycle·atomic·frontier claim race·select 타이머 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2004 Discovery — 보안: 미디어 업로드 저장소 object-key 가 사용자 제어 filename 으로 path traversal(CWE-22) 되는가 (NEW baseline L1206)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 20주기째)에서 "업로드 파일명 경로조작·`../` 버킷탈출·절대경로 주입·filename→로컬 임의쓰기·확장자 위조" probe → **FP 확정, NEW clean baseline L1206 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 보안. 후보축 = 미디어 업로드 저장소 object-key/경로 구성의 filename 기반 path traversal(CWE-22).
