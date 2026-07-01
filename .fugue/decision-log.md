@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1946 Discovery — 정합성: boards 테이블에 UNIQUE(creator_id, name) 부재로 동일 유저 중복 보드명 허용이 스펙/무결성 위반인가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "boards 에 (creator_id,name) UNIQUE 제약이 없어 같은 유저가 동명 보드를 여러 개 생성 → 데이터 무결성/스펙 위반·CreateBoard UPSERT arbiter 없음" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = boards 스키마 제약 ↔ board 생성 Requirement 정합.
+- 검증: migration 000008:1-9 boards 스키마 READ — PK `id UUID`(gen_random_uuid)·`creator_id` FK CASCADE·`name VARCHAR(100) NOT NULL`·UNIQUE(creator_id,name) **부재**·idx_boards_creator 는 비-unique 인덱스. board/spec.md:5-16 "보드를 생성한다" Requirement — name 필수(빈값→검증오류)·기본 공개, **이름 유일성 조항 없음**(스펙이 중복 보드명 허용). 각 보드는 UUID PK 로 유일·board_pins 는 board_id(UUID) 참조라 동명 보드가 참조 모호성 없음 → 무결성 결함 아님.
+- 판정: **covered-by-census** — L248(board 7 Requirement 매핑, "R1 생성: Create name 빈값→400·IsPublic nil 기본 true·100rune cap" — 유일성 조항 없이 생성 계약 전수 매핑)가 커버. 스펙이 name 유일성을 SHALL 로 규정하지 않으므로 UNIQUE 부재는 스펙 정합. confidence<3.
+- 영향 범위: boards.name 유일성 제약 축만. anti-patterns 미변경. 신규 스펙 Requirement 가 "보드명은 유저별 유일해야 한다 SHALL" 를 추가하는데 migration 이 UNIQUE(creator_id,name)·CreateBoard 의 ON CONFLICT arbiter 를 안 걸면 L248 예외로 실결함 등록 가능.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 5주기째) → cycle 1948. 후보: 응답 write 후 return·resp.Body.Close·partial-write·context deadline 처리 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1944 Discovery — 보안: 검색 ILIKE 패턴의 유저 제어 `%`/`_` 와일드카드 메타문자 미이스케이프 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "검색어 `q` 가 `ILIKE '%' || $1 || '%'` 로 결합되는데 `$1` 내부의 `%`/`_`/`\` 메타문자가 이스케이프 안 돼 SQL injection·wildcard 과다매칭·leading-% ReDoS 성 DoS" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = 유저 제어 검색어의 ILIKE 패턴 메타문자 처리.
