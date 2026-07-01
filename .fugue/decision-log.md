@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1984 Discovery — 에러처리: 정수 나눗셈/나머지(`/`·`%`)의 0-분모 런타임 panic 이 봇/피드/스냅샷에 존재하는가 (NEW baseline L1198, anti-patterns 등록)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 10주기째)에서 "0으로 나누기/modulo panic 이 recover 미들웨어 밖 arithmetic 경로에서 프로세스 크래시" probe → 나눗셈 site 전수 가드됨(refuted)·기존 census 미커버 → **NEW baseline L1198 등록**(양쪽).
+- 축 선택: 에러처리. 후보축 = 정수 divide/modulo-by-zero panic 발생원(가드 유무).
+- 검증: 나눗셈/나머지 site 5곳 — feed/handler.go:254 `(limit+1)/2`·:302 `limit/2`(상수 분모 2)·snapshot/metrics.go:65 `% m.ringSize`(NewMetrics:28-30 `ringSize<=0→1024` 클램프로 ≥1·ringSize unexported·`snapshot.Metrics{` 우회 리터럴 grep 0)·robots_filter.go:198 `1.0/*entry.crawlDelay`(:197 `*crawlDelay>0` 가드·float)·drain.go:121 `matches/total`(:118 `total==0` early-return·float). 정수 분모는 상수(2) 또는 생성자 클램프(≥1), float 분모는 명시 가드 → 0-분모 panic 모집단 0.
+- 판정: **NEW baseline L1198** — 5개 site 전수 가드/상수-분모로 divide-by-zero panic 불가(refuted). L188/L276/L1032(panic recover 안전망)은 panic 을 잡는 축이라 본 "발생원이 가드로 불가" 축과 별개·L290(strconv parse)·L1193(bare type assertion panic)과 비중첩 fresh 하위표면. 예외조항: 사용자제어 정수 분모 무가드/`% len(s)` 빈슬라이스/zero-value struct 카운트 분모/빈컬렉션 평균 분모 시 등록가능. 차기 area = 동시성 (6-area rotation 에러처리→동시성, 11주기째) → cycle 1986. 후보: atomic vs mutex 혼용·채널 방향성·WaitGroup Add 타이밍·map 동시접근·once 초기화 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1982 Discovery — 정합성: scheduler ErrorKind enum(4종)이 frontier 에 문자열로 영속되며 Go const↔DB 저장 도메인 drift 를 내는가 (NEW baseline L1197, anti-patterns 등록)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 9주기째)에서 "ErrorKind(http_4xx/http_5xx/network/timeout)가 RecordFetchError/HarvestError 로 DB 문자열 컬럼에 저장되며 CHECK 부재/Go 상수 drift" probe → ErrorKind 는 영속 안 되는 dispatch-only enum(refuted)·기존 census 미커버 → **NEW baseline L1197 등록**(양쪽).
 - 축 선택: 정합성. 후보축 = Go domain enum ↔ 영속 DB 문자열 도메인 lockstep(scheduler ErrorKind 저장 여부).
