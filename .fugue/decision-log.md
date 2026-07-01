@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1966 Discovery — OpenSpec갭: pins(url) UNIQUE 인덱스(mig 000027)가 "같은 URL 여러 유저 핀 가능(URL 유니크 제약 없음)" SHALL 을 위반하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 6주기째)에서 pin capability "외부 URL을 핀으로 저장한다"(pin/spec.md:289-318)의 Scenario "같은 URL을 여러 유저가 핀할 수 있다(URL 유니크 제약 없음)"(:312-314) ↔ migration 000027 `pins_url_bot_unique` UNIQUE INDEX 정합 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = pins 테이블의 url UNIQUE 제약이 user-facing "URL 유니크 제약 없음" 시나리오와 정합하는가.
+- 검증: migration 000027:12-14 `CREATE UNIQUE INDEX CONCURRENTLY pins_url_bot_unique ON pins(url) WHERE creator_id = '00000000-0000-0000-0000-00000000f096'` — **partial** unique index 로 predicate 가 BotCreatorID(source.go:24 `uuid.MustParse("...f096")`)에 스코프. 주석 :2 "User-owned Pins are untouched (URL duplication is still allowed for users)" 명시. 즉 봇 계정만 URL당 1핀 강제·일반 유저 creator_id 는 URL 중복 무제약 → "같은 URL 여러 유저 핀 가능" SHALL 충족. 정적으로 "pins(url) UNIQUE INDEX 존재 → 중복 핀 차단" 은 FP(partial predicate 를 놓침).
+- 판정: **covered-by-census** — L295(cycle 910, 핀 단건 라이프사이클 3 Req 중 "URL 유니크 무제약(user)": pins_url_bot_unique 는 partial index 라 봇 계정에만 적용·user URL 중복 무제약·인덱스 리터럴↔BotCreatorID 동기 불변식 holds 를 명시 커버)가 정확히 이 축. L221(ON CONFLICT arbiter↔partial index cross-walk)·L126(동시 봇 크롤 UpsertBotPinByURL+partial unique)·L79(HarvestPipeline dedup creator_id=BotCreatorID 스코프) 보조. confidence<3. 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 6주기째) → cycle 1968. 후보: SSRF outbound fetch·JWT alg·CORS·multipart 크기 캡·경로 traversal·SQLi 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1964 Discovery — 봇: 봇 fetch 의 HTTP 상태코드 기반 재시도 분류(4xx 영구 vs 5xx/429 일시적)가 4xx 를 무한 재시도해 예산을 낭비하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "pioneer/harvester fetch 실패 시 HTTP 404/410(영구)과 503/429(일시적)을 구분 없이 동일 재시도 모델로 처리 → 4xx 영구 실패를 5회 재시도해 크롤 예산 낭비·또는 5xx 를 즉시 dead 처리해 일시장애를 영구화" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = HTTP 상태코드 기반 재시도 분류(4xx permanent short-circuit vs non-4xx backoff)의 정합.
