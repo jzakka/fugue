@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1924 Discovery — 에러처리: outbound *http.Client 의 total Timeout 바운딩 (SSRF-safe client·OG fetch client 가 hung-upstream 에 goroutine 을 매달지 않는가) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 4주기째)에서 "아웃바운드 HTTP 클라이언트(SSRF-safe·OG fetch)가 http.Client.Timeout 을 설정하지 않아 slow/hung upstream 이 요청 goroutine 을 무한 blocking·deadline-less ctx 에만 의존해 hang" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 에러처리. 후보축 = 외부(공격자 제어 가능) 원격에 대한 outbound 요청이 client-level timeout 으로 바운드되는가.
+- 검증: (1) SSRF-safe client: httpclient/ssrf.go:67-69 `&http.Client{ ..., Timeout: totalTimeout }` — totalTimeout 미설정 시 :33-35 기본 30s·connectTimeout 기본 5s(:29-31)를 :42 `net.Dialer{Timeout: connectTimeout}` 로 dial 바운드. (2) OG fetch: og/service.go:46-47 `connectTimeout=3s·totalTimeout=5s` 로 SSRF-safe 팩토리 opts(:68-69) 오버라이드 → OG 아웃바운드는 5s 상한. (3) 두 client 모두 struct 필드 보관 후 재사용(요청마다 재생성 아님) → hung upstream 이 client-level deadline 으로 강제 종료돼 goroutine pin 불가.
+- 판정: **covered-by-census** — L232(에러처리: outbound userinfo/bot/robots/SSRF fetch 전부 client-level timeout bound, "http.Client.Timeout 누락·핸들러 goroutine 핀·slow-loris 업스트림 블로킹" refuted)·L335(보안: "아웃바운드 http.Client 타임아웃" hung-upstream goroutine 고갈 refuted)가 커버. 교차 참조 L446(client/Transport startup-1회 생성·필드 보관 재사용). confidence<3.
+- 영향 범위: 아웃바운드 http.Client total timeout 바운딩만. anti-patterns 미변경. 신규 코드가 http.DefaultClient/`&http.Client{}`(Timeout 무설정)로 외부 원격을 직접 fetch 하면서 deadline-less ctx 를 넘기면 L232/L335 예외로 등록 가능.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 4주기째) → cycle 1926. 후보: 공유 map race·mutex lifecycle·channel close/send·atomic alignment·WaitGroup join 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1922 Discovery — 정합성: media_type 도메인 enum 의 3계층 정합 (DB CHECK ↔ storage MediaType 상수 ↔ allowedMIME 맵) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 4주기째)에서 "media_type 값 도메인이 DB CHECK 제약·storage 레이어 상수·MIME allowlist 사이에서 drift 해 한 계층에서 유효한 값이 다른 계층에서 거부되거나·핸들러가 client 제어 media_type 임의값을 검증 없이 INSERT" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = media_type 값-도메인이 여러 정의처(DB/storage/MIME)에서 일치하는가.
