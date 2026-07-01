@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1982 Discovery — 정합성: scheduler ErrorKind enum(4종)이 frontier 에 문자열로 영속되며 Go const↔DB 저장 도메인 drift 를 내는가 (NEW baseline L1197, anti-patterns 등록)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 9주기째)에서 "ErrorKind(http_4xx/http_5xx/network/timeout)가 RecordFetchError/HarvestError 로 DB 문자열 컬럼에 저장되며 CHECK 부재/Go 상수 drift" probe → ErrorKind 는 영속 안 되는 dispatch-only enum(refuted)·기존 census 미커버 → **NEW baseline L1197 등록**(양쪽).
+- 축 선택: 정합성. 후보축 = Go domain enum ↔ 영속 DB 문자열 도메인 lockstep(scheduler ErrorKind 저장 여부).
+- 검증: (1) 000026 frontier 스키마는 fetch_error_count/harvest_error_count INTEGER 만 보유·error_kind/last_error 문자열 컬럼 0건. (2) recordError(url_scheduler.go:345)가 errorKind 를 :346 validateErrorKind(4종 외 ErrUnknownErrorKind 거부)+:359 dead(4xx)-vs-backoff 분기에만 사용, UPDATE 인자로 미전달. (3) frontier.sql UpdateFetchErrorDead(:27)/Backoff(:38)/Harvest 대칭(:58/:65)이 INTEGER count·TIMESTAMPTZ next_*_at·BYTEA url_hash 만 write — enum 문자열 미기록. (4) 문자열 미영속이라 Go const 변경해도 불일치 대상 없음·validate 가 write 前 미지정 kind 거부.
+- 판정: **NEW baseline L1197** — ErrorKind 는 DB 미영속 dispatch-only enum 이라 저장-도메인 drift 모집단 0(refuted). L383(node_type)·L1071(interactions.type)은 실제 저장 문자열 컬럼의 값-도메인 축이라 반대·L253(CHECK)·L185(backoff 계산)·L319/L391(scheduler 계약)과 비중첩 fresh 하위표면. 예외조항: error_kind VARCHAR 컬럼 신규 추가+CHECK 누락/Go const 변경 후 레거시 미마이그레이션/validate 우회 write/JSONB·로그테이블 저장 시 등록가능. 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 10주기째) → cycle 1984. 후보: panic recover·errors.Is/As wrapping·partial write 롤백·context deadline 전파·nil deref 가드 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1980 Discovery — 보안: 업로드 filename·크롤 URL 이 object storage 키/FS 경로에 흘러 path traversal(CWE-22)을 내는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 8주기째)에서 "multipart header.Filename·크롤 URL 이 S3 키/로컬 경로 구성에 sanitize 없이 흘러 `../` traversal/키 인젝션" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = path traversal(CWE-22) via 업로드 filename / 크롤 URL → storage key.
