@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1912 Discovery — 에러처리: 봇 extractor 의 신뢰경계-밖 HTML 속성 tolerant 파싱 (parseTime→nil·parseIntAttr→0 best-effort) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 3주기째)에서 "extractor 가 크롤한 HTML 의 malformed 속성(잘못된 datetime·비숫자 width/height)에서 파싱 에러를 침묵 무시해 zero-time(0001년) published_at 오염·잘못된 dimension 진행" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 에러처리. 후보축 = extractor.go parseTime(:620) + image_picker.go parseIntAttr(:205) 의 tolerant 파싱 실패 처리.
+- 확인: (1) **parseTime = nil-on-failure(zero-time 오염 아님)**: 다중 레이아웃(RFC3339·RFC3339Nano·`2006-01-02T15:04:05`·`2006-01-02`) 순회 `time.Parse err==nil` 성공 시 `&t`, 전부 실패 시 **nil 반환**(zero `time.Time{}`(0001년) 아님) → published_at 필드 미설정, 0001년 오염 없음. (2) **parseIntAttr = 0-on-non-numeric(best-effort)**: leading digit 만 추출 후 `strconv.Atoi`, 비숫자/빈값→0 → width/height 0 은 image UI/아이콘 gate `(w>=100&&h>=100)||alt!=""` 가 "치수 없음" 으로 처리(누락 아닌 정밀화). (3) **신뢰경계-밖 best-effort 정당**: 크롤 대상 HTML 은 malformed 속성이 필연이므로 tolerant 파싱(에러 대신 skip/default)이 전체 추출을 깨뜨리지 않는 올바른 정책(HTTP 요청 입력처럼 400 반환할 클라이언트 없음).
+- 안착 census: **L462(봇)** = GenericExtractor 부가메타(lang·author·published_at) fallback + **parseTime 다중 레이아웃** spec 정합 — "파싱 실패 시 zero-time 이 저장돼 0001년 published_at 오염" 을 명시적으로 refute(nil 반환) — 본 probe 의 parseTime tolerant 실패 처리와 동일 매핑. **L161(에러처리, cycle 770)** = HTTP 요청 입력 파싱(strconv query/form·json.Decode) 침묵 무시 — 별개 population(요청 입력은 400/폴백 규율, 봇 크롤 HTML 은 best-effort)임을 명시해 축 경계 분리. **L699/L218**(image UI gate width/height 소비)·**L695**(JSON-LD 다형 파싱)·**L710**(srcset 토큰 추출)도 인접 포괄. 신선 축 부재.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성) → cycle 1914. 후보: mutex 임계영역 lifecycle·PRNG 공유 안전·채널 close/send 소유권·frontier double-claim·WaitGroup fan-out 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1910 Discovery — 정합성: boolean DEFAULT 컬럼 ↔ *bool tri-state 요청 필드 default 정합 (boards.is_public zero-value override) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 3주기째)에서 "요청 바디에서 is_public 필드 생략 시 Go bool zero-value(false)가 sqlc INSERT $N 으로 흘러 DB `is_public DEFAULT true` 를 침묵 덮어써 보드가 의도치 않게 비공개(false) 저장" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = BOOLEAN NOT NULL DEFAULT true 컬럼(boards.is_public·bot_sources.enabled·bot_sites.active) 3개의 handler↔sqlc INSERT default 재구성.
