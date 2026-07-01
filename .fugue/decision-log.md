@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1974 Discovery — 동시성: worker-pool 이 bounded jobs 채널 fan-out 에서 backpressure/드롭/producer 블록을 잘못 다루는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 6주기째)에서 "봇 워커가 공유 jobs 채널로 fan-out 하면서 버퍼 full backpressure 시 producer 블록·비차단 송신 드롭·consumer 느림으로 큐 폭증" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = bounded-channel worker-pool fan-out backpressure 조정.
+- 검증: `make(chan` 전수 3곳뿐 — playwright_fetcher.go:112 `done`(watcher 신호·unbuffered)·robots_filter.go:177 `pending.done`(single-flight 신호·unbuffered)·main.go:230 `serverErr`(버퍼 1 단일 에러). **worker-pool jobs 채널(다수 producer→다수 consumer 경쟁) 부재**. 봇 워커(pioneer/harvester consumer)는 `consumer.Run(ctx)` 단일 goroutine 이 frontier claim 루프(`for{select{ctx.Done()/claim}}`)로 순차 처리 — jobs 채널 fan-out 아님. WaitGroup/errgroup 0(L810 vacuous).
+- 판정: **covered-by-census** — L52(채널 close/send 수명주기: defer close·수신전용·버퍼 단일송신)·L330(채널 send/receive/close 소유권 정합)이 3개 신호/에러 채널을 커버·L810(fan-out-join WaitGroup/errgroup pure-vacuous)이 fan-out 조정 부재를 커버·L87(goroutine spawn 3곳 결정론적 exit)이 워커 goroutine 수명을 커버·L215(time.After 차단형 poll 루프)가 claim 루프 구동 커버. jobs-채널 backpressure 모집단 0. confidence<3. 차기 area = 봇 (6-area rotation 동시성→봇, 6주기째) → cycle 1976. 후보: adapter 레지스트리 dispatch·drain trie merge·snapshot key 파생·이미지 우선순위 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1972 Discovery — 에러처리: for/range 루프 본문 안 `defer` 리소스정리가 함수반환까지 누적돼 fd 고갈되는가 (NEW clean baseline L1195)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 6주기째)에서 "봇 배치 루프가 iteration 마다 열린 파일/커넥션/body 를 `defer` 로 정리 → defer 가 함수반환 시점 실행이라 반복 수만큼 누적 → 대량 반복 시 too-many-open-files fd 고갈" 후보를 probe → for/range 본문 내 리소스-정리 defer **pure vacuous(0)** 확인 → **NEW clean baseline L1195 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 에러처리. 후보축 = defer 의 loop-scope 누적(iteration 끝이 아닌 함수반환 시 해제).
