@@ -24,6 +24,14 @@
 - 근거: L745 가 OUTPUT 직렬화 shape 축을 정확히 커버(L349 배열 파라미터 INPUT 바인딩과 정반대 방향). 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 39주기째) → cycle 2042. 후보: 0-분모 panic(L1198 커버 외 축)·ErrNoRows→404 분기(L121)·partial-write tx 롤백(L129) 외 미수록 sub-axis(에러 wrapping %w 체인·context deadline 전파·retry idempotency).
+## 2026-07-02 — [design] cycle 2431 states 264th round — 커스텀 요소 내부 상태 의사클래스 :state()(CustomStateSet) 표면 폐기 (doubly-vacuous)
+- 결정: states area(264th round)에서 "CSS `:state()`(커스텀 엘리먼트가 `ElementInternals.states`/CustomStateSet 에 JS 로 등록한 내부 상태를 매칭하는 상태 의사클래스)로 web component 내부 상태(:state(loading)/:state(active))를 시각화하는데 일부 커스텀 요소만 노출하고 동종 다른 컴포넌트는 안 줘 상태 시각 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: states. 후보축 = 커스텀 엘리먼트 CustomStateSet 내부 상태의 CSS `:state()` 시각화 정합. 표준 폼/미디어 상태 의사클래스(:checked/:disabled/:blank·cycle 452·미디어 재생 상태)·ARIA 상태 속성(aria-level/aria-sort/aria-details 등)과 별개 차원 — JS-정의 커스텀 요소 내부 상태 매칭 축.
+- MANDATORY 체크: (1) `:state(` grep 은 anti/decision-log 타 census 본문 교차참조뿐, dedicated subject census 0·apps/web/src 코드 0건. (2) host 커스텀 엘리먼트 0 — `customElements.define`/`is="..."`/하이픈 커스텀 태그/`ElementInternals`/`CustomStateSet`/`.states` 전부 grep 0건(순수 React 함수형 컴포넌트만). (3) anti-patterns 전수 `:state()` dedicated census 부재. (4) DESIGN.md :state/CustomStateSet grep 0건.
+- 근거: (a) `:state()` 는 표준 상태 의사클래스/ARIA 상태 속성이 아닌 커스텀 엘리먼트 내부 상태 매칭 의사클래스이고 (b) 셀렉터 0건 + host 커스텀 요소 0건 → mechanism-absent(커스텀 엘리먼트 host 0)+property-vacuous(`:state()` 0) 이중 공허.
+- DESIGN.md 확인: State(L82-88)는 React 상태 기반 hover/active/loading/empty 시각만 다루고 web component `:state()` 노출을 SHALL 없음(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1219줄로 +1.
+- 차기 states 재진입 후보: `:has()` 부모-상태 반영(자식 상태 기반 부모 시각 분기) 축, WebVTT cue 상태 의사클래스(`::cue`/`:past`/`:future` 자막 진행 상태) 축.
 
 ## 2026-07-02 — [design] cycle 2429 responsive 265th round — 브레이크포인트-접두 반응형 텍스트 장식선 토글(sm:underline/md:no-underline) 표면 폐기 (mechanism-present-but-BP-vacuous)
 - 결정: responsive area(265th round)에서 "CSS `text-decoration-line`(underline/line-through/overline)을 `sm:underline`/`md:no-underline` 처럼 화면폭별로 켜고 끄는 반응형 토글로 링크 밑줄 어포던스를 BP 전이하는데 일부 링크만 전이하고 동종 다른 링크는 고정이라 반응형 장식선 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
