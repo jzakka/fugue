@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1948 Discovery — 에러처리: bare 타입단언(`x.(T)`) panic — 신뢰불가 크롤 JSON-LD 를 recover 없는 워커에서 단언 시 크래시 (NEW baseline L1193)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "extractor 가 신뢰불가 크롤 JSON-LD 를 comma-ok 없는 bare `.(string)` 로 단언 → 값 타입 confusion(배열/숫자) 시 panic → HTTP recover 밖 하베스터 워커 크래시" 후보를 probe → 기존 census 미커버 fresh 축·정적으로 그럴듯하나 refuted FP → **NEW baseline 등록**(anti-patterns L1193 + decision-log).
+- 축 선택: 에러처리. 후보축 = 타입 단언의 comma-ok 가드 + 신뢰불가 입력 타입 confusion panic.
+- 검증: `.(T)` 단언 site 전수 13곳(비-test) grep — 전부 comma-ok(`v,ok:=x.(T)`)/type-switch. extractor.go:397-407 handleJSONLD `json.Unmarshal` 크롤 JSON-LD → :409 collectJSONLD `switch v.(type)` + :412/415/418/421/427/454/472 `if str,ok:=t["headline"].(string); ok` 전 필드 comma-ok(비-string 값→ok=false skip·panic 없음)·middleware.go:19·jwt.go:87/95·goja_executor.go:111·image_picker.go:290·script_adapter.go:25 전부 comma-ok. bare 단언 0건.
+- 판정: **NEW baseline L1193**. 기존과 비중첩 — L276(HTTP 핸들러 panic→middleware.Recoverer 회복 *메커니즘*)·L1032(spawn goroutine panic escape)·L186(jwt alg-confusion 서명검증)과 모두 별축(타입단언 panic 원천 부재·특히 recover 없는 워커 경로+신뢰불가 JSON-LD). confidence<3(refuted).
+- 영향 범위: 타입단언 panic 축만. 신규 코드가 신뢰불가 파싱결과를 bare `.(T)` 단언·recover 없는 워커/goroutine 에서 bare 단언 panic·interface{} map 필드 comma-ok 없는 단언·type-switch default 누락 후 bare 단언 시 L1193 예외로 실결함 등록 가능.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 5주기째) → cycle 1950. 후보: goroutine 누수·WaitGroup·channel 소유권·atomic vs mutex·map race 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1946 Discovery — 정합성: boards 테이블에 UNIQUE(creator_id, name) 부재로 동일 유저 중복 보드명 허용이 스펙/무결성 위반인가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 5주기째)에서 "boards 에 (creator_id,name) UNIQUE 제약이 없어 같은 유저가 동명 보드를 여러 개 생성 → 데이터 무결성/스펙 위반·CreateBoard UPSERT arbiter 없음" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = boards 스키마 제약 ↔ board 생성 Requirement 정합.
