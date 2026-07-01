@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2030 Discovery — 에러처리: HTTP 핸들러의 client-disconnect(r.Context().Err()==context.Canceled) → 500 오분류 축 (covered-by-census)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 33주기째)에서 "핸들러가 클라이언트 단절(context.Canceled)을 sql.ErrNoRows 아닌 일반 에러로 보아 writeError(500) 로 오분류·에러 로그/메트릭 오염·취소 처리 비일관·요청 context 미전파·Canceled↔DeadlineExceeded 미구분" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 에러처리. 후보축 = HTTP 핸들러의 요청-context 취소(client disconnect/deadline) 관측·전파·분류. pin/handler.go:388-396 GetByID 처럼 DB 에러가 sql.ErrNoRows 면 404·그 외 `log.Printf+writeError(500)+return` 인데 client-disconnect 시 GetPinWithCreator 이 context.Canceled 반환 → 500 오분류(로그 노이즈).
+- 확인: 이 축은 census 3개 baseline 이 전수 소유 — (1) **L96 = client-disconnect→500 오분류 축 정소유**: "API 핸들러 9개 중 tag/handler.go:72-74 만 ctx.Canceled 단락하고 나머지 8 핸들러는 일률 log.Printf+writeError(500)" 을 문서-미배킹 관측성 최적화(계약위반 아님)로 이미 refute — 정확히 본 probe 축. (2) **L266 = 요청 context 전파 축**: 9개 핸들러 패키지 전수 r.Context() 스레드·context.Background()/TODO() 0건 → disconnect/deadline 이 in-flight 쿼리에 전파됨. (3) **L1202 = Canceled↔DeadlineExceeded 구분 축**: ctx 에러 양종 소비 전수가 shutdown 체크포인트=양종 abort 정합·goja interrupt=Done()-watch kind-agnostic·fetch 타임아웃=net.Error.Timeout() 별도분류로 오구분 site 부재.
+- 비중첩 확인: forward-pointer 후보(tx commit/rollback=L255/L1094·outbound fetch wrap=L350/L1005/L232·err envelope 내부상세노출=L212·missing-return=L96 "writeError 뒤 항상 return"+L1171)도 전수 기수록 → 에러처리 46개 baseline 로 area 포화, 신규 sub-axis 부재.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 34주기째) → cycle 2032. 후보: sync.Map/atomic 사용 정합·채널 close-once·WaitGroup Add/Done 짝·shared-map RWMutex 커버리지·goroutine leak 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2028 Discovery — 정합성: auth_accounts UNIQUE(provider,provider_id) ↔ FindOrCreateCreator lookup-then-insert 멱등성(중복계정/orphan creator) — NEW baseline
 - 결정: 정합성 area(6-area rotation 보안→정합성, 32주기째)에서 "auth_account INSERT 에 ON CONFLICT 없음 → 동일 provider 계정 중복 생성·재로그인마다 새 creator·check-then-act 경쟁으로 UNIQUE 위반·orphan creator" probe → **FP 확정, NEW baseline 등록**(anti-patterns EOF + decision-log 양쪽).
 - 축 선택: 정합성. (1) 재로그인 멱등 = Step1 GetAuthAccountByProvider(provider,provider_id UNIQUE 키) 조회로 기존 creator 반환(service.go:44-48). (2) UNIQUE(provider,provider_id) DB-enforced(000002:8)로 중복 auth_account 행 불가. (3) 신규생성 createNewCreator(service.go:158) BeginTx 단일 tx → 경쟁 지는쪽 auth_account UNIQUE 위반 시 creator 까지 롤백(orphan 부재, 주석 :147-155)·지는 요청 transient 500 은 재시도 self-heal. (4) email 경로는 ON CONFLICT(email)+re-query 로 승자 복구.
