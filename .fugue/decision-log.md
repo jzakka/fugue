@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1910 Discovery — 정합성: boolean DEFAULT 컬럼 ↔ *bool tri-state 요청 필드 default 정합 (boards.is_public zero-value override) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 3주기째)에서 "요청 바디에서 is_public 필드 생략 시 Go bool zero-value(false)가 sqlc INSERT $N 으로 흘러 DB `is_public DEFAULT true` 를 침묵 덮어써 보드가 의도치 않게 비공개(false) 저장" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 정합성. 후보축 = BOOLEAN NOT NULL DEFAULT true 컬럼(boards.is_public·bot_sources.enabled·bot_sites.active) 3개의 handler↔sqlc INSERT default 재구성.
+- 확인: (1) **boards.is_public = *bool 포인터-nil 재구성(safe)**: CreateBoard INSERT `(creator_id, name, description, is_public) VALUES ($1..$4)` 로 is_public 을 $4 에 포함하나, boards/handler.go:153-156 이 `createBoardRequest{ IsPublic *bool }` 포인터를 받아 `isPublic := true; if req.IsPublic != nil { isPublic = *req.IsPublic }` 로 **요청 미제공(nil)→DB DEFAULT 와 동일한 true 로 재구성** 후 $4 공급 → 요청에서 is_public 을 빼도 false 가 아니라 true 저장(DEFAULT 보존). 비-포인터 bool 이었다면 미제공 시 false zero-value 가 DEFAULT 를 덮을 위험이 실재하나 *bool nil-check 로 방어. (2) **app-default(true) == DB-DEFAULT(true) 일치** → 두 층 default 코히런스.
+- 안착 census: **L1085(정합성)** = DB DEFAULT 컬럼이 sqlc INSERT 컬럼리스트에 명시 포함될 때 Go zero-value 가 DEFAULT 를 침묵 덮어쓰는지 — (a) 컬럼 생략(DB DEFAULT 의존)·(b) 포인터-nil 재구성·(c) DEFAULT 동일 리터럴 3경로 전수 정합, **boards.is_public *bool 포인터-nil 재구성(handler.go:153-156)을 명시** — 본 probe 와 정확히 동일 매핑. **L738**(sqlc INSERT DB DEFAULT 컬럼 처리)·**L455**(보안: CREATE 소유자 필드 출처)도 인접 포괄. 신선 축 부재(bot_sources.enabled·bot_sites.active 는 시드/운영자 데이터로 런타임 INSERT 경로 없음 → L1085 범위 내 vacuous).
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 1912. 후보: outbound resp.Body lifecycle·sql.Rows Err() 사후검사·context 취소 전파·SQLSTATE 제약위반 매핑·panic recover 경계 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1908 Discovery — 보안: SSRF-safe client 의 리다이렉트 재검증 + DNS-rebind TOCTOU (redirect hop 재해석·검증 IP 고정 dial) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 3주기째)에서 "SSRF-safe client 가 302 리다이렉트로 사설 IP 우회 허용·DNS rebinding(lookup↔dial 사이 TOCTOU 창)·비http 스킴 리다이렉트 통과" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 보안. 후보축 = httpclient/ssrf.go NewSSRFSafeClient 의 CheckRedirect 재검증 + DialContext IP-고정 dial.
