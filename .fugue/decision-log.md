@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1972 Discovery — 에러처리: for/range 루프 본문 안 `defer` 리소스정리가 함수반환까지 누적돼 fd 고갈되는가 (NEW clean baseline L1195)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 6주기째)에서 "봇 배치 루프가 iteration 마다 열린 파일/커넥션/body 를 `defer` 로 정리 → defer 가 함수반환 시점 실행이라 반복 수만큼 누적 → 대량 반복 시 too-many-open-files fd 고갈" 후보를 probe → for/range 본문 내 리소스-정리 defer **pure vacuous(0)** 확인 → **NEW clean baseline L1195 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 에러처리. 후보축 = defer 의 loop-scope 누적(iteration 끝이 아닌 함수반환 시 해제).
+- 검증: for/range 루프 본문 안 `defer`(Close/Remove/Body.Close/cancel) 배치 site 전수 0(브레이스-깊이 스캔). pin/handler.go 6개 파일 defer(:146/:161/:212/:237/:283/:332)는 태그파싱 루프(`for _, s := range tagIDStrs`:117-124, 본문 defer 없음)가 닫힌 뒤 선형 파이프라인(함수당 1회, 누적 없음). cmd/bot/main.go:427 `defer infra.Close()` 는 cobra RunE 클로저(CLI 호출당 1회)라 루프 아님. 봇 배치(HarvestPipeline.Process·frontier claim)는 defer 대신 iteration 즉시 처리 또는 fetch surface 가 ([]byte,error)라 핸들 누적 없음.
+- 판정: **NEW clean baseline (L1195)** — for/range 본문 내 리소스-정리 defer 모집단 0. 기존 에러처리 baseline 과 비중첩: L244(temp file defer *존재·정확성* 축)·L136/L350(outbound body *단발* 정리 축)·L396/L1131(rows.Close/rows.Err 축)·L433(context cancel defer 축) 어느 것도 defer 의 *올바른 스코프로 인한 누적*(defer 가 있고 정확해도 루프 안이면 누적) 직교 축을 커버 안 함. 예외조건: 신규 for/range 본문 내 `defer f.Close()`/`defer resp.Body.Close()`/`defer rows.Close()`/`defer os.Remove()` 로 대량 반복 시 fd/커넥션/디스크 누적 고갈되는 site 는 등록 가능. 차기 area = 동시성 (6-area rotation 에러처리→동시성, 6주기째) → cycle 1974. 후보: channel fan-out backpressure·worker-pool 수명·atomic 메모리순서·RWMutex 승격 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1970 Discovery — 정합성: scheduler Go Status enum(fetched/fetch_failed/harvested/harvest_failed) ↔ DB 영속 status enum 컬럼 drift 가능한가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 6주기째)에서 "url_scheduler.go Status 4-value enum 이 frontier 테이블의 영속 status/state enum 컬럼과 값집합 drift → SetStatus 가 미정의 status 를 DB 에 쓰거나 DB CHECK 와 어긋남" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 정합성. 후보축 = Go Status enum ↔ DB 영속 status 컬럼 값-도메인 정합.
