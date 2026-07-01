@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2028 Discovery — 정합성: auth_accounts UNIQUE(provider,provider_id) ↔ FindOrCreateCreator lookup-then-insert 멱등성(중복계정/orphan creator) — NEW baseline
+- 결정: 정합성 area(6-area rotation 보안→정합성, 32주기째)에서 "auth_account INSERT 에 ON CONFLICT 없음 → 동일 provider 계정 중복 생성·재로그인마다 새 creator·check-then-act 경쟁으로 UNIQUE 위반·orphan creator" probe → **FP 확정, NEW baseline 등록**(anti-patterns EOF + decision-log 양쪽).
+- 축 선택: 정합성. (1) 재로그인 멱등 = Step1 GetAuthAccountByProvider(provider,provider_id UNIQUE 키) 조회로 기존 creator 반환(service.go:44-48). (2) UNIQUE(provider,provider_id) DB-enforced(000002:8)로 중복 auth_account 행 불가. (3) 신규생성 createNewCreator(service.go:158) BeginTx 단일 tx → 경쟁 지는쪽 auth_account UNIQUE 위반 시 creator 까지 롤백(orphan 부재, 주석 :147-155)·지는 요청 transient 500 은 재시도 self-heal. (4) email 경로는 ON CONFLICT(email)+re-query 로 승자 복구.
+- 비중첩: L394(OAuth 필드 VARCHAR 폭)·L221(ON CONFLICT arbiter)·L1128(interactions idempotency)·L456(pin_tags PK)·L1210(다중-statement tx 원자성 — OAuth BeginTx 언급하나 축이 tx atomicity 이지 provider 유일성/멱등이 아님)과 별개.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 33주기째) → cycle 2030. 후보: DB tx commit/rollback 규율·outbound fetch 에러 wrap·핸들러 err envelope·missing-return·context cancel 전파 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2024 Discovery — OpenSpec갭: interaction R2 INSERT 컬럼 식별자·type enum 값 정합 (work_id→pin_id rename·CHECK 부재 type 의 코드측 enum 강제) — NEW baseline
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 30주기째)에서 "interactions.type 이 CHECK 없는 VARCHAR(20)라 스펙 3-enum(view/pin/board_add) 미강제·migration 000009 가 `work_id` 컬럼을 만드는데 CreateInteraction 은 `pin_id` INSERT 로 컬럼 drift·VARCHAR(20) 부족" probe → **FP 확정, NEW baseline 등록**(anti-patterns EOF + decision-log 양쪽).
 - 축 선택: OpenSpec갭. interaction R2 의 *piggyback 호출 wiring* 이 아니라 *실제 삽입되는 컬럼명/type 값*의 스펙 정합 축. (a) 000010:2/11/14 rename(works→pins·work_id→pin_id·idx rename)으로 런타임 컬럼이 `pin_id` → 쿼리 정합. (b) type 은 DB CHECK 부재하나 삽입 경로 2곳(recorder.go:28 piggyback·handler.go:65 직접 endpoint) 모두 isValidInteractionType(handler.go:90-95, view/pin/board_add verbatim) 게이트로 무효 type 차단 → application-side enum 강제. (c) VARCHAR(20)≥board_add(9자). (d) best-effort void Record 는 err log-only.
