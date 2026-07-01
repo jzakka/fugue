@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1932 Discovery — 보안: rate-limit IP 키잉이 client-supplied X-Forwarded-For(Chi RealIP)를 신뢰해 IP 스푸핑으로 per-IP 빈도제한 우회 가능한가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 5주기째)에서 "auth rate limiter 가 extractIP 로 RemoteAddr(Chi middleware.RealIP 가 X-Forwarded-For/X-Real-IP 로 세팅)를 키잉하는데, 공격자가 XFF 헤더를 위조해 IP 를 회전시켜 per-IP 빈도제한(로그인/OG fetch)을 우회" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = 보안 결정(rate-limit 키잉)이 client-controllable forwarding 헤더를 신뢰하는가.
+- 검증: (1) ratelimit.go:113-122 extractIP 가 `net.SplitHostPort(r.RemoteAddr)` 로 IP 추출 — RemoteAddr 는 main.go:121 `middleware.RealIP` 가 XFF/X-Real-IP 로 세팅(:114-116 주석 "Safe behind Next.js rewrite proxy and production ingress"). (2) 핀 생성은 per-IP 아닌 per-creator 키(main.go:146 `pinRL.MiddlewareByCreatorID` → JWT creator_id, 헤더 스푸핑 불가). IP 키잉은 미인증 표면(로그인/OG)에만 적용. (3) XFF 신뢰 안전성은 ingress/proxy 가 inbound XFF 를 덮어쓰는(sanitize) **배포 posture** 에 의존.
+- 판정: **covered-by-census** — L324(보안: ratelimit fixed-window·"per-IP/per-user 두 surface 충실: extractIP(RemoteAddr, Chi RealIP 가 XFF/X-Real-IP 로 세팅)로 IP 키잉" 명시·spec↔구현 전수 정합)가 IP 키잉 surface 를 커버. XFF 신뢰 안전성은 L15(배포 매니페스트/인프라 posture 는 결함으로 다루지 않는다)로 스코프 외. confidence<3.
+- 영향 범위: rate-limit IP 키잉·XFF 신뢰 posture 만. anti-patterns 미변경. 신규 코드가 XFF/X-Real-IP 를 **애플리케이션 코드에서 직접 파싱**해 인가/소유권/감사 로그의 신뢰 식별자로 쓰거나(ingress sanitize 우회)·per-creator 여야 할 mutation limit 을 IP 키로 바꾸면 L324 예외로 등록 가능.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 5주기째) → cycle 1934. 후보: DTO nullable 직렬화·JSONB 왕복·FK ON DELETE·UPSERT arbiter 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1930 Discovery — OpenSpec갭: feed capability Req4 "개인화 피드 페이지네이션 무중복" wiring (offset 이 모든 underlying 쿼리에 일관 전파·연속 페이지 교집합 공집합) (NEW baseline L1191)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째 시작)에서 "개인화 피드가 페이지 간 작품 중복 반환·cursor offset 이 일부 underlying 쿼리에만 전파돼 첫 페이지 재생성·추천/최신 두 source 가 같은 핀 재노출·deficit fill 이 다음 페이지 침범" 후보를 probe → **refuted + uncovered → NEW baseline**. anti-patterns L1191 + 본 decision-log 양쪽 등록.
 - 축 선택: OpenSpec갭. 후보축 = feed/spec.md:70-91 Req4(개인화 분기 next_cursor 무중복 SHALL NOT·연속 페이지 ID 교집합 공집합 SHALL·offset 이 모든 underlying 쿼리 일관 전파 SHALL·페이지 위치 무시 첫페이지 재생성 SHALL NOT).
