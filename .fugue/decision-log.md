@@ -24,6 +24,13 @@
 - 비중첩: **L184(cycle 790)가 ratelimit 2 Requirement 전수(R1 원자성 + R2 dual surface: creator 버킷·IP fallback·무제한통과 차단)를 이미 등록** → 본 축과 완전 중첩. L268(동시성 INCR/EXPIRE TOCTOU)·L324(보안 fixed-window posture)·L302(에러처리 Redis fail-open/closed)·L392(보안 RealIP 신뢰경계)는 각기 다른 축이나 R2 per-user surface 자체는 L184 소유.
 - 예외(등록 가능): L184 예외절 그대로 — 새 라우트가 per-user 필요한데 per-IP Middleware 사용·INCR/EXPIRE EVAL 밖 분리·Redis err fail-closed(429) 전환·MiddlewareByCreatorID 인증부재 시 IP fallback 제거해 무제한 통과.
 - 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 25주기째) → cycle 2014. 후보: JWT 검증·CORS·업로드 MIME/size·SSRF(크롤 URL fetch)·SQL injection(sqlc 밖 raw)·secret 로깅 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2014 Discovery — 보안: 멀티파트 업로드 파서(ParseMultipartForm) temp 파일 수명주기 — 디스크 스풀 후 RemoveAll 미호출 누수(CWE-459) (NEW baseline L1209)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 25주기째)에서 "ParseMultipartForm 이 파일 파트를 디스크 temp 로 스풀하는데 RemoveAll 미호출 → 요청마다 $TMPDIR 누적(CWE-459)·파서 temp 잔존·디스크 고갈 DoS" probe → **FP 확정, NEW clean baseline L1209 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 보안. 후보축 = 멀티파트 파서 자체의 temp 파일 생성/정리 수명주기(L440 크기 DoS·L1148 비디오 temp 보안과 다른 CWE-459 누수 축).
+- 확인: apps/api 유일 multipart 핸들러(pin/handler.go Create)에서 파서가 애초에 스풀하지 않음 — (1) maxMemory==body cap: :82 `MaxBytesReader(...,requestBodyCap)`(=500<<20, :37)이 body 를 500MiB 캡, :83 `ParseMultipartForm(requestBodyCap)` maxMemory 도 500MiB → 파일 파트 총합 ⊆ body ≤500MiB=maxMemory 이라 Go readForm 예산 미소진 → **os.CreateTemp 스풀 0건 → RemoveAll no-op → 누수 모집단 0**. (2) 초과 시 :84-88 MaxBytesError→400. (3) 비디오 자체 temp 는 :154 CreateTemp+:161 defer os.Remove+:164 Close 로 명시 정리(보안 L1148). (4) FormFile media(:141)/thumbnail(:331) 모두 defer Close(:146/:332).
+- 비중첩: L440(요청 body 크기 상한 CWE-400 — 스풀 *크기* 캡)·L1148(비디오 temp symlink/perms CWE-377/378)·L192(CORS/MIME/명령주입)·L1206(object-key path traversal)과 각기 다른 축. 본 축은 파서 temp 정리 누수(CWE-459) 자체.
+- 예외(등록 가능): maxMemory<body cap 으로 스풀 유발+RemoveAll 미호출 잔존·MaxBytesReader 없이 ParseMultipartForm 무제한 스풀·FormFile defer Close 누락 fd 누수·무-스풀 불변식(maxMemory≥body cap) 깨는 새 multipart 엔드포인트.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 26주기째) → cycle 2016. 후보: DB 트랜잭션 경계·FK/유니크 제약·enum↔코드 동기화·타임존/시각 표현·JSON 직렬화 round-trip·카운터 정합 중 미수록 sub-axis.
 ## 2026-07-01 — [system] cycle 2008 Discovery — 에러처리: 비디오 처리 os/exec(ffmpeg/ffprobe) 실행 경계가 에러 캡처/stderr/kill 전파/killed-output 오파싱을 올바로 처리하는가 (NEW baseline L1208)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 22주기째)에서 "ffmpeg/ffprobe exec 에러 swallow·stderr 유실·ctx-cancel SIGKILL 시 hang·killed/빈 출력을 duration 오파싱해 15s 캡 우회·exit code 무시" probe → **FP 확정, NEW clean baseline L1208 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 에러처리. 후보축 = os/exec 자식프로세스(ffmpeg/ffprobe) 실행 경계의 에러 캡처·전파 메커니즘.
