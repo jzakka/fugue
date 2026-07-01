@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1908 Discovery — 보안: SSRF-safe client 의 리다이렉트 재검증 + DNS-rebind TOCTOU (redirect hop 재해석·검증 IP 고정 dial) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 3주기째)에서 "SSRF-safe client 가 302 리다이렉트로 사설 IP 우회 허용·DNS rebinding(lookup↔dial 사이 TOCTOU 창)·비http 스킴 리다이렉트 통과" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 보안. 후보축 = httpclient/ssrf.go NewSSRFSafeClient 의 CheckRedirect 재검증 + DialContext IP-고정 dial.
+- 확인: (1) **DialContext IP-pinning(DNS-rebind TOCTOU 차단)**: `net.DefaultResolver.LookupIPAddr(host)`→해석된 모든 IP `IsPrivateIP` 검사(하나라도 사설이면 차단)→`target := net.JoinHostPort(ips[0].IP.String(), port)` 로 **검증한 바로 그 IP 로 dial**(호스트 재해석 안 함 → lookup↔dial 사이 rebind 창 없음). (2) **CheckRedirect 매 hop 재검증**: 각 리다이렉트 hop 에서 `req.URL.Scheme != http/https` 차단·host 재해석 후 IsPrivateIP 재검사·`len(via) >= maxRedirects(기본5)` 상한. (3) **IsPrivateIP 망라**: loopback·link-local(169.254 메타데이터)·RFC1918·CGNAT 100.64/10·benchmark·doc TEST-NET·IPv6 ULA fc00::/7.
+- 안착 census: **L92(보안)** = 중앙 SSRF-safe client + 전 production 공격자-제어-URL fetch wiring — "검증된 ips[0] 로 dial(TOCTOU/DNS-rebinding 차단)·CheckRedirect 매 hop host 재해소+사설 IP 거부+non-http scheme 거부+maxRedirects 상한" 을 명시. **L209(보안)** = OG fetch 엔드포인트 다층 방어(핸들러 입력검증·서비스 이중검증·SSRF-safe client·IsPrivateIP)로 "DNS rebinding·리다이렉트 사설망 우회·비http 스킴" 을 정확히 포괄 — 본 probe 의 redirect 재검증+IP-고정 dial 두 메커니즘과 동일 매핑. **L1125/L1048**(outbound body io.Read 캡·gzip 폭탄)·**L756**(외부 콘텐츠 regex ReDoS)·**L812**(UA 일관성)도 인접 포괄. 신선 축 부재.
+- 차기 area = 정합성 (6-area rotation 보안→정합성) → cycle 1910. 후보: nullable 컬럼↔sqlc 타입·numeric 폭·boolean DEFAULT·created/updated_at 단조성·cross-endpoint DTO shape 중 미수록 sub-axis.
+
 ## 2026-06-30 — [system] cycle 1906 Discovery — OpenSpec갭: scheduler exponential backoff 공식 Requirement (30s*2^(n-1)·uniform ±10% jitter·단일 UPDATE·count cap 5) (covered-by-census, anti-patterns 변경 없음)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 3주기째 시작)에서 "scheduler 가 http_5xx/network/timeout 실패에 exponential backoff 공식을 미준수(delay 공식 어긋남·jitter 범위/부호 오류·error_count 5 초과·찢어진 관측·int64 overflow)" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: OpenSpec갭. 후보축 = scheduler/spec.md:378-440 "http_5xx/network/timeout 에러는 exponential backoff 공식을 적용한다" + :417-470 "재시도 한도 5 dead claim 제외" Requirement.
