@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2000 Discovery — 봇: firstSrcsetURL 이 공격자 제어 crawled srcset 을 파싱해 URL 토큰을 오추출/무효 영속하는가 (NEW baseline L1204)
+- 결정: 봇 area(6-area rotation 동시성→봇, 18주기째)에서 "srcset URL 토큰 오추출·URL 내 콤마 오split·descriptor 를 URL 로 오인·빈/공백 crash·malformed 무효 미디어 영속" probe → **FP 확정, NEW clean baseline L1204 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 봇. 후보축 = srcset 첫 후보 URL 토큰 추출(firstSrcsetURL)의 공격자 입력 견고성.
+- 확인: (1) firstSrcsetURL(extractor.go:388-395) = `SplitN(raw,",",2)[0]`→`Fields(first)`→`len(fields)==0` 가드로 빈/공백/descriptor-only 입력에 `""` 반환(순수 문자열 op·panic 면역). (2) handleSource(:351) 은 `src` 속성 빈 경우만 srcset 폴백+`mediaTypeFromMIME(type)` 비면 MediaCandidate 미생성(type 가드). (3) absolutize(:545-560) 이 추출 토큰을 재검증 — url.Parse err·비절대+nil base·비 http(s) 스킴 모두 `false`→buildMediaCandidates(:578) `if !ok continue` 로 drop → descriptor-as-URL·truncated·비스킴 토큰이 pins.media_url/og_data 영속 불가(graceful degradation). URL 내 rawcomma truncation 도 절대 URL 파싱 실패로 downstream drop.
+- 비중첩: L83/L91(프론트 `<img>`/srcset 반응형 디자인)·L218(이미지 후보 우선순위 순서)와 별개(백엔드 크롤 토큰 추출 축).
+- 예외(등록 가능): firstSrcsetURL `len(fields)==0` 가드 제거로 index panic·descriptor 를 URL 로 오인해 후보 오염·absolutize 우회로 무효 스킴 영속·콤마 전량 split 로 유효 URL 손상 site.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 19주기째) → cycle 2002. 후보: scheduler-frontier-table 컬럼정의·interaction piggyback wiring·pioneer-link-filter-policy robots·harvest-pipeline og_data 영속 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1998 Discovery — 동시성: sync.Mutex/RWMutex/atomic.Uint64 보유 구조체가 값 복사돼 락/원자 상태가 복제(copylocks)되는가 (NEW baseline L1203)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 17주기째)에서 "lock copied by value·value receiver 로 락 복사·구조체 by-value 반환/맵값으로 락 복사→상호배제 붕괴·atomic 카운터 분기" probe → **FP 확정, NEW clean baseline L1203 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 동시성. 후보축 = 락/원자 보유 구조체의 value-copy(copylocks) 안전성.
