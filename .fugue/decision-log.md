@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2040 Discovery — 정합성: sqlc `:many` 빈 결과 nil 슬라이스→JSON `null`/`[]` 응답 shape 표면 정합 (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 38주기째)에서 "리스트/컬렉션 HTTP 핸들러가 sqlc `:many` 0행 nil 슬라이스(`[]T(nil)`)를 그대로 직렬화해 JSON 응답이 `[]` 대신 `null` 로 나가 클라이언트 배열 계약을 깨거나 동종 엔드포인트 간 응답 shape 가 갈리는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. `:many` 빈 결과의 응답 직렬화 shape(nil→`null` vs make→`[]`) OUTPUT 정합.
+- MANDATORY 체크: 본 축은 **L745(cycle 1358)이 정확히 동일 — "sqlc `:many` 0행 nil 슬라이스→JSON `null`/`[]` 응답 shape 표면 정합"** 을 census 로 보유. L745 전수 근거: pin/handler.go:604/643/463/694·boards/handler.go:255·feed/handler.go:168/197·tag/handler.go:80/124-127(PopularTags 명시 nil-guard)·search/handler.go:317/332/350/377/390/403/416/219/230/266 전부 `make([]T,0,cap)` 정규화 → 빈 결과도 `[]` 보장·raw sqlc nil 직렬화 경로 0건.
+- 근거: L745 가 OUTPUT 직렬화 shape 축을 정확히 커버(L349 배열 파라미터 INPUT 바인딩과 정반대 방향). 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 39주기째) → cycle 2042. 후보: 0-분모 panic(L1198 커버 외 축)·ErrNoRows→404 분기(L121)·partial-write tx 롤백(L129) 외 미수록 sub-axis(에러 wrapping %w 체인·context deadline 전파·retry idempotency).
+
 ## 2026-07-02 — [design] cycle 2429 responsive 265th round — 브레이크포인트-접두 반응형 텍스트 장식선 토글(sm:underline/md:no-underline) 표면 폐기 (mechanism-present-but-BP-vacuous)
 - 결정: responsive area(265th round)에서 "CSS `text-decoration-line`(underline/line-through/overline)을 `sm:underline`/`md:no-underline` 처럼 화면폭별로 켜고 끄는 반응형 토글로 링크 밑줄 어포던스를 BP 전이하는데 일부 링크만 전이하고 동종 다른 링크는 고정이라 반응형 장식선 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: responsive. 후보축 = text-decoration-line 값의 브레이크포인트별 전이 정합. 기존 BP-토글 census(image-rendering 956·caret-color 960·text-rendering 964·font-kerning 968·accent-color 972) 계열의 미커버 속성 카브 — 정적 데코 토큰(315/516)·데코선 스타일(794)·밑줄 위치(376)·box-decoration BP 토글(923)과 별개 차원.
