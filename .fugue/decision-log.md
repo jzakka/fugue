@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2020 Discovery — 동시성: playwright 공유 브라우저 인스턴스 동시 Fetch + ctx-cancel goroutine page.Close 접점 (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 28주기째)에서 "여러 harvester goroutine 이 하나의 PlaywrightFetcher.browser 를 공유해 동시 NewContext/Goto race·ctx-cancel goroutine 의 page.Close 가 메인 goroutine 의 Goto 와 동시 접근 race·done 채널 close 수명·Fetcher 값복사로 mu 무력화" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. 후보축 = playwright stateful 객체 공유 동시 실행 격리 + cross-goroutine Close 접점.
+- 확인: (1) **공유 browser 직렬화 + per-call context = L460 소유**: Fetch(:105-107) `f.mu.Lock()/defer Unlock` 으로 공유 browser 접근을 직렬화(주석 "not goroutine-safe at connection level, serialize")·per-call `browser.NewContext`(:110)+`pctx.NewPage`(:96)로 Page 격리·ctx-cancel 시 `page.Close`(:116)는 documented thread-safe 종료 API(L460 이 "유일 cross-goroutine 접점=라이브러리 documented 종료 API"로 명시). (2) **done 채널 close = L183/L330 소유**: `done:=make(chan struct{})`+`defer close(done)`(:113)+`select{ctx.Done()/done}`(:114-120)로 Fetch 반환 시 goroutine 종료(close 사용 send 아님·leak 없음). defer LIFO(:113 close done 먼저→:88 pctx.Close 나중)라 goroutine 이 pctx.Close 전 종료. (3) **Fetcher 포인터 사용(mu 값복사 없음) = L1203 소유**: NewPlaywrightFetcher 가 `*PlaywrightFetcher` 반환.
+- 비중첩: 세 sub-axis 각각 L460/L183/L330/L1203 이 이미 등록 → 완전 중첩. sync.Once/Pool/Cond/Map/errgroup·time.NewTicker 는 코드 부재(모집단 0).
+- 예외(등록 가능): L460 예외절 그대로 — 새 코드가 stateful 써드파티 객체(goja/playwright)를 goroutine 간 공유하며 per-call 격리·직렬화 없이 동시 실행하거나·Interrupt/Close 를 documented 종료 API 밖 경로로 호출하거나·Fetcher 를 값복사해 mu 를 무력화.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 29주기째) → cycle 2022. 후보: 추출기 srcset/OG 파싱·harvester work-budget·pioneer fanout·robots 필터·URL 정규화·노드 분류 중 미수록 sub-axis.
 ## 2026-07-01 — [system] cycle 2016 Discovery — 정합성: 다중 statement write(핀 생성 CreatePin+N×LinkPinTag)의 트랜잭션 경계 — BeginTx 미사용 시 보상삭제+FK CASCADE 롤백 (NEW baseline)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 26주기째)에서 "핀 생성이 CreatePin 후 태그 INSERT 를 BeginTx 없이 순차 발행 → 중간 실패 시 부분 태그·orphan pin 으로 partial-write 정합 깨짐" probe → **FP 확정, NEW clean baseline 등록**(anti-patterns EOF + decision-log 양쪽).
 - 축 선택: 정합성. 후보축 = CREATE 경로의 트랜잭션 경계/보상롤백(L456 pin_tags 멱등성·L187 부모행 삭제 cascade 와 다른 축).
