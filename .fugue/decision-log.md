@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2427 aesthetic 287th round — CSS 어간-공백 변환 word-space-transform 표면 폐기 (doubly-vacuous)
+- 결정: aesthetic area(287th round)에서 "CSS `word-space-transform`(CSS Text 4 — 전각 이데오그래픽 스페이스/구두점 문자의 진출폭을 변환·트림하는 CJK 어간-폭 속성)으로 전각 공백 남용 텍스트의 어간 리듬을 균일화하는데 일부 텍스트만 변환하고 동종 다른 텍스트는 미변환이라 어간 공백 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: aesthetic. 후보축 = CJK 어간-공백 진출폭 변환의 표면 간 정합. 인접 라틴 어간 폭 `word-spacing`(line157)·CJK 자동 간격 `text-autospace`/`text-spacing-trim`(line480)과 별개 차원 — word-spacing 은 라틴 단어 사이 gap 폭, text-autospace 는 한자↔라틴 경계 자동 간격, word-space-transform 은 전각 공백 문자 자체의 진출폭 변환.
+- MANDATORY 체크: (1) `word-space-transform` grep 0건 — globals.css 0·apps/web/src 0·트리 전수 0. (2) anti-patterns 전수 dedicated census 부재·enumeration 부재(word-spacing 157/text-autospace 480 어느 census 도 word-space-transform 을 멤버로 열거하지 않음). (3) decision-log 0건. (4) DESIGN.md word-space-transform/어간 공백/전각 공백 grep 0건.
+- 근거: (a) word-space-transform 은 라틴 어간 word-spacing/CJK 자동 간격 text-autospace/첫줄 들여쓰기 text-indent 가 아닌 CSS 어간-공백 진출폭 변환 속성이고 (b) 코드·CSS 사용처 0건(pure vacuous) → mechanism-absent(어간-공백 변환 표면 0)+property-vacuous(word-space-transform 0건) 이중 공허.
+- DESIGN.md 확인: L11 "Decoration level: Minimal" 기조상 정교 CJK 조판 튜닝 비지향, Typography(L16-35)는 폰트/weight/스케일만 SHALL·전각 공백 진출폭 변환 미규정(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1216줄로 +1.
+- 차기 aesthetic 재진입 후보: ruby 조판 정렬 ruby-align/ruby-overhang 축, line-fit-edge leading-trim 축.
+
 ## 2026-07-02 — [design] cycle 2425 tokens 286th round — CSS 리스트 무작위 선택 함수 random-item() 표면 폐기 (doubly-vacuous)
 - 결정: tokens area(286th round)에서 "CSS `random-item()`(값 목록 중 요소별/고정 시드로 하나를 무작위 선택하는 CSS Values 5 함수)로 장식 색 팔레트·요소별 간격/각도 프리셋을 무작위 배정하는데 일부 표면만 random-item() 을 쓰고 동종 다른 표면은 고정값/JS 로 처리해 목록 무작위 선택 방식이 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: tokens. 후보축 = CSS 목록-항목 난수 선택 함수의 표면 간 정합. 이미 census 된 수치 범위 난수 `random()`(line730, 범위 내 연속 수치 생성)의 sibling 이지만 별개 차원 — random() 은 최소·최대·증분으로 수치를 산출, random-item() 은 값 목록에서 한 항목을 무작위 선택.
