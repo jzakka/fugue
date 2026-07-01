@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1962 Discovery — 동시성: sync.Once/Map/Pool/Cond 부재로 수동 지연초기화 double-init race 나 비안전 lazy-singleton 이 있는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "sync.Once 없는 수동 lazy-init 이 double-init race·sync.Map/Pool/Cond 미사용으로 비안전 concurrent-map/object-reuse/condition-wait 를 자체 구현" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = one-time lazy-init/concurrent-map/object-pool/condition-var 표준 프리미티브 부재로 인한 자체구현 race.
+- 검증: `sync.Once`/`sync.Map`/`sync.Pool`/`sync.Cond` grep 0건(apps/api 전수, _test 제외). 유일한 `func init()` 는 cmd/bot/main.go:452 cobra CLI 플래그/커맨드 등록(mergeCmd.Flags/rootCmd.AddCommand) — Go 런타임이 main 전에 단일 goroutine 으로 직렬 실행 보장하는 표준 init, 동시성 race 없음. 수동 lazy-singleton(package-var check-then-set without lock) 패턴도 부재.
+- 판정: **covered-by-census** — L421(select-default busy-spin + `sync.Once`/`sync.WaitGroup`/`errgroup`/`sync.Pool`/`atomic.Value`/`atomic.Pointer` 지연초기화/수명관리 프리미티브 부재 → sync.Once 없는 수동 lazy-init double-init race 를 명시 커버)가 정확히 이 축. L810(WaitGroup/errgroup fan-out-join pure-vacuous)·L189/L201/L37(host-키 공유 concurrent-map race, sync.Map 대체 표면)·L304/L706(single-flight coalescer 자체구현) 보조. confidence<3. 차기 area = 봇 (6-area rotation 동시성→봇, 5주기째) → cycle 1964. 후보: harvester source script 등록/디스패치·pioneer link-filter·frontier enqueue 정규화·미디어 후보 추출 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1960 Discovery — 에러처리: ffmpeg/ffprobe 자식프로세스 실패(non-zero exit·stderr·ctx timeout→SIGKILL)가 stderr 캡처 없이 삼켜지거나 오분류되는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "비디오 trim/probe 자식프로세스(exec.CommandContext ffmpeg/ffprobe) 실패가 stderr 를 버려 원인불명 에러를 내거나·ctx 취소 시 자식이 고아로 남거나·non-zero exit 를 성공으로 오분류" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 에러처리. 후보축 = ffmpeg/ffprobe 자식프로세스 실패의 stderr 캡처·ctx-바인딩 SIGKILL·에러 래핑 충실도.
