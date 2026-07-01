@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1916 Discovery — 봇: 미디어 후보 URL 의 위험 스킴 필터 (absolutize http/https 화이트리스트로 data:/javascript: reject·scheme-relative resolve) (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 3주기째 완주) 에서 "extractor 가 `<img src=\"data:...\">`·`<img src=\"javascript:...\">` 같은 위험 스킴 미디어 URL 을 MediaCandidates 에 그대로 담거나·scheme-relative `//host/x.jpg` 를 해석 못 해 누락" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = extractor.go absolutize(:545) 의 scheme 화이트리스트 + ResolveReference 가 미디어 후보 수집에 적용되는 경로.
+- 확인: (1) **absolutize http/https 화이트리스트**: `url.Parse`→상대(scheme-relative 포함) 이면 `base.ResolveReference`→`scheme := strings.ToLower(u.Scheme); if scheme != "http" && scheme != "https" { return "", false }` → data:/javascript:/blob:/mailto:/file: 등 비-http(s) 스킴 URL 을 (ok=false) 로 reject. (2) **미디어 후보 적용**: buildMediaCandidates 가 각 후보를 `abs, ok := absolutize(base, c.URL)`→`if !ok { continue }` 로 위험 스킴/파싱실패 후보를 skip 후 seen-맵 dedup·limit 캡 → data: URI 이미지가 MediaCandidates 에 안 들어감. (3) **scheme-relative resolve**: `//cdn.example/x.jpg` 는 IsAbs()=false 라 base scheme 으로 ResolveReference 되어 http(s) 절대 URL 로 정규화(누락 아님).
+- 안착 census: **L842(봇)** = canonical_url fallback + cross-domain 가드 + **absolutize 정규화(scheme 화이트리스트·ResolveReference)** — "(c) absolutize 가 scheme 을 http/https 로만 화이트리스트하여 비-http 스킴(javascript:/data: 등) reject" 를 명시 — 본 probe 의 공유 absolutize scheme-필터와 정확히 동일 매핑. **L699(봇)** = 본문 미디어 후보 수집 파이프라인 "absolutize(base, c.URL) 로 절대화하고 실패 시 skip" 으로 미디어 경로 적용 포괄. **L710**(srcset 토큰)·**L630**(<source> 태그)·**L824**(charset 디코딩)도 인접 포괄. 신선 축 부재(absolutize 공유 헬퍼 = 4주기 누적 봇 census 포화).
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 4주기째 시작) → cycle 1918. 후보: harvester snapshot-first fetch·pioneer work-budget·scheduler lease marker·feed 연관작품 중 미수록 Requirement/Scenario sub-axis.
+
 ## 2026-07-01 — [system] cycle 1914 Discovery — 동시성: 64-bit atomic 필드 정렬 (raw uint64 32-bit 8-byte 미정렬 panic·atomic.Uint64 self-align) (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 3주기째)에서 "메트릭 카운터가 raw uint64 필드를 atomic.AddUint64 로 증분하는데 32-bit 플랫폼에서 8-byte 미정렬로 atomic panic·구조체 내 mutex 뒤 배치로 정렬 깨짐" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = snapshot/metrics.go raw uint64 + media_validator_metrics.go/harvester_consumer.go atomic.Uint64 카운터의 64-bit 정렬 안전성.
