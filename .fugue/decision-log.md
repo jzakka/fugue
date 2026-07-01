@@ -22,6 +22,11 @@
 - 축 선택: OpenSpec갭. interaction R2 의 *piggyback 호출 wiring* 이 아니라 *실제 삽입되는 컬럼명/type 값*의 스펙 정합 축. (a) 000010:2/11/14 rename(works→pins·work_id→pin_id·idx rename)으로 런타임 컬럼이 `pin_id` → 쿼리 정합. (b) type 은 DB CHECK 부재하나 삽입 경로 2곳(recorder.go:28 piggyback·handler.go:65 직접 endpoint) 모두 isValidInteractionType(handler.go:90-95, view/pin/board_add verbatim) 게이트로 무효 type 차단 → application-side enum 강제. (c) VARCHAR(20)≥board_add(9자). (d) best-effort void Record 는 err log-only.
 - 비중첩: L868(CHECK 도메인 cross-walk — CHECK *존재* 컬럼)과 별개(interactions.type 은 CHECK *부재*), L216/L88(piggyback 호출 wiring)과 별개(삽입 컬럼/값 정합 축).
 - 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 31주기째) → cycle 2026. 후보: 업로드 MIME/확장자 sniff·JWT alg/claims·OAuth redirect·SSRF·페이지네이션 입력경계 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2026 Discovery — 보안: production 라우터 CORS 정책(AllowedOrigins/AllowCredentials) 오구성(CWE-942) — NEW baseline
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 31주기째)에서 "CORS 가 와일드카드 `*` origin + AllowCredentials:true 로 임의 출처에 자격증명 노출·Origin 무조건 반사(reflected-origin)·과다 헤더/메서드 허용" probe → **FP 확정, NEW baseline 등록**(anti-patterns EOF + decision-log 양쪽).
+- 축 선택: 보안. cmd/server/main.go:122-127 cors.Handler 는 (a) AllowedOrigins=[]string{cfg.FrontendURL} 단일 concrete origin(config.go:81 envOrDefault 비어있지 않은 기본값, 와일드카드 아님) → go-chi/cors v1.2.2 는 정확 일치 출처만 ACAO echo. (b) AllowCredentials:true 지만 와일드카드가 없어 `*`+credentials(CWE-942 danger) 조합 부재. (c) AllowOriginFunc/수동 ACAO 반사 0건(유일 `"*"`는 robots_filter UA). (d) Methods/Headers 명시 제한.
+- 비중첩: L465(쿠키 플래그)·L356(라우터 인증 게이팅)·L784(응답 보안 헤더)·L392(RealIP IP 신뢰)와 별개 — 교차출처 CORS allowlist/credentials 축은 처음.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 32주기째) → cycle 2028. 후보: sqlc Row struct 컬럼순서·INSERT 컬럼리스트 완전성·FK ON DELETE·ON CONFLICT arbiter·시간컬럼 nullability 중 미수록 sub-axis.
 
 ## 2026-07-01 — [system] cycle 2020 Discovery — 동시성: playwright 공유 브라우저 인스턴스 동시 Fetch + ctx-cancel goroutine page.Close 접점 (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 28주기째)에서 "여러 harvester goroutine 이 하나의 PlaywrightFetcher.browser 를 공유해 동시 NewContext/Goto race·ctx-cancel goroutine 의 page.Close 가 메인 goroutine 의 Goto 와 동시 접근 race·done 채널 close 수명·Fetcher 값복사로 mu 무력화" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
