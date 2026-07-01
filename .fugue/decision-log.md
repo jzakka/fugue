@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1942 Discovery — OpenSpec갭: auth "토큰이 존재할 때 선택적으로 인증 컨텍스트를 노출한다"(OptionalJWTMiddleware) Requirement 의 SHALL-NOT-401 wiring (covered-by-census, anti-patterns 변경 없음)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째)에서 "OptionalJWTMiddleware 가 토큰 부재/만료/서명불일치/파싱실패 시 401 을 반환(SHALL NOT 위반)하거나·유효 토큰인데 creatorID 컨텍스트를 안 노출" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: OpenSpec갭. 후보축 = auth Req4(선택적 인증 surface)의 3 Scenario(토큰없음/유효/유효하지않음) wiring 정합.
+- 검증: middleware.go:70-95 OptionalJWTMiddleware READ — :74-77 토큰부재→next.ServeHTTP(401 없음)·:79-83 ValidateToken err(만료/서명)→next.ServeHTTP·:85-89 uuid.Parse err(파싱실패)→next.ServeHTTP·:91-92 유효→ctx WithValue creatorID+next. 어느 invalid/absent 경로도 http.Error 미호출(SHALL-NOT-401 충족)·유효 경로만 creatorID 노출.
+- 판정: **covered-by-census** — L116(auth 6 Requirement 결정적 매핑, "(4) Req4 OptionalJWT: 부재/만료/서명불일치/파싱실패 전부 next.ServeHTTP, 401 미반환 middleware.go:70-95")가 정확히 이 Requirement·3 Scenario 를 커버. L216(interaction piggyback 에서 OptionalJWT 로 미인증 GET view 미기록)·L438(토큰 lifecycle) 보조. confidence<3.
+- 영향 범위: auth Req4 OptionalJWTMiddleware surface 만. anti-patterns 미변경. 신규 코드가 OptionalJWTMiddleware 의 invalid/absent 분기에서 http.Error(401)을 반환하거나·유효 토큰에서 creatorID 컨텍스트 노출을 빠뜨리면 L116 예외로 등록 가능.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 5주기째) → cycle 1944. 후보: SSRF·경로 traversal·인가 우회·시크릿 노출·헤더 인젝션 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1940 Discovery — 봇: 인메모리 BFS 크롤러(crawler/bfs_crawler.go)의 순회 종료·경계 계약(visited dedup·maxDepth 캡·same-domain·ctx-poll) (NEW baseline L1192)
 - 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "BFS 크롤러가 링크를 따라가며 순환 링크로 무한루프·maxDepth 초과 무제한 심도·외부 도메인 이탈·ctx 취소 무시" 후보를 probe → 기존 census 미커버 fresh 축·정적으로 그럴듯하나 refuted FP → **NEW baseline 등록**(anti-patterns L1192 + decision-log).
 - 축 선택: 봇. 후보축 = 인메모리 그래프 순회기의 종료 보장·크롤 경계(depth/domain).
