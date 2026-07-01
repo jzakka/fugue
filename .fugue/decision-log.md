@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1930 Discovery — OpenSpec갭: feed capability Req4 "개인화 피드 페이지네이션 무중복" wiring (offset 이 모든 underlying 쿼리에 일관 전파·연속 페이지 교집합 공집합) (NEW baseline L1191)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 5주기째 시작)에서 "개인화 피드가 페이지 간 작품 중복 반환·cursor offset 이 일부 underlying 쿼리에만 전파돼 첫 페이지 재생성·추천/최신 두 source 가 같은 핀 재노출·deficit fill 이 다음 페이지 침범" 후보를 probe → **refuted + uncovered → NEW baseline**. anti-patterns L1191 + 본 decision-log 양쪽 등록.
+- 축 선택: OpenSpec갭. 후보축 = feed/spec.md:70-91 Req4(개인화 분기 next_cursor 무중복 SHALL NOT·연속 페이지 ID 교집합 공집합 SHALL·offset 이 모든 underlying 쿼리 일관 전파 SHALL·페이지 위치 무시 첫페이지 재생성 SHALL NOT).
+- 검증: (1) offset 전파: buildPersonalizedFeed(handler.go:216)가 RecommendByTags(:262)·RecommendByMediaType(:277)·ListLatestPinsExcludingRecommended(:311)·recRows==0 fallback(:185-206)에 동일 offset 전수 전파. (2) source 배타: 최신 보충이 ListLatestPinsExcludingRecommended(tagIDs/mediaTypes 로 추천 population 제외)라 cross-source 중복 없음. (3) fill terminal-only: deficit fill(:331-337)은 len(pins)<limit 일 때만 도는데 buildNextCursor(:413-421)가 returnedCount<limit→nil(terminal)이라 fill page 는 다음 페이지 부재→침범 불가. full page 는 nextOffset=offset+limit·각 source ≤limit/2 소비→disjoint.
+- 판정: **NEW baseline** — L281(feed Req1 개인화 판정/혼합, spec:24 페이지네이션 scenario)과 비중첩(Req4 는 spec:70 별 Requirement, offset 전파/무중복 wiring 각도)·L264(단일쿼리 tie-breaker)·L1018(has_more)·L774(페이지네이션 신호)와 별축. 실제 구현이 3계약 충족 → refuted FP-pattern.
+- 영향 범위: 개인화(authenticated+≥콜드스타트) 분기 페이지네이션만. cold-start/비인증 분기는 Req4 추가 제약 없음. 예외: 새 underlying source 에 offset 미전파·최신 보충을 무필터 buildLatestFeed 로 교체·fill 을 non-terminal page 에서 실행·nextOffset 을 per-source 부분 offset 으로 변경 시 등록 가능.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 5주기째) → cycle 1932. 후보: 응답 헤더 CRLF·업로드 stored-XSS·CORS·JWT·rate-limit 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1928 Discovery — 봇: handleMeta 의 meta 속성 소스 정합 (og:* ← property 속성, twitter:*/description/author ← name 속성) + first-wins + content 정규화 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 4주기째)에서 "extractor.handleMeta 가 OG(property 속성)와 Twitter Card(name 속성) meta 를 잘못된 속성에서 읽어 twitter:image/og:image 를 놓치거나·last-wins 로 덮어써 우선순위 역전·빈 content 를 채택" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = meta 태그 속성 소스 매핑 정확성(OG spec=property·Twitter Cards=name) + first-wins + 정규화.
