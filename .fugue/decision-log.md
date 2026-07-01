@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 2012 Discovery — OpenSpec갭: ratelimit "유저 단위 빈도 제한 surface를 노출한다" Requirement(per-user/per-IP 버킷 분리·인증부재 IP fallback) (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 동시성→OpenSpec갭, 24주기째)에서 ratelimit capability 2번째 Requirement(spec.md L40-66 유저 단위 surface·4 Scenario: 인증→creator버킷·같은유저 IP무관 같은버킷·같은IP 두유저 분리·인증부재 IP fallback 무제한통과 금지) probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. 후보축 = ratelimit per-user surface(MiddlewareByCreatorID)의 버킷 키 선택·인증부재 fallback 계약. (auth me-null 직렬화=L116·feed 연관작품=L228 이미 covered 라 pivot.)
+- 확인: MiddlewareByCreatorID(ratelimit.go:67-74)가 `creator:`+id.String() 키로 인증유저 버킷 분리(Scenario1)·키에 IP 미포함이라 같은 creator 는 IP 달라도 같은 버킷(Scenario2)·다른 uuid 는 다른 버킷(Scenario3)·인증부재 시 `ip:`+extractIP fallback 으로 동일 middleware INCR/limit 통과(무제한 아님, Scenario4). 공유 middleware(:80-111)가 두 surface 에 fixed-window 원자성·fail-open invariant 동일 적용.
+- 비중첩: **L184(cycle 790)가 ratelimit 2 Requirement 전수(R1 원자성 + R2 dual surface: creator 버킷·IP fallback·무제한통과 차단)를 이미 등록** → 본 축과 완전 중첩. L268(동시성 INCR/EXPIRE TOCTOU)·L324(보안 fixed-window posture)·L302(에러처리 Redis fail-open/closed)·L392(보안 RealIP 신뢰경계)는 각기 다른 축이나 R2 per-user surface 자체는 L184 소유.
+- 예외(등록 가능): L184 예외절 그대로 — 새 라우트가 per-user 필요한데 per-IP Middleware 사용·INCR/EXPIRE EVAL 밖 분리·Redis err fail-closed(429) 전환·MiddlewareByCreatorID 인증부재 시 IP fallback 제거해 무제한 통과.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 25주기째) → cycle 2014. 후보: JWT 검증·CORS·업로드 MIME/size·SSRF(크롤 URL fetch)·SQL injection(sqlc 밖 raw)·secret 로깅 중 미수록 sub-axis.
 ## 2026-07-01 — [system] cycle 2008 Discovery — 에러처리: 비디오 처리 os/exec(ffmpeg/ffprobe) 실행 경계가 에러 캡처/stderr/kill 전파/killed-output 오파싱을 올바로 처리하는가 (NEW baseline L1208)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 22주기째)에서 "ffmpeg/ffprobe exec 에러 swallow·stderr 유실·ctx-cancel SIGKILL 시 hang·killed/빈 출력을 duration 오파싱해 15s 캡 우회·exit code 무시" probe → **FP 확정, NEW clean baseline L1208 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 에러처리. 후보축 = os/exec 자식프로세스(ffmpeg/ffprobe) 실행 경계의 에러 캡처·전파 메커니즘.
