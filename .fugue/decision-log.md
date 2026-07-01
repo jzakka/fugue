@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2425 tokens 286th round — CSS 리스트 무작위 선택 함수 random-item() 표면 폐기 (doubly-vacuous)
+- 결정: tokens area(286th round)에서 "CSS `random-item()`(값 목록 중 요소별/고정 시드로 하나를 무작위 선택하는 CSS Values 5 함수)로 장식 색 팔레트·요소별 간격/각도 프리셋을 무작위 배정하는데 일부 표면만 random-item() 을 쓰고 동종 다른 표면은 고정값/JS 로 처리해 목록 무작위 선택 방식이 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: tokens. 후보축 = CSS 목록-항목 난수 선택 함수의 표면 간 정합. 이미 census 된 수치 범위 난수 `random()`(line730, 범위 내 연속 수치 생성)의 sibling 이지만 별개 차원 — random() 은 최소·최대·증분으로 수치를 산출, random-item() 은 값 목록에서 한 항목을 무작위 선택.
+- MANDATORY 체크: (1) `random-item(` grep 0건 — globals.css 0·apps/web/src 0·트리 전수 0. (2) sibling `random()` 도 코드 0건(censused line730). (3) DESIGN.md(105줄) random-item silent. (4) anti-patterns 전수 dedicated census 부재(first-valid/random-item 모두 subject census 없음; decision-log 의 "first-valid" 2건은 Go backend image_picker fallback 시맨틱으로 CSS 함수와 무관).
+- 근거: (a) random-item() 은 수치 난수 random()/결정적 calc()/토큰 참조 var()/첫 유효 first-valid() 가 아닌 CSS 목록-항목 난수 선택 함수이고 (b) 코드·CSS 사용처 0건(pure vacuous) → mechanism-absent(목록 난수 선택 표면 0)+property-vacuous(random-item() 0건) 이중 공허.
+- DESIGN.md 확인: L11 "Decoration level: Minimal" 기조상 장식 팔레트 랜덤 배정 자체 비지향, 토큰은 @theme inline 고정 스케일로 결정적 지정 → 무작위 프리셋 선택 규범 미명세(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1215줄로 +1.
+- 차기 tokens 재진입 후보: sibling-index()/sibling-count() 형제-순번 토큰 축, attr() 타입드 취득 축, first-valid() 첫 유효 값 선택 축(이번에 fresh 확인·미census).
+
 ## 2026-07-02 — [system] cycle 2032 Discovery — 동시성: manual(비-defer) Unlock 다중분기 exit 짝맞춤 + lock-release-before-IO(단일플라이트 refresh) 축 (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 34주기째)에서 "manual(non-deferred) Unlock 을 쓰는 임계영역이 다중 early-return 분기에서 한 경로가 Unlock 을 빠뜨려 데드락·다른 경로가 이중 Unlock 해 panic·write lock 을 잡은 채 네트워크 fetch 를 실행해 host 직렬화 stall·sync.Once/Cond/Pool/Map 부재로 lazy-init race" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. 후보축 = 비-defer Unlock 의 분기별 정확-1회 해제 + 블로킹 IO 전 lock 해제 규율. 발견: robots_filter.go:163 refresh 가 단일 Lock 아래 3분기(:167 cache-hit·:173 inflight-wait·:179 register)를 각각 정확히 1회 manual Unlock 하고, :182 네트워크 fetch 는 의도적으로 lock **밖**에서 실행(`defer Unlock` 이면 GET 동안 write-lock 보유 → 전 host 직렬화 버그) → manual unlock 이 정답. media_validator_metrics.go:51/85/99·host_rate_limiter.go:87/100 도 동일 manual 짝맞춤.
