@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1938 Discovery — 동시성: ctx-cancel watcher / 보조 goroutine 이 부모 조기반환·ctx 취소 경로에서 누수되거나 abandoned-channel 로 send 하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "Fetch/Execute 안에서 spawn 한 watcher goroutine(ctx.Done() 감시→리소스 close)이 부모가 조기 반환하면 종료 못 해 leak·done 채널이 unbuffered 인데 부모가 안 받아 send 블록" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 동시성. 후보축 = 함수-스코프 보조/watcher goroutine 의 종료 보장(defer 기반 wakeup edge).
+- 검증: (1) sync.Once/sync.Map/sync.Pool grep — 전수 0건(population 0, vacuous). (2) atomic.Value/Pointer/Bool grep — 0건(카운터는 atomic.Uint64 뿐·L361 커버). (3) 보조 goroutine 전수 3곳 — goja_executor.go:47(`defer cancel()`→timeoutCtx.Done()), playwright_fetcher.go:112-120(`done:=make(chan struct{})`+`defer close(done)`+watcher `select{ctx.Done()→page.Close; done}`), main.go:230(`serverErr:=make(chan error,1)` buffered). 모두 defer-기반 wakeup 으로 부모 반환 시 goroutine 종료 보장·buffered(1)라 send 비블록.
+- 판정: **covered-by-census** — L183(타임아웃/Interrupt 보조 goroutine 3곳 전수: goja defer cancel·playwright defer close(done) watcher·server buffered chan cap1 — defer-기반 wakeup edge 로 leak-free·send-on-abandoned 부재)가 정확히 이 3 site 를 커버. L330(채널 send/receive/close 소유권)·L361(atomic.Uint64 카운터) 보조. confidence<3.
+- 영향 범위: 함수-스코프 watcher/보조 goroutine 종료 보장만. anti-patterns 미변경. 신규 spawn site 가 `defer close(done)`/`defer cancel()` 없이 unbuffered done 채널을 spawn 하거나·부모가 select 로 한쪽만 받고 다른 send 를 abandon 해 goroutine 이 블록/leak 되면 L183 예외로 등록 가능.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 5주기째) → cycle 1940. 후보: harvester 미디어 추출·pioneer 링크 필터·robots refresh TTL·frontier enqueue dedup 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1936 Discovery — 에러처리: BeginTx 트랜잭션이 에러/조기-return·commit 후 경로에서 Rollback 규율을 지켜 커넥션 누수·이중 rollback·삼킨 commit 실패를 안 내는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 5주기째)에서 "BeginTx 로 연 tx 가 early-return 지점마다 Rollback 이 빠져 conn 누수/dangling tx·commit 성공 후 무조건 defer Rollback 이 이중 rollback·commit 에러를 삼킴" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 에러처리. 후보축 = DB 트랜잭션 생명주기(BeginTx→query→Commit/Rollback)의 에러/조기-return 경로 정리 규율.
