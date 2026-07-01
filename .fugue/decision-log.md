@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1978 Discovery — OpenSpec갭: harvester 워커 work-budget(100회 Dequeue 종료·진행중 완료 후 종료·per-worker 카운터) 계약이 harvester_consumer.go 구현과 어긋나는가 (NEW baseline L1196, anti-patterns 등록)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 7주기째)에서 harvester capability 의 워커 work-budget 3 Requirement(harvester/spec.md L476-565) ↔ harvester_consumer.go 정합을 probe → 전수 충실 구현(refuted)이고 기존 census 미커버(L342 는 pioneer 전용) → **NEW baseline L1196 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: OpenSpec갭. 후보축 = harvester-worker-budget(100회 Dequeue 후 exit 0·성공 Dequeue 직후 카운터 증가·빈/오류 미카운트·100회째 최종 상태전이 완료 후 종료·실패경로 dual-call 완결·budget 빌드타임 상수·per-worker 인메모리).
+- 검증: harvester_consumer.go:272-312 Run 루프 — DequeueCtx 오류 :278-295 continue(미카운트)·빈 문자열 :296-302 continue(미카운트)·성공 URL 만 :303 dequeues++ 후 :304 processOne(동기 전 파이프라인 완료) → :305 `if dequeues>=budget { log; return nil }`. reportFailure(:519) 가 SetStatus(harvest_failed,nil)(:521)+RecordHarvestError(:524) 둘 다 무조건 시도, processOne 안에서 동기 완료 후 budget 체크라 dual-call 도중 종료 불가. :65 `const harvesterDequeueBudget=100`·budget 필드는 테스트 seam 전용(:91-97 "Production code MUST NOT set")·production `.budget =`/WithBudget/SetBudget grep 0·env/config/CLI 미바인딩. :274 ctx.Err() 우선 체크(budget 상한 독립). dequeues 는 Run 스택 지역변수(per-worker·미영속). :306-309 budget_exhausted key=value 로그 1회.
+- 판정: **NEW baseline L1196** — 7개 sub-계약(카운터 타이밍·100회째 완료대기·실패 dual-call·빌드타임 상수·ctx 독립·per-worker·종료로그) 전수 정합으로 refuted, L342(pioneer-worker-budget, pioneer_consumer.go 전용)·L354(og_data 영속)·L426(non-pinnable 상태전이)와 비중첩 fresh 하위표면. 예외조항: dequeues++ 위치이동/빈·오류 카운트/budget 선체크로 100회째 미처리 종료/reportFailure 단일호출/budget 런타임 노출/카운터 영속 시 등록가능. 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 8주기째) → cycle 1980. 후보: SSRF 재바인딩·응답 크기 cap·secret 로깅·경로 traversal·SQL 인젝션 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1976 Discovery — 봇: 프로덕션 HTML 파스 경로가 Content-Type(text/html) 헤더로 HTML 여부를 게이트하는가, 아니면 fetch 본문을 무조건 HTML로 파싱하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 봇 area(6-area rotation 동시성→봇, 6주기째)에서 "하베스터/파이오니어가 응답 Content-Type 을 검사하지 않고 non-HTML 본문(PDF·이미지·JSON)을 html.Parse/goquery 로 맹목 파싱해 garbage 트리/오추출/panic 을 낸다" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 봇. 후보축 = HTML-vs-non-HTML 처리 결정이 Content-Type 헤더 게이트에 의존하는가(미디어 charset 아닌 media-type 차원).
