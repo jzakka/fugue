@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1986 Discovery — 동시성: context.Context 를 구조체 필드로 저장(containedctx)해 취소된/타 요청 ctx 를 재사용하는가 (NEW baseline L1199, anti-patterns 등록)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 11주기째)에서 "ctx 를 struct 필드에 캡처해 stale ctx 재사용·cross-request deadline 누수" probe → context.Context struct 필드 0건(refuted vacuous)·기존 census 미커버 → **NEW baseline L1199 등록**(양쪽).
+- 축 선택: 동시성. 후보축 = containedctx(ctx 를 first-param 아닌 struct 멤버로 보관).
+- 검증: `<name> context.Context`(줄 끝, 필드 선언형) 전수 grep 0건·`*context.Context` 포인터 필드 0건. 유사 매칭 2건(trie_merge.go:57·script_adapter.go:152)은 multi-line 함수 파라미터(트레일링 콤마)이지 struct 필드 아님. PioneerConsumer/HarvesterConsumer 구조체는 scheduler/fetcher/stats 필드만 갖고 ctx 는 Run(ctx) 파라미터로 call-chain 전파(캐싱 안 함).
+- 판정: **NEW baseline L1199** — context.Context struct 필드 전무(pure vacuous)·ctx 전부 first-param call-scoped 라 캡처될 ctx 부재(refuted). L1033(Value 키 타이핑 SA1029)·L246(ctx 전파)·L317(cancel 누수)은 전파/취소 축이라 본 "ctx struct 보관(containedctx)" 축과 별개 fresh 하위표면. 예외조항: struct 에 ctx 필드 추가 후 필드 재사용/요청 ctx 를 장수명 struct 저장/goroutine 이 struct ctx 읽어 race 시 등록가능. 차기 area = 봇 (6-area rotation 동시성→봇, 12주기째) → cycle 1988. 후보: adapter 레지스트리 dispatch·drain trie merge·robots single-flight·이미지 우선순위·URL 정규화 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1984 Discovery — 에러처리: 정수 나눗셈/나머지(`/`·`%`)의 0-분모 런타임 panic 이 봇/피드/스냅샷에 존재하는가 (NEW baseline L1198, anti-patterns 등록)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 10주기째)에서 "0으로 나누기/modulo panic 이 recover 미들웨어 밖 arithmetic 경로에서 프로세스 크래시" probe → 나눗셈 site 전수 가드됨(refuted)·기존 census 미커버 → **NEW baseline L1198 등록**(양쪽).
 - 축 선택: 에러처리. 후보축 = 정수 divide/modulo-by-zero panic 발생원(가드 유무).
