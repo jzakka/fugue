@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2429 responsive 265th round — 브레이크포인트-접두 반응형 텍스트 장식선 토글(sm:underline/md:no-underline) 표면 폐기 (mechanism-present-but-BP-vacuous)
+- 결정: responsive area(265th round)에서 "CSS `text-decoration-line`(underline/line-through/overline)을 `sm:underline`/`md:no-underline` 처럼 화면폭별로 켜고 끄는 반응형 토글로 링크 밑줄 어포던스를 BP 전이하는데 일부 링크만 전이하고 동종 다른 링크는 고정이라 반응형 장식선 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: responsive. 후보축 = text-decoration-line 값의 브레이크포인트별 전이 정합. 기존 BP-토글 census(image-rendering 956·caret-color 960·text-rendering 964·font-kerning 968·accent-color 972) 계열의 미커버 속성 카브 — 정적 데코 토큰(315/516)·데코선 스타일(794)·밑줄 위치(376)·box-decoration BP 토글(923)과 별개 차원.
+- MANDATORY 체크: (1) `sm:underline`/`md:no-underline`/`lg:line-through` 등 BP-접두 장식선 토글 grep 0건(src 전수 0). (2) 정적/hover 밑줄은 존재(`underline` 4·`hover:underline` 4=8사이트, PinCreateForm:432·PinsGrid:131·FeedContainer:168/199 계열)하나 전부 BP-무관. (3) anti-patterns 전수 BP-접두 text-decoration-line 토글 dedicated census 부재. (4) DESIGN.md 밑줄 BP 전이 grep 0건.
+- 근거: (a) BP-접두 장식선 토글은 정적 데코 토큰/데코선 스타일/밑줄 위치/box-decoration BP 가 아닌 text-decoration-line 값의 화면폭별 전이 차원이고 (b) BP-접두 토글 사용처 0건 → mechanism-present(밑줄 유틸 정적/hover 존재)-but-BP-property-vacuous(BP-접두 토글 0).
+- DESIGN.md 확인: Typography(L16-35)·Interaction(L82-88 hover/transition)은 밑줄을 화면폭별로 전이하라 SHALL 없음(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1218줄로 +1.
+- 차기 responsive 재진입 후보: sm:tracking(letter-spacing BP 토글) 축, sm:leading(line-height BP 토글) 축.
+
 ## 2026-07-02 — [design] cycle 2427 aesthetic 287th round — CSS 어간-공백 변환 word-space-transform 표면 폐기 (doubly-vacuous)
 - 결정: aesthetic area(287th round)에서 "CSS `word-space-transform`(CSS Text 4 — 전각 이데오그래픽 스페이스/구두점 문자의 진출폭을 변환·트림하는 CJK 어간-폭 속성)으로 전각 공백 남용 텍스트의 어간 리듬을 균일화하는데 일부 텍스트만 변환하고 동종 다른 텍스트는 미변환이라 어간 공백 처리가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: aesthetic. 후보축 = CJK 어간-공백 진출폭 변환의 표면 간 정합. 인접 라틴 어간 폭 `word-spacing`(line157)·CJK 자동 간격 `text-autospace`/`text-spacing-trim`(line480)과 별개 차원 — word-spacing 은 라틴 단어 사이 gap 폭, text-autospace 는 한자↔라틴 경계 자동 간격, word-space-transform 은 전각 공백 문자 자체의 진출폭 변환.
