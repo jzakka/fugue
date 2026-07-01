@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1940 Discovery — 봇: 인메모리 BFS 크롤러(crawler/bfs_crawler.go)의 순회 종료·경계 계약(visited dedup·maxDepth 캡·same-domain·ctx-poll) (NEW baseline L1192)
+- 결정: 봇 area(6-area rotation 동시성→봇, 5주기째)에서 "BFS 크롤러가 링크를 따라가며 순환 링크로 무한루프·maxDepth 초과 무제한 심도·외부 도메인 이탈·ctx 취소 무시" 후보를 probe → 기존 census 미커버 fresh 축·정적으로 그럴듯하나 refuted FP → **NEW baseline 등록**(anti-patterns L1192 + decision-log).
+- 축 선택: 봇. 후보축 = 인메모리 그래프 순회기의 종료 보장·크롤 경계(depth/domain).
+- 검증: bfs_crawler.go:29-141 전체 READ — visited mark-on-enqueue(:40/116/131 재방문 skip·enqueue 직전 표시로 큐 중복 방지)·maxDepth 캡(:109 `depth>=maxDepth` continue)·same-domain(:121 `!isSameDomain` skip)·ctx 비차단 poll(:49-53)·fail-soft 에러기록(:61-98). visited 단조증가+same-domain 유한공간→큐 소진 종료. 게다가 **프로덕션 미배선**: `BFSCrawler`/`NewBFSCrawler`/`.Crawl(` grep — crawler 패키지 내부·crawler.go:8-14 doc 예시만·프로덕션 caller 0(harvester/pioneer 는 URLScheduler frontier 사용).
+- 판정: **NEW baseline L1192**. 기존과 비중첩 — L172(ExtractLinksWithSelectors 링크추출 로직)·L389/L191/L823(frontier DB 큐 dedup/UPSERT)·L37(mutex-free map 동시성)과 모두 별축(인메모리 BFS 순회 종료/경계). confidence<3(refuted).
+- 영향 범위: 인메모리 BFS 순회 종료·경계만. 신규 코드가 BFSCrawler 를 프로덕션 배선하며 mark-on-enqueue→dequeue 전환(순환)·maxDepth 캡 제거(무제한 심도)·same-domain 해제(외부 이탈/SSRF)·ctx-poll 제거(취소 불응)·visited/depth-cap 없는 새 그래프 walk 추가 시 L1192 예외로 실결함 등록 가능.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 5주기째) → cycle 1942. 후보: scheduler·harvester·bot·feed·pin capability 의 미수록 Requirement/Scenario 갭.
+
 ## 2026-07-01 — [system] cycle 1938 Discovery — 동시성: ctx-cancel watcher / 보조 goroutine 이 부모 조기반환·ctx 취소 경로에서 누수되거나 abandoned-channel 로 send 하는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 5주기째)에서 "Fetch/Execute 안에서 spawn 한 watcher goroutine(ctx.Done() 감시→리소스 close)이 부모가 조기 반환하면 종료 못 해 leak·done 채널이 unbuffered 인데 부모가 안 받아 send 블록" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = 함수-스코프 보조/watcher goroutine 의 종료 보장(defer 기반 wakeup edge).
