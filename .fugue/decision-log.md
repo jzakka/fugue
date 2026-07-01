@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1998 Discovery — 동시성: sync.Mutex/RWMutex/atomic.Uint64 보유 구조체가 값 복사돼 락/원자 상태가 복제(copylocks)되는가 (NEW baseline L1203)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 17주기째)에서 "lock copied by value·value receiver 로 락 복사·구조체 by-value 반환/맵값으로 락 복사→상호배제 붕괴·atomic 카운터 분기" probe → **FP 확정, NEW clean baseline L1203 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: 동시성. 후보축 = 락/원자 보유 구조체의 value-copy(copylocks) 안전성.
+- 확인: (1) 락/원자 보유 구조체 전수(HostRateLimiter mutex·MediaValidationMetrics RWMutex+atomic·nodeStats atomic×5·snapshot.Metrics atomic·Harvester/PioneerConsumer) 생성자가 포인터 반환(host_rate_limiter.go:55·media_validator_metrics.go:32·harvester_consumer.go:182·pioneer_consumer.go:114 전부 `&T{}`). (2) 모든 메서드 포인터 리시버(value receiver grep 0). (3) 사용처 전부 포인터(cmd/bot 빌더·field 타입 `*MediaValidationMetrics`)·nodeStats 는 값 임베딩이나 소유자 HarvesterConsumer 가 포인터-전용이라 atomic 미복사. (4) Snapshot/NodeStats 반환형이 plain-value(uint64/map, atomic·Mutex 미포함)라 by-value 수신도 락 복사 아님(go vet copylocks 안전).
+- 신규성: 기존 census(L227 mutex lifecycle·L698 mutex+atomic 부분보호·L724 atomic Add/Load snapshot·L662 mutex-free map·L87 goroutine lifecycle)에 락/원자 구조체 value-copy(copylocks) 축 부재 → 신규. sync.Once/atomic.Value/WaitGroup/sync.Pool/sync.Cond/errgroup 은 프로덕션 사용 0(부재).
+- 예외(등록 가능 조건): 락/원자 필드 구조체에 value receiver·by-value 반환/인자·map[K]T/[]T(T=락 보유 값) 저장·Snapshot 반환형에 atomic/Mutex 포함해 값 복사하는 격리 site.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 18주기째) → cycle 2000. 후보: OG twitter:card 파싱·srcset 후보 선택·canonical URL 정규화·favicon 폴백 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1996 Discovery — 에러처리: 워커/핸들러의 ctx.Err() 반환이 context.DeadlineExceeded(타임아웃)와 context.Canceled(취소)를 구분 안 해 오처리하는가 (NEW baseline L1202)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 16주기째)에서 "타임아웃을 취소로 오인·타임아웃이면 재시도해야 하는데 abort·상위 취소가 하위 타임아웃 상한 우회" probe → **FP 확정, NEW clean baseline L1202 등록**(anti-patterns + decision-log 양쪽).
 - 축 선택: 에러처리. 후보축 = context 에러종(DeadlineExceeded vs Canceled) 구분/오처리.
