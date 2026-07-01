@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-01 — [system] cycle 1976 Discovery — 봇: 프로덕션 HTML 파스 경로가 Content-Type(text/html) 헤더로 HTML 여부를 게이트하는가, 아니면 fetch 본문을 무조건 HTML로 파싱하는가 (covered-by-census, anti-patterns 변경 없음)
+- 결정: 봇 area(6-area rotation 동시성→봇, 6주기째)에서 "하베스터/파이오니어가 응답 Content-Type 을 검사하지 않고 non-HTML 본문(PDF·이미지·JSON)을 html.Parse/goquery 로 맹목 파싱해 garbage 트리/오추출/panic 을 낸다" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
+- 축 선택: 봇. 후보축 = HTML-vs-non-HTML 처리 결정이 Content-Type 헤더 게이트에 의존하는가(미디어 charset 아닌 media-type 차원).
+- 검증: 프로덕션 파이오니어 파스 경로 pioneer_consumer.go:223 `crawler.ExtractLinksWithSelectors(strings.NewReader(string(body)))` 는 Content-Type 검사 없이 fetch 본문을 HTML 로 파싱. `fetchHTMLShared`(helpers.go:32)는 `(body,finalURL,error)` 만 반환(Content-Type 미반환)·:68 `io.ReadAll(io.LimitReader(resp.Body,5MB))` 로 status 2xx 본문만 읽음. Content-Type 게이트(`isHTMLContent`)는 legacy bfs_crawler.go:73 에만 존재하나 프로덕션 미배선(L92). harvest_pipeline.go:366/522 의 Content-Type 읽기는 미디어 다운로드 inferContentType(:436-456) 전용이지 HTML-파스 결정용 아님. **그러나 html.Parse/goquery 는 lenient — non-HTML 바이트는 panic/error 없이 빈/무의미 트리를 만들고 링크 0 추출로 무해**. status<200||>=300 은 helpers.go:60 에서 HTTPStatusError 로 이미 거부됨.
+- 판정: **covered-by-census** — L824(봇 HTML 파서가 fetch 바이트를 charset 디코딩/Content-Type 검사 없이 raw→html.Parse; 동일 파스 사이트 helpers.go:79·extractor.go:60·link_extractor.go:33/85 열거·"Content-Type charset 파라미터 무시" 각도 refute)가 동일 "Content-Type 미검사 파스" 모집단을 커버·L172(ExtractLinksWithSelectors 링크추출 정확성)가 파스 결과 처리 커버·L1125(응답 본문 크기 cap)가 무제한 흡수 커버. media-type-vs-charset 은 L824 의 인접 sub-axis 이나 lenient 파서 무해성으로 신규 결함 부재. confidence<3. 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 7주기째) → cycle 1978. 후보: scheduler-frontier-table 컬럼 정합·robots Crawl-delay→rate 반영·og_data/media_candidates lockstep·pin capability SHALL 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 1974 Discovery — 동시성: worker-pool 이 bounded jobs 채널 fan-out 에서 backpressure/드롭/producer 블록을 잘못 다루는가 (covered-by-census, anti-patterns 변경 없음)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 6주기째)에서 "봇 워커가 공유 jobs 채널로 fan-out 하면서 버퍼 full backpressure 시 producer 블록·비차단 송신 드롭·consumer 느림으로 큐 폭증" 후보를 probe → 기존 census 안착. **anti-patterns 변경 없음**(decision-log만).
 - 축 선택: 동시성. 후보축 = bounded-channel worker-pool fan-out backpressure 조정.
