@@ -24,6 +24,12 @@
 - 비중첩: 세 sub-axis 각각 L460/L183/L330/L1203 이 이미 등록 → 완전 중첩. sync.Once/Pool/Cond/Map/errgroup·time.NewTicker 는 코드 부재(모집단 0).
 - 예외(등록 가능): L460 예외절 그대로 — 새 코드가 stateful 써드파티 객체(goja/playwright)를 goroutine 간 공유하며 per-call 격리·직렬화 없이 동시 실행하거나·Interrupt/Close 를 documented 종료 API 밖 경로로 호출하거나·Fetcher 를 값복사해 mu 를 무력화.
 - 차기 area = 봇 (6-area rotation 동시성→봇, 29주기째) → cycle 2022. 후보: 추출기 srcset/OG 파싱·harvester work-budget·pioneer fanout·robots 필터·URL 정규화·노드 분류 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2022 Discovery — 봇: extractor absolutize(protocol-relative//scheme-gate) + buildMediaCandidates intra-doc dedup — 커버됨(covered-by-census)
+- 결정: 봇 area(6-area rotation 동시성→봇, 29주기째)에서 "extractor 가 상대/protocol-relative URL 절대화·미디어 후보 수집 시 (a) `//host` 를 잘못 해석하거나·(b) data:/javascript:/blob: 스킴을 미디어로 통과시키거나·(c) 한 문서 내 반복 미디어 URL 을 중복 수집" probe → **커버됨, anti-patterns 무변경**(decision-log 만).
+- 축 선택: 봇. absolutize(extractor.go:545-561)는 url.Parse 실패→false·`!IsAbs && base==nil`→false·`base.ResolveReference(u)` 로 `//host` protocol-relative 를 base 스킴으로 해석·scheme!=http/https→false(data:/javascript:/blob: 드롭). buildMediaCandidates(:563-596)는 seen-map(:582-585) 으로 문서 내 dedup·MaxMediaCandidates=50 cap·empty→nil.
+- 커버: L699(buildMediaCandidates 파이프라인 — "(3) absolutize 후 dedup 은 정합" 명시)·L826(상대/protocol-relative ResolveReference + `<base href>` 비존중)·L1204/L667(absolutize 스킴 게이트 드롭). 어느 baseline 도 미충족 갭 없음 → 커버됨.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 30주기째) → cycle 2024. 후보: scheduler frontier/token-bucket rate·pioneer-link-filter robots·harvester og_data lockstep·pin CHECK 제약·feed 추천 계약 중 미수록 sub-axis.
+
 ## 2026-07-01 — [system] cycle 2016 Discovery — 정합성: 다중 statement write(핀 생성 CreatePin+N×LinkPinTag)의 트랜잭션 경계 — BeginTx 미사용 시 보상삭제+FK CASCADE 롤백 (NEW baseline)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 26주기째)에서 "핀 생성이 CreatePin 후 태그 INSERT 를 BeginTx 없이 순차 발행 → 중간 실패 시 부분 태그·orphan pin 으로 partial-write 정합 깨짐" probe → **FP 확정, NEW clean baseline 등록**(anti-patterns EOF + decision-log 양쪽).
 - 축 선택: 정합성. 후보축 = CREATE 경로의 트랜잭션 경계/보상롤백(L456 pin_tags 멱등성·L187 부모행 삭제 cascade 와 다른 축).
