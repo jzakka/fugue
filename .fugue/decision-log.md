@@ -24,6 +24,13 @@
 - 비중첩: L83/L91(프론트 `<img>`/srcset 반응형 디자인)·L218(이미지 후보 우선순위 순서)와 별개(백엔드 크롤 토큰 추출 축).
 - 예외(등록 가능): firstSrcsetURL `len(fields)==0` 가드 제거로 index panic·descriptor 를 URL 로 오인해 후보 오염·absolutize 우회로 무효 스킴 영속·콤마 전량 split 로 유효 URL 손상 site.
 - 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 19주기째) → cycle 2002. 후보: scheduler-frontier-table 컬럼정의·interaction piggyback wiring·pioneer-link-filter-policy robots·harvest-pipeline og_data 영속 중 미수록 sub-axis.
+## 2026-07-01 — [system] cycle 2002 Discovery — OpenSpec갭: profile "본인 프로필을 수정한다" self-scoping/IDOR 계약이 enforce되는가 (NEW baseline L1205)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 19주기째)에서 "profile UPDATE IDOR·대상 id path/body override·미인증 수정·타인 닉네임/아바타 무단 변경" probe → **FP 확정, NEW clean baseline L1205 등록**(anti-patterns + decision-log 양쪽).
+- 축 선택: OpenSpec갭. 후보축 = profile 수정 Requirement 의 소유권/self-scoping(IDOR) enforcement.
+- 확인: (1) 라우트 = `PUT /api/creators/me` 단일·JWTMiddleware 뒤(main.go:160)·토큰부재 401·`Put("/{id}")` 부재(creator write 라우트 `/me` 유일). (2) 대상 도출 = JWT 컨텍스트 전용 — UpdateMe(creator/handler.go:163) `CreatorIDFromContext`→`!ok` 401·GetCreator/UpdateCreator 모두 `ID: creatorID`(JWT 주체)·updateRequest 필드는 `{nickname,avatar_url}`뿐(대상 id 문법적 부재). (3) UpdateCreator SQL id-scoped(자기 행만)·닉네임 빈값/50rune·avatar 500rune·8KB MaxBytes 검증.
+- 비중첩: L202/L331(profile READ 페이로드 boards/pins 요약·비공개 SHALL NOT·빈배열·상한·404 no-fetch = 조회측)·L269(OAuth→creators 컬럼 매핑)와 별개(수정측 authorization 축).
+- 예외(등록 가능): `PUT/PATCH /api/creators/{id}` owner check 누락·body `creator_id`/`target_id` 신뢰·JWT→OptionalJWT 교체·UpdateCreator WHERE id scope 제거로 다중행 갱신 site.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 20주기째) → cycle 2004. 후보: JWT 검증·CORS·SQL injection·MaxBytes·인증 미들웨어·경로 파라미터 UUID 파싱 중 미수록 sub-axis.
 
 ## 2026-07-01 — [system] cycle 1998 Discovery — 동시성: sync.Mutex/RWMutex/atomic.Uint64 보유 구조체가 값 복사돼 락/원자 상태가 복제(copylocks)되는가 (NEW baseline L1203)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 17주기째)에서 "lock copied by value·value receiver 로 락 복사·구조체 by-value 반환/맵값으로 락 복사→상호배제 붕괴·atomic 카운터 분기" probe → **FP 확정, NEW clean baseline L1203 등록**(anti-patterns + decision-log 양쪽).
