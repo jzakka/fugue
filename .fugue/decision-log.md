@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2553 Discovery — tokens 302nd round: x-하이트 상대 길이 단위(`ex`) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 302nd round)에서 "일부만 `ex`(소문자 x-하이트 높이) 로 높이/오프셋을 잡고 동종은 em/rem/px 로 잡아 높이 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2545 forward-pointer(`ex` x-하이트) 채택. `ex` 는 L410 group 파렌서티컬·L1288(ic) 형제 언급에만 나오고 개별 dedicated 부재·code=0 → L775(ch)·L1288(ic)에 이은 동일 그룹 개별 sub-carve. ch/ic 는 advance *폭* 파생, ex 는 글리프 *높이*(x-하이트) 파생으로 별개 차원.
+- MANDATORY 체크: subj=0(`ex` 개별 dedicated 없음; 5개 design line 은 L410 group·L924 물리단위·L1059 각도·L1063 시간·L1288 ic 로 전부 group/타단위/형제 언급)·anti-patterns standalone dedicated 0·code=0(`3ex`/`0.5ex`/`[height:_ex]` apps/web/src 0건, index/flex 등 단어매치 제외)·DESIGN.md=0(ex/x-height/x-하이트/글리프 높이 0). triply-vacuous.
+- 근거: (1) `ex` 단위 선언 0(pure vacuous) → x-하이트 높이 기준이 갈릴 모집단 0. (2) 높이/오프셋/간격은 rem/px 토큰·flex `items-center`·line-height 로 처리·ch(L775)·ic(L1288)에 이어 ex 도 코드 0. (3) DESIGN x-하이트 단위 미규정.
+- DESIGN.md 확인: 105줄 grep ex/x-height/x-하이트/글리프/소문자 높이 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 tokens 재진입 후보: L410 그룹 잔여 미개별-carve 단위 `rlh`(root line-height, total=0)·`lh`(line-height, total=1) 또는 논리 뷰포트 단위 `vi`/`vb`(inline/block viewport, total=0) subj/total 확인 후 개별 sub-carve — 라인메트릭·논리축 뷰포트라는 별개 파생원 차원.
+
 ## 2026-07-02 — [design] cycle 2551 Discovery — states 279th round: 속성값 부분매칭 연산자 선택자(`[attr^=]`/`[attr$=]`/`[attr*=]`/`[attr~=]`/`[attr|=]`) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 279th round)에서 "일부 링크/요소만 `[href^=https]`/`[href$=.pdf]` 등 속성값 부분매칭으로 스타일을 걸고 동종은 안 걸어 부분매칭 스타일이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2543 forward-pointer(속성 선택자 매칭 연산자 계열) 채택. `[attr^=]`/`[attr$=]`/`[attr*=]`/`[attr~=]`/`[attr|=]` 전부 total=0(anti-patterns 전무)·code=0(완전일치 속성 선택자도 0) → 완전 신규. cycle 2543(대소문자 modifier)과 같은 속성 선택자 family 의 *값 부분매칭 연산자* 별개 차원.
