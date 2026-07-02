@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2527 Discovery — states 276th round: 미디어 재생 트랜스포트 상태 의사클래스 쌍(:playing/:paused) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 276th round)에서 "미디어(audio/video)가 재생/일시정지 상태에 따라 `:playing`/`:paused` 로 상태별 시각 전환(재생 버튼 아이콘 토글·오버레이·썸네일 dim)을 주는지·일부 미디어만 재생 트랜스포트 표식을 줘 동종 미디어 간 play/pause 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2519 forward-pointer #1 후보 `:playing`/`:paused`(L415 미디어 재생 상태 의사클래스 GROUP 마지막 명명 멤버 쌍·재생 트랜스포트) 선택. :buffering(2495)·:seeking(2503)·:muted(2511)·:volume-locked(2519) 형제 sub-carve 선례 → L415 GROUP 6종 중 남은 :playing/:paused 를 별개 상태 차원(재생 진행 여부)으로 sub-carve해 GROUP census 소진.
+- MANDATORY 체크: (1) `:playing`/`:paused` CSS 룰·`[&:playing]`/`[&:paused]` arbitrary variant grep src+globals **0건**. (2) 미디어 표면 전부 네이티브 `controls` 위임 — `<audio controls>`(pins/[id]/page.tsx:62)·`<video controls>`(pins/[id]/page.tsx:70·PinCreateForm:397/400)·커스텀 트림 `<video>`(VideoTrimModal:217) 재생 상태를 CSS 로 스타일 안 함. (3) 재생 제어 JS API(`play`/`pause` 이벤트·`.paused`) 커스텀 재생 UI 0(VideoThumbnailPicker:21 `video.muted=true` 는 썸네일 무음용·재생 트랜스포트 무관·L85 정적 재생 아이콘만). (4) DESIGN.md `:playing`/`:paused`/재생 상태 grep **0건**.
+- 근거: triply-vacuous — :playing/:paused 의사클래스 0 + 커스텀 재생 트랜스포트 시각 피드백 0(네이티브 controls 위임) + DESIGN.md silent. L415 GROUP 형제 담당 차원 분리: :buffering(2495 네트워크 스톨)·:seeking(2503 탐색)·:muted(2511 음소거[출력 억제])·:volume-locked(2519 볼륨 잠금)·본 축 :playing/:paused(재생 진행 여부[트랜스포트]). buffering/seeking(데이터/위치 문제로 지연) vs playing/paused(재생 진행 자체 on/off) 구별. L415 GROUP 명명 멤버 6종 전부 sub-carve 완료(GROUP census 소진).
+- DESIGN.md 확인: 105줄 전수 재생 트랜스포트 상태 시각 전환 미규정(grep 0)·L85 Video card 는 썸네일+재생 아이콘 오버레이+길이만 SHALL(정적 아이콘·재생 상태별 동적 전환 아님) → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(:playing/:paused 0·네이티브 controls 위임·재생 JS API 0·DESIGN 0)으로 vacuity 확인.
+- 차기 states 재진입 후보(선점 시 PIVOT): `:link`/`:visited`(anti near-subj 1·링크 방문 상태)·`:read-write`/`:read-only`(편집 가능 상태). states 극심 saturation·미디어 상태군 GROUP 전멤버 sub-carve 소진(:buffering 2495·:seeking 2503·:muted 2511·:volume-locked 2519·:playing/:paused 2527 완료·L415 GROUP 6종 전부) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2525 Discovery — responsive 277th round: 브레이크포인트-접두 반응형 밑줄 상하 위치 토글(sm:text-underline-position) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 277th round)에서 "일부 링크만 `sm:[text-underline-position:…]` 로 밑줄 상하 위치를 화면폭별 전이하고 동종은 고정이라 반응형 밑줄 위치가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2517 forward-pointer #1 후보 `sm:text-underline-position`(resp-subj=0·폭별 밑줄 상하 위치) 선택. text-decoration-line BP(L1218)·sm:underline-offset(2509/L1264)·sm:decoration-thickness(2517/L1269) 형제 sub-carve 선례 → base 가 tokens L376(text-underline-position sub-property) 인 속성의 sm: 폭별 토글을 별개 차원으로 sub-carve.
