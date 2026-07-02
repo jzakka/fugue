@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2505 Discovery — tokens 296th round: 사용자 정의 카운터 스타일 자릿수 패딩 디스크립터(`@counter-style` `pad`) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 296th round)에서 "`@counter-style` 안의 `pad`(카운터 최소 자릿수+패드 심볼 `pad: 2 "0"`→01,02)/`negative`/`prefix`/`suffix` 표기 디스크립터로 목록 번호 표기가 표면 간 갈리거나 패드 심볼/자릿수 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. `@counter-style` 표기 디스크립터 `pad`(및 형제 negative/prefix/suffix)의 단독 sub-carve. decision-log L?? (cycle 2497 forward-pointer) "차기 tokens 재진입 후보" 가 `@counter-style pad/fallback/range 잔여 디스크립터(L634 모-센서스)` 를 명시 큐잉한 것을 선택. `pad` 는 any:0·tokens-subj:0·code:0 완전 fresh(range 는 L634 subj·additive-symbols 는 cycle 2481·speak-as 는 L920 소진).
+- MANDATORY 체크: (1) `pad`/`negative`/`prefix`/`suffix` 표기 디스크립터 grep src+globals **0건**(패딩 모집단 0). (2) 부모 `@counter-style` grep **0건**(컨테이너 at-규칙 부재·L634 모-센서스 인벤토리). (3) 커스텀 카운터 적용 대상(`list-style-type`/`counter-reset`/`counter-increment`/`<ol>`/list-decimal) grep **0건**(번호 목록 표면 부재·L1019 ::marker/list-style 모-센서스가 disc/decimal 부재 인벤토리). (4) DESIGN.md counter/list-style/marker/번호 grep **0건**.
+- 근거: triply-vacuous — pad 디스크립터 0 + 부모 @counter-style 0(순서 목록·counter() 전무) + DESIGN.md silent. `pad` 는 anti-patterns L634 `[design][tokens] @counter-style 사용자 정의 카운터 스타일 at-규칙 모-센서스`의 내부 표기 디스크립터(subj-ded=0·any=0 완전 fresh)로, at-규칙 application 일관성 차원(L634)과 표기 디스크립터 세부 차원(본 사이클)은 별개·descriptor sub-carve. range(L634 subj)·additive-symbols(cycle 2481)·system/symbols·L1019(::marker/list-style)와 비중첩.
+- DESIGN.md 확인: 105줄 전수 카운터/목록 번호/마커 미규정(grep 0)·L11 "Decoration level: Minimal" → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(pad/디스크립터 0·@counter-style 0·list/counter 0·DESIGN 0)로 정적 검증.
+- 차기 tokens 재진입 후보(선점 시 PIVOT): `@counter-style` `fallback`(카운터 범위 초과 시 폴백 스타일·any=3 tot·subj=0 잔여 디스크립터)·`image-set()`/`-webkit-image-set()` 해상도별 이미지 소스 토큰(raster 배경 0·image-set L598 aesthetic subject 재검)·`@counter-style` 는 pad/negative/prefix/suffix 본 사이클로 표기 디스크립터 대부분 소진(fallback 잔여). tokens fresh 축 극심 saturation — 실제 divergence 는 font-size FIX(QA 차단)뿐.
+
 ## 2026-07-02 — [design] cycle 2503 Discovery — states 273rd round: 미디어 탐색(스크러빙) 상태 의사클래스(`:seeking`) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 273rd round)에서 "video/audio 탐색 조작 상태(`:seeking`) 커스텀 시각 피드백(타임라인 로딩·스크럽 스피너)이 미디어 표면 간 갈리거나 일부만 :seeking 오버레이·탐색 상태 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. `:seeking`(미디어 사용자 탐색/스크러빙 조작 상태 의사클래스)의 단독 sub-carve. decision-log L49(cycle 2495 forward-pointer) 가 `:seeking`(L415 미디어 GROUP 명명 멤버·:buffering 후속 sub-carve 여지) 를 명시 큐잉한 것을 선택.
