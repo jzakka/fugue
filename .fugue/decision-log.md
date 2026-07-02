@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2511 Discovery — states 274th round: 미디어 음소거 상태 의사클래스(:muted) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 274th round)에서 "미디어(audio/video)가 음소거 진입 시 `:muted` 로 상태별 시각 전환(음소거 아이콘 강조·볼륨 슬라이더 dim·오버레이 표식)을 주는지·일부 미디어만 음소거 표식을 줘 동종 미디어 간 mute 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2503 forward-pointer(L61) #1 후보 `:muted`(L415 미디어 재생 상태 의사클래스 GROUP 명명 멤버·음소거 상태 sub-carve) 선택. :buffering(2495)·:seeking(2503) 형제 sub-carve 선례 → L415 GROUP 다음 명명 멤버 :muted 를 별개 상태 차원으로 sub-carve.
+- MANDATORY 체크: (1) `:muted` CSS 룰·`[&:muted]` arbitrary variant grep src+globals **0건**(text-muted 색 토큰 제외). (2) 미디어 표면 전부 네이티브 `controls` 위임 — `<audio controls>`(pins/[id]/page.tsx:62)·`<video controls>`(pins/[id]/page.tsx:70·PinCreateForm:397/400)·커스텀 트림 `<video>`(VideoTrimModal:217) 음소거를 CSS 로 스타일 안 함. (3) `video.muted=true`(VideoThumbnailPicker:21)는 썸네일 무음 생성용 programmatic property·상태 시각화 아님. (4) DESIGN.md `:muted`/음소거/mute/volume grep **0건**(L48 "Text muted #888888"=색 토큰·무관).
+- 근거: triply-vacuous — :muted 의사클래스 0 + 커스텀 음소거 상태 시각 피드백 0(네이티브 controls 위임) + DESIGN.md silent. L415 GROUP 형제 담당 차원 분리: :buffering(2495 네트워크 스톨)·:seeking(2503 탐색/스크럽)·:playing/:paused(재생 트랜스포트)·본 축 :muted(오디오 출력 음소거). states line-leading dedicated subject 0 확인.
+- DESIGN.md 확인: 105줄 전수 음소거 상태 시각 전환 미규정(grep 0)·L48 muted=색 토큰·L85 Video card 는 썸네일+재생 아이콘+길이만 SHALL·음소거 표식 미규정 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(:muted 0·네이티브 controls 위임·video.muted programmatic·DESIGN 0)으로 vacuity 확인.
+- 차기 states 재진입 후보(선점 시 PIVOT): `:volume-locked`(L415 GROUP 멤버·볼륨 잠금 상태 sub-carve)·`:link`/`:visited`(anti near-subj 1·링크 방문 상태)·`:read-write`(편집 가능 상태). states 극심 saturation·미디어 상태군 대부분 sub-carve 소진(:buffering 2495·:seeking 2503·:muted 2511 완료·남은 명명 멤버 :playing/:paused/:volume-locked) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2509 Discovery — responsive 275th round: 브레이크포인트-접두 반응형 밑줄 오프셋 토글(sm:underline-offset) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 275th round)에서 "`sm:underline-offset-2`/`md:underline-offset-4`/`lg:underline-offset-auto`(text-underline-offset 밑줄 오프셋 거리를 화면폭별로 전이하는 BP-접두 반응형 토글)로 밑줄 간격이 표면 간 갈리거나 일부 링크만 sm:underline-offset·동종은 고정" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2501 forward-pointer(L61) #1 후보 `sm:text-underline-offset` 폭별 밑줄 오프셋(resp-subj=0·base tokens L315) 선택. base 속성 text-underline-offset 은 tokens 데코 토큰 census(L315)에 subj 존재 → sm: 폭별 반응형 토글은 별개 차원 sub-carve(sm:hanging-punctuation 2493·sm:font-feature-settings 2501 vein).
