@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2078 Discovery — 에러처리: JSON 요청 바디 디코드 에러 처리 일관성(MaxBytesError→400·EOF→400·MaxBytesReader 래핑) (covered-by-census)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 57주기째)에서 "HTTP 핸들러의 JSON 요청 바디 디코드가 malformed/empty(EOF) 본문 에러를 삼켜 zero-struct 로 진행하거나·oversize 본문을 무제한 spool(DoS)하거나·디코드 실패 후 400/return 누락으로 이중처리" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 에러처리. JSON 요청 바디 디코드 에러 처리 일관성(handler decode error → 400).
+- 조사: HTTP 바디 디코드 site 전수가 동일 패턴 — creator/handler.go:171·boards/handler.go:133/316/544·og/handler.go:81·interaction/handler.go:55 가 `if err := json.NewDecoder(r.Body).Decode(&req); err != nil { errors.As(err,&maxBytesErr)→400 "요청 본문이 너무 큽니다"; else→400 "잘못된 요청 형식입니다"; return }`. decode err 삼킴 0건·empty body(io.EOF)도 400 보수 처리·각 디코드 전 r.Body 를 MaxBytesReader 로 래핑(spool DoS 방지).
+- covered-by: **L195(에러처리)** 이 정확히 이 6개 디코드 site 를 전수 열거("creator:171·boards:133/316/544·og:73·interaction:55 전부 동일 패턴 — MaxBytesError errors.As→400·else→400·return·MaxBytesReader 래핑·EOF 보수 400") + **L161(cycle 770 에러처리)** 이 "json.Decode 4핸들러...MaxBytesError 를 errors.As 로 구분(oversize→400)+generic decode→400 둘 다 return·후속 의미검증도 400+return" 로 커버. static "decode err 무시 zero-value 진행·oversize DoS" 은 FP(L195/L161 전수 커버).
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 58주기째) → cycle 2080. 후보: atomic counter 스냅샷(L98/L75/L149)·채널 close/send 수명(L52)·time.After in-loop 타이머 누수(L215)·비차단 select default(cycle1830) 외 미수록 sub-axis(sync.Once 초기화·errgroup fan-out 에러 수집·context propagation deadline 전파).
+
 ## 2026-07-02 — [design] cycle 2457 tokens 290th round — 색 레이어 합성 함수(color-layers()) 표면 폐기
 - 결정: tokens area(290th round)에서 "여러 색 레이어를 블렌드 모드로 합성해 하나의 색 값으로 해석하는 `color-layers()` 로 일부 토큰만 색을 합성 소싱하고 동종은 정적 hex/var() 리터럴이라 색 소싱 어휘가 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
 - 축 선택: tokens. 색 레이어 합성 함수 `color-layers()`(CSS Color 5/HDR·여러 색 레이어를 블렌드 모드로 합성해 단일 색 값 산출). decision-log forward-pointer(L10274/L10309/L10339 "tt color-layers() 색 레이어 합성·신규 CSS·현 0 vacuous")를 재진입 후보로 채택.
