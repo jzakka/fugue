@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2575 Discovery — states 282nd round: 결합자 스코프 속성 선택자(`>[attr]`/`+[attr]`/`~[attr]` 구조 위치 한정) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 282nd round)에서 "일부 상태 스타일만 `>[attr]`/`~[attr]` 결합자 스코프로 구조 위치를 한정하고 동종은 무결합자 전역 매칭/JSX 렌더라 구조-스코프 상태 매칭이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2567 forward-pointer(결합자별 속성 선택자 `>[a]`/`+[a]`) 채택. 속성 선택자 family 에서 2543(대소문자 플래그)·2551(값 매칭 연산자)·2559(네임스페이스)·2567(conjunction `[a][b]`)이 *속성 조건 자체* 를 carve 한 데 반해 *속성-매칭 요소를 결합자로 구조 위치 한정*(자식 `>`·인접 형제 `+`·일반 형제 `~`) 차원 sub-carve.
+- MANDATORY 체크: total=0(결합자 스코프 속성 선택자 census 부재·자식/인접/일반 결합자 all total=0)·code=0(`[>+~]\s*\[` CSS grep 0·Tailwind `[&>[..]]`/`[&~[..]]` 0)·DESIGN silent(결합자/combinator/자식·형제 선택자 grep 0·earlier=1 은 markdown 문자 FP) → triply-vacuous(pure vacuous).
+- 근거: 부모→자식·형제 상태 전파는 CSS 결합자가 아니라 JSX 조건부 렌더·prop/context 전달·Tailwind group-*/peer-* variant 로 처리 → 순수 CSS 결합자로 속성-매칭 요소를 구조 위치 한정하는 idiom 부재.
+- DESIGN.md 확인: 105줄에 결합자 스코프 선택자 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: 2543/2551/2559/2567(속성 조건 자체 — 수식/결합)과 별개 — 본 축은 속성-매칭 요소의 구조 위치 스코프(결합자) 차원.
+- 차기 states 재진입 후보: 속성 선택자 family 잔여 미carve 차원 — 속성 선택자 + 의사클래스 결합(`[a]:hover`)·`:has([attr])` 관계 의사클래스로 속성-매칭 후손 존재 스타일(subj 확인 필요)·`[attr]` 대소문자 무관 로컬명 매칭(HTML vs XML case-fold) subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2573 Discovery — responsive 283rd round: 브레이크포인트-접두 반응형 캐럿 색 토글(`sm:[caret-color:...]`→`md:[caret-color:auto]`) 표면 폐기 (pure vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 283rd round)에서 "일부 입력만 `sm:[caret-color]` 로 폭별 캐럿 틴트를 전환하고 동종은 고정이라 반응형 캐럿 색이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. 차기 responsive 후보(sm:[caret-color], base subj=2) 채택. `sm:[hyphens]` 는 이미 반응형 토글 census(Korean phrase match=1) → 회피. base 는 L307(정적 tokens 캐럿 색 토큰)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:text-wrap(2549)·sm:hanging-punctuation(2557)·sm:tab-size(2565) 선례와 동일 패턴).
