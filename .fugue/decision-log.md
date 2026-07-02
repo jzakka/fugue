@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2469 Discovery — responsive 270th round: CSS 공간(방향) 내비게이션 포커스 이동(`nav-*`) 표면 폐기
+- 결정: pending=0 Discovery 사이클. responsive 회전(270th round)에서 **CSS UI 공간(방향) 내비게이션 속성군 `nav-up`/`nav-down`/`nav-left`/`nav-right`/`nav-index`**(방향키/D-패드/TV 리모컨 방향성 입력의 포커스 상하좌우 인접 목적지 지정) 축을 0-후보 표면 폐기(doubly-vacuous)로 census 등록, 코드 변경 없음.
+- 축 선택: responsive(비-포인터 방향 입력 대응). 방향성 입력에서 포커스를 방향별 인접 요소로 이동시킬 목적지를 지정하는 CSS UI 속성. 핀 그리드가 방향키 내비를 커스텀하지 않아 "리모컨/D-패드 포커스가 기본 tab 순서만 따름·방향 포커스 순회 부재" 후보 검토했으나 선언 전수 0건.
+- MANDATORY 체크: (1) `nav-up`/`nav-down`/`nav-left`/`nav-right`/`nav-index` CSS 값 apps/web/src 전수 **0건**(globals 0) — 방향 포커스 순회 모집단 0=uniform. (2) 방향성 입력(D-패드/리모컨/게임패드) 타겟 UI **부재**, 포커스는 기본 DOM tab 순서+`:focus-visible`(states)에 위임 → 방향 내비 host 없음. (3) anti-patterns/decision-log/DESIGN.md nav-*/spatial 전부 0건 — 최초 dedicated baseline.
+- 근거: 접근성 포커스는 시맨틱 순서에 위임하고 방향 내비 속성으로 제어하지 않음 → 방향 포커스 순회 표면 0=coherent absence. L584 입력 매체 기능(hover/pointer/any-pointer *감지* 분기)·`tabindex`(순차 순서)와 동류 입력/포커스 표면이나 방향별 포커스 *목적지 지정*이라는 별개 responsive 축.
+- DESIGN.md 확인: 시각 토큰·레이아웃만 규정, 방향성 입력 포커스 순회(nav-*/spatial) 미규정(grep 0건). DESIGN.md/AGENTS.md/CLAUDE.md 셋 중 어느 것도 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 없음(census-only 표면 폐기). anti-patterns.md tail 에 cycle 2469 baseline census 1건 추가, decision-log 최상단 본 항목 삽입. 빌드/런타임 영향 0.
+- 차기 responsive 재진입 후보: `@media (inverted-colors)`·`(prefers-reduced-transparency)`·`(monochrome)` 접근성 매체·`@custom-media` 명명 미디어 쿼리·`@container` style query(스타일 컨테이너 질의)·컨테이너 쿼리 단위 `cqi`/`cqb`/`cqmin`. 단 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2467 Discovery — aesthetic 292nd round: SVG 필터 드롭섀도 단일 프리미티브(`feDropShadow`) 표면 폐기
 - 결정: pending=0 Discovery 사이클. aesthetic 회전(292nd round)에서 **SVG 필터 드롭섀도 단일 축약 프리미티브 `<feDropShadow>`**(feGaussianBlur+feOffset+feFlood+feComposite/feMerge 를 한 프리미티브로 묶은 그림자 필터) 축을 0-후보 표면 폐기(triply-vacuous)로 census 등록, 코드 변경 없음. per-SVG-filter-primitive carve 의 최초 dedicated baseline.
 - 축 선택: aesthetic. SVG 필터 그래프 내 `<feDropShadow>` 단일 프리미티브(CSS `filter: drop-shadow()` 함수·`box-shadow` 박스 그림자와 구별되는 SVG 필터 그림자 축). decision-log cycle 2265~ forward-pointer 가 feDropShadow 를 잔여 SVG 필터 프리미티브 후보로 반복 지목한 것을 본 census 가 확정.
