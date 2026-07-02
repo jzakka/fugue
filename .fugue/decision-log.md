@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [design] cycle 2589 Discovery — responsive 285th round: 브레이크포인트-접두 반응형 오버스크롤 연쇄 토글(`sm:overscroll-contain`→`md:overscroll-auto`) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 285th round)에서 "일부 스크롤 컨테이너/모달만 `sm:overscroll-contain` 으로 폭별 연쇄 차단을 전환하고 동종은 고정이라 반응형 오버스크롤 정책이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2581 forward-pointer(`sm:[overscroll-behavior]`)를 이어 sm: BP-토글 vein(text-wrap 2549·hanging-punctuation 2557·tab-size 2565·caret-color 2573·scroll-behavior 2581)에서 `overscroll-behavior` 를 반응형 토글 차원으로 sub-carve. base 는 L549(정적 overscroll-behavior)·L1121/L1126(논리축 longhand).
+- MANDATORY 체크: (1) `overscroll-behavior`/`overscroll-auto`/`-contain`/`-none`·logical longhand·`sm:overscroll-*`/`md:overscroll-*` apps/web/src grep **0건**(반응형·정적 모두 0). (2) 스크롤 연쇄는 브라우저 기본 `auto`(경계 연쇄 허용·모바일 pull-to-refresh/바운스 기본)로 균일 → 폭별 CSS `overscroll-behavior` 교체 idiom 부재. (3) DESIGN.md(105줄) overscroll/스크롤 연쇄/바운스/pull-to-refresh grep **0건** → silent.
+- 근거: 세 독립 0-조건(code 0 + 반응형 토글 모집단 0 + DESIGN silent)로 triply/pure vacuous. "모달/드로어/긴 피드가 있으니 모바일에서 배경 연쇄/pull-to-refresh 를 막으려 `sm:overscroll-contain` 으로 폭별 조절한 곳이 있거나 일부만 조절해 갈릴 것" 정적 추정은 FP — `overscroll-behavior` 선언 자체가 0.
+- DESIGN.md 확인: overscroll-behavior/스크롤 연쇄 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L549(`overscroll-behavior` 정적 responsive 각도)·L1121/L1126(논리축 block/inline longhand)과 별개 — 본 축은 그 속성을 *브레이크포인트별로 갈아끼우는 반응형 토글* 차원, sm: BP-토글 vein 선례(2549/2557/2565/2573/2581)와 동일 패턴.
+- 차기 responsive 재진입 후보: `sm:[scroll-snap-type]`(폭별 스크롤 스냅 축/강도 전환·base L474)·`sm:[touch-action]`(폭별 터치 제스처 허용 전환·base subj=1 재확인)·`sm:[scroll-snap-align]`(폭별 스냅 정렬) subj/code 확인 후 sub-carve.
+
 ## 2026-07-03 — [design] cycle 2587 Discovery — aesthetic 307th round: 다중 레이어 스택 box-shadow 효과(사실적 깊이/뉴모피즘/다중 헤일로) 표면 폐기 (dimensionally vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 307th round)에서 "일부 카드/모달만 콤마 구분 다중 그림자 레이어로 사실적 깊이/뉴모피즘을 주고 동종은 단일 그림자/평면이라 다층 그림자 회화가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. cycle 2579 forward-pointer(다중 레이어 box-shadow 스택). box-shadow 계열에서 L288(존재)·L507(단일 토큰 스케일)·L785(inset 방향)·L836(색)·L601(inset 스케일)이 carve 됐고 *다중 레이어 스택 합성*(깊이/뉴모피즘) 미carve 발견 → cycle 2579 다중 text-shadow 와 동형의 box-shadow 판으로 sub-carve.
