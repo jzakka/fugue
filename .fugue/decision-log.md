@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2060 Discovery — OpenSpec갭: ratelimit capability(카운터 원자 증가·만료 SHALL·유저 단위 surface SHALL) 2 Requirement 정합 (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 48주기째)에서 "ratelimit/spec.md 2 Requirement(R1: 카운터 INCR+윈도우 TTL 을 단일 원자로 설정·Redis 실패 시 fail-open SHALL NOT throttle / R2: per-IP·per-user 두 key surface 노출·인증 식별자 관측 시 유저 버킷 분리) 가 미구현/미정합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. ratelimit fixed-window 원자성+fail-open+dual surface wiring 계약.
+- MANDATORY 체크: 본 capability 2 Requirement 는 **L184(cycle 790)이 정확히 커버** — (R1) `rateLimitScript` Lua EVAL `INCR`+`if n==1 then EXPIRE`(ratelimit.go:24-30) 단일 서버사이드 원자·후속 INCR 은 n≠1 이라 TTL 미리셋·Redis err 시 :86-101 fail-open·count>limit 시 :103-107 Retry-After+429; (R2) Middleware(per-IP)·MiddlewareByCreatorID(`creator:`+id, 인증부재 fallback `ip:`) dual surface·같은 creator IP 무관 같은 버킷. 보강: L324(보안 fixed-window 원자성/fail-open/per-IP·per-user surface)·L268(동시성 INCR+EXPIRE 원자)·L463(비-봇트랙 전 capability Requirement 전수 커버 meta).
+- 근거: Lua EVAL 원자 INCR+EXPIRE·fail-open·dual surface 가 spec 2 Requirement 를 전수 충족함을 L184 이 census 로 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 49주기째) → cycle 2062. 후보: JWT alg confusion(cycle2050 covered)·CRLF 인젝션(L1167)·gzip 폭탄(L1048/L1125)·SSRF(L209)·CORS(L192) 외 미수록 sub-axis(open redirect·secure 쿠키 domain·mass assignment).
+
 ## 2026-07-02 — [system] cycle 2058 Discovery — 봇: MediaCandidates 후보 개수 상한(MaxMediaCandidates=50) producer 간 캡 일관 (NEW baseline)
 - 결정: 봇 area(6-area rotation 동시성→봇, 47주기째)에서 "MediaCandidates producer 가 GenericExtractor·ScriptAdapter 둘인데 한쪽만 상한(MaxMediaCandidates=50)을 적용하고 다른 쪽은 무제한이라 사이트마다 후보 개수가 갈리고 영속 og_data JSONB 가 거대 배열로 bloat 되는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
 - 축 선택: 봇 정합성. 미디어 후보 개수 상한(cap)의 producer 간 일관성.
