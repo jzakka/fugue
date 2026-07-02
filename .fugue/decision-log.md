@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2495 Discovery — states 272nd round: 미디어 버퍼링 로딩 상태 의사클래스(`:buffering`) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 272nd round)에서 "video/audio 버퍼링 로딩 상태(`:buffering`) 커스텀 시각 피드백(스피너 오버레이·컨트롤 흐림)이 미디어 표면 간 갈리거나 일부만 :buffering 오버레이·버퍼링 로딩 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. `:buffering`(미디어 재생 중 네트워크 버퍼 부족 로딩 상태 의사클래스)의 단독 sub-carve. decision-log L140 "차기 states 재진입 후보" 가 `:buffering`/`:seeking`(L415 미디어 GROUP 명명 멤버·sub-carve 여지) 를 명시 큐잉한 것을 선택.
+- MANDATORY 체크: (1) `:buffering` CSS 룰·`[&:buffering]` variant grep src+globals **0건**(커스텀 버퍼링 피드백 모집단 0). (2) 미디어 요소 전부 네이티브 `controls` 위임(audio pins/[id]:62·video pins/[id]:70-71·VideoTrimModal:217·MyPageClient:77·PinCreateForm:397/400 → 버퍼링 UI 브라우저 균일). (3) 컴포넌트 스켈레톤(CardSkeleton·ProfileSkeleton·skeleton-shimmer·animate-pulse)은 fetch-loading 이지 playback-buffering 아님(별개 차원). (4) DESIGN.md buffering/:playing/loading state/spinner grep **0건**.
+- 근거: triply-vacuous — `:buffering` CSS 0 + 미디어 네이티브 controls 위임(커스텀 버퍼링 표면 부재) + DESIGN.md silent. `:buffering` 은 anti-patterns L415 `[design][states] 미디어 재생 상태 의사클래스 GROUP`(:playing/:paused/:muted/:seeking/:buffering/:volume-locked)의 named member(holistic 재생 상태 일관성 차원)이나 *네트워크 버퍼링 로딩 상태* 단독 차원은 별개·states 로딩 first-class 관점 sub-carve. :seeking(탐색 L415)·:stalled(L701)·::cue(2487)와 비중첩.
+- DESIGN.md 확인: 105줄 전수 버퍼링/재생 로딩 상태 미규정(grep 0)·L11 "Decoration level: Minimal" → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(:buffering 0·DESIGN 0)+미디어 controls 열거+스켈레톤 차원 분리로 정적 확인.
+- 차기 states 재진입 후보(선점 시 PIVOT): `:seeking`(L415 GROUP 명명 멤버·탐색 상태 sub-carve 여지)·`:muted`/`:volume-locked`(L415 멤버 sub-carve)·`:link`/`:visited`(anti near-subj 1·링크 방문 상태)·`:read-write`(편집 가능 상태). states 극심 saturation — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2493 Discovery — responsive 273rd round: 브레이크포인트별 매달린 구두점 토글(`sm:hanging-punctuation` 폭별 행잉 문장부호) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 273rd round)에서 "매달린 구두점을 뷰포트 폭별로 켜고 끄는(`sm:hanging-punctuation`/`md:[hanging-punctuation:first]`) 반응형 구두점 걸침 적응이 표면 간 갈리거나 좁은 폭에서 걸침 미해제·폭별 걸침 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. `hanging-punctuation`(따옴표·구두점을 텍스트 블록 행 가장자리 밖으로 걸치는 CSS Text 4 속성·first/last/allow-end/force-end)의 브레이크포인트별 토글. decision-log L3356 "차기 responsive 재진입 후보" 가 `sm:hanging-punctuation 폭별 행잉 문장부호` 를 fresh 축으로 명시 큐잉한 것을 선택(base 가 aesthetic L367 그룹·반응형 토글 vein).
