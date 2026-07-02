@@ -32,6 +32,14 @@
 - 근거: Lua EVAL 원자 INCR+EXPIRE·fail-open·dual surface 가 spec 2 Requirement 를 전수 충족함을 L184 이 census 로 보유. 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 49주기째) → cycle 2062. 후보: JWT alg confusion(cycle2050 covered)·CRLF 인젝션(L1167)·gzip 폭탄(L1048/L1125)·SSRF(L209)·CORS(L192) 외 미수록 sub-axis(open redirect·secure 쿠키 domain·mass assignment).
+## 2026-07-02 — [design] cycle 2445 responsive 267th round — 인라인 기준 방향의 브레이크포인트 토글(sm:[direction] ltr↔rtl) 표면 폐기
+- 결정: responsive area(267th round)에서 "인라인 기준 방향(`direction` ltr/rtl)을 sm/md/lg 브레이크포인트마다 다르게 전환하는데 일부 표면만 sm:[direction:rtl] 을 주고 동종은 고정이라 인라인 방향 반응형 전환이 표면 간 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: responsive. 인라인 기준 방향(direction ltr/rtl)의 브레이크포인트 토글 사용 일관성. cycle 2437 forward-pointer("`sm:direction` rtl/ltr BP 전환·writing-mode 와 별개")를 재진입 후보로 채택.
+- MANDATORY 체크: (1) 신규성 — anti L1223 은 `sm:[writing-mode]`(블록 흐름 축) dedicated census 로 sm:direction 을 forward-pointer sibling 으로만 언급·dedicated subject census 부재(ded=0). decision-log 도 L107 forward-pointer 뿐. tot=1(둘 다 pointer). (2) 코드 — apps/web/src 전수 `direction`/`dir=`/`rtl`/`ltr`/`unicode-bidi`/`sm:[direction` grep 0건(pure vacuous). rtl/양방향(bidi) 컨텍스트 자체 비-사용·기본 direction 도 0(doubly-vacuous). (3) 쓰기방향BP토글축(writing-mode=블록 흐름 축·L1223)·양방향격리축(unicode-bidi=bidi 임베딩/격리)·정렬BP토글축(sm:text-align)과 별개 차원(direction=인라인 기준 방향 자체·orthogonal to writing-mode 블록 축).
+- 근거: 인라인 기준 방향 반응형 토글 선언 0건이고 rtl 로케일/양방향 텍스트 자체가 비-사용이라 "일부만 sm:[direction]·동종은 고정" 비정합 모집단이 0. rtl 도입은 미명시 enhancement 이지 cross-surface 결함 아님(loop rule line 9 미명시 취향).
+- DESIGN.md 확인: direction/rtl/ltr/bidi grep 0건("Aesthetic Direction"/"Direction: Industrial/Editorial" 는 미학 헤딩·CSS direction 무관). L70 Breakpoints sm 500/md 800/lg 1200 정의하나 인라인 방향 BP 전환 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 responsive 재진입 후보: `unicode-bidi`(bidi 격리/재정의 isolate/plaintext·direction 과 별개 bidi 임베딩 차원·양방향격리축) 또는 `sm:[writing-mode]` BP 쓰기 방향 전환(쓰기방향BP토글축 재검·anti L1223) 축.
 
 ## 2026-07-02 — [system] cycle 2058 Discovery — 봇: MediaCandidates 후보 개수 상한(MaxMediaCandidates=50) producer 간 캡 일관 (NEW baseline)
 - 결정: 봇 area(6-area rotation 동시성→봇, 47주기째)에서 "MediaCandidates producer 가 GenericExtractor·ScriptAdapter 둘인데 한쪽만 상한(MaxMediaCandidates=50)을 적용하고 다른 쪽은 무제한이라 사이트마다 후보 개수가 갈리고 영속 og_data JSONB 가 거대 배열로 bloat 되는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
