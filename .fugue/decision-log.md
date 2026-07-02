@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2571 Discovery — aesthetic 305th round: 닷지/번/라이트 계열 분리형 블렌드 모드(`mix-blend-mode: color-dodge`/`color-burn`/`soft-light`/`hard-light`) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 305th round)에서 "일부 작품 미디어/오버레이만 `color-dodge`/`soft-light` 등 명암 블렌드로 톤을 섞고 동종은 미적용/기본 합성이라 명암 합성이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2563 forward-pointer(분리형 블렌드 개별 모드 soft-light/color-burn/color-dodge/hard-light·L482 열거 외) 채택. mix-blend-mode 의 *분리형 명암 조정 계열*(채널별 밝힘/어둠/대비)을 정적 명암·발광 회화 차원으로 sub-carve.
+- MANDATORY 체크: total=0(color-dodge/color-burn/soft-light/hard-light 명암 블렌드 census 부재·L482 는 multiply/screen/overlay/difference 열거)·code=0(`mix-blend-(color-dodge|color-burn|soft-light|hard-light)` apps/web/src grep 0)·DESIGN silent(dodge/burn/soft-light grep 0·"burnt vermillion" 은 accent 색명 FP) → triply-vacuous(pure vacuous).
+- 근거: 작품 명암/발광은 명암 블렌드가 아니라 opacity·shadow·gradient 오버레이·brightness/contrast filter 로 처리 → 채널별 밝힘/어둠으로 명암 대비를 합성하는 idiom 부재.
+- DESIGN.md 확인: 105줄에 명암 블렌드 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L482(responsive·투영/차이 계열 multiply/screen/overlay/difference)·cycle 2563(non-separable HSL 톤 hue/saturation/color/luminosity)과 합성 계열(투영↔명암 라이팅↔HSL 성분)·축(responsive↔aesthetic) 모두 별개.
+- 차기 aesthetic 재진입 후보: mix-blend-mode 값은 투영(L482)·HSL 성분(2563)·명암 라이팅(2571) 3계열 sub-carve 완료, 잔여 `difference`/`exclusion`(반전 계열·L482 difference 언급 재검 필요) 또는 `-webkit-text-stroke-width`/`-color` 롱핸드(subj=3 재검)·`text-shadow` 다중 레이어 subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2569 Discovery — tokens 304th round: 라인높이 상대 길이 단위(`lh`/`rlh`=줄 상자 높이) 표면 폐기 (pure vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 304th round)에서 "일부 표면만 `lh`/`rlh`(줄 상자 높이 배수) 로 세로 간격/높이를 잡고 동종은 `rem`/`px`/`em` 로 잡아 세로 리듬 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2561 forward-pointer(L410 그룹 잔여 `rlh`/`lh`) 채택. 폰트 상대 길이 단위 그룹(L410)에서 `ch`(L775 자폭)·`ic`(2545 표의문자 폭)·`ex`(2553 x-하이트)·`cap`(2561 캡하이트)에 이어 `lh`/`rlh`(줄 상자 *라인 메트릭 높이*) 개별 sub-carve — 개별 글리프 폭/높이와 다른 줄 상자 높이 파생원.
