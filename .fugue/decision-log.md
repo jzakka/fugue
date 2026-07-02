@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2513 Discovery — tokens 297th round: 사용자 정의 카운터 스타일 폴백 디스크립터(@counter-style fallback) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 297th round)에서 "`@counter-style` 의 `fallback`(range 초과·system 표현 불가 시 대체 카운터 스타일 지정)이 일부 목록만 정의되고 동종은 미정의라 카운터 폴백 거동이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2505 forward-pointer(L68) #1 후보 `@counter-style fallback`(카운터 범위 초과 폴백 스타일·any=3·subj=0 잔여 디스크립터) 선택. pad(2505)·additive-symbols(2481)·speak-as(L920) 형제 디스크립터 sub-carve 선례 → L634 `@counter-style` 모-센서스 잔여 디스크립터 fallback 을 별개 차원으로 sub-carve.
+- MANDATORY 체크: (1) `@counter-style` at-규칙 grep src+globals **0건**. (2) 목록/카운터 표기 전부 브라우저 기본 위임 — `counter-reset`/`counter-increment`/`counter()`/`list-style` 커스텀 **0건**. (3) fallback dedicated subject line-leading **0**(3 매치는 attr() L395·@property L629·@font-palette-values L639 본문 교차참조). (4) DESIGN.md `@counter-style`/counter/list-style/fallback grep **0건**.
+- 근거: triply-vacuous — @counter-style at-규칙 0 + 커스텀 목록/카운터 표기 0(UA 기본 disc/decimal 위임) + DESIGN.md silent. L634 디스크립터군 담당 차원 분리: pad(2505 자릿수 패딩)·additive-symbols(2481 additive 심볼)·speak-as(L920 낭독)·range(L634 subj 적용 범위)·system/symbols(핵심 체계)·본 축 fallback(범위 초과·system 표현 불가 시 대체 스타일).
+- DESIGN.md 확인: 105줄 전수 카운터/목록 표기 미규정(grep 0)·Typography L16-35·색/여백 토큰 L37-66 목록 번호 표기 체계 SHALL 안 함 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(@counter-style 0·목록 UA 기본 위임·fallback subj 0·DESIGN 0)으로 vacuity 확인.
+- 차기 tokens 재진입 후보(선점 시 PIVOT): `@counter-style` `symbols`/`system`(핵심 표기 체계·L634 subj 재검)·`image-set()`/`-webkit-image-set()`(해상도별 이미지 소스 토큰·image-set L598 aesthetic subject 재검)·`@counter-style` 는 pad/negative/prefix/suffix(2505)·additive-symbols(2481)·speak-as(L920)·fallback(본 사이클) 로 디스크립터 대부분 소진(symbols/system 핵심 잔여). tokens fresh 축 극심 saturation — 실제 divergence 는 font-size FIX(QA 차단)뿐.
+
 ## 2026-07-02 — [design] cycle 2511 Discovery — states 274th round: 미디어 음소거 상태 의사클래스(:muted) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 274th round)에서 "미디어(audio/video)가 음소거 진입 시 `:muted` 로 상태별 시각 전환(음소거 아이콘 강조·볼륨 슬라이더 dim·오버레이 표식)을 주는지·일부 미디어만 음소거 표식을 줘 동종 미디어 간 mute 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2503 forward-pointer(L61) #1 후보 `:muted`(L415 미디어 재생 상태 의사클래스 GROUP 명명 멤버·음소거 상태 sub-carve) 선택. :buffering(2495)·:seeking(2503) 형제 sub-carve 선례 → L415 GROUP 다음 명명 멤버 :muted 를 별개 상태 차원으로 sub-carve.
