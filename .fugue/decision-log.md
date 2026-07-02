@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2096 Discovery — OpenSpec갭: interaction piggyback best-effort 기록 wiring(3핸들러 성공후 인증호출자만 view/pin/board_add INSERT, void=best-effort) (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 66주기째)에서 "interaction/spec.md Requirement '핀 조회·핀 생성·보드 추가 핸들러가 원래 요청 성공 후 인증 호출자에 한해 interactions 에 view/pin/board_add row 를 best-effort INSERT(SHALL)·INSERT 실패가 응답을 바꾸지 않음(SHALL NOT alter response)' 미충족 — 3핸들러 중 일부 piggyback 누락·미인증 기록·best-effort 위반(에러가 응답 실패시킴)·type 집합 불일치" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. interaction capability piggyback 기록 wiring 계약.
+- 조사: (1) 3 piggyback site 전수 존재 — pin/handler.go:374 Create→`Record(...,p.ID,"pin")`(CreatePin+LinkPinTag 성공 후·201 직전), :402-405 GetByID→`if creatorID,ok:=auth.CreatorIDFromContext;ok{Record(...,id,"view")}`(resp 빌드 후·200 직전), boards/handler.go:594 AddPin→`Record(...,workID,"board_add")`(ownership+AddPinToBoard rowsAffected≠0 후·201 직전). (2) 미인증 미기록=라우트 레벨: GET /pins/{id} OptionalJWT+`if ok` 분기(미인증 401 안 받고 기록도 안 함)·POST /pins·POST /boards/{id}/pins 는 JWTMiddleware 필수라 핸들러 내 guard 불요(creatorID 항상 present). (3) void=best-effort: recorder.go:27-39 Record 가 invalid type·CreateInteraction DB 에러를 log.Printf 만 하고 반환 안 함 → 원래 응답 불변. (4) 409 중복·rollback 경로는 비-success 라 미기록 정합. (5) type allowlist {view,pin,board_add}=spec 3type.
+- covered-by: **L88(cycle 714 OpenSpec)** 이 정확히 이 축을 전수 판정 — "interaction/spec.md 2 Requirement 8 Scenario 코드 결정적 매핑: 3 piggyback site 존재·미인증 미기록 라우트 보장·void=best-effort·409/rollback 미기록 정합·type allowlist=spec 3type". static "Record void 라 실패 삼킴·GetByID 만 guard·409 미기록 → 갭" 은 FP(L88 커버·void 가 best-effort 정의·Create/AddPin 라우트 필수 auth). 코드 참조 현행 확인(pin/handler.go:374/402-405·boards/handler.go:594·recorder.go:27-39).
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 67주기째) → cycle 2098. 후보: 쿠키 Domain 호스트온리(cycle2074 L186/L465)·CORS allowlist(cycle2086 L192)·JWT 검증/서명(L116)·mutation path/body 파라미터 검증(L118) 외 미수록 sub-axis(secure/httponly/samesite 쿠키 속성·SQL injection sqlc 파라미터화·인증 미들웨어 fail-closed).
+
 ## 2026-07-02 — [system] cycle 2094 Discovery — 봇: per-site 어댑터 레지스트리 도메인 매칭 precedence(exact 우선 + 최장 suffix wildcard tie-break + bare 제외, map 순회 무관 결정성) (covered-by-census)
 - 결정: 봇 area(6-area rotation 동시성→봇, 65주기째)에서 "InMemoryAdapterRegistry.Resolve 가 Go map 의 무작위 순회로 wildcard 매칭이 비결정적이거나·exact 보다 wildcard 를 우선하거나·`*.example.com` 가 bare `example.com` 을 오매칭하거나·중첩 wildcard 최장 suffix tie-break 가 틀려 잘못된 per-site 어댑터를 선택/누락" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 봇. per-site 어댑터 레지스트리 도메인 매칭 precedence/결정성.
