@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2521 Discovery — tokens 298th round: 카운터 스타일 상속·재정의 알고리즘(@counter-style system:extends) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 298th round)에서 "핀/보드 목록 마커·순번 표기가 기존 카운터 스타일을 `system: extends` 로 상속·재정의해 파생 표기를 만들거나 일부 목록만 파생 카운터를 쓰고 동종은 기본 마커라 마커 상속 체계가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2513 forward-pointer(`@counter-style` symbols/system·L634 subj 재검) 를 검증해 L634(cyclic/symbols)·L1249(additive)에서 미커버된 잔여 `system` 알고리즘 값 중 `system: extends`(카운터 상속/재정의) 를 선택. pad(2505)·additive-symbols(2481)·speak-as(L920)·fallback(2513) 형제 디스크립터 sub-carve 선례 → L634 `@counter-style` 모-센서스 잔여 *상속 알고리즘* 디스크립터를 별개 차원으로 sub-carve.
+- MANDATORY 체크: (1) `system: extends`/`system:? *extends` 디스크립터 선언 grep src+globals **0건**. (2) 커스텀 `@counter-style` at-규칙 host grep **0건** — 상속할 원본 카운터도 파생 정의도 부재. (3) 목록은 `<ol>`/`<ul>` 기본 마커(decimal/disc)·Tailwind list-style 유틸·커스텀 flex/grid 렌더 위임. (4) DESIGN.md `@counter-style`/system:extends/counter/marker/번호 grep **0건**.
+- 근거: triply-vacuous — system:extends 디스크립터 0 + 커스텀 @counter-style at-규칙 host 0(상속 대상·파생 둘 다 부재) + DESIGN.md silent. base 알고리즘 정의 차원(L634 cyclic/symbols·L1249 additive)과 별개 — extends 는 기존 카운터를 상속해 일부 디스크립터만 덮어쓰는 상속/오버라이드 메커니즘. `@counter-style` 디스크립터군 pad(2505)·additive-symbols(2481)·speak-as(L920)·fallback(2513)·system:extends(본 사이클) 로 사실상 전 디스크립터 소진.
+- DESIGN.md 확인: 105줄 전수 카운터 상속/파생 마커 미규정(grep 0)·Typography(L16-35)는 폰트/크기/행간만·색/여백 토큰(L37-66)은 마커 상속 미규정 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(system:extends 0·@counter-style host 0·목록 기본 마커 위임·DESIGN 0)으로 vacuity 확인.
+- 차기 tokens 재진입 후보(선점 시 PIVOT): `@counter-style` 디스크립터 소진(잔여 negative/prefix/suffix 는 L634 예시 포함) — `image-set()`/`-webkit-image-set()`(해상도별 이미지 소스 토큰·L598 aesthetic subject 를 tokens DPR 차원으로 재검)·`@font-palette-values`(컬러 폰트 팔레트 토큰·L639 subj 재검). tokens fresh 축 극심 saturation — 실제 divergence 는 font-size FIX(QA 차단)뿐.
+
 ## 2026-07-02 — [design] cycle 2519 Discovery — states 275th round: 미디어 볼륨 잠금 상태 의사클래스(:volume-locked) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 275th round)에서 "미디어(audio/video)가 볼륨 잠금 시 `:volume-locked` 로 상태별 시각 전환(볼륨 슬라이더 dim/숨김·잠금 아이콘·오버레이)을 주는지·일부 미디어만 잠금 표식을 줘 동종 미디어 간 volume-lock 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2511 forward-pointer(L54) #1 후보 `:volume-locked`(L415 미디어 재생 상태 의사클래스 GROUP 명명 멤버·볼륨 잠금 상태 sub-carve) 선택. :buffering(2495)·:seeking(2503)·:muted(2511) 형제 sub-carve 선례 → L415 GROUP 명명 멤버 6종 중 남은 :volume-locked 를 별개 상태 차원으로 sub-carve.
