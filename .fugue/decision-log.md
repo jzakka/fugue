@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2433 tokens 287th round — 민감 입력 마스킹 렌더 토큰 input-security 표면 폐기 (doubly-vacuous)
+- 결정: tokens area(287th round)에서 "CSS `input-security`(CSS UI 4 — `auto|none` 으로 UA 가 민감 텍스트 입력(비밀번호)의 문자를 가림점으로 마스킹할지 제어하는 폼 입력 렌더 토큰)로 민감 입력 마스킹 렌더를 통일하는데 일부 입력만 커스텀하고 동종 다른 민감 입력은 UA 기본이라 마스킹 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: tokens. 후보축 = 민감 입력 문자 마스킹 렌더 토큰 정합. 캐럿 색 caret-color(307)·캐럿 모양/깜박임 caret-shape/caret-animation(461/1139)·폼 자동크기 field-sizing·빈값 :blank(452)과 별개 차원 — 민감값 마스킹 표시 토큰 축.
+- MANDATORY 체크: (1) `input-security` grep 전수 0건(anti/decision-log/globals/src 전부 0). (2) host 민감 입력 0 — 코드 입력 타입은 text(8)/url(2)/file(1)/button(14)/submit(2)뿐, `type="password"`·민감 텍스트 입력 0건(소셜 로그인만이라 비밀번호 필드 부재). (3) anti-patterns 전수 `input-security` dedicated census 부재. (4) DESIGN.md input-security/마스킹 grep 0건.
+- 근거: (a) input-security 는 캐럿/폼-크기/빈값 토큰이 아닌 민감 입력 문자 마스킹 렌더 토큰이고 (b) 선언 0건 + host 민감 입력 0건 → mechanism-absent(민감 입력 host 0)+property-vacuous(input-security 0) 이중 공허.
+- DESIGN.md 확인: Color(L37-52)·State(L82-88)는 색 토큰과 React 상태 시각만 SHALL, 민감 입력 마스킹 표시 미규정(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1220줄로 +1.
+- 차기 tokens 재진입 후보: `-webkit-text-security`(레거시 비표준 문자 마스킹 토큰) 축, 폼 `spellcheck`/`autocapitalize` 입력-거동 힌트 토큰 축.
+
 ## 2026-07-02 — [system] cycle 2040 Discovery — 정합성: sqlc `:many` 빈 결과 nil 슬라이스→JSON `null`/`[]` 응답 shape 표면 정합 (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 38주기째)에서 "리스트/컬렉션 HTTP 핸들러가 sqlc `:many` 0행 nil 슬라이스(`[]T(nil)`)를 그대로 직렬화해 JSON 응답이 `[]` 대신 `null` 로 나가 클라이언트 배열 계약을 깨거나 동종 엔드포인트 간 응답 shape 가 갈리는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 정합성. `:many` 빈 결과의 응답 직렬화 shape(nil→`null` vs make→`[]`) OUTPUT 정합.
