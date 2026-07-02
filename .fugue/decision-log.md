@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2565 Discovery — responsive 282nd round: 브레이크포인트-접두 반응형 탭 폭 토글(`sm:[tab-size:2]`→`md:[tab-size:4]`) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 282nd round)에서 "일부 코드 블록만 `sm:[tab-size]` 로 폭별 탭 폭을 전환하고 동종은 고정이라 반응형 탭 밀도가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. 차기 responsive 후보(sm:[tab-size], base subj≥2) 채택. base 는 L289(정적 tokens 공백·탭 처리)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:decoration-*·sm:text-wrap(2549)·sm:hanging-punctuation(2557) 선례와 동일 패턴).
+- MANDATORY 체크: total=0(`sm:[tab-size]` 반응형 토글 census 부재·L289 는 정적 tokens)·code=0(`tab-size`·arbitrary `[tab-size:4]`·`@utility tab-4` apps/web/src grep 0)·DESIGN silent(tab-size/탭 폭/코드 들여쓰기 grep 0) → triply-vacuous(pure vacuous).
+- 근거: 코드/`<pre>`/`<code>` 는 tab-size 반응형 조절 없이 브라우저 기본(8) 또는 스페이스 들여쓰기로 렌더·가로 넘침은 overflow-x-auto 스크롤로 처리 → 폭별 탭 렌더 폭을 갈아끼우는 idiom 부재.
+- DESIGN.md 확인: 105줄에 반응형 탭 폭 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L289(tab-size 정적 tokens 공백·탭 처리 토큰화 각도)와 별개 — 본 축은 그 속성의 브레이크포인트별 반응형 토글(`sm:[tab-size:2]`→`md:[tab-size:4]`) 차원.
+- 차기 responsive 재진입 후보: base 가 census 됐고 code=0·sm: 토글 total=0 인 `sm:[caret-color]`(입력 캐럿 틴트·base subj=2)·`sm:[hyphens]`(하이픈·base subj=3) subj/total 확인 후 폭별 토글 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2563 Discovery — aesthetic 304th round: 비분리형(색-성분) 블렌드 모드(`mix-blend-mode: luminosity`/`color`/`hue`/`saturation`) 표면 폐기 (pure vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 304th round)에서 "일부 작품 미디어/오버레이만 `luminosity`/`color` 등 비분리 색-성분 블렌드로 톤을 섞고 동종은 미적용/분리형이라 색-성분 합성이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. cycle 2555 forward-pointer(blend-mode 개별 모드) 채택. L482(mix-blend-mode responsive BP 전이·분리형 multiply/screen/overlay/difference 열거)의 group property 에서 *비분리형(non-separable)* 값 계열(hue/saturation/color/luminosity — HSL 색-성분 통째 조합)을 정적 회화 톤 매핑 차원으로 sub-carve.
