@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2525 Discovery — responsive 277th round: 브레이크포인트-접두 반응형 밑줄 상하 위치 토글(sm:text-underline-position) 표면 폐기 (triply-vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 277th round)에서 "일부 링크만 `sm:[text-underline-position:…]` 로 밑줄 상하 위치를 화면폭별 전이하고 동종은 고정이라 반응형 밑줄 위치가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2517 forward-pointer #1 후보 `sm:text-underline-position`(resp-subj=0·폭별 밑줄 상하 위치) 선택. text-decoration-line BP(L1218)·sm:underline-offset(2509/L1264)·sm:decoration-thickness(2517/L1269) 형제 sub-carve 선례 → base 가 tokens L376(text-underline-position sub-property) 인 속성의 sm: 폭별 토글을 별개 차원으로 sub-carve.
+- MANDATORY 체크: (1) `sm:[text-underline-position:…]`/BP-접두 밑줄 위치 토글 grep src **0건**. (2) base `text-underline-position` 정적 선언 grep src+globals **0건**(L376 tokens 센서스 base 0 확인·밑줄 4곳 전부 plain `hover:underline focus-visible:underline` idiom·PinCreateForm:432/PinsGrid:131/FeedContainer:168/199). (3) responsive dedicated subject 0(3 매치 L1218/L1264/L1269 는 선종류/오프셋/두께 형제 census body 교차참조). (4) DESIGN.md 밑줄/text-underline-position/밑줄 위치 grep **0건**.
+- 근거: triply-vacuous — BP-접두 위치 토글 0 + base 밑줄 위치 정적 선언 0(L376) + DESIGN.md silent. 형제 responsive 밑줄축 담당 차원 분리: L1218(선 종류 text-decoration-line BP)·L1264(오프셋 거리 text-underline-offset BP)·L1269(선 두께 text-decoration-thickness BP)·본 축(상하 위치 text-underline-position BP). offset(밑줄-텍스트 간격) vs position(밑줄 앵커 기준 baseline/글리프 하단/폰트 메트릭) 구별.
+- DESIGN.md 확인: 105줄 전수 반응형 밑줄 위치 전이 미규정(grep 0)·Typography(L16-35)·Interaction(L82-88)은 밑줄 위치 BP 전이 미SHALL·L67-72 Layout 은 masonry 만 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(BP-접두 위치 토글 0·base 0·DESIGN 0)으로 vacuity 확인.
+- 차기 responsive 재진입 후보(선점 시 PIVOT): `sm:[text-decoration-style:wavy]`(밑줄 스타일 solid/dashed/wavy BP 토글·resp-subj=0)·`sm:[text-decoration-skip-ink:none]`(밑줄 글리프 관통 스킵 BP 토글·resp-subj=0). responsive fresh 축 — base 가 tokens/aesthetic baseline 속성의 sm: 폭별 토글 계열 지속. 알려진 실제 divergence: 없음(responsive clean).
+
 ## 2026-07-02 — [design] cycle 2523 Discovery — aesthetic 299th round: 이미지 유래 플로트 도형 알파 임계값(shape-image-threshold) 표면 폐기 (triply-vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 299th round)에서 "핀 상세/카드에서 이미지 둘레로 텍스트를 감쌀 때 `shape-image-threshold` 로 알파 임계값을 잡거나 일부 플로트만 임계값을 커스텀하고 동종은 기본값(0.0)이라 이미지 유래 도형 텍스트 흐름이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. cycle 2515 forward-pointer(text-box·text-emphasis-skip) 검증 결과 둘 다 이미 dedicated subject(text-box L405·text-emphasis-skip L901) → PIVOT. 30+ 속성 probe(text-wrap-style L468·white-space-collapse/tab-size L289·quotes L413/992 전부 covered) 후 `shape-image-threshold`(CSS Shapes 패밀리 미커버 companion·subj=0·code=0) 선택. shape-outside(L574)·shape-inside(L925)·shape-padding(L949)·shape()(L1263) 형제 sub-carve 선례 → CSS Shapes 패밀리 잔여 *이미지 알파 컷오프* 속성을 별개 차원으로 sub-carve.
