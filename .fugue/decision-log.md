@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2529 Discovery — tokens 299th round: 앵커 적응 재배치 대체 위치 정의 at-규칙(@position-try) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 299th round)에서 "앵커 포지셔닝 요소(툴팁/팝오버/드롭다운)가 뷰포트 밖으로 넘칠 때 `@position-try` 로 named 대체 위치 토큰을 정의하거나 일부 팝오버만 대체 위치 세트를 두고 동종은 미정의라 오버플로 재배치가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2521 forward-pointer(image-set L598·@font-palette-values L639) 검증 결과 둘 다 이미 dedicated subject → 앵커 포지셔닝 패밀리 잔여 검토 후 `@position-try`(named 대체 위치 정의 at-규칙·subj=0·code=0) 선택. L634 @counter-style·L639 @font-palette-values·L629 @property 등 *named 토큰 정의 at-규칙* 선례 → 앵커 포지셔닝 패밀리(L742/L1092/L1157/L1228/L1232) 미커버 대체-위치-정의 at-규칙을 tokens 차원으로 sub-carve.
+- MANDATORY 체크: (1) `@position-try` at-규칙·`position-try-fallbacks` 참조 grep src+globals **0건**. (2) 앵커 포지셔닝 자체 grep **0건**(anchor-name/position-anchor·L742 확인) — 대체 위치 발화 컨텍스트 부재·팝오버는 라이브러리 flip 위임. (3) 앵커 패밀리 형제(L742 anchor-name·L1092 anchor-scope·L1157 position-try-**order**·L1228 anchor-size()·L1232 anchor())와 별개 — @position-try 는 named 대체 위치 *정의* at-규칙. (4) DESIGN.md `@position-try`/anchor/앵커/대체 위치 grep **0건**.
+- 근거: triply-vacuous — @position-try at-규칙 0 + 앵커 포지셔닝 대체 위치 발화 컨텍스트 0(앵커 요소 부재) + DESIGN.md silent. 앵커 패밀리 담당 차원 분리: anchor-name/position-anchor(L742 결속)·anchor-scope(L1092 이름 스코프)·position-try-order(L1157 시도 순서)·anchor()/anchor-size()(L1228/L1232 파생 함수)·본 축 @position-try(named 대체 위치 정의 at-규칙). order(시도 순서) vs @position-try(무엇을 시도할지 named 정의) 구별. @counter-style/@font-palette-values/@property 처럼 named-토큰 정의 at-규칙 계열.
+- DESIGN.md 확인: 105줄 전수 앵커 대체 위치/오버플로 재배치 미규정(grep 0)·Layout(L67-72)은 masonry 만·Interaction(L82-88)은 hover/transition 만 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(@position-try 0·anchor-name 0·팝오버 라이브러리 flip·DESIGN 0)으로 vacuity 확인.
+- 차기 tokens 재진입 후보(선점 시 PIVOT): `@view-transition`(문서 전환 애니메이션 규칙·subj=0·code=0)·`interpolate-size`/`calc-size()`(intrinsic 크기 애니메이션 토큰·subj=0·code=0). tokens fresh 축 극심 saturation(299th round·@counter-style/image-set/@font-palette-values 소진) — 실제 divergence 는 font-size FIX(QA 차단)뿐.
+
 ## 2026-07-02 — [design] cycle 2527 Discovery — states 276th round: 미디어 재생 트랜스포트 상태 의사클래스 쌍(:playing/:paused) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 276th round)에서 "미디어(audio/video)가 재생/일시정지 상태에 따라 `:playing`/`:paused` 로 상태별 시각 전환(재생 버튼 아이콘 토글·오버레이·썸네일 dim)을 주는지·일부 미디어만 재생 트랜스포트 표식을 줘 동종 미디어 간 play/pause 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2519 forward-pointer #1 후보 `:playing`/`:paused`(L415 미디어 재생 상태 의사클래스 GROUP 마지막 명명 멤버 쌍·재생 트랜스포트) 선택. :buffering(2495)·:seeking(2503)·:muted(2511)·:volume-locked(2519) 형제 sub-carve 선례 → L415 GROUP 6종 중 남은 :playing/:paused 를 별개 상태 차원(재생 진행 여부)으로 sub-carve해 GROUP census 소진.
