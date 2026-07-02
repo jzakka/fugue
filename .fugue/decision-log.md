@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2050 Discovery — 보안: JWT 알고리즘 confusion(CWE-347, alg=none/RS256↔HS256 다운그레이드) 서명 알고리즘 핀 (covered-by-census)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 43주기째)에서 "auth JWT 검증이 토큰 헤더의 alg 를 신뢰해 alg=none 을 통과시키거나 RS256↔HS256 다운그레이드(공개키를 HMAC 비밀로 오용)를 허용하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 보안. JWT 서명 알고리즘 핀(SigningMethod 타입 검증)으로 alg confusion 차단.
+- MANDATORY 체크: 본 축은 **L186(cycle 794)이 명시적으로 커버** — "JWT alg confusion(alg=none/RS256↔HS256 다운그레이드)" 을 refuted surface 로 열거: ValidateToken(auth/jwt.go L85-100)이 `jwt.ParseWithClaims` 콜백에서 `t.Method.(*jwt.SigningMethodHMAC)` 타입어서션으로 alg 을 HMAC 계열로 핀(L87-88, alg=none·RSA 다운그레이드 거부)+`jwt.WithIssuer`(L91) iss 검증+`token.Valid`(L96)+jwt/v5 exp 자동 검증.
+- 근거: SigningMethodHMAC 타입어서션 핀이 alg=none·비대칭키 다운그레이드를 구조적으로 거부함을 L186 이 census 로 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 44주기째) → cycle 2052. 후보: sqlc `:many` nil 슬라이스(cycle2040 covered)·시간 컬럼 타입(L466)·FK ON DELETE(L210)·CHECK 제약(L253) 외 미수록 sub-axis(JSONB 스키마 진화·enum 문자열 상수 Go↔DB 정합·DECIMAL 정밀도).
+
 ## 2026-07-02 — [system] cycle 2048 Discovery — OpenSpec갭: feed capability "개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다"(cursor offset 전 underlying 쿼리 전파) Requirement 정합 (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 42주기째)에서 "feed/spec.md L70-91 '개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다'(연속 두 페이지 작품 ID 교집합 공집합 SHALL·cursor offset 이 추천+최신보충 모든 underlying 쿼리에 일관 전파 SHALL·어떤 쿼리도 페이지 위치 무시 SHALL NOT) Requirement 가 미구현/미정합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. feed 개인화 피드 cross-page disjoint(cursor offset 전 underlying 소스 일관 전파) wiring 계약.
