@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2054 Discovery — 에러처리: 쓰기 자원(*os.File) Close() 에러 무시로 인한 부분파일·검증 우회 (NEW baseline)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 45주기째)에서 "`defer func(){ _=f.Close() }()`/`_=f.Close()` 로 파일 핸들 Close 에러를 폐기하는 site 다수(pin/handler.go:146/283/332)가 write-back flush 실패(ENOSPC/EIO/NFS)로 부분 파일을 남기고 후속 검증이 그 부분 파일을 측정해 SHALL 을 침묵 우회하는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
+- 축 선택: 에러처리. 쓰기 자원(io.Copy 로 데이터를 쓴 *os.File)의 Close/Flush 에러 무시 → 부분파일 데이터유실·검증우회.
+- MANDATORY 체크: (1) 신규성 — L50(named-return err 를 defer 클로저가 clobber)·L136(resp.Body.Close 누락 fd 누수)·L147(상태변경 DB write 에러 `_=` 폐기) 어느 것도 *write-back flush 실패 부분파일* 축 미커버. (2) refuted — Close 에러 폐기 site 3곳(:146 업로드 multipart file·:283 os.Open 재오픈·:332 FormFile thumbnail) 전부 **읽기 전용 핸들**(io.Copy 쓰기 대상 아님)이라 Close 실패=데이터유실 아님; 유일한 write-critical Close(tmpFile:154 CreateTemp→:163 io.Copy→:177 `if err:=tmpFile.Close();err!=nil` 검사)는 400 fail-closed(주석 :169-176 이 flush 실패→부분파일→probeDuration 과소보고→15초 SHALL 우회 위험을 명시). (3) decision-log 0건.
+- 근거: write-critical Close 는 검사+fail-closed·폐기 Close 는 전부 읽기 핸들·다른 쓰기 경로는 ffmpeg 자식프로세스 소유. 실제 결함 부재이나 축이 신규라 census 편입.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail 1226줄로 +1.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 46주기째) → cycle 2056. 후보: WaitGroup Add/Done(cycle2044 covered)·mutex-free map(L37)·channel lifecycle(L52)·cancel 규율(L317) 외 미수록 sub-axis(atomic 부분보호·map iteration 중 write·time.Timer 재사용).
+
 ## 2026-07-02 — [design] cycle 2441 tokens 288th round — 첫 유효 값 선택 함수 first-valid() 표면 폐기 (pure vacuous)
 - 결정: tokens area(288th round)에서 "`first-valid(v1, v2, …)`(CSS Values 5 — 인자 목록에서 유효하게 파싱/계산되는 첫 값을 반환하는 값-레벨 유효성 폴백)로 토큰 값에 구형 브라우저 폴백을 제공하는데 일부 토큰만 first-valid 폴백을 쓰고 동종 다른 토큰은 고정 리터럴/var 폴백이라 값 소싱 어휘가 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: tokens. 후보축 = 인자 목록 중 유효 파싱되는 첫 값을 고르는 값-레벨 유효성 폴백 함수 정합. 커스텀 속성 폴백 var(--x,fb)·목록 난수 random-item()(L1215)·조건 함수 if()(L82)·속성 취득 attr()(L395)·고급 수학 함수 round()/mod()(L406)와 별개 차원 — var() 는 변수 미설정 시 폴백하고 first-valid() 는 각 인자 값 자체의 파싱 유효성으로 첫 유효 값을 고름.
