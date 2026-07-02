@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [design] cycle 2587 Discovery — aesthetic 307th round: 다중 레이어 스택 box-shadow 효과(사실적 깊이/뉴모피즘/다중 헤일로) 표면 폐기 (dimensionally vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 307th round)에서 "일부 카드/모달만 콤마 구분 다중 그림자 레이어로 사실적 깊이/뉴모피즘을 주고 동종은 단일 그림자/평면이라 다층 그림자 회화가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2579 forward-pointer(다중 레이어 box-shadow 스택). box-shadow 계열에서 L288(존재)·L507(단일 토큰 스케일)·L785(inset 방향)·L836(색)·L601(inset 스케일)이 carve 됐고 *다중 레이어 스택 합성*(깊이/뉴모피즘) 미carve 발견 → cycle 2579 다중 text-shadow 와 동형의 box-shadow 판으로 sub-carve.
+- MANDATORY 체크: (1) 콤마 구분 다중 `box-shadow` 레이어·`shadow-[..,..]` arbitrary apps/web/src grep **0건** — 코드 그림자는 `shadow-card-hover`(11회, `--shadow-card-hover: 0 8px 32px rgba(0,0,0,0.3)` *단일 레이어*) 하나뿐. (2) 카드 깊이는 다층 스택이 아닌 단일 `--shadow-card-hover`+`translateY(-2px)`+accent border(DESIGN L86)로 처리 → 다층 그림자 합성 idiom 부재. (3) DESIGN.md(105줄) L86 은 *단일* box-shadow hover 확대만 규정·다중 레이어/뉴모피즘 grep 0건·L11 "Decoration level: Minimal" 상충 → 다층 스택 silent.
+- 근거: 다층 스택 dimension 이 vacuous(base box-shadow 는 단일 레이어로 존재하나 콤마 다층 합성은 0). "카드/모달이 있으니 사실적 깊이/뉴모피즘으로 다층 그림자를 준 곳이 있거나 일부만 줘 갈릴 것" 정적 추정은 FP — 다중 레이어 box-shadow 가 0(단일 `--shadow-card-hover` 뿐).
+- DESIGN.md 확인: L86 단일 box-shadow hover 확대 규정·다층 스택 미규정·L11 Minimal 지향. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L288(존재)·L507(단일 토큰 스케일)·L785(inset 방향)·L836(색)·L601(inset 스케일)과 별개 — 본 축은 box-shadow 의 *다중 레이어 스택 합성*(콤마 구분 복수 그림자를 겹쳐 깊이/뉴모피즘/헤일로 하나의 입체 효과) 차원, cycle 2579 다중 text-shadow 와 동형.
+- 차기 aesthetic 재진입 후보: `filter: drop-shadow()` 다중 vs box-shadow(투명 PNG/아이콘 윤곽 따라가는 그림자·L1017 SVG filter 각도와 별개인지 재판단)·`-webkit-text-stroke-width`/`-color` 롱핸드(subj=3 재검)·`backdrop-filter` 다중 함수 스택 subj/total 확인 후 sub-carve.
+
 ## 2026-07-03 — [design] cycle 2585 Discovery — tokens 306th round: 부호/크기 수학 함수(CSS Values-4 `abs()`/`sign()` 토큰 부호 제거·방향 파생) 표면 폐기 (pure vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 306th round)에서 "일부 토큰만 `abs()`/`sign()` CSS 계산식으로 크기 정규화·방향을 파생하고 동종은 고정 리터럴이라 부호-처리 토큰이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. 타이포(underline/text-box/hyphenate/counter/ruby 등)·색 함수(oklch/color-mix/contrast-color/relative color L384/418/1076)·font-variant 전 계열 모두 saturated 확인 후, L406(CSS Values-4 고급 수학 함수 그룹)이 `abs`/`sign` 을 *부호 sub-family 멤버* 로만 열거하고 개별 미carve 임을 발견 → 스텝(양자화)·삼각(각도)·지수(성장) sub-family 와 다른 부호/크기 차원으로 sub-carve.
