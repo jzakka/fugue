@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2545 Discovery — tokens 301st round: 표의문자 advance 폭 상대 길이 단위(`ic`) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 301st round)에서 "일부 CJK 텍스트만 `ic`(표의문자 水 advance) 로 measure/폭을 잡고 동종은 `ch`/`px`/`rem` 로 잡아 CJK measure 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. 다수 token at-rule/함수/단위 probe 결과 대부분 dedicated. `ic`(표의문자 advance 폭 상대 단위) 는 standalone total=0(L410 group 파렌서티컬·L775 ch sub-carve 에만 언급)·code=0 로 개별 신규 — L410 폰트상대단위 그룹·L775 ch(Latin 0 advance) 와 다른 *글리프 메트릭 파생원*(표의문자 水 자폭, CJK 특화) 차원으로 개별 dedicated sub-carve(L775 가 ch 를 개별 carve 한 선례와 동일 패턴).
+- MANDATORY 체크: subj=0(`ic` 개별 dedicated 없음)·anti-patterns standalone total=0(L410 group·L775 ch 파렌서티컬 언급뿐)·code=0(`ic`/`20ic` 및 Tailwind arbitrary `[width:_ic]` apps/web/src 0건)·DESIGN.md=0(ic/표의문자/水/CJK 자폭/measure 0). triply-vacuous 3독립 0조건.
+- 근거: (1) `ic` 단위 선언 0(pure vacuous) → 표의문자 폭 기준 measure 가 갈릴 모집단 0. (2) CJK measure/폭은 masonry 컬럼(4/3/2/1)·`max-w-*` rem·flex/grid 로 균일 처리·`ch`(L775)조차 코드 0 인데 CJK 특화 `ic` 는 더더욱 0. (3) DESIGN 표의문자 폭 단위 정책 미규정.
+- DESIGN.md 확인: 105줄 전수 grep ic/표의문자/水/CJK 자폭/measure 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 tokens 재진입 후보: 동일 L410 그룹의 미개별-carve 단위 `ex`(x-하이트, total=0)·`rlh`(root line-height, total=0) 또는 논리 뷰포트 단위 `vi`/`vb`(inline/block viewport, total=0) subj/total 확인 후 개별 sub-carve — 각각 글리프 x-하이트·루트 라인메트릭·논리축 뷰포트라는 별개 파생원 차원.
+
 ## 2026-07-02 — [design] cycle 2543 Discovery — states 278th round: 속성값 대소문자 구분 플래그 선택자(`[attr="val" i]`/`[attr="val" s]`) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 278th round)에서 "일부 속성 선택자만 ` i`/` s` 대소문자 플래그로 매칭 정책을 명시하고 동종은 안 붙여 속성값 대소문자 매칭이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2543 forward-pointer 후보(`:nth-last-child`/`:first-child`) 는 stale(L632 역방향 인덱스·L846 first:/last: 변형으로 dedicated — first:/last: 접두 grep caveat) 확인 후 PIVOT. 미디어/폼검증 의사 클래스도 대부분 dedicated. `[attr="val" i]`/`[attr="val" s]` 속성값 대소문자 modifier 는 subj=0·total=0(anti-patterns 전무)·code=0 로 완전 신규 — 의사 클래스(요소 상태/구조) 계열과 다른 *선택자 문법 레벨*(속성값 매칭 대소문자 플래그) 별개 차원으로 dedicated baseline sub-carve.
