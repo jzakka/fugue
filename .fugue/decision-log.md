@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2116 Discovery — 동시성: harvester atomic.Uint64 카운터 read-modify-write lost-update 및 NodeStatsSnapshot 5-tuple 스냅샷 tearing (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 76주기째)에서 "harvester nodeStats atomic.Uint64 5개 카운터가 `.Store(.Load()+1)` read-modify-write 로 증가해 동시 증가 시 lost-update 나거나·NodeStats() 스냅샷이 5개 필드를 개별 Load 해 concurrent 증가 시 내부 불일치(PinsCreated 는 반영·AdapterFallback 미반영) tearing" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. atomic 카운터 증가 방식(Add vs Store(Load)) lost-update + 다중 필드 스냅샷 tearing.
+- 조사: (1) **증가 전수 `.Add(1)`(lost-update-free)**: harvester_consumer.go:338/339/356/360/403/421/437/442/444 전부 `h.stats.<field>.Add(1)`/`h.fetchFailureCount.Add(1)`·media_validator_metrics.go:68/72 `m.<field>.Add(1)` — atomic.Uint64.Add 는 CAS 기반 원자 증가라 동시 증가에도 lost-update 불가. `.Store` 은 media_validator_metrics.go:89/90 `.Store(0)` 무조건 리셋 2곳뿐(read-modify-write 아님·Load()+ 패턴 grep 0). (2) **스냅샷 tearing = 의도된 설계**: NodeStats()(harvester_consumer.go:151-159)가 5개 필드를 독립 `.Load()` 하므로 스냅샷은 비원자적(주석 :132-137 "snapshot is NOT atomic ... acceptable because node-level stats are for trend observation, not exact invariants" 명시)·per-node "정확히 한 category" invariant 은 processOne 종료경로 단일지점 증가(:115-117)로 보장하지 스냅샷 원자성으로 보장하지 않음. (3) **워커 간 비공유**: 카운터는 process-local·워커 종료 시 폐기(spec "Dequeue 카운터는 워커 간 공유 상태가 아니다" :148-150)라 크로스워커 경쟁 없음.
+- covered-by: **L98(cycle ~726 동시성)** = harvester/metrics 카운터가 atomic.Add 로 증가하는데 NodeStatsSnapshot 5-tuple 스냅샷이 비원자적이라는 축을 "trend observation 용도라 tearing 허용·increments 는 atomic.Add 로 lost-update-free" 로 전수 판정. 인접: **L75** = 한 구조체가 Mutex/RWMutex+atomic 공존(같은 필드 이중보호 아님) 축. static "atomic 카운터+비원자 스냅샷→lost-update/tearing" 은 FP — 증가는 .Add(원자)·스냅샷 tearing 은 문서화된 trend-only 허용·리셋 .Store(0)는 RMW 아님.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 77주기째) → cycle 2118. 후보: Pioneer FilterChain 순서(cycle2106 L63)·robots_filter single-flight(cycle2104 L52)·scheduler backoff(cycle836 L185)·harvester node stats 단일지점 증가(cycle750 L140)·classifier 판정(cycle730 L130) 외 미수록 sub-axis.
+
 ## 2026-07-02 — [design] cycle 2491 aesthetic 295th round — `feColorMatrix` SVG 색 행렬 변환 필터 프리미티브 표면 폐기 (표면 폐기/surface-dismissal)
 - 결정: aesthetic 영역(295번째 round, Discovery 0-candidate 센서스)에서 "`feColorMatrix` SVG 색 행렬 변환 필터 프리미티브가 카드 이미지/썸네일 색 보정에 쓰이지 않아 feColorMatrix 채도/색조 변환 부재·표면별 색 변환 갈림·필터 기반 색 행렬 계층 부재" aesthetic 후보 → **표면 폐기**(anti-patterns baseline 1줄 append, 코드 무변경).
 - 축 선택: aesthetic. `feColorMatrix`=R/G/B/A 픽셀을 4×5 색 행렬로 선형 변환하거나 type=saturate(채도)/hueRotate(색조)/luminanceToAlpha(휘도→알파) 축약형으로 색을 변환하는 SVG 필터 원자 프리미티브.
