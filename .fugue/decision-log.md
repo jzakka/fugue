@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2052 Discovery — 정합성: scheduler `Status` enum(fetched/harvested/*_failed) 상수↔DB 영속 정합 (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 44주기째)에서 "scheduler Go `Status` enum 상수(url_scheduler.go:31-35 StatusFetched/StatusHarvested/StatusFetchFailed/StatusHarvestFailed)가 DB status 문자열 컬럼/CHECK 제약과 어긋나거나(enum drift)·SetStatus dispatch 가 잘못된 컬럼을 갱신하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. scheduler Status enum 의 코드 상수↔DB 표현 정합.
+- MANDATORY 체크: (1) frontier 테이블(000026 pioneer_frontier/harvester_frontier)에 **status 문자열 컬럼 부재** — status 는 timestamp/counter 컬럼(last_fetched_at·next_fetch_at·harvested_at·harvest_error_count)으로 파생 표현 → Go enum↔string-column CHECK drift 표면 구조적 부재. (2) SetStatus(postgres_scheduler.go:390-410)는 enum 을 4개 distinct SQL 쿼리로 dispatch(Fetched→SetStatusFetched·Harvested→setStatusHarvested·*_Failed→각 error 쿼리)하는 dispatch-key 로만 사용·문자열 영속 0건.
+- 근거: 본 dispatch 의미론이 census 로 커버 — **L129**(harvester 성공 전이 = harvested_at UPDATE+harvest_error_count=0 리셋+harvester_frontier_pins INSERT 단일 tx)·**L90**(processOne 최종상태 전이 SetStatus+RecordHarvest 빠뜨림 방지)·**L140**(RecordFetchError/RecordHarvestError errorKind 분류 dispatch)가 enum→timestamp/counter UPDATE 매핑을 전수 확인. status 가 문자열 컬럼이 아니므로 enum-column drift 는 vacuous·미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 45주기째) → cycle 2054. 후보: panic 복구(cycle2042 covered)·%w unwrap(L35)·ctx.Background detach(L266)·rows.Err()(L396) 외 미수록 sub-axis(defer 내 에러 무시·multi-return 에러 우선순위·sentinel 에러 재정의).
+
 ## 2026-07-02 — [system] cycle 2050 Discovery — 보안: JWT 알고리즘 confusion(CWE-347, alg=none/RS256↔HS256 다운그레이드) 서명 알고리즘 핀 (covered-by-census)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 43주기째)에서 "auth JWT 검증이 토큰 헤더의 alg 를 신뢰해 alg=none 을 통과시키거나 RS256↔HS256 다운그레이드(공개키를 HMAC 비밀로 오용)를 허용하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 보안. JWT 서명 알고리즘 핀(SigningMethod 타입 검증)으로 alg confusion 차단.
