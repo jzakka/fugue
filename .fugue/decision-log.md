@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2082 Discovery — 봇: content classifier pinnable 판정(사유 우선순위 listing>empty_body>no_primary_media·div-by-zero 가드·byte 측정) (covered-by-census)
+- 결정: 봇 area(6-area rotation 동시성→봇, 59주기째)에서 "harvester content classifier 가 사유 우선순위를 뒤바꾸거나·Words=0 에서 division-by-zero panic·body_text 를 byte 아닌 rune 으로 측정·no_primary_media 판정 누락·node_type 등 외부 상태 의존·enum 문자열 spec 불일치" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 봇. content classifier pinnable 판정 계약(reason priority·div-by-zero·byte 측정·PinDocument-only).
+- 조사: classifier.go Classify(:48-69)가 ① `stats.Words > 0 && Links/Words > threshold`→listing(:50-52·Words>0 단락평가로 0-나눗셈 차단) ② `bodyBytes:=len(strings.TrimSpace(doc.BodyText)) < min`→empty_body(:55-60·Go len(string)=byte) ③ `ThumbnailURL=="" && len(MediaCandidates)==0`→no_primary_media(:64-66) 순서 first-match early-return·주석(:41-42) 명시. node_type 등 외부 입력 미수용(:45-47 주석 "must depend on the document alone").
+- covered-by: **L130(봇)** + **L296(봇·harvester/spec.md:85-106 계약)** 이 정확히 이 축을 전수 열거 — "3 reason enum 정확·우선순위 first-match-wins·body_text byte 측정·division-by-zero 가드(Words>0)·PinDocument-only 입력" 결정적 정합 판정. static "우선순위 오류·div-by-zero panic·rune 측정·no_primary_media 누락·node_type 의존" 은 FP(L130/L296 doubly-covered).
+- 참고: classifier 는 pinnable 게이트(listing/empty_body/no_primary_media 사유)일 뿐 pins.field 카테고리 배정을 하지 않음("classifier field 판정" 은 field 배정이 아닌 pinnable 판정 축).
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 60주기째·rotation 재시작) → cycle 2084. 후보: scheduler Crawl-delay→host rate(cycle1834)·interaction piggyback(cycle2072)·pioneer fanout producer(L53)·graph node 머지 멱등(L55) 외 미수록 spec Requirement sub-axis(harvester snapshot-first-fetch·이미지 캐시 키 파생·패턴분석 Requirement).
+
 ## 2026-07-02 — [system] cycle 2080 Discovery — 동시성: 타임아웃/취소 watchdog goroutine 수명(defer cancel/close 로 leak-free) (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 58주기째)에서 "타임아웃/취소 감시 보조 goroutine 이 부모 조기반환 시 종료 신호를 못 받아 누수(leak)·wakeup edge 부재로 영구 블록·Interrupt 가 finished VM 과 경합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. 타임아웃/취소 watchdog goroutine 수명(leak-free termination).
