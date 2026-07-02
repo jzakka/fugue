@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2092 Discovery — 동시성: 순수 atomic 다중카운터 스냅샷 torn-read(nodeStats 5-tuple 비원자 Load, 원자 cross-field 불변식 부재로 benign) (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 64주기째)에서 "harvester nodeStats 5개 카운터를 각각 atomic.Add 로 증가하고 NodeStats() 스냅샷이 5개를 독립 atomic.Load 로 읽어 원자적이지 않음 → 동시 증가 시 찢긴(torn) 스냅샷(PinsCreated 는 반영·AdapterFallback 은 미반영)으로 5-tuple 합계 불변식(sum=처리노드수) 위반·통계 오독" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. 순수 atomic 다중카운터 스냅샷 일관성(mutex 없는 카운터 torn-read).
+- 조사: harvester_consumer.go:124-159 — (1) nodeStats 5필드 전부 `atomic.Uint64`(:125-129)·증가는 processOne exit 경로에서 `.Add(1)`(:339/356/360/403/421/437/442/444) → 개별 카운터는 data race-free(atomic). (2) NodeStats():151-158 이 5개를 독립 `.Load()` 로 읽어 5-tuple 은 비원자(주석 :132-137 "The snapshot is NOT atomic ... a concurrent counter increment can leave the snapshot internally inconsistent ... acceptable because node-level stats are for trend observation, not exact invariants" 명시). (3) 카운터는 process-local·워커 간 미공유(:148-150 spec "Dequeue 카운터는 워커 간 공유 상태가 아니다") → cross-field 원자 불변식 요구 부재(각 카운터 독립·"exactly one primary category per node" 는 증가시점 enforce=:115-117, 스냅샷-읽기 불변식 아님).
+- covered-by: **L75(cycle 698 동시성)** 이 정확히 이 축을 판정 — mutex+atomic 혼용 구조체 2개(media_validator_metrics·snapshot/metrics)의 Snapshot torn-read 를 전수 분석하며 "**harvester_consumer.go runStats/nodeStats 는 혼용 아님(pure atomic, mu 없음)**" 으로 이 struct 를 명시 열거. L75 예외 클로즈 "Snapshot 이 원자적으로 일관되어야 하는 cross-field 불변식(예 합계=구성요소 합)을 부분적으로 읽어 찢긴 스냅샷" 은 nodeStats 에 미해당 — 주석이 "trend observation, not exact invariants" 로 원자 불변식 요구 부재를 명시하므로 torn-snapshot 이 benign. static "5개 atomic 을 독립 Load → torn snapshot race" 는 FP(L75 커버·개별 atomic race-free·cross-field 불변식 부재). 코드 참조 현행 확인(harvester_consumer.go:124-159).
+- 차기 area = 봇 (6-area rotation 동시성→봇, 65주기째) → cycle 2094. 후보: classifier 문서단독 판정(cycle2082 L130/L296)·frontier url_hash dedup 정규화(L151)·PinDocument og_data lockstep(cycle1832)·robots Crawl-delay→rate(cycle1834) 외 미수록 sub-axis(FilterChain 순서·adapter registry 매칭 우선순위·snapshot 키 read-time UTC keying L32).
+
 ## 2026-07-02 — [system] cycle 2090 Discovery — 에러처리: panic 복구/containment(요청경로 middleware.Recoverer 전수 + 요청밖 goroutine 3개 panic 표면 부재) (NEW baseline)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 63주기째)에서 "apps/api/internal 전수 recover() 0건 → 핸들러/goroutine panic 이 복구 안 돼 프로세스 크래시(unrecovered panic → os.Exit)·부분응답 유출·in-flight 요청 유실" probe → **NEW baseline 등록**(decision-log + anti-patterns.md EOF).
 - 축 선택: 에러처리. panic 복구/containment(Recoverer 미들웨어 + 요청밖 goroutine panic 표면).
