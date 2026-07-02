@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2549 Discovery — responsive 280th round: 브레이크포인트-접두 반응형 줄바꿈 밸런싱 토글(`sm:[text-wrap:balance]`) 표면 폐기 (triply-vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 280th round)에서 "일부 제목만 `sm:[text-wrap:balance]` 로 폭별 줄바꿈 밸런싱을 전환하고 동종은 고정이라 반응형 밸런싱이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. BP-접두 반응형 typographic 토글 다수 probe 결과 `sm:[text-wrap` 는 total=0(반응형 완전 신규)·정적 text-wrap 도 code=0. base 는 L299(토큰)·L468(정적 aesthetic balance/pretty)·L929(text-wrap-mode)로 census 됐으나 *반응형 BP 토글* 차원은 미커버 → sm: 폭별 토글 sub-carve(sm:decoration-* 선례와 동일 패턴).
+- MANDATORY 체크: subj=0(`sm:[text-wrap` 반응형 dedicated 없음)·anti-patterns total=0(sm:[text-wrap 반응형 표기 전무)·code=0(`sm:[text-wrap:*]`·정적 `text-wrap`/`text-balance`/`text-pretty` apps/web/src 0건)·DESIGN.md=0(text-wrap/balance/pretty/줄바꿈 0). triply-vacuous 3독립 0조건.
+- 근거: (1) text-wrap 선언 0(반응형·정적 모두, pure vacuous) → 폭별 밸런싱이 갈릴 모집단 0. (2) 제목 줄바꿈은 브라우저 기본 greedy wrap·line-clamp/truncate·컨테이너 폭(masonry 4/3/2/1)으로 균일 처리 → balance/pretty 폭별 토글 idiom 부재. (3) DESIGN 반응형 줄바꿈 밸런싱 미규정.
+- DESIGN.md 확인: 105줄 grep text-wrap/balance/pretty/wrap/줄바꿈 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 responsive 재진입 후보: base 가 tokens/aesthetic 에 census 됐고 code=0 이며 sm: 반응형 토글이 total=0 인 속성 — `sm:[hyphens]`(하이픈, base L?)·`sm:[hanging-punctuation]`(base L?)·`sm:[tab-size]`·`sm:[caret-color]` subj/total 확인 후 폭별 토글 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2547 Discovery — aesthetic 302nd round: 3D 베벨 테두리 선-스타일(`border-style: groove`/`ridge`/`inset`/`outset`) 표면 폐기 (mechanism-vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 302nd round)에서 "일부 테두리만 groove/ridge 입체 베벨이고 동종은 평면 실선이라 테두리 질감이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. 다수 typographic/decoration/SVG/filter/mask/blend property + OpenType 태그/대체글리프 probe 결과 property/sub-value 레벨 거의 dedicated. `border-style` 3D 베벨 값(groove/ridge/inset/outset)은 L546(평면 border)·L1041(아웃라인 베벨)과 다른 *border × 3D 베벨* 차원으로 미커버 — subj=0·code=0·DESIGN silent(Minimal 상충) 확인 후 dedicated sub-carve.
