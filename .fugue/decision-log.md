@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2088 Discovery — 정합성: RemovePin 보드-핀 제거(소유권 선검증 404 + board_id/pin_id 스코프 :execrows + rowsAffected==0 → 404) (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 62주기째)에서 "보드-핀 제거 핸들러(DELETE /api/boards/{id}/pins/{pin_id})가 (a) 소유권 미검증으로 타인 보드의 핀을 삭제(IDOR)하거나·(b) board_id 스코프 없이 pin_id 만으로 DELETE 해 다른 보드의 동일 핀까지 제거(cross-board 오삭제)하거나·(c) rowsAffected 무시로 삭제 실패를 성공 응답하거나·(d) 존재하지 않는 관계 삭제 시 예외/500" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. RemovePin 소유권 인가 + 스코프 삭제 + rowsAffected 처리.
+- 조사: boards/handler.go:603-656 RemovePin 전수 Read — (1) **소유권 선검증**: :625 GetBoard→:626 ErrNoRows→404·:635 `board.CreatorID != creatorID`→404("보드를 찾을 수 없습니다" 존재 은닉, IDOR 차단·403 아님) → 삭제 이전에 소유자만 통과. (2) **스코프 삭제**: :640 `RemovePinFromBoard(BoardID, PinID)` 는 cycle2076 확인대로 `:execrows DELETE ... WHERE board_id=$1 AND pin_id=$2` → board_id+pin_id 복합 스코프라 cross-board 오삭제 불가. (3) **rowsAffected 처리**: :644 err→500·:650 `rowsAffected==0`→404("핀을 찾을 수 없습니다") → 관계 부재 시 404(예외/무한no-op 아님)·:655 성공만 204 No Content. 존재하지 않는 관계 삭제는 SQL WHERE 미스로 rowsAffected=0(예외 없음).
+- covered-by: **L77(정합성/board)** 이 정확히 이 축을 전수 판정 — "board capability 핸들러 전수 Read 결과 7 Requirement 전 Scenario 결정적 매핑 — (2) 비공개 비소유자는 보조조회 이전 404(존재 은닉)·(3) Update 비소유자 403 vs AddPin/RemovePin 404 는 spec status 미지정이라 둘 다 준수(혼재가 결함 아님)·(5) 삭제 cascade 는 DDL(board_pins.board_id REFERENCES boards(id) ON DELETE CASCADE 000008:14)에 있고 pin_id 는 pins 참조". RemovePin 의 소유권 404·스코프 삭제·rowsAffected==0→404 가 L77 커버. static "소유권 미검증 IDOR·cross-board 오삭제·rowsAffected 무시" 는 FP(L77 커버). 코드 참조 현행 확인(boards/handler.go:603-656).
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 63주기째) → cycle 2090. 후보: JSON decode MaxBytesError 분기(cycle2078 L195/L161)·context timeout goroutine leak(cycle2080 L183)·sql.ErrNoRows→404 매핑(L77)·writeError status 일관성 외 미수록 sub-axis(panic recovery middleware·부분 실패 rollback·external fetch retry/timeout 전파).
+
 ## 2026-07-02 — [system] cycle 2086 Discovery — 보안: CORS allowlist(단일 명시 origin + AllowCredentials, wildcard/reflection 부재) (covered-by-census)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 61주기째)에서 "CORS 설정이 AllowedOrigins wildcard(`*`) 또는 Origin 반사와 AllowCredentials:true 를 결합해 임의 origin 의 자격증명 동반 cross-origin 요청을 허용(CSRF·credential leak)" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 보안. CORS allowlist(preflight allowed origins + credentials 조합).
