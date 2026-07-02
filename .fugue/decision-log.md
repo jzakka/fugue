@@ -248,6 +248,14 @@
 - DESIGN.md 확인: 105줄 전수 grep 속성 선택자/attribute/대소문자/case 0건 — silent.
 - QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
 - 차기 states 재진입 후보: 속성 선택자 매칭 연산자 계열(`[attr^="…"]` 접두·`[attr$="…"]` 접미·`[attr*="…"]` 부분·`[attr~="…"]` 공백구분·`[attr|="…"]` 하이픈구분) subj/total 확인 후 신규성 있으면 sub-carve — 본 축(대소문자 modifier)과 다른 값 매칭 연산자 차원.
+## 2026-07-03 — [system] cycle 2146 Discovery — 보안: show-map 시각화 크롤데이터 XSS 소스체인 절단 NEW baseline
+- 결정: 보안 영역(6-area rotation OpenSpec갭→보안, 91주기째)에서 "show-map tooltip `.html()` 무이스케이프 삽입 + template.JS contextual escaping 우회 → 크롤 URL DOM XSS" 후보 → **FP 반박, NEW baseline 등록**(anti-patterns L1311 append·코드 무변경).
+- 축 선택: cycle 2144 forward-pointer 4건 스크리닝 — User-Agent 일관성=L812·Unsplash key=Go 코드 소비자 0(helm env 만·dead-config 은 정합성 각도로 이월)·배치통계는 보안 무관 → **show-map(cmd/bot-visualize) 신뢰경계**만 미census(census "show-map"=L310 패턴분석 각도뿐·"template.JS"/"bot-visualize" XSS dedicated 0) fresh 확정.
+- 검증(소스→싱크 체인 절단): (1) sink 실존 — template.html:423-431 tooltip `.html()` 에 `${d.url}`/`${d.sample_url}`·:305-307 innerHTML 에 `${site.domain}`. (2) 그러나 소스 절단 — bot_graph_nodes/bot_sites **프로덕션 writer 0건**(CreateNode 호출자 grep 0·CreateSite 호출자 0·cmd/bot siteRepo 는 GetByDomain read 전용 :152/:193·현행 Pioneer=frontier consumer 로 graph 미기록·trie_merge 는 기존행 재작성만). (3) <script> 임베딩은 serializer.go:14 json.MarshalIndent 기본 SetEscapeHTML(true)로 `</script>` breakout 불가·template.JS 는 JSON 페이로드 정석. (4) 신뢰경계 — make show-map 로컬 file:// 산출물·DATABASE_URL 보유 운영자 전용.
+- 비중첩: L154(graph 업서트 비멱등)·L383(node_type CHECK)·L310(spec 패턴분석)·L156/L192/L429/L465/L784/L1167(서버 HTTP XSS/헤더/로깅) — show-map 시각화 XSS 각도 dedicated 0.
+- MANDATORY 체크: 심볼명 grep — template.JS 0·bot-visualize/visualize→L154/L383(다른 각도)·tooltip→design 항목뿐·graph.html 0·MarshalIndent 0·show-map→L310.
+- QA: n/a (코드 무변경). 검증은 CreateNode/CreateSite 호출자 grep(0) + main.go:93-129/serializer.go/template.html:295-320·:410-440/cmd/bot/main.go:148-200/Makefile:99-104 READ.
+- 차기: area = 정합성 (6-area rotation 보안→정합성, 92주기째) → cycle 2148. 후보: UNSPLASH_ACCESS_KEY helm env↔Go 코드 소비자 0 (dead-config·cronjob-bot.yaml:81-86 optional secret 이 어떤 코드에도 안 읽힘)·bot/spec.md:562 배치 처리 통계 반환 계약↔HarvestStats 필드 대조·bot_sites/bot_graph_nodes writer 부재와 show-map/merge 서브커맨드의 존속 정합(유산 테이블 의존 도구가 spec 에 남은 이유).
 
 ## 2026-07-02 — [design] cycle 2541 Discovery — responsive 279th round: 브레이크포인트-접두 반응형 밑줄 잉크 스킵 토글(sm:text-decoration-skip-ink) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 279th round)에서 "일부 링크만 `sm:[text-decoration-skip-ink]` 로 밑줄이 디센더와 교차할 때 잉크 스킵(auto)/관통(none)을 화면폭별 전이하고 동종은 고정이라 반응형 밑줄 스킵이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
