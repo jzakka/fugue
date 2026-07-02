@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2547 Discovery — aesthetic 302nd round: 3D 베벨 테두리 선-스타일(`border-style: groove`/`ridge`/`inset`/`outset`) 표면 폐기 (mechanism-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 302nd round)에서 "일부 테두리만 groove/ridge 입체 베벨이고 동종은 평면 실선이라 테두리 질감이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. 다수 typographic/decoration/SVG/filter/mask/blend property + OpenType 태그/대체글리프 probe 결과 property/sub-value 레벨 거의 dedicated. `border-style` 3D 베벨 값(groove/ridge/inset/outset)은 L546(평면 border)·L1041(아웃라인 베벨)과 다른 *border × 3D 베벨* 차원으로 미커버 — subj=0·code=0·DESIGN silent(Minimal 상충) 확인 후 dedicated sub-carve.
+- MANDATORY 체크: subj=0(border 3D 베벨 dedicated 없음; L546=flat border·L1041=outline bevel)·code=0(`border-style:groove/ridge/inset/outset`·`[border-style:groove]`·`border-groove` apps/web/src 0건; 테두리는 전부 평면 solid/dashed)·DESIGN.md=0(groove/bevel/입체/border-style 0; L40 "3d" 는 `#FF6B3D` hex 오매치). mechanism-vacuous(border 속성은 존재하나 전부 flat 값).
+- 근거: (1) 입체 베벨 값 0(mechanism-vacuous) → 베벨 테두리가 갈릴 모집단 0. (2) 코드 테두리는 전부 평면(기본 solid·유일 비-solid 는 PinCreateForm.tsx:346 border-dashed 드롭존)·border-token 은 단색 `--border` 1px 실선. (3) DESIGN 베벨 미규정 + L11 "Decoration level: Minimal" 과 스큐어모픽 3D 베벨 상충(미명시 anti-direction).
+- DESIGN.md 확인: 105줄 grep groove/ridge/bevel/emboss/입체/border-style 0건 — silent, L11 Minimal 방향과 3D 베벨 상충.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 aesthetic 재진입 후보: `border-image`(L546/L1041 아닌 래스터/그라디언트 테두리 이미지) 는 이미 dedicated(subj=10) — 대신 `list-style-type` 커스텀 마커 자형/`::marker` content 장식 또는 `background-repeat: round`/`space`(subj 확인됨 dedicated) 외의 미탐색 장식 property subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2545 Discovery — tokens 301st round: 표의문자 advance 폭 상대 길이 단위(`ic`) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 301st round)에서 "일부 CJK 텍스트만 `ic`(표의문자 水 advance) 로 measure/폭을 잡고 동종은 `ch`/`px`/`rem` 로 잡아 CJK measure 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. 다수 token at-rule/함수/단위 probe 결과 대부분 dedicated. `ic`(표의문자 advance 폭 상대 단위) 는 standalone total=0(L410 group 파렌서티컬·L775 ch sub-carve 에만 언급)·code=0 로 개별 신규 — L410 폰트상대단위 그룹·L775 ch(Latin 0 advance) 와 다른 *글리프 메트릭 파생원*(표의문자 水 자폭, CJK 특화) 차원으로 개별 dedicated sub-carve(L775 가 ch 를 개별 carve 한 선례와 동일 패턴).
