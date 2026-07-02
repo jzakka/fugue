@@ -26,6 +26,14 @@
 - QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
 - 차기 states 재진입 후보: `::spelling-error`/`::grammar-error` 편집 오류 하이라이트(편집오류축 재검·aesthetic L449) 또는 표준 폼 컨트롤 의사요소 잔여 carve(`::picker(select)`/`::picker-icon`·customizable select) freshness 재검 축.
 
+## 2026-07-02 — [system] cycle 2074 Discovery — 보안: 인증 세션 쿠키 Domain 스코핑(cookieDomain() 항상 host-only·set/clear Domain 대칭·cross-origin 명시설정 요구) (NEW baseline)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 55주기째)에서 "인증 세션 쿠키(fugue_access·fugue_refresh)의 **Domain 속성(호스트 온리 스코핑)** — 과대 부모 도메인(`.example.com`)으로 서브도메인 세션 누출·공격자 서브도메인 Set-Cookie 로 session fixation·로그아웃 클리어링 쿠키 Domain 불일치로 삭제실패(clear-fail)" probe → **NEW baseline 등록**(anti-patterns.md EOF L1233 + decision-log 기록).
+- 축 선택: 보안. 쿠키 Domain 스코핑(서브도메인 누출·session fixation·Domain mismatch clear-fail).
+- 판정 근거: cookieDomain()(auth/handler.go:244-258)이 devMode·localhost·split-host 전 분기에서 **무조건 ""(host-only)** 반환(:257·주석:253-256 "cross-origin cookie sharing...should be configured explicitly, not guessed")·setAuthCookies(:260-292)와 Logout(:171-197)이 동일 cookieDomain()로 **set/clear Domain 대칭**(발급 :268/:278·삭제 :182/:190)→ 부모 도메인 파생 0·형제 서브도메인 누출 0·Domain 불일치 clear-fail 0. static "Domain 속성 세팅됨·cookieDomain() 이 도메인 계산 → 서브도메인 누출·fixation·clear-fail" 은 FP(항상 host-only·대칭·명시설정 요구).
+- 비중첩: **L186(cycle 794)=쿠키 HttpOnly/Secure/SameSite 누락·CSRF·로그아웃 미삭제**·**L465(cycle 1062)=세션 쿠키 HttpOnly/Secure/SameSite 속성·클리어링 비대칭·OptionalJWT fail-open** 둘 다 Domain(host-only 스코핑) 속성 미열거(L465 전문 2899자 Domain/도메인/host-only/서브도메인 grep 0건) → Domain 스코핑 축은 fresh.
+- 예외(등록 가능 실결함): cookieDomain() 이 부모 도메인(`.example.com`) 반환·set/clear Domain 불일치 clear-fail·사용자 통제 Host 로 cookieDomain() 유도·새 인증 쿠키 과대 Domain 스코핑.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 56주기째) → cycle 2076. 후보: og_data/media_candidates lockstep(cycle1832 covered·L?)·frontier url_hash dedup 정규화(L151)·classifier no_primary_media(L130)·INSERT 컬럼리스트 완전성(L241)·INSERT DEFAULT override(L1085) 외 미수록 sub-axis(pin visibility 상태전이·board_pins 유니크 제약·pins.media_type↔storage MIME 정합).
+
 ## 2026-07-02 — [system] cycle 2072 Discovery — OpenSpec갭: interaction capability piggyback wiring(3 핸들러 best-effort INSERT·미인증 미기록·응답 불변) (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 54주기째)에서 "interaction/spec.md 2 Requirement(유저 행동 기록 SHALL·3 핸들러 GET /pins/{id}·POST /pins·POST /boards/{id}/pins 진입 시 인증 호출자 한해 best-effort INSERT SHALL) 이 미구현/미정합 — piggyback 누락·미인증 기록·best-effort 위반(응답 실패)·type allowlist 표류" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. interaction piggyback wiring 계약(best-effort·auth-guard·response-invariance).
