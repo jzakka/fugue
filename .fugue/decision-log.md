@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2577 Discovery — tokens 305th round: 스크롤바 거터 예약 토큰(`scrollbar-gutter: stable`/`stable both-edges`) 표면 폐기 (pure vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 305th round)에서 "일부 스크롤 컨테이너만 `stable` 로 거터를 예약해 시프트를 막고 동종은 `auto`(기본)라 스크롤바 등장 시 레이아웃 시프트 방어가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. L410 폰트 상대 길이 단위·뷰포트 단위(vi/vb L990·cq* L?·dvh/svh)·해상도(L572/L686)·fr(L1072)·font-variant 전 계열·@property/font-face override·math-depth(L721) 모두 saturated 확인 후, L534 스크롤바 표현 토큰 그룹에서 `scrollbar-color`(L1123)만 개별 carve 됐고 `scrollbar-gutter`(거터 예약) 미carve 발견 → 그것을 sub-carve.
+- MANDATORY 체크: total=0(`scrollbar-gutter` dedicated census 부재·L534 는 그룹 collective, L1123 은 scrollbar-color)·code=0(`scrollbar-gutter` grep 0·`.scrollbar-hide` 의 scrollbar-width:none 은 두께 숨김으로 별개)·DESIGN silent(scrollbar-gutter/거터/레이아웃 시프트 grep 0) → triply-vacuous(pure vacuous).
+- 근거: 스크롤 컨테이너 레이아웃 안정은 거터 예약이 아니라 고정 폭·overflow-y-auto 기본·(macOS/모바일) 오버레이 스크롤바로 시프트 회피 → 스크롤바 대비 거터 상시 예약 idiom 부재.
+- DESIGN.md 확인: 105줄에 거터 예약 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L534 그룹 collective(width 두께·color 색·gutter 거터)·L1123 scrollbar-color(색 틴트)와 별개 — `scrollbar-gutter` 는 거터 공간 예약(레이아웃 시프트 방어) 차원.
+- 차기 tokens 재진입 후보: font-variant-ligatures 비공통 클래스 keyword(discretionary/historical/contextual·total=0·L496 group 은 feature tag 각도)·`text-autospace`(CJK 자간 자동·subj 확인)·`@font-palette-values` override descriptor(base/color-override) subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2575 Discovery — states 282nd round: 결합자 스코프 속성 선택자(`>[attr]`/`+[attr]`/`~[attr]` 구조 위치 한정) 표면 폐기 (pure vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 282nd round)에서 "일부 상태 스타일만 `>[attr]`/`~[attr]` 결합자 스코프로 구조 위치를 한정하고 동종은 무결합자 전역 매칭/JSX 렌더라 구조-스코프 상태 매칭이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2567 forward-pointer(결합자별 속성 선택자 `>[a]`/`+[a]`) 채택. 속성 선택자 family 에서 2543(대소문자 플래그)·2551(값 매칭 연산자)·2559(네임스페이스)·2567(conjunction `[a][b]`)이 *속성 조건 자체* 를 carve 한 데 반해 *속성-매칭 요소를 결합자로 구조 위치 한정*(자식 `>`·인접 형제 `+`·일반 형제 `~`) 차원 sub-carve.
