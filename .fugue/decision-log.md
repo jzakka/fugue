@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2441 tokens 288th round — 첫 유효 값 선택 함수 first-valid() 표면 폐기 (pure vacuous)
+- 결정: tokens area(288th round)에서 "`first-valid(v1, v2, …)`(CSS Values 5 — 인자 목록에서 유효하게 파싱/계산되는 첫 값을 반환하는 값-레벨 유효성 폴백)로 토큰 값에 구형 브라우저 폴백을 제공하는데 일부 토큰만 first-valid 폴백을 쓰고 동종 다른 토큰은 고정 리터럴/var 폴백이라 값 소싱 어휘가 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: tokens. 후보축 = 인자 목록 중 유효 파싱되는 첫 값을 고르는 값-레벨 유효성 폴백 함수 정합. 커스텀 속성 폴백 var(--x,fb)·목록 난수 random-item()(L1215)·조건 함수 if()(L82)·속성 취득 attr()(L395)·고급 수학 함수 round()/mod()(L406)와 별개 차원 — var() 는 변수 미설정 시 폴백하고 first-valid() 는 각 인자 값 자체의 파싱 유효성으로 첫 유효 값을 고름.
+- MANDATORY 체크: (1) `first-valid(` grep 전수 0건(globals.css 0·src tsx/ts/css 0). (2) 토큰 값 소싱은 정적 hex/rem/px 리터럴+var() 참조로 균일 — 값-레벨 유효성 폴백 idiom 부재. (3) decision-log 의 "first-valid" 매치는 전부 Go backend image_picker fallback 시맨틱(비-CSS)이거나 random-item census(L1215) sibling 언급뿐, subject census 부재(decision-log L150-154 가 "first-valid 미census·fresh 확인"으로 명시). (4) DESIGN.md first-valid/값 폴백 grep 0건.
+- 근거: pure vacuous — first-valid() 선언 0건(property-vacuous)+토큰 소싱이 정적 리터럴+var 로 균일(값-레벨 유효성 폴백 표면 부재). 모집단 0이라 "일부만 first-valid·동종 고정/var" 비정합 성립 불가. precedent: random-item()(L1215)·if()(L82)·attr()(L395)·CSS Values-4 수학 함수(L406) 등 vacuous value-function 은 결함 아님.
+- DESIGN.md 확인: first-valid/값-레벨 유효성 폴백 무규정(silent). L37-52 Color·L16-35 Typography·L54-65 Spacing 은 정적 토큰 값만 규정하고 값 폴백 함수 미SHALL. 셋(DESIGN/AGENTS/CLAUDE) 미명시 → loop-design L9 "미명시 취향은 이슈 아님".
+- QA: 코드 무변경(census-only 표면 폐기)이라 실 브라우저 QA 대상 없음. grep 전수(0건) + DESIGN.md 대조로 vacuity 확인.
+- 차기 tokens 재진입 후보: `if()` style-query 조건 값(조건-함수축 재검·L82) 또는 `toggle()` 순환 값 함수(값 순환 토글·L168 인근) freshness 재검 축.
+
 ## 2026-07-02 — [system] cycle 2052 Discovery — 정합성: scheduler `Status` enum(fetched/harvested/*_failed) 상수↔DB 영속 정합 (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 44주기째)에서 "scheduler Go `Status` enum 상수(url_scheduler.go:31-35 StatusFetched/StatusHarvested/StatusFetchFailed/StatusHarvestFailed)가 DB status 문자열 컬럼/CHECK 제약과 어긋나거나(enum drift)·SetStatus dispatch 가 잘못된 컬럼을 갱신하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 정합성. scheduler Status enum 의 코드 상수↔DB 표현 정합.
