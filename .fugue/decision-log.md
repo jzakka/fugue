@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2543 Discovery — states 278th round: 속성값 대소문자 구분 플래그 선택자(`[attr="val" i]`/`[attr="val" s]`) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 278th round)에서 "일부 속성 선택자만 ` i`/` s` 대소문자 플래그로 매칭 정책을 명시하고 동종은 안 붙여 속성값 대소문자 매칭이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2543 forward-pointer 후보(`:nth-last-child`/`:first-child`) 는 stale(L632 역방향 인덱스·L846 first:/last: 변형으로 dedicated — first:/last: 접두 grep caveat) 확인 후 PIVOT. 미디어/폼검증 의사 클래스도 대부분 dedicated. `[attr="val" i]`/`[attr="val" s]` 속성값 대소문자 modifier 는 subj=0·total=0(anti-patterns 전무)·code=0 로 완전 신규 — 의사 클래스(요소 상태/구조) 계열과 다른 *선택자 문법 레벨*(속성값 매칭 대소문자 플래그) 별개 차원으로 dedicated baseline sub-carve.
+- MANDATORY 체크: subj=0(`^- \[design\]\[..\]…\[attr="val" i\]` 0)·anti-patterns total=0(속성값 대소문자 플래그 언급 전무·"attribute selector" 2건은 `[system][봇]` Go 크롤러로 out-of-scope)·code=0(`[attr=val i]`/`[attr=val s]` 및 순수 속성값 선택자 apps/web/src 0건)·DESIGN.md=0(속성 선택자/대소문자/case 0). triply-vacuous 3독립 0조건.
+- 근거: (1) 속성값 매칭 선택자 자체가 0(대소문자 플래그 유무 무관·Tailwind arbitrary `[&[data-x=y]]` 전수 0) → 대소문자 매칭이 갈릴 모집단 0(pure vacuous). (2) 상태 스타일링은 CSS 속성 선택자가 아니라 React state 분기 Tailwind 클래스/조건부 렌더로 처리 → 값 표기 흔들림을 선택자에서 흡수할 필요 부재·`i`/`s` modifier 대상 0. (3) DESIGN 속성 선택자 정책 미규정.
+- DESIGN.md 확인: 105줄 전수 grep 속성 선택자/attribute/대소문자/case 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 states 재진입 후보: 속성 선택자 매칭 연산자 계열(`[attr^="…"]` 접두·`[attr$="…"]` 접미·`[attr*="…"]` 부분·`[attr~="…"]` 공백구분·`[attr|="…"]` 하이픈구분) subj/total 확인 후 신규성 있으면 sub-carve — 본 축(대소문자 modifier)과 다른 값 매칭 연산자 차원.
+
 ## 2026-07-02 — [design] cycle 2541 Discovery — responsive 279th round: 브레이크포인트-접두 반응형 밑줄 잉크 스킵 토글(sm:text-decoration-skip-ink) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 279th round)에서 "일부 링크만 `sm:[text-decoration-skip-ink]` 로 밑줄이 디센더와 교차할 때 잉크 스킵(auto)/관통(none)을 화면폭별 전이하고 동종은 고정이라 반응형 밑줄 스킵이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2533 forward-pointer #1 후보 `sm:[text-decoration-skip-ink:none]`(resp-subj=0·폭별 디센더 잉크 스킵) 선택. text-decoration-line BP(L1218)·sm:underline-offset(2509/L1264)·sm:decoration-thickness(2517/L1269)·sm:text-underline-position(2525/L1275)·sm:text-decoration-style(2533/L1280) 형제 sub-carve 선례 → base 가 aesthetic 에 census 된 속성(text-decoration-skip-ink=L578 base)의 sm: 폭별 토글을 별개 차원으로 sub-carve.
