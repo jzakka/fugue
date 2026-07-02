@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2551 Discovery — states 279th round: 속성값 부분매칭 연산자 선택자(`[attr^=]`/`[attr$=]`/`[attr*=]`/`[attr~=]`/`[attr|=]`) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 279th round)에서 "일부 링크/요소만 `[href^=https]`/`[href$=.pdf]` 등 속성값 부분매칭으로 스타일을 걸고 동종은 안 걸어 부분매칭 스타일이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2543 forward-pointer(속성 선택자 매칭 연산자 계열) 채택. `[attr^=]`/`[attr$=]`/`[attr*=]`/`[attr~=]`/`[attr|=]` 전부 total=0(anti-patterns 전무)·code=0(완전일치 속성 선택자도 0) → 완전 신규. cycle 2543(대소문자 modifier)과 같은 속성 선택자 family 의 *값 부분매칭 연산자* 별개 차원.
+- MANDATORY 체크: subj=0(부분매칭 연산자 dedicated 없음)·anti-patterns total=0(`[attr^=]` 등 언급 전무)·code=0(`[attr^=]`/`$=`/`*=`/`~=`/`|=` 및 완전일치 속성 선택자·Tailwind arbitrary `[&[href^=https]]` apps/web/src 0건)·DESIGN.md=0(속성 선택자/attribute/매칭 연산자/substring 0). triply-vacuous 3독립 0조건.
+- 근거: (1) 부분매칭 선택자 0(완전일치 포함, pure vacuous) → 부분매칭 스타일이 갈릴 모집단 0. (2) 외부 링크/파일 유형/상태 값 분기는 CSS 속성 부분매칭이 아니라 React URL/타입 판별 조건부 Tailwind 클래스/아이콘으로 처리. (3) DESIGN 속성 부분매칭 미규정.
+- DESIGN.md 확인: 105줄 grep 속성 선택자/attribute/매칭 연산자/substring 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 states 재진입 후보: 속성 선택자 family 미탐색 차원 — 속성 *존재* 선택자(`[attr]` 값 무관 존재만·`[disabled]`/`[hidden]`/`[aria-*]` boolean 속성 존재 스타일) 또는 네임스페이스 속성 선택자(`[ns|attr]`) subj/total 확인 후 sub-carve — 부분매칭(2551)·대소문자(2543)와 다른 존재/네임스페이스 차원.
+
 ## 2026-07-02 — [design] cycle 2549 Discovery — responsive 280th round: 브레이크포인트-접두 반응형 줄바꿈 밸런싱 토글(`sm:[text-wrap:balance]`) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 280th round)에서 "일부 제목만 `sm:[text-wrap:balance]` 로 폭별 줄바꿈 밸런싱을 전환하고 동종은 고정이라 반응형 밸런싱이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. BP-접두 반응형 typographic 토글 다수 probe 결과 `sm:[text-wrap` 는 total=0(반응형 완전 신규)·정적 text-wrap 도 code=0. base 는 L299(토큰)·L468(정적 aesthetic balance/pretty)·L929(text-wrap-mode)로 census 됐으나 *반응형 BP 토글* 차원은 미커버 → sm: 폭별 토글 sub-carve(sm:decoration-* 선례와 동일 패턴).
