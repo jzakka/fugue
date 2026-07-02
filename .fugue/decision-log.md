@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2094 Discovery — 봇: per-site 어댑터 레지스트리 도메인 매칭 precedence(exact 우선 + 최장 suffix wildcard tie-break + bare 제외, map 순회 무관 결정성) (covered-by-census)
+- 결정: 봇 area(6-area rotation 동시성→봇, 65주기째)에서 "InMemoryAdapterRegistry.Resolve 가 Go map 의 무작위 순회로 wildcard 매칭이 비결정적이거나·exact 보다 wildcard 를 우선하거나·`*.example.com` 가 bare `example.com` 을 오매칭하거나·중첩 wildcard 최장 suffix tie-break 가 틀려 잘못된 per-site 어댑터를 선택/누락" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 봇. per-site 어댑터 레지스트리 도메인 매칭 precedence/결정성.
+- 조사: adapter.go 전수 — (1) Resolve:86-88 exact map 먼저 조회→없을 때만 :90-104 wildcard(doc L34-39 "1.exact→2.wildcard" 정합). (2) 최장 suffix wins: :97 `strings.HasSuffix(domain,"."+suffix) && len(suffix)>bestLen` → 동일길이 서로다른 suffix 가 한 도메인을 동시 매칭 불가(한 문자열은 주어진 길이의 suffix 가 유일)라 최장-우선이 map 순회순서(무작위) 무관하게 결정적. (3) bare 제외: :93-96 `domain==suffix` skip 후 `"."+suffix` 접미만 매칭(doc L41-42). (4) 정규화 대칭: Register:64·Resolve:80 둘 다 ToLower+TrimSpace. (5) RWMutex(:44) 가드·미매칭은 GenericExtractor 무손실 폴백(harvester_consumer.go:466 Resolve→:480 폴백).
+- covered-by: **L1009(cycle 1724 봇)** 이 정확히 이 축을 전수 판정 — "(1)정규화 대칭·(2)exact-before-wildcard precedence·(3)bare 도메인 제외·(4)최장 suffix tie-break·(5)production 와이어드 무손실 폴백" 5항 열거로 refuted(결함 모집단 0). static "map 무작위순회로 wildcard 비결정·precedence 역전·bare 오매칭" 은 FP(L1009 커버·최장 suffix 가 순회순서 무관 결정성 보장). 코드 참조 현행 확인(adapter.go:60-106).
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 66주기째) → cycle 2096. 후보: feed disjoint 페이지네이션(cycle2084 feed/spec.md R4)·scheduler robots Crawl-delay→rate(cycle1834)·harvester snapshot 키 read-time UTC(L32)·frontier-table 정의 정합(cycle1690) 외 미수록 sub-axis(pioneer dual-enqueue 계약 L53·board capability 인증 wiring L77·classifier 판정 spec).
+
 ## 2026-07-02 — [design] cycle 2469 Discovery — responsive 270th round: CSS 공간(방향) 내비게이션 포커스 이동(`nav-*`) 표면 폐기
 - 결정: pending=0 Discovery 사이클. responsive 회전(270th round)에서 **CSS UI 공간(방향) 내비게이션 속성군 `nav-up`/`nav-down`/`nav-left`/`nav-right`/`nav-index`**(방향키/D-패드/TV 리모컨 방향성 입력의 포커스 상하좌우 인접 목적지 지정) 축을 0-후보 표면 폐기(doubly-vacuous)로 census 등록, 코드 변경 없음.
 - 축 선택: responsive(비-포인터 방향 입력 대응). 방향성 입력에서 포커스를 방향별 인접 요소로 이동시킬 목적지를 지정하는 CSS UI 속성. 핀 그리드가 방향키 내비를 커스텀하지 않아 "리모컨/D-패드 포커스가 기본 tab 순서만 따름·방향 포커스 순회 부재" 후보 검토했으나 선언 전수 0건.
