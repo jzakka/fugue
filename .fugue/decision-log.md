@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2084 Discovery — OpenSpec갭: feed capability 페이지네이션 페이지 간 disjoint(cursor offset 을 모든 underlying 소스에 일관 전파) (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 60주기째·rotation 재시작)에서 "feed/spec.md Requirement '개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다'(L70-91: 연속 두 페이지 pins[].id 교집합 공집합 SHALL·cursor offset 을 태그/미디어타입 추천·최신 보충 등 모든 underlying 쿼리에 일관 전파 SHALL·어떤 소스도 첫 페이지 결과 재생성 금지 SHALL NOT) 미충족 — 일부 소스가 offset 무시하고 첫 페이지 재반환·deficit-fill offset 불일치로 intra/inter 중복" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. feed Requirement 4 cross-page disjoint + offset 전파 wiring 계약.
+- 조사: feed/handler.go 개인화 분기가 (a) 추천 소스 RecommendByTags(:258)·RecommendByMediaType(:273) 모두 `Offset: offset` 일관 전파·(b) deficit-fill ListPinsWithCreator(:158)은 `Offset: offset + len(latestRows)` 로 intra-response 중복 회피(plain offset 이면 오히려 latestRows 와 겹침)·(c) buildNextCursor(offset,limit,len(pins))(:175/:204)가 returnedCount==limit 일 때만 +limit 전진 → page2 시작 > page1 latest 끝 → 교집합 공집합.
+- covered-by: **L26(cycle 580)** 이 정확히 이 계약을 전수 판정 — "deficit-fill `offset+len(latestRows)` 는 intra/inter 중복 모두 차단하는 올바른 연속 위치·RecommendByTags/MediaType 모두 `Offset: offset` 일관 전파·buildNextCursor +limit 정확 전진 → cross-page disjoint 성립·wiring 계약(spec L76) 충족·정적 'offset 다름'만 보면 FP" 명시하고 feed/spec.md L70-91 disjoint SHALL 을 직접 인용. static "일부 소스 offset 무시·페이지 간 중복" 은 FP(L26 전수 커버). 코드 참조 현행 확인(RecommendByTags:258·MediaType:273·ListPinsWithCreator:158 deficit-fill·buildNextCursor:175/204).
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 61주기째) → cycle 2086. 후보: 쿠키 Domain 스코핑(cycle2074 covered)·OAuth returnTo open-redirect(cycle2062)·CRLF(L1167)·JWT alg confusion(cycle2050)·SSRF(L209) 외 미수록 sub-axis(CORS preflight allowlist·mass assignment·rate-limit 우회).
+
 ## 2026-07-02 — [system] cycle 2082 Discovery — 봇: content classifier pinnable 판정(사유 우선순위 listing>empty_body>no_primary_media·div-by-zero 가드·byte 측정) (covered-by-census)
 - 결정: 봇 area(6-area rotation 동시성→봇, 59주기째)에서 "harvester content classifier 가 사유 우선순위를 뒤바꾸거나·Words=0 에서 division-by-zero panic·body_text 를 byte 아닌 rune 으로 측정·no_primary_media 판정 누락·node_type 등 외부 상태 의존·enum 문자열 spec 불일치" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 봇. content classifier pinnable 판정 계약(reason priority·div-by-zero·byte 측정·PinDocument-only).
