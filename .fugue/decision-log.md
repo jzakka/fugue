@@ -26,6 +26,13 @@
 - QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
 - 비중첩: L981(aria-actions 액션 집합)·L971(aria-flowto 읽기 흐름)·L926(aria-details 설명 참조)·L544(aria-haspopup 팝업 어포던스)·aria-controls(제어 참조)·aria-activedescendant(가상 포커스)와 별개 — 본 축은 `aria-owns`(DOM 무관 접근성 트리 부모-자식 소유 재부모화) 관계 차원.
 - 차기 states 재진입 후보: `aria-controls`(code=1 MyPageClient — populated singleton 이므로 backlog 후보 가능성 재판단, DESIGN/AGENTS 명시 여부 확인)·`aria-details`(상세 콘텐츠 참조 vs describedby 차이 재검)·`aria-keyshortcuts`(단축키 고지·L587 재검) subj/code 확인 후 sub-carve.
+## 2026-07-03 — [system] cycle 2148 Processing — 정합성: UNSPLASH_ACCESS_KEY dead env + 추적된 main.go.backup 제거
+- 결정: 정합성 영역(6-area rotation 보안→정합성, 92주기째)에서 cycle 2146 forward-pointer 후보 "UNSPLASH_ACCESS_KEY helm env↔코드 소비자 0" 조사 → **REAL 결함 확인(confidence 4), Processing 모드 수정**: (1) `apps/api/cmd/bot/main.go.backup` 삭제(git 추적 중이던 84줄 스테일 백업 — "feat(bot): add graph visualization tool" 커밋에 실수 포함·UNSPLASH_ACCESS_KEY 의 유일 "독자"였으나 .go 아님=미컴파일 dead file), (2) `helm/fugue/templates/cronjob-bot.yaml` 의 UNSPLASH_ACCESS_KEY env 블록(구 :81-86, optional secretKeyRef) 제거 — 컴파일되는 fuguebot 바이너리(cmd/bot) 어디에도 해당 env 를 읽는 코드가 없어(레포 전수 grep: 소비자는 .backup 파일뿐) 배포 매니페스트가 존재하지 않는 기능의 시크릿을 주입하는 dead-config.
+- 판단 근거: cmd/bot/main.go:30 의 `"unsplash": "unsplash.com"` 은 pioneer 크롤 시드 도메인 별칭(API 키와 무관)·openspec/specs·AGENTS.md·docs 에 Unsplash 통합 언급 0 → 계획된 기능 아님. env 는 optional 이라 런타임 무해했으나 운영자가 존재하지 않는 통합의 시크릿을 관리하도록 오도.
+- 검증: `go build ./...` 성공·helm/ 잔여 unsplash 참조 0·레포 전수 UNSPLASH grep 잔여는 main.go:30 별칭 + web 테스트 픽스처 이미지 URL(무관)뿐.
+- MANDATORY 체크: census grep — "main.go.backup"/"backup"/"dead config" 0·"cronjob-bot"→L381(config.Load 시크릿 검증 각도)/L392/L1282 로 별개 → fresh REAL 결함 확정(baseline 아닌 수정).
+- QA: 코드 실행 경로 무변경(dead 아티팩트 제거만)이라 관찰 가능 행위 동일 — go build 성공이 충분조건. helm 미설치로 template 렌더 검증은 CI 위임.
+- 차기: area = 에러처리 (6-area rotation 정합성→에러처리, 93주기째) → cycle 2150. 후보: bot/spec.md:562 배치 처리 통계 반환 계약↔HarvestStats 필드(이월)·helm templates 에 _helpers.tpl 부재로 `include "fugue.fullname"` 렌더 실패 가능성(정합성 이월 — helm 미설치라 미검증)·bot-visualize generateGraphviz 의 Graphviz 미설치/DOT 실패 에러 경로·fetchHTMLShared Body.Close 경고 fmt.Printf 채널.
 
 ## 2026-07-03 — [design] cycle 2589 Discovery — responsive 285th round: 브레이크포인트-접두 반응형 오버스크롤 연쇄 토글(`sm:overscroll-contain`→`md:overscroll-auto`) 표면 폐기 (pure vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 285th round)에서 "일부 스크롤 컨테이너/모달만 `sm:overscroll-contain` 으로 폭별 연쇄 차단을 전환하고 동종은 고정이라 반응형 오버스크롤 정책이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).

@@ -78,12 +78,6 @@ spec:
                       name: {{ include "fugue.fullname" . }}-config
                       key: pioneer-snapshot-bucket
                       optional: true
-                - name: UNSPLASH_ACCESS_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ include "fugue.fullname" . }}-secrets
-                      key: unsplash-access-key
-                      optional: true
               resources:
                 requests:
                   cpu: 100m
