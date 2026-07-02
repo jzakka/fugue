@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [design] cycle 2591 Discovery — states 284th round: WAI-ARIA 접근성 트리 소유 재부모화 속성(`aria-owns` DOM 외 소유 재정의) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 284th round)에서 "일부 포털 드롭다운/모달·복합 위젯만 `aria-owns` 로 접근성 트리 소유를 재부모화하고 동종은 DOM 순서 그대로라 접근성 트리 소유 계층이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. 폼/미디어/뷰전환 상태 의사클래스·caret/reading-flow·interactivity(L599)·::backdrop(L434/1281) 모두 saturated 확인 후, 관계-aria 군에서 L981(aria-actions)이 `aria-owns` 를 "DOM 외 소유를 표현하는" *비교 군-멤버* 로만 언급하고 개별 미carve 임을 발견 → 접근성 트리 소유 재부모화 차원으로 sub-carve. (주의: aria-controls 는 code=1(MyPageClient)로 populated singleton 이라 pure-vacuous 아님 → 회피하고 code=0 인 aria-owns 선택.)
+- MANDATORY 체크: (1) `aria-owns` apps/web/src grep **0건**. (2) 드롭다운/모달/복합 UI 는 aria-owns 재부모화 없이 트리거+팝업을 같은 컴포넌트 서브트리(인라인 마운트)에 둬 DOM 중첩=접근성 트리 소유 일치로 구조 처리 → 재부모화 상황 부재. (3) DESIGN.md(105줄) aria-owns/접근성 트리 소유/reparent grep **0건**("aria" 문자열 3건은 전부 "Pretendard **Variable**" 폰트명 FP·접근성 무관) → silent.
+- 근거: 세 독립 0-조건(code 0 + 재부모화 모집단 0 + DESIGN silent)로 triply/pure vacuous. "포털 드롭다운/모달·흩어진 복합 위젯이 있으니 `aria-owns` 로 소유를 바로잡은 곳이 있거나 일부만 바로잡아 갈릴 것" 정적 추정은 FP — `aria-owns` 선언 자체가 0·소유는 DOM 중첩=a11y 트리로 구조 일치.
+- DESIGN.md 확인: 접근성 트리 소유 재정의 미규정(aria 매칭 = Variable 폰트 FP). loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L981(aria-actions 액션 집합)·L971(aria-flowto 읽기 흐름)·L926(aria-details 설명 참조)·L544(aria-haspopup 팝업 어포던스)·aria-controls(제어 참조)·aria-activedescendant(가상 포커스)와 별개 — 본 축은 `aria-owns`(DOM 무관 접근성 트리 부모-자식 소유 재부모화) 관계 차원.
+- 차기 states 재진입 후보: `aria-controls`(code=1 MyPageClient — populated singleton 이므로 backlog 후보 가능성 재판단, DESIGN/AGENTS 명시 여부 확인)·`aria-details`(상세 콘텐츠 참조 vs describedby 차이 재검)·`aria-keyshortcuts`(단축키 고지·L587 재검) subj/code 확인 후 sub-carve.
+
 ## 2026-07-03 — [design] cycle 2589 Discovery — responsive 285th round: 브레이크포인트-접두 반응형 오버스크롤 연쇄 토글(`sm:overscroll-contain`→`md:overscroll-auto`) 표면 폐기 (pure vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 285th round)에서 "일부 스크롤 컨테이너/모달만 `sm:overscroll-contain` 으로 폭별 연쇄 차단을 전환하고 동종은 고정이라 반응형 오버스크롤 정책이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2581 forward-pointer(`sm:[overscroll-behavior]`)를 이어 sm: BP-토글 vein(text-wrap 2549·hanging-punctuation 2557·tab-size 2565·caret-color 2573·scroll-behavior 2581)에서 `overscroll-behavior` 를 반응형 토글 차원으로 sub-carve. base 는 L549(정적 overscroll-behavior)·L1121/L1126(논리축 longhand).
