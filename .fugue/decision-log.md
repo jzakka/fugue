@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2507 Discovery — aesthetic 297th round: CSS Shapes 2 `shape()` 함수 기반 클리핑/모양 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 297th round)에서 "`clip-path`/`offset-path`/`shape-outside` 에서 `shape()`(명령형 from/line/curve/arc 문법 신규 basic-shape 함수)로 커스텀 실루엣을 정의해 표면 간 클리핑 어휘가 갈리거나 shape() 좌표 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. SVG 필터 프리미티브 공간 소진(광원 feDistantLight/fePointLight/feSpotLight 까지 L1068 dedicated·feImage/feTile/feMorphology/feBlend/feMerge/feTurbulence 전부 subj≥1)로 PIVOT → L562 clip-path 모-센서스가 열거하지 않은 신규 basic-shape 함수 `shape()`(CSS Shapes 2) 를 fresh 축으로 선택(subj=0·code=0).
+- MANDATORY 체크: (1) `shape()` 함수 grep(`clip-path:shape(`/`offset-path:shape(`/`shape-outside:shape(`/`:shape(`) src **0건**(`toPinCardShape` JS 식별자 false positive 제외). (2) 호스트 속성 `clip-path`/`offset-path`/`shape-outside`·형제 basic-shape 함수(circle/ellipse/inset/polygon/path) grep **0건**(L562 clip-path 모-센서스 인벤토리). (3) 요소는 border-radius 사각/둥근 모서리 idiom 균일(비사각형 실루엣 부재). (4) DESIGN.md clip-path/shape/mask/corner grep **0건**·L11 "Minimal".
+- 근거: triply-vacuous — shape() 0 + 호스트 속성/형제 함수 0 + DESIGN.md silent. `shape()` 는 anti-patterns L562 `[design][aesthetic] clip-path 패스 기반 비사각형 클리핑 모-센서스`가 열거한 circle()/ellipse()/inset()/polygon()/path() 에 미포함된 신규 CSS Shapes 2 명령형 함수 → 형제 함수 sub-carve. path()(SVG 데이터 문자열)와 문법 별개(shape()=CSS 단위/calc 명령형)·offset-* 모션 경로·mask longhand(L558)와 비중첩.
+- DESIGN.md 확인: 105줄 전수 커스텀 모양/클리핑 미규정(grep 0)·L11 "Decoration level: Minimal"(비사각형 장식 지양)·모양은 border-radius 로만 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(shape() 0·호스트 속성 0·형제 함수 0·DESIGN 0)+border-radius idiom 확인으로 정적 검증.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): SVG 필터 프리미티브 전면 소진·기본 도형 함수 shape() 본 사이클 carve. 잔여 fresh — `caret-shape`(텍스트 캐럿 모양 bar/block/underscore·subj=0·states/forms 경계·재검)·`shape-margin`/`shape-image-threshold`(shape-outside 하위 디스크립터·shape-outside subj=2 커버 재검)·CSS `corner-shape` superellipse(L?? subj=2 커버). aesthetic fresh 축 극심 saturation — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2505 Discovery — tokens 296th round: 사용자 정의 카운터 스타일 자릿수 패딩 디스크립터(`@counter-style` `pad`) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 296th round)에서 "`@counter-style` 안의 `pad`(카운터 최소 자릿수+패드 심볼 `pad: 2 "0"`→01,02)/`negative`/`prefix`/`suffix` 표기 디스크립터로 목록 번호 표기가 표면 간 갈리거나 패드 심볼/자릿수 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. `@counter-style` 표기 디스크립터 `pad`(및 형제 negative/prefix/suffix)의 단독 sub-carve. decision-log L?? (cycle 2497 forward-pointer) "차기 tokens 재진입 후보" 가 `@counter-style pad/fallback/range 잔여 디스크립터(L634 모-센서스)` 를 명시 큐잉한 것을 선택. `pad` 는 any:0·tokens-subj:0·code:0 완전 fresh(range 는 L634 subj·additive-symbols 는 cycle 2481·speak-as 는 L920 소진).
