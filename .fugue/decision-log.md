@@ -24,6 +24,14 @@
 - 근거: pickMediaForPin 의 media_type 도메인(L71)·빈 doc 가드(L130)·이미지 우선순위(L218)가 census 로 커버하고 선택 우선순위 자체는 계약 없는 의도 동작임을 harvest_pipeline.go Read 로 확인. 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 54주기째) → cycle 2072. 후보: scheduler robots Crawl-delay 반영(L1834)·ratelimit capability(cycle2060 covered)·harvester 상태전이 tx(L129/cycle738)·scheduler backoff 공식(L140/cycle750) 외 미수록 capability Requirement sub-axis.
+## 2026-07-02 — [design] cycle 2451 aesthetic 290th round — CSS 앵커 위치 파생 함수(anchor()) 표면 폐기
+- 결정: aesthetic area(290th round)에서 "앵커 요소 모서리 위치를 좌표로 파생하는 `anchor()` 로 일부 표면만 팝오버/툴팁 위치를 파생하고 동종은 고정 inset/JS 계산이라 위치 소싱 어휘가 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: aesthetic. CSS 앵커 위치 파생 함수 `anchor()`(앵커 모서리 위치를 좌표로 파생해 inset 배치) 사용 일관성. cycle 2443 forward-pointer(decision-log L114 "`anchor()` 앵커 위치 파생 함수·앵커-위치축·anchor-size 와 별개 위치-파생 차원·anti=0")를 재진입 후보로 채택.
+- MANDATORY 체크: (1) 신규성 — `anchor(` 위치 함수 dedicated subject census 부재(anti 의 anchor( 매치는 SVG fill-rule L644/stroke-align L933/position-try-order L1157/anchor-size L1228 의 sibling·L114 forward-pointer 뿐). 완전 fresh ded=0. (2) 코드 — apps/web/src+globals.css `anchor(` grep 0건(pure vacuous). 앵커 위치 지정 API 전체 비-사용(anchor-name/position-anchor/anchor-size/position-area/position-try 전수 0·doubly-vacuous). (3) 앵커치수축(anchor-size() L1228·치수 파생)·위치영역축(position-area L742·영역 셀 배치)·적응재배치축(position-try L1157)·정적배치축(top/left)과 별개 차원(anchor()=앵커 모서리 위치 파생).
+- 근거: anchor() 선언 0건 + 앵커 결속 API 전체 비-사용이라 "일부만 anchor()·동종은 고정 inset/JS" 비정합 모집단이 0. anchor() 는 anchor-name 결속이 있어야 유효한데 결속 API 부재로 무의미. CSS Anchor Positioning 도입은 미명시 enhancement 이지 결함 아님(loop rule line 9·신생 API 브라우저 지원 제한).
+- DESIGN.md 확인: anchor/앵커/anchor-name/position-anchor grep 0건. L67-72 Layout 은 masonry 그리드만·L82-94 Interaction 은 hover/skeleton 만 규정·앵커 위치 파생 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 aesthetic 재진입 후보: `cross-fade()` 다중-이미지 합성 비율(618 재검) 또는 `position-visibility` 앵커 가시성 연동 숨김(앵커 오버플로 시 피앵커 자동 숨김·responsive L742 sibling) 축.
 
 ## 2026-07-02 — [system] cycle 2068 Discovery — 동시성: atomic 카운터 tearing·비원자 5-tuple 스냅샷 (harvester nodeStats / metrics) (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 52주기째)에서 "harvester stats 5-tuple(pinsCreated/deduped/skipped/failed/adapterFallback)+fetchFailureCount 가 atomic.Uint64 인데 NodeStats() 스냅샷이 각 필드 독립 Load 라 cross-field 비원자(찢긴 스냅샷)이고·individual 카운터가 word tearing 을 내거나·metrics 가 map+atomic 혼용으로 부분보호 race 를 내는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
