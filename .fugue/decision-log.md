@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2098 Discovery — 보안: SQL injection/파라미터화(전 DB 접근 sqlc $N 바인딩·search ILIKE `'%'||$1||'%'` 서버측 연결·tag_ids uuid.Parse+ANY($N::uuid[])·동적 SQL 전무) (covered-by-census)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 67주기째)에서 "사용자 제어 입력(search q·tag_ids·creator_id·limit/offset)이 문자열 연결/fmt.Sprintf 로 SQL 에 조립되거나·ORDER BY/컬럼명 동적주입·ILIKE 메타문자 미이스케이프·uuid 배열 미검증 주입으로 SQL injection" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 보안. SQL injection/쿼리 파라미터화(구문↔데이터 분리).
+- 조사: (1) 전 DB 접근 = sqlc 생성 `.sql.go` `QueryContext(ctx,<const>,args...)` `$N` 바인딩 → 사용자 입력은 인자로만 전달(fmt.Sprintf SQL grep 0·concat DML 0). (2) search: SearchPinsByILIKE 등이 `ILIKE '%' || $1 || '%'`(search.sql.go:23/139)·`similarity(name,$1)`(:82)로 `%` 연결이 SQL 서버측·$1 은 바인드 파라미터(Go 문자열 조립 아님). (3) tag_ids: pin/handler.go:543·search/handler.go:155-169 각 토큰 uuid.Parse 검증(invalid→400/skip)·최대5 clamp 후 `[]uuid.UUID` 로 `ANY($N::uuid[])` 바인딩. (4) 유일 raw 쿼리(cmd/bot/main.go const selectPlaceholders)도 정적 SQL+$1=creatorID·ILIKE 리터럴 하드코딩·admin CLI 전용. (5) user-제어 sort/order/column 쿼리파라미터 0건(ORDER BY 전부 .sql.go 고정).
+- covered-by: **L312(cycle 926 보안)** 이 정확히 이 축을 전수 판정 — "전 DB 접근 sqlc $N 바인딩·유일 raw 쿼리 const+$1·tag_ids uuid.Parse 검증+ANY($N::uuid[])·동적 SQL/sort 파라미터 전수 0건 → 주입 불가·confidence<3". **L65** 은 search ILIKE `'%'||$1||'%'` 바인딩 sub-case 를 별도 커버. static "사용자 입력이 SQL 로 흘러 주입·ILIKE 메타문자·ORDER BY 주입" 은 FP(L312 커버). 코드 참조 현행 확인(search.sql.go:23/82/139·pin/handler.go:543·search/handler.go:155-169·db.go:13-15).
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 68주기째) → cycle 2100. 후보: board_pins 멱등(cycle2076 L126)·RemovePin 소유권/스코프(cycle2088 L77)·og_data/media_candidates lockstep(cycle1832)·frontier url_hash dedup(L389) 외 미수록 sub-axis(pins.url 정규화 dedup·interactions.type enum CHECK 부재 L145·시간컬럼 timezone 정합 L187).
+
 ## 2026-07-02 — [system] cycle 2096 Discovery — OpenSpec갭: interaction piggyback best-effort 기록 wiring(3핸들러 성공후 인증호출자만 view/pin/board_add INSERT, void=best-effort) (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 66주기째)에서 "interaction/spec.md Requirement '핀 조회·핀 생성·보드 추가 핸들러가 원래 요청 성공 후 인증 호출자에 한해 interactions 에 view/pin/board_add row 를 best-effort INSERT(SHALL)·INSERT 실패가 응답을 바꾸지 않음(SHALL NOT alter response)' 미충족 — 3핸들러 중 일부 piggyback 누락·미인증 기록·best-effort 위반(에러가 응답 실패시킴)·type 집합 불일치" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. interaction capability piggyback 기록 wiring 계약.
