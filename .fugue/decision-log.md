@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2048 Discovery — OpenSpec갭: feed capability "개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다"(cursor offset 전 underlying 쿼리 전파) Requirement 정합 (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 42주기째)에서 "feed/spec.md L70-91 '개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다'(연속 두 페이지 작품 ID 교집합 공집합 SHALL·cursor offset 이 추천+최신보충 모든 underlying 쿼리에 일관 전파 SHALL·어떤 쿼리도 페이지 위치 무시 SHALL NOT) Requirement 가 미구현/미정합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. feed 개인화 피드 cross-page disjoint(cursor offset 전 underlying 소스 일관 전파) wiring 계약.
+- MANDATORY 체크: 본 Requirement(feed/spec.md L70-91)는 **L26(cycle 580)이 정확히 커버** — "개인화 피드 deficit-fill 의 `Offset: offset + len(latestRows)` 를 offset 불일치→페이지 간 중복 스펙 위반으로 올리지 않는다: intra-response 중복 회피 올바른 연속 위치·추천 소스 RecommendByTags/MediaType 모두 `Offset: offset` 일관 전파·buildNextCursor returnedCount==limit 시만 +limit 전진(L370-373)→cross-page 교집합 공집합·wiring 계약(L76) 충족". feed/spec.md L76 이 명시적으로 "기존 Scenario 피드 페이지네이션 SHALL 이 production 에서 enforce 되도록 보장하는 wiring 계약" 이라 L26 이 그 enforce 를 전수 확인.
+- 근거: cursor offset 산술이 intra(같은 응답 내 latestRows 중복)+inter(페이지 간 disjoint) 모두 차단하고 전 underlying 소스(추천 2종+최신보충)에 일관 전파됨을 L26 이 census 로 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 43주기째) → cycle 2050. 후보: ffmpeg 인자주입(cycle2038 covered)·업로드 크기(L440)·SameSite(L465)·OAuth state(L284)·path traversal·rate-limit(L324) 외 미수록 sub-axis(CSRF 토큰·JWT 알고리즘 confusion·SSRF outbound fetch).
+
 ## 2026-07-02 — [system] cycle 2046 Discovery — 봇: 비-미디어 OGData 파생필드(Lang/Author/PublishedAt) doc↔og_data 동기화 (NEW baseline)
 - 결정: 봇 area(6-area rotation 동시성→봇, 41주기째)에서 "PinDocument 이 Lang/Author/PublishedAt 를 top-level 과 OGData 두 곳에 중복 보유하고 OGData 만 og_data JSONB 로 영속하는데, harvester 후처리가 top-level 만 바꾸고 OGData 를 재동기화 안 해 영속 og_data 가 stale/desync 되는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
 - 축 선택: 봇 정합성. 비-미디어 OGData 파생필드(Lang/Author/PublishedAt)의 doc↔og_data lockstep — MediaCandidates lockstep(L1096/L1214)이 *재변형되는* 미디어 후보의 재미러 축인 것과 정반대로, 이 필드들은 *재변형되지 않는* set-once 불변성이 안전 메커니즘.
