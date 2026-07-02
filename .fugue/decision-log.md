@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2068 Discovery — 동시성: atomic 카운터 tearing·비원자 5-tuple 스냅샷 (harvester nodeStats / metrics) (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 52주기째)에서 "harvester stats 5-tuple(pinsCreated/deduped/skipped/failed/adapterFallback)+fetchFailureCount 가 atomic.Uint64 인데 NodeStats() 스냅샷이 각 필드 독립 Load 라 cross-field 비원자(찢긴 스냅샷)이고·individual 카운터가 word tearing 을 내거나·metrics 가 map+atomic 혼용으로 부분보호 race 를 내는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. atomic 카운터 read-idiom(Add↔Load)·비원자 snapshot·map+atomic 혼용.
+- MANDATORY 체크: 본 축은 **L98(cycle 724)이 정확히 커버** — (1) HarvesterConsumer stats 5-tuple+fetchFailureCount 전부 atomic.Uint64, write=processOne exit `.Add(1)`, read=NodeStats() 각 필드 `.Load()` → Add↔Load 완전 짝맞춤(개별 카운터 tearing 불가: Go atomic.Uint64 는 32비트 플랫폼에서도 무-tearing 보장); 5-tuple cross-field 비원자는 **문서 명시 완화**(NodeStatsSnapshot doc "for trend observation, not exact invariants"·스펙 "Dequeue 카운터는 워커 간 공유 상태가 아니다" 프로세스-로컬); (2) MediaValidationMetrics map+atomic 은 L75(cycle698)도 커버(rejected map RWMutex·pinnable/noPrimaryMedia atomic·독립 관측 카운터라 cross-field 불변식 부재). 실제 코드 재확인: harvester_consumer.go:111-158(nodeStats atomic.Uint64·NodeStats() Load·doc:132-137 비원자 acceptable 명시)·snapshot/metrics.go:42-79(AddUint64/LoadUint64)·media_validator_metrics.go(atomic.Uint64). WaitGroup/errgroup 은 apps/api 0건(L149/cycle760).
+- 근거: Add↔Load 짝맞춤·비원자 cross-field 가 문서/스펙 배킹 best-effort 관측치(정확 invariant 아님)임을 L98 이 2 카운터 holder 전수로 census 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 53주기째) → cycle 2070. 후보: MediaCandidates lockstep(L1832/L1096/L1214)·MaxMediaCandidates 캡(cycle2058)·non-media OGData 필드 sync(cycle2046)·no_primary_media 분류(L130)·robots.txt 준수(L282/L829) 외 미수록 sub-axis(ScriptAdapter goja 결과 타입변환·thumbnail 선택 우선순위).
+
 ## 2026-07-02 — [system] cycle 2066 Discovery — 에러처리: context.Canceled(클라이언트 단절) 500 오분류 (HTTP 핸들러 취소 처리 비일관) (covered-by-census)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 51주기째)에서 "API 핸들러 중 tag/handler.go:72-74 만 `if r.Context().Err()==context.Canceled { return }` 로 클라이언트 단절을 단락하고 나머지 핸들러는 일률 `log.Printf+writeError(500)` 라, 단절을 500 서버에러로 오분류해 에러 로그/메트릭을 오염시키는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 에러처리. context.Canceled↔500 오분류·취소 처리 핸들러 간 일관성.
