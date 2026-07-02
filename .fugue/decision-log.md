@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2557 Discovery — responsive 281st round: 브레이크포인트-접두 반응형 문장부호 행걸침 토글(`sm:[hanging-punctuation:first]`) 표면 폐기 (triply-vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 281st round)에서 "일부 본문만 `sm:[hanging-punctuation]` 로 폭별 문장부호 행걸침(광학 정렬)을 전환하고 동종은 고정이라 반응형 걸침이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2549 forward-pointer(`sm:[hanging-punctuation]` 등) 채택. base 는 L367(정적 aesthetic 행 가장자리 타이포)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:decoration-*·sm:text-wrap 선례와 동일 패턴). tab-size/caret-color 도 동일 조건이나 hanging-punctuation 이 타이포 광학 정렬로 가장 응집.
+- MANDATORY 체크: subj=0(`sm:[hanging-punctuation` 반응형 dedicated 없음)·anti-patterns total=0(sm:[hanging-punctuation 반응형 표기 전무)·code=0(`sm:[hanging-punctuation:*]`·정적 `hanging-punctuation`·arbitrary `[hanging-punctuation:first]` apps/web/src 0건)·DESIGN.md=0(hanging-punctuation/행걸침/매달림/광학 정렬/문장부호 0). triply-vacuous.
+- 근거: (1) hanging-punctuation 선언 0(반응형·정적 모두, pure vacuous) → 폭별 걸침이 갈릴 모집단 0. (2) 본문 좌우 정렬은 flush(걸침 없음) 기본·여백은 px-*/컨테이너 패딩 토큰으로 균일 → 폭별 광학 정렬 토글 idiom 부재. (3) DESIGN 반응형 행걸침 미규정.
+- DESIGN.md 확인: 105줄 grep hanging-punctuation/행걸침/매달림/광학 정렬/문장부호 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 responsive 재진입 후보: base 가 census 됐고 code=0·sm: 토글 total=0 인 `sm:[tab-size]`(코드 블록 탭 폭·base subj=2)·`sm:[caret-color]`(입력 캐럿 틴트·base subj=1) subj/total 확인 후 폭별 토글 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2555 Discovery — aesthetic 303rd round: 폴백 폰트 사이즈 보정 메트릭-기준 키워드(`font-size-adjust: <metric> <ratio>`) 표면 폐기 (triply-vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 303rd round)에서 "일부 텍스트만 `cap-height`/`ic-width` 등 특정 메트릭 기준으로 폴백 크기를 보정하고 동종은 기본 ex-height/미보정이라 폴백 시각 크기 보존 기준이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. list/marker/content/decorative property 다수 probe 결과 dedicated. `font-size-adjust` two-value 메트릭 키워드(ex-height/cap-height/ch-width/ic-width/ic-height)는 L272(tokens: font-size-adjust 토큰화 여부)와 다른 *aesthetic 시각 보정 기준 선택* 차원·`ex-height`/`ch-width` total=0·code=0 → sub-carve.
