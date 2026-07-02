@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2497 Discovery — tokens 295th round: 컬러 폰트 팔레트 구성 디스크립터(`base-palette`/`override-colors`) 표면 폐기 (triply-vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 295th round)에서 "`@font-palette-values` 안의 `base-palette`(팔레트 시작 인덱스)/`override-colors`(개별 색 덮어쓰기) 디스크립터로 COLR/CPAL 컬러 폰트 색 구성이 표면 간 갈리거나 override-colors 임의값 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. `@font-palette-values` 디스크립터 `base-palette`/`override-colors` 의 단독 sub-carve. decision-log L74 "차기 tokens 재진입 후보" 가 `@font-palette-values base-palette/override-colors 팔레트 세부(L639 모-센서스)` 를 명시 큐잉한 것을 선택.
+- MANDATORY 체크: (1) `base-palette`/`override-colors` grep src+globals **0건**(디스크립터 모집단 0). (2) 모 `@font-palette-values`/`font-palette` grep **0건**(디스크립터 컨테이너 부재·L639 모-센서스 인벤토리). (3) 사용 폰트 전부 비컬러 폰트(globals:58 General Sans/Pretendard·:59 Geist Mono·:72 Pretendard body → COLR/CPAL 다색 폰트 아님·팔레트 대상 부재). (4) DESIGN.md palette/font-palette/COLR/CPAL grep **0건**(색 팔레트는 L36-52 단색 hex 토큰이지 폰트 내장 팔레트 아님).
+- 근거: triply-vacuous — 디스크립터 0 + 컬러 폰트 미사용(팔레트 대상 부재) + DESIGN.md silent. `base-palette`/`override-colors` 는 anti-patterns L639 `[design][tokens] @font-palette-values/font-palette 컬러 폰트 팔레트 at-규칙 모-센서스`의 내부 디스크립터(subj-ded=0·tot=2 incidental)로, at-규칙 application 일관성 차원(L639)과 디스크립터 구성 세부 차원(본 사이클)은 별개·longhand-descriptor sub-carve. @font-face 메트릭 오버라이드(L459)·@font-feature-values(L1004)·색 hex 토큰(L36-52)과 비중첩.
+- DESIGN.md 확인: 105줄 전수 컬러 폰트 팔레트 미규정(grep 0)·L16-25 폰트 패밀리/CDN 만 SHALL·L36-52 색 토큰은 단색 hex → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(디스크립터 0·모 at-규칙 0·DESIGN 0)+폰트 선언 비컬러 확인으로 정적 검증.
+- 차기 tokens 재진입 후보(선점 시 PIVOT): `@counter-style` `pad`/`fallback`/`range` 잔여 디스크립터(L634 모-센서스·additive-symbols cycle 2481)·`image-set()`/`-webkit-image-set()` 해상도별 이미지 소스 토큰(raster 배경 0·image-set L598 aesthetic subject 재검)·`@font-palette-values` 는 본 사이클로 디스크립터까지 소진. tokens fresh 축 극심 saturation — 실제 divergence 는 font-size FIX(QA 차단)뿐.
+
 ## 2026-07-02 — [design] cycle 2495 Discovery — states 272nd round: 미디어 버퍼링 로딩 상태 의사클래스(`:buffering`) 표면 폐기 (triply-vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 272nd round)에서 "video/audio 버퍼링 로딩 상태(`:buffering`) 커스텀 시각 피드백(스피너 오버레이·컨트롤 흐림)이 미디어 표면 간 갈리거나 일부만 :buffering 오버레이·버퍼링 로딩 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. `:buffering`(미디어 재생 중 네트워크 버퍼 부족 로딩 상태 의사클래스)의 단독 sub-carve. decision-log L140 "차기 states 재진입 후보" 가 `:buffering`/`:seeking`(L415 미디어 GROUP 명명 멤버·sub-carve 여지) 를 명시 큐잉한 것을 선택.
