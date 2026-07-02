@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2573 Discovery — responsive 283rd round: 브레이크포인트-접두 반응형 캐럿 색 토글(`sm:[caret-color:...]`→`md:[caret-color:auto]`) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 283rd round)에서 "일부 입력만 `sm:[caret-color]` 로 폭별 캐럿 틴트를 전환하고 동종은 고정이라 반응형 캐럿 색이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. 차기 responsive 후보(sm:[caret-color], base subj=2) 채택. `sm:[hyphens]` 는 이미 반응형 토글 census(Korean phrase match=1) → 회피. base 는 L307(정적 tokens 캐럿 색 토큰)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:text-wrap(2549)·sm:hanging-punctuation(2557)·sm:tab-size(2565) 선례와 동일 패턴).
+- MANDATORY 체크: total=0(`sm:[caret-color]` 반응형 토글 census 부재·L307 은 정적 tokens)·code=0(`caret-color`·`caret-*` 유틸·arbitrary apps/web/src grep 0)·DESIGN silent(caret-color/캐럿/삽입 커서 grep 0) → triply-vacuous(pure vacuous).
+- 근거: input/textarea 캐럿은 브라우저 기본 `caret-color:auto`(텍스트색 상속)로 균일·포커스 강조는 focus:ring-*/focus:border-accent 로 처리 → 폭별 캐럿 색 교체 idiom 부재.
+- DESIGN.md 확인: 105줄에 반응형 캐럿 색 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L307(caret-color 정적 tokens 전역 캐럿 틴트 토큰화 각도)와 별개 — 본 축은 그 속성의 BP별 반응형 토글 차원.
+- 차기 responsive 재진입 후보: base 가 census 됐고 code=0·sm: 토글 total=0 인 속성 잔여 스캔 — `sm:[accent-color]`(폼 컨트롤 accent·base 확인 필요)·`sm:[scroll-behavior]`(스크롤 애니메이션)·`sm:[text-underline-offset]`(이미 sm carve?) subj/total 확인 후 폭별 토글 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2571 Discovery — aesthetic 305th round: 닷지/번/라이트 계열 분리형 블렌드 모드(`mix-blend-mode: color-dodge`/`color-burn`/`soft-light`/`hard-light`) 표면 폐기 (pure vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 305th round)에서 "일부 작품 미디어/오버레이만 `color-dodge`/`soft-light` 등 명암 블렌드로 톤을 섞고 동종은 미적용/기본 합성이라 명암 합성이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. cycle 2563 forward-pointer(분리형 블렌드 개별 모드 soft-light/color-burn/color-dodge/hard-light·L482 열거 외) 채택. mix-blend-mode 의 *분리형 명암 조정 계열*(채널별 밝힘/어둠/대비)을 정적 명암·발광 회화 차원으로 sub-carve.
