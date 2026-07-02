@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2072 Discovery — OpenSpec갭: interaction capability piggyback wiring(3 핸들러 best-effort INSERT·미인증 미기록·응답 불변) (covered-by-census)
+- 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 54주기째)에서 "interaction/spec.md 2 Requirement(유저 행동 기록 SHALL·3 핸들러 GET /pins/{id}·POST /pins·POST /boards/{id}/pins 진입 시 인증 호출자 한해 best-effort INSERT SHALL) 이 미구현/미정합 — piggyback 누락·미인증 기록·best-effort 위반(응답 실패)·type allowlist 표류" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: OpenSpec갭. interaction piggyback wiring 계약(best-effort·auth-guard·response-invariance).
+- MANDATORY 체크: 본 capability 2 Requirement 8 Scenario 는 **L88(cycle 714)이 정확히 커버** — (1) 3 piggyback site 전부 존재: pin/handler.go:374 Create→Record(p.ID,"pin")(201 직전)·:404 GetByID→`if creatorID,ok:=CreatorIDFromContext;ok{Record(id,"view")}`(200 직전)·boards/handler.go:594 AddPin→Record(workID,"board_add")(rowsAffected≠0 후·201 직전); (2) 미인증 미기록=라우트 레벨(GET /pins/{id} main.go:149 OptionalJWT+`if ok` 분기·POST 2개는 JWTMiddleware 필수라 미인증 401 선차단); (3) void Record=best-effort 계약(recorder.go:27-39 isValidInteractionType 실패·CreateInteraction DB에러를 log.Printf 만·에러 미반환→응답 status/body 불변); (4) 409 중복·rollback 경로 미기록이 정합(비-success). 실제 코드 재확인: recorder.go:18-39(void best-effort)·pin/handler.go:402-405(if ok 가드)·:373-374(Create)·boards/handler.go:593-594(AddPin)·main.go:149(OptionalJWT).
+- 근거: 3 piggyback·라우트 auth·void best-effort·비-success 미기록이 spec 2 Req 8 Scenario 를 전수 충족함을 L88 이 census 로 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 55주기째) → cycle 2074. 후보: OAuth returnTo open-redirect(cycle2062 covered)·CRLF 인젝션(L1167)·JWT alg confusion(cycle2050 covered)·SSRF(L209)·업로드 MIME 위조(L71 관련) 외 미수록 sub-axis(secure 쿠키 domain·mass assignment·CORS preflight).
+
 ## 2026-07-02 — [system] cycle 2070 Discovery — 봇: pickMediaForPin 썸네일→media_url 선택 우선순위·media_type 파생 일관 (covered-by-census)
 - 결정: 봇 area(6-area rotation 동시성→봇, 53주기째)에서 "pickMediaForPin(harvest_pipeline.go:316) 이 pins.media_url/media_type row 를 ThumbnailURL 우선→첫 MediaCandidate 순으로 고르는데, 우선순위가 뒤바뀌거나·ThumbnailURL 이 image 인데 video candidate 를 골라 media_type 오분류하거나·빈 doc 에서 빈 media_url 을 영속하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 봇. media_url/media_type row 선택 우선순위·파생 일관.
