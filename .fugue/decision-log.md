@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2567 Discovery — states 281st round: 복합(연쇄) 속성 선택자 conjunction(`[a][b]` 논리곱) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 281st round)에서 "일부 상태 스타일만 `[a][b]` 복합 조건(AND 논리곱)으로 좁히고 동종은 단일 `[a]`/클래스 조합이라 상태 매칭 조건 논리곱이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2559 forward-pointer(속성 선택자 계열 미carve 차원 — 다중 속성 선택자 chaining) 채택. 속성 선택자 family 에서 2543(대소문자 플래그)·2551(값 매칭 연산자)·2559(네임스페이스)가 *단일 조건 내부 수식* 을 carve 한 데 반해 *여러 조건 연쇄 conjunction*(`[a][b]`, 조건 개수/결합 차원) sub-carve.
+- MANDATORY 체크: total=0(복합/연쇄 속성 선택자 census 부재)·code=0(`][` 연쇄 속성 선택자 apps/web/src CSS grep 0·복합 arbitrary `[&[a][b]]` 0)·DESIGN silent(복합 선택자/AND 조건/논리곱 grep 0) → triply-vacuous(pure vacuous). (`:state()` 은 L464/L1219 dedicated → 회피)
+- 근거: 다중 조건 상태 스타일은 `[a][b]` CSS 논리곱이 아니라 JSX 조건부 className 조합(clsx)·`data-[state=open]:` 단일 Tailwind variant·`aria-*` 단일 매칭으로 처리 → 순수 CSS 복수 속성 조건 연쇄 idiom 부재.
+- DESIGN.md 확인: 105줄에 복합 속성 선택자 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: 2543/2551/2559(단일 조건 내부 수식 — 플래그/연산자/네임스페이스)와 별개 — 본 축은 다중 조건 결합(conjunction) 차원.
+- 차기 states 재진입 후보: 속성 선택자 family 잔여 미carve 차원 — 속성 선택자 + 의사클래스 결합(`[a]:hover`)·`[attr]` 대소문자 무관 로컬명 매칭(HTML vs XML case-fold) 또는 결합자별 속성 선택자(`>[a]`/`+[a]`) subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2565 Discovery — responsive 282nd round: 브레이크포인트-접두 반응형 탭 폭 토글(`sm:[tab-size:2]`→`md:[tab-size:4]`) 표면 폐기 (pure vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 282nd round)에서 "일부 코드 블록만 `sm:[tab-size]` 로 폭별 탭 폭을 전환하고 동종은 고정이라 반응형 탭 밀도가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. 차기 responsive 후보(sm:[tab-size], base subj≥2) 채택. base 는 L289(정적 tokens 공백·탭 처리)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:decoration-*·sm:text-wrap(2549)·sm:hanging-punctuation(2557) 선례와 동일 패턴).
