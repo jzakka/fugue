@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2080 Discovery — 동시성: 타임아웃/취소 watchdog goroutine 수명(defer cancel/close 로 leak-free) (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 58주기째)에서 "타임아웃/취소 감시 보조 goroutine 이 부모 조기반환 시 종료 신호를 못 받아 누수(leak)·wakeup edge 부재로 영구 블록·Interrupt 가 finished VM 과 경합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. 타임아웃/취소 watchdog goroutine 수명(leak-free termination).
+- 조사: 감시 goroutine 2곳 전부 defer-기반 wakeup edge 로 항상 종료 — goja_executor.go:47 `go func(){ <-timeoutCtx.Done(); vm.Interrupt() }` 는 :45 `defer cancel()` 가 Execute 반환 시 timeoutCtx.Done() 을 닫아 unblock·종료(Interrupt 는 single-use finished VM 에 no-op)·playwright_fetcher.go:114 `go func(){ select{ <-ctx.Done():page.Close(); <-done: } }` 는 :113 `defer close(done)` 가 Fetch 반환 시 done 분기로 종료 보장. 부모 모든 반환 경로에서 defer 가 종료 신호를 발화 → leak 0.
+- covered-by: **L183(동시성·cycle 788)** 이 정확히 이 3곳(goja_executor.go:47·playwright_fetcher.go:114·main.go:231 serverErr) 을 전수 열거하고 "3곳 모두 defer-기반 wakeup edge 로 leak-free 라 결함 아님" 판정. 보조: L87(go func spawn goroutine leak 일반)·L62(context.WithCancel/WithTimeout cancel 누수). static "watchdog goroutine 누수·wakeup edge 부재 블록·Interrupt 경합" 은 FP(L183 전수 커버).
+- vacuous 확인: sync.Once/errgroup/sync.WaitGroup grep 0건(해당 3 축 모집단 부재·`.Add(1)` 매치는 전부 atomic counter). WaitGroup Add-in-goroutine 은 cycle 760(L149) 커버이나 현 WaitGroup 자체 0.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 59주기째) → cycle 2082. 후보: pickMediaForPin 미디어 선택(cycle2070 L71/L130/L218)·og_data/media_candidates lockstep(cycle1832)·nodeStats 스냅샷(cycle2068 L98)·FilterChain 순서(L206) 외 미수록 sub-axis(adapter registry lookup·harvester dedup url_hash·classifier field 판정).
+
 ## 2026-07-02 — [system] cycle 2078 Discovery — 에러처리: JSON 요청 바디 디코드 에러 처리 일관성(MaxBytesError→400·EOF→400·MaxBytesReader 래핑) (covered-by-census)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 57주기째)에서 "HTTP 핸들러의 JSON 요청 바디 디코드가 malformed/empty(EOF) 본문 에러를 삼켜 zero-struct 로 진행하거나·oversize 본문을 무제한 spool(DoS)하거나·디코드 실패 후 400/return 누락으로 이중처리" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 에러처리. JSON 요청 바디 디코드 에러 처리 일관성(handler decode error → 400).
