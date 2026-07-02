@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2519 Discovery — states 275th round: 미디어 볼륨 잠금 상태 의사클래스(:volume-locked) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 275th round)에서 "미디어(audio/video)가 볼륨 잠금 시 `:volume-locked` 로 상태별 시각 전환(볼륨 슬라이더 dim/숨김·잠금 아이콘·오버레이)을 주는지·일부 미디어만 잠금 표식을 줘 동종 미디어 간 volume-lock 거동이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2511 forward-pointer(L54) #1 후보 `:volume-locked`(L415 미디어 재생 상태 의사클래스 GROUP 명명 멤버·볼륨 잠금 상태 sub-carve) 선택. :buffering(2495)·:seeking(2503)·:muted(2511) 형제 sub-carve 선례 → L415 GROUP 명명 멤버 6종 중 남은 :volume-locked 를 별개 상태 차원으로 sub-carve.
+- MANDATORY 체크: (1) `:volume-locked` CSS 룰·`[&:volume-locked]` arbitrary variant grep src+globals **0건**. (2) 미디어 표면 전부 네이티브 `controls` 위임 — `<audio controls>`(pins/[id]/page.tsx:62)·`<video controls>`(pins/[id]/page.tsx:70·PinCreateForm:397/400)·커스텀 트림 `<video>`(VideoTrimModal:217) 볼륨 잠금을 CSS 로 스타일 안 함. (3) 볼륨 제어 JS API(`volumechange`/`.volume`) 커스텀 0(VideoThumbnailPicker:21 `video.muted=true` 는 썸네일 무음용·볼륨 잠금 무관). (4) DESIGN.md `:volume-locked`/volume/볼륨/잠금 grep **0건**.
+- 근거: triply-vacuous — :volume-locked 의사클래스 0 + 커스텀 볼륨 잠금 상태 시각 피드백 0(네이티브 controls 위임) + DESIGN.md silent. L415 GROUP 형제 담당 차원 분리: :buffering(2495 네트워크 스톨)·:seeking(2503 탐색)·:muted(2511 음소거[출력 억제])·:playing/:paused(재생 트랜스포트)·본 축 :volume-locked(볼륨 조절 잠금[제어 불가]). muted(볼륨 유지·출력만 끔) vs volume-locked(볼륨 조절 인터페이스 비활성) 구별. states dedicated subject 0 확인(8 매치는 L415 GROUP+형제 census 교차참조).
+- DESIGN.md 확인: 105줄 전수 볼륨 잠금 상태 시각 전환 미규정(grep 0)·L85 Video card 는 썸네일+재생 아이콘+길이만 SHALL·볼륨 잠금 표식 미규정 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(:volume-locked 0·네이티브 controls 위임·볼륨 JS API 0·DESIGN 0)으로 vacuity 확인.
+- 차기 states 재진입 후보(선점 시 PIVOT): `:playing`/`:paused`(L415 GROUP 재생 트랜스포트 쌍·마지막 미디어 상태 멤버)·`:link`/`:visited`(anti near-subj 1·링크 방문 상태)·`:read-write`(편집 가능 상태). states 극심 saturation·미디어 상태군 대부분 sub-carve 소진(:buffering 2495·:seeking 2503·:muted 2511·:volume-locked 2519 완료·L415 GROUP 6종 중 남은 :playing/:paused 재생 트랜스포트 쌍) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2517 Discovery — responsive 276th round: 브레이크포인트-접두 반응형 밑줄 두께 토글(sm:text-decoration-thickness) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 276th round)에서 "`sm:decoration-2`/`md:decoration-4`/`lg:decoration-auto`(text-decoration-thickness 밑줄 두께를 화면폭별로 전이하는 BP-접두 반응형 토글)로 밑줄 두께가 표면 간 갈리거나 일부 링크만 sm:decoration·동종은 고정" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2509 forward-pointer(L61) #1 후보 `sm:text-decoration-thickness` 폭별 밑줄 두께(resp-subj=0·base tokens L315) 선택. base 속성 text-decoration-thickness 는 tokens 데코 토큰 census(L315)에 subj 존재 → sm: 폭별 반응형 토글은 별개 차원 sub-carve(sm:underline-offset 2509·sm:hanging-punctuation 2493·sm:font-feature-settings 2501 vein).
