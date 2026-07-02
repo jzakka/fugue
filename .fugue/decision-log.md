@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2499 Discovery — aesthetic 296th round: SVG 채널별 전달 함수 자식 노드(`feFuncR`/`feFuncG`/`feFuncB`/`feFuncA`) 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 296th round)에서 "`feComponentTransfer` 자식 `feFuncR`/`feFuncG`/`feFuncB`/`feFuncA` 로 R/G/B/A 채널 전달 함수(레벨/감마/포스터라이즈)를 지정해 색 채널 보정이 표면 간 갈리거나 tableValues/slope/gamma 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. `feComponentTransfer` 자식 채널 함수 노드 `feFuncR`/`feFuncG`/`feFuncB`/`feFuncA` 의 단독 sub-carve. decision-log L61 "차기 aesthetic 재진입 후보" 가 `feFuncR/feFuncG/feFuncB/feFuncA(feComponentTransfer 자식 전달함수 노드·subject=0 anymention=2)` 를 명시 큐잉한 것을 선택.
+- MANDATORY 체크: (1) `feFuncR`/`feFuncG`/`feFuncB`/`feFuncA` grep src **0건**(채널 함수 노드 모집단 0). (2) 부모 `feComponentTransfer` grep **0건**(컨테이너 프리미티브 부재·L1073 모-센서스 인벤토리). (3) SVG 필터 프리미티브(`fe[A-Z]`) 전수 **0건**·`<filter`/`filter=` **0건**(필터 파이프라인 부재·시각 효과는 CSS backdrop-blur/box-shadow/그라디언트 idiom). (4) DESIGN.md filter/transfer function/gamma/posterize grep **0건**(시각 효과 L86-93 hover/shimmer 만 SHALL).
+- 근거: triply-vacuous — 자식 함수 노드 0 + 부모 feComponentTransfer 0(SVG 필터 프리미티브 전무) + DESIGN.md silent. `feFunc[RGBA]` 는 anti-patterns L1073 `[design][aesthetic] feComponentTransfer 채널별 전달 함수 필터 프리미티브 모-센서스`의 자식 노드(subj-ded=0·anymention=2)로, 프리미티브 application 일관성 차원(L1073)과 자식 채널 함수 지정 세부 차원(본 사이클·type=identity/table/discrete/linear/gamma)은 별개·자식 노드 sub-carve. feColorMatrix(cycle 2491)·feDiffuseLighting/feSpecularLighting(L61)·feDisplacementMap 와 비중첩.
+- DESIGN.md 확인: 105줄 전수 SVG 채널 전달 함수 미규정(grep 0)·L86-93 hover translateY+box-shadow·shimmer 만 SHALL → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(feFunc* 0·feComponentTransfer 0·fe[A-Z] 전수 0·<filter> 0·DESIGN 0)로 정적 검증.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): 잔여 SVG 필터 프리미티브 `feDiffuseLighting`/`feSpecularLighting`(표면 조명 반사·L61 subject=2 재확인·조명 프리미티브)·`feDisplacementMap`(변위 매핑·subject=1)·`feImage`/`feTile`/`feMorphology`(잔여 프리미티브 재검). SVG 필터 프리미티브 극심 saturation, 잔여 소수 — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2497 Discovery — tokens 295th round: 컬러 폰트 팔레트 구성 디스크립터(`base-palette`/`override-colors`) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 295th round)에서 "`@font-palette-values` 안의 `base-palette`(팔레트 시작 인덱스)/`override-colors`(개별 색 덮어쓰기) 디스크립터로 COLR/CPAL 컬러 폰트 색 구성이 표면 간 갈리거나 override-colors 임의값 하드코딩" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. `@font-palette-values` 디스크립터 `base-palette`/`override-colors` 의 단독 sub-carve. decision-log L74 "차기 tokens 재진입 후보" 가 `@font-palette-values base-palette/override-colors 팔레트 세부(L639 모-센서스)` 를 명시 큐잉한 것을 선택.
