@@ -24,6 +24,14 @@
 - 근거: Add↔Load 짝맞춤·비원자 cross-field 가 문서/스펙 배킹 best-effort 관측치(정확 invariant 아님)임을 L98 이 2 카운터 holder 전수로 census 보유. 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = 봇 (6-area rotation 동시성→봇, 53주기째) → cycle 2070. 후보: MediaCandidates lockstep(L1832/L1096/L1214)·MaxMediaCandidates 캡(cycle2058)·non-media OGData 필드 sync(cycle2046)·no_primary_media 분류(L130)·robots.txt 준수(L282/L829) 외 미수록 sub-axis(ScriptAdapter goja 결과 타입변환·thumbnail 선택 우선순위).
+## 2026-07-02 — [design] cycle 2449 tokens 289th round — CSS 순환 값 토글 함수(toggle()) 표면 폐기
+- 결정: tokens area(289th round)에서 "중첩/형제 위치에 따라 값 목록을 순환하는 `toggle()` 로 일부 토큰만 값을 순환 소싱하고 동종은 고정 리터럴이라 값 소싱 어휘가 갈리는지" probe → **표면 폐기(pure vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: tokens. CSS 순환 값 토글 함수 `toggle()`(중첩 깊이/형제 위치 기반 값 순환) 사용 일관성. cycle 2441 forward-pointer("`toggle()` 순환 값 함수·L168 인근")를 재진입 후보로 채택.
+- MANDATORY 체크: (1) 신규성 — CSS `toggle()` 값 함수 anti=0(dedicated subject census 부재·L1225 first-valid census 의 forward-pointer sibling·L168 은 ThemeToggle 컴포넌트로 비-CSS). decision-log 의 "toggle(" 14건은 전부 ThemeToggle/JS 토글(비-CSS). 완전 fresh ded=0. (2) 코드 — globals.css+apps/web/src CSS 값 문맥 `toggle(` grep 0건(pure vacuous). 토큰은 정적 리터럴+var() 로 균일·중첩 값 순환 idiom 부재. (3) 유효성폴백축(first-valid() L1225)·조건함수축(if() L82)·리스트난수축(random-item() L1215)·커스텀속성폴백축(var())·속성취득축(attr() L395)과 별개 차원(toggle()=중첩/형제 위치 기반 값 순환).
+- 근거: CSS toggle() 선언 0건이고 중첩 값 순환 워크플로 부재라 "일부만 toggle·동종은 고정" 비정합 모집단이 0. toggle() 은 오래된 CSS Values 제안이라 브라우저 미구현. 중첩 마커/스타일 자동 교대는 미명시 enhancement 이지 결함 아님(loop rule line 9 미명시 취향).
+- DESIGN.md 확인: toggle/순환 값/중첩 값 토글 grep 0건. L37-52 Color·L16-35 Typography·L54-65 Spacing 은 정적 토큰 값만 규정·값-레벨 순환 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 tokens 재진입 후보: `if()` style-query 조건 값(조건함수축 재검·anti L82) 또는 `sibling-index()`/`sibling-count()` 형제-인덱스 파생 값(형제인덱스축 재검·anti L423) 축.
 
 ## 2026-07-02 — [system] cycle 2066 Discovery — 에러처리: context.Canceled(클라이언트 단절) 500 오분류 (HTTP 핸들러 취소 처리 비일관) (covered-by-census)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 51주기째)에서 "API 핸들러 중 tag/handler.go:72-74 만 `if r.Context().Err()==context.Canceled { return }` 로 클라이언트 단절을 단락하고 나머지 핸들러는 일률 `log.Printf+writeError(500)` 라, 단절을 500 서버에러로 오분류해 에러 로그/메트릭을 오염시키는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
