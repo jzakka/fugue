@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2555 Discovery — aesthetic 303rd round: 폴백 폰트 사이즈 보정 메트릭-기준 키워드(`font-size-adjust: <metric> <ratio>`) 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 303rd round)에서 "일부 텍스트만 `cap-height`/`ic-width` 등 특정 메트릭 기준으로 폴백 크기를 보정하고 동종은 기본 ex-height/미보정이라 폴백 시각 크기 보존 기준이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. list/marker/content/decorative property 다수 probe 결과 dedicated. `font-size-adjust` two-value 메트릭 키워드(ex-height/cap-height/ch-width/ic-width/ic-height)는 L272(tokens: font-size-adjust 토큰화 여부)와 다른 *aesthetic 시각 보정 기준 선택* 차원·`ex-height`/`ch-width` total=0·code=0 → sub-carve.
+- MANDATORY 체크: subj=0(메트릭 키워드 개별 dedicated 없음; L272 는 x-height 폴백 보정 토큰화 각도)·anti-patterns(`ex-height`/`ch-width` total=0·`cap-height`/`ic-width`/`ic-height` 는 ic/unit census 형제 언급 2건)·code=0(`font-size-adjust`·`ex-height`/`cap-height`/`ch-width`/`ic-width` apps/web/src 0건, single-value 포함)·DESIGN.md=0(font-size-adjust/metric/x-height/폴백/fallback 0). triply-vacuous.
+- 근거: (1) 메트릭 키워드 선언 0(single-value 포함, pure vacuous) → 보정 기준이 갈릴 모집단 0. (2) 폰트 폴백 크기 점프는 font-size-adjust 메트릭 보정이 아니라 폴백 폰트 스택(-apple-system/system-ui) 근접 메트릭·font-display 로 근사. (3) DESIGN 폴백 메트릭 보정 미규정.
+- DESIGN.md 확인: 105줄 grep font-size-adjust/metric/x-height/폴백/fallback 0건 — silent.
+- QA: 코드 변경 없음 → 실 브라우저 QA 불필요(0-candidate 표면 폐기, apps/web 무변경). anti-patterns 정적 census 만 append.
+- 차기 aesthetic 재진입 후보: blend-mode 개별 모드(color-dodge/hard-light/luminosity 등 mix-blend-mode 값)·`mask-composite` 연산자(add/subtract/intersect/exclude)·`-webkit-text-stroke-width`/`-color`(text-stroke shorthand 아닌 롱핸드) subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2553 Discovery — tokens 302nd round: x-하이트 상대 길이 단위(`ex`) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 302nd round)에서 "일부만 `ex`(소문자 x-하이트 높이) 로 높이/오프셋을 잡고 동종은 em/rem/px 로 잡아 높이 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2545 forward-pointer(`ex` x-하이트) 채택. `ex` 는 L410 group 파렌서티컬·L1288(ic) 형제 언급에만 나오고 개별 dedicated 부재·code=0 → L775(ch)·L1288(ic)에 이은 동일 그룹 개별 sub-carve. ch/ic 는 advance *폭* 파생, ex 는 글리프 *높이*(x-하이트) 파생으로 별개 차원.
