@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2064 Discovery — 정합성: DB CHECK 제약(chk_pins_media_type IN image/audio/video) ↔ Go 값-도메인 일관 (사용자 업로드 storage allowedMIME 경로) (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 50주기째)에서 "pins.media_type 은 `chk_pins_media_type CHECK (media_type IN ('image','audio','video'))`(000012)로 값-도메인이 제약되는데, **사용자 업로드 write 경로**(pin/handler.go → storage.Upload)가 도메인 밖 media_type 을 산출해 런타임 CHECK violation·핀 유실을 내는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. DB CHECK 값-도메인 ↔ Go 산출값 일관(사용자 업로드 producer).
+- MANDATORY 체크: 본 축은 **L71(cycle 694)이 정확히 커버** — L71 point(4) 가 "user 업로드 경로는 storage.go(const MediaImage/Audio/Video·allowedMIME)가 도메인으로 검증, spec L540 이 지원 도메인 image/audio/video 명시(스키마↔스펙 일치)" 로 명시. 실제 코드 재확인: storage.go:19-37 `MediaType` 타입 상수 3개(image/audio/video)·allowedMIME map(jpeg/png/gif/webp→image, mpeg/wav/ogg/flac→audio, mp4/webm→video)·Upload(:168-171) `mt, ok := allowedMIME[mime]; if !ok { return unsupported }` 로 allowlist 밖 MIME 전부 거부→반환 mt 는 구조적으로 항상 ∈{image,audio,video}→handler.go:344 `string(result.MediaType)` 로 INSERT 시 CHECK 항상 충족. harvester producer 는 L23(cycle456)+L71 point(1-3)이 커버(media_validator UnsupportedType 제거·per-item skip=spec L556-558 정합).
+- 근거: user 업로드 storage.Upload allowedMIME allowlist 가 media_type 을 3-도메인으로 강제해 chk_pins_media_type 을 write-time 구조적 충족함을 L71 이 census 로 보유(양 producer 전수). 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 51주기째) → cycle 2066. 후보: 쓰기자원 Close 에러(cycle2054/L1214)·named-return err clobber(L50)·resp.Body.Close 누수(L136)·DB write `_=` 삼킴(L147)·panic recovery(L276/L338/L188) 외 미수록 sub-axis(context.Canceled 오분류·partial write rollback).
+
 ## 2026-07-02 — [system] cycle 2062 Discovery — 보안: OAuth returnTo open-redirect (Login `redirect` 쿼리 → validateReturnTo → Callback `h.frontend+ReturnTo` 연결) (covered-by-census)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 49주기째)에서 "OAuth Login 이 `?redirect=` 쿼리를 returnTo 로 받아 Callback 에서 `h.frontend + stateData.ReturnTo` 로 연결·리다이렉트하는데 사용자-제어 값이라 `?redirect=@evil.com`·`.evil.com`·`//evil.com`·`/\evil.com` 으로 authority 를 공격자 도메인으로 바꿔 open-redirect/피싱이 되는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 보안. OAuth returnTo open-redirect 정제↔신뢰 origin 연결.
