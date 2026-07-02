@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [design] cycle 2585 Discovery — tokens 306th round: 부호/크기 수학 함수(CSS Values-4 `abs()`/`sign()` 토큰 부호 제거·방향 파생) 표면 폐기 (pure vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 306th round)에서 "일부 토큰만 `abs()`/`sign()` CSS 계산식으로 크기 정규화·방향을 파생하고 동종은 고정 리터럴이라 부호-처리 토큰이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. 타이포(underline/text-box/hyphenate/counter/ruby 등)·색 함수(oklch/color-mix/contrast-color/relative color L384/418/1076)·font-variant 전 계열 모두 saturated 확인 후, L406(CSS Values-4 고급 수학 함수 그룹)이 `abs`/`sign` 을 *부호 sub-family 멤버* 로만 열거하고 개별 미carve 임을 발견 → 스텝(양자화)·삼각(각도)·지수(성장) sub-family 와 다른 부호/크기 차원으로 sub-carve.
+- MANDATORY 체크: (1) CSS `abs(`/`sign(` 계산식·Tailwind arbitrary `[..:abs(..)]` apps/web/src·globals.css grep **0건**. 코드의 `abs(t-start)`(VideoTrimModal)·`abs(h)`(PinCard) 3건은 **JS `Math.abs()` 런타임 수치 연산**으로 CSS `abs()` 와 별개 언어 계층. (2) 토큰은 고정 rem/px 리터럴·방향은 개별 유틸(`-translate-x-*`/`ml-*`/`mr-*`)로 직접 지정 → CSS 계산식 부호 파생 idiom 부재. (3) DESIGN.md(105줄) abs/sign/절댓값/부호 grep **0건** → silent.
+- 근거: 세 독립 0-조건(CSS code 0 + 계산-파생 토큰 모집단 0 + DESIGN silent)로 triply/pure vacuous. "대칭 오프셋이 있으니 `abs()`/`sign()` 로 크기/방향을 파생한 토큰이 있거나 일부만 파생해 부호-처리가 갈릴 것" 정적 추정은 FP — CSS `abs()`/`sign()` 이 0·`Math.abs()` 는 JS 계층.
+- DESIGN.md 확인: 부호/크기 수학 토큰 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L406 은 CSS Values-4 고급 수학 함수 *그룹 collective*(스텝/삼각/지수/부호)로 abs/sign 을 부호 sub-family 멤버로만 열거 — 본 축은 그 그룹에서 `abs()`/`sign()`(부호 제거·크기 정규화·방향 파생) 부호/크기 sub-family 를 개별 sub-carve, group collective 와 별개.
+- 차기 tokens 재진입 후보: font-variant-ligatures 비공통 keyword(discretionary/historical/contextual — L496 aesthetic feature-tag 각도와 별개인지 재판단)·CSS `if()` 조건 함수(subj/L 재확인)·`@font-palette-values` override descriptor subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2583 Discovery — states 283rd round: 최상위 레이어 퇴장 유지 속성(CSS `overlay: auto`/`none` top-layer 잔류 타이밍) 표면 폐기 (pure vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 283rd round)에서 "일부 다이얼로그/팝오버만 `overlay: auto` 로 퇴장 전이 동안 top layer 에 잔류시키고 동종은 미지정이라 닫힐 때 퇴장 애니메이션이 잘려 top-layer 퇴장 표현이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. media/dialog 상태 의사클래스(:playing/:modal/:popover-open 등)·`@starting-style`(L837 진입)이 모두 saturated 확인 후, L747(`transition-behavior: allow-discrete`)이 overlay 를 이산-속성 *그룹 멤버 예시* 로만 언급하고 `overlay` 속성 자체의 top-layer 퇴장 잔류 차원은 미carve 임을 발견 → sub-carve.
