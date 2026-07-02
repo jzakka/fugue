@@ -27,6 +27,16 @@
 - **QA**: 로깅 채널 1-line 변경으로 동작 불변(에러 분기·반환값 무변). 단위 테스트 통과가 사전조건이며 실제 close-실패 재현은 fault-injection 필요로 생략 — 채널 교정은 코드 READ 로 검증 완결.
 - **차기**: area = 동시성 (6-area rotation 에러처리→동시성, 94주기째) → cycle 2152. 후보: harvester_consumer 워커 풀 공유 상태(HarvestStats 집계 시 mutex 여부)·image_cache.go 용량 카운터/맵 동기화·pioneer_consumer 배치 내 visited map 공유·bot snapshot store 동시 쓰기. 이월(타 축): bot/spec.md:562 HarvestStats 계약(OpenSpec갭)·helm _helpers.tpl 부재 렌더 실패(정합성·helm 미설치라 미검증).
 
+## 2026-07-03 — [design] cycle 2593 Discovery — tokens 307th round: 사용자 정의 카운터 스타일 음수 표기 디스크립터(`@counter-style` `negative`) 표면 폐기 (pure vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 307th round)에서 "일부 리스트만 `@counter-style` 의 `negative` 로 음수 마커 부호를 회계식 괄호/하이픈으로 커스텀하고 동종 다른 리스트는 기본 `-` 접두라 음수 마커 부호 표기가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. @font-palette-values(L1258/639)·anchor-size()·@counter-style 의 이미 carve된 디스크립터(additive L1249·pad L1262·fallback L1266·system:extends L1272·speak-as L1283) 모두 saturated 확인 후, 같은 at-규칙 L634(@counter-style)의 미carve 디스크립터인 `negative`(카운터 값이 음수일 때 앞/뒤 부호 심볼) 차원으로 distinct-dimension sub-carve.
+- MANDATORY 체크: (1) `@counter-style`/`negative:` apps/web/src grep **0건**. (2) `list-style`/`::marker`/`counter-`/`counter-reset`/`counter-increment` grep **0건** → 커스텀 카운터 참조 idiom 부재(브라우저 기본 마커·`list-style-type` 리터럴 수준), 음수 카운터 발현 조건 자체 부재. (3) DESIGN.md(105줄) counter/marker/번호/음수/negative grep **0건** → silent.
+- 근거: 세 독립 0-조건(@counter-style code 0 + 커스텀 카운터·음수 발현 모집단 0 + DESIGN silent)로 triply/pure vacuous. "순서 리스트가 있으니 음수 마커를 회계식 괄호로 준 곳이 있거나 일부만 커스텀해 갈릴 것" 정적 추정은 FP — `@counter-style` 선언 자체가 0·커스텀 카운터·음수 값 발현 site 없음.
+- DESIGN.md 확인: 커스텀 카운터 음수 부호 표기 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L634(@counter-style at-규칙 base)·L1249(additive 가산 알고리즘)·L1262(pad 자릿수 패딩)·L1266(fallback 범위 밖 대체)·L1272(system:extends 상속)·L1283(speak-as a11y 음성)와 별개 — 본 축은 `negative`(카운터 음수 값일 때의 앞/뒤 부호 심볼) 디스크립터 차원.
+- 차기 tokens 재진입 후보: @counter-style `range`(스타일 적용 정수 범위)·`prefix`/`suffix`(모든 마커 앞뒤 고정 문자열) 디스크립터 — 단 커스텀 카운터 도입 전엔 동일 pure-vacuous.
+
 ## 2026-07-03 — [design] cycle 2591 Discovery — states 284th round: WAI-ARIA 접근성 트리 소유 재부모화 속성(`aria-owns` DOM 외 소유 재정의) 표면 폐기 (pure vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 284th round)에서 "일부 포털 드롭다운/모달·복합 위젯만 `aria-owns` 로 접근성 트리 소유를 재부모화하고 동종은 DOM 순서 그대로라 접근성 트리 소유 계층이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. 폼/미디어/뷰전환 상태 의사클래스·caret/reading-flow·interactivity(L599)·::backdrop(L434/1281) 모두 saturated 확인 후, 관계-aria 군에서 L981(aria-actions)이 `aria-owns` 를 "DOM 외 소유를 표현하는" *비교 군-멤버* 로만 언급하고 개별 미carve 임을 발견 → 접근성 트리 소유 재부모화 차원으로 sub-carve. (주의: aria-controls 는 code=1(MyPageClient)로 populated singleton 이라 pure-vacuous 아님 → 회피하고 code=0 인 aria-owns 선택.)
