@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2467 Discovery — aesthetic 292nd round: SVG 필터 드롭섀도 단일 프리미티브(`feDropShadow`) 표면 폐기
+- 결정: pending=0 Discovery 사이클. aesthetic 회전(292nd round)에서 **SVG 필터 드롭섀도 단일 축약 프리미티브 `<feDropShadow>`**(feGaussianBlur+feOffset+feFlood+feComposite/feMerge 를 한 프리미티브로 묶은 그림자 필터) 축을 0-후보 표면 폐기(triply-vacuous)로 census 등록, 코드 변경 없음. per-SVG-filter-primitive carve 의 최초 dedicated baseline.
+- 축 선택: aesthetic. SVG 필터 그래프 내 `<feDropShadow>` 단일 프리미티브(CSS `filter: drop-shadow()` 함수·`box-shadow` 박스 그림자와 구별되는 SVG 필터 그림자 축). decision-log cycle 2265~ forward-pointer 가 feDropShadow 를 잔여 SVG 필터 프리미티브 후보로 반복 지목한 것을 본 census 가 확정.
+- MANDATORY 체크: (1) `feDropShadow` apps/web/src 전수 **0건**(globals 0) — SVG 필터 그림자 모집단 0=uniform. (2) 이를 담을 `<filter>` 컨테이너·CSS `filter:`·SVG `filter=`·`feGaussian`/`feOffset`/`feFlood`/`feMerge` 전부 **0건**(code=0) → 드롭섀도를 조립할 필터 그래프 파이프라인 부재. (3) anti-patterns feDropShadow 매치 1건(L668)은 flood-color/flood-opacity/lighting-color 필터 색 속성 census 의 "`<feFlood>`/`<feDropShadow>` 가 채울 색" 부수 언급으로 dedicated census 아님. triply-vacuous.
+- 근거: 카드/아이콘 그림자는 DESIGN.md L88 `box-shadow`(shadow-card-hover 0 8px 32px rgba)로 처리하고 SVG 필터 프리미티브 그림자를 쓰는 표면 부재 → 그림자 렌더 경로 0=coherent absence. feMerge(cycle 2259)·feTile(cycle 2267)·feImage(cycle 2275)·feConvolveMatrix(cycle 2243)·feComponentTransfer(cycle 2241)·flood-color(L668)와 별개 *흐림+이동+채움+합성 축약 드롭섀도* 차원.
+- DESIGN.md 확인: L88 카드 hover box-shadow 부상만 SHALL, SVG 필터 그림자(feDropShadow/filter) 미규정(grep 0건). DESIGN.md/AGENTS.md/CLAUDE.md 셋 중 어느 것도 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 없음(census-only 표면 폐기). anti-patterns.md tail 에 cycle 2467 baseline census 1건 추가, decision-log 최상단 본 항목 삽입. 빌드/런타임 영향 0.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): 잔여 SVG 필터 프리미티브 `feBlend`(혼합 모드 합성·anti 2)·`feOffset`(dx/dy 이동·필터 결과 오프셋)·`feDiffuseLighting`/`feSpecularLighting`(조명 필터 본체)·`feSpotLight`/`fePointLight`(광원 자식)·`feDropShadow` 후속 없음(본 사이클 소진). SVG 필터 프리미티브 극심 saturation — 잔여 소수. 단 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [system] cycle 2092 Discovery — 동시성: 순수 atomic 다중카운터 스냅샷 torn-read(nodeStats 5-tuple 비원자 Load, 원자 cross-field 불변식 부재로 benign) (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 64주기째)에서 "harvester nodeStats 5개 카운터를 각각 atomic.Add 로 증가하고 NodeStats() 스냅샷이 5개를 독립 atomic.Load 로 읽어 원자적이지 않음 → 동시 증가 시 찢긴(torn) 스냅샷(PinsCreated 는 반영·AdapterFallback 은 미반영)으로 5-tuple 합계 불변식(sum=처리노드수) 위반·통계 오독" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. 순수 atomic 다중카운터 스냅샷 일관성(mutex 없는 카운터 torn-read).
