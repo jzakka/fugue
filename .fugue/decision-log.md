@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2579 Discovery — aesthetic 306th round: 다중 레이어 스택 text-shadow 효과(네온 발광/faux stroke/엠보스) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 306th round)에서 "일부 텍스트만 콤마 구분 다중 그림자 레이어로 발광/외곽선/엠보스를 주고 동종은 단일 그림자/평면이라 다층 그림자 회화가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. mix-blend-mode 값 3계열(투영 L482·HSL 2563·명암 2571) 소진 후, text-shadow 계열에서 L343(존재/가독성)·L585(@theme 단일 토큰 스케일)이 carve 됐고 *다중 레이어 스택 합성*(네온 발광/faux stroke/엠보스) 미carve 발견 → 그것을 sub-carve.
+- MANDATORY 체크: total=0(다중 레이어 text-shadow 스택 census 부재·L343 존재/L585 토큰 스케일과 별개)·code=0(콤마 구분 복수 text-shadow·정적 text-shadow 모두 apps/web/src grep 0)·DESIGN silent(네온/발광/엠보스/외곽선 grep 0) + L11 "Decoration level: Minimal" 이 다층 발광 장식과 상충 → triply-vacuous(pure vacuous).
+- 근거: 텍스트 강조/가독성은 다층 발광 그림자가 아니라 font-weight·accent 색·bg-black/40 반투명 배경으로 처리 → 여러 그림자를 겹쳐 장식 합성하는 idiom 부재.
+- DESIGN.md 확인: 105줄에 다층 그림자 규정 전무·L11 Minimal 지향 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L343(text-shadow 존재/가독성)·L585(@theme 단일 그림자 토큰 스케일)과 별개 — 본 축은 그림자의 다층 스택 합성 회화(레이어 개수·구성) 차원.
+- 차기 aesthetic 재진입 후보: `-webkit-text-stroke-width`/`-color` 롱핸드(subj=3 재검)·다중 레이어 box-shadow 스택(inset+outer 겹침·subj 확인)·`filter: drop-shadow()` 다중 vs box-shadow subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2577 Discovery — tokens 305th round: 스크롤바 거터 예약 토큰(`scrollbar-gutter: stable`/`stable both-edges`) 표면 폐기 (pure vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 305th round)에서 "일부 스크롤 컨테이너만 `stable` 로 거터를 예약해 시프트를 막고 동종은 `auto`(기본)라 스크롤바 등장 시 레이아웃 시프트 방어가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. L410 폰트 상대 길이 단위·뷰포트 단위(vi/vb L990·cq* L?·dvh/svh)·해상도(L572/L686)·fr(L1072)·font-variant 전 계열·@property/font-face override·math-depth(L721) 모두 saturated 확인 후, L534 스크롤바 표현 토큰 그룹에서 `scrollbar-color`(L1123)만 개별 carve 됐고 `scrollbar-gutter`(거터 예약) 미carve 발견 → 그것을 sub-carve.
