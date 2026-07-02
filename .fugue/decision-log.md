@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2515 Discovery — aesthetic 298th round: CSS 텍스트 자간 조정 단축 속성(text-spacing shorthand) 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 298th round)에서 "`text-spacing`(text-autospace + text-spacing-trim 을 한 선언으로 묶는 CJK 자간 단축)이 일부 표면만 켜고 동종은 UA 기본에 위임해 CJK 조판 자간이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2507 forward-pointer(L61)의 caret-shape 는 L461 aesthetic "캐럿 외관 속성" GROUP 이 12필드 모집단 전수로 이미 값까지 census 완료(같은 area 재carve=중복)라 PIVOT. 35+개 obscure aesthetic 속성 probe(text-emphasis/paint-order/mask-*/ruby-*/corner-shape/hyphenate-*/dynamic-range-limit/line-fit-edge 등) 전부 subj≥1 saturation 확인 → `text-spacing` 단축(subj-exact=0·code=0)만 fresh. longhand(text-spacing-trim/text-autospace)는 L480 aesthetic 묶음 census 완료 → 단축 조정 차원은 별개 sub-carve.
+- MANDATORY 체크: (1) `text-spacing` 단축 grep src+globals **0건**(text-spacing-trim·WCAG 1.4.12 a11y 언급 제외). (2) longhand `text-autospace`/`text-spacing-trim` 도 전수 0건(L480 확인) — CJK 자간 표면 전부 UA 기본 위임(한국어 lang=ko 앱 layout.tsx). (3) `text-spacing` shorthand dedicated subject line-leading **0**(L480 은 `text-spacing-trim`/`text-autospace` longhand 묶음 subject·단축 아님). (4) DESIGN.md `text-spacing`/autospace/CJK/자간 grep **0건**.
+- 근거: triply-vacuous — text-spacing 단축 0 + longhand 자간 조정 0(UA 기본 위임) + DESIGN.md silent. 단축-대-longhand 차원 분리: L480(text-spacing-trim/text-autospace)=개별 트리밍/자동간격 거동·본 축 text-spacing=두 longhand 단일 선언 조정(normal/none/auto 단축 키워드 포함). `font` 단축 vs font-* longhand 처럼 별개 차원.
+- DESIGN.md 확인: 105줄 전수 CJK 자간/구두점 트리밍 미규정(grep 0)·Typography L16-35 폰트 패밀리/크기/행간만·색/여백 L37-66 CJK 자간 SHALL 안 함 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(text-spacing 단축 0·longhand 0[L480]·shorthand subj 0·DESIGN 0)으로 vacuity 확인.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): `text-box`/`text-box-trim`/`text-box-edge`(leading-trim 상하 여백 절삭·subj 재검)·`text-emphasis-skip`(강조 표식 생략 대상·subj=1 재검)·`caret-shape`(L461 aesthetic GROUP 이미 12필드 census — 재carve 시 tokens area 로만·caret-animation L1139 선례). aesthetic fresh 축 극심 saturation(298th round·35+ 속성 probe 전부 subj≥1) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2513 Discovery — tokens 297th round: 사용자 정의 카운터 스타일 폴백 디스크립터(@counter-style fallback) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 297th round)에서 "`@counter-style` 의 `fallback`(range 초과·system 표현 불가 시 대체 카운터 스타일 지정)이 일부 목록만 정의되고 동종은 미정의라 카운터 폴백 거동이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2505 forward-pointer(L68) #1 후보 `@counter-style fallback`(카운터 범위 초과 폴백 스타일·any=3·subj=0 잔여 디스크립터) 선택. pad(2505)·additive-symbols(2481)·speak-as(L920) 형제 디스크립터 sub-carve 선례 → L634 `@counter-style` 모-센서스 잔여 디스크립터 fallback 을 별개 차원으로 sub-carve.
