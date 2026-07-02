@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2046 Discovery — 봇: 비-미디어 OGData 파생필드(Lang/Author/PublishedAt) doc↔og_data 동기화 (NEW baseline)
+- 결정: 봇 area(6-area rotation 동시성→봇, 41주기째)에서 "PinDocument 이 Lang/Author/PublishedAt 를 top-level 과 OGData 두 곳에 중복 보유하고 OGData 만 og_data JSONB 로 영속하는데, harvester 후처리가 top-level 만 바꾸고 OGData 를 재동기화 안 해 영속 og_data 가 stale/desync 되는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
+- 축 선택: 봇 정합성. 비-미디어 OGData 파생필드(Lang/Author/PublishedAt)의 doc↔og_data lockstep — MediaCandidates lockstep(L1096/L1214)이 *재변형되는* 미디어 후보의 재미러 축인 것과 정반대로, 이 필드들은 *재변형되지 않는* set-once 불변성이 안전 메커니즘.
+- MANDATORY 체크: (1) 신규성 — L1096(cycle1832)/L1214(cycle2034)는 MediaCandidates 전용이고 그 exception clause (d)가 "Lang/Author/Classifier/MediaValidation" 을 명시적 carve-out(=미커버, 발견 시 별도 등록)으로 배제 → Lang/Author/PublishedAt 축 미커버. (2) refuted — extractor.go:83/89 set + :95-96 즉시 OGData 미러 + :91-93 PublishedAt 조건부 동시설정; `.Lang=`/`.Author=` grep 이 apps/api 전수 4곳(전부 extractDocument 내)뿐·후처리 재대입 0건; harvest_pipeline.go:283 `MarshalOGData(doc.OGData)` 단일 영속 소비자·top-level→별도컬럼 소비자 0건. (3) decision-log 0건.
+- 근거: set-once+즉시 미러+재변형 0(불변)+단일 영속 소비자 4중으로 stale/desync 표면 구조적 부재. FilterValidMedia/filterOverlongMediaURLs 는 MediaCandidates 만 in-place 변형·Lang/Author/PublishedAt 미터치.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail 1222줄로 +1.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 42주기째) → cycle 2048. 후보: scheduler Crawl-delay 반영(L cycle1834 covered)·auth /me 프로필(cycle2036 covered)·pin 목록 필터(L234)·board capability(L248) 외 미수록 Requirement/Scenario sub-axis.
+
 ## 2026-07-02 — [design] cycle 2435 aesthetic 288th round — 라이브 요소 이미지 함수 element()(-moz-element) 표면 폐기 (doubly-vacuous)
 - 결정: aesthetic area(288th round)에서 "CSS `element()`/`-moz-element()`(Firefox 전용 이미지 함수 — `background-image: element(#id)` 로 살아있는 DOM 요소를 실시간 렌더해 이미지 소스로 참조)로 라이브 요소를 배경 이미지로 미러링하는데 일부 표면만 element() 로 미러링하고 동종 다른 표면은 정적 이미지라 이미지 소싱 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: aesthetic. 후보축 = 라이브 DOM 요소를 이미지 소스로 쓰는 `element()` 함수 정합. 이미지 교차 페이드 cross-fade()(618)·Houdini 페인트 워클릿 paint()(751)·해상도 선택 image-set()·그라디언트/url 이미지와 별개 차원 — 살아있는 요소 미러 이미지 축. 과거 사이클 1659/1683 이 element() 를 미처리 fresh 후보로 명시 지목(forward-pointer, ded=0·tot=0).
