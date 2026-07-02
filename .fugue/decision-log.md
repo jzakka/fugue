@@ -25,6 +25,13 @@
 - DESIGN.md 확인: Color(L37-52)·State(L82-88)는 색 토큰과 React 상태 시각만 SHALL, 민감 입력 마스킹 표시 미규정(loop-design.md L9 취향 축).
 - QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1220줄로 +1.
 - 차기 tokens 재진입 후보: `-webkit-text-security`(레거시 비표준 문자 마스킹 토큰) 축, 폼 `spellcheck`/`autocapitalize` 입력-거동 힌트 토큰 축.
+## 2026-07-02 — [system] cycle 2042 Discovery — 에러처리: 핸들러/goroutine panic 복구(recover) — recover 미들웨어 부재로 프로세스 크래시 (covered-by-census)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 39주기째)에서 "HTTP 핸들러 또는 spawn goroutine 의 panic 이 recover 부재로 프로세스를 크래시시키거나 in-flight 연결을 mid-write 로 끊는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 에러처리. panic 복구 경계(HTTP 라우터·백그라운드 goroutine·워커 Run 루프).
+- MANDATORY 체크: 사전 후보 3축 모두 census 편입 확인 — (a) `%w` unwrap 체인 = **L35**·(b) ctx.Background/TODO detach = **L266**·(c) panic 복구 = **L276+L338+L188**. 본 축(panic 복구) 정확 커버: L276(HTTP 핸들러 panic — chi `middleware.Recoverer` 가 단일 루트 라우터 체인 2번째 전역 등록 main.go:120·전 라우트 r.Route/r.With 부모 체인 상속·`.Mount` 0건·production `chi.NewRouter` 1곳)·L338(요청/워커 밖 spawn 백그라운드 `go func()` panic 격리)·L188(봇 워커 Run 루프 per-iteration recover).
+- 근거: HTTP·백그라운드 goroutine·워커 3경계 모두 census 로 panic 복구 커버. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 40주기째) → cycle 2044. 후보: mutex-free map race(L37)·channel close/send lifecycle(L52)·cancel 함수 호출 규율(L317)·containedctx(L1199) 외 미수록 sub-axis(sync.Once·errgroup·WaitGroup Add/Done 균형).
 
 ## 2026-07-02 — [system] cycle 2040 Discovery — 정합성: sqlc `:many` 빈 결과 nil 슬라이스→JSON `null`/`[]` 응답 shape 표면 정합 (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 38주기째)에서 "리스트/컬렉션 HTTP 핸들러가 sqlc `:many` 0행 nil 슬라이스(`[]T(nil)`)를 그대로 직렬화해 JSON 응답이 `[]` 대신 `null` 로 나가 클라이언트 배열 계약을 깨거나 동종 엔드포인트 간 응답 shape 가 갈리는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
