@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2435 aesthetic 288th round — 라이브 요소 이미지 함수 element()(-moz-element) 표면 폐기 (doubly-vacuous)
+- 결정: aesthetic area(288th round)에서 "CSS `element()`/`-moz-element()`(Firefox 전용 이미지 함수 — `background-image: element(#id)` 로 살아있는 DOM 요소를 실시간 렌더해 이미지 소스로 참조)로 라이브 요소를 배경 이미지로 미러링하는데 일부 표면만 element() 로 미러링하고 동종 다른 표면은 정적 이미지라 이미지 소싱 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: aesthetic. 후보축 = 라이브 DOM 요소를 이미지 소스로 쓰는 `element()` 함수 정합. 이미지 교차 페이드 cross-fade()(618)·Houdini 페인트 워클릿 paint()(751)·해상도 선택 image-set()·그라디언트/url 이미지와 별개 차원 — 살아있는 요소 미러 이미지 축. 과거 사이클 1659/1683 이 element() 를 미처리 fresh 후보로 명시 지목(forward-pointer, ded=0·tot=0).
+- MANDATORY 체크: (1) `element(#`/`-moz-element`/`background-image: element` grep 전수 0건(globals/src 0). (2) anti/decision-log 의 `element(` 매치는 전부 `pseudo-element(` 오탐 또는 forward-pointer(1659/1683)뿐, dedicated subject census 부재. (3) 배경 이미지는 shimmer linear-gradient 등 정적 그라디언트/url 로 균일, 라이브 요소 미러 idiom 0. (4) DESIGN.md element()/라이브 요소 이미지 grep 0건.
+- 근거: (a) element() 는 교차페이드/워클릿페인트/해상도선택/그라디언트가 아닌 라이브 DOM 요소 이미지 참조 함수이고 (b) 함수 0건 + 요소 미러 idiom 0건 → mechanism-absent(라이브 요소 미러 표면 0)+property-vacuous(element() 0) 이중 공허(Firefox 전용 니치·cross-browser 미지원으로 프로덕션 비현실).
+- DESIGN.md 확인: masonry/카드/그림자 토큰만 다루고 살아있는 요소 미러 이미지 미규정(loop-design.md L9 취향 축).
+- QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1221줄로 +1.
+- 차기 aesthetic 재진입 후보: `cross-fade()` 다중-이미지 합성 비율 정합(618 재검) 축, `image-set()` DPR 이미지 소스 세트 정합 축.
+
 ## 2026-07-02 — [design] cycle 2433 tokens 287th round — 민감 입력 마스킹 렌더 토큰 input-security 표면 폐기 (doubly-vacuous)
 - 결정: tokens area(287th round)에서 "CSS `input-security`(CSS UI 4 — `auto|none` 으로 UA 가 민감 텍스트 입력(비밀번호)의 문자를 가림점으로 마스킹할지 제어하는 폼 입력 렌더 토큰)로 민감 입력 마스킹 렌더를 통일하는데 일부 입력만 커스텀하고 동종 다른 민감 입력은 UA 기본이라 마스킹 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
 - 축 선택: tokens. 후보축 = 민감 입력 문자 마스킹 렌더 토큰 정합. 캐럿 색 caret-color(307)·캐럿 모양/깜박임 caret-shape/caret-animation(461/1139)·폼 자동크기 field-sizing·빈값 :blank(452)과 별개 차원 — 민감값 마스킹 표시 토큰 축.
