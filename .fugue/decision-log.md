@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2056 Discovery — 동시성: time.Timer/Ticker 재사용·Reset drain-race·Stop 누락 (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 46주기째)에서 "장수명 워커가 `time.Timer` 를 채널 drain 없이 Reset 해 spurious fire 를 내거나·`time.NewTicker` 를 Stop 없이 누수하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. reusable Timer 의 Reset drain-race·Ticker Stop 누락 누수.
+- MANDATORY 체크: (1) grep `time.NewTimer`/`time.NewTicker`/`.Reset(`/`time.Tick(` = **production 0건**(`.Stop()` 매치 2곳은 playwright_fetcher.go:50/80 `pw.Stop()` = 드라이버 정지·타이머 무관) → reusable Timer 부재 = Reset drain-race 모집단 0(vacuous). (2) 유일 타이머 메커니즘 = `time.After`(3곳 blocking select)로 재사용 Timer 아님.
+- 근거: 본 축은 **L215(cycle 824)가 정확히 커버** — "time.After/NewTicker/NewTimer 를 select 안 매 iteration 생성 타이머 누수/미발화 GC 지연/ticker Stop 누락" refuted(time.After 3곳 blocking select iteration 당 ≤1 타이머·NewTicker/NewTimer 0건). Reset drain-race 는 NewTimer 재사용을 전제하나 population 0 이라 vacuous. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 47주기째) → cycle 2058. 후보: 비-미디어 OGData 파생필드(cycle2046 covered)·MediaCandidates lockstep(L1096/L1214)·frontier claim/lease(L229)·trie_merge(L731) 외 미수록 sub-axis(Classifier 판정 파생·robots TTL dedup·MaxMediaCandidates cap 일관).
+
 ## 2026-07-02 — [system] cycle 2054 Discovery — 에러처리: 쓰기 자원(*os.File) Close() 에러 무시로 인한 부분파일·검증 우회 (NEW baseline)
 - 결정: 에러처리 area(6-area rotation 정합성→에러처리, 45주기째)에서 "`defer func(){ _=f.Close() }()`/`_=f.Close()` 로 파일 핸들 Close 에러를 폐기하는 site 다수(pin/handler.go:146/283/332)가 write-back flush 실패(ENOSPC/EIO/NFS)로 부분 파일을 남기고 후속 검증이 그 부분 파일을 측정해 SHALL 을 침묵 우회하는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
 - 축 선택: 에러처리. 쓰기 자원(io.Copy 로 데이터를 쓴 *os.File)의 Close/Flush 에러 무시 → 부분파일 데이터유실·검증우회.
