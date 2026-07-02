@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2559 Discovery — states 280th round: 네임스페이스 한정 속성 선택자(`[ns|attr]`=`[xlink|href]`) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 280th round)에서 "일부 SVG 만 `[xlink|href]` 네임스페이스 한정으로 속성을 매칭하고 동종은 `[href]` 무접두/`[*|href]` 전체네임스페이스라 속성 매칭 ns 기준이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. cycle 2551 forward-pointer(속성 선택자 계열 네임스페이스 한정) 채택. 속성 선택자 family 에서 cycle 2543(대소문자 플래그 `[attr="v" i/s]`)·cycle 2551(값 매칭 연산자 `[attr^=/$=/*=/~=/|=]`)에 이어 *네임스페이스 접두 한정*(`[xlink|href]`↔`[*|href]`↔`[href]`) 별개 차원 sub-carve.
+- MANDATORY 체크: total=0(`[ns|attr]` 네임스페이스 한정 선택자 census 부재)·code=0(`xlink`/`xmlns`/`namespace`/`[*|` apps/web/src grep 0)·DESIGN silent(namespace/네임스페이스/xlink/ns 접두 grep 0) → triply-vacuous(pure vacuous).
+- 근거: SVG 는 `href` JSX 속성·컴포넌트 prop·Tailwind className 으로 스타일/상태 처리 → 네임스페이스로 속성 매칭을 한정하는 idiom 부재. `xlink:href` 는 deprecated, 코드 0.
+- DESIGN.md 확인: 105줄에 namespace/xlink/ns 선택자 규정 전무 → `[ns|attr]` 는 취향/이슈 아님(loop-design.md line 9: 셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L656(`@namespace`/`@charset` at-rule 바인딩)·L781(`[open]` 무접두 존재 매칭)과 별개 — 본 축은 네임스페이스 바인딩을 속성 선택자에서 소비하는 `[ns|attr]` 매칭 차원.
+- 차기 states 재진입 후보: 속성 선택자 계열에서 아직 미carve 된 차원 — 다중 속성 선택자 chaining(`[a][b]`)·속성 선택자와 :state() 결합·`[attr]` 대소문자 무관 로컬명 매칭(HTML vs XML case-fold) 등.
+
 ## 2026-07-02 — [design] cycle 2557 Discovery — responsive 281st round: 브레이크포인트-접두 반응형 문장부호 행걸침 토글(`sm:[hanging-punctuation:first]`) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 281st round)에서 "일부 본문만 `sm:[hanging-punctuation]` 로 폭별 문장부호 행걸침(광학 정렬)을 전환하고 동종은 고정이라 반응형 걸침이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2549 forward-pointer(`sm:[hanging-punctuation]` 등) 채택. base 는 L367(정적 aesthetic 행 가장자리 타이포)에 census, 반응형 BP 토글 total=0·code=0 → sm: 폭별 토글 sub-carve(sm:decoration-*·sm:text-wrap 선례와 동일 패턴). tab-size/caret-color 도 동일 조건이나 hanging-punctuation 이 타이포 광학 정렬로 가장 응집.
