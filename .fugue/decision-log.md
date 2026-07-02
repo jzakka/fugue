@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2569 Discovery — tokens 304th round: 라인높이 상대 길이 단위(`lh`/`rlh`=줄 상자 높이) 표면 폐기 (pure vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 304th round)에서 "일부 표면만 `lh`/`rlh`(줄 상자 높이 배수) 로 세로 간격/높이를 잡고 동종은 `rem`/`px`/`em` 로 잡아 세로 리듬 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2561 forward-pointer(L410 그룹 잔여 `rlh`/`lh`) 채택. 폰트 상대 길이 단위 그룹(L410)에서 `ch`(L775 자폭)·`ic`(2545 표의문자 폭)·`ex`(2553 x-하이트)·`cap`(2561 캡하이트)에 이어 `lh`/`rlh`(줄 상자 *라인 메트릭 높이*) 개별 sub-carve — 개별 글리프 폭/높이와 다른 줄 상자 높이 파생원.
+- MANDATORY 체크: total=0(`lh`/`rlh` 단위 dedicated census 부재·L410 은 그룹 collective, group member 로만 언급)·code=0(`[0-9.]+lh\b`/`[0-9.]+rlh\b` apps/web/src grep 0)·DESIGN silent(lh/rlh/라인높이 단위/baseline grid grep 0) → triply-vacuous(pure vacuous).
+- 근거: 세로 리듬·블록 높이·스크롤 오프셋은 `lh`/`rlh` 줄 높이 배수가 아니라 rem/px 스페이싱 토큰·Tailwind space-y/gap/py·leading(line-height 자체) 로 처리 → 줄 높이 정수배로 baseline grid 를 맞추는 idiom 부재.
+- DESIGN.md 확인: 105줄에 라인높이 상대 단위/baseline grid 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L410 그룹 collective·L775 ch·L1288 ic·cycle 2553 ex·cycle 2561 cap 과 별개 — `lh`/`rlh` 는 줄 상자 높이(라인 메트릭) 파생(글리프 폭/높이 아님).
+- 차기 tokens 재진입 후보: L410 그룹은 `lh`/`rlh` carve 로 전 멤버 개별 sub-carve 완료(ch/ic/ex/cap/lh/rlh) — 대신 논리 뷰포트 단위 `vi`/`vb`(inline/block viewport, total=0·code=0) 또는 컨테이너 쿼리 길이 단위 `cqw`/`cqh`/`cqi`/`cqb` subj/total 확인 후 별개 파생원(뷰포트 논리축/컨테이너 상대) sub-carve.
+
 ## 2026-07-02 — [design] cycle 2567 Discovery — states 281st round: 복합(연쇄) 속성 선택자 conjunction(`[a][b]` 논리곱) 표면 폐기 (pure vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 281st round)에서 "일부 상태 스타일만 `[a][b]` 복합 조건(AND 논리곱)으로 좁히고 동종은 단일 `[a]`/클래스 조합이라 상태 매칭 조건 논리곱이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2559 forward-pointer(속성 선택자 계열 미carve 차원 — 다중 속성 선택자 chaining) 채택. 속성 선택자 family 에서 2543(대소문자 플래그)·2551(값 매칭 연산자)·2559(네임스페이스)가 *단일 조건 내부 수식* 을 carve 한 데 반해 *여러 조건 연쇄 conjunction*(`[a][b]`, 조건 개수/결합 차원) sub-carve.
