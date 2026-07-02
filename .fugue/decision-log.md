@@ -24,6 +24,14 @@
 - 근거: 3 piggyback·라우트 auth·void best-effort·비-success 미기록이 spec 2 Req 8 Scenario 를 전수 충족함을 L88 이 census 로 보유. 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = 보안 (6-area rotation OpenSpec갭→보안, 55주기째) → cycle 2074. 후보: OAuth returnTo open-redirect(cycle2062 covered)·CRLF 인젝션(L1167)·JWT alg confusion(cycle2050 covered)·SSRF(L209)·업로드 MIME 위조(L71 관련) 외 미수록 sub-axis(secure 쿠키 domain·mass assignment·CORS preflight).
+## 2026-07-02 — [design] cycle 2453 responsive 268th round — 브레이크포인트 양방향 격리/임베딩 토글(sm:[unicode-bidi]) 표면 폐기
+- 결정: responsive area(268th round)에서 "브레이크포인트별로 `unicode-bidi`(양방향 격리/임베딩 레벨: normal/embed/isolate/bidi-override/isolate-override/plaintext)를 `sm:[unicode-bidi:isolate]` 식으로 토글해 일부 표면만 BP에서 양방향 격리를 켜고 동종은 무-토글이라 양방향 렌더링 어휘가 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: responsive. `unicode-bidi` BP 토글(양방향 임베딩/격리 레벨을 브레이크포인트에서 전환). cycle 2445 forward-pointer(decision-log L98 responsive pointer "unicode-bidi/양방향격리축")를 재진입 후보로 채택. `sm:[direction]`(cycle 2445·인라인 기저 방향 ltr/rtl)·`sm:[writing-mode]`(anti L1223·블록 흐름 축)과 별개 차원(unicode-bidi=양방향 알고리즘 임베딩/격리 레벨).
+- MANDATORY 체크: (1) 신규성 — `unicode-bidi` dedicated subject census 부재(anti 매치 5건은 direction 축 sibling·sm:[writing-mode] L1223 sibling·forward-pointer 뿐, subject-lead 0). fresh ded=0. (2) 코드 — apps/web/src+globals.css `unicode-bidi` grep 0건(pure vacuous). 양방향 컨텍스트 API 전체 비-사용(direction/dir=/rtl/ltr/unicode-bidi/bdi/bdo 전수 0·doubly-vacuous). (3) 쓰기방향BP토글축(sm:[writing-mode] L1223·블록 흐름 세로/가로)·인라인방향축(sm:[direction] cycle 2445·ltr/rtl 기저)과 별개 차원(unicode-bidi=BiDi 알고리즘 임베딩/격리 강도).
+- 근거: unicode-bidi 선언 0건 + 양방향 API 전체 비-사용이라 "일부만 BP unicode-bidi 토글·동종은 무-토글" 비정합 모집단이 0. unicode-bidi 는 혼합 방향 텍스트 격리를 위한 속성인데 콘텐츠가 단일 방향(LTR 한국어/영문)이라 무의미. BiDi 격리 도입은 미명시 enhancement 이지 결함 아님(loop rule line 9).
+- DESIGN.md 확인: unicode-bidi/bidi/양방향/direction grep 0건. L67-72 Layout 은 masonry 그리드·브레이크포인트(sm 500/md 800/lg 1200)만 규정·양방향 렌더링 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 responsive 재진입 후보: `sm:text-align`(start/end BP 전환·정렬BP토글축) 또는 `sm:[writing-mode]` BP 쓰기 방향 전환(쓰기방향BP토글축 재검·anti L1223) freshness 재검 축.
 
 ## 2026-07-02 — [system] cycle 2070 Discovery — 봇: pickMediaForPin 썸네일→media_url 선택 우선순위·media_type 파생 일관 (covered-by-census)
 - 결정: 봇 area(6-area rotation 동시성→봇, 53주기째)에서 "pickMediaForPin(harvest_pipeline.go:316) 이 pins.media_url/media_type row 를 ThumbnailURL 우선→첫 MediaCandidate 순으로 고르는데, 우선순위가 뒤바뀌거나·ThumbnailURL 이 image 인데 video candidate 를 골라 media_type 오분류하거나·빈 doc 에서 빈 media_url 을 영속하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
