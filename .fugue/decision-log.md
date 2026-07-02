@@ -25,6 +25,13 @@
 - DESIGN.md 확인: masonry/카드/그림자 토큰만 다루고 살아있는 요소 미러 이미지 미규정(loop-design.md L9 취향 축).
 - QA: 코드 무변경(census-only 표면 폐기)이라 런타임 검증 대상 없음. anti-patterns.md tail 1221줄로 +1.
 - 차기 aesthetic 재진입 후보: `cross-fade()` 다중-이미지 합성 비율 정합(618 재검) 축, `image-set()` DPR 이미지 소스 세트 정합 축.
+## 2026-07-02 — [system] cycle 2044 Discovery — 동시성: sync.WaitGroup Add/Done 균형·sync.Once·errgroup goroutine join 규율 (covered-by-census)
+- 결정: 동시성 area(6-area rotation 에러처리→동시성, 40주기째)에서 "production 이 `sync.WaitGroup` 로 goroutine 을 join 하면서 `wg.Add(1)` 를 goroutine 내부에서 호출(race)하거나·`wg.Done()` 를 defer 안 해 조기 종료 시 hang·`sync.Once`/`errgroup` 오용" 하는지 probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 동시성. goroutine join 코디네이션 원시(WaitGroup Add/Done 균형·Once·errgroup).
+- MANDATORY 체크: (1) grep `sync.WaitGroup`/`sync.Once`/`errgroup` 전수 = **production 0곳**(매칭 7파일 전부 `_test.go`: auth/service_tx_test·scheduler 3개·snapshot 2개·process_document_test). (2) `.Add(1)` 매칭은 전부 `atomic.Int64.Add`(harvester_consumer 카운터·media_validator_metrics)로 WaitGroup 무관. → WaitGroup Add/Done 균형 defect 의 모집단 0(vacuous).
+- 근거: **L87(cycle 712)이 production 비-test goroutine spawn 을 정확히 3곳으로 열거**(playwright_fetcher.go:114 defer close(done)·goja_executor.go:47 defer cancel()·main.go:231 버퍼채널 serverErr)+cmd/bot spawn 0 으로 전수 매핑하고, 3곳 모두 **채널/defer 로 결정론적 exit**(WaitGroup 미사용) join 을 확립 → WaitGroup 이 아예 없어 Add/Done 균형 결함이 구조적으로 불가하고 goroutine join 정확성 축은 L87 이 소유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 봇 (6-area rotation 동시성→봇, 41주기째) → cycle 2046. 후보: MediaCandidates lockstep(L1096/cycle1832·L1214/cycle2034 커버) 외 축·frontier claim/lease(L229)·trie_merge 그래프 변형(L731)·classifier 판정(L130) 외 미수록 sub-axis.
 
 ## 2026-07-02 — [design] cycle 2433 tokens 287th round — 민감 입력 마스킹 렌더 토큰 input-security 표면 폐기 (doubly-vacuous)
 - 결정: tokens area(287th round)에서 "CSS `input-security`(CSS UI 4 — `auto|none` 으로 UA 가 민감 텍스트 입력(비밀번호)의 문자를 가림점으로 마스킹할지 제어하는 폼 입력 렌더 토큰)로 민감 입력 마스킹 렌더를 통일하는데 일부 입력만 커스텀하고 동종 다른 민감 입력은 UA 기본이라 마스킹 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
