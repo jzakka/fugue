@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2533 Discovery — responsive 278th round: 브레이크포인트-접두 반응형 밑줄 스타일 토글(sm:text-decoration-style) 표면 폐기 (triply-vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 278th round)에서 "일부 링크만 `sm:decoration-<style>` 로 밑줄 선 스타일(solid/double/dotted/dashed/wavy)을 화면폭별 전이하고 동종은 고정이라 반응형 밑줄 스타일이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2525 forward-pointer #1 후보 `sm:[text-decoration-style:wavy]`(resp-subj=0·폭별 밑줄 선 스타일) 선택. text-decoration-line BP(L1218)·sm:underline-offset(2509/L1264)·sm:decoration-thickness(2517/L1269)·sm:text-underline-position(2525/L1275) 형제 sub-carve 선례 → base 가 tokens 밑줄 데코 census 인 속성의 sm: 폭별 토글을 별개 차원으로 sub-carve.
+- MANDATORY 체크: (1) `sm:decoration-<style>`/BP-접두 밑줄 스타일 토글 grep src **0건**. (2) base `text-decoration-style`/`decoration-<style>` 정적 선언 grep src+globals **0건**(밑줄 4곳 전부 plain `hover:underline focus-visible:underline` idiom·PinCreateForm:432/PinsGrid:131/FeedContainer:168/199). (3) responsive dedicated subject 0(2 매치 L1269/L1275 는 두께/위치 형제 census body 교차참조). (4) DESIGN.md 밑줄/text-decoration-style/밑줄 스타일 grep **0건**.
+- 근거: triply-vacuous — BP-접두 스타일 토글 0 + base 밑줄 스타일 정적 선언 0 + DESIGN.md silent. 형제 responsive 밑줄축 담당 차원 분리: L1218(선 종류)·L1264(오프셋 거리)·L1269(선 두께)·L1275(상하 위치)·본 축(선 스타일 solid/wavy). thickness(굵기) vs style(모양 solid/wavy) 구별.
+- DESIGN.md 확인: 105줄 전수 반응형 밑줄 스타일 전이 미규정(grep 0)·Typography(L16-35)·Interaction(L82-88)은 밑줄 스타일 BP 전이 미SHALL·L67-72 Layout 은 masonry 만 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(BP-접두 스타일 토글 0·base 0·DESIGN 0)으로 vacuity 확인.
+- 차기 responsive 재진입 후보(선점 시 PIVOT): `sm:[text-decoration-skip-ink:none]`(밑줄 글리프 관통 스킵 BP 토글·resp-subj=0)·`sm:[font-variant-caps]`(작은대문자 BP 토글·resp-subj=0). responsive fresh 축 — base 가 tokens/aesthetic baseline 속성의 sm: 폭별 토글 계열 지속. 알려진 실제 divergence: 없음(responsive clean).
+
 ## 2026-07-02 — [design] cycle 2531 Discovery — aesthetic 300th round: 플로트 도형 외부 여백(shape-margin) 표면 폐기 (triply-vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 300th round)에서 "핀 상세/카드에서 이미지·도형 둘레로 텍스트를 감쌀 때 `shape-margin` 으로 도형 외부 여백을 잡거나 일부 플로트만 여백을 커스텀하고 동종은 기본값(0)이라 도형 둘레 텍스트 간격이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. cycle 2523 forward-pointer #1 후보 `shape-margin`(CSS Shapes 1 마지막 companion·subj=0·code=0) 선택. shape-outside(L574)·shape-inside(L925)·shape-padding(L949)·shape-image-threshold(2523/L1273)·shape()(L1263) 형제 sub-carve 선례 → CSS Shapes 패밀리 마지막 미커버 *도형 외부 여백* 속성을 별개 차원으로 sub-carve해 패밀리 census 소진.
