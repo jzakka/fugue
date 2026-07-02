@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2066 Discovery — 에러처리: context.Canceled(클라이언트 단절) 500 오분류 (HTTP 핸들러 취소 처리 비일관) (covered-by-census)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 51주기째)에서 "API 핸들러 중 tag/handler.go:72-74 만 `if r.Context().Err()==context.Canceled { return }` 로 클라이언트 단절을 단락하고 나머지 핸들러는 일률 `log.Printf+writeError(500)` 라, 단절을 500 서버에러로 오분류해 에러 로그/메트릭을 오염시키는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 에러처리. context.Canceled↔500 오분류·취소 처리 핸들러 간 일관성.
+- MANDATORY 체크: 본 축은 **L96(cycle 722)이 정확히 커버** — 9 핸들러(auth/boards/creator/feed/interaction/og/pin/search/tag) 에러 idiom 이 "validation→4xx / DB·fetch 실패→log.Printf+writeError(500)+return" 로 일률 수렴하고 tag/handler.go:72-74 만 ctx.Canceled 단락(spurious 500-log 억제)인데, 나머지 8곳 미구분은 **문서 미배킹 관측성-only taste**(어떤 문서도 단절 구분 SHALL 아님·단절 시 net/http 가 취소 conn Write 를 무해 drop·잘못된 status 무노출·정합성 무영향)라 계약 위반 아님. 실제 코드 재확인: tag/handler.go:71-77 `if err!=nil { if r.Context().Err()==context.Canceled { return }; log.Printf; writeError(500) }`·scheduler/bot 의 ctx.Err() 은 HTTP status 아닌 worker fastpath return.
+- 근거: 단절-에러 구분은 관측성 최적화이지 계약 위반이 아니고 정합성 무영향임을 L96 이 9 핸들러 에러분기 전수로 census 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 52주기째) → cycle 2068. 후보: goroutine spawn-join(L87)·mutex lifecycle(L227)·time.Timer/Ticker(L215/cycle2056)·비차단 select(L1830)·채널 close/send(L52)·concurrent map race(L189) 외 미수록 sub-axis(sync.Once 초기화·atomic 카운터 tearing).
+
 ## 2026-07-02 — [system] cycle 2064 Discovery — 정합성: DB CHECK 제약(chk_pins_media_type IN image/audio/video) ↔ Go 값-도메인 일관 (사용자 업로드 storage allowedMIME 경로) (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 50주기째)에서 "pins.media_type 은 `chk_pins_media_type CHECK (media_type IN ('image','audio','video'))`(000012)로 값-도메인이 제약되는데, **사용자 업로드 write 경로**(pin/handler.go → storage.Upload)가 도메인 밖 media_type 을 산출해 런타임 CHECK violation·핀 유실을 내는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 정합성. DB CHECK 값-도메인 ↔ Go 산출값 일관(사용자 업로드 producer).
