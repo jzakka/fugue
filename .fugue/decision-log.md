@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2070 Discovery — 봇: pickMediaForPin 썸네일→media_url 선택 우선순위·media_type 파생 일관 (covered-by-census)
+- 결정: 봇 area(6-area rotation 동시성→봇, 53주기째)에서 "pickMediaForPin(harvest_pipeline.go:316) 이 pins.media_url/media_type row 를 ThumbnailURL 우선→첫 MediaCandidate 순으로 고르는데, 우선순위가 뒤바뀌거나·ThumbnailURL 이 image 인데 video candidate 를 골라 media_type 오분류하거나·빈 doc 에서 빈 media_url 을 영속하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 봇. media_url/media_type row 선택 우선순위·파생 일관.
+- MANDATORY 체크: 본 축은 기존 census 교집합으로 전수 커버 — (1) **L71(cycle694)**: pickMediaForPin 이 candidate.Type 을 전달해 media_type 이 chk_pins_media_type 도메인({image,audio,video})에 머묾(CHECK enforcement); (2) **L130(cycle740)**: classifier no_primary_media(ThumbnailURL=="" && len(MediaCandidates)==0) 가드가 빈 doc 을 Pin 생성 이전에 거부→pickMediaForPin 의 최종 "" return 은 upstream 차단(추가로 harvest_pipeline.go:268 ProcessDocument "missing media_url" 에러 가드); (3) **L218(cycle828)**: 이미지 추출 우선순위(og→twitter→article→JSON-LD)는 image_picker.go PickPrimaryImage 가 계약대로 소유. 실제 코드 재확인: pickMediaForPin(harvest_pipeline.go:316-337) ThumbnailURL≠"" 시 매칭 candidate.Type 이면 그 Type·아니면 "image" default→(ThumbnailURL, mediaType) 반환·else 첫 비어있지않은 candidate.URL(Type 없으면 "image")·else ("",""). 우선순위는 spec 계약 없는 구현 선택(og:image 썸네일을 media_url 로 우선하는 의도 동작)이라 위반 표면 부재.
+- 근거: pickMediaForPin 의 media_type 도메인(L71)·빈 doc 가드(L130)·이미지 우선순위(L218)가 census 로 커버하고 선택 우선순위 자체는 계약 없는 의도 동작임을 harvest_pipeline.go Read 로 확인. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 54주기째) → cycle 2072. 후보: scheduler robots Crawl-delay 반영(L1834)·ratelimit capability(cycle2060 covered)·harvester 상태전이 tx(L129/cycle738)·scheduler backoff 공식(L140/cycle750) 외 미수록 capability Requirement sub-axis.
+
 ## 2026-07-02 — [system] cycle 2068 Discovery — 동시성: atomic 카운터 tearing·비원자 5-tuple 스냅샷 (harvester nodeStats / metrics) (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 52주기째)에서 "harvester stats 5-tuple(pinsCreated/deduped/skipped/failed/adapterFallback)+fetchFailureCount 가 atomic.Uint64 인데 NodeStats() 스냅샷이 각 필드 독립 Load 라 cross-field 비원자(찢긴 스냅샷)이고·individual 카운터가 word tearing 을 내거나·metrics 가 map+atomic 혼용으로 부분보호 race 를 내는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. atomic 카운터 read-idiom(Add↔Load)·비원자 snapshot·map+atomic 혼용.
