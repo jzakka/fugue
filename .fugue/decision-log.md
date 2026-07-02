@@ -32,6 +32,14 @@
 - 근거: user 업로드 storage.Upload allowedMIME allowlist 가 media_type 을 3-도메인으로 강제해 chk_pins_media_type 을 write-time 구조적 충족함을 L71 이 census 로 보유(양 producer 전수). 미충족 갭 부재.
 - QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
 - 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 51주기째) → cycle 2066. 후보: 쓰기자원 Close 에러(cycle2054/L1214)·named-return err clobber(L50)·resp.Body.Close 누수(L136)·DB write `_=` 삼킴(L147)·panic recovery(L276/L338/L188) 외 미수록 sub-axis(context.Canceled 오분류·partial write rollback).
+## 2026-07-02 — [design] cycle 2447 states 266th round — 페이지 내 찾기 매치 하이라이트 의사요소(::search-text) 표면 폐기
+- 결정: states area(266th round)에서 "브라우저 페이지 내 찾기(Ctrl+F/⌘F) 매치 하이라이트를 일부 표면만 `::search-text` 로 재정의하고 동종은 UA 기본이라 찾기 하이라이트가 표면 간 갈리는지" probe → **표면 폐기(pure vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: states. 페이지 내 찾기 매치 하이라이트 의사요소 `::search-text`(브라우저 find-in-page 매치 구간에 UA 가 그리는 하이라이트) 사용 일관성. cycle 2439/2445 forward-pointer(View Transitions 계열 view-transition-class/::view-transition-group)는 이미 covered(anti L873/L897)라 하이라이트 계열로 전환.
+- MANDATORY 체크: (1) 신규성 — `::search-text` anti=0·decision-log=0(완전 fresh ded=0 tot=0). 하이라이트 계열 인접 census 는 ::target-text/::highlight(states L645)·::spelling-error/::grammar-error(aesthetic L449)·::selection(baseline) 로 별개 subject. (2) 코드 — apps/web/src+globals.css 전수 `::search-text`/`search-text` grep 0건(pure vacuous). 페이지 내 찾기 하이라이트는 UA 기본으로 균일·저자 재정의 idiom 부재. (3) 텍스트조각축(::target-text=URL 조각)·커스텀하이라이트축(::highlight()=저자 등록)·선택하이라이트축(::selection=드래그)·편집오류축(::spelling-error)과 별개 차원(::search-text=브라우저 찾기 입력 소스 매치).
+- 근거: ::search-text 선언 0건이고 페이지 내 찾기 매치 하이라이트를 저자가 재정의하는 워크플로 부재라 "일부만 ::search-text·동종은 UA 기본" 비정합 모집단이 0. 찾기 하이라이트 브랜드 색 재정의는 미명시 enhancement 이지 결함 아님(loop rule line 9 미명시 취향·신생 의사요소 브라우저 지원 제한).
+- DESIGN.md 확인: search-text/찾기/find-in-page/하이라이트 grep 0건. L37-52 Color 는 정적 색 토큰만 규정·찾기 매치 하이라이트 색 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 states 재진입 후보: `::spelling-error`/`::grammar-error` 편집 오류 하이라이트(편집오류축 재검·aesthetic L449) 또는 `highlight-order` 중첩 하이라이트 오버레이 z-순서 정합(::search-text/::target-text/::selection 간 페인트 우선순위) 축.
 
 ## 2026-07-02 — [system] cycle 2062 Discovery — 보안: OAuth returnTo open-redirect (Login `redirect` 쿼리 → validateReturnTo → Callback `h.frontend+ReturnTo` 연결) (covered-by-census)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 49주기째)에서 "OAuth Login 이 `?redirect=` 쿼리를 returnTo 로 받아 Callback 에서 `h.frontend + stateData.ReturnTo` 로 연결·리다이렉트하는데 사용자-제어 값이라 `?redirect=@evil.com`·`.evil.com`·`//evil.com`·`/\evil.com` 으로 authority 를 공격자 도메인으로 바꿔 open-redirect/피싱이 되는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
