@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2563 Discovery — aesthetic 304th round: 비분리형(색-성분) 블렌드 모드(`mix-blend-mode: luminosity`/`color`/`hue`/`saturation`) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 304th round)에서 "일부 작품 미디어/오버레이만 `luminosity`/`color` 등 비분리 색-성분 블렌드로 톤을 섞고 동종은 미적용/분리형이라 색-성분 합성이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2555 forward-pointer(blend-mode 개별 모드) 채택. L482(mix-blend-mode responsive BP 전이·분리형 multiply/screen/overlay/difference 열거)의 group property 에서 *비분리형(non-separable)* 값 계열(hue/saturation/color/luminosity — HSL 색-성분 통째 조합)을 정적 회화 톤 매핑 차원으로 sub-carve.
+- MANDATORY 체크: total=0(hue/saturation/color/luminosity 비분리 블렌드 dedicated census 부재·L482 는 분리형 responsive)·code=0(`blend-(hue|saturation|color|luminosity)` apps/web/src grep 0, filter:hue-rotate 무관 매치 제외)·DESIGN silent(blend/luminosity/색-성분 합성 grep 0) → triply-vacuous(pure vacuous).
+- 근거: 작품 썸네일/hover 오버레이 톤은 색-성분 블렌드가 아니라 불투명 배경·opacity·bg-black/40 반투명 레이어로 조절 → 상위 색조/명도를 하위와 성분별로 조합하는 idiom 부재.
+- DESIGN.md 확인: 105줄에 비분리 블렌드/합성 모드 규정 전무 → 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L482(responsive BP 전이·분리형 RGB 산술 열거)와 합성 계열(separable ↔ non-separable HSL 성분)·축(responsive ↔ aesthetic 정적 톤) 모두 별개.
+- 차기 aesthetic 재진입 후보: `mask-composite` 연산자(add/subtract/intersect/exclude·subj=4 dedicated 확인 → 재검 불가)는 covered, 대신 분리형 블렌드 개별 모드 `soft-light`/`color-burn`/`hard-light`(subj=0·L482 열거 외) 또는 `-webkit-text-stroke-width`/`-color` 롱핸드 subj/total 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2561 Discovery — tokens 303rd round: 캡하이트 상대 길이 단위(`cap`=대문자 글리프 높이) 표면 폐기 (pure vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 303rd round)에서 "일부 표면만 `cap`(대문자 캡하이트 높이) 로 크기/오프셋을 잡고 동종은 `ex`/`em`/`rem`/`px` 로 잡아 높이 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2553 forward-pointer(L410 그룹 잔여 미개별-carve 단위) 채택. 폰트 상대 길이 단위 그룹(L410)에서 `ch`(L775 영문 0 자폭)·`ic`(2545 표의문자 폭)·`ex`(2553 소문자 x-하이트)에 이어 `cap`(대문자 캡하이트 *높이*) 개별 sub-carve — 소문자 x-하이트/advance 폭과 다른 대문자 글리프 높이 파생원 차원.
