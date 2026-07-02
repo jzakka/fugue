@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -51,7 +52,7 @@ func fetchHTMLShared(ctx context.Context, client *http.Client, rawURL string) (s
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+			log.Printf("fetchHTMLShared: failed to close response body: %v", closeErr)
 		}
 	}()
 
