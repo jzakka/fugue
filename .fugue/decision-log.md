@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2058 Discovery — 봇: MediaCandidates 후보 개수 상한(MaxMediaCandidates=50) producer 간 캡 일관 (NEW baseline)
+- 결정: 봇 area(6-area rotation 동시성→봇, 47주기째)에서 "MediaCandidates producer 가 GenericExtractor·ScriptAdapter 둘인데 한쪽만 상한(MaxMediaCandidates=50)을 적용하고 다른 쪽은 무제한이라 사이트마다 후보 개수가 갈리고 영속 og_data JSONB 가 거대 배열로 bloat 되는지" probe → **refuted FP, 신규 baseline 등록**(decision-log + anti-patterns.md EOF 둘 다).
+- 축 선택: 봇 정합성. 미디어 후보 개수 상한(cap)의 producer 간 일관성.
+- MANDATORY 체크: (1) 신규성 — L1096/L1214(MediaCandidates doc↔og_data lockstep)·cycle2046(비-미디어 파생필드 sync)·L368(og_image varchar)·L130(no_primary_media) 어느 것도 *후보 개수 상한 일관성* 축 미커버; MaxMediaCandidates grep census 0건. (2) refuted — GenericExtractor: extractor.go:41-44 limit 기본 50 + :100 buildMediaCandidates + :588-590 `if len(out)>=limit break`; ScriptAdapter: script_adapter.go:138-139 `[:MaxMediaCandidates]` truncate; 후속 필터(media_validator.go:411·harvester_consumer.go:584)는 감소만 → 두 producer 동일 상수 50 캡·영속 시점 ≤50. (3) decision-log 0건.
+- 근거: 두 producer 모두 MaxMediaCandidates=50(extractor.go:14) 로 캡·후속 필터 감소만이라 og_data.media_candidates ≤50 보장. 실제 결함 부재이나 축 신규라 census 편입.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail 1227줄로 +1.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 48주기째) → cycle 2060. 후보: feed 페이지네이션(cycle2048 covered)·scheduler Crawl-delay(cycle1834)·auth /me(cycle2036)·pin 목록필터(L234)·board(L248) 외 미수록 Requirement(pioneer fanout·harvester tx atomicity·ratelimit 정책).
+
 ## 2026-07-02 — [system] cycle 2056 Discovery — 동시성: time.Timer/Ticker 재사용·Reset drain-race·Stop 누락 (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 46주기째)에서 "장수명 워커가 `time.Timer` 를 채널 drain 없이 Reset 해 spurious fire 를 내거나·`time.NewTicker` 를 Stop 없이 누수하는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. reusable Timer 의 Reset drain-race·Ticker Stop 누락 누수.
