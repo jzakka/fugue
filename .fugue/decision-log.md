@@ -26,6 +26,14 @@
 - QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
 - 차기 tokens 재진입 후보: `image-set()`/`-webkit-image-set()`(해상도별 이미지 소스 토큰·raster 배경 0 vacuous·반응형 이미지 도입 시 조건부) 또는 `round()`/`mod()`/`rem()` 스텝/모듈로 수치 함수(math functions GROUP census L406 재검·dedicated 선검증 필요) freshness 재검 축.
 
+## 2026-07-02 — [system] cycle 2076 Discovery — 정합성: board_pins 유니크/멱등(PK(board_id,pin_id)+ON CONFLICT DO NOTHING) (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 56주기째)에서 "보드에 같은 핀을 중복 추가 가능(멱등 깨짐)·board_pins 중복 row·ON CONFLICT 누락으로 PK violation 500·유니크 제약 부재" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. board_pins AddPin 멱등/유니크(composite PK + ON CONFLICT DO NOTHING).
+- 조사: board_pins(mig 000008:13-18)가 **PRIMARY KEY(board_id, work_id→pin_id)** composite PK 로 보드-핀 조합 유일성 보장·AddPinToBoard(boards.sql:39-42)가 `INSERT ... VALUES($1,$2) ON CONFLICT DO NOTHING` `:execrows` 라 재추가는 rowsAffected=0 no-op(멱등·PK violation 500 회피)·중복 membership row 불가.
+- covered-by: **L126(동시성/정합성)** 이 정확히 이 코드를 열거 — "**board_pins AddPin**: INSERT ... `ON CONFLICT DO NOTHING`(boards.sql:42) on PRIMARY KEY(board_id, work_id→pin_id) — 동시 동일핀 추가 멱등" — PK+ON CONFLICT 로 중복 row/PK violation 을 구조적으로 제거. static "핀 중복 추가 가능·PK violation 500" 은 FP(L126 전수 커버). 보조: L59(ON CONFLICT arbiter 추론)·L134(work_id→pin_id 리네임 완전).
+- vacuous 확인: pins 테이블(mig 000003)에 visibility/status/deleted_at 컬럼 부재 → "pin visibility 상태전이" 축은 존재하지 않음(모집단 0). pins.media_type↔storage MIME 정합은 cycle 2064(L71 chk_pins_media_type CHECK) 커버.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 57주기째) → cycle 2078. 후보: storage.Upload S3 성공 후 DB 실패 보상(L86 covered)·context.Canceled 구분(L96)·:one 0행 sql.ErrNoRows→404(L121) 외 미수록 sub-axis(RemovePinFromBoard rowsAffected=0 404 처리·multipart 파싱 실패 처리·JSON decode EOF/malformed 처리).
+
 ## 2026-07-02 — [design] cycle 2455 states 267th round — 중첩 하이라이트 페인트 우선순위(highlight-order) 표면 폐기
 - 결정: states area(267th round)에서 "같은 텍스트 구간에 여러 하이라이트 의사요소(::search-text/::target-text/::selection/::highlight()/::spelling-error)가 겹칠 때 일부 표면만 `highlight-order` 로 페인트 순서를 명시하고 동종은 UA 기본 순서라 겹친 하이라이트 z-순서가 표면 간 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
 - 축 선택: states. 중첩 하이라이트 페인트 우선순위 `highlight-order`(겹치는 하이라이트 의사요소의 페인트 스택 z-순서). cycle 2447 forward-pointer(decision-log L90 "`highlight-order` 중첩 하이라이트 오버레이 z-순서 정합·::search-text/::target-text/::selection 간 페인트 우선순위")를 재진입 후보로 채택. 개별 하이라이트 스타일축(::search-text/::target-text/::selection 각 축)과 별개 차원(highlight-order=겹침 시 페인트 순서).
