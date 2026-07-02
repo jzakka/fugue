@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2457 tokens 290th round — 색 레이어 합성 함수(color-layers()) 표면 폐기
+- 결정: tokens area(290th round)에서 "여러 색 레이어를 블렌드 모드로 합성해 하나의 색 값으로 해석하는 `color-layers()` 로 일부 토큰만 색을 합성 소싱하고 동종은 정적 hex/var() 리터럴이라 색 소싱 어휘가 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: tokens. 색 레이어 합성 함수 `color-layers()`(CSS Color 5/HDR·여러 색 레이어를 블렌드 모드로 합성해 단일 색 값 산출). decision-log forward-pointer(L10274/L10309/L10339 "tt color-layers() 색 레이어 합성·신규 CSS·현 0 vacuous")를 재진입 후보로 채택.
+- MANDATORY 체크: (1) 신규성 — `color-layers()` dedicated subject census 부재(매치 3건은 전부 decision-log forward-pointer뿐·anti=0). fresh ded=0. (2) 코드 — apps/web/src+globals.css `color-layers(` grep 0건(pure vacuous). 색-값 합성 메커니즘 전체 비-사용(color-mix/light-dark/mix-blend-mode/background-blend-mode 전수 0) → 합성할 다중 레이어 컨텍스트 0(doubly-vacuous). 색 토큰은 :root/.light 정적 hex 리터럴 22개+@theme var() 매핑. (3) 색 혼합축(color-mix()·2색 비율 혼합)·스킴 색 선택축(light-dark())·대비 색 선택축(contrast-color() L418)·순환 값축(toggle() cycle 2449)과 별개 차원(color-layers()=색 레이어 블렌드 합성). 요소-레이어 블렌드(mix-blend-mode)와도 별개(색-값 합성 vs 요소 픽셀 블렌드).
+- 근거: color-layers() 선언 0건 + 색-값 합성 메커니즘 전체 비-사용이라 "일부만 color-layers()·동종은 정적 hex" 비정합 모집단이 0. 색 토큰이 전부 정적 hex 리터럴이라 합성할 다중 레이어 자체가 없음. 색 레이어 합성은 미명시 enhancement(신생 Color HDR)이지 결함 아님(loop rule line 9).
+- DESIGN.md 확인: color-layers/합성/blend/레이어 grep 0건. L37-52 Color 는 정적 색 토큰(hex 리터럴)만 규정·색 값 합성 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 tokens 재진입 후보: `image-set()`/`-webkit-image-set()`(해상도별 이미지 소스 토큰·raster 배경 0 vacuous·반응형 이미지 도입 시 조건부) 또는 `round()`/`mod()`/`rem()` 스텝/모듈로 수치 함수(math functions GROUP census L406 재검·dedicated 선검증 필요) freshness 재검 축.
+
 ## 2026-07-02 — [design] cycle 2455 states 267th round — 중첩 하이라이트 페인트 우선순위(highlight-order) 표면 폐기
 - 결정: states area(267th round)에서 "같은 텍스트 구간에 여러 하이라이트 의사요소(::search-text/::target-text/::selection/::highlight()/::spelling-error)가 겹칠 때 일부 표면만 `highlight-order` 로 페인트 순서를 명시하고 동종은 UA 기본 순서라 겹친 하이라이트 z-순서가 표면 간 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
 - 축 선택: states. 중첩 하이라이트 페인트 우선순위 `highlight-order`(겹치는 하이라이트 의사요소의 페인트 스택 z-순서). cycle 2447 forward-pointer(decision-log L90 "`highlight-order` 중첩 하이라이트 오버레이 z-순서 정합·::search-text/::target-text/::selection 간 페인트 우선순위")를 재진입 후보로 채택. 개별 하이라이트 스타일축(::search-text/::target-text/::selection 각 축)과 별개 차원(highlight-order=겹침 시 페인트 순서).
