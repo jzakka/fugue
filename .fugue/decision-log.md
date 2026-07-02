@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2090 Discovery — 에러처리: panic 복구/containment(요청경로 middleware.Recoverer 전수 + 요청밖 goroutine 3개 panic 표면 부재) (NEW baseline)
+- 결정: 에러처리 area(6-area rotation 정합성→에러처리, 63주기째)에서 "apps/api/internal 전수 recover() 0건 → 핸들러/goroutine panic 이 복구 안 돼 프로세스 크래시(unrecovered panic → os.Exit)·부분응답 유출·in-flight 요청 유실" probe → **NEW baseline 등록**(decision-log + anti-patterns.md EOF).
+- 축 선택: 에러처리. panic 복구/containment(Recoverer 미들웨어 + 요청밖 goroutine panic 표면).
+- 조사: (1) 요청 핸들러 = cmd/server/main.go:120 `r.Use(middleware.Recoverer)`(import :17 go-chi/chi/v5/middleware)가 라우터 최상단 마운트 → 모든 핸들러 panic 을 recover→500+스택로그, 프로세스 생존·per-request goroutine 격리. (2) 요청밖 goroutine 3곳(`go func` grep) 전부 panic-prone 로직 부재 — main.go:231 ListenAndServe 에러 채널송신·goja_executor.go:47 watchdog(채널대기+vm.Interrupt atomic set·leak-free cycle2080 L183)·playwright_fetcher.go:114 watchdog(채널대기+page.Close 에러무시). (3) 봇 consumer 는 L37 확인대로 `for{ processOne() }` 순차 단일루프(fan-out go func 부재).
+- FP 반증: static "internal recover() 0건 → panic 이 서버 크래시" 는 FP — 요청경로 middleware.Recoverer 전수커버 + 요청밖 goroutine 3개 채널대기+non-panic cleanup 뿐이라 크래시 모집단 0. `recover()` grep(internal 0)+`go func` grep(internal 2·cmd 1)+watchdog 본문 READ(goja:47-65·playwright:114-120)+consumer 단일루프(L37) 확인.
+- 비중첩: L183(2080 watchdog LEAK-freedom)·L27(610 CLI nullable Scan panic)·L37(662 concurrent map writes race) 모두 panic *복구/containment* 축과 별개.
+- 예외(등록 가능): 신규 코드가 (a) 요청밖 go func 에서 doc/site-script 파생 arbitrary 로직을 recover 없이 실행해 프로세스 크래시·(b) worker pool/errgroup fan-out consumer 의 개별 worker panic 미복구·(c) middleware.Recoverer 제거/서브라우터 우회·(d) recover 하되 로그없이 삼켜(swallow) 무응답/잘못된 200.
+- 차기 area = 동시성 (6-area rotation 에러처리→동시성, 64주기째) → cycle 2092. 후보: host_rate_limiter 공유맵 race(L189/L227/L37)·채널 close/send lifecycle(L52)·time.After in-loop 타이머누수(L215)·비차단 select drop(cycle1830) 외 미수록 sub-axis(sync.Once 초기화 경합·atomic vs mutex 카운터·WaitGroup Add/Done 타이밍).
+
 ## 2026-07-02 — [system] cycle 2088 Discovery — 정합성: RemovePin 보드-핀 제거(소유권 선검증 404 + board_id/pin_id 스코프 :execrows + rowsAffected==0 → 404) (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 62주기째)에서 "보드-핀 제거 핸들러(DELETE /api/boards/{id}/pins/{pin_id})가 (a) 소유권 미검증으로 타인 보드의 핀을 삭제(IDOR)하거나·(b) board_id 스코프 없이 pin_id 만으로 DELETE 해 다른 보드의 동일 핀까지 제거(cross-board 오삭제)하거나·(c) rowsAffected 무시로 삭제 실패를 성공 응답하거나·(d) 존재하지 않는 관계 삭제 시 예외/500" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 정합성. RemovePin 소유권 인가 + 스코프 삭제 + rowsAffected 처리.
