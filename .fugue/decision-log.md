@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2581 Discovery — responsive 284th round: 브레이크포인트-접두 반응형 스크롤 동작 토글(`sm:[scroll-behavior:smooth]`→`md:scroll-auto`) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 284th round)에서 "일부 스크롤 루트/컨테이너만 `sm:scroll-smooth`·`md:scroll-auto` 로 폭별 스크롤 동작을 전환하고 동종은 고정이라 반응형 스크롤 애니메이션이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2573 forward-pointer 를 이어 sm: BP-토글 vein(text-wrap 2549·hanging-punctuation 2557·tab-size 2565·caret-color 2573)에서 `scroll-behavior` 를 반응형 토글 차원으로 sub-carve. base 는 L856 tokens census(`scroll-smooth`/`scroll-auto` 정적 토큰화).
+- MANDATORY 체크: (1) `scroll-behavior`/`scroll-smooth`/`scroll-auto`·arbitrary `[scroll-behavior:...]`·`sm:scroll-smooth`/`md:scroll-auto` apps/web/src grep **0건**(반응형·정적 모두 0). (2) 스크롤 이동은 브라우저 기본 `auto`(즉시 점프) 또는 JS `scrollIntoView({behavior})` 로 균일 처리 → 폭별 CSS `scroll-behavior` 교체 idiom 부재. (3) DESIGN.md(105줄) scroll-behavior/스크롤 동작/부드러운 스크롤/smooth scroll grep **0건** → silent.
+- 근거: 세 독립 0-조건(code 0 + 반응형 토글 모집단 0 + DESIGN silent)로 triply/pure vacuous. "긴 피드·앵커 내비가 있으니 데스크톱만 smooth 로 앵커 이동을 매끄럽게 한 곳이 있거나 일부만 조절해 반응형 스크롤 동작이 갈릴 것" 정적 추정은 FP — `scroll-behavior` 선언 자체가 0.
+- DESIGN.md 확인: scroll-behavior/부드러운 스크롤/스크롤 동작 미규정. loop-design.md L9 "셋(code·anti-patterns·DESIGN) 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다" 에 따라 취향 축은 이슈 아님.
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L856 은 `scroll-behavior` *정적 tokens* 각도(전역/표면 토큰화 여부)이고, 본 축은 그 속성을 *브레이크포인트별로 갈아끼우는 반응형 토글* 차원 — sm: BP-토글 vein 선례(2549/2557/2565/2573)와 동일 패턴, L856 static 과 별개.
+- 차기 responsive 재진입 후보: `sm:[overscroll-behavior]`(폭별 overscroll-behavior contain/none 토글 — 모바일 pull-to-refresh/스크롤 체이닝 차단을 데스크톱과 다르게) 또는 `sm:[scroll-snap-type]`(폭별 스크롤 스냅 축·강도 전환) — 두 축 모두 base subject 존재 여부 선확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2579 Discovery — aesthetic 306th round: 다중 레이어 스택 text-shadow 효과(네온 발광/faux stroke/엠보스) 표면 폐기 (pure vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 306th round)에서 "일부 텍스트만 콤마 구분 다중 그림자 레이어로 발광/외곽선/엠보스를 주고 동종은 단일 그림자/평면이라 다층 그림자 회화가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: aesthetic. mix-blend-mode 값 3계열(투영 L482·HSL 2563·명암 2571) 소진 후, text-shadow 계열에서 L343(존재/가독성)·L585(@theme 단일 토큰 스케일)이 carve 됐고 *다중 레이어 스택 합성*(네온 발광/faux stroke/엠보스) 미carve 발견 → 그것을 sub-carve.
