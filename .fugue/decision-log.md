@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2503 Discovery — states 273rd round: 미디어 탐색(스크러빙) 상태 의사클래스(`:seeking`) 표면 폐기 (triply-vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 273rd round)에서 "video/audio 탐색 조작 상태(`:seeking`) 커스텀 시각 피드백(타임라인 로딩·스크럽 스피너)이 미디어 표면 간 갈리거나 일부만 :seeking 오버레이·탐색 상태 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. `:seeking`(미디어 사용자 탐색/스크러빙 조작 상태 의사클래스)의 단독 sub-carve. decision-log L49(cycle 2495 forward-pointer) 가 `:seeking`(L415 미디어 GROUP 명명 멤버·:buffering 후속 sub-carve 여지) 를 명시 큐잉한 것을 선택.
+- MANDATORY 체크: (1) `:seeking` CSS 룰·`[&:seeking]` variant grep src+globals **0건**(커스텀 탐색 피드백 모집단 0). (2) 네이티브 controls 미디어 탐색 UI 브라우저 위임(audio pins/[id]:62·video pins/[id]:70·PinCreateForm:397). (3) 탐색 조작 있는 VideoTrimModal(:217 video)조차 `:seeking` 미사용·프로그래밍적 currentTime(:54/:142/:153/:172)+커스텀 드래그 핸들 UI(:253) idiom(:seeking 의사클래스 피드백 여전히 0). (4) DESIGN.md seeking/scrub/:playing grep **0건**.
+- 근거: triply-vacuous — `:seeking` CSS 0 + 탐색 UI 네이티브/커스텀-핸들 위임(:seeking 의사클래스 표면 부재) + DESIGN.md silent. `:seeking` 은 anti-patterns L415 `[design][states] 미디어 재생 상태 의사클래스 GROUP`(:playing/:paused/:muted/:seeking/:buffering/:volume-locked)의 named member(holistic 재생 상태 일관성 차원)이나 *사용자 탐색(스크러빙) 조작 상태* 단독 차원은 별개·states 인터랙션 관점 sub-carve. `:buffering`(네트워크 로딩 cycle 2495·탐색 vs 버퍼링 별개)·:stalled(L701)·::cue(2487)와 비중첩.
+- DESIGN.md 확인: 105줄 전수 미디어 탐색/스크러빙 상태 미규정(grep 0)·L11 "Decoration level: Minimal" → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(:seeking 0·DESIGN 0)+미디어 controls 열거+VideoTrimModal 커스텀 핸들 확인으로 정적 검증.
+- 차기 states 재진입 후보(선점 시 PIVOT): `:muted`(L415 GROUP 멤버·음소거 상태 sub-carve·:volume-locked 인접)·`:volume-locked`(L415 멤버 sub-carve)·`:link`/`:visited`(anti near-subj 1·링크 방문 상태)·`:read-write`(편집 가능 상태). states 극심 saturation·미디어 상태군 대부분 sub-carve 소진(:buffering 2495·:seeking 2503 완료) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2501 Discovery — responsive 274th round: 브레이크포인트별 OpenType 피처 설정 토글(`sm:font-feature-settings`) 표면 폐기 (triply-vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 274th round)에서 "저수준 OT 피처 태그(`font-feature-settings` "liga"/"tnum"/"onum"/"ss01" 등)를 뷰포트 폭별로 켜고 끄는(`sm:[font-feature-settings]`) 반응형 OT 피처 적응이 표면 간 갈리거나 좁은 폭에서 리가처/올드스타일 미해제·폭별 피처 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. `font-feature-settings`(저수준 OpenType 피처 태그 on/off)의 브레이크포인트별 토글. decision-log L54(cycle 2493 forward-pointer) "차기 responsive 재진입 후보" 가 `sm:font-feature-settings 폭별 OT 피처 토글` 을 fresh 축 #1 로 명시 큐잉한 것을 선택(base 가 tokens L207/aesthetic L496·반응형 토글 vein).
