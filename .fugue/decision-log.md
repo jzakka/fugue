@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2491 aesthetic 295th round — `feColorMatrix` SVG 색 행렬 변환 필터 프리미티브 표면 폐기 (표면 폐기/surface-dismissal)
+- 결정: aesthetic 영역(295번째 round, Discovery 0-candidate 센서스)에서 "`feColorMatrix` SVG 색 행렬 변환 필터 프리미티브가 카드 이미지/썸네일 색 보정에 쓰이지 않아 feColorMatrix 채도/색조 변환 부재·표면별 색 변환 갈림·필터 기반 색 행렬 계층 부재" aesthetic 후보 → **표면 폐기**(anti-patterns baseline 1줄 append, 코드 무변경).
+- 축 선택: aesthetic. `feColorMatrix`=R/G/B/A 픽셀을 4×5 색 행렬로 선형 변환하거나 type=saturate(채도)/hueRotate(색조)/luminanceToAlpha(휘도→알파) 축약형으로 색을 변환하는 SVG 필터 원자 프리미티브.
+- MANDATORY 체크: (1) `feColorMatrix` 선언 apps/web/src(globals.css 포함) 전수 0건. anti 매치 7건(L622·L1036·L1060·L1064·L1073·L1077·L1082)은 모두 다른 필터 센서스의 sibling/component 언급(line-leading parenthetical feColorMatrix 여는 항목 0건). (2) `<filter>`/CSS `filter: url()`/SVG `filter=` host 전수 0건 → 색 행렬 변환 표면 0=coherent absence(feMerge/feTile/feImage/feDropShadow/feOffset/feBlend/feMorphology/feTurbulence/feComponentTransfer 계열과 동일 host 부재). (3) L1073 feComponentTransfer(채널별 전달 함수)·L622 color-interpolation-filters(필터 색 공간)와 별개 — 둘 다 feColorMatrix(채널 간 행렬 선형 결합) SUBJECT 아님. (4) DESIGN.md/AGENTS.md/CLAUDE.md feColorMatrix/SVG 필터/색 행렬/hue-rotate/saturate 미규정.
+- 근거: cycle 2483 forward-pointer L78("feColorMatrix 색 행렬 변환·채도/색조 회전")로 queue 된 subject-0 후보. feMerge/feTile/feImage/feDropShadow/feOffset/feBlend 선례가 동일 필터 프리미티브 계열에서 per-primitive 카브를 확립. triply-vacuous(선언 0 + `<filter>` host 0 + DESIGN.md 침묵).
+- DESIGN.md 확인: 105줄 전수 grep 0 — 색을 고정 hex 토큰으로만 SHALL, SVG 필터 색 행렬 변환 미규정. 색 보정 방식 미규정=취향 문제=이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(표면 폐기) → 실 브라우저 QA 대상 없음. anti-patterns.md L1254 baseline append only.
+- 차기 aesthetic 재진입 후보: 잔여 SVG 필터 프리미티브 `feDiffuseLighting`/`feSpecularLighting`(표면 조명 반사·subject=1 재확인 필요)·`feDisplacementMap`(변위 매핑·subject=1)·`feFuncR`/`feFuncG`/`feFuncB`/`feFuncA`(feComponentTransfer 자식 전달함수 노드·subject=0 anymention=2) — SVG 필터 프리미티브 극심 saturation, 잔여 소수. 단 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [system] cycle 2112 Discovery — 정합성: OAuth 소셜로그인 creator+auth_account 두 INSERT 트랜잭션 원자성(두번째 INSERT 실패 시 롤백으로 orphan creator 방지) (covered-by-census)
 - 결정: 정합성 area(6-area rotation 보안→정합성, 74주기째·4th rotation 시작)에서 "auth 소셜로그인이 creators INSERT 후 auth_accounts INSERT 를 별도 커밋/tx 밖에서 수행해, 두번째 INSERT(전이 PG 에러·UNIQUE(provider,provider_id) 경쟁) 실패 시 auth_account 없는 orphan creator 가 DB 에 잔존하거나·병합 경로가 부분 커밋으로 auth_account 만 붙고 creator 미확정" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 정합성. OAuth creator+auth_account 다중 INSERT 트랜잭션 경계 원자성(orphan 방지).
