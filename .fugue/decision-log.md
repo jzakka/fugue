@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2523 Discovery — aesthetic 299th round: 이미지 유래 플로트 도형 알파 임계값(shape-image-threshold) 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 299th round)에서 "핀 상세/카드에서 이미지 둘레로 텍스트를 감쌀 때 `shape-image-threshold` 로 알파 임계값을 잡거나 일부 플로트만 임계값을 커스텀하고 동종은 기본값(0.0)이라 이미지 유래 도형 텍스트 흐름이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2515 forward-pointer(text-box·text-emphasis-skip) 검증 결과 둘 다 이미 dedicated subject(text-box L405·text-emphasis-skip L901) → PIVOT. 30+ 속성 probe(text-wrap-style L468·white-space-collapse/tab-size L289·quotes L413/992 전부 covered) 후 `shape-image-threshold`(CSS Shapes 패밀리 미커버 companion·subj=0·code=0) 선택. shape-outside(L574)·shape-inside(L925)·shape-padding(L949)·shape()(L1263) 형제 sub-carve 선례 → CSS Shapes 패밀리 잔여 *이미지 알파 컷오프* 속성을 별개 차원으로 sub-carve.
+- MANDATORY 체크: (1) `shape-image-threshold` 선언 grep src+globals **0건**. (2) `shape-outside` 자체 grep **0건**(L574 확인) — 이미지 유래 플로트 도형 컨텍스트 부재·임계값 발화 대상 0. (3) 이미지는 masonry 카드/썸네일 배치·텍스트가 이미지 마스크 알파 둘레를 감싸는 플로트 레이아웃 미사용. (4) DESIGN.md `shape`/shape-image-threshold/float/wrap-around/텍스트 흐름 grep **0건**.
+- 근거: triply-vacuous — shape-image-threshold 0 + shape-outside 이미지 플로트 컨텍스트 0(임계값 발화 대상 부재) + DESIGN.md silent. CSS Shapes 패밀리 형제 담당 차원 분리: shape-outside(L574 도형 소스/기하)·shape-inside(L925 내부 콘텐츠 흐름)·shape-padding(L949 내부 패딩)·shape()(L1263 명령형 도형)·본 축 shape-image-threshold(이미지 알파 컷오프). aesthetic dedicated subject 0 확인(3 매치는 L574/L925/L949 body 교차참조).
+- DESIGN.md 확인: 105줄 전수 이미지 유래 플로트 도형/알파 임계 미규정(grep 0)·Layout(L67-72)은 masonry 열/gap/breakpoint 만·Typography(L16-35)는 폰트/크기/행간만·L11 Minimal 도 플로트 도형 텍스트 감싸기 미SHALL → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(shape-image-threshold 0·shape-outside 0·이미지 masonry 배치·DESIGN 0)으로 vacuity 확인.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): `shape-margin`(플로트 도형 외부 여백·CSS Shapes 1 마지막 companion·subj=0·code=0)·`initial-letter-align`(드롭캡 정렬·L1039 initial-letter subject 재검). aesthetic fresh 축 극심 saturation(299th round·forward-pointer 2건 전부 stale·30+ 속성 probe 대부분 covered) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2521 Discovery — tokens 298th round: 카운터 스타일 상속·재정의 알고리즘(@counter-style system:extends) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 298th round)에서 "핀/보드 목록 마커·순번 표기가 기존 카운터 스타일을 `system: extends` 로 상속·재정의해 파생 표기를 만들거나 일부 목록만 파생 카운터를 쓰고 동종은 기본 마커라 마커 상속 체계가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2513 forward-pointer(`@counter-style` symbols/system·L634 subj 재검) 를 검증해 L634(cyclic/symbols)·L1249(additive)에서 미커버된 잔여 `system` 알고리즘 값 중 `system: extends`(카운터 상속/재정의) 를 선택. pad(2505)·additive-symbols(2481)·speak-as(L920)·fallback(2513) 형제 디스크립터 sub-carve 선례 → L634 `@counter-style` 모-센서스 잔여 *상속 알고리즘* 디스크립터를 별개 차원으로 sub-carve.
