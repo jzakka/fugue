@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2086 Discovery — 보안: CORS allowlist(단일 명시 origin + AllowCredentials, wildcard/reflection 부재) (covered-by-census)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 61주기째)에서 "CORS 설정이 AllowedOrigins wildcard(`*`) 또는 Origin 반사와 AllowCredentials:true 를 결합해 임의 origin 의 자격증명 동반 cross-origin 요청을 허용(CSRF·credential leak)" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 보안. CORS allowlist(preflight allowed origins + credentials 조합).
+- 조사: cmd/server/main.go:122-127 `cors.Handler(cors.Options{ AllowedOrigins:[]string{cfg.FrontendURL}(:123)·AllowedMethods:GET/POST/PUT/DELETE/OPTIONS(:124)·AllowedHeaders:Accept/Content-Type/Authorization(:125)·AllowCredentials:true(:126) })` — **단일 명시 origin(env cfg.FrontendURL)** 이라 wildcard `*` 부재·Origin 무제한 반사 부재 → 신뢰 프론트만 자격증명 cross-origin 허용·빈 FrontendURL 이면 매칭 0 fail-closed.
+- covered-by: **L192(보안)** 이 정확히 이 축을 전수 판정 — "(1) CORS: `AllowedOrigins:[]string{cfg.FrontendURL}`(main.go:123) 단일 명시 origin + `AllowCredentials:true`(:126)로 wildcard(`*`) 부재 → credential 동반 cross-origin 반사 불가(go-chi/cors 가 명시 origin만 echo·빈 FrontendURL 이면 fail-closed)". static "AllowCredentials:true + CORS → wildcard credential reflection" 은 FP(L192 커버). 코드 참조 현행 확인(main.go:122-127).
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 62주기째) → cycle 2088. 후보: board_pins 멱등(cycle2076 L126)·og_data/media_candidates lockstep(cycle1832)·frontier url_hash dedup(L389)·INSERT 컬럼리스트(L241) 외 미수록 sub-axis(RemovePinFromBoard 멱등 삭제·creators nickname 유니크·pins.url 정규화 dedup).
+
 ## 2026-07-02 — [system] cycle 2084 Discovery — OpenSpec갭: feed capability 페이지네이션 페이지 간 disjoint(cursor offset 을 모든 underlying 소스에 일관 전파) (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 60주기째·rotation 재시작)에서 "feed/spec.md Requirement '개인화 피드 페이지네이션은 페이지 간 작품 중복을 반환하지 않는다'(L70-91: 연속 두 페이지 pins[].id 교집합 공집합 SHALL·cursor offset 을 태그/미디어타입 추천·최신 보충 등 모든 underlying 쿼리에 일관 전파 SHALL·어떤 소스도 첫 페이지 결과 재생성 금지 SHALL NOT) 미충족 — 일부 소스가 offset 무시하고 첫 페이지 재반환·deficit-fill offset 불일치로 intra/inter 중복" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. feed Requirement 4 cross-page disjoint + offset 전파 wiring 계약.
