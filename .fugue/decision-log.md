@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2493 Discovery — responsive 273rd round: 브레이크포인트별 매달린 구두점 토글(`sm:hanging-punctuation` 폭별 행잉 문장부호) 표면 폐기 (triply-vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 273rd round)에서 "매달린 구두점을 뷰포트 폭별로 켜고 끄는(`sm:hanging-punctuation`/`md:[hanging-punctuation:first]`) 반응형 구두점 걸침 적응이 표면 간 갈리거나 좁은 폭에서 걸침 미해제·폭별 걸침 어휘 비정합" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. `hanging-punctuation`(따옴표·구두점을 텍스트 블록 행 가장자리 밖으로 걸치는 CSS Text 4 속성·first/last/allow-end/force-end)의 브레이크포인트별 토글. decision-log L3356 "차기 responsive 재진입 후보" 가 `sm:hanging-punctuation 폭별 행잉 문장부호` 를 fresh 축으로 명시 큐잉한 것을 선택(base 가 aesthetic L367 그룹·반응형 토글 vein).
+- MANDATORY 체크: (1) BP-접두 `(sm|md|lg|xl|2xl):.*hanging-punctuation`+arbitrary `[hanging-punctuation` grep src **0건**(폭별 전이 모집단 0=uniform). (2) base `hanging-punctuation`/`hangingPunctuation` grep src+globals **0건**(토글 대상 표면 부재). (3) 텍스트 블록(pins/[id]:141·boards/[id]:60 leading-relaxed break-words·PinCard:157·SearchClient:390 line-clamp-2)이 전 폭 동일 행 가장자리 처리로 균일. (4) DESIGN.md hanging/punctuation/quotation grep **0건**.
+- 근거: triply-vacuous — BP-토글 0 + base 선언 0 + DESIGN.md silent. hanging-punctuation 은 anti-patterns L367 `[design][aesthetic] 행 가장자리 타이포 처리` 그룹의 named member(static cross-surface 차원)이나 *폭별 반응형 토글* 은 별개 차원·dedicated [responsive] baseline 부재(subj-ded=0)라 본 사이클이 반응형 차원 dedicated baseline 을 신설. 반응형 케이스 토글(sm:text-transform 2087)·강조색(sm:accent-color 2079)·하이픈(sm:hyphens 1967)·첫줄 들여쓰기(text-indent line 478)와 동류 "base 가 tokens/aesthetic baseline 속성의 sm: 폭별 토글" vein.
+- DESIGN.md 확인: 105줄 전수 hanging-punctuation/구두점 걸침 미규정(grep 0)·Typography L16-35 폰트/스케일/weight 만 SHALL·L11 "Decoration level: Minimal" → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 코드 변경 0건이라 브라우저 QA 불요(표면 폐기). census 근거는 grep(BP-접두 0·base 0·DESIGN 0)+텍스트 블록 열거로 정적 확인.
+- 차기 responsive 재진입 후보(list order, 선점 시 PIVOT): responsive fresh 축 — `sm:font-feature-settings` 폭별 OT 피처 토글·`sm:text-underline-offset` 폭별 밑줄 오프셋·`sm:mix-blend-mode` 폭별 블렌드·기타 base 가 tokens/aesthetic 에 baseline 된 속성의 sm: 폭별 토글. 잔여 baseline/subsume(반응형 케이스 sm:text-transform 2087·반응형 강조색 sm:accent-color 2079·반응형 하이픈 sm:hyphens 1967·본 사이클 sm:hanging-punctuation 2493·미디어피처 hover/pointer L584·resolution L572·aspect-ratio L588·orientation L568·display-mode L576·scan/color-index/grid subj≥1·base 가 responsive area 인 속성 회피). 알려진 실제 divergence: 없음(responsive 는 clean).
+
 ## 2026-07-02 — [system] cycle 2116 Discovery — 동시성: harvester atomic.Uint64 카운터 read-modify-write lost-update 및 NodeStatsSnapshot 5-tuple 스냅샷 tearing (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 76주기째)에서 "harvester nodeStats atomic.Uint64 5개 카운터가 `.Store(.Load()+1)` read-modify-write 로 증가해 동시 증가 시 lost-update 나거나·NodeStats() 스냅샷이 5개 필드를 개별 Load 해 concurrent 증가 시 내부 불일치(PinsCreated 는 반영·AdapterFallback 미반영) tearing" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. atomic 카운터 증가 방식(Add vs Store(Load)) lost-update + 다중 필드 스냅샷 tearing.
