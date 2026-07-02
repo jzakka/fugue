@@ -17,6 +17,14 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2062 Discovery — 보안: OAuth returnTo open-redirect (Login `redirect` 쿼리 → validateReturnTo → Callback `h.frontend+ReturnTo` 연결) (covered-by-census)
+- 결정: 보안 area(6-area rotation OpenSpec갭→보안, 49주기째)에서 "OAuth Login 이 `?redirect=` 쿼리를 returnTo 로 받아 Callback 에서 `h.frontend + stateData.ReturnTo` 로 연결·리다이렉트하는데 사용자-제어 값이라 `?redirect=@evil.com`·`.evil.com`·`//evil.com`·`/\evil.com` 으로 authority 를 공격자 도메인으로 바꿔 open-redirect/피싱이 되는지" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 보안. OAuth returnTo open-redirect 정제↔신뢰 origin 연결.
+- MANDATORY 체크: 본 축은 **L236(cycle 854)이 정확히 커버** — validateReturnTo 4-way 거부(state.go:78-91: 빈값→"/"·비-"/"-prefix→"/"(절대URL·스킴·`@`·`.` 접두 차단)·`//`→"/"(프로토콜상대 차단)·`\`포함→"/"(백슬래시트릭 차단))로 ReturnTo 는 항상 단일 선행"/" 상대경로 보장·handler.go:142-146 `h.frontend+ReturnTo` 연결 결과 authority 는 항상 신뢰 frontend origin(외부 authority 파싱은 "//" 또는 스킴 필요=둘 다 차단)·CreateState(state.go:35) 시점 정제+state=crypto/rand CSRF 바인딩(L81/L233)이라 주입해도 항상 정제·error 분기(handler.go:81-83) `url.QueryEscape(errMsg)` 로 `&`/`=`/`#` 스머글링 차단. 실제 코드 READ 로 validateReturnTo 4-way + h.frontend 연결 + QueryEscape 재확인.
+- 근거: validateReturnTo 가 단일 선행"/" 강제해 h.frontend 연결이 origin 이탈 불가·error 분기 QueryEscape 방어를 L236 이 census 로 보유. 미충족 갭 부재.
+- QA: 코드 무변경(census-only)이라 런타임 검증 대상 없음.
+- 차기 area = 정합성 (6-area rotation 보안→정합성, 50주기째) → cycle 2064. 후보: og_data/media_candidates lockstep(L1832/L1096/L1214)·INSERT 컬럼리스트 완전성(L241)·frontier url_hash dedup 정규화(L151)·에러 envelope 형태(L788) 외 미수록 sub-axis(timestamp 타임존 UTC 일관·nullable 컬럼 zero-value 구분).
+
 ## 2026-07-02 — [system] cycle 2060 Discovery — OpenSpec갭: ratelimit capability(카운터 원자 증가·만료 SHALL·유저 단위 surface SHALL) 2 Requirement 정합 (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 48주기째)에서 "ratelimit/spec.md 2 Requirement(R1: 카운터 INCR+윈도우 TTL 을 단일 원자로 설정·Redis 실패 시 fail-open SHALL NOT throttle / R2: per-IP·per-user 두 key surface 노출·인증 식별자 관측 시 유저 버킷 분리) 가 미구현/미정합" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. ratelimit fixed-window 원자성+fail-open+dual surface wiring 계약.
