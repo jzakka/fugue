@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2583 Discovery — states 283rd round: 최상위 레이어 퇴장 유지 속성(CSS `overlay: auto`/`none` top-layer 잔류 타이밍) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 283rd round)에서 "일부 다이얼로그/팝오버만 `overlay: auto` 로 퇴장 전이 동안 top layer 에 잔류시키고 동종은 미지정이라 닫힐 때 퇴장 애니메이션이 잘려 top-layer 퇴장 표현이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. media/dialog 상태 의사클래스(:playing/:modal/:popover-open 등)·`@starting-style`(L837 진입)이 모두 saturated 확인 후, L747(`transition-behavior: allow-discrete`)이 overlay 를 이산-속성 *그룹 멤버 예시* 로만 언급하고 `overlay` 속성 자체의 top-layer 퇴장 잔류 차원은 미carve 임을 발견 → sub-carve.
+- MANDATORY 체크: (1) `overlay: auto`/`none`·`[overlay:...]`·동반 필수 `transition-behavior: allow-discrete`·top-layer 표현 apps/web/src grep **0건**. (2) 모달/오버레이는 native `<dialog>`/Popover top layer 가 아니라 useState 조건부 렌더 + `fixed inset-0` 레이어(VideoTrimModal·AddToBoardButton·PinCreateForm) → top layer 미사용이라 `overlay` 관장 대상 부재. (3) DESIGN.md(105줄) overlay 속성/top-layer/최상위 레이어 grep **0건**(L90 "exit(ease-in)" 은 퇴장 *이징 곡선* 규정으로 top-layer overlay 속성과 무관·FP) → silent.
+- 근거: 세 독립 0-조건(code 0 + top-layer 모집단 0 + DESIGN silent)로 triply/pure vacuous. "모달/팝오버가 있으니 닫힐 때 `overlay: auto` 로 top layer 잔류를 준 곳이 있거나 일부만 줘 퇴장 타이밍이 갈릴 것" 정적 추정은 FP — `overlay` 선언이 0·모달은 React 조건부 렌더/fixed 레이어라 top layer 미사용.
+- DESIGN.md 확인: overlay 속성/top-layer 퇴장 잔류 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L747(`transition-behavior: allow-discrete` — 이산 속성을 전이 가능하게 만드는 인에이블러, overlay 를 예시 그룹 멤버로만 언급)·L837(`@starting-style` 진입 시작-상태)과 별개 — 본 축은 `overlay` 속성 자체의 *top-layer 퇴장 잔류 타이밍*(닫힘 시 top layer 에서 언제 빠질지) 차원.
+- 차기 states 재진입 후보: `field-sizing`/`@starting-style`/media pseudo 등 대부분 소진 — 잔여 미carve 로 `::backdrop` 의 *퇴장 전이/allow-discrete 동반* 개별 각도(L 존재 여부 재확인)·`interactivity: inert`(CSS 속성형 inert, L555 HTML inert 속성과 별개 차원) subj/code 확인 후 sub-carve.
+
 ## 2026-07-02 — [design] cycle 2581 Discovery — responsive 284th round: 브레이크포인트-접두 반응형 스크롤 동작 토글(`sm:[scroll-behavior:smooth]`→`md:scroll-auto`) 표면 폐기 (pure vacuous)
 - 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 284th round)에서 "일부 스크롤 루트/컨테이너만 `sm:scroll-smooth`·`md:scroll-auto` 로 폭별 스크롤 동작을 전환하고 동종은 고정이라 반응형 스크롤 애니메이션이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: responsive. cycle 2573 forward-pointer 를 이어 sm: BP-토글 vein(text-wrap 2549·hanging-punctuation 2557·tab-size 2565·caret-color 2573)에서 `scroll-behavior` 를 반응형 토글 차원으로 sub-carve. base 는 L856 tokens census(`scroll-smooth`/`scroll-auto` 정적 토큰화).
