@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2455 states 267th round — 중첩 하이라이트 페인트 우선순위(highlight-order) 표면 폐기
+- 결정: states area(267th round)에서 "같은 텍스트 구간에 여러 하이라이트 의사요소(::search-text/::target-text/::selection/::highlight()/::spelling-error)가 겹칠 때 일부 표면만 `highlight-order` 로 페인트 순서를 명시하고 동종은 UA 기본 순서라 겹친 하이라이트 z-순서가 표면 간 갈리는지" probe → **표면 폐기(doubly-vacuous), anti-patterns.md tail 신규 baseline 등록**.
+- 축 선택: states. 중첩 하이라이트 페인트 우선순위 `highlight-order`(겹치는 하이라이트 의사요소의 페인트 스택 z-순서). cycle 2447 forward-pointer(decision-log L90 "`highlight-order` 중첩 하이라이트 오버레이 z-순서 정합·::search-text/::target-text/::selection 간 페인트 우선순위")를 재진입 후보로 채택. 개별 하이라이트 스타일축(::search-text/::target-text/::selection 각 축)과 별개 차원(highlight-order=겹침 시 페인트 순서).
+- MANDATORY 체크: (1) 신규성 — `highlight-order` dedicated subject census 부재(매치 2건은 anti L1230·decision-log L90 forward-pointer 뿐). fresh ded=0. (2) 코드 — apps/web/src+globals.css `highlight-order`/`highlightOrder` grep 0건(pure vacuous). 하이라이트 의사요소 registry 전체 비-사용(::search-text cycle 2447·::target-text/::highlight L645·::selection 미재정의·::spelling-error aesthetic L449 전수 0·CSS.highlights/new Highlight 0) → 겹칠 site 자체 0(doubly-vacuous: highlight-order 0 + 겹침 모집단 0). (3) 찾기하이라이트축(::search-text L2447)·하이라이트구간축(::target-text/::highlight L645)·선택하이라이트축(::selection)·편집오류축(::spelling-error L449)과 별개 차원(highlight-order=중첩 페인트 z-순서).
+- 근거: highlight-order 선언 0건 + 하이라이트 의사요소 전수 비-사용이라 "겹친 하이라이트가 표면 간 순서 갈림" 비정합 모집단이 0. 하이라이트를 하나도 재정의하지 않아 겹침 자체가 발생하지 않음. 겹침 페인트 순서 제어는 미명시 enhancement 이지 결함 아님(loop rule line 9).
+- DESIGN.md 확인: highlight-order/하이라이트/페인트 순서/우선순위 grep 0건. L37-52 Color 는 정적 색 토큰만·L88-94 Motion 은 hover/skeleton 만 규정·겹침 하이라이트 순서 미SHALL·silent.
+- QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail +1.
+- 차기 states 재진입 후보: `::spelling-error`/`::grammar-error` 편집 오류 하이라이트(편집오류축 재검·aesthetic L449) 또는 표준 폼 컨트롤 의사요소 잔여 carve(`::picker(select)`/`::picker-icon`·customizable select) freshness 재검 축.
+
 ## 2026-07-02 — [system] cycle 2072 Discovery — OpenSpec갭: interaction capability piggyback wiring(3 핸들러 best-effort INSERT·미인증 미기록·응답 불변) (covered-by-census)
 - 결정: OpenSpec갭 area(6-area rotation 봇→OpenSpec갭, 54주기째)에서 "interaction/spec.md 2 Requirement(유저 행동 기록 SHALL·3 핸들러 GET /pins/{id}·POST /pins·POST /boards/{id}/pins 진입 시 인증 호출자 한해 best-effort INSERT SHALL) 이 미구현/미정합 — piggyback 누락·미인증 기록·best-effort 위반(응답 실패)·type allowlist 표류" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: OpenSpec갭. interaction piggyback wiring 계약(best-effort·auth-guard·response-invariance).
