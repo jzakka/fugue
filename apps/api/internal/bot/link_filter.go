@@ -191,9 +191,15 @@ func (f *PathPatternFilter) Filter(links []crawler.Link) []crawler.Link {
 
 // CanonicalDedupFilter removes duplicate links using URL canonicalization.
 // Already-visited URLs (found in the visited map) are recorded in LastVisited.
+//
+// Dedup is strictly batch-local: the seen set lives inside a single Filter
+// call. A process-lifetime seen map would be in-memory crawl state, which
+// pioneer/spec.md ("Pioneer는 인메모리 크롤 상태를 보유하지 않는다") prohibits —
+// and it silently drops links forever when an Enqueue fails and the lease
+// retry re-filters the same page. Cross-batch dedup is the scheduler's job
+// (EnqueuePioneer ON CONFLICT (url_hash) DO NOTHING).
 type CanonicalDedupFilter struct {
 	visited     map[string]uuid.UUID // shared with crawl loop: hash(url) → node ID
-	seen        map[string]bool      // internal: hash(canonicalURL(url)) → seen
 	LastVisited []VisitedLink
 }
 
@@ -201,12 +207,12 @@ type CanonicalDedupFilter struct {
 func NewCanonicalDedupFilter(visited map[string]uuid.UUID) *CanonicalDedupFilter {
 	return &CanonicalDedupFilter{
 		visited: visited,
-		seen:    make(map[string]bool),
 	}
 }
 
 func (f *CanonicalDedupFilter) Filter(links []crawler.Link) []crawler.Link {
 	f.LastVisited = nil // reset per call
+	seen := make(map[string]bool, len(links))
 	var out []crawler.Link
 	for _, l := range links {
 		// Check visited map (exact URL hash)
@@ -218,10 +224,10 @@ func (f *CanonicalDedupFilter) Filter(links []crawler.Link) []crawler.Link {
 
 		// Check canonical dedup (normalized URL hash)
 		ch := hashURL(canonicalURL(l.URL))
-		if f.seen[ch] {
+		if seen[ch] {
 			continue
 		}
-		f.seen[ch] = true
+		seen[ch] = true
 		out = append(out, l)
 	}
 	return out
