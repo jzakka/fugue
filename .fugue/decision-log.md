@@ -40,6 +40,14 @@
 - 근거: write-critical Close 는 검사+fail-closed·폐기 Close 는 전부 읽기 핸들·다른 쓰기 경로는 ffmpeg 자식프로세스 소유. 실제 결함 부재이나 축이 신규라 census 편입.
 - QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail 1226줄로 +1.
 - 차기 area = 동시성 (6-area rotation 에러처리→동시성, 46주기째) → cycle 2056. 후보: WaitGroup Add/Done(cycle2044 covered)·mutex-free map(L37)·channel lifecycle(L52)·cancel 규율(L317) 외 미수록 sub-axis(atomic 부분보호·map iteration 중 write·time.Timer 재사용).
+## 2026-07-02 — [design] cycle 2443 aesthetic 289th round — 앵커 크기 질의 함수 anchor-size() 표면 폐기 (doubly-vacuous)
+- 결정: aesthetic area(289th round)에서 "`anchor-size()`(CSS Anchor Positioning 사이징 함수 — 앵커 위치 지정된 요소가 자기 치수(width/height/margin/inset)를 앵커 요소의 치수에서 파생시킴, `width: anchor-size(--trigger width)`)로 툴팁/팝오버 폭을 트리거 폭에 맞추는데 일부 오버레이만 앵커 치수에 맞추고 동종 다른 오버레이는 고정/콘텐츠 치수라 앵커-치수-파생이 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: aesthetic. 후보축 = 요소 치수를 앵커 요소 치수에서 파생시키는 anchor-size() 사이징 함수 정합. 앵커 위치 함수 anchor()(모서리 inset 오프셋·위치 파생)·앵커 등록 anchor-name(states L407)·앵커 결속 position-anchor·격자-셀 배치 position-area(responsive L742)·적응 재배치 position-try-order(L1157)와 별개 차원 — anchor() 는 앵커 모서리에서 요소 *위치*를 파생하고 anchor-size() 는 앵커 치수에서 요소 *크기*를 파생함(위치-파생 vs 치수-파생). decision-log L1577 이 "anchor-size() 함수·anti=0·log=2 forward-pointer"로 fresh 자기지목한 축.
+- MANDATORY 체크: (1) `anchor-size(` grep 전수 0건(globals.css 0·src tsx/ts/css 0·ded=0 tot=0). (2) 앵커 위치 지정 API 전체 비-사용 — anchor-name/position-anchor/anchor(/popover/popovertarget/showPopover grep 전수 0건 → 앵커 결속 요소 부재로 자기 치수를 앵커 치수에서 파생시킬 모집단 0(doubly-vacuous). (3) decision-log 의 "anchor-size" 매치는 전부 forward-pointer(L1577/L1005/L6115/L6120 모두 anti=0·ded=0 명시)뿐, subject census 부재. (4) DESIGN.md anchor/앵커/anchor-size grep 0건.
+- 근거: doubly-vacuous — anchor-size() 선언 0건(property-vacuous)+앵커 위치 지정 API 전체 비-사용(anchor-name/position-anchor/anchor()/popover 0·mechanism-absent, 오버레이는 fixed/absolute 좌표·flow 배치). 모집단 0이라 "일부만 anchor-size·동종 고정 치수" 비정합 성립 불가. precedent: anchor-name/position-anchor(L407)·position-area(L742)·position-try-order(L1157) 등 vacuous anchor positioning 은 결함 아님.
+- DESIGN.md 확인: anchor/앵커/anchor-size 무규정(silent). L67-72 Layout 은 masonry 흐름, L82-94 Interaction/Motion 은 hover/transition 만 규정하고 앵커-결속 오버레이 치수 미SHALL. 셋(DESIGN/AGENTS/CLAUDE) 미명시 → loop-design L9 "미명시 취향은 이슈 아님".
+- QA: 코드 무변경(census-only 표면 폐기)이라 실 브라우저 QA 대상 없음. grep 전수(0건) + DESIGN.md 대조로 vacuity 확인. anti-patterns.md tail 1226줄로 +1.
+- 차기 aesthetic 재진입 후보: `anchor()` 앵커 위치 파생 함수(앵커-위치축·모서리 inset 오프셋·anchor-size 와 별개 위치-파생 차원) 축, `cross-fade()` 다중-이미지 합성 비율(618 재검) 축.
 
 ## 2026-07-02 — [design] cycle 2441 tokens 288th round — 첫 유효 값 선택 함수 first-valid() 표면 폐기 (pure vacuous)
 - 결정: tokens area(288th round)에서 "`first-valid(v1, v2, …)`(CSS Values 5 — 인자 목록에서 유효하게 파싱/계산되는 첫 값을 반환하는 값-레벨 유효성 폴백)로 토큰 값에 구형 브라우저 폴백을 제공하는데 일부 토큰만 first-valid 폴백을 쓰고 동종 다른 토큰은 고정 리터럴/var 폴백이라 값 소싱 어휘가 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
