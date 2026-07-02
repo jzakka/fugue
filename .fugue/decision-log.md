@@ -24,6 +24,14 @@
 - 근거: set-once+즉시 미러+재변형 0(불변)+단일 영속 소비자 4중으로 stale/desync 표면 구조적 부재. FilterValidMedia/filterOverlongMediaURLs 는 MediaCandidates 만 in-place 변형·Lang/Author/PublishedAt 미터치.
 - QA: 코드 무변경(census 등록만)이라 런타임 검증 대상 없음. anti-patterns.md tail 1222줄로 +1.
 - 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 42주기째) → cycle 2048. 후보: scheduler Crawl-delay 반영(L cycle1834 covered)·auth /me 프로필(cycle2036 covered)·pin 목록 필터(L234)·board capability(L248) 외 미수록 Requirement/Scenario sub-axis.
+## 2026-07-02 — [design] cycle 2437 responsive 266th round — 쓰기 방향 브레이크포인트 토글 sm:[writing-mode] 표면 폐기 (doubly-vacuous)
+- 결정: responsive area(266th round)에서 "CSS `writing-mode`(블록 흐름 방향 — 가로쓰기 horizontal-tb↔세로쓰기 vertical-rl/lr)를 `sm:[writing-mode:vertical-rl]` 처럼 브레이크포인트마다 다르게 전환하는 반응형 토글인데 일부 표면만 BP 전환하고 동종 다른 표면은 고정이라 쓰기 방향 반응형 전환이 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
+- 축 선택: responsive. 후보축 = 블록 흐름 축(가로/세로쓰기) 자체를 BP 마다 전환하는 sm:[writing-mode] 반응형 토글 정합. 쓰기 방향 기본값 writing-mode 정적 토큰(tokens L370)·글자 방향 반응형 토글 sm:text-orientation(responsive L931)·종중횡조 반응형 토글 sm:text-combine-upright(responsive L943)·루비 위치 반응형 토글 sm:ruby-position(responsive cycle 1991)과 별개 차원 — writing-mode 정적 토큰(기본 방향)과 sm:[writing-mode](BP 반응형 전환)은 사용 vs 전환으로 다르고, text-orientation(세로쓰기 내 글자 방향 하위 속성)과는 상위/하위 축이 다름.
+- MANDATORY 체크: (1) `sm:[writing-mode`/BP-prefixed writing-mode grep 전수 0건(src tsx/ts/css 0). (2) 기본 `writing-mode`/`vertical-rl`/`vertical-lr` grep 0건 — 세로쓰기 컨텍스트 자체 비-사용(본문 전부 가로쓰기). (3) L370(정적 writing-mode 토큰)·L931(text-orientation BP 토글)·L943(text-combine-upright BP 토글)·cycle 1991(ruby-position BP 토글)은 본 축(쓰기 방향 자체의 BP 토글)의 dedicated census 아님 — sibling 참조뿐. (4) DESIGN.md writing-mode/vertical-rl/세로쓰기 grep 0건.
+- 근거: doubly-vacuous — 기본 writing-mode 선언 0건(mechanism-absent·세로쓰기 비-사용)+BP-prefixed sm:[writing-mode] 0건(property-vacuous). 모집단 0(pure vacuous)이라 "일부만 sm:[writing-mode]·동종 고정" 비정합 자체가 성립 불가. precedent: sm:text-orientation(cycle 1999)·sm:ruby-position(cycle 1991)·sm:caption-side(responsive L486) 등 vacuous toggle 은 결함 아님.
+- DESIGN.md 확인: writing-mode/vertical-rl/세로쓰기 무규정(silent). L70 Breakpoints(sm 500/md 800/lg 1200) 정의하나 쓰기 방향 BP 전환 미SHALL, L67-72 Layout 은 masonry 흐름만 규정하고 블록 흐름 방향은 가로쓰기 전제. 셋(DESIGN/AGENTS/CLAUDE) 미명시 → loop-design L9 "미명시 취향은 이슈 아님".
+- QA: 코드 무변경(census-only 표면 폐기)이라 실 브라우저 QA 대상 없음. grep 전수(0건) + DESIGN.md 대조로 vacuity 확인.
+- 차기 responsive 재진입 후보: `sm:[writing-mode]` BP 쓰기 방향 전환(본 축 재검) 또는 `sm:direction` rtl/ltr BP 전환(양방향 텍스트 방향의 BP 토글, writing-mode 와 별개) 축.
 
 ## 2026-07-02 — [design] cycle 2435 aesthetic 288th round — 라이브 요소 이미지 함수 element()(-moz-element) 표면 폐기 (doubly-vacuous)
 - 결정: aesthetic area(288th round)에서 "CSS `element()`/`-moz-element()`(Firefox 전용 이미지 함수 — `background-image: element(#id)` 로 살아있는 DOM 요소를 실시간 렌더해 이미지 소스로 참조)로 라이브 요소를 배경 이미지로 미러링하는데 일부 표면만 element() 로 미러링하고 동종 다른 표면은 정적 이미지라 이미지 소싱 어휘가 표면마다 갈린다"는 후보를 **표면 폐기**(census 신규 1줄, 코드 무변경).
