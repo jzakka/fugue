@@ -349,6 +349,23 @@ func TestCanonicalDedupFilter(t *testing.T) {
 	}
 }
 
+// Pins pioneer/spec.md "Pioneer는 인메모리 크롤 상태를 보유하지 않는다": dedup
+// must be batch-local. If the seen set survived across Filter calls, a page
+// re-filtered after a transient Enqueue failure (10-min lease retry) would
+// lose all of its links while the page itself gets marked fetched for 365
+// days. Cross-batch dedup belongs to the scheduler (ON CONFLICT DO NOTHING).
+func TestCanonicalDedupFilterIsStatelessAcrossCalls(t *testing.T) {
+	f := NewCanonicalDedupFilter(nil)
+	links := []crawler.Link{makeLink("https://example.com/retry-me")}
+
+	if got := f.Filter(links); len(got) != 1 {
+		t.Fatalf("first call: expected 1 link, got %d", len(got))
+	}
+	if got := f.Filter(links); len(got) != 1 {
+		t.Fatalf("second call: expected 1 link (batch-local dedup only), got %d", len(got))
+	}
+}
+
 // --- 6.8 TestFilterChain ---
 
 func TestFilterChain(t *testing.T) {
