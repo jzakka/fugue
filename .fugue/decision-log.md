@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2106 Discovery — 봇: Pioneer FilterChain 순서(Domain→Extension→PathPattern→Robots→Dedup·cheap→network→dedup-last·Apply sequential fold nil-guard) (covered-by-census)
+- 결정: 봇 area(6-area rotation 동시성→봇, 71주기째)에서 "Pioneer 링크 필터 체인의 필터 순서가 잘못돼 CanonicalDedupFilter 가 이후 필터에 거부될 URL 을 선-visited 마킹해 재크롤 시 영구 스킵되거나·RobotsFilter(네트워크)가 값싼 필터보다 먼저 돌아 거부될 링크에 불필요 robots.txt fetch·Apply fold 가 nil 입력/nil 필터에서 panic" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 봇. FilterChain 필터 순서 + Apply sequential fold 안전성.
+- 조사: (1) **체인 순서** = pioneer_consumer_builder.go:31-37 `NewFilterChain(&DomainFilter{}, &ExtensionFilter{}, &PathPatternFilter{}, robots, NewCanonicalDedupFilter(nil))` — Domain→Extension→PathPattern→Robots→Dedup 고정. cheap/결정론(domain/extension/path) 선행→네트워크(Robots) 후행→**Dedup 최후행**이라 전 필터 통과한 URL 만 visited 마킹(거부 URL 선-마킹으로 인한 영구스킵 불가). (2) **Apply fold** = link_filter.go:32-43 `if links==nil { return nil }`→`for _,f:=range filters { if f==nil { continue }; links=f.Filter(links) }` — nil 입력 단락·nil 필터 skip·각 필터 출력이 다음 입력(sequential). (3) **production dedup read-only** = NewCanonicalDedupFilter(nil)로 visited=nil(cycle662 L37: read-only·nil-map write 없음).
+- covered-by: **L63(cycle 688 봇)** = bot URL 필터 구현 전수 판정, item **(5) 체인순서: builder 가 Domain→Extension→PathPattern→Robots→Dedup 고정** 명시 등록 — 본 probe 의 발견 순서와 verbatim 일치(무회귀). L63 예외절이 "필터 순서 변경" 을 registerable 결함으로 명시하나 현행 순서가 등록 순서와 동일. **L37(cycle 662)** = CanonicalDedupFilter nil visited read-only(single-goroutine Run 루프)로 dedup 마킹 동시성 커버. static "체인 순서 오류로 선-visited 영구스킵·불필요 robots fetch·fold nil panic" 은 FP — 체인순서(L63 item5)·Apply nil-guard·dedup read-only(L37) 전수 안착.
+- 차기 area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 72주기째) → cycle 2108. 후보: scheduler robots Crawl-delay→rate(cycle1834)·pioneer fanout B producer 계약(L53)·pin 단건 라이프사이클(L295)·interaction piggyback wiring(cycle2096) 외 미수록 sub-axis(harvester snapshot-first-fetch 키 L261·bot URL 필터 spec 매칭 L235·frontier 테이블정의 SHALL NOT 정합).
+
 ## 2026-07-02 — [system] cycle 2104 Discovery — 동시성: robots_filter single-flight refresh(inflight coalescer·winner close(done) 1회·pending.result happens-before·RWMutex cache/inflight 가드·winner-only SetHostRate) (covered-by-census)
 - 결정: 동시성 area(6-area rotation 에러처리→동시성, 70주기째)에서 "N 동시 robots refresh 미스가 single-flight coalescer 에서 승자/대기자 조정 race — pending.result 를 close 전 write 안 해 대기자가 stale/nil 읽음·double-close(승자 아닌 goroutine 이 close)·inflight/cache map 비가드 concurrent write(fatal)·winner-only SetHostRate 가 대기자도 재호출해 TTL dedup 깨짐" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 동시성. single-flight refresh coalescer 의 승자/대기자 조정 + 채널 close happens-before + map 가드.
