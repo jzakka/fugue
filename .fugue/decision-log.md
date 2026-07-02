@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2531 Discovery — aesthetic 300th round: 플로트 도형 외부 여백(shape-margin) 표면 폐기 (triply-vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 300th round)에서 "핀 상세/카드에서 이미지·도형 둘레로 텍스트를 감쌀 때 `shape-margin` 으로 도형 외부 여백을 잡거나 일부 플로트만 여백을 커스텀하고 동종은 기본값(0)이라 도형 둘레 텍스트 간격이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2523 forward-pointer #1 후보 `shape-margin`(CSS Shapes 1 마지막 companion·subj=0·code=0) 선택. shape-outside(L574)·shape-inside(L925)·shape-padding(L949)·shape-image-threshold(2523/L1273)·shape()(L1263) 형제 sub-carve 선례 → CSS Shapes 패밀리 마지막 미커버 *도형 외부 여백* 속성을 별개 차원으로 sub-carve해 패밀리 census 소진.
+- MANDATORY 체크: (1) `shape-margin` 선언 grep src+globals **0건**. (2) `shape-outside` 자체 grep **0건**(L574 확인) — 플로트 도형 컨텍스트 부재·여백 발화 대상 0. (3) 이미지는 masonry 카드/썸네일 배치·텍스트가 도형 둘레를 감싸는 플로트 레이아웃 미사용. (4) DESIGN.md `shape`/shape-margin/float/텍스트 흐름 grep **0건**.
+- 근거: triply-vacuous — shape-margin 0 + shape-outside 플로트 도형 컨텍스트 0(여백 발화 대상 부재) + DESIGN.md silent. CSS Shapes 패밀리 형제 담당 차원 분리: shape-outside(L574 소스/기하)·shape-inside(L925 내부 흐름)·shape-padding(L949 내부 패딩)·shape-image-threshold(L1273 이미지 알파 컷오프)·shape()(L1263 명령형 도형)·본 축 shape-margin(외부 여백). shape-padding(안쪽 패딩·shape-inside용) vs shape-margin(바깥쪽 여백·shape-outside용) 구별. CSS Shapes 패밀리 census 소진.
+- DESIGN.md 확인: 105줄 전수 플로트 도형 외부 여백/감싸기 간격 미규정(grep 0)·Layout(L67-72)은 masonry 만·Typography(L16-35)는 폰트/크기/행간만·L11 Minimal 도 플로트 도형 텍스트 감싸기 미SHALL → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- QA: 신규 코드 변경 0 → 브라우저 QA 무해당(0-candidate census). 정적 grep(shape-margin 0·shape-outside 0·이미지 masonry 배치·DESIGN 0)으로 vacuity 확인.
+- 차기 aesthetic 재진입 후보(선점 시 PIVOT): `initial-letter-align`(드롭캡 정렬·L1039 initial-letter subject 재검)·`text-box-edge`(leading-trim 상하 절삭 엣지·L405 text-box subject 재검). aesthetic fresh 축 극심 saturation(300th round·CSS Shapes 패밀리 소진·30+ 속성 대부분 covered) — 실제 격리 비정합 site 출현 시에만 등록.
+
 ## 2026-07-02 — [design] cycle 2529 Discovery — tokens 299th round: 앵커 적응 재배치 대체 위치 정의 at-규칙(@position-try) 표면 폐기 (triply-vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 299th round)에서 "앵커 포지셔닝 요소(툴팁/팝오버/드롭다운)가 뷰포트 밖으로 넘칠 때 `@position-try` 로 named 대체 위치 토큰을 정의하거나 일부 팝오버만 대체 위치 세트를 두고 동종은 미정의라 오버플로 재배치가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: tokens. cycle 2521 forward-pointer(image-set L598·@font-palette-values L639) 검증 결과 둘 다 이미 dedicated subject → 앵커 포지셔닝 패밀리 잔여 검토 후 `@position-try`(named 대체 위치 정의 at-규칙·subj=0·code=0) 선택. L634 @counter-style·L639 @font-palette-values·L629 @property 등 *named 토큰 정의 at-규칙* 선례 → 앵커 포지셔닝 패밀리(L742/L1092/L1157/L1228/L1232) 미커버 대체-위치-정의 at-규칙을 tokens 차원으로 sub-carve.
