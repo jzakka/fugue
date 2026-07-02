@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-02 — [design] cycle 2561 Discovery — tokens 303rd round: 캡하이트 상대 길이 단위(`cap`=대문자 글리프 높이) 표면 폐기 (pure vacuous)
+- 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 303rd round)에서 "일부 표면만 `cap`(대문자 캡하이트 높이) 로 크기/오프셋을 잡고 동종은 `ex`/`em`/`rem`/`px` 로 잡아 높이 기준 단위가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: tokens. cycle 2553 forward-pointer(L410 그룹 잔여 미개별-carve 단위) 채택. 폰트 상대 길이 단위 그룹(L410)에서 `ch`(L775 영문 0 자폭)·`ic`(2545 표의문자 폭)·`ex`(2553 소문자 x-하이트)에 이어 `cap`(대문자 캡하이트 *높이*) 개별 sub-carve — 소문자 x-하이트/advance 폭과 다른 대문자 글리프 높이 파생원 차원.
+- MANDATORY 체크: total=0(`cap` 단위 dedicated census 부재·L410 은 그룹 collective)·code=0(`[0-9.]+cap\b` apps/web/src grep 0, capitalize/caption 단어 제외)·DESIGN silent(cap-height/캡하이트/대문자 높이 grep 0) → triply-vacuous(pure vacuous).
+- 근거: 헤딩/로고/아이콘 상단 정렬·간격은 `cap`(대문자 시각 높이)이 아니라 rem/px 스페이싱 토큰·flex items-center·line-height 로 처리 → 캡하이트에 비례해 시각 높이를 맞추는 idiom 부재.
+- DESIGN.md 확인: 105줄에 캡하이트 상대 단위 규정 전무 → `cap` 은 취향/이슈 아님(loop-design.md line 9).
+- QA: 코드 변경 없음(census-only). anti-patterns.md 1줄 append + decision-log 1항목. apps/web 무변경 → 시각 회귀 없음.
+- 비중첩: L410 그룹 collective·L775 ch·L1288 ic·cycle 2553 ex 와 별개 — `cap` 은 대문자 캡하이트 *높이* 메트릭(폭 아님·소문자 x-하이트 아님).
+- 차기 tokens 재진입 후보: L410 그룹 잔여 미개별-carve 단위 `rlh`(root line-height, total=0·group member)·`lh`(line-height) 또는 논리 뷰포트 단위 `vi`/`vb`(inline/block viewport, total=0) subj/total 확인 후 개별 sub-carve — 라인메트릭·논리축 뷰포트 별개 파생원.
+
 ## 2026-07-02 — [design] cycle 2559 Discovery — states 280th round: 네임스페이스 한정 속성 선택자(`[ns|attr]`=`[xlink|href]`) 표면 폐기 (pure vacuous)
 - 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 280th round)에서 "일부 SVG 만 `[xlink|href]` 네임스페이스 한정으로 속성을 매칭하고 동종은 `[href]` 무접두/`[*|href]` 전체네임스페이스라 속성 매칭 ns 기준이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - 축 선택: states. cycle 2551 forward-pointer(속성 선택자 계열 네임스페이스 한정) 채택. 속성 선택자 family 에서 cycle 2543(대소문자 플래그 `[attr="v" i/s]`)·cycle 2551(값 매칭 연산자 `[attr^=/$=/*=/~=/|=]`)에 이어 *네임스페이스 접두 한정*(`[xlink|href]`↔`[*|href]`↔`[href]`) 별개 차원 sub-carve.
