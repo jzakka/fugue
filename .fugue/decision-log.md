@@ -17,6 +17,13 @@
 
 ## 항목
 
+## 2026-07-02 — [system] cycle 2112 Discovery — 정합성: OAuth 소셜로그인 creator+auth_account 두 INSERT 트랜잭션 원자성(두번째 INSERT 실패 시 롤백으로 orphan creator 방지) (covered-by-census)
+- 결정: 정합성 area(6-area rotation 보안→정합성, 74주기째·4th rotation 시작)에서 "auth 소셜로그인이 creators INSERT 후 auth_accounts INSERT 를 별도 커밋/tx 밖에서 수행해, 두번째 INSERT(전이 PG 에러·UNIQUE(provider,provider_id) 경쟁) 실패 시 auth_account 없는 orphan creator 가 DB 에 잔존하거나·병합 경로가 부분 커밋으로 auth_account 만 붙고 creator 미확정" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
+- 축 선택: 정합성. OAuth creator+auth_account 다중 INSERT 트랜잭션 경계 원자성(orphan 방지).
+- 조사: (1) **createNewCreator = 단일 tx 원자화**: service.go:157-183 `BeginTx`(:158)+`defer tx.Rollback()`(:162)+`db.New(tx)`(:164) 로 `CreateCreatorFromOAuth`(:166 creators INSERT)+`addAuthAccount`(:175 auth_accounts INSERT)를 한 tx 로 묶고 `tx.Commit()`(:179)은 두 INSERT 모두 성공 후에만 — addAuthAccount 실패(:175 return err) 시 defer Rollback 이 creators 행까지 되돌려 orphan creator 불가(주석 :148-156 명시). (2) **findOrCreateWithEmail = 병합 경로도 동일 tx**: service.go:69-146 `BeginTx`(:70)+`defer Rollback`(:74) 안에서 merge(addAuthAccount→Commit :89/:102) 든 create(CreateCreatorFromOAuthOnConflict→addAuthAccount→Commit :142) 든 전 경로가 단일 tx·부분 커밋 없음·FOR UPDATE(:79/:96) 로 동시 병합 직렬화. (3) **재조회 복구도 tx 내**: ON CONFLICT DO NOTHING 발화 시(:127) 같은 tx q 로 re-query(:129)→creatorID 확정→addAuthAccount(:138)→Commit(:142) 라 복구 경로도 원자적.
+- covered-by: **L126(cycle 736 동시성)** = 동시 OAuth 콜백/중복 INSERT/orphan creator 후보를 DB 원자성 위임으로 판정 — item (1) "auth FindOrCreateCreator: createNewCreator(service.go:157-183)·findOrCreateWithEmail(:69-146) 둘 다 BeginTx+defer Rollback+Commit 으로 creators+auth_accounts 두 INSERT 원자화·loser tx 롤백→orphan creator 불가" 로 본 트랜잭션 경계 원자성 축 전수 판정. 인접: **cycle 754(보안) OAuth 계정 병합**(FindOrCreateCreator→findOrCreateWithEmail 병합 안전성). static "creators INSERT 후 auth_accounts INSERT 분리→orphan" 은 FP — 두 경로 전부 단일 tx+defer Rollback 으로 부분커밋/orphan 차단.
+- 차기 area = 에러처리 (6-area rotation 정합성→에러처리, 75주기째) → cycle 2114. 후보: writeJSON/writeError Encode 에러 폐기(cycle758 L147)·named-return defer 클로저 err 덮어쓰기(L50)·ctx.Canceled best-effort(cycle722 L96)·bare-statement 에러 폐기 외 미수록 sub-axis.
+
 ## 2026-07-02 — [system] cycle 2110 Discovery — 보안: media Upload 오브젝트 스토리지 키가 공격자 제어 filename(multipart header.Filename)으로 path traversal (covered-by-census)
 - 결정: 보안 area(6-area rotation OpenSpec갭→보안, 73주기째)에서 "핀/썸네일 업로드 시 사용자 제어 multipart `header.Filename` 이 object storage(S3) 키 구성에 흘러들어 `../../` path traversal 로 임의 prefix 덮어쓰기·키 인젝션·확장자 위조로 잘못된 Content-Type 저장" probe → **covered-by-census, 신규 baseline 없음**(decision-log 만 기록, anti-patterns 무변경).
 - 축 선택: 보안. 업로드 filename → object storage 키 path traversal/키 인젝션.
