@@ -481,6 +481,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2657 — design/tokens 315th round (Discovery, 표면 폐기)
+- 축 선택: Tailwind v4 알파-파생 색 함수(`--alpha()`=기존 색 값의 알파만 조정해 반투명 변형 색을 CSS 안에서 파생하는 v4 헬퍼 — `--alpha(var(--color-accent) / 50%)`). tokens 영역 색-파생/함수 공간 탐색 중, `@config`/color-mix/상대색상 등은 기존 census(L621/L384/@config) 로 확인, `--alpha(`·`--theme(` 이 코드·census 양쪽 0 → 신선축.
+- 프로브: (1) `--alpha(` 함수 grep = 0(globals.css·src). (2) 알파-변형 색 토큰은 전부 리터럴 rgba — `--accent-subtle: rgba(...0.12)`(globals L19/L37)·`--shimmer-highlight: rgba(...0.06/0.04)`(L25/L39)·`--shadow-card-hover: ...rgba(...0.3)`(L62), dark/light 각각 정밀 지정. (3) 불투명 브랜드색은 hex, 반투명 파생은 rgba 로 역할별 표기 일관. (4) DESIGN.md(105줄) --alpha/알파 파생 함수 미규정.
+- 결정: 표면 폐기(sub-dimension vacuous — 알파 파생 차원은 존재하나 함수-헬퍼 차원 0, 알파-변형 토큰 100% 리터럴 rgba uniform). NO 코드 변경, anti-patterns.md EOF 1건 census 추가. 셋(DESIGN/AGENTS/CLAUDE) 어느 것도 미명시(loop 규칙 line 9 취향 문제) → 이슈 아님.
+- 비중첩: 색 파생/계산 인접 census — 상대 색상 구문 `rgb(from...)`(L384 채널 재조합)·`color-mix()`(L621 두 색 혼합)·`contrast-color()`/`color-contrast()`(L418 대비 색 선택)·그라디언트 보간 색공간(L414)·요소-레벨 `opacity-*`(L487)·`--spacing` 베이스 토큰(L573)은 채널 재조합·색 혼합·대비 선택·요소 투명도·간격 파생을 다루지 단일 색 알파만 조정하는 `--alpha()` 함수 자체를 다루지 않음.
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2659, 316th round.
+
 ## cycle 2655 — design/states 292nd round (Discovery, 표면 폐기)
 - 축 선택: 네이티브 다이얼로그 가벼운-닫기 정책 속성(`closedby`=`<dialog closedby="any | closerequest | none">` — `<dialog>` 요소가 백드롭 클릭·Esc 같은 닫기 요청으로 어떻게 닫힐지를 선언하는 light-dismiss 정책 속성). states 영역 의사클래스/ARIA 속성/Tailwind 변형 공간이 극도 포화(292라운드) → 브랜드-신규 HTML dialog 속성으로 신선축 탐색. `:in-range`/`:read-only`/`:user-invalid` 등 후보는 `grep -E "a\|b"` 의 `\|` 리터럴 버그로 0 오탐이었고 실제 L336/L359/L397 기존 census 로 확인.
 - 프로브: (1) 네이티브 `<dialog>`/`.showModal()`/`showPopover()` grep = 0(src) → closedby host 요소 부재(mechanism-absent). (2) 모달은 전부 커스텀 `fixed inset-0` div + `role="dialog"`/`aria-modal`(VideoTrimModal·AddToBoardButton). (3) 닫기는 JS 백드롭 onClick·Escape·닫기버튼(7 핸들러)로 균일. (4) DESIGN.md(105줄) dialog/closedby/dismiss grep = 0.
