@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2328 — 보안 (covered)
+
+- 축 선택: rotation 보안 (직전 2316 covered). 후보 축: OAuth state/PKCE posture 재검.
+- 프로브 결과: (1) 후보 축은 anti-patterns L284(OAuth state CSRF/single-use 라이프사이클, cycle 902 baseline)가 기커버 — internal/auth/ 변경 0건이라 재검 트리거 미발화. (2) 재스캔 게이트(npm audit/govulncheck)는 신규 advisory 시에만 fresh — cycle 2292에서 잔차 불변 확인. (3) 최근 보안 fresh 축(2268 프록시 캡·2280 CI 토큰·2304 JWT_SECRET) 전부 baseline 종결.
+- 판정: covered-by-census.
+- 차기: rotation 정합성 cycle 2330 (직전 2318 covered). fresh 축 소진 추세 — 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2326 — OpenSpec갭 (covered)
 
 - 축 선택: rotation OpenSpec갭 (직전 2314 covered). 재검 트리거: 활성 change 3건 변동 여부.
