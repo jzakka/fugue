@@ -702,6 +702,13 @@
 - 비중첩: L551(정적 변형 기준점 transform-origin `origin-center`/`origin-top`/`origin-bottom` — pivot 값 자체를 뷰포트 분기 무관하게 정적 지정)과 비중첩 — 정적 pivot 값 vs 본 축=BP 조건부 pivot 스위칭, 반응형 층위 상이.
 - 차기: area = states (4-area rotation responsive→states) → cycle 2679, 295th round.
 
+## cycle 2679 — design/states 295th round (Discovery, 표면 폐기)
+- 축 선택: 상호작용 상태-부정 variant(`not-hover:`/`not-focus:`/`not-disabled:`/`not-checked:` — Tailwind v4 `not-*` variant 로 상호작용 상태 의사 클래스를 `:not()` 로 감싸 요소가 *그 상태가 아닐 때만* 스타일을 적용하는 상태 여집합(complement) 훅, `:not(:hover)` 로 컴파일). states 로테이션(responsive 2677 → states 2679)에서 양성 상태 variant·ARIA 상태·의사클래스·HTML 상태속성 공간이 포화라, 상태 스타일 중 아직 미등재인 *상태의 여집합*(양성 진입의 반대편) 차원을 선택(`not-hover:`/`not-*` anti-patterns grep 0건).
+- 프로브: (1) `not-hover:`/`not-focus:`/`not-disabled:`/`not-checked:`/`not-[` apps/web/src·globals.css grep 0건 → 상태 여집합 스타일 훅 표면 부재. (2) 상태 스타일은 전부 양성 상태 variant — `hover:border-accent`(23)·`focus-visible:border-accent`(23)·`disabled:opacity-`(16)·`focus:border-accent`(11) 등 상태 *진입 시* 적용 → 상태 부재를 훅으로 삼는 site 0. (3) 상태-부정 idiom 부재(평상시 base 클래스+상태 진입 시 양성 variant). (4) DESIGN.md(105줄) not-/negation/부정/여집합/complement grep 0건.
+- 결정: 호스트(상태 여집합 스타일 훅) 부재 + 상태 스타일은 양성 variant 로 균일 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·양성 variant 균일)로 이슈 아님. anti-patterns 1줄 추가(cycle 2679 baseline)·표면 폐기.
+- 비중첩: L669(구조적 부정 의사 클래스 결합자 `:not()` — `button:not([disabled])`/`[tabindex]:not([tabindex="-1"])` 처럼 속성·구조 셀렉터를 부정해 요소를 선택하는 구조적 매칭, 그 census 스스로 "요소의 상태가 아니라 셀렉터 매칭을 부정" 명시)과 비중첩 — 구조/속성 셀렉터 부정 매칭 vs 본 축=상호작용 상태 의사 클래스의 여집합 스타일 훅(`:not(:hover)`), 부정 대상 층위 상이.
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2681, 318th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
