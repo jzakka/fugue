@@ -186,6 +186,13 @@ priority order defined by harvester_frontier's partial index.`,
 		// Choose executor and pipeline based on HARVESTER_MODE. The executor
 		// is consumed only by ScriptAdapter registration; mock executor is
 		// still useful for exercising the consumer without a real goja runtime.
+		//
+		// The mode must be chosen explicitly. Mock mode fabricates pin IDs
+		// (uuid.New() with no pins row) that the consumer persists via
+		// SetStatus(harvested, pinIDs), permanently consuming frontier rows
+		// with zero pins created — so silently defaulting to mock on a
+		// missing/typoed env var would corrupt scheduler state while logs
+		// report successful "created" counts. Fail fast instead.
 		ctx := cmd.Context()
 		if ctx == nil {
 			ctx = context.Background()
@@ -196,8 +203,8 @@ priority order defined by harvester_frontier's partial index.`,
 		var executor bot.ScriptExecutor
 		var pipeline bot.DocumentPipeline
 
-		mode := os.Getenv("HARVESTER_MODE")
-		if mode == "real" {
+		switch mode := os.Getenv("HARVESTER_MODE"); mode {
+		case "real":
 			timeoutMs := 0 // 0 → GojaExecutor uses default 10000ms
 			if v := os.Getenv("SCRIPT_TIMEOUT_MS"); v != "" {
 				if parsed, parseErr := strconv.Atoi(v); parseErr == nil {
@@ -208,10 +215,12 @@ priority order defined by harvester_frontier's partial index.`,
 			storageAdapter := bot.NewStorageAdapter(infra.Storage)
 			pipeline = bot.NewHarvestPipeline(infra.Queries, storageAdapter)
 			log.Println("fuguebot: using real executor + pipeline")
-		} else {
+		case "mock":
 			executor = bot.NewMockScriptExecutor()
 			pipeline = bot.NewMockPipeline()
-			log.Println("fuguebot: using mock executor + pipeline (set HARVESTER_MODE=real for production)")
+			log.Println("fuguebot: using mock executor + pipeline (dev only — fabricated pin IDs consume frontier rows)")
+		default:
+			return fmt.Errorf("HARVESTER_MODE must be \"real\" or \"mock\", got %q", mode)
 		}
 
 		// Apply env overrides for BotCreatorID (IMMUTABLE-sync policy
