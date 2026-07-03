@@ -36,6 +36,16 @@
 - **QA**: 서베이 전용 주기(코드 무변경)라 실행 검증 비대상.
 - **차기**: area = 봇 (6-area rotation 동시성→봇, 95주기째) → cycle 2154. 후보: bot/spec.md:562 배치 처리 통계 반환 계약↔HarvestStats 필드 정합(census 0건 — 봇/OpenSpec갭 겸용 이월)·192f880e og_data 재동기화 후속 표면(ThumbnailURL 등 다른 파생 필드 lockstep, cycle 1832 예외 (d) 각도)·image_cache TTL/용량 정책↔spec L854-887 정합 재확인. 이월(타 축): helm _helpers.tpl 부재 렌더 실패(정합성·helm 미설치라 미검증).
 
+## 2026-07-03 — [design] cycle 2595 Discovery — aesthetic 308th round: 다중 레이어 알파-형태 필터 그림자 스택(`filter: drop-shadow()` 다층 합성) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 308th round)에서 "일부 아이콘/썸네일/로고만 공백 구분 다중 `drop-shadow()` 로 알파-형태 아웃라인/입체를 주고 동종은 단일 필터/평면이라 알파-형태 그림자 회화가 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2587 forward-pointer(`filter: drop-shadow()` 다중 vs box-shadow). drop-shadow 계열에서 L535(`filter` 색/톤 필터 함수 그룹 — drop-shadow 를 *그룹-멤버* 로만 열거)·L597(`--drop-shadow-*` 스케일 토큰)이 carve 됐고 *다중 레이어 스택 합성*(알파 형태 따라 여러 겹) 미carve 발견 → cycle 2587 box-shadow 다층·2579 text-shadow 다층과 동형의 drop-shadow 판으로 sub-carve.
+- MANDATORY 체크: (1) `drop-shadow` 필터 함수·Tailwind `drop-shadow-*`·arbitrary apps/web/src·globals.css grep **0건**. (2) 코드 그림자는 `--shadow-card-hover`(단일 레이어 box-shadow·박스 경계 기준) 하나뿐 → 알파 형태 따라 겹치는 drop-shadow 스택 idiom 부재. 아이콘은 lucide SVG stroke·로고/썸네일은 사각 미디어라 알파 아웃라인 필터 그림자 발현 site 부재. (3) DESIGN.md(105줄) drop-shadow/filter grep **0건**·유일 그림자는 L86 *단일* box-shadow 확대·L11 "Decoration level: Minimal" 상충 → silent.
+- 근거: 세 독립 0-조건(drop-shadow code 0 + 다층 필터 합성 모집단 0 + DESIGN silent)로 triply/pure vacuous. "아이콘/로고가 있으니 알파 형태 아웃라인을 다층 drop-shadow 로 준 곳이 있거나 일부만 줘 갈릴 것" 정적 추정은 FP — `filter: drop-shadow()` 가 0·그림자는 단일 box-shadow(박스 경계).
+- DESIGN.md 확인: 다층 알파 필터 그림자 미규정(L86 단일 box-shadow·L11 Minimal). loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L535(색/톤 필터 함수 그룹·drop-shadow 멤버 열거)·L597(--drop-shadow-* 스케일 토큰 크기)·box-shadow 계열 L288/L507/L785/L836/L601·cycle 2587 box-shadow 다층(박스 경계)·cycle 2579 text-shadow 다층(텍스트 기준)과 별개 — 본 축은 `filter: drop-shadow()` 의 *다중 레이어 스택 합성*(공백 구분 복수 필터 그림자를 알파 형태 따라 누적) 차원.
+- 차기 aesthetic 재진입 후보: `backdrop-filter` 다중 함수 스택(blur()+saturate() 겹침·code=3 populated 이라 dimensionally-vacuous 각도로 재판단)·`-webkit-text-stroke-width`/`-color` 롱핸드(subj=3 재검)·`filter` 다중 함수 체인(brightness+contrast 순차) subj/total 확인 후 sub-carve.
+
 ## 2026-07-03 — [system] cycle 2150 Processing — 에러처리: fetchHTMLShared Body.Close 경고의 fmt.Printf(stdout) 채널을 log.Printf 로 교정
 
 - **결정**: Processing (실결함 fix, confidence 3). bot/helpers.go:54 fetchHTMLShared 의 resp.Body.Close() 실패 경고가 `fmt.Printf("Warning: ...")` 로 **stdout에 무타임스탬프·무프리픽스로 출력**되어 bot 패키지 전체의 `log.Printf`(stderr·타임스탬프) 컨벤션과 어긋남 → `log.Printf("fetchHTMLShared: failed to close response body: %v", closeErr)` 로 교정 + `log` import 추가. 에러 자체는 로깅되고 있었으나(삼킴 아님) 잘못된 채널로 보고되는 에러처리 결함.
