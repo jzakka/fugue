@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2250 — 동시성: 인벤토리 재실측 + 전 스위트 race detector 동적 검증 (판정: covered-by-census)
+
+- **축 선택**: rotation 동시성 (직전 2238 — 인벤토리 불변 covered). 정적 인벤토리에 동적 증거를 보강.
+- **프로브 결과**: (1) 정적 — 비테스트 `go func` 3곳·sync.Once/WaitGroup/errgroup 0건 불변 (L87/L138/L183/L361/L421 기커버). (2) 동적 — `go test -race ./...` 전 스위트(668 tests / 23 packages) 통과, DATA RACE 리포트 **0건** (전 스위트 race 실행은 census 최초 — L706 은 robots_filter 단일 표면 한정).
+- **판정**: covered — 정적 baseline 유효 + race detector 동적 무결 실증. 신규 결함·신규 baseline 없음.
+- **차기**: rotation 봇 cycle 2252 (직전 2240 — Makefile 타깃 baseline). fresh 축 탐색 필요.
+
 ### cycle 2248 — 에러처리: bot-visualize CLI exec(dot) 에러 경로 프로브 (판정: covered-by-census)
 
 - **축 선택**: rotation 에러처리 (직전 2236 — census 전 축 재대조 covered). 미조사 잔여 표면 = dev CLI(cmd/bot-visualize)의 os/exec 경계.
