@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2390 — 정합성: 모집단 변화 재검 → 외부 변경 없음 (covered)
+
+- 축: 직전 정합성 census(2378) 이후 모집단 표면(apps/api, docs/, AGENTS.md, README.md, Makefile) 변화분.
+- 조사: `git log 22747864..origin/main` 대상 표면 커밋 3건 전부 루프 자체 REAL 픽스 — c9c4e4a4(cycle 2342), 4ab43b2e(cycle 2330), e2cb3a80(cycle 2294 #3115 지연 머지, AGENTS.md 봇 명령 예시 artstation→unsplash 교정). apps/api 0줄 불변.
+- 검증: e2cb3a80은 해당 사이클에서 CLI 실행 실증(unknown site 에러 + available 목록)으로 QA 완료된 픽스이며 현재 AGENTS.md:107-108이 CLI available 목록·Makefile usage와 일치함을 재확인.
+- 판정: covered — 외부 변경 없음, 신규 불일치 없음.
+- 차기: rotation 에러처리 cycle 2392 (직전 2380 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2388 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - 축: 직전 보안 census(2376) 이후 advisory 게이트 변화.
