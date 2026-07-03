@@ -544,6 +544,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2663 — design/states 293rd round (Discovery, 표면 폐기)
+- 축 선택: 네이티브 스위치 표현 속성(`<input type="checkbox" switch>` = HTML 체크박스의 `switch` 불리언 속성 — 체크박스를 네이티브 토글 스위치 UI 로 렌더링하고 on/off 를 `:checked` 상태로 표현하는, ARIA `role="switch"` 의 플랫폼-네이티브 대응판). states 로테이션(responsive 2661 → states 2663)에서 의사클래스·ARIA 상태·HTML 상태속성·상태전이 애니메이션 공간이 포화라, ARIA role="switch"(L575)의 네이티브 대응판인 HTML `switch` 표현 속성 차원을 선택.
+- 프로브: (1) 네이티브 `switch` 속성 0건·`<input type="checkbox" switch>` 0건(src grep) → 스위치 렌더링/명시 표면 0. (2) `<input type="checkbox">` 요소 0건(src grep) → switch host 부재, 비정합 표면 성립 불가(mechanism-absent). (3) 유일 on/off 토글(테마 전환)은 커스텀 `<button onClick>`(ThemeToggle.tsx L32-33), role="switch" 도 0건 → 스위치 표현 매커니즘 적용 대상 부재. (4) DESIGN.md(105줄) switch/토글 스위치 컨트롤 grep 0건, L52 "라이트 모드 토글" 은 테마 전환 개념일 뿐 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- 결정: actionable-defect 부재(switch 적용 대상 매커니즘 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 2663 baseline).
+- 비중첩: L575(states `aria-checked`/`role="switch"` — 스위치 역할·체크 상태를 ARIA 로 노출)·L293(a11y 네이티브 시맨틱 role)·L1002(states `aria-pressed="mixed"` 토글 버튼 삼상태) — 전부 ARIA 상태 노출·시맨틱 role·토글 버튼 삼상태를 다루지 네이티브 HTML `switch` 속성의 스위치 렌더링+상태 표현 층위는 미커버(ARIA role="switch"=의미 노출 vs 네이티브 switch=플랫폼 렌더링, 별개 층위).
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2665, 316th round.
+
 ## cycle 2661 — design/responsive 294th round (Discovery, 표면 폐기)
 - 축 선택: 브레이크포인트-접두 표 너비-산정 알고리즘 토글(`sm:table-fixed`/`md:table-auto` = CSS `table-layout: auto|fixed` 를 화면폭 분기별로 auto↔fixed 로 토글해 HTML `<table>` 열너비 산정 방식을 브레이크포인트마다 바꾸는 Tailwind 변형). responsive 로테이션(aesthetic 2659 → responsive 2661)에서 미디어-피처·BP-접두 유틸 토글 공간이 양쪽 다 포화라, 아직 전용 census 가 없는 표 렌더링 축의 반응형 전이 차원을 선택.
 - 프로브: (1) BP-접두 `table-fixed`/`table-auto` 유틸 0건·plain 0건(src `*.tsx` grep) → 알고리즘 전이/명시 표면 0. (2) HTML `<table>` 요소 0건(src grep) → table-layout host 부재, 비정합 표면 성립 불가(mechanism-absent). (3) 표형 데이터는 CSS grid(`grid-cols-* sm:grid-cols-*`)/flex/react-masonry-css 로만 렌더 → 표 알고리즘 반응형 전이 대상 자체 부재. (4) DESIGN.md(105줄) table-layout/table-fixed/`<table>` grep 0건, L67-72 는 마스코니 컬럼수+브레이크포인트만 SHALL → 셋 중 미명시(loop 규칙 line 9 취향 문제).
