@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2254 — OpenSpec갭: 활성 change 3건 불변·validate 14/14·tasks 전수 완료 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation OpenSpec갭 (직전 2242 covered). forward pointer: 활성 change 변동 시에만 재검.
+- **프로브 결과**: (1) `openspec/changes/` 활성 3건 불변(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring). (2) `openspec validate --all` = 14 passed / 0 failed. (3) tasks.md 전수 점검: 7/7·9/9·11/11 전부 [x] — 완료-미아카이브 상태는 cycle 1858 baseline(미아카이브 change 전수 구현 FP)·L483 기등재.
+- **판정**: covered — change 셋 불변 + validate 무결 + 완료-미아카이브 상태 기커버. 신규 결함 없음.
+- **차기**: rotation 보안 cycle 2256. govulncheck 재스캔은 신규 CVE 공표 시에만 fresh(2232/2244 forward pointer) — 다른 신선 보안 축 필요.
+
 ### cycle 2252 — 봇: 시각화 스크립트-판정 문서↔코드 대조·.env.dev 배선 실재 확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 봇 (직전 2240 — Makefile 타깃 baseline).
