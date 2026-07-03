@@ -801,6 +801,13 @@
 - 비중첩: L525(BP 방향/종류 단일성 — 상향 min-width vs 하향 max-width vs 임의 min-[]/max-[] 중 *어느 한 종류* 를 쓰나) vs 본 축=min 변형+max 변형을 *동시 스택* 해 두 임계점 *사이 구간 창* 으로 묶는 복합 차원(방향 하나 vs 상하한 둘 스택, 층위 상이)·L545(높이 제약 min-h/max-h 의 BP 전이)·L584(입력기기 미디어 피처)와도 차원 상이.
 - 차기: area = states (4-area rotation responsive→states) → cycle 2687, 296th round.
 
+## cycle 2687 — design/states 296th round (Discovery, 표면 폐기)
+- 축 선택: 시스템 바쁨/로딩 커서 피드백(`cursor: wait | progress` — 비동기 작업 in-flight 동안 커서를 바쁨 모양으로 전이해 시스템 처리 중임을 고지, wait=완전 대기·상호작용 차단, progress=처리 중이되 상호작용 가능). states 로테이션(responsive 2685 → states 2687)에서 not-*(2679)·autofill(1013)·미디어 요소 상태·구조 의사클래스·pseudo-element·custom state 등이 포화라, 커서 어포던스 census(L528 cycle 1293=정적 상호작용 역할 pointer/grab/resize/not-allowed)가 다루지 않는 *비동기 바쁨(wait/progress) 로딩-상태 커서* 차원을 선택(`cursor-wait`/`cursor-progress` grep 0건).
+- 프로브: (1) `cursor-(wait|progress)` apps/web/src grep 0건(exit 1) → 비동기 진행을 커서로 고지하는 표면 부재. (2) 사용 커서는 전부 정적 어포던스 역할 — pointer(49)·not-allowed(2)·ew-resize(2)·grab(1)·grabbing(1)·wait/progress 0. (3) pending/submitting 바쁨 상태(isSubmitting/isPending ~10 컴포넌트)는 `aria-busy`(10곳)+`disabled:opacity-50`/`disabled:cursor-not-allowed` 로 고지·커서 shape 무변화 → 바쁨 커서 idiom 0. (4) DESIGN.md(105줄) cursor/wait/progress/바쁨/로딩 커서 grep 0건(L528 확인 — 커서 정책 미규정).
+- 결정: `cursor-wait`/`cursor-progress` 0(pure vacuous) + 바쁨은 aria-busy+disabled 로 균일 고지(커서 무관) → 바쁨 커서 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN cursor silent·wait/progress 0)로 이슈 아님. anti-patterns 1줄 추가(cycle 2687 baseline)·표면 폐기.
+- 비중첩: L528(정적 커서 어포던스 역할 — pointer/grab/ew-resize/not-allowed 가 클릭·드래그·리사이즈·비활성 *정적 상호작용 종류* 매핑) vs 본 축=비동기 in-flight 동안 커서를 wait/progress *바쁨 모양* 으로 전이하는 임시 로딩-상태 피드백(정적 역할 vs 전이적 바쁨 상태, 층위 상이)·aria-busy 축(로딩 중 aria 시맨틱 바쁨/상호작용 차단, 피드백 채널이 커서 shape 아님)과도 채널 상이.
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2689, 319th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
