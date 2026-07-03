@@ -997,6 +997,13 @@
 - 비중첩: L703(`width >= 600px` 한 특성 범위 비교 구문, 다-특성 결합 아님) / 2685(같은 폭 특성 min+max 범위 창=폭×폭, 이종 특성 아님) / 2693(브레이크포인트×상태=폭×상태, 미디어 특성×특성 아님) / 개별 미디어 특성(특성 자체, 논리 결합 아님) vs 본 축=이종 미디어 특성을 `and`/`or`/`not` 로 논리 결합하는 합성(특성 개수·결합 대상 유형·층위 상이).
 - 차기: area = states (4-area rotation responsive→states) → cycle 2703, 298th round.
 
+## cycle 2703 — design/states 298th round (Discovery, 표면 폐기)
+- 축 선택: 상태-구동 의사요소 스타일링(상호작용 상태 variant 를 `::before`/`::after` 의사요소 타깃에 스택해 생성콘텐츠 장식을 특정 상태에서만 켜는 상태×의사요소 합성 — `hover:before:content-['→']`·`group-hover:after:opacity-100`·`checked:before:bg-accent`·`focus:after:ring` — 의사요소를 무조건 그리는 standalone 과 달리 생성콘텐츠를 상호작용 상태에 게이팅). states 로테이션(responsive 2701 → states 2703)에서 상태×상태 체이닝(2695)·상태 여집합(2679)·관계 결합자(L674)·의사요소 생성콘텐츠 자체가 포화라, 아직 미등재인 *상태×의사요소 게이팅* 차원을 선택.
+- 프로브: (1) 상태:의사요소 스택 `(hover|focus|checked|group-hover):(before|after):` apps/web/src grep exit 1(0건) → 의사요소를 상태로 게이팅하는 표면 부재. (2) 의사요소 자체가 전역 미사용 — `content-[`/`::before`/`::after`/`before:`/`after:` 코드 0건·globals.css `::before`/`::after`/`content:` 0 → 상태로 게이팅할 의사요소 호스트 부재(이중 vacuous). (3) hover 시 화살표/밑줄 슬라이드를 의사요소로 그리는 상태-구동 생성콘텐츠 idiom 부재(장식은 실제 DOM/아이콘 컴포넌트). (4) DESIGN.md(105줄) before/after/의사요소/content grep 0(L86 "Hover translateY"=요소 transform FP).
+- 결정: 상태:의사요소 스택 0(pure vacuous) + 의사요소 자체 전역 미사용 → 상태-구동 생성콘텐츠 모집단 이중 부재. loop 규칙 line 9 취향 문제(DESIGN 의사요소/상태 게이팅 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2703 baseline)·표면 폐기.
+- 비중첩: 2695(상태×상태 교집합=두 상태 AND, 상태와 상태) / 2693(브레이크포인트×상태=폭×상태) / 의사요소 생성콘텐츠 자체(::before/::after content 무조건 장식, aesthetic) / L674(:has() 관계 결합자) vs 본 축=상호작용 상태를 의사요소 타깃에 게이팅하는 상태×의사요소 합성(스택 대상·영역·층위 상이).
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2705, 321st round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
