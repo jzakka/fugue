@@ -17,6 +17,15 @@
 
 ## 항목
 
+### cycle 2256 — 보안: 웹 의존성 취약점 스캔 (npm audit) — next 16.2.1→16.2.10 (판정: REAL — 수정 완료)
+
+- **축 선택**: rotation 보안 (직전 2244 — CI 워크플로 baseline). govulncheck 재스캔은 신규 CVE 시에만 fresh → fresh 축 = **웹(apps/web) 의존성 취약점 스캔** (census `npm audit` 0건 — Go 측 2232 govulncheck 의 프론트엔드 대응물, 최초 실행).
+- **프로브 결과**: `npm audit` = 7건 (high 3·moderate 3·low 1). 핵심: **next 16.2.1(고정, prod 의존성)에 high 14 advisory** — Middleware/Proxy bypass(GHSA-267c-6grr-h53f 외 3건)·CSP nonce XSS·RSC 캐시 포이즈닝·Image Optimization DoS·WebSocket SSRF 등, App Router 실사용 앱이라 직접 도달 가능(confidence 3). 부수: undici/vite/js-yaml/babel/brace-expansion (트랜지티브 dev 도구체인).
+- **수정**: package.json `next` 16.2.1→16.2.10 (패치 범프) + `npm audit fix` (트랜지티브 non-breaking). 코드 변경 0.
+- **QA (실행 검증)**: (1) 재스캔 — high/low 전량 해소, 잔여 2 moderate 는 next 가 내부 고정한 postcss@8.4.31(GHSA-qx2v-qp2m-jg93, 빌드타임 CSS stringify 표면·upstream 이 16.2.10에도 8.4.31 pin → **residual, next 측 범프 대기**). (2) `npm run build` 통과. (3) `npm test` 47/47. (4) dev 서버 실부팅 → `curl localhost:3000` HTTP 200.
+- **부수 확인**: `.env.dev` 커밋 시크릿 후보 → 전부 로컬 더미(JWT_SECRET=base64("local-dev-only-…")·OAuth placeholder·헤더에 "로컬 개발 전용" 명시) — 유출 아님(FP).
+- **차기**: rotation 정합성 cycle 2258. npm audit 재스캔은 신규 advisory 공표 또는 next 의 postcss 범프 시에만 fresh (govulncheck 2232 규칙과 동일). residual: next 내장 postcss moderate 2건.
+
 ### cycle 2254 — OpenSpec갭: 활성 change 3건 불변·validate 14/14·tasks 전수 완료 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation OpenSpec갭 (직전 2242 covered). forward pointer: 활성 change 변동 시에만 재검.
