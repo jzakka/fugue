@@ -641,6 +641,13 @@
 - 비중첩: L713(:closed 단일 요소 닫힘 의사클래스), L781([open] 단일 요소 열림 boolean), L808(open:* 단일 요소 열림 변형), L841(group-aria-* 관계형 aria 상태), L858(data-[state=open] data 상태 변형) — 모두 *단일 요소 한 개의 열림/닫힘 상태*이지 크로스-요소 `name` 그룹 배타 조정이 아님(층위 상이).
 - 차기: area = tokens (4-area rotation states→tokens) → cycle 2673, 317th round.
 
+## cycle 2673 — design/tokens 317th round (Discovery, 표면 폐기)
+- 축 선택: 키프레임 재생 방향 토큰(`animation-direction` — `normal`(정방향)/`reverse`(역방향 되감기)/`alternate`(왕복 ping-pong)/`alternate-reverse` 로 반복 애니메이션의 매 반복별 재생 방향을 정하는 토큰). tokens 로테이션(states 2671 → tokens 2673)에서 이징 곡선(steps L893·linear L921)·값 유지(fill-mode L762)·경로 궤적(offset-* L726)은 포화라, 애니메이션 서브속성 중 아직 *dedicated* census 부재인 *재생 방향* 차원을 선택(animation-direction 은 L762 fill-mode census 안에서 참조로만 등장·subject-head 아님).
+- 프로브: (1) `animation-direction`/`alternate`/`reverse`/direction 유틸 apps/web/src·globals.css grep 0건 → 재생 방향 지정 표면 부재. (2) 애니메이션은 globals.css `@keyframes shimmer`(L99) + `animation: shimmer 1.5s linear infinite`(L108) 단일 규칙뿐, direction 성분 생략(=`normal` 기본)·reduced-motion 에서 `animation:none`(L113) → 유일 애니메이션이 정방향 균일. (3) 왕복/역재생 idiom 부재(tailwindcss-animate 방향-토글 variant 미사용). (4) DESIGN.md(105줄) animation-direction/재생 방향/alternate/reverse/왕복 grep 0건(L90 easing enter/exit 는 이징 곡선 FP).
+- 결정: 호스트(재생 방향 지정 애니메이션) 부재 + 애니메이션 모집단 1(shimmer·direction 생략) → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·단일 정방향 균일)로 이슈 아님. anti-patterns 1줄 추가(cycle 2673 baseline)·표면 폐기.
+- 비중첩: L762(animation-fill-mode 값 유지 forwards/backwards/both), L893(steps() 이징 곡선), L921(linear() 이징 곡선), L726(offset-* 모션 경로 궤적) — 모두 값 유지·이징 곡선·경로 궤적이지 반복별 재생 방향(normal/reverse/alternate 왕복)이 아님(층위 상이).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2675, 318th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
