@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2348 — 봇: frontier dead 임계값 5 중복 하드코딩 축 프로브 → FP 반증, NEW baseline
+
+- **축 선택**: rotation 봇. crawl-status(cycle 2300 컬럼 정합 baseline)의 dead 기준 `fetch_error_count >= 5` 와 frontier.sql 의 임계값 정합을 fresh 축으로 프로브 (2300 은 컬럼 존재만 다룸, 임계값 축은 미실시).
+- **프로브 결과**: 임계값 5 가 4개 surface(frontier.sql :34/:47/:61/:69 상한·:148 claim WHERE < 5·Makefile crawl-status >= 5)에 전부 정합. "중복 하드코딩 → drift 결함" 후보는 FP — crawl-status 는 관측 전용(동작 소유는 frontier.sql 단독)이고 L1361 예외 조항이 SQL 수정 시 재검 트리거를 제공.
+- **판정**: FP 반증 → NEW baseline. anti-patterns EOF 등록(예외: frontier.sql 내부 임계값 상호 불일치·설정 승격 후 리포트 구 상수 잔존).
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **차기**: rotation OpenSpec갭 cycle 2350 (직전 2338 covered). 활성 change 3건 불변 시 신속 covered.
+
 ### cycle 2346 — 동시성: crawl 병행 워커(pioneer+harvester) 공유 상태 축 프로브 → L126 기커버 (covered)
 
 - **축 선택**: rotation 동시성. cycle 2342/2344에서 관찰한 Makefile crawl 레시피의 병행 워커(pioneer 루프 + harvester 루프 동시 spawn)가 공유하는 상태의 경쟁을 fresh 축 후보로 프로브.
