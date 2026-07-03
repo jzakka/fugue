@@ -58,6 +58,7 @@ cp .env.example .env
 - `DATABASE_URL`: PostgreSQL 연결 URL
 - `REDIS_URL`: Redis 연결 URL
 - `JWT_SECRET`: JWT 토큰 서명 키
+- `OAUTH_CALLBACK_BASE_URL`: OAuth 콜백 베이스 URL (미설정 시 서버 기동 실패)
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: Google OAuth
 - `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`: Discord OAuth
 
