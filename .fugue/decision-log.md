@@ -17,6 +17,18 @@
 
 ## 항목
 
+### cycle 2208 — 정합성: README 구현 현황 체크박스 ↔ 실제 구현 대조 (판정: REAL defect → Processing)
+
+- **축 선택**: area = 정합성 (rotation: 보안→정합성). cycle 2206 forward pointer의 3후보 중 README 구현 현황 대조(cycle 2194 이월 보조 후보)를 이행. AGENTS.md는 엔드포인트 자체 열거 없이 docs/api-endpoints.md 링크만(AGENTS.md:27)이라 상호 정합 축은 모집단 0.
+- **프로브 결과** (README.md:29-37 체크박스 9항목 ↔ 라우터·spec suite 대조):
+  - 체크 4항목(OAuth·프로필·피드·Bot CLI)은 정확.
+  - **미체크 5항목 중 4건이 실제로는 구현 완료**: ① 핀 생성/삭제+OG fetch — POST /api/pins(main.go:146)·DELETE /api/pins/{id}(:150)·POST /api/og/fetch(:155)+pin capability spec ② 보드 CRUD — 7 라우트(:165-175)+board capability spec ③ 추천 피드 — GET /api/feed(:182)+feed/spec.md 4 Requirement(개인화·콜드스타트·비인증 분기) ④ 연관 작품 — GET /api/pins/{id}/related(:151)+feed spec "연관 작품을 제공한다" Requirement.
+  - ⑤ 암묵적 취향 학습 — interactions 기록(3 piggyback sites, census L88)은 구현이나 mvp-features.md:39의 Kinesis Firehose→S3 Parquet 적재 파이프라인 미구현 → 미체크 유지가 정확(부분 구현 주석만 부기).
+  - census 대조: README 시스템 축 커버 항목 없음(L92는 주석 예시 언급뿐). L1319 예외 원칙(현재 사실 단정 문서의 실제 불일치) 부합 — README는 최상위 우선순위 현황 문서.
+- **판정**: REAL defect (confidence 4). 4개 완료 기능이 미구현으로 표기 — 신규 기여자/이해관계자가 현황을 오판.
+- **수정**: README.md:33-37 — 4항목 `[x]` 전환, 암묵적 취향 학습은 `[ ]` 유지 + "(행동 기록은 구현, Kinesis 적재 파이프라인 미구현)" 부기. 각 항목은 라우트 라인·capability spec 재인용 검증(cycle 2184 교훈).
+- **차기**: area = 에러처리 (rotation: 정합성→에러처리) → cycle 2210. 후보: feed 캐시 경로 에러 graceful fallthrough 재점검·interaction Record 로그 포맷 일관성·이월: docs/erd.md ↔ migrations 표본 대조(정합성, cycle 2212).
+
 ### cycle 2206 — 보안: search SQL 바인딩·CLI %q quoting·og SSRF 재확인 (판정: covered-by-census)
 
 - **축 선택**: area = 보안 (rotation: OpenSpec갭→보안). cycle 2204 forward pointer의 3후보를 프로브.
