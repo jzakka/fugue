@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2402 — 정합성: 모집단 변화 재검 → 외부 변경 없음 (covered)
+
+- 축: 직전 정합성 census(2390) 이후 모집단 표면 변화.
+- 조사: `git log 22747864..origin/main` 대상 표면(apps/api, docs/, AGENTS.md, README.md, Makefile) 커밋 3건 — 2390에서 확인한 루프 자체 픽스(c9c4e4a4/4ab43b2e/e2cb3a80) 그대로, 신규 커밋 0건. apps/api 0줄 불변.
+- 판정: covered — 외부 변경 없음, 신규 불일치 없음.
+- 차기: rotation 에러처리 cycle 2404 (직전 2392 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2400 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - 축: 직전 보안 census(2388) 이후 advisory 게이트 변화.
