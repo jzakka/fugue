@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2318 — 정합성 (covered)
+
+- 축 선택: rotation 정합성 (직전 2306 NEW baseline). 후보 축: docs/erd.md↔migrations 스키마 정합.
+- 프로브 결과: 후보 축은 anti-patterns 4개 baseline이 기커버 — L34(ON DELETE 명세 1:1 일치), L94(태그 스키마 drift FP), L210(FK 액션 정합), L980(컬럼 스펙 VARCHAR/nullability/DEFAULT 정합). erd.md·migrations 모두 1dbad2a2 이후 변경 0건이라 재검 트리거 미발화. 최근 정합성 fresh 축들(2270 문서링크·2282/2294 make 명령·2306 env)도 전부 종결.
+- 판정: covered-by-census.
+- 차기: rotation 에러처리 cycle 2320 (직전 2308 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2316 — 보안 (covered)
 
 - 축 선택: rotation 보안 (직전 2304 NEW baseline). 후보 축: CORS 설정(allowed origins/credentials) posture.
