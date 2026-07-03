@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2258 — 정합성: next 16.2.10 범프 ↔ Node 버전 배선 (CI node-version·engines·웹 Dockerfile) (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 정합성 (직전 2246 — 문서 버전표기 REAL). cycle 2234(Go 범프↔Dockerfile/CI 배선 검증)의 웹 측 대응물 — cycle 2256 next 범프 직후 버전 배선 정합 검증 (census `node-version`/`engines` 0건, fresh).
+- **프로브 결과**: (1) next@16.2.10 engines = `node >=20.9.0` (실측 node_modules/next/package.json). (2) CI `.github/workflows/ci.yml:56` = `node-version: 20` — 부동 마이너 pin 이라 setup-node 가 최신 20.x(≥20.9)를 자동 설치 → 정합. PR #3090 CI 통과가 라이브 증거. (3) 웹 package.json engines 필드 부재·웹 Dockerfile 부재(배포 아티팩트는 L15 보류) → 어긋날 고정 배선 표면 자체가 최소.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "next 패치/마이너 범프 ↔ CI 부동 node-version 자동 추종 + engines/웹 Dockerfile 부재 = 버전 배선 불일치 FP". cycle 2234 baseline(Go 측)과 대칭·별도 표면.
+- **차기**: rotation 에러처리 cycle 2260 (직전 2248 covered). 신규 코드 유입 없으면 신속 covered 예상 — cycle 2256 diff 는 의존성 파일만(에러 경로 코드 변경 0).
+
 ### cycle 2256 — 보안: 웹 의존성 취약점 스캔 (npm audit) — next 16.2.1→16.2.10 (판정: REAL — 수정 완료)
 
 - **축 선택**: rotation 보안 (직전 2244 — CI 워크플로 baseline). govulncheck 재스캔은 신규 CVE 시에만 fresh → fresh 축 = **웹(apps/web) 의존성 취약점 스캔** (census `npm audit` 0건 — Go 측 2232 govulncheck 의 프론트엔드 대응물, 최초 실행).
