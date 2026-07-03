@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2388 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
+
+- 축: 직전 보안 census(2376) 이후 advisory 게이트 변화.
+- 조사: `npm audit` = 2 moderate 잔존 (cycle 2256 residual과 동일 — next 내장 postcss@8.4.31). 의존성 파일(go.mod/go.sum/package.json/package-lock.json) 마지막 커밋 여전히 5389b72e(#3090, 루프 자체 next 16.2.10 범프) — 외부 변경 없음. Go 의존성 집합 동결이므로 기존 govulncheck 결과(2250/2256) 유효.
+- 판정: covered — 신규 advisory 없음.
+- 차기: rotation 정합성 cycle 2390 (직전 2378 covered — seed 복원 정합 확인). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2386 — OpenSpec갭: validate 재검 → 상태 불변 (covered)
 
 - 축: 직전 OpenSpec갭 census(2374) 이후 스펙↔구현 갭 변화.
