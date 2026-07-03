@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2202 — 봇: errorKind 매핑·FilterChain 구성·ai_model 기록 경로 (판정: covered-by-census)
+
+- **축 선택**: area = 봇 (rotation: 동시성→봇). cycle 2200 forward pointer의 3후보를 프로브.
+- **프로브 결과**:
+  - (1) harvester snapshot-first errorKind 매핑: reportFailure dual-call + 4-enum verbatim 계약은 census **L129**(cycle 738 baseline: fetch/parse/pin_create 전 실패경로가 {http_4xx,http_5xx,network,timeout} 매핑) 커버.
+  - (2) pioneer FilterChain: cmd/bot/pioneer_consumer_builder.go:31-37 — Domain→Extension→PathPattern→Robots→CanonicalDedup(nil) 순서로 census **L206**(AGENTS.md L123 순서 계약)과 일치, 신규 필터 0. CanonicalDedupFilter(nil) read-only visited는 **L37**(cycle 662) 커버.
+  - (3) bot_scripts ai_model 기록 경로: 유일 비-sqlc 참조는 domain.go:90 AIModel 필드(vestigial Script 구조체, **L743**) — CreateScript production caller 0건(dormant)은 **L1093**(cycle 1826)·**L1327**(cycle 2190 자체 baseline)이 커버.
+- **판정**: covered-by-census. 3프로브 전부 기존 baseline이 정확 커버. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭) → cycle 2204. 후보: openspec validate --all 신선 재실행·active changes 3건(fix-harvester-adapter-fallback-counter 등) 아카이브 이동 여부 재확인·pin/spec.md 검색(search) capability 계약 유무(cycle 2196 신규 문서화 엔드포인트의 spec 측 대응).
+
 ### cycle 2200 — 동시성: search 병렬화·goroutine census·ratelimit Redis 원자성 (판정: covered-by-census)
 
 - **축 선택**: area = 동시성 (rotation: 에러처리→동시성). cycle 2198 forward pointer의 3후보를 프로브.
