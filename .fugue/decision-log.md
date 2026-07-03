@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2264 — 봇: 모집단 불변 + 후보 축(bot-visualize 플래그 실행 정합) 기커버 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 봇 (직전 2252 covered). forward pointer 후보 = bot-visualize CLI 플래그 조합 실행 검증.
+- **프로브 결과**: (1) 후보 축 census 대조 — cycle 2178 Processing이 bot-visualize 플래그 3종(-format/-output/-filter-site)의 실존·Makefile show-map 배선·README 경로 교정을 **실행 검증 포함** 기수행 → 기커버. (2) 봇 코드·Makefile·문서 병합분: #3085 이후 apps/api 변경 0건(cycle 2260 실측) — 봇 모집단 불변, L706/L812/L1208/L1311/L1335 등 기존 봇 census 전부 유효.
+- **판정**: covered — 신규 봇 표면 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation OpenSpec갭 cycle 2266 (직전 2254 covered). 활성 change 3건 변동 시에만 재검, 불변이면 신속 covered.
+
 ### cycle 2262 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 동시성 (직전 2250 — 전 스위트 race detector 무결). forward pointer: apps/api 변경 0이면 인벤토리 불변 신속 covered.
