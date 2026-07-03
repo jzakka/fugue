@@ -579,6 +579,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
+- 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
+- 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- 결정: actionable-defect 부재(column-span 적용 대상 멀티컬럼 흐름 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 2667 baseline).
+- 비중첩: L378(responsive `columns-*` 단 개수/폭)·L1337(tokens `column-rule` 단 사이 구분선)·L417(aesthetic `box-decoration-break` 인라인 조각 장식)·L1339(responsive `sm:break-inside-avoid` 조각화 내부 분리 회피) — 전부 단 개수/폭·구분선·조각 장식·분리 회피를 다루지 요소가 모든 단을 가로질러 전체폭 돌출하는 breakout(column-span) 차원은 미커버.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2669, 295th round.
+
 ## cycle 2665 — design/tokens 316th round (Discovery, 표면 폐기)
 - 축 선택: 사용자 정의 카운터 스타일 마커 접사 디스크립터(`@counter-style` 의 `prefix`/`suffix` = 커스텀 카운터 스타일 마커/`counter()` 값의 앞/뒤에 붙일 고정 문자열·심볼을 정의하는 디스크립터, 예 `prefix:"("; suffix:") "` → `(1) `). tokens 로테이션(states 2663 → tokens 2665)에서 값 함수·색 표기·타이포 토큰 공간이 포화라, 이미 다수 등재된 @counter-style 디스크립터 패밀리(additive/pad/fallback/speak-as/negative)에서 아직 미등재인 접사(prefix/suffix) 디스크립터 차원을 선택.
 - 프로브: (1) `@counter-style` at-규칙 0건(globals.css·src grep) → 접사 넣을 스타일 정의 본문 0. (2) counter-reset/increment/set 0건·counter()/counters() 0건(src grep) → 마커 접사 적용 대상(번호 표기) 부재. (3) 순서 리스트 마커(list-decimal/::marker/list-style) 0건 → prefix/suffix 로 감쌀 마커 자체 부재(mechanism-absent). (4) DESIGN.md(105줄) @counter-style/카운터/list-style grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
