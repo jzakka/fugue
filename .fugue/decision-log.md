@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2314 — OpenSpec갭 (covered)
+
+- 축 선택: rotation OpenSpec갭 (직전 2302 covered). 재검 트리거: 활성 change 3건 변동 여부.
+- 프로브 결과: 활성 change 3건 목록 불변, openspec/·apps/api 모집단 1dbad2a2 이후 변경 0건 지속 — cycle 2278 validate 14/0 증거 유효.
+- 판정: covered-by-census. 재검 트리거 미발화.
+- 차기: rotation 보안 cycle 2316 (직전 2304 NEW baseline). 재스캔 게이트 미발화 시 fresh 축 필요 — 후보: CORS 설정(allowed origins/credentials) posture 점검(기존 census 중첩 여부 선확인).
+
 ### cycle 2312 — 봇 (covered)
 
 - 축 선택: rotation 봇 (직전 2300 NEW baseline). 후보 축: make show-map(bot-visualize) 플래그 조합 재검.
