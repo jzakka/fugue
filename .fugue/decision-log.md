@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2406 — 동시성: 표면 불변 재검 → 신규 없음 (covered)
+
+- 축: 직전 동시성 census(2394) 이후 동시성 표면 변화.
+- 조사: `git log 22747864..origin/main -- apps/api Makefile` = 공백 — Go 코드·병렬 레시피 완전 불변. 기존 anchor(seed 원자성 2382, crawl trap 2344, L126 SKIP LOCKED, 2250 race detector) 전부 유효.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation 봇 cycle 2408 (직전 2396 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2404 — 에러처리: 표면 불변 재검 → 신규 없음 (covered)
 
 - 축: 직전 에러처리 census(2392) 이후 에러처리 표면 변화.
