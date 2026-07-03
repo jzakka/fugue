@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2386 — OpenSpec갭: validate 재검 → 상태 불변 (covered)
+
+- 축: 직전 OpenSpec갭 census(2374) 이후 스펙↔구현 갭 변화.
+- 조사: `openspec validate --specs --changes` = 14 passed / 0 failed. active change 3건(fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring) 그대로 — openspec/ 마지막 커밋 여전히 4c2e289b (cycle 1158 archive). apps/api Go 코드 0줄 불변이라 구현측 갭 신규 발생 없음.
+- 판정: covered — 신규 갭 없음. active 3건은 보류 상태 유지.
+- 차기: rotation 보안 cycle 2388 (직전 2376 covered). advisory 게이트 재검 예정.
+
 ### cycle 2384 — 봇: seed 복원이 봇 크롤 Pin에 미치는 영향 점검 → 결함 없음 (covered)
 
 - 축: 직전 봇 census(2372) 이후 모집단 변화분(seed 타겟 복원 22747864)이 봇 데이터에 미치는 영향.
