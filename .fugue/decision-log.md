@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2296 — 에러처리 (covered)
+
+- 축 선택: rotation 에러처리 (직전 2284 covered).
+- 프로브 결과: git diff --stat 1dbad2a2..origin/main -- apps/api 공집합 지속 — cycle 2282(Makefile)·2294(AGENTS.md) REAL 수정 모두 Go 코드 외부. 에러처리 모집단(핸들러/JSON decode 6 sites L195/스토리지 경로) 불변, 기존 census 증거 유효.
+- 판정: covered-by-census.
+- 차기: rotation 동시성 cycle 2298 (직전 2286 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2294 — 정합성 (REAL, 수정 완료)
 
 - 축 선택: rotation 정합성 (직전 2282 REAL). fresh 축: AGENTS.md 봇 명령 표기↔실제 CLI/Makefile 정합 (직전 forward pointer).
