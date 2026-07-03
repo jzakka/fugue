@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2192 — OpenSpec갭: validate 신선 재실행·어댑터 폴백 통계 계약·스크립트 upsert 계약 유무 (판정: covered-by-census)
+
+- **축 선택**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭). cycle 2190 forward pointer의 3후보를 그대로 프로브: (1) openspec validate --all 신선 재실행, (2) fix-harvester-adapter-fallback-counter 아카이브 여부·spec 측 카운터 계약 재점검, (3) bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 CreateScript 축의 spec 대응).
+- **프로브 결과**:
+  - (1) `openspec validate --all` → 14 passed, 0 failed. 기계적 신선 통과.
+  - (2) harvester/spec.md:267에 `AdapterFallback` 부가 카운터 SHALL 계약 존재(주 카테고리와 독립·동시 증가 가능·노드당 주 카테고리 +1), :286 Scenario·:737 정합 Scenario까지 완비. `openspec/changes/fix-harvester-adapter-fallback-counter` tasks 7/7 완료이나 미아카이브 — 미아카이브 active change 상태는 census L734/L1144가 이미 커버.
+  - (3) `grep -rn "upsert|ON CONFLICT|스크립트 갱신|재생성" openspec/specs/bot/spec.md` → 0 matches. bot spec은 CreateScript upsert 세부(script_lang DO UPDATE 누락 축, cycle 2190)에 침묵. 코드가 위반할 SHALL이 없으므로 spec 침묵 = 등록 가능한 갭 아님(내부 구현 세부에 대한 spec 부재는 루프 관례상 갭이 아님).
+- **판정**: covered-by-census. (1)은 통과, (2)는 L734/L1144 기존 항목, (3)은 SHALL 부재로 비갭. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = 보안 (rotation: OpenSpec갭→보안) → cycle 2194. 후보: bot-visualize DATABASE_URL 등 env 경유 시크릿 노출 로그 재점검·fetchHTMLShared User-Agent/redirect 정책 spec 대비 재확인·helm cronjob-bot.yaml secretKeyRef 키 명세 대조. 이월: docs/api-endpoints.md ↔ 라우터 표본 대조(정합성, cycle 2196).
+
 ## 2026-07-03 — [system] cycle 2190 Discovery — 봇: CreateScript upsert DO UPDATE 부분 갱신(script_lang 누락) 후보 FP 반박 — NEW baseline
 
 - **축 선택**: 봇 area 재진입 (6-area 로테이션 동시성→봇, 직전 봇 = cycle 2178). cycle 2188 forward pointer 후보 3종 진행.
