@@ -523,6 +523,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2661 — design/responsive 294th round (Discovery, 표면 폐기)
+- 축 선택: 브레이크포인트-접두 표 너비-산정 알고리즘 토글(`sm:table-fixed`/`md:table-auto` = CSS `table-layout: auto|fixed` 를 화면폭 분기별로 auto↔fixed 로 토글해 HTML `<table>` 열너비 산정 방식을 브레이크포인트마다 바꾸는 Tailwind 변형). responsive 로테이션(aesthetic 2659 → responsive 2661)에서 미디어-피처·BP-접두 유틸 토글 공간이 양쪽 다 포화라, 아직 전용 census 가 없는 표 렌더링 축의 반응형 전이 차원을 선택.
+- 프로브: (1) BP-접두 `table-fixed`/`table-auto` 유틸 0건·plain 0건(src `*.tsx` grep) → 알고리즘 전이/명시 표면 0. (2) HTML `<table>` 요소 0건(src grep) → table-layout host 부재, 비정합 표면 성립 불가(mechanism-absent). (3) 표형 데이터는 CSS grid(`grid-cols-* sm:grid-cols-*`)/flex/react-masonry-css 로만 렌더 → 표 알고리즘 반응형 전이 대상 자체 부재. (4) DESIGN.md(105줄) table-layout/table-fixed/`<table>` grep 0건, L67-72 는 마스코니 컬럼수+브레이크포인트만 SHALL → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- 결정: actionable-defect 부재(table-layout 적용 대상 매커니즘 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 2661 baseline).
+- 비중첩: L725(tokens 표 보더/간격/너비산정 정적 토큰)·L1284(aesthetic 빈 셀 회화)·L1328(responsive `sm:align-*` 테이블셀 수직정렬)·L285(responsive grid-auto-flow 흐름 축)·L520/L879(responsive `sm:grid-cols-*` 컬럼수) — 전부 표 정적 토큰·빈 셀 회화·수직정렬·grid 흐름/컬럼수를 다루지 table-layout 알고리즘의 BP auto↔fixed 반응형 토글 차원은 미커버.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2663, 293rd round.
+
 ## cycle 2659 — design/aesthetic 316th round (Discovery, 표면 폐기)
 - 축 선택: 레거시 사각형 클리핑 속성(`clip: rect(t r b l)`=clip-path 이전 세대의 deprecated 클리핑 — 절대위치 요소를 직사각형으로만 자르는 구식 속성, 유일 실무 잔존 용도가 sr-only visually-hidden idiom). aesthetic 영역 mask/filter/blend/그라디언트/clip-path 등 모던 속성이 완전 포화 → deprecated 속성 잔존 축으로 신선 탐색.
 - 프로브: (1) 손저작 `clip:`/`clip: rect()` grep = 0(src·globals). (2) 유일 `clip: rect(0,0,0,0)` 잔존은 Tailwind `sr-only` 유틸 내부 — 3곳(search h1·feed h1·layout skip-link) 접근성 숨김에 균일 사용(프레임워크-소유 idiom). (3) 모던 후속 `clip-path` 도 코드 0건 → 클리핑은 overflow-hidden+rounded(L224)과 sr-only 로만. (4) DESIGN.md(105줄) clip/clip-path/sr-only grep = 0.
