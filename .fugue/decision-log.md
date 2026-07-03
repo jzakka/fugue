@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2340 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
+
+- **축 선택**: rotation 보안. 의존성 advisory 게이트(npm audit·Go 의존성) 재검.
+- **프로브 결과**: `npm audit`(apps/web) = "2 moderate severity vulnerabilities" — cycle 2256 잔차(next-vendored postcss@8.4.31)와 동일, 신규 advisory 0. Go 측은 go.mod/go.sum 포함 apps/api 모집단 동결(diff 0줄)이라 advisory 표면 불변 — govulncheck@latest 는 로컬 go1.25 툴체인이 go1.26 요구 패키지를 빌드 못해 실행 불가였으나, 의존성 집합 불변으로 신규 스캔 필요성 자체가 없음(cycle 2250/2256 결과 유효). 코드 보안 census(47 traversal·65 SQLi·92 SSRF·118 IDOR·175/186 JWT·184 ratelimit·192 업로드/CORS/명령주입·L284 OAuth state·L429 하드닝 취향·L1212 CORS posture) 전부 유효.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 정합성 cycle 2342 (직전 2330 REAL — api-endpoints.md auth rate 마커 수정). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2338 — OpenSpec갭: 활성 change/스펙 population 불변 (covered)
 
 - **축 선택**: rotation OpenSpec갭. 활성 change 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring)과 스펙 14종 population 재검.
