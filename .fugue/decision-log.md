@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2176 Discovery — 동시성: 3프로브 전수 census 포섭 (covered-by-census)
+
+- **축 선택**: 동시성 area 재진입 (6-area 로테이션 에러처리→동시성, 직전 동시성 = cycle 2164). cycle 2174 forward pointer 후보 3종을 순서대로 소진.
+- **프로브 결과**:
+  - (1) 최근 non-loop 커밋 diff 동시성 신규 표면: b6e3c82f(cycle 2174 에러분기, 순차)·eb0de274(docs)·3de891fa(cycle 2166 HARVESTER_MODE switch — RunE 내 순차 init, 고루틴 0) → 신규 표면 0건.
+  - (2) RunDrainMerge 트랜잭션/락 경계: trie_merge.go 동시성 구조물 0건(완전 순차 배치). census **L731**(cycle 대응 — 비원자 4-쓰기가 operator 단일 프로세스 배치·전 쓰기 PK 멱등·엣지→노드 삭제 순서로 댕글링 차단·partial-failure self-heal, "동시 writer race 부재" 전제 명시)·**L1035**(대표선택/템플릿화/재실행 멱등) 전면 포섭. merge 는 수동 CLI 이고 CronJob 은 concurrencyPolicy: Forbid — L731 전제를 흔들 동시 호출 경로 증거 없음(가사 Pioneer CreateNode 동시 발생해도 PK 멱등·re-run 수렴이라 L731 self-heal 논증에 흡수).
+  - (3) cycle 2166 수정(HARVESTER_MODE switch)의 executor/pipeline 공유: harvester*.go/harvest_pipeline.go/goja_executor.go/cmd/bot/main.go 전수 `go func|sync.|WaitGroup` grep 0건 — harvester 는 단일 고루틴 소비 루프라 GojaExecutor(goja VM thread-unsafe)·pipeline 공유 race 성립 불가. GojaExecutor 자체 축은 L64(Execute/convertResult)·L102(임의 JS 실행) 기등록. robots_filter.go 의 sync.RWMutex 는 single-flight 캐시로 L304 기커버(cycle 2164 재확인 완료).
+- **판정**: 신규 동시성 표면 0·기존 표면 전부 census 포섭 → covered-by-census. anti-patterns 추가 없음.
+- 결정/변경: decision-log 항목만 추가.
+- 차기: area = 봇 (6-area rotation 동시성→봇) → cycle 2178. 후보: harvester_consumer 의 frontier 소비 계약(SetStatus 전이 정합) 재점검·sources/ 도메인별 스크립트 커버리지 vs bot_sites seed 정합·backfill-placeholders 서브커맨드의 봇 도메인 계약.
+
 ## 2026-07-03 — [system] cycle 2174 Processing — 에러처리: merge 서브커맨드 GetSiteByDomain 에러 전면 폐기·원인 조작("site not found") 수정
 
 - **축 선택**: 에러처리 area 재진입 (6-area 로테이션 정합성→에러처리, 직전 에러처리 = cycle 2162). cycle 2172 forward pointer의 후보 3종(2166/2172 수정 diff 에러 경로 재점검·신규 CLI 서브커맨드 에러 계약·최근 merge 커밋 %w/discard 스캔)을 순서대로 소진.
