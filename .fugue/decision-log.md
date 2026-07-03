@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2276 — 봇 (covered)
+
+- 축 선택: rotation 봇 (직전 2264 covered). 직전 forward pointer가 지목한 fresh 후보 축: helm cronjob-bot 스케줄↔문서 정합.
+- 프로브 결과: (1) 후보 축은 anti-patterns L15(배포 매니페스트 helm/terraform/docker-compose 완성도·args·wiring 결함은 배포 change 책임 — 사이클 후보 금지, cycle 29 rejected_self) 보류 범위에 정면으로 해당. decision-log :266(helm cronjob-bot.yaml 차트 자체 unrenderable 기록)·:367(secretKeyRef 검토 기록)로 이미 이중 기록됨. (2) 봇 코드 모집단: git diff --stat 1dbad2a2..origin/main -- apps/api 공집합 지속 — internal/bot/ 및 cmd/bot/ 변경 0건, cycle 2264 covered 판정의 증거 기반 그대로 유효.
+- 판정: covered-by-census. 후보 축은 기커버(L15+:266+:367), 봇 모집단 불변으로 신규 표면 없음.
+- 차기: rotation OpenSpec갭 cycle 2278 (직전 2266 covered). 활성 change 3건(fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring) 변동 시에만 재검 — 불변이면 신속 covered.
+
 ### cycle 2274 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 동시성 (직전 2262 covered). forward pointer: 모집단 불변 지속 시 신속 covered.
