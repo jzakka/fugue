@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2290 — OpenSpec갭 (covered)
+
+- 축 선택: rotation OpenSpec갭 (직전 2278 covered). 재검 트리거: 활성 change 3건 변동 여부.
+- 프로브 결과: 활성 change 목록 불변(fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring), git diff --stat 1dbad2a2..origin/main -- openspec/ 공집합. cycle 2278에서 openspec validate --all 14/0 확인 후 spec 변경 0건.
+- 판정: covered-by-census. 재검 트리거 미발화.
+- 차기: rotation 보안 cycle 2292 (직전 2280 NEW baseline). fresh 축 후보: docker-compose 포트 바인딩 노출 범위(localhost vs 0.0.0.0) — 단 L15 배포 매니페스트 보류 범위 해당 여부 선확인 필요.
+
 ### cycle 2288 — 봇 (NEW baseline)
 
 - 축 선택: rotation 봇 (직전 2276 covered). fresh 축: make crawl DURATION 파싱 로직 실행 검증 (직전 forward pointer, cycle 2178 bot-visualize 검증 패턴 준용).
