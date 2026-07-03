@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2324 — 봇 (covered)
+
+- 축 선택: rotation 봇 (직전 2312 covered).
+- 프로브 결과: 봇 모집단(internal/bot/, cmd/bot*) 1dbad2a2 이후 변경 0건 지속. 최근 봇 fresh 축(2288 DURATION 파싱·2300 crawl-status SQL·2312 bot-visualize 기커버) 전부 종결, helm cronjob-bot 축은 L15+:266+:367 기커버.
+- 판정: covered-by-census.
+- 차기: rotation OpenSpec갭 cycle 2326 (직전 2314 covered). 활성 change 3건 변동 시에만 재검.
+
 ### cycle 2322 — 동시성 (covered)
 
 - 축 선택: rotation 동시성 (직전 2310 covered).
