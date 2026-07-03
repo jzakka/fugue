@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2300 — 봇 (NEW baseline)
+
+- 축 선택: rotation 봇 (직전 2288 NEW baseline). fresh 축: crawl-status SQL↔스키마 컬럼 정합 (직전 forward pointer).
+- 프로브 결과: 후보 결함 = Makefile crawl-status 인라인 SQL이 참조하는 컬럼의 스키마 drift 가능성. 반증: (1) 정적 — last_fetched_at/fetch_error_count(pioneer_frontier)·harvested_at/harvest_error_count(harvester_frontier) 전부 000026_create_frontier_tables.up.sql에 실재. (2) 동적 — dev-infra+migrate 후 make crawl-status 실제 실행 exit 0, 3개 쿼리(큐별 pending/done/dead, bot_pins 누적, 최근 핀 5개) 전부 정상 렌더. 실행 후 dev-stop 원상 복구.
+- 판정: NEW baseline (FP 반증). anti-patterns EOF 등재.
+- 차기: rotation OpenSpec갭 cycle 2302 (직전 2290 covered). 활성 change 3건 변동 시에만 재검.
+
 ### cycle 2298 — 동시성 (covered)
 
 - 축 선택: rotation 동시성 (직전 2286 covered).
