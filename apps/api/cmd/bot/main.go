@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -438,7 +439,10 @@ var mergeCmd = &cobra.Command{
 		ctx := context.Background()
 		site, err := infra.Queries.GetSiteByDomain(ctx, domain)
 		if err != nil {
-			return fmt.Errorf("site not found: %s (domain: %s)", siteName, domain)
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("site not found: %s (domain: %s)", siteName, domain)
+			}
+			return fmt.Errorf("failed to look up site %s (domain: %s): %w", siteName, domain, err)
 		}
 
 		log.Printf("fuguebot: running drain merge for %s (threshold: %d)...", domain, threshold)
