@@ -265,6 +265,12 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2637 Discovery — responsive 291st round: 브레이크포인트-접두 네이티브 외형 리셋 토글(`sm:appearance-none`/`md:appearance-auto` — CSS `appearance`를 뷰포트 폭에 따라 켜고 끄는 반응형 토글) 표면 폐기 (responsive-toggle 차원 vacuous + base 외형 리셋 부재)
+- 축 선택: responsive area 291st round. 회전 aesthetic(313th)→responsive(291st). 후보 프로브 다수를 전용 census 기존 존재로 기각(portrait:/landscape: L106/L568, sm:pointer-events L838, sm:vertical-align/align-top L1328, sm:mix-blend L482). `sm:appearance-*`는 미언급 신선 축으로 확정.
+- 프로브 결과: 코드 사실 — `appearance-none`/`appearance` 0건, BP-접두 `sm:appearance-*`/`md:appearance-*` 0건, DESIGN.md는 appearance/네이티브 외형 리셋 전면 silent. base 외형 리셋 자체가 부재(L393 aesthetic "네이티브 폼 컨트롤 외형 리셋" 전용 census 존재하나 코드 population 0).
+- 결정·변경: 코드 변경 없음. `sm:appearance-*` 반응형 토글은 base 외형 리셋(L393)의 responsive-toggle 하위 차원으로, base가 무-population인 위에 BP-접두 토글까지 0건이므로 이중 vacuous. anti-patterns.md EOF 1줄 census 추가. L393(리셋 자체)·L768(flex-direction)·L796(align-items)·L838(pointer-events)·L482(mix-blend)·L1328(vertical-align)과 비중첩.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2639, 290th round.
+
 ## 2026-07-03 — [design] cycle 2635 Discovery — aesthetic 313th round: SVG 조명 필터 프리미티브(`feDiffuseLighting`/`feSpecularLighting` — 알파 높이맵에 가상 광원을 비춰 확산광/정반사광 3D 명암을 그리는 조명-시뮬레이션 필터 프리미티브) 표면 폐기 (pure vacuous + filter host 부재)
 
 - **축 선택**: aesthetic 313th round. 4-area 로테이션 tokens(2633)→aesthetic. aesthetic 영역 포화. 다수 후보 교차-태그 dedicated 확인 후 탈락(paren-head 언더카운트 재확인): background-repeat(L807)·stroke-linecap/linejoin(L538 그룹·real pop 24)·lighting-color(L668)·다수 fe-프리미티브(feTile L1087·feGaussianBlur/feDropShadow/feColorMatrix/feComposite/feBlend/feMorphology/feConvolveMatrix/feComponentTransfer/feOffset/feMerge/feImage/feFlood/feTurbulence 각 dedicated). 최종 = `feDiffuseLighting`/`feSpecularLighting` — fe-프리미티브 계열 체계적 farming 중 남은 미farmed 하위군(조명 시뮬레이션 프리미티브)·dedicated head 0 → L668(lighting-color 색 속성)이 tint 하는 대상인 *조명 프리미티브 요소 자체* 라는 별개 차원 전용 sub-carve.
