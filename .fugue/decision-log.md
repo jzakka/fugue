@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2200 — 동시성: search 병렬화·goroutine census·ratelimit Redis 원자성 (판정: covered-by-census)
+
+- **축 선택**: area = 동시성 (rotation: 에러처리→동시성). cycle 2198 forward pointer의 3후보를 프로브.
+- **프로브 결과**:
+  - (1) search 핸들러 3-4 쿼리 병렬화: goroutine 미사용 순차 실행 — 공유 상태 부재라 race 불가, 병렬화는 문서 미배킹 성능 enhancement(SHALL 없음). 비결함.
+  - (2) goroutine census: 비테스트 `go func` 3 sites (bot/playwright_fetcher.go:114·bot/goja_executor.go:47·cmd/server/main.go:231) — cycle 2164 baseline과 동일, 신규 spawn 0.
+  - (3) auth/ratelimit.go Redis 원자성: rateLimitScript(:24) Lua EVAL로 INCR+EXPIRE 단일 원자 실행 — spec 계약("HTTP 요청 빈도 제한 카운터는 단일 원자 단위로 증가·만료 설정된다" :23 주석 인용) 명시 준수. 락 규율은 census L138(cycle 748: 전 lock site 페어링)·공유 map은 L37(cycle 662) 커버.
+- **판정**: covered-by-census. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = 봇 (rotation: 동시성→봇) → cycle 2202. 후보: harvester consumer의 snapshot-first fetch 경로 errorKind 매핑 재점검·pioneer FilterChain 신규 필터 유무·bot_scripts ai_model 컬럼 기록 경로 확인.
+
 ### cycle 2198 — 에러처리: search/tag silent-clamp 정책·writeError 규율 재점검 (판정: covered-by-census)
 
 - **축 선택**: area = 에러처리 (rotation: 정합성→에러처리). cycle 2196 forward pointer의 2후보를 프로브.
