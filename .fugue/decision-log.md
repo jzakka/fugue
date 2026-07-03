@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2180 Discovery — OpenSpec갭: 3프로브 전수 무갭·census 포섭 (covered-by-census)
+
+- **축 선택**: OpenSpec갭 area 재진입 (6-area 로테이션 봇→OpenSpec갭, 직전 OpenSpec갭 = cycle 2168). cycle 2178 forward pointer 후보 3종을 순서대로 소진.
+- **프로브 결과**:
+  - (1) `openspec validate --all` 신선 기계 재실행: **14/14 passed, 0 failed** — 구조적 갭 0건.
+  - (2) HasScript 판정의 spec 계약 유무: **bot/spec.md:417-426** 에 명시 Requirement 존재("show-map 시각화가 저장된 스크립트 기반으로 구현 상태를 판정한다 — 파일 시스템을 조회하지 않아야 한다(SHALL)" + true/false 판정 2 Scenario). 구현(visualize/repository.go:55 ListScriptKeysForGraph DB 조회 → HasScript, 파일시스템 검사 0건)이 SHALL 과 정확 정합 — cycle 2178 의 CLAUDE.md 교정(DB bot_sources 기반 판정)과도 일치. spec↔구현 갭 없음.
+  - (3) 활성 change 3건 tasks 진행 재점검: fix-harvester-adapter-fallback-counter(7/7)·fix-harvester-wire-media-validator(9/9)·fix-scheduler-host-rate-limiter-config-wiring(11/11) 전부 `[x]` 100%·미결 0 — 구현 완료·미아카이브 상태로 **L734/L1144**(3 unarchived active changes) 기커버와 정합, 목록 변동 없음.
+- **판정**: 신규 갭 0·전 표면 census 포섭 → covered-by-census. anti-patterns 추가 없음.
+- 결정/변경: decision-log 항목만 추가.
+- 차기: area = 보안 (6-area rotation OpenSpec갭→보안) → cycle 2182. 후보: cycle 2178 수정 문서(README/CLAUDE.md)의 명령 예시 내 credential/secret 노출 재점검·bot-visualize 의 DB 접속 env 로딩(.env export) 경로 보안·show-map HTML 출력의 신규 sink 유무(L429 XSS census 이후 diff).
+
 ## 2026-07-03 — [system] cycle 2178 Processing — 봇: Bot Graph Visualization 문서 드리프트(README 실행 불가 경로·CLAUDE.md 스크립트 판정 메커니즘 오기) 수정
 
 - **축 선택**: 봇 area 재진입 (6-area 로테이션 동시성→봇, 직전 봇 = cycle 2166). cycle 2176 forward pointer 후보 3종 스크리닝: (1) harvester frontier SetStatus 전이 = **L90**(processOne exit 전수 terminal status·dual-call 헬퍼·빈큐 polling)+**L129**(Req340 tx 원자성·Req362 dual-call 4-enum) 전면 포섭 — covered. (3) backfill-placeholders 봇 계약 = L27/L312/L387/L396/L1131 밀집 — covered. (2) **sources/ 스크립트 커버리지 vs seed 정합** — forward-pointer 로만 2회 언급(decision-log :29·:2616)되고 미조사 신선 축 → 채택.
