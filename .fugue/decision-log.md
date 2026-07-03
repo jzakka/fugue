@@ -48,6 +48,16 @@
 - 결정/변경: cmd/bot/main.go 수정(Processing). anti-patterns 추가 없음.
 - 차기: area = 동시성 (6-area rotation 에러처리→동시성) → cycle 2188. 후보: 최근 merge 커밋 goroutine/channel diff 스캔·siteRepo/infra.Queries 혼용 경로(main.go:153 NewSiteRepo(infra.DB) vs :440 infra.Queries)의 커넥션 풀 공유 정합·poll-merge 대상 외 신규 동시성 표면.
 
+## 2026-07-03 — [design] cycle 2613 Discovery — responsive 288th round: 브레이크포인트-접두 인라인/테이블셀 수직 정렬 토글(`sm:align-top`/`md:align-middle`/`lg:align-baseline`) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 288th round)에서 "좁은 화면 배지 baseline↔넓은 화면 middle 처럼 인라인 요소 수직 정렬을 화면폭 분기별로 토글하거나 일부만 sm:align-middle 을 갖고 동종은 단일 정렬이라 수직 정렬 반응이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. `vertical-align` 의 브레이크포인트-접두 토글(`sm:align-*`/`md:align-*`)이 responsive design-line subject 0건임을 확인 — L527 은 `vertical-align` 의 *표면 간 정합*(반응형 아닌 단일 정렬 일관성) aesthetic 축·L725 는 `table-layout` 등 테이블 렌더링 *토큰* 축이라 인라인 수직정렬의 *브레이크포인트 토글* 은 미carve → GROUP-멤버 distinct-dimension(반응형) sub-carve.
+- MANDATORY 체크: (1) `sm:align-*`/`md:align-*`/`lg:align-*`(및 `vertical-align` 값) apps/web/src grep **0건**. (2) 요소 정렬은 flexbox(`flex items-center`/`justify-between`)·grid 이며 인라인 포맷팅의 `vertical-align` 을 브레이크포인트로 토글하는 idiom 부재 → 반응형 조율할 인라인 대상 0, 발현 조건 부재. (3) DESIGN.md(105줄) vertical-align/align-baseline/align-middle grep **0건**·반응형은 Grid 열 수(4/3/2/1)·Breakpoints(sm 500·md 800·lg 1200)만 규정 → silent.
+- 근거: 세 독립 0-조건(sm:align/vertical-align code 0 + 반응형 수직정렬 subject 모집단 0 + DESIGN 인라인 수직정렬 반응 silent)로 triply/pure vacuous. "브레이크포인트가 있으니 어떤 인라인 요소는 좁을 때 baseline·넓을 때 middle 로 갈릴 것" 정적 추정은 FP — `sm:align-*` 0·정렬은 flex `items-*`.
+- DESIGN.md 확인: 반응형 인라인 수직 정렬 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: 표면 폐기(코드 변경 0)이므로 브라우저 QA 비대상 — census 항목은 grep 기반 vacuity 검증으로 갈음(sm:align grep 0 + 정렬 census flex items-*/self-* + DESIGN grep 0).
+- 비중첩: `vertical-align` 의 **브레이크포인트-접두 반응형 토글(`sm:align-*`/`md:align-*` — 인라인/테이블셀 수직 위치를 화면폭 분기별로 다르게 적용)** 차원만 폐기 — L527(vertical-align 표면 간 정합·비반응형 aesthetic)·L725(border-collapse/border-spacing/table-layout/empty-cells 테이블 렌더링 토큰)과 별개.
+- 차기 responsive 재진입 후보: `sm:table-fixed`/`md:table-auto`(table-layout 알고리즘 BP 토글 — respSubj=0·단 테이블 부재라 동일 vacuous)·`sm:mask-*`/`sm:clip-path`(마스킹/클리핑 BP 토글 respSubj=0)·`sm:overscroll-*` 재검(respSubj=4 어느 축 carve 확인). 단 해당 속성 미도입 전엔 동일 pure-vacuous.
+
 ## 2026-07-03 — [system] cycle 2184 Processing — 정합성: cycle 2178 도입 CLAUDE.md 테이블명 오기(bot_sources → bot_scripts) 수정
 
 - **축 선택**: 정합성 area 재진입 (6-area 로테이션 보안→정합성, 직전 정합성 = cycle 2172). cycle 2182 forward pointer 후보 3종 진행.
