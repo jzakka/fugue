@@ -59,7 +59,7 @@ make show-map  # 인터랙티브 HTML 생성
 ```
 
 Harvester script 존재 표시:
-- DB `bot_sources` 테이블에서 (site, node_type) 키로 조회하여 판정
+- DB `bot_scripts` 테이블에서 (site_id, node_type) 키로 조회하여 판정
 - 존재하면 초록색(구현됨), 없으면 회색(미구현)으로 표시
 
 ### Fuguebot 진행 현황
