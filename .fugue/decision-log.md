@@ -780,6 +780,13 @@
 - 비중첩: L879(responsive 브레이크포인트-접두 배경 반복 토글 — background-repeat 값을 BP별로 토글하는 반응형 차원, space/round 를 값 나열에서만 언급) vs 본 축=space(간격 분배)/round(타일 스케일) 정적 aesthetic 타일-맞춤 메커니즘, 차원·영역 상이.
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2685, 297th round.
 
+## cycle 2685 — design/responsive 297th round (Discovery, 표면 폐기)
+- 축 선택: 범위-한정 스택 브레이크포인트 변형(min-width 상향 변형과 max-width 하향 변형을 *한 유틸에 스택* 해 두 브레이크포인트 *사이 뷰포트 창* 에만 스타일을 거는 복합 변형 — `md:max-lg:flex`=≥md AND <lg 창에만, `min-[600px]:max-[900px]:`=임의 두 분기점 사이 창에만). responsive 로테이션(aesthetic 2683 → responsive 2685)에서 상호작용 미디어(L584 hover/pointer/any-*)·해상도/DPI(L572)·컨테이너 쿼리 단위(L709)·BP 방향(L525)·높이 제약(L545)이 포화라, BP 방향 census(L525=상향/하향/임의 중 *어느 한 종류* 를 쓰나의 단일성)가 다루지 않는 *min+max 스택으로 구간 창을 묶는 범위-한정* 차원을 선택(스택 변형 grep 0건).
+- 프로브: (1) `(sm|md|lg|xl|2xl):max-(sm|md|lg|xl|2xl):`/`(min|max)-[…]:(min|max)-[` 스택 apps/web/src 전수 grep 0건(무매치) → min+max 겹쳐 구간 창 한정하는 표면 부재. (2) 반응형 BP 접두는 `sm:`(26)·`md:`(2) 뿐·전부 단일 방향 상향(min-width)·max-* 하향 0·arbitrary min-[]/max-[] 0 → 하한·상한 스택 site 0, 스택 모집단 자체 부재. (3) 범위-한정 스택 idiom 부재(구간별 거동은 상향 변형이 다음 임계점에서 덮어쓰는 방식·min+max 스택 미사용). (4) DESIGN.md(105줄) L70 "Breakpoints: sm:500/md:800/lg:1200" min-width 임계점만·range/between/범위/사이/스택/max-width/구간 grep 0건.
+- 결정: min+max 스택 범위 변형 0(pure vacuous) + 반응형은 전부 단일 방향 상향으로 균일 → 스택 구간 창 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN L70 min-width 임계점만·range/스택 침묵·스택 0)로 이슈 아님. anti-patterns 1줄 추가(cycle 2685 baseline)·표면 폐기.
+- 비중첩: L525(BP 방향/종류 단일성 — 상향 min-width vs 하향 max-width vs 임의 min-[]/max-[] 중 *어느 한 종류* 를 쓰나) vs 본 축=min 변형+max 변형을 *동시 스택* 해 두 임계점 *사이 구간 창* 으로 묶는 복합 차원(방향 하나 vs 상하한 둘 스택, 층위 상이)·L545(높이 제약 min-h/max-h 의 BP 전이)·L584(입력기기 미디어 피처)와도 차원 상이.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2687, 296th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
