@@ -565,6 +565,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2665 — design/tokens 316th round (Discovery, 표면 폐기)
+- 축 선택: 사용자 정의 카운터 스타일 마커 접사 디스크립터(`@counter-style` 의 `prefix`/`suffix` = 커스텀 카운터 스타일 마커/`counter()` 값의 앞/뒤에 붙일 고정 문자열·심볼을 정의하는 디스크립터, 예 `prefix:"("; suffix:") "` → `(1) `). tokens 로테이션(states 2663 → tokens 2665)에서 값 함수·색 표기·타이포 토큰 공간이 포화라, 이미 다수 등재된 @counter-style 디스크립터 패밀리(additive/pad/fallback/speak-as/negative)에서 아직 미등재인 접사(prefix/suffix) 디스크립터 차원을 선택.
+- 프로브: (1) `@counter-style` at-규칙 0건(globals.css·src grep) → 접사 넣을 스타일 정의 본문 0. (2) counter-reset/increment/set 0건·counter()/counters() 0건(src grep) → 마커 접사 적용 대상(번호 표기) 부재. (3) 순서 리스트 마커(list-decimal/::marker/list-style) 0건 → prefix/suffix 로 감쌀 마커 자체 부재(mechanism-absent). (4) DESIGN.md(105줄) @counter-style/카운터/list-style grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- 결정: actionable-defect 부재(prefix/suffix 적용 대상 카운터 스타일 정의 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 2665 baseline).
+- 비중첩: L634(@counter-style 부모 at-규칙)·L1249(system:additive+additive-symbols)·L1262(pad)·L1266(fallback)·L1283(speak-as)·L1313(negative)·L999(symbols())·L401(counter-reset/increment/counter())·L1188(counters() 중첩) — 전부 카운터 스타일 선언/값-심볼 매핑/패딩/폴백/낭독/음수심볼/세기·출력을 다루지 마커 값 앞뒤 고정 장식 문자열(prefix/suffix) 디스크립터는 미커버(negative=음수 조건부 부호 vs prefix/suffix=모든 값 무조건 장식, 층위 상이).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2667, 317th round.
+
 ## cycle 2663 — design/states 293rd round (Discovery, 표면 폐기)
 - 축 선택: 네이티브 스위치 표현 속성(`<input type="checkbox" switch>` = HTML 체크박스의 `switch` 불리언 속성 — 체크박스를 네이티브 토글 스위치 UI 로 렌더링하고 on/off 를 `:checked` 상태로 표현하는, ARIA `role="switch"` 의 플랫폼-네이티브 대응판). states 로테이션(responsive 2661 → states 2663)에서 의사클래스·ARIA 상태·HTML 상태속성·상태전이 애니메이션 공간이 포화라, ARIA role="switch"(L575)의 네이티브 대응판인 HTML `switch` 표현 속성 차원을 선택.
 - 프로브: (1) 네이티브 `switch` 속성 0건·`<input type="checkbox" switch>` 0건(src grep) → 스위치 렌더링/명시 표면 0. (2) `<input type="checkbox">` 요소 0건(src grep) → switch host 부재, 비정합 표면 성립 불가(mechanism-absent). (3) 유일 on/off 토글(테마 전환)은 커스텀 `<button onClick>`(ThemeToggle.tsx L32-33), role="switch" 도 0건 → 스위치 표현 매커니즘 적용 대상 부재. (4) DESIGN.md(105줄) switch/토글 스위치 컨트롤 grep 0건, L52 "라이트 모드 토글" 은 테마 전환 개념일 뿐 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
