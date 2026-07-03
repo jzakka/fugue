@@ -17,6 +17,17 @@
 
 ## 항목
 
+### cycle 2196 — 정합성: docs/api-endpoints.md ↔ 라우터 전수 대조 (판정: REAL defect → Processing)
+
+- **축 선택**: area = 정합성 (rotation: 보안→정합성). cycle 2184/2190에서 2회 이월된 docs/api-endpoints.md ↔ chi 라우터 표본 대조를 이행.
+- **프로브 결과** (cmd/server/main.go:130-192 라우터 전수 ↔ 문서 26항목 대조):
+  - 문서의 26개 엔드포인트 전부 라우터에 존재하며 메서드·경로·[auth] 표기 일치 (auth 6·creators 3·pins 6·tags 1·boards 7·feed 1·interactions 1·og 1).
+  - **라우터에만 있는 공개 엔드포인트 2건 문서 누락**: `GET /api/search` (main.go:136, searchHandler.Search — q/type/tag_ids/limit/offset 쿼리, handler.go:115)·`GET /api/tags/popular` (main.go:139, tagHandler.PopularTags — limit 쿼리, 기본 20 최대 50, tag/handler.go:106-113). `GET /health`는 인프라 헬스체크로 API 문서 범위 밖 판단.
+  - census 대조: anti-patterns에 api-endpoints 관련 3건(L774 페이징 표기·L788 에러 envelope·L806 상태코드)은 모두 다른 축 — "구현된 공개 엔드포인트의 문서 누락" 축은 미커버. L1319 예외 원칙(현재 사실을 단정하는 문서가 실제와 어긋나면 결함)에 부합: README가 이 문서를 "API 엔드포인트" canonical 레퍼런스로 링크.
+- **판정**: REAL defect (confidence 4). canonical API 레퍼런스가 구현·등록된 공개 엔드포인트 2건을 누락 — 문서만 보고 클라이언트를 작성하면 검색·인기태그 기능을 발견 불가.
+- **수정**: docs/api-endpoints.md Tag 섹션에 `GET /api/tags/popular` (query: limit) 추가 + `## Search (검색)` 섹션 신설로 `GET /api/search` (query: q, type, tag_ids, limit, offset) 추가. 쿼리 파라미터는 핸들러 시그니처 주석(search/handler.go:115, tag/handler.go:106)에서 재인용 검증(cycle 2184 교훈 적용).
+- **차기**: area = 에러처리 (rotation: 정합성→에러처리) → cycle 2198. 후보: search/tag 핸들러의 strconv 파싱 실패 silent-clamp 정책 일관성·pin/boards 핸들러 에러 응답 wrap 재점검.
+
 ### cycle 2194 — 보안: bot-visualize env 시크릿 로그·fetchHTMLShared UA/redirect 정책·helm secretKeyRef 대조 (판정: covered-by-census)
 
 - **축 선택**: area = 보안 (rotation: OpenSpec갭→보안). cycle 2192 forward pointer의 3후보를 프로브.
