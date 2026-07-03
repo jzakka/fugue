@@ -119,7 +119,7 @@ var rootCmd = &cobra.Command{
 	
 Examples:
   fuguebot pioneer unsplash
-  fuguebot harvester fma
+  fuguebot harvester
   fuguebot pioneer unsplash.com`,
 }
 

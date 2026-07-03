@@ -80,23 +80,24 @@ Fuguebot은 Pioneer(탐색)와 Harvester(수확) 크롤러를 제공합니다.
 #### 사용법
 
 ```bash
-# Make를 통한 실행 (apps/api 디렉토리에서)
+# Make를 통한 실행 (리포지토리 루트에서)
 make pioneer SITE=unsplash      # Pioneer 크롤러 실행
-make harvester SITE=fma         # Harvester 크롤러 실행
+make harvester                  # Harvester 워커 실행 (전 사이트 URL을 우선순위 순으로 소비)
 
-# 직접 실행
-go run cmd/bot/main.go pioneer unsplash
-go run cmd/bot/main.go harvester freemusicarchive.org
+# 직접 실행 (apps/api 디렉토리에서)
+go run ./cmd/bot pioneer unsplash
+HARVESTER_MODE=real go run ./cmd/bot harvester
 
 # 도움말
-go run cmd/bot/main.go --help
-go run cmd/bot/main.go pioneer --help
+go run ./cmd/bot --help
+go run ./cmd/bot pioneer --help
 ```
 
 #### 지원 사이트
 
 - `unsplash`: unsplash.com
 - `fma`: freemusicarchive.org
+- `pixiv`: pixiv.net
 
 도메인 전체를 입력해도 동작합니다 (예: `unsplash.com`).
 
