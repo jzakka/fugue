@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2294 — 정합성 (REAL, 수정 완료)
+
+- 축 선택: rotation 정합성 (직전 2282 REAL). fresh 축: AGENTS.md 봇 명령 표기↔실제 CLI/Makefile 정합 (직전 forward pointer).
+- 프로브 결과: AGENTS.md:107-108이 `SITE=artstation` 예시 사용 — (1) 실행 실증: `go run ./cmd/bot pioneer artstation` → "unknown site: artstation (available: [unsplash fma pixiv])" exit 1. artstation은 별칭 맵(cmd/bot/main.go:31-33)·seed_bot_sites.sql에 부재하며 adapter_test.go에서 미등록 도메인 대표 예시로 쓰임. (2) `make harvester SITE=...` 표기는 허위 — harvester 타깃은 SITE 미사용(전 사이트 소비), README·Makefile 주석과 불일치 (신뢰도 5).
+- 수정: AGENTS.md:107-108 → `make pioneer SITE=unsplash`(지원 별칭 명기 unsplash|fma|pixiv) / `make harvester`(SITE 제거, 전 사이트 소비 명기). Makefile usage 문자열·README와 정합.
+- QA (실행): 결함 실증은 실제 CLI 실행으로 확인(unknown site 에러 + available 목록). 수정 후 문서 별칭 3종이 CLI available 목록·Makefile usage와 전수 일치 확인. 크롤 실행 자체는 외부 사이트 부작용으로 미수행(문서 정확성 결함이므로 alias 검증으로 충분).
+- 차기: rotation 에러처리 cycle 2296 (직전 2284 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2292 — 보안 (covered)
 
 - 축 선택: rotation 보안 (직전 2280 NEW baseline). 후보 축: docker-compose 포트 바인딩 노출 범위(5432/6379/9000/9001 전부 0.0.0.0 바인딩).
