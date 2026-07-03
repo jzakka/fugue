@@ -897,6 +897,13 @@
 - 비중첩: L525(브레이크포인트 방향 단일 — 상향 min vs 하향 max 중 어느 종류, 상태 아님) / 2685(min+max 범위 창=폭×폭 브레이크포인트 복합) / 2679 states(`not-hover:`/`not-focus:` 상태 여집합) vs 본 축=브레이크포인트×상태(폭×상호작용 의사클래스, 차원이 다른 두 축 합성으로 상태를 뷰포트에 게이팅)·영역 상이.
 - 차기: area = states (4-area rotation responsive→states) → cycle 2695, 297th round.
 
+## cycle 2695 — design/states 297th round (Discovery, 표면 폐기)
+- 축 선택: 상호작용 상태×상태 체이닝 복합 변형(둘 이상의 상호작용 상태 의사클래스 variant 를 한 유틸에 스택해 두 상태가 동시 성립할 때만 적용하는 상태×상태 교집합 — `focus:hover:ring-2`(포커스 AND hover 동시만 링)·`active:hover:bg-accent-dark`(눌림 AND hover 동시만)·`disabled:hover:cursor-not-allowed`(비활성 AND hover 동시만) — 두 상호작용 상태를 AND 교집합해 게이팅). states 로테이션(responsive 2693 → states 2695)에서 단일 상태 standalone·상태 여집합(2679)·관계 결합자(L674) 등 상태 축이 포화라, 아직 미등재인 *상태×상태 교집합 체이닝*(요소 자신의 두 상태 AND) 차원을 선택.
+- 프로브: (1) `(hover|focus|focus-visible|active|disabled|group-hover):(hover|focus|focus-visible|active|disabled):` 체이닝 apps/web/src grep exit 1(0건·양방향) → 두 상태 동시 게이팅 표면 부재. (2) 상태 variant 는 전부 단일 상태 standalone(focus-visible 81·hover 76·focus 23·disabled 18·group-hover 13·active 1 = 각 상태 단독 독립 적용) → 상태×상태 교집합 모집단 0. (3) 포커스+hover 동시일 때만 강조 켜는 `focus:hover:`/눌림+hover 교집합 idiom 부재(각 상태 단독 variant). (4) DESIGN.md(105줄) L86 "Hover state"·L92 "Card hover" 는 단일 hover 규정·포커스와 동시 같은 교집합 조건 없음·상태 체이닝/동시 상태 grep 0.
+- 결정: 상태×상태 체이닝 0(pure vacuous) + 상태 variant 전부 단일 standalone 균일 → 상태 교집합 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN L86/L92 단일 hover·체이닝 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2695 baseline)·표면 폐기.
+- 비중첩: 2693(브레이크포인트×상태=폭×상태 게이팅, 상태와 상태 아님) / 2679 states(`not-hover:`=한 상태 여집합, 두 상태 교집합 아님) / L674(`:has()` 관계 결합자로 부모 선택, 요소 자신 상태 AND 아님) vs 본 축=요소 자신의 두 상호작용 상태를 AND 교집합하는 체이닝(스택 대상 차원·논리 연산·셀렉터 분류 상이).
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2697, 320th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
