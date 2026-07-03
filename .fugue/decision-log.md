@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2270 — 정합성: 문서 스위트 상대 링크 무결성 전수 검사 (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 정합성 (직전 2258 — Node 배선 baseline). fresh 축 = 문서 스위트(README·CLAUDE·AGENTS·docs/**) 상대 마크다운 링크 무결성 (census `링크 무결`/`broken link` 0건).
+- **프로브 결과**: python 스크립트로 상대 링크 전수 추출·실재 검사 — **31/31 실재, 깨진 링크 0건**. README 링크 6종(PRD·mvp-features·api-endpoints·erd·architecture·tech-stack)+docs 내부 상호 링크 포함. 문서 이동/삭제(예: cycle 2178/2228 문서 정리) 이후에도 잔존 링크 부재 확인.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "문서 이동·삭제로 상대 링크가 깨졌을 것" 후보는 FP (전수 31/31 실재). 예외: 문서 이동/삭제/개명 커밋 후에는 재평가 (그때만 fresh).
+- **차기**: rotation 에러처리 cycle 2272 (직전 2260 covered). apps/api·apps/web/src 병합분 부재 지속 시 신속 covered.
+
 ### cycle 2268 — 보안: 웹 프록시 바디 상한(proxyClientMaxBodySize 500mb) ↔ API 바디 캡 정합 (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 보안 (직전 2256 — npm audit REAL). npm audit/govulncheck 재스캔은 신규 advisory 시에만 fresh → fresh 축 = next.config.ts `experimental.proxyClientMaxBodySize: "500mb"` (census `proxyClientMaxBodySize` 0건). rewrites 가 /api/:path* 를 Go API 로 프록시하는 경로의 바디 크기 방어선 정합.
