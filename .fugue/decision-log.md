@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2238 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 동시성 (직전 2226 — 전 프리미티브 인벤토리 covered).
+- **프로브 결과**: 비테스트 `go func` 정확히 3곳(cmd/server/main.go:231·playwright_fetcher.go:114·goja_executor.go:47 — cycle 2226과 동일 라인), sync.Once/WaitGroup/errgroup/Pool/atomic.Value/Pointer 0건, snapshot/metrics.go atomic.AddUint64 2건 불변 → L87(goroutine 3곳 결정론적 종료)·L138(락 규율 전수)·L183(타임아웃 goroutine)·L361(atomic 카운터)·L421(인벤토리 0) 전부 기커버.
+- **신선도 검증**: 직전 동시성 cycle 2226 이후 병합분의 apps/api 실코드 변경 = go.mod 범프(#3073)뿐 — 동시성 표면 변동 0.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 봇 cycle 2240 (직전 2228 — AI 잔존 문서 REAL 처리). 후보: 봇 census 재진입 축 선정 (신규 봇 코드 0이면 스펙↔구현 표본 재대조).
+
 ### cycle 2236 — 에러처리: census 재진입 전수 프로브 + 신규 표면 부재 확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 에러처리 (직전 2224). fresh 축 탐색을 위해 에러처리 census 전 축 재대조.
