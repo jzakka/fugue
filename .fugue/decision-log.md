@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2186 Processing — 에러처리: pioneerCmd GetByDomain 에러 폐기·원인 오진 수정 (cycle 2174 동류 잔존분)
+
+- **축 선택**: 에러처리 area 재진입 (6-area 로테이션 정합성→에러처리, 직전 에러처리 = cycle 2174). cycle 2184 forward pointer 후보 "pioneerCmd 의 site 조회/생성 에러 경로 %w 정합(cycle 2174 동류 스캔)" 채택.
+- **결함**: cmd/bot/main.go:154-157 — `site, err := siteRepo.GetByDomain(ctx, domain); if err != nil { return fmt.Errorf("site not found in database: %s (domain: %s)", siteName, domain) }` — err 전면 폐기·모든 에러(DB 연결 장애 포함)를 "site not found in database" 로 오진. cycle 2174 가 merge 서브커맨드(main.go:441)만 수정하고 pioneerCmd 의 형제 site 를 남긴 잔존분.
+- **confidence 3 근거**: (a) 실증 — SiteRepo.GetByDomain(repository_impl.go:29-31)은 sqlc GetSiteByDomain 순수 위임이라 missing 시 sql.ErrNoRows 를 unwrap 없이 반환(**L225** sqlc 계약: `==`/errors.Is 동치)·MockSiteRepository(mocks.go:252)도 sql.ErrNoRows 반환으로 sentinel 계약 일치. (b) 동일 RunE 내 :147(initInfrastructure)은 `%w` 보존 — 명백한 누락. (c) **L328 예외 조항**(plain fmt.Errorf 체인 단절 격리 site 등록 가능) + cycle 2174 직접 선례(동일 클래스 REAL Processing).
+- **수정**: main.go:154-160 — `errors.Is(err, sql.ErrNoRows)` 분기로 진짜 not-found 만 기존 메시지 유지, 그 외 `fmt.Errorf("failed to look up site ...: %w")` 체인 보존. `go build`·`go vet` 통과.
+- **소탕 확인**: cmd/bot/ 전수 non-`%w` fmt.Errorf 4건 잔존 — :51(unknown site, resolveDomain leaf 검증)·:227(HARVESTER_MODE leaf 검증)·:157/:446(ErrNoRows 분기 내부, 원인 err 이 sentinel 자체) 전부 L35 leaf/wrap 규율 정합 — 에러 폐기 클래스 CLI 에서 완전 소탕.
+- 결정/변경: cmd/bot/main.go 수정(Processing). anti-patterns 추가 없음.
+- 차기: area = 동시성 (6-area rotation 에러처리→동시성) → cycle 2188. 후보: 최근 merge 커밋 goroutine/channel diff 스캔·siteRepo/infra.Queries 혼용 경로(main.go:153 NewSiteRepo(infra.DB) vs :440 infra.Queries)의 커넥션 풀 공유 정합·poll-merge 대상 외 신규 동시성 표면.
+
 ## 2026-07-03 — [system] cycle 2184 Processing — 정합성: cycle 2178 도입 CLAUDE.md 테이블명 오기(bot_sources → bot_scripts) 수정
 
 - **축 선택**: 정합성 area 재진입 (6-area 로테이션 보안→정합성, 직전 정합성 = cycle 2172). cycle 2182 forward pointer 후보 3종 진행.
