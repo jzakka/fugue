@@ -17,6 +17,20 @@
 
 ## 항목
 
+### cycle 2224 — 에러처리: 센티넬 매핑·ctx 취소 구분·자원정리 freshness 재검 (판정: covered-by-census)
+
+- **축 선택**: rotation 에러처리 (직전 2210). cycle 2090(L1240) forward pointer 지정 재진입축 — errors.Is 센티넬 매핑 일관성·defer 자원정리 freshness 재검.
+- **프로브 결과** (재인용 검증: 전 축 코드 실측 후 census 대조):
+  - (1) HTTPStatusError 분류 체인 → L374·L10442·L12967 기조사.
+  - (2) OG fetch 에러 매핑 → cycle 1728·anti-patterns L24 기커버.
+  - (3) ratelimit redis 장애 fail-open → L302(cycle 918, L8033 재검증) 기커버.
+  - (4) log.Fatal/panic 소스 규율: internal/ 0건 grep 재확인 → L385(cycle 1004) 기커버.
+  - (5) 핸들러 ctx.Canceled 구분: tag/handler.go:72-74 유일 guard·타 핸들러 log+500 실측 → **L96(cycle 722 baseline)이 정확히 본 FP("tag 만 구분·나머지 오분류") 를 기등록** — 관측성-only·문서 미배킹·conn 쓰기 no-op. 예외 조항(non-idempotent 부분쓰기 등) 트리거 없음.
+  - (6) ErrNoRows→404 freshness: pin/handler.go:390/453·boards/handler.go:196/299/361/564/626·creator/handler.go:74 — L14129 기록 라인과 전부 일치(불변).
+  - (7) rows.Err/defer 자원정리 → L396·L1131·L255 기커버. ffprobe exec 경계 → L1208 포화.
+- **판정**: covered — 신규 결함·신규 baseline 없음, 기존 baseline freshness 전부 유효.
+- **차기**: rotation 동시성 → cycle 2226. fresh 후보 탐색 필요 (기수행: lock-ordering L4080·watchdog 3-goroutine L183·single-flight L304/L706·feed cache stampede 2214 — sync.Once/atomic 사용 규율·신규 병렬화 도입 여부 재스캔 후보).
+
 ### cycle 2222 — 정합성: README 필수 환경변수 목록 ↔ config.Load 실제 필수 집합 3면 대조 (판정: REAL defect → Processing)
 
 - **축 선택**: rotation 정합성 (직전 2212). cycle 2220 forward pointer 지정 fresh 축 — `.env.example ↔ config.go env 열거` + `README 필수 환경변수 ↔ config.Load 필수 집합` 3면 대조 (census 0건).
