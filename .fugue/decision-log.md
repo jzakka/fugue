@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2356 — 에러처리: 모집단 동결 + census 포화 (covered)
+
+- **축 선택**: rotation 에러처리. 직전 2344에서 Makefile crawl 레시피 축까지 baseline 등록 완료 — 잔여 fresh 표면 탐색.
+- **프로브 결과**: Go 에러처리 모집단 동결 지속(diff 0줄). 기존 census 포화 — config fail-fast(L182)·worker recover(L188)·JSON decode(L195)·temp file(L244)·return 규율(696)·취소 구분(722)·Body.Close(746)·discard(758)·decode/tx(810)·정보누출(822)·ErrNoRows(834)·outbound timeout(846)·ratelimit fail-open(L184, 2332 재확인)·Makefile 레시피(2344). 신규 코드·신규 레시피 없음.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 동시성 cycle 2358 (직전 2346 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2354 — 정합성: 문서↔구현 대조 표면 포화 → 전 후보 기커버 (covered)
 
 - **축 선택**: rotation 정합성. fresh 축 후보 3종 프로브 — (1) docs/tech-stack.md ↔ 실측 버전, (2) README 구현 현황 체크리스트 ↔ 실제 구현, (3) 문서 상대 링크.
