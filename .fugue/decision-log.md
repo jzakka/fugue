@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2396 — 봇: 표면 불변 + crawl-status 실행 재검 → 신규 없음 (covered)
+
+- 축: 직전 봇 census(2384) 이후 봇 표면 변화.
+- 조사: apps/api·Makefile 완전 불변 (22747864 이후 공백). 봇 anchor(L32/L206/L1361, 2344/2348 baseline, 2384 seed 영향 점검) 전부 유효.
+- 실행 검증: `make crawl-status` — Postgres 미기동 상태에서 '(Postgres not running — run make pioneer …)' 안내로 우아한 강등 재확인 (2342 QA 경로 동일, 크래시·오류 없음).
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation OpenSpec갭 cycle 2398 (직전 2386 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2394 — 동시성: 표면 불변 재검 → 신규 없음 (covered)
 
 - 축: 직전 동시성 census(2382) 이후 동시성 표면 변화.
