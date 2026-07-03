@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2350 — OpenSpec갭: 스펙/활성 change population 불변 (covered)
+
+- **축 선택**: rotation OpenSpec갭. 스펙 14종 + 활성 change 3건 population 재검.
+- **프로브 결과**: `openspec validate --all` = 14 passed / 0 failed. openspec/ 디렉토리 마지막 커밋 = 4c2e289b(cycle 1158 아카이브) 이후 불변, 활성 change 3건(harvester adapter counter·media validator wiring·scheduler host rate config) in-progress 보류 유지. capability 별 갭 baseline(184/190/202/216/228/234/248·L53·L151) 전부 유효 — 스펙·코드 양쪽 불변으로 신규 갭 표면 없음 (cycle 2338 판정과 동일 근거 지속).
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 보안 cycle 2352 (직전 2340 covered). 신규 advisory 없으면 신속 covered.
+
 ### cycle 2348 — 봇: frontier dead 임계값 5 중복 하드코딩 축 프로브 → FP 반증, NEW baseline
 
 - **축 선택**: rotation 봇. crawl-status(cycle 2300 컬럼 정합 baseline)의 dead 기준 `fetch_error_count >= 5` 와 frontier.sql 의 임계값 정합을 fresh 축으로 프로브 (2300 은 컬럼 존재만 다룸, 임계값 축은 미실시).
