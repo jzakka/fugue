@@ -302,6 +302,12 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2641 Discovery — tokens 313th round: 레거시 박스 방향 토큰(`-webkit-box-orient`/`box-orient`/`display:-webkit-box` — 2009 flexbox 모델의 줄쌓임 축 방향 레거시 속성, `-webkit-line-clamp` 다줄 말줄임 idiom 의 필수 동반값) 표면 폐기 (sub-dimension vacuous + 유틸 내부화)
+- 축 선택: tokens area 313th round. 회전 states(290th)→tokens(313th). tokens 타이포/색/스크롤바/폰트-메트릭/카운터 축 전면 포화 확인(unicode-range 는 L226 "unicode-range 분할 비정합" subject 로 기각·caret-animation L1139·scrollbar-gutter L1304 등 전용). `-webkit-box-orient`(코드·anti-patterns 전수 0)를 라인클램프 idiom 의 미탐색 동반 토큰으로 확정.
+- 프로브 결과: 코드 사실 — 독립 `-webkit-box-orient`/`box-orient`/`display:-webkit-box` 0건, 다줄 말줄임은 Tailwind `line-clamp-2` 유틸 2곳(SearchClient.tsx:390·PinCard.tsx:157)이 `display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2` 삼종세트를 자동 생성(유틸 내부화). box-orient anti-patterns 0건, DESIGN.md box-orient/-webkit-box silent.
+- 결정·변경: 코드 변경 없음. 독립 box-orient 선언이 0인 sub-dimension vacuous + Tailwind 유틸 내부화. anti-patterns.md EOF 1줄 census 추가. L171(라인클램프 a11y 절단 표현)·L277(줄수 브레이크포인트 전이)·L408(절단 유틸 선택)·L996(표준 라인클램프 triad block-ellipsis/max-lines/continue)와 비중첩(레거시 박스 축 방향 토큰 차원만 폐기).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2643, 314th round.
+
 ## 2026-07-03 — [design] cycle 2639 Discovery — states 290th round: base 자기참조 ARIA 상태 스타일 변형(`aria-pressed:*`/`aria-checked:*`/`aria-expanded:*`/`aria-selected:*`/`aria-disabled:*`/`aria-invalid:*`·arbitrary `aria-[…]:*` — 요소가 자기 자신의 ARIA 상태 속성값을 셀렉터로 삼아 스스로를 조건부 스타일하는 Tailwind 변형) 표면 폐기 (sub-dimension vacuous — aria 속성 semantic 존재하나 스타일 훅 0)
 - 축 선택: states area 290th round. 회전 responsive(291st)→states(290th). states 의사클래스/의사요소 전면 포화(폼·미디어·디스클로저·구조·링크·전이·마커 축 전부 전용 census 보유) 확인 후, 자기참조 aria-* 스타일 변형이 관계형 L841(group-aria/peer-aria)·data L858/L862·in-* L850·aria 노출여부 L493/L501/L509 어디에도 전용 subject 로 없는 신선 축임을 확정.
 - 프로브 결과: 코드 사실 — base `aria-*:` 스타일 변형·arbitrary `aria-[…]:` 0건, 반면 aria 속성은 semantic 으로 존재(aria-pressed 9·aria-expanded 1·aria-invalid 4). 시각 상태는 aria 셀렉터가 아닌 React 조건부 className 이 전담(aria=a11y 시맨틱·시각=className 2계층 분리). DESIGN.md aria/state-variant 실질 silent(매칭 3건은 "Pretendard Variable" 오탐).
