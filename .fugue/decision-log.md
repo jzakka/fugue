@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2246 — 정합성: 문서 기술스택 버전 표기 ↔ 실제 의존성 대조 (판정: REAL — README·ko/architecture Next.js 15→16 수정)
+
+- **축 선택**: rotation 정합성 (직전 2234). fresh 축 = 문서 스택 버전 표기 ↔ 실측(docker-compose 이미지·package.json·go.mod) 대조 (census `PostgreSQL 16` 등 0건).
+- **프로브 결과**: PostgreSQL 16(README:14·tech-stack:10) ↔ compose `postgres:16` 정합. Next.js — 실측 package.json `next 16.2.1`·tech-stack.md:7 "Next.js 16" 인데 **README.md:11 "Next.js 15"·docs/ko/architecture.md:93 "Next.js 15"** 만 drift (confidence 3: 실측+문서 스위트 내 기준 문서 모두 16).
+- **수정**: 살아있는 문서 2곳만 15→16. ja/en architecture.md 의 "Next.js 14" 는 헤더에 "레거시(피봇 전)" 명시된 이력 문서라 수정 제외(openspec archive 불수정 원칙과 동일 기조). zh 는 버전 무표기.
+- **QA (실측)**: 살아있는 문서(README·docs/ko·docs/architecture·tech-stack·CLAUDE·AGENTS) grep "Next.js 15" = 0건, package.json 16.2.1 ↔ 문서 16 정합.
+- **차기**: rotation 에러처리 cycle 2248 (직전 2236 covered). 신규 코드 유입 없으면 신속 covered 예상.
+
 ### cycle 2244 — 보안: CI 워크플로 보안 표면 (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 보안 (직전 2232 — govulncheck REAL). govulncheck 재스캔은 신규 CVE 시에만 fresh → fresh 축 = CI 워크플로 보안 (census `pull_request_target`/`actions/checkout` 0건).

@@ -90,7 +90,7 @@
 
 | 계층 | 기술 | 이유 |
 |------|------|------|
-| Frontend | Next.js 15 (App Router) | SSR로 작품/프로필 페이지 OG 태그 생성. React 생태계 |
+| Frontend | Next.js 16 (App Router) | SSR로 작품/프로필 페이지 OG 태그 생성. React 생태계 |
 | Backend | Go + Chi (router) | K8s 네이티브. 빠른 빌드, 작은 이미지 (~20MB) |
 | ORM | sqlc | SQL 직접 작성 → Go 코드 자동생성 |
 | DB (prod) | RDS PostgreSQL 16 | 태그 매칭 (ARRAY + GIN 인덱스), pgvector 확장 가능 |
