@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2392 — 에러처리: 표면 불변 재검 → 신규 없음 (covered)
+
+- 축: 직전 에러처리 census(2380) 이후 에러처리 표면 변화.
+- 조사: `git log 22747864..origin/main -- apps/api Makefile .github/workflows` = 공백 (완전 불변). 해당 구간 변화는 문서(AGENTS.md, api-endpoints.md) 뿐이며 전부 루프 자체 픽스 — 에러 전파 경로·레시피·CI 게이트 무변화.
+- 판정: covered — 기존 anchor(2380 seed 레시피, 2344 baseline, L184 fail-open 등) 전부 유효, 신규 결함 없음.
+- 차기: rotation 동시성 cycle 2394 (직전 2382 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2390 — 정합성: 모집단 변화 재검 → 외부 변경 없음 (covered)
 
 - 축: 직전 정합성 census(2378) 이후 모집단 표면(apps/api, docs/, AGENTS.md, README.md, Makefile) 변화분.
