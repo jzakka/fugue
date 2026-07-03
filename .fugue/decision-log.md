@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2244 — 보안: CI 워크플로 보안 표면 (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 보안 (직전 2232 — govulncheck REAL). govulncheck 재스캔은 신규 CVE 시에만 fresh → fresh 축 = CI 워크플로 보안 (census `pull_request_target`/`actions/checkout` 0건).
+- **프로브 결과**: .github/workflows/ci.yml(유일 워크플로, 71줄) — (1) 트리거 `pull_request`+`push`(main): `pull_request_target` 미사용, fork PR 토큰 read-only. (2) `${{ github.event.* }}` 의 run: 보간 0건 (concurrency 의 `github.event_name` 비교는 사용자 제어 문자열 아님). (3) `secrets.*` 참조 0건 → 탈취 대상 자격증명 부재. (4) permissions 블록 부재·@v4/@v5 태그 pin·golangci-lint@latest 는 미규정 하드닝(취향, L429 선례) — 어느 문서도 SHALL 없음.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "CI 워크플로 하드닝 부재는 공격 표면 0 이라 FP". 예외: pull_request_target 특권 실행/이벤트 필드 run: 보간/secrets+untrusted 결합 시 재평가.
+- **차기**: rotation 정합성 cycle 2246 (직전 2234 — Dockerfile/CI Go 버전 배선 baseline). fresh 축 탐색 필요.
+
 ### cycle 2242 — OpenSpec갭: 활성 change·validate·병합분 spec 정합 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation OpenSpec갭 (직전 2230).
