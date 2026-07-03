@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+
+### cycle 2378 — 정합성: 모집단 변화 재검 → seed 타겟 복원 커밋 정합 확인 (covered)
+
+- 축: 직전 정합성 census(2366) 이후 모집단 변화분의 doc↔code 정합성.
+- 조사: `git diff --stat 1dbad2a2..origin/main` — apps/api 0줄 불변, 문서/Makefile 변화는 루프 자체 REAL 픽스(2330, 2342) + 신규 커밋 22747864 (PR #3107, seed 타겟 복원) 뿐.
+- 검증: Makefile:60 `seed` 타겟 존재, 참조 파일 `apps/api/db/seed_tags.sql`/`seed.sql` 존재, AGENTS.md:93 `make seed` 문서와 일치. `make -n seed` dry-run으로 레시피 유효 확인 (실행은 TRUNCATE 파괴적이라 생략). 22747864 자체가 doc↔code 정합성 복원 커밋이며 신규 불일치 없음.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation 에러처리 cycle 2380 (직전 2368 covered). 모집단 불변 지속 시 신속 covered.
 ### cycle 2376 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - **축 선택**: rotation 보안. 의존성 advisory 게이트 재검.
