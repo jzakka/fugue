@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2368 — 에러처리: 모집단 동결 + census 포화 지속 (covered)
+
+- **축 선택**: rotation 에러처리. population 변화 여부 재검.
+- **프로브 결과**: Go 에러처리 모집단 동결 지속(diff 0줄). census 포화 상태 유지(L182·L188·L195·L244·696·722·746·758·810·822·834·846·L184/2332·2344 Makefile 레시피) — cycle 2356 판정과 동일 근거.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 동시성 cycle 2370 (직전 2358 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2366 — 정합성: 문서·코드 population 불변 + 표면 포화 (covered)
 
 - **축 선택**: rotation 정합성. 직전 2354에서 문서↔구현 대조 표면 포화 확인 — population 변화 여부만 재검.
