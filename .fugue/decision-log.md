@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2332 — 에러처리: ratelimit Redis 장애 fail-open 축 프로브 → L184 기커버 (covered)
+
+- **축 선택**: rotation 에러처리. 직전 cycle 2330 QA에서 실측한 rate limiter(internal/auth/ratelimit.go)의 Redis 장애 시 에러 경로(fail-open/fail-closed)를 fresh 축 후보로 프로브.
+- **프로브 결과**: anti-patterns L184(cycle 790 baseline)가 해당 축을 명시 커버 — "Redis err 시 L86-101 fail-open(log.Printf+next.ServeHTTP)·count>limit 시 Retry-After+429·Lua EVAL INCR/EXPIRE 원자성". 예외 조항(fail-closed 변경 회귀)도 미해당 — 모집단 불변으로 회귀 자체가 없음.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄 (PR #3085 이후 Go 모집단 동결 지속). 에러처리 기존 census: L182(config fail-fast)·L188(worker recover)·L244(temp file lifecycle)·L696(에러 응답 후 return)·cycles 746/758/810/822/834/846.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 동시성 cycle 2334 (직전 2322 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2330 — 정합성: docs/api-endpoints.md ↔ cmd/server/main.go 라우트 전수 census (REAL, doc 수정)
 
 - **축 선택**: rotation 정합성. fresh 축 = api-endpoints.md 전 라우트/[auth]/[rate] 마커 ↔ 실제 라우터 등록(main.go:130-192) 전수 대조. anti-patterns에는 L774(페이징)/L788(SHALL 부재) 부분 언급뿐, 전수 census는 미실시.
