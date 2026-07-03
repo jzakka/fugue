@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2370 — 동시성: 모집단 동결 + census 포화 지속 (covered)
+
+- **축 선택**: rotation 동시성. population 변화 여부 재검.
+- **프로브 결과**: Go 동시성 모집단 동결 지속(diff 0줄). census 포화 상태 유지(662-748·L233·L52/L87·L126·race detector 2250) — cycle 2358 판정과 동일 근거.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 봇 cycle 2372 (직전 2360 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2368 — 에러처리: 모집단 동결 + census 포화 지속 (covered)
 
 - **축 선택**: rotation 에러처리. population 변화 여부 재검.
