@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2344 — 에러처리: Makefile crawl 레시피 에러-억제 패턴 → FP 반증, NEW baseline
+
+- **축 선택**: rotation 에러처리. cycle 2342에서 관찰한 Makefile crawl 레시피(:164-183)의 `|| true` 루프·`pkill 2>/dev/null`·`wait || true` 에러 억제를 fresh 축으로 프로브 (anti-patterns 에 Makefile 레시피 에러처리 축 부재 확인).
+- **프로브 결과**: 후보로 보이는 억제 3종 전부 의도 설계 — (1) `|| true` 루프 = DURATION 시간제한 지속 크롤의 재시작 메커니즘(crash 시 재기동이 계약), (2) pkill/wait 억제 = cleanup best-effort(프로세스 부재가 정상), (3) `trap INT TERM EXIT` 2단(TERM→KILL) 정리로 좀비 불가. 반면 정합성 단계(seed ON_ERROR_STOP=1·migrate·SITE 가드 exit 1)는 fail-closed 로 분리 — cycle 2342 QA 에서 Usage exit 2·crawl-status graceful 실측 완료.
+- **판정**: FP 반증 → NEW baseline. anti-patterns EOF 등록(예외: 정합성 필수 단계 || true 삼킴·trap 없는 워커 spawn).
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄 (Go 모집단 동결; 본 축은 Makefile 표면).
+- **차기**: rotation 동시성 cycle 2346 (직전 2334 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2342 — 정합성: Makefile 타겟 전수 ↔ AGENTS.md 문서 대조 (REAL, doc 수정)
 
 - **축 선택**: rotation 정합성. cycle 2282(seed 단건)·2294(pioneer/harvester 표기 단건)와 달리 루트 Makefile 타겟 **전수**(23개) ↔ AGENTS.md Makefile 섹션(18개)의 양방향 대조는 미실시 — fresh 축.
