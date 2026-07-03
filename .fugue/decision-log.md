@@ -17,6 +17,15 @@
 
 ## 항목
 
+### cycle 2198 — 에러처리: search/tag silent-clamp 정책·writeError 규율 재점검 (판정: covered-by-census)
+
+- **축 선택**: area = 에러처리 (rotation: 정합성→에러처리). cycle 2196 forward pointer의 2후보를 프로브.
+- **프로브 결과**:
+  - (1) search/tag 핸들러 strconv silent-clamp: search/handler.go:136-150 (limit 기본 20·>50 clamp-before-cast·offset ≤maxSearchOffset=100000)·tag/handler.go:107-114 (limit 기본 20·l>50→50) — 두 핸들러 동작 등가(malformed→기본값·초과→50 클램프). census **L290**(cycle 822 계열: pin:558-570·search:137/149·feed:391-401·boards:231/239·tag:109 라인 단위 열거, clamp+fallback 의도적)·**L161**(cycle 770: query-param strconv err==nil 가드는 REST 페이지네이션 sanctioned)이 정확히 커버.
+  - (2) 핸들러 에러 응답 wrap: writeError는 8개 패키지 자체 헬퍼(creator:247·pin:714·search:442·feed:515·boards:764·og:159·tag:149·interaction:107)로 정적 메시지만 인코딩 — census **L212**(cycle 822: err.Error() 노출 0건·전 500 site log.Printf 선행)·**L73**(cycle 696: writeError 후 return 전수)·**L96**(cycle 722: ctx.Canceled 미구분은 관측성-only)이 커버.
+- **판정**: covered-by-census. 두 프로브 모두 기존 baseline이 라인 단위로 열거하는 축. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = 동시성 (rotation: 에러처리→동시성) → cycle 2200. 후보: search 핸들러 3-4 쿼리 병렬화 여부·goroutine 사용 census 재확인(cycle 2164 기준 3 non-test sites 유지 여부)·ratelimit 미들웨어 Redis 파이프라인 원자성.
+
 ### cycle 2196 — 정합성: docs/api-endpoints.md ↔ 라우터 전수 대조 (판정: REAL defect → Processing)
 
 - **축 선택**: area = 정합성 (rotation: 보안→정합성). cycle 2184/2190에서 2회 이월된 docs/api-endpoints.md ↔ chi 라우터 표본 대조를 이행.
