@@ -751,6 +751,13 @@
 - 비중첩: L762(animation-fill-mode 전후 스타일 유지 forwards/backwards), L766(animation-play-state running/paused 재생 상태), L770(animation-composition replace/add/accumulate 합성), cycle 2673(animation-direction normal/reverse/alternate 재생 방향) — 모두 애니메이션 다른 하위 차원(유지·재생상태·합성·방향)이지 몇 번 반복 재생되는가(무한/유한 N회) 반복 횟수 차원 아님(층위 상이).
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2683, 319th round.
 
+## cycle 2683 — design/aesthetic 319th round (Discovery, 표면 폐기)
+- 축 선택: 배경 타일 맞춤 반복값(`background-repeat: space | round` — 배경 이미지 타일을 클리핑 없이 정수 개 채우되 `space`는 타일 사이 균등 간격 분배(원본 크기 유지)·`round`은 타일 스케일로 딱 맞춤(간격 없음), 단순 repeat(잘림 허용)/no-repeat 와 다른 타일-맞춤 메커니즘). aesthetic 로테이션(tokens 2681 → aesthetic 2683)에서 matrix()(2675)·column-span(2667)·clip:rect()(2659) 등 조판/변환/클리핑이 포화라, 배경 반복 중 아직 미등재인 *space/round 타일-맞춤 값*(L879 는 반응형 BP-토글로 값 나열만) 차원을 선택(`bg-repeat-round`/`bg-repeat-space` grep 0건).
+- 프로브: (1) `bg-repeat-round`/`bg-repeat-space`/`background-repeat:space|round` apps/web/src·globals.css grep 0건 → 타일-맞춤 표면 부재. (2) 유일 배경 이미지는 스켈레톤 shimmer `linear-gradient`(globals.css L105·`background-size:200%`+`no-repeat` L106, 단일 스윕 그라디언트)·카드 썸네일은 `<img>` → 반복 래스터 타일 배경 전무, 타일-맞춤 대상 0. (3) 타일-맞춤 idiom 부재(반복 타일 배경 미사용). (4) DESIGN.md(105줄) background-repeat/타일/tile/반복 배경 grep 0건.
+- 결정: 호스트(반복 래스터 타일 배경) 부재 + 유일 배경은 no-repeat 그라디언트 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·반복 타일 배경 0)로 이슈 아님. anti-patterns 1줄 추가(cycle 2683 baseline)·표면 폐기.
+- 비중첩: L879(responsive 브레이크포인트-접두 배경 반복 토글 — background-repeat 값을 BP별로 토글하는 반응형 차원, space/round 를 값 나열에서만 언급) vs 본 축=space(간격 분배)/round(타일 스케일) 정적 aesthetic 타일-맞춤 메커니즘, 차원·영역 상이.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2685, 297th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
