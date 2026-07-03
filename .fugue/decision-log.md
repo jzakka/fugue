@@ -27,6 +27,16 @@
 - **QA**: 문서-only 변경(코드 무변경)이라 실행 검증 비대상. 예외 (a)-(d)에 IaC 도입 시 rule 누락·prefix 변경·기본값 flip/주석 제거·spec 개정 시 미구현을 명시해 실갭 재등록 경로 확보.
 - **차기**: area = 보안 (6-area rotation OpenSpec갭→보안, 97주기째) → cycle 2158. 후보: 스냅샷 버킷 비공개+서버측 암호화 전제(design.md:109 "민감한 HTML 장기 보관" 리스크 항목)↔helm/values 반영 여부·S3_SECRET_KEY 등 시크릿의 로그/에러 메시지 누출 spot-check·og fetch 의 Content-Type 신뢰 경계. 이월(타 축): CLAUDE.md 프로젝트 구조가 terraform/ 을 명시하나 디렉터리 부재(정합성)·helm _helpers.tpl 부재 렌더 실패(정합성).
 
+## 2026-07-03 — [design] cycle 2597 Discovery — responsive 286th round: 컨테이너 쿼리 질의 대상 명명 속성(`container-name` 중첩 조상 라우팅) 표면 폐기 (pure vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 286th round)에서 "일부 중첩 컨테이너만 `container-name` 으로 질의 대상 조상을 이름 지정하고 동종은 무명이라 컨테이너 쿼리 라우팅이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: responsive. cycle 2589 forward-pointer(sm:[scroll-snap-type]/touch-action/scroll-snap-align)는 전부 L474 scroll-snap 그룹·populated 이라 saturated 확인, sm: BP-토글 vein 후보(text-overflow L408·grid-flow L285·object-position L875/879·타이포 전 계열)도 carve 확인 후 PIVOT → 컨테이너 쿼리 군에서 `container-name`(subj=0·L502/709/1088/450/111 에서 *그룹-멤버* 로만 열거)이 개별 미carve 임을 발견 → containment 타입(container-type)·질의 조건(@container)·단축(container)·스타일 쿼리(style())와 다른 *질의 대상 명명/라우팅* 차원으로 sub-carve.
+- MANDATORY 체크: (1) `@container`/`container-name`/`container-type`/cqw/cqh apps/web/src grep **0건**(raw @container 스캔도 empty). (2) 반응형은 전적으로 뷰포트 미디어 쿼리(Tailwind sm:/md:/lg:)로 처리·containment 컨텍스트 미설정 → 중첩 컨테이너 0이라 이름으로 조상을 구별할 상황 부재. (3) DESIGN.md(105줄) container/@container/containment grep **0건** → silent.
+- 근거: 세 독립 0-조건(@container code 0 + 중첩 컨테이너 라우팅 모집단 0 + DESIGN silent)로 triply/pure vacuous. "카드/사이드바가 중첩이니 이름으로 바깥 컨테이너를 질의한 곳이 있거나 일부만 명명해 갈릴 것" 정적 추정은 FP — `container-name` 이 0·반응형은 뷰포트 브레이크포인트.
+- DESIGN.md 확인: 컨테이너 쿼리·명명 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: apps/web 무변경(표면 폐기)이라 런타임 QA 대상 없음. census 텍스트 정합만 확인.
+- 비중첩: L502/L709(container-type/@container 질의 축·containment 타입/질의 조건)·L1088(container 단축 name/type 합침)·L450(@container style() 스타일 쿼리)·L111(cqw/cqh 컨테이너 상대 단위)과 별개 — 본 축은 `container-name`(중첩 시 이름으로 특정 조상 컨테이너를 질의 대상으로 라우팅) 차원.
+- 차기 responsive 재진입 후보: `@container` 의 `scroll-state()` 쿼리(스크롤 상태 기반 컨테이너 질의·subj=1 재검)·중첩 컨테이너 `container` 단축의 name-먼저 vs type-먼저 순서(L1088 재검)·cqmin/cqmax 혼합 축 단위(subj=1 재검) subj/code 확인 후 sub-carve.
+
 ## 2026-07-03 — [system] cycle 2154 NEW baseline — 봇: HarvestPipeline.Process 프로덕션 미배선 = 배치 통계 계약 미구현이라는 후보 FP 반박 (anti-patterns L1314 append)
 
 - **결정**: NEW baseline (FP 반박 → anti-patterns.md L1314 append). bot/spec.md :562 "처리 파이프라인이 배치 처리 통계를 반환한다"(+:516/:537/:550 파이프라인 계약군)를 구현하는 `HarvestPipeline.Process`(harvest_pipeline.go:180-251)가 프로덕션 호출자 0건이지만 — Requirement 는 컴포넌트 반환 계약이고 Process 가 전수 구현+테스트 고정 상태이며, 라이브 frontier 경로 통계는 harvester/spec.md 5-counter 가 별도 소유(capability 분리, cycle 1834 동형) → "계약 미구현/dead code/spec 불일치" 후보 금지.
