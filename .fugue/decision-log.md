@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2306 — 정합성 (NEW baseline)
+
+- 축 선택: rotation 정합성 (직전 2294 REAL). fresh 축: .env.example↔config.go 요구 환경변수 전수 정합 (직전 forward pointer).
+- 프로브 결과: 후보 결함 = 필수 환경변수의 .env.example 누락 또는 사장 변수 등재. 반증: (1) .env.example 9개 변수 전부 config.go 소비 확인 — 필수 6종(JWT_SECRET·OAUTH_CALLBACK_BASE_URL·GOOGLE/DISCORD CLIENT_ID/SECRET)은 검증 게이트 보유, 3종(DATABASE_URL/REDIS_URL/FRONTEND_URL)은 envOrDefault로 로컬 기본값 일치. (2) config.go의 여분 변수(S3_* 6종)는 전부 로컬 기본값 보유 — .env.example 부재가 기동 실패를 유발하지 않음. (3) TWITTER_CLIENT_ID/SECRET(config.go:86-87)은 로드만 되고 전 코드베이스에서 미소비(프로바이더 등록 없음·문서 언급 0건) — 무해한 사장 필드, 신뢰도<3 (기능 영향 0, 정리성 변경은 loop 범위 외).
+- 판정: NEW baseline (FP 반증). anti-patterns EOF 등재.
+- 차기: rotation 에러처리 cycle 2308 (직전 2296 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2304 — 보안 (NEW baseline)
 
 - 축 선택: rotation 보안 (직전 2292 covered). fresh 축: JWT_SECRET 강도 검증(길이 하한) 존재 여부 (직전 forward pointer).
