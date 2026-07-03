@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2312 — 봇 (covered)
+
+- 축 선택: rotation 봇 (직전 2300 NEW baseline). 후보 축: make show-map(bot-visualize) 플래그 조합 재검.
+- 프로브 결과: (1) 후보 축은 cycle 2178이 bot-visualize 플래그 3종(-format/-filter-site/-output) 실행 검증으로 기커버 — 이후 cmd/bot-visualize 변경 0건이라 재검 트리거 미발화. (2) 봇 모집단(internal/bot/, cmd/bot*): 1dbad2a2 이후 변경 0건 지속. 최근 봇 축 fresh 검증(2288 DURATION 파싱·2300 crawl-status SQL)도 전부 FP 반증으로 종결.
+- 판정: covered-by-census.
+- 차기: rotation OpenSpec갭 cycle 2314 (직전 2302 covered). 활성 change 3건 변동 시에만 재검.
+
 ### cycle 2310 — 동시성 (covered)
 
 - 축 선택: rotation 동시성 (직전 2298 covered).
