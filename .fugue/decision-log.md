@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2214 — 동시성: feed 캐시 stampede(동일 키 동시 miss 중복 빌드) 표면 폐기 (NEW baseline)
+- **축 선택**: rotation 동시성 (직전 2200). cycle 2212 지정 후보 2건 — (1) goja_executor/playwright_fetcher goroutine ctx 취소·채널 계약 재검, (2) feed 캐시 stampede 허용 여부.
+- **프로브 결과**: (1) 비테스트 goroutine 기동 site 3건(cmd/server/main.go:231·bot/playwright_fetcher.go:114·bot/goja_executor.go:47) = cycle 2164 baseline 정확 일치(증감 0), goja watchdog 은 :45 defer cancel 로 Done 닫힘 보장·Interrupt 는 finished VM no-op·L183(cycle 788)/L460 이 3 site 전수 열거 기커버 → 폐기. (2) feed/handler.go cache-aside — 동일 feedCacheKey(creatorID,limit,offset) 동시 miss 시 각 요청이 독립적으로 피드를 빌드하고 Set(5min TTL). singleflight/코얼레싱 부재.
+- **판정**: (2) refuted + uncovered → NEW baseline 등록(anti-patterns.md EOF append). 반박: ① 공유 가변 상태 0 — h.q(*sql.DB)·h.rdb(go-redis)는 goroutine-safe, 핸들러는 요청-로컬 변수만 사용(L201 인접). ② 빌드 경로(buildLatestFeed/buildExcludedLatestFeed/buildPersonalizedFeed) 전부 SELECT — INSERT/UPDATE/CREATE grep 0, read-idempotent 라 동시 중복 빌드는 동등 결과. ③ Set 은 last-write-wins — 어느 쪽이 이겨도 유효 데이터 게시, JSON marshal 실패 시 Set 스킵도 무해. ④ 설계가 재계산을 명시 수용 — 캐시 get/set 에러 fallthrough 주석이 "DB load amplification" 을 운영 가시성 문제로 규정하고 additive-logging 으로 대응, singleflight 도입은 spec 미명시 성능 취향(loop rule line 9). ⑤ robots single-flight(L304/L706)는 봇 측 원격 per-host fetch 코얼레싱으로 별개 표면(원격 폭주 방지가 robots 준수 시맨틱과 결부) — HTTP 요청당 로컬 DB SELECT 재실행과 등가 아님.
+- **차기**: area = 봇 (rotation: 동시성→봇) → cycle 2216. 후보: FilterChain robots 필터 위치·CanonicalDedupFilter batch-local 계약 재검(L206·L207 인접 선확인 필요), harvester adapter fallback 카운터 spec L267 재대조.
+
 ## 2026-07-03 — [system] cycle 2212 — 정합성: erd↔migrations 표본 대조(이월)·ratelimit 매트릭스↔라우터 배선 (covered)
 - **축 선택**: cycle 2208/2210 이 지정한 이월 과제 docs/erd.md ↔ migrations 표본 대조 + fresh 후보로 검토한 ratelimit 라우트 매트릭스 ↔ 배선 대조. AGENTS.md API 열거 ↔ api-endpoints.md 축은 AGENTS.md 가 엔드포인트를 직접 열거하지 않고 L27 링크만 보유 → vacuous 폐기.
 - **프로브 결과**: (1) erd↔migrations 표본(tags/pin_tags/boards) — tags 4컬럼 drift(name/slug VARCHAR(100)↔(50)·category (50) nullable↔(30) NOT NULL·display_order NOT NULL↔nullable, ERD name UNIQUE 누락 포함)는 잔존하나 후속 ALTER TABLE tags 0건·seed 전용 read-only 로 런타임 경로 0; pin_tags tag_id CASCADE 는 migration 000028 이 ERD 정렬 완료; boards 는 is_public/created_at/updated_at NOT NULL 표기만 ERD 누락(동일 컬럼스펙 drift 클래스). (2) ratelimit — architecture.md L234-236 매트릭스 2건(핀 생성 30/분/유저·OG fetch 20/분/IP)이 main.go:146 pinRL.MiddlewareByCreatorID·:155 ogRL.Middleware 와 정확 배선; authRL(10/분)·callbackRL(5/분)의 login/callback/logout 배선(:186-189)은 매트릭스 미기재이나 spec 밖 additive hardening.
