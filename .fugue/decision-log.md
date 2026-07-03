@@ -120,6 +120,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2621 Discovery — responsive 289th round: 브레이크포인트-접두 단어-내 줄바꿈 토글(`sm:break-all`/`md:break-words` — word-break/overflow-wrap 화면폭 분기 토글) 표면 폐기 (responsive-toggle vacuous)
+- 결정: responsive 영역(4-area rotation tokens→aesthetic→responsive→states, 289th round)에서 "긴 문자열의 단어-내 줄바꿈을 반응형으로 조율하거나 일부 표면만 `sm:break-all` 토글·동종은 단일 `break-words` 라 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- Evidence (responsive-toggle 차원 vacuous, 세 독립 0/일관 조건): (1) `sm:break-*`/`md:break-*`/`lg:break-*`(브레이크포인트-접두 word-break/overflow-wrap 토글) apps/web/src grep **0건** → 단어-내 줄바꿈을 화면폭 분기별로 토글하는 표면 0. (2) 공백 없는 긴 문자열 컨테이너(boards/[id]·pins/[id]·ProfileHeader 총 7곳)는 전부 무-접두 `break-words` 단일 적용 → 브레이크포인트 분기 없이 동일 모드라 화면폭별로 갈릴 줄바꿈 0. (3) DESIGN.md(105줄) word-break/overflow-wrap/break-word grep **0건** → 단어-내 줄바꿈 브레이크포인트 토글 정책 silent.
+- 축 분리: 본 축은 `word-break`/`overflow-wrap` 의 *브레이크포인트-접두 반응형 토글*(단어-내 줄바꿈 모드를 화면폭 분기별로). 비중첩: L357(긴 문자열 break-words/min-w-0 토큰 적용 일관·비반응형)·L1022(`word-break: auto-phrase` 일본어 문절 값)·L470(`white-space` 공백/화이트스페이스 BP 토글)·L935(`line-break` CJK 금칙 엄격도 BP 토글)·L408(truncate/line-clamp 텍스트 절단 BP 전이)과 축 분리.
+- loop rule line 9 적용: 단어 줄바꿈은 비-반응형 단일 `break-words` 일관·sm:break-* 선언 0 → divergence 0. 예외: 향후 `sm:break-all`/`md:break-words` 반응형 토글 도입+일부 긴-문자열만 화면폭 분기별로 줄바꿈으로 표면 간 실제 갈림 시 재평가.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2623, 288th round. 후보: states group-member 전용 분리 축(subj=0 full>0 UA 의사요소/의사클래스)·hover/focus/loading/empty/error 미farmed 세부 축.
+
 ## 2026-07-03 — [design] cycle 2619 Discovery — aesthetic 311th round: SVG 텍스트 가로 앵커 정렬 속성(`text-anchor` — 앵커 x 기준 start/middle/end 가로 정렬) 표면 폐기 (pure vacuous)
 - 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 311th round)에서 "SVG 텍스트의 가로 앵커 정렬을 표면마다 다르게 정하거나 일부 SVG 텍스트만 `text-anchor: middle` 을 갖고 동종은 UA 기본(start)이라 앵커 정렬이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - Evidence (pure vacuous, 세 독립 0-조건): (1) `text-anchor`/`textAnchor` apps/web/src grep **0건**·SVG 텍스트 콘텐츠 `<text>`/`<textPath>`/`<tspan>` 전수 **0건** → 앵커점 기준 가로 정렬할 SVG 텍스트 자체가 없어 모집단 0. (2) 인라인 SVG 는 lucide path-only 아이콘 글리프뿐, 텍스트/숫자는 전부 HTML 요소 → SVG-텍스트-앵커 발현 조건 부재. (3) DESIGN.md(105줄) text-anchor/dominant-baseline/`<text>`/svg text grep **0건** → SVG 텍스트 가로 앵커 정렬 정책 silent.
