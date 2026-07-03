@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2346 — 동시성: crawl 병행 워커(pioneer+harvester) 공유 상태 축 프로브 → L126 기커버 (covered)
+
+- **축 선택**: rotation 동시성. cycle 2342/2344에서 관찰한 Makefile crawl 레시피의 병행 워커(pioneer 루프 + harvester 루프 동시 spawn)가 공유하는 상태의 경쟁을 fresh 축 후보로 프로브.
+- **프로브 결과**: 병행 워커의 유일한 공유 상태는 DB frontier 테이블이며, anti-patterns L126(cycle 736 baseline)이 명시 커버 — "ClaimPioneerCandidates·ClaimHarvesterCandidates `FOR UPDATE SKIP LOCKED` 원자 클레임, 다중 워커 이중 클레임 불가". 프로세스 lifecycle 은 cycle 2344 baseline(trap 2단 정리)에서 방금 등록. in-process 동시성 census(cycles 662-748·L233·race detector 2250)도 전부 유효.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 봇 cycle 2348 (직전 2336 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2344 — 에러처리: Makefile crawl 레시피 에러-억제 패턴 → FP 반증, NEW baseline
 
 - **축 선택**: rotation 에러처리. cycle 2342에서 관찰한 Makefile crawl 레시피(:164-183)의 `|| true` 루프·`pkill 2>/dev/null`·`wait || true` 에러 억제를 fresh 축으로 프로브 (anti-patterns 에 Makefile 레시피 에러처리 축 부재 확인).
