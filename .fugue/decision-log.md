@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2262 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 동시성 (직전 2250 — 전 스위트 race detector 무결). forward pointer: apps/api 변경 0이면 인벤토리 불변 신속 covered.
+- **프로브 결과**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0건 (cycle 2260에서 실측) — goroutine/mutex/channel/atomic 프리미티브 모집단 불변(L87/L138/L183/L361/L421 인벤토리 그대로 유효). cycle 2250의 `go test -race ./...` 668 pass·DATA RACE 0 증거가 동일 코드에 그대로 성립(재실행은 무의미 중복).
+- **판정**: covered — 신규 동시성 표면 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 봇 cycle 2264 (직전 2252 covered). 봇 코드·Makefile·문서 병합분 부재라 신속 covered 예상 — fresh 축 필요 시 bot-visualize CLI 플래그 조합 실행 검증 후보.
+
 ### cycle 2260 — 에러처리: 직전 이후 에러 경로 신규 유입 부재 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 에러처리 (직전 2248 — bot-visualize exec(dot) 에러 경로 covered). forward pointer: 신규 코드 유입 없으면 신속 covered.
