@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2336 — 봇: harvester 미디어 다운로드(ObjectStorageFetcher) 축 프로브 → L32 기커버 (covered)
+
+- **축 선택**: rotation 봇. harvester 미디어 다운로드/스냅샷 read-path(ObjectStorageFetcher ← harvester_frontier.snapshot_key)를 fresh 축 후보로 프로브.
+- **프로브 결과**: anti-patterns L32가 해당 read-path 를 명시 커버. harvester 관련 baseline 은 cycles 1000-1034 대에 광범위 누적, 필터체인/robots 는 L206(cycle 816), link_extractor L172, frontier UPSERT L191, 링크필터 매칭집합 L235. 활성 openspec 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring)은 전부 봇 표면이나 in-progress change 라 L15류 보류 원칙 적용(불변 확인).
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation OpenSpec갭 cycle 2338 (직전 2326 covered). 활성 change 3건 불변 시 신속 covered.
+
 ### cycle 2334 — 동시성: graceful-shutdown serverErr 채널 축 프로브 → L52/L87 기커버 (covered)
 
 - **축 선택**: rotation 동시성. cmd/server/main.go graceful-shutdown 경로(signal.NotifyContext + serverErr 채널 + srv.Shutdown)의 채널/goroutine lifecycle 을 fresh 축 후보로 프로브.
