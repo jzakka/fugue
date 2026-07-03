@@ -845,6 +845,13 @@
 - 비중첩: L308(transition-delay=*트랜지션*(상태 변화 보간) 시작 지연, 키프레임 애니메이션 아님) vs 본 축=animation-delay(키프레임 재생 시작 지연/시차, 지연 대상 상이)·L762/L766/L770/2673/2681(애니메이션의 다른 하위 차원 — 전후 유지·재생상태·합성·방향·반복 횟수, 시작 지연 아님)·L423(sibling-index()/sibling-count()=형제 인덱스를 *계산* 하는 함수, delay 값 입력일 뿐 delay property 아님)과 층위 상이.
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2691, 320th round.
 
+## cycle 2691 — design/aesthetic 320th round (Discovery, 표면 폐기)
+- 축 선택: 방사 그라디언트 종료-형태·크기-범위 키워드(`radial-gradient()` 의 `circle`/`ellipse` 종료 형태 + `closest-side`/`closest-corner`/`farthest-side`/`farthest-corner` 크기 범위 — 방사 그라디언트가 중심에서 어느 형태로 어느 지점까지 자랄지 상자 가장자리 기준으로 잡는 장식적 방사 채움 크기 메커니즘). aesthetic 로테이션(tokens 2689 → aesthetic 2691)에서 반복(L602)·원뿔(L590)·hue 보간(L889)·보간 힌트(L885) 등 그라디언트 하위 차원이 포화라, 아직 미등재인 *방사 종료-형태·크기-범위* 차원을 선택(`radial-gradient` grep 0건).
+- 프로브: (1) `radial-gradient`/`ending-shape`/`closest-side`/`farthest-corner` apps/web/src grep 0건 → 방사 그라디언트 크기/형태 잡는 표면 부재. (2) 유일 그라디언트는 방향성 `linear-gradient`(shimmer globals.css L105·90deg 스윕)·radial-gradient 0 → 종료 형태/크기 정할 대상 부재. (3) 스포트라이트/글로우/비네트 방사 크기 idiom 부재(radial-gradient 미사용). (4) DESIGN.md(105줄) L83 "Audio card…미묘한 그라디언트 배경…accent 계열" 은 일반 그라디언트 언급뿐·radial/방사/원형 크기/ending-shape silent.
+- 결정: `radial-gradient` 0(pure vacuous) + 유일 그라디언트는 방향성 linear shimmer → 방사 종료-형태/크기 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN L83 일반 그라디언트 언급뿐·방사 크기 침묵·radial 0)로 이슈 아님. anti-patterns 1줄 추가(cycle 2691 baseline)·표면 폐기.
+- 비중첩: L602(반복 그라디언트 타일링) / L590(원뿔 각도 회전) / L889(색 보간 hue 경로) / L885(정지점 사이 전이 중간점 힌트) vs 본 축=방사 그라디언트가 상자 기준 *어느 종료 형태(circle/ellipse)·어느 크기 범위(closest/farthest-side/corner)까지 자라나* 의 기하 크기 키워드(그라디언트 하위 차원 층위 상이).
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2693, 298th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
