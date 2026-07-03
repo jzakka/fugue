@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2316 — 보안 (covered)
+
+- 축 선택: rotation 보안 (직전 2304 NEW baseline). 후보 축: CORS 설정(allowed origins/credentials) posture.
+- 프로브 결과: (1) 후보 축은 anti-patterns L1212(production 라우터 CORS 정책 cmd/server/main.go:122-127 posture)가 기커버 — 이후 main.go 변경 0건이라 재검 트리거 미발화. (2) 재스캔 게이트: npm audit 잔차 2 moderate 불변(cycle 2292 확인)·govulncheck 재스캔은 신규 advisory 시에만 fresh. (3) apps/api·apps/web 모집단 불변 지속.
+- 판정: covered-by-census. 후보 축 L1212 기커버.
+- 차기: rotation 정합성 cycle 2318 (직전 2306 NEW baseline). fresh 축 후보: docs/erd.md 테이블 정의↔migrations 실제 스키마 정합(기존 census 중첩 여부 선확인).
+
 ### cycle 2314 — OpenSpec갭 (covered)
 
 - 축 선택: rotation OpenSpec갭 (직전 2302 covered). 재검 트리거: 활성 change 3건 변동 여부.
