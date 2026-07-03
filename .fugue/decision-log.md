@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2360 — 봇: 모집단 동결 + census 포화 (covered)
+
+- **축 선택**: rotation 봇. 직전 2348에서 frontier dead 임계값 축까지 baseline 등록 완료 — 잔여 fresh 표면 탐색.
+- **프로브 결과**: 봇 모집단 동결 지속(diff 0줄, Makefile 봇 타겟도 2342 이후 불변). census 포화 — 스냅샷 정책(L25, 570)·link_extractor(L172)·scheduler backoff(L185)·frontier UPSERT(L191)·FilterChain/Robots(L206, 816)·필터 매칭집합(L235)·ObjectStorageFetcher(L32, 2336 재확인)·crawl-status 컬럼(L1361, 2300)·dead 임계값(2348)·bot-visualize(2178)·harvester cycles 1000-1034. 활성 openspec 3건 in-progress 보류 유지.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation OpenSpec갭 cycle 2362 (직전 2350 covered). 활성 change 불변 시 신속 covered.
+
 ### cycle 2358 — 동시성: 모집단 동결 + census 포화 (covered)
 
 - **축 선택**: rotation 동시성. 직전 2346에서 crawl 병행 워커 축까지 L126 기커버 확인 — 잔여 fresh 표면 탐색.
