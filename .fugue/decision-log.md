@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2260 — 에러처리: 직전 이후 에러 경로 신규 유입 부재 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 에러처리 (직전 2248 — bot-visualize exec(dot) 에러 경로 covered). forward pointer: 신규 코드 유입 없으면 신속 covered.
+- **프로브 결과**: `git diff --stat 1dbad2a2..origin/main -- apps/api apps/web/src` = **0건** — #3085(cycle 2248) 이후 병합분은 census 파일·의존성 범프(#3090 package.json/lock만)·design-loop 표면 폐기뿐, Go/웹 소스의 에러 경로 모집단 불변. 기존 census 축(%w L35·discard L147·Body.Close L136·ErrNoRows L225·응답 encode L360·exec 경계 L1208 등) 전부 유효 유지.
+- **판정**: covered — 신규 에러 경로 표면 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 동시성 cycle 2262 (직전 2250 — race detector 전 스위트 무결). apps/api 변경 0이라 인벤토리 불변 신속 covered 예상.
+
 ### cycle 2258 — 정합성: next 16.2.10 범프 ↔ Node 버전 배선 (CI node-version·engines·웹 Dockerfile) (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 정합성 (직전 2246 — 문서 버전표기 REAL). cycle 2234(Go 범프↔Dockerfile/CI 배선 검증)의 웹 측 대응물 — cycle 2256 next 범프 직후 버전 배선 정합 검증 (census `node-version`/`engines` 0건, fresh).
