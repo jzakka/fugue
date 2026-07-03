@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2384 — 봇: seed 복원이 봇 크롤 Pin에 미치는 영향 점검 → 결함 없음 (covered)
+
+- 축: 직전 봇 census(2372) 이후 모집단 변화분(seed 타겟 복원 22747864)이 봇 데이터에 미치는 영향.
+- 조사: apps/api Go 코드 0줄 불변 → 봇 anchor 전부 유효 (L32 ObjectStorageFetcher, L206 FilterChain/Robots, L1361 crawl-status, 2348 dead threshold baseline). seed.sql:8은 pins TRUNCATE로 봇 Pin을 지우지만:
+- 검증: (1) seed 타겟은 어떤 타겟의 prerequisite도 아니고 dev/ensure-infra/CI workflow 어디서도 호출 안 됨 — 수동 전용 + TRUNCATE 경고 출력 (22747864가 b3b03883의 'make dev가 크롤 Pin 삭제' 문제를 수동 전용으로 복원한 것). (2) ensure-infra의 bot_sites 시딩(seed_bot_sites.sql:10)은 ON CONFLICT DO NOTHING 멱등·비파괴.
+- 판정: covered — 봇 Pin 자동 삭제 경로 없음, 신규 결함 없음.
+- 차기: rotation OpenSpec갭 cycle 2386 (직전 2374 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2382 — 동시성: 모집단 변화분(seed SQL) 원자성 점검 → 결함 없음 (covered)
 
 - 축: 직전 동시성 census(2370) 이후 모집단 변화분의 동시 접근 안전성.
