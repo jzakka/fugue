@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2364 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
+
+- **축 선택**: rotation 보안. 의존성 advisory 게이트 재검.
+- **프로브 결과**: `npm audit`(apps/web) = 2 moderate — cycle 2256 잔차(next-vendored postcss@8.4.31) 동일, 신규 advisory 0. web 의존성 diff(1dbad2a2 이후 package.json/lock 변경)는 cycle 2256 본인 수행 패치(#3090 next 16.2.1→16.2.10)가 유일하며 그 이후 커밋 없음(5389b72e 가 마지막). apps/api Go 의존성 불변. 코드 보안 census 전부 유효 — cycle 2352 판정과 동일 근거 지속.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 정합성 cycle 2366 (직전 2354 covered — 표면 포화). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2362 — OpenSpec갭: 스펙/활성 change population 불변 (covered)
 
 - **축 선택**: rotation OpenSpec갭. 스펙 14종 + 활성 change 3건 population 재검.
