@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2380 — 에러처리: 모집단 변화분(seed 레시피) 에러 전파 점검 → 결함 없음 (covered)
+
+- 축: 직전 에러처리 census(2368) 이후 모집단 변화분의 에러 전파 정책.
+- 조사: apps/api 0줄 불변 (`git diff --stat 1dbad2a2..origin/main -- apps/api` 공백). 유일 변화 = Makefile seed 타겟 복원(22747864).
+- 검증: seed 레시피(Makefile:60-66)는 `psql -v ON_ERROR_STOP=1` 사용, `|| true`/`-` prefix 억제 없음 → SQL 오류·docker-compose 실패 모두 make 비정상 종료로 전파. stdout만 /dev/null, stderr 노출 유지. Makefile 내 기존 `|| true` 10건은 전부 cycle 2344 anti-pattern baseline(dev-kill 멱등 kill, crawl 워커 루프) 범위.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation 동시성 cycle 2382 (직전 2370 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2378 — 정합성: 모집단 변화 재검 → seed 타겟 복원 커밋 정합 확인 (covered)
 
 - 축: 직전 정합성 census(2366) 이후 모집단 변화분의 doc↔code 정합성.
