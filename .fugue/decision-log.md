@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2366 — 정합성: 문서·코드 population 불변 + 표면 포화 (covered)
+
+- **축 선택**: rotation 정합성. 직전 2354에서 문서↔구현 대조 표면 포화 확인 — population 변화 여부만 재검.
+- **프로브 결과**: 1dbad2a2 이후 apps/api·docs/·AGENTS.md·README.md·Makefile 변경은 전부 본 루프 자신의 REAL 수정(2282 seed·2294 봇 명령·2330 rate 마커·2342 crawl 문서화)뿐 — 외부 유입 변경 0. 정합 표면 census(api-endpoints 2330·Makefile 타겟 2342·tech-stack 버전·링크 2270·구현 현황 2208·env vars·ERD 4-baseline) 전부 유효.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 에러처리 cycle 2368 (직전 2356 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2364 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - **축 선택**: rotation 보안. 의존성 advisory 게이트 재검.
