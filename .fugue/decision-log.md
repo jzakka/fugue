@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2374 — OpenSpec갭: 스펙/활성 change population 불변 (covered)
+
+- **축 선택**: rotation OpenSpec갭. 스펙 14종 + 활성 change 3건 population 재검.
+- **프로브 결과**: `openspec validate --all` = 14 passed / 0 failed. openspec/ 마지막 커밋 4c2e289b(cycle 1158) 이후 불변, 활성 3건 in-progress 보류 유지 — cycle 2362 판정과 동일 근거 지속.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 보안 cycle 2376 (직전 2364 covered). 신규 advisory 없으면 신속 covered.
+
 ### cycle 2372 — 봇: 모집단 동결 + census 포화 지속 (covered)
 
 - **축 선택**: rotation 봇. population 변화 여부 재검.
