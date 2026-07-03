@@ -679,6 +679,13 @@
 - 비중첩: L776(개별 변환 속성 translate/rotate/scale longhand — 명명 함수), L861(rotate-x/y 3D 명명 rotateX/Y), L865(scale-z/scale-3d 명명 scaleZ) — 모두 *명명 편의 변환 함수/속성*이지 아핀 계수 행렬을 직접 박는 matrix()/matrix3d() 저수준 표기가 아님(표기 층위 상이).
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2677, 296th round.
 
+## cycle 2677 — design/responsive 296th round (Discovery, 표면 폐기)
+- 축 선택: 브레이크포인트-접두 반응형 변형 기준점 토글(`sm:origin-center`/`md:origin-top-left`/`lg:origin-bottom` — CSS `transform-origin` 을 뷰포트 폭 분기별로 다르게 토글해 rotate/scale/skew 의 회전·확대 pivot(원점)을 브레이크포인트마다 전환하는 Tailwind `origin-*` variant). responsive 로테이션(aesthetic 2675 → responsive 2677)에서 BP-접두 자형 토글(2669)·기타 반응형 축은 포화라, 변형 기준점 차원 중 아직 미등재인 *BP별 pivot 토글*(정적 transform-origin L551 은 있으나 반응형 전환 census 부재)을 선택(`sm:origin-` anti-patterns grep 0건).
+- 프로브: (1) `sm:origin-`/`md:origin-`/`lg:origin-`/`origin-` apps/web/src·globals.css grep 0건 → 변형 기준점 BP-토글 표면 부재. (2) 변환은 전부 기준점 미지정 명명 translate 유틸 — hover-lift `hover:-translate-y-0.5`(PinCard·BoardGrid·MyPageClient·SearchClient)·중앙정렬 `-translate-y-1/2`(SearchBar) → translate 는 pivot 무관 이동이라 transform-origin 무의미. (3) BP-토글 idiom 부재(origin- 유틸 미사용·기본 center pivot). (4) DESIGN.md(105줄) transform-origin/origin/기준점/pivot/원점 grep 0건(L90 `-translate-y` hover-lift 는 명명 translate 이동 FP).
+- 결정: 호스트(BP별 변형 기준점 토글) 부재 + 변환은 기준점 무관 translate 로 균일 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·기본 center pivot 균일)로 이슈 아님. anti-patterns 1줄 추가(cycle 2677 baseline)·표면 폐기.
+- 비중첩: L551(정적 변형 기준점 transform-origin `origin-center`/`origin-top`/`origin-bottom` — pivot 값 자체를 뷰포트 분기 무관하게 정적 지정)과 비중첩 — 정적 pivot 값 vs 본 축=BP 조건부 pivot 스위칭, 반응형 층위 상이.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2679, 295th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
