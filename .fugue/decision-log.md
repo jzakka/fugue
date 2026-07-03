@@ -876,6 +876,13 @@
 - 비중첩: L602(반복 그라디언트 타일링) / L590(원뿔 각도 회전) / L889(색 보간 hue 경로) / L885(정지점 사이 전이 중간점 힌트) vs 본 축=방사 그라디언트가 상자 기준 *어느 종료 형태(circle/ellipse)·어느 크기 범위(closest/farthest-side/corner)까지 자라나* 의 기하 크기 키워드(그라디언트 하위 차원 층위 상이).
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2693, 298th round.
 
+## cycle 2693 — design/responsive 298th round (Discovery, 표면 폐기)
+- 축 선택: 브레이크포인트×상호작용-상태 복합 변형(반응형 브레이크포인트 접두와 상호작용 상태 variant 를 한 유틸에 스택해 상태 스타일을 특정 뷰포트 이상에서만 게이팅 — `md:hover:bg-accent`(md 이상만 hover)·`sm:focus-visible:ring`(sm 이상만 포커스 링)·`lg:disabled:opacity-50`(lg 이상만 비활성 흐림) — 상태 스타일을 뷰포트 폭에 게이팅하는 반응형×상태 합성). responsive 로테이션(aesthetic 2691 → responsive 2693)에서 브레이크포인트 방향 단일성(L525)·min+max 범위 창(2685) 등 브레이크포인트 축과 상태 여집합(2679) 등 상태 축이 각각 포화라, 아직 미등재인 *브레이크포인트×상태 합성*(폭×상호작용 의사클래스) 차원을 선택.
+- 프로브: (1) `(sm|md|lg|xl|2xl):(hover|focus|focus-visible|active|disabled|group-hover):` 스택 apps/web/src grep exit 1(0건)·reverse `hover:md:` 0 → 상태 스타일을 뷰포트에 게이팅하는 표면 부재. (2) 상태 variant 는 전부 브레이크포인트 접두 없는 standalone(focus-visible 93·hover 76·focus 23·disabled 18·group-hover 13·active 1 = 모든 뷰포트 무조건 적용) → 브레이크포인트×상태 모집단 0. (3) 작은 화면(터치)에서 hover 빼고 큰 화면만 hover 켜는 `md:hover:` 게이팅 idiom 부재(hover 는 전 뷰포트 standalone). (4) DESIGN.md(105줄) L86 "Hover state: translateY(-2px)"·L92 "Card hover" 는 hover 를 뷰포트 게이팅 없이 전 뷰포트 함의·브레이크포인트별 상태 게이팅 grep 0.
+- 결정: 브레이크포인트×상태 스택 0(pure vacuous) + 상태 variant 전부 standalone 균일 → 상태 뷰포트-게이팅 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN L86/L92 hover 무조건·게이팅 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2693 baseline)·표면 폐기.
+- 비중첩: L525(브레이크포인트 방향 단일 — 상향 min vs 하향 max 중 어느 종류, 상태 아님) / 2685(min+max 범위 창=폭×폭 브레이크포인트 복합) / 2679 states(`not-hover:`/`not-focus:` 상태 여집합) vs 본 축=브레이크포인트×상태(폭×상호작용 의사클래스, 차원이 다른 두 축 합성으로 상태를 뷰포트에 게이팅)·영역 상이.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2695, 297th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
