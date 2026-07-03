@@ -44,6 +44,15 @@ GET    /api/pins/{id}/boards                       핀 소속 공개 보드 목�
 ```
 GET    /api/tags                                   사전정의 태그 목록
        query: category, q
+GET    /api/tags/popular                           인기 태그 목록
+       query: limit (기본 20, 최대 50)
+```
+
+## Search (검색)
+
+```
+GET    /api/search                                 통합 검색
+       query: q, type, tag_ids, limit, offset
 ```
 
 ## Board (보드)
