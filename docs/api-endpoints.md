@@ -4,10 +4,10 @@
 
 ```
 GET    /api/auth/providers                        공개 프로바이더 목록
-GET    /api/auth/{provider}/login                 OAuth 로그인 시작
-GET    /api/auth/{provider}/callback              OAuth 콜백
+GET    /api/auth/{provider}/login     [rate: 10/min/IP]   OAuth 로그인 시작
+GET    /api/auth/{provider}/callback  [rate: 5/min/IP]    OAuth 콜백
 POST   /api/auth/refresh                          토큰 갱신
-POST   /api/auth/logout                           로그아웃
+POST   /api/auth/logout                [rate: 10/min/IP]  로그아웃
 GET    /api/auth/me                    [auth]      현재 유저 정보
 ```
 

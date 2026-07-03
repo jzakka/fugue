@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2330 — 정합성: docs/api-endpoints.md ↔ cmd/server/main.go 라우트 전수 census (REAL, doc 수정)
+
+- **축 선택**: rotation 정합성. fresh 축 = api-endpoints.md 전 라우트/[auth]/[rate] 마커 ↔ 실제 라우터 등록(main.go:130-192) 전수 대조. anti-patterns에는 L774(페이징)/L788(SHALL 부재) 부분 언급뿐, 전수 census는 미실시.
+- **프로브 결과**: 문서화된 ~25개 라우트 전부 등록 확인. [auth] 마커 ↔ JWTMiddleware 전수 일치. OptionalJWT 4곳(GET pins/{id}, GET boards, GET boards/{id}, GET feed)은 문서상 '공개+인증 시 개인화/본인' 서술과 정합. pinRL 30/min/user·ogRL 20/min/IP 표기 일치. **불일치 1건**: authRL(10/min)·callbackRL(5/min)이 login/callback/logout에 걸려 있으나(main.go:103-104,187-190) 문서 Auth 섹션에 [rate] 마커 부재 — 문서 자체 범례가 [rate: N/min/X]를 정의하고 타 라우트엔 표기하므로 누락은 오정보.
+- **판정**: REAL(신뢰도 3). docs/api-endpoints.md Auth 섹션에 [rate: 10/min/IP](login/logout)·[rate: 5/min/IP](callback) 추가.
+- **QA(실행 기반)**: dev-infra 기동 → 서버 부팅(PORT=18330, dummy OAuth creds) → /api/auth/google/login 12연타: 1-10회 302, 11-12회 429. callback 6연타: 1-5회 302, 6회 429. ratelimit.go:82 키가 URL path+IP별 버킷임도 확인. dev-stop으로 원상 복구.
+- **차기**: rotation 에러처리 cycle 2332 (직전 2320 covered). 모집단(apps/api Go) 불변 지속 시 신속 covered.
+
 
 ### cycle 2328 — 보안 (covered)
 
