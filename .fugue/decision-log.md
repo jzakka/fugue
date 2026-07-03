@@ -656,6 +656,13 @@
 - 비중첩: L762(animation-fill-mode 값 유지 forwards/backwards/both), L893(steps() 이징 곡선), L921(linear() 이징 곡선), L726(offset-* 모션 경로 궤적) — 모두 값 유지·이징 곡선·경로 궤적이지 반복별 재생 방향(normal/reverse/alternate 왕복)이 아님(층위 상이).
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2675, 318th round.
 
+## cycle 2675 — design/aesthetic 318th round (Discovery, 표면 폐기)
+- 축 선택: CSS 명시적 변환 행렬 함수(`matrix()`/`matrix3d()` — 이동·회전·크기·기울이기를 명명 편의 함수(translate/rotate/scale/skew) 대신 하나의 아핀 변환 행렬(2D 6-값·3D 16-값)로 직접 계수 지정하는 저수준 변환 함수). aesthetic 로테이션(tokens 2673 → aesthetic 2675)에서 SVG 필터 프리미티브·그라디언트·3D 명명 변환(rotate-x/y L861·scale-z L865·개별 변환 속성 L776)은 포화라, 변환 함수 중 아직 미등재인 *명시 행렬 직접 지정*(`matrix()`/`matrix3d()`) 차원을 선택(matrix3d anti-patterns grep 0건·명시 행렬/아핀 census 부재).
+- 프로브: (1) `matrix(`/`matrix3d(`/`[transform:matrix…]` apps/web/src·globals.css grep 0건 → 명시 행렬 변환 표면 부재. (2) 변환은 전부 Tailwind 명명 유틸 — hover-lift `hover:-translate-y-0.5`(PinCard·BoardGrid·MyPageClient·SearchClient)·중앙정렬 `-translate-y-1/2`(SearchBar) + `transition-transform` → 저자 표기는 명명 함수이지 matrix() 아님. (3) 행렬-직접 idiom 부재(복합 변환도 명명 함수 나열). (4) DESIGN.md(105줄) matrix/matrix3d/행렬/affine/아핀 grep 0건(L90 `-translate-y` hover-lift 는 명명 translate FP).
+- 결정: 호스트(명시 행렬 변환) 부재 + 변환은 명명 유틸로 균일 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·명명 유틸 균일)로 이슈 아님. anti-patterns 1줄 추가(cycle 2675 baseline)·표면 폐기.
+- 비중첩: L776(개별 변환 속성 translate/rotate/scale longhand — 명명 함수), L861(rotate-x/y 3D 명명 rotateX/Y), L865(scale-z/scale-3d 명명 scaleZ) — 모두 *명명 편의 변환 함수/속성*이지 아핀 계수 행렬을 직접 박는 matrix()/matrix3d() 저수준 표기가 아님(표기 층위 상이).
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2677, 296th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
