@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2302 — OpenSpec갭 (covered)
+
+- 축 선택: rotation OpenSpec갭 (직전 2290 covered). 재검 트리거: 활성 change 3건 변동 여부.
+- 프로브 결과: 활성 change 목록 불변(fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring). openspec/ 및 apps/api 모집단 1dbad2a2 이후 변경 0건 지속 — cycle 2278 validate 14/0 증거 유효.
+- 판정: covered-by-census. 재검 트리거 미발화.
+- 차기: rotation 보안 cycle 2304 (직전 2292 covered). 재스캔 게이트(신규 advisory) 미발화 시 fresh 축 필요 — 후보: JWT_SECRET 검증 로직(길이/엔트로피 하한) 존재 여부 점검(단 L429 미규정 하드닝 취향 범위 선확인).
+
 ### cycle 2300 — 봇 (NEW baseline)
 
 - 축 선택: rotation 봇 (직전 2288 NEW baseline). fresh 축: crawl-status SQL↔스키마 컬럼 정합 (직전 forward pointer).
