@@ -502,6 +502,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2659 — design/aesthetic 316th round (Discovery, 표면 폐기)
+- 축 선택: 레거시 사각형 클리핑 속성(`clip: rect(t r b l)`=clip-path 이전 세대의 deprecated 클리핑 — 절대위치 요소를 직사각형으로만 자르는 구식 속성, 유일 실무 잔존 용도가 sr-only visually-hidden idiom). aesthetic 영역 mask/filter/blend/그라디언트/clip-path 등 모던 속성이 완전 포화 → deprecated 속성 잔존 축으로 신선 탐색.
+- 프로브: (1) 손저작 `clip:`/`clip: rect()` grep = 0(src·globals). (2) 유일 `clip: rect(0,0,0,0)` 잔존은 Tailwind `sr-only` 유틸 내부 — 3곳(search h1·feed h1·layout skip-link) 접근성 숨김에 균일 사용(프레임워크-소유 idiom). (3) 모던 후속 `clip-path` 도 코드 0건 → 클리핑은 overflow-hidden+rounded(L224)과 sr-only 로만. (4) DESIGN.md(105줄) clip/clip-path/sr-only grep = 0.
+- 결정: 표면 폐기(framework-idiom-only + 장식적 사용 pure vacuous — 손저작 clip 0, sr-only idiom 3곳 uniform, clip-path 0). NO 코드 변경, anti-patterns.md EOF 1건 census 추가. 셋(DESIGN/AGENTS/CLAUDE) 어느 것도 미명시(loop 규칙 line 9 취향 문제) → 이슈 아님.
+- 비중첩: 클리핑/숨김 인접 census — 모던 패스-기반 `clip-path`(L562 임의 모양·별개 후속 속성)·`overflow-hidden`+`rounded-*` 모서리 클리핑(L224)·BP-접두 `sr-only`/`not-sr-only` 토글(L855 responsive)은 모던 clip-path·overflow 모서리·sr-only 반응형 토글을 다루지 레거시 `clip: rect()` 속성 자체의 장식적 사용/세대 혼용을 다루지 않음.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2661, 294th round.
+
 ## cycle 2657 — design/tokens 315th round (Discovery, 표면 폐기)
 - 축 선택: Tailwind v4 알파-파생 색 함수(`--alpha()`=기존 색 값의 알파만 조정해 반투명 변형 색을 CSS 안에서 파생하는 v4 헬퍼 — `--alpha(var(--color-accent) / 50%)`). tokens 영역 색-파생/함수 공간 탐색 중, `@config`/color-mix/상대색상 등은 기존 census(L621/L384/@config) 로 확인, `--alpha(`·`--theme(` 이 코드·census 양쪽 0 → 신선축.
 - 프로브: (1) `--alpha(` 함수 grep = 0(globals.css·src). (2) 알파-변형 색 토큰은 전부 리터럴 rgba — `--accent-subtle: rgba(...0.12)`(globals L19/L37)·`--shimmer-highlight: rgba(...0.06/0.04)`(L25/L39)·`--shadow-card-hover: ...rgba(...0.3)`(L62), dark/light 각각 정밀 지정. (3) 불투명 브랜드색은 hex, 반투명 파생은 rgba 로 역할별 표기 일관. (4) DESIGN.md(105줄) --alpha/알파 파생 함수 미규정.
