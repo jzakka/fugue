@@ -17,6 +17,18 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2184 Processing — 정합성: cycle 2178 도입 CLAUDE.md 테이블명 오기(bot_sources → bot_scripts) 수정
+
+- **축 선택**: 정합성 area 재진입 (6-area 로테이션 보안→정합성, 직전 정합성 = cycle 2172). cycle 2182 forward pointer 후보 3종 진행.
+- **프로브 결과**:
+  - (1) bot/spec.md:417-426 HasScript SHALL ↔ 쿼리 술어 대조에서 **REAL defect 발견**: HasScript 출처 쿼리 ListScriptKeysForGraph(bot.sql:129-132)는 `SELECT site_id, node_type FROM bot_scripts` 인데, cycle 2178(PR #3036)이 교정한 CLAUDE.md:62 는 "DB `bot_sources` 테이블에서 (site, node_type) 키로 조회" 로 **테이블명을 오기** — 제가 직전 주기에 도입한 회귀 드리프트.
+  - (2) README 지원 사이트 목록 ↔ sourceRegistry(main.go:29-33): unsplash/fma/pixiv 3종 도메인까지 완전 일치 — 무결.
+  - (3) docs/api-endpoints.md ↔ 라우터 표본 대조는 (1) 이 Processing 대상으로 확정되어 미착수(차기 후보로 이월).
+- **confidence 3 근거**: (a) 실증 — bot.sql:131 `FROM bot_scripts`·000019 마이그레이션 `CREATE TABLE bot_scripts (site_id, node_type ... UNIQUE(site_id, node_type))` 로 출처 테이블 확정. (b) **bot_sources 는 별개 실존 테이블**(000014_create_bot_sources) — 실존하는 다른 테이블명을 가리키므로 단순 오타가 아닌 능동적 오도(독자가 bot_sources 를 조회하면 스크립트 데이터 부재). (c) cycle 2178 판정 논거(L1319 예외 조항 — 현재 사실을 단정하는 문서의 검증 실패)가 그대로 재적용되는 자기-도입 회귀.
+- **수정**: CLAUDE.md:62 `bot_sources` → `bot_scripts`·키 표기도 스키마 그대로 `(site_id, node_type)` 로 정밀화.
+- 결정/변경: CLAUDE.md 수정(Processing). anti-patterns 추가 없음. 교훈: Processing 수정에서 코드 추적으로 얻은 사실(테이블명 등)을 문서에 옮길 때 원본 심볼을 재인용 검증할 것 — repository.go 주석("from DB")에서 테이블명을 추정 보간한 것이 오기 원인.
+- 차기: area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 2186. 후보: docs/api-endpoints.md ↔ 라우터 표본 대조(이월분, 에러응답 계약 관점)·pioneerCmd 의 site 조회/생성 에러 경로 %w 정합(cycle 2174 동류 스캔)·bot.sql 신규 읽기 쿼리(ListScriptKeysForGraph 등) 호출부의 에러 분기.
+
 ## 2026-07-03 — [system] cycle 2182 Discovery — 보안: 6프로브 전수 무결·census 포섭 (covered-by-census)
 
 - **축 선택**: 보안 area 재진입 (6-area 로테이션 OpenSpec갭→보안, 직전 보안 = cycle 2170). cycle 2180 forward pointer 후보 3종 + 보조 프로브 3종 소진.
