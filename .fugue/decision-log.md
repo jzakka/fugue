@@ -976,6 +976,13 @@
 - 비중첩: L535(색/톤 필터 함수 종류 — 어느 함수가 존재/사용되나) / L597(drop-shadow 단일 필터 함수) / backdrop-filter(필터 적용 대상=배경 vs 요소) vs 본 축=둘 이상 함수를 한 값에 나열할 때의 파이프라인 순서 합성(함수 종류/단일 함수/적용 대상 아닌 다중 함수 나열 순서, 존재 vs 순서 층위 상이).
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2701, 299th round.
 
+## cycle 2701 — design/responsive 299th round (Discovery, 표면 폐기)
+- 축 선택: 복합 미디어 특성 논리 결합(둘 이상의 서로 다른 미디어 특성을 한 `@media` 에 `and`/`or`(`,`)/`not` 논리 결합자로 묶어 여러 조건 동시/택일 성립 시만 적용 — `@media (min-width: 600px) and (orientation: landscape)`(폭 AND 방향)·`(hover: hover) and (pointer: fine)`(마우스 기기)·콤마 OR·`not` 부정 — 미디어 특성 하나만 쓰는 단일-특성과 달리 이종 특성을 논리 결합). responsive 로테이션(aesthetic 2699 → responsive 2701)에서 범위 비교 구문(L703)·min+max 범위 창(2685)·브레이크포인트×상태(2693)·개별 미디어 특성(폭·방향·hover·pointer·resolution)이 포화라, 아직 미등재인 *이종 미디어 특성 논리 결합* 차원을 선택.
+- 프로브: (1) 다-특성 `@media … and/or/not …` apps/web/src·globals.css grep exit 1(0건) → 서로 다른 특성 논리 결합 표면 부재. (2) 유일 raw @media 는 globals.css L111 `@media (prefers-reduced-motion: reduce)` 단일 특성 하나·반응형은 Tailwind 단일 min-width 접두 → 다-특성 결합 모집단 1종(단일 reduced-motion). (3) 폭 AND 방향·hover AND pointer 복합 조건 `and`/콤마 idiom 부재(각 특성 단독). (4) DESIGN.md(105줄) L70 "Breakpoints: sm/md/lg" 단일 min-width·복합 미디어/특성 결합/and·or·not grep 0.
+- 결정: 복합 미디어 특성 결합 0(pure vacuous) + 유일 미디어 질의는 단일 특성 reduced-motion 균일 → 다-특성 논리 결합 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN L70 단일 min-width·특성 결합 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2701 baseline)·표면 폐기.
+- 비중첩: L703(`width >= 600px` 한 특성 범위 비교 구문, 다-특성 결합 아님) / 2685(같은 폭 특성 min+max 범위 창=폭×폭, 이종 특성 아님) / 2693(브레이크포인트×상태=폭×상태, 미디어 특성×특성 아님) / 개별 미디어 특성(특성 자체, 논리 결합 아님) vs 본 축=이종 미디어 특성을 `and`/`or`/`not` 로 논리 결합하는 합성(특성 개수·결합 대상 유형·층위 상이).
+- 차기: area = states (4-area rotation responsive→states) → cycle 2703, 298th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
