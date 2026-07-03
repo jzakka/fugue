@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2218 — OpenSpec갭: 활성 change 재스캔·snapshot-first fetch 계약·스위트 검증 (covered)
+- **축 선택**: rotation OpenSpec갭 (직전 2204). cycle 2216 지정 후보 2건 — (1) 활성 change 잔여 여부 재스캔, (2) harvester snapshot-first fetch 계약 ↔ snapshot_first_fetch.go 재대조.
+- **프로브 결과**: (1) openspec/changes/ 활성 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring) — cycle 2192/L734/L1144 판정 이후 변동 0(신규 활성 change 0·전부 실구현+archive housekeeping 만 미수행 상태 유지). (2) snapshot-first fetch — L261(SnapshotKey write/read 대칭·cross-UTC-day fail-open tradeoff)·L328(sentinel 분류)·reader.go gzip-bomb 캡·CompositeFetcher fail-open(snapshot_first_fetch.go:107) 등 기존 census 가 전수 커버. (3) 보조: openspec validate --all = 14 passed / 0 failed — 스위트 무결.
+- **판정**: covered — 신규 결함·신규 baseline 없음. 활성 change 갭은 L734/L1144 명시 포섭, snapshot-first 계약은 L261 계열 포섭, 스위트 검증 clean.
+- **차기**: area = 보안 (rotation: OpenSpec갭→보안) → cycle 2220. 선행 프로브 완료: 응답 보안 헤더=L784·시크릿 동등성 timing-safe=L736·logout 토큰 폐기=L175/L57·JWT_SECRET 강도(base64+≥32B)=L182/L381 전부 기커버 — cycle 2220 은 fresh 보안 축 필요. 후보: multipart 업로드 경로의 임시파일/메모리 상한(L156 예외조건 선확인), OAuth redirect_uri 검증 표면(census 선확인).
+
 ## 2026-07-03 — [system] cycle 2216 — 봇: HARVESTER_MODE 토글 표면 간 정합·기본값 부재 fail-fast 표면 폐기 (NEW baseline)
 - **축 선택**: rotation 봇 (직전 2202). cycle 2214 지정 후보 3건 전수 기커버 폐기 — FilterChain robots 위치·CanonicalDedupFilter 계약 = L206(cycle 816)/L13484 전수 매핑, adapter fallback 카운터 = cycle 2192 기판정, DomainFilter substring 느슨함 = bot/spec.md L133-162 명시 계약(L63/L13484). fresh 축 = **HARVESTER_MODE 토글**(census grep 0건 완전 fresh) — 실행 모드 env 의 표면 간 정합 및 기본값 부재 fail-fast 가 결함인지.
 - **프로브 결과**: cmd/bot/main.go:210-227 — switch os.Getenv("HARVESTER_MODE"): "real"→GojaExecutor+HarvestPipeline, "mock"→Mock 쌍, default(미설정/오타 포함)→즉시 에러 반환. 주석(:194-199)이 fail-fast 근거 명시: mock 은 pins row 없는 uuid.New() 핀 ID 를 조작해 SetStatus(harvested) 로 frontier row 를 영구 소비하므로 silent mock default 는 스케줄러 상태를 오염시키며 로그는 성공으로 보고 — 명시적 선택 강제가 정답. 교차 표면: Makefile:144 `HARVESTER_MODE=real` 설정 ✓, README `HARVESTER_MODE=real go run ./cmd/bot harvester` ✓, helm cronjob-bot.yaml 은 미설정이나 차트 자체가 unrenderable(cycle 2160 baseline, target architecture 유예) 이라 moot.
