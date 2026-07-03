@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2280 — 보안 (NEW baseline)
+
+- 축 선택: rotation 보안 (직전 2268 NEW baseline, 2256 REAL). fresh 축: CI 워크플로 GITHUB_TOKEN 권한/서드파티 액션 pin 상태 (npm audit/govulncheck 재스캔은 신규 advisory 전까지 보류).
+- 프로브 결과: 후보 결함 = ci.yml top-level `permissions:` 블록 부재(최소권한 미명시). 반증: (1) `gh api repos/jzakka/fugue/actions/permissions/workflow` = default_workflow_permissions "read" + can_approve_pull_request_reviews false — 리포 수준에서 토큰이 이미 read-only 강제. (2) 액션 4개 전부 first-party actions/*(checkout@v4, setup-go@v5, setup-node@v4) major-tag pin, 서드파티 액션 0건. (3) 트리거 pull_request/push(main)만 — fork 위험 pull_request_target·workflow_run 부재. (4) 잡 내 토큰 write 사용 0건(vet/test/lint/build만). 명시 블록 부재는 L429 미규정 하드닝 취향 범주.
+- 판정: NEW baseline (FP 반증). anti-patterns EOF 등재.
+- 차기: rotation 정합성 cycle 2282 (직전 2270 NEW baseline 문서 링크 census). 코드 모집단 불변 지속 시 fresh 표면 탐색 필요 — 후보: Makefile 타깃↔문서 명령 정합.
+
 ### cycle 2278 — OpenSpec갭 (covered)
 
 - 축 선택: rotation OpenSpec갭 (직전 2266 covered). 재검 트리거: 활성 change 3건 변동 여부.
