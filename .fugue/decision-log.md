@@ -474,6 +474,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2655 — design/states 292nd round (Discovery, 표면 폐기)
+- 축 선택: 네이티브 다이얼로그 가벼운-닫기 정책 속성(`closedby`=`<dialog closedby="any | closerequest | none">` — `<dialog>` 요소가 백드롭 클릭·Esc 같은 닫기 요청으로 어떻게 닫힐지를 선언하는 light-dismiss 정책 속성). states 영역 의사클래스/ARIA 속성/Tailwind 변형 공간이 극도 포화(292라운드) → 브랜드-신규 HTML dialog 속성으로 신선축 탐색. `:in-range`/`:read-only`/`:user-invalid` 등 후보는 `grep -E "a\|b"` 의 `\|` 리터럴 버그로 0 오탐이었고 실제 L336/L359/L397 기존 census 로 확인.
+- 프로브: (1) 네이티브 `<dialog>`/`.showModal()`/`showPopover()` grep = 0(src) → closedby host 요소 부재(mechanism-absent). (2) 모달은 전부 커스텀 `fixed inset-0` div + `role="dialog"`/`aria-modal`(VideoTrimModal·AddToBoardButton). (3) 닫기는 JS 백드롭 onClick·Escape·닫기버튼(7 핸들러)로 균일. (4) DESIGN.md(105줄) dialog/closedby/dismiss grep = 0.
+- 결정: 표면 폐기(mechanism-absent + pure vacuous — `<dialog>` 요소 0 → closedby 걸 대상 0). NO 코드 변경, anti-patterns.md EOF 1건 census 추가. 셋(DESIGN/AGENTS/CLAUDE) 어느 것도 미명시(loop 규칙 line 9 취향 문제) → 이슈 아님.
+- 비중첩: top-layer 다이얼로그 상태 인접 census — `:modal`/`:fullscreen`(L402)·`:open`(L419)·`:closed`(L713)·`inert`(L555)·`::backdrop`(L1281)·`overlay`(L1307)·`open:*`(L808)·`command`/`commandfor`(L723)·`popovertargetaction`(L975) 는 열림/닫힘 상태 매칭·배경 비활성화·백드롭 페인팅·열기 인보커를 다루지 닫기 요청 light-dismiss 정책 선언 속성(`closedby`) 자체를 다루지 않음.
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2657, 315th round.
+
 ## cycle 2653 — design/responsive 293rd round (Discovery, 표면 폐기)
 - 축 선택: 브레이크포인트-접두 자식-사이 구분선 토글(`sm:divide-x`/`sm:divide-y`/`md:divide-*` = 뷰포트별로 divide 자식-사이 구분선을 켜고/끄거나 세로↔가로 축을 전환하는 BP-접두 divide 전이). responsive 영역 media-feature 공간(orientation·resolution·hover/pointer·monochrome·scan·light-level·color-index·dynamic-range·env-blending·grid·container·shape·min-height 등)은 완전 포화 → BP-접두 유틸 토글 하위축으로 피벗.
 - 프로브: (1) `(sm|md|lg|xl|2xl):divide` BP-접두 divide grep = 0(src). (2) 정적 divide 유틸(`divide-x`/`divide-y`/`divide-dashed`/`divide-[color]`) grep = 0 — 자식 나열은 `space-y-[0-9]` 13건으로만 처리(divide idiom 미사용). (3) 인접 자식 구분은 개별 `border-t`/`border-b` 직접 부여(states L176)로 divide 부모-자동 방식 부재. (4) DESIGN.md(105줄) divide/구분선 grep 0 — 반응형 자식 구분선 미규정.
