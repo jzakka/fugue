@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2236 — 에러처리: census 재진입 전수 프로브 + 신규 표면 부재 확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 에러처리 (직전 2224). fresh 축 탐색을 위해 에러처리 census 전 축 재대조.
+- **프로브 결과** (전부 기커버): %w 랩핑/errors.Is=L35, 에러 폐기 `_ =`=L147(cycle 758, 41건 known-safe), 입력 파싱=L161/L290, JSON 요청 디코드=L195, 에러 상세 노출/500 로깅=L212, ErrNoRows→404=L225, tx commit/rollback=L255, resp.Body Close=L136, Must/panic=L61, retry/backoff=L140/L185, JSON 응답 인코딩 순서/Encode err=L360, 내부 JSON 직렬화=L369, temp file lifecycle=L244, ctx 전파=L266, os/exec(ffmpeg/ffprobe) 경계=L1208(cycle 2008).
+- **신선도 검증**: 최근 병합분(2026-06-25 이후) 중 apps/api .go 실코드 변경은 cycle 2228 CLI help 문구 1건 + #3073 go.mod 범프뿐 — 신규 에러처리 표면 0, baseline 재인용 유효.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 동시성 cycle 2238 (직전 2226 — 프리미티브 인벤토리 go func 3곳/L183·atomic L361 기커버). 신규 코드 0이면 인벤토리 불변 확인으로 신속 판정 가능.
+
 ### cycle 2234 — 정합성: go.mod go 지시문 ↔ Dockerfile/CI Go 버전 배선 대조 (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 정합성 (직전 2222). docs/api-endpoints↔라우터 전수 대조는 cycle 2196 기커버(이후 병합분에 라우트 변경 0) → fresh 축 = cycle 2232 의 go 1.26.1→1.26.4 범프 직후 빌드 배선 3면(go.mod ↔ Dockerfile ↔ CI) 대조 (census `golang:1.` 0건).
