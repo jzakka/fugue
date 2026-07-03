@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2216 — 봇: HARVESTER_MODE 토글 표면 간 정합·기본값 부재 fail-fast 표면 폐기 (NEW baseline)
+- **축 선택**: rotation 봇 (직전 2202). cycle 2214 지정 후보 3건 전수 기커버 폐기 — FilterChain robots 위치·CanonicalDedupFilter 계약 = L206(cycle 816)/L13484 전수 매핑, adapter fallback 카운터 = cycle 2192 기판정, DomainFilter substring 느슨함 = bot/spec.md L133-162 명시 계약(L63/L13484). fresh 축 = **HARVESTER_MODE 토글**(census grep 0건 완전 fresh) — 실행 모드 env 의 표면 간 정합 및 기본값 부재 fail-fast 가 결함인지.
+- **프로브 결과**: cmd/bot/main.go:210-227 — switch os.Getenv("HARVESTER_MODE"): "real"→GojaExecutor+HarvestPipeline, "mock"→Mock 쌍, default(미설정/오타 포함)→즉시 에러 반환. 주석(:194-199)이 fail-fast 근거 명시: mock 은 pins row 없는 uuid.New() 핀 ID 를 조작해 SetStatus(harvested) 로 frontier row 를 영구 소비하므로 silent mock default 는 스케줄러 상태를 오염시키며 로그는 성공으로 보고 — 명시적 선택 강제가 정답. 교차 표면: Makefile:144 `HARVESTER_MODE=real` 설정 ✓, README `HARVESTER_MODE=real go run ./cmd/bot harvester` ✓, helm cronjob-bot.yaml 은 미설정이나 차트 자체가 unrenderable(cycle 2160 baseline, target architecture 유예) 이라 moot.
+- **판정**: refuted + uncovered → NEW baseline 등록(anti-patterns.md EOF append). "env 미설정 시 기본 모드가 없어 곧장 에러 = UX/가용성 결함" 가설은 FP — fail-fast 가 문서화된 의도 설계이고 잘못된 기본값(mock)의 피해(frontier 영구 소비+허위 성공 로그)가 에러보다 훨씬 크며, 모든 정상 기동 표면(Makefile/README)이 모드를 명시 설정.
+- **차기**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭) → cycle 2218. 후보: 활성 change 잔여 여부 재스캔(L734/L1144 기준 변동 확인), harvester/spec.md 스냅샷-우선 fetch 계약 ↔ snapshot_first_fetch.go 재대조(기커버 여부 선확인).
+
 ## 2026-07-03 — [system] cycle 2214 — 동시성: feed 캐시 stampede(동일 키 동시 miss 중복 빌드) 표면 폐기 (NEW baseline)
 - **축 선택**: rotation 동시성 (직전 2200). cycle 2212 지정 후보 2건 — (1) goja_executor/playwright_fetcher goroutine ctx 취소·채널 계약 재검, (2) feed 캐시 stampede 허용 여부.
 - **프로브 결과**: (1) 비테스트 goroutine 기동 site 3건(cmd/server/main.go:231·bot/playwright_fetcher.go:114·bot/goja_executor.go:47) = cycle 2164 baseline 정확 일치(증감 0), goja watchdog 은 :45 defer cancel 로 Done 닫힘 보장·Interrupt 는 finished VM no-op·L183(cycle 788)/L460 이 3 site 전수 열거 기커버 → 폐기. (2) feed/handler.go cache-aside — 동일 feedCacheKey(creatorID,limit,offset) 동시 miss 시 각 요청이 독립적으로 피드를 빌드하고 Set(5min TTL). singleflight/코얼레싱 부재.
