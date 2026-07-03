@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2240 — 봇: Makefile 봇 타깃 ↔ README/CLI 배선 대조 (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 봇 (직전 2228). robots/UA(L812)·HARVESTER_MODE(L1335)·show-map 렌더 보안(L1311) 기커버 → fresh 축 = Makefile 봇 타깃↔문서 배선 (census `make pioneer` 등 0건).
+- **프로브 결과**: 문서(README/CLAUDE.md) 언급 4개 타깃 전부 실재 — pioneer:135(SITE 가드+`go run ./cmd/bot pioneer $(SITE)`), harvester:141(`HARVESTER_MODE=real` — README 직접 실행 예시·cycle 2166 fail-open 제거와 정합), show-map:99(실재 cmd/bot-visualize/main.go), fuguebot-progress:241(실재 openspec/changes/archive 순회). .env/.env.dev 폴백 export + ensure-infra 부트스트랩 배선 일관 → 결함 모집단 0.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "Makefile 봇 타깃↔문서 배선 drift 는 FP". 예외: 유령 타깃/인자 계약 실제 이탈 시 재평가.
+- **차기**: rotation OpenSpec갭 cycle 2242 (직전 2230 — 활성 change 3건·validate 14/14 covered). 활성 change 변동 시에만 재검, 불변이면 신속 covered.
+
 ### cycle 2238 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 동시성 (직전 2226 — 전 프리미티브 인벤토리 covered).
