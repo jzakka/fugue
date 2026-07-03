@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2178 Processing — 봇: Bot Graph Visualization 문서 드리프트(README 실행 불가 경로·CLAUDE.md 스크립트 판정 메커니즘 오기) 수정
+
+- **축 선택**: 봇 area 재진입 (6-area 로테이션 동시성→봇, 직전 봇 = cycle 2166). cycle 2176 forward pointer 후보 3종 스크리닝: (1) harvester frontier SetStatus 전이 = **L90**(processOne exit 전수 terminal status·dual-call 헬퍼·빈큐 polling)+**L129**(Req340 tx 원자성·Req362 dual-call 4-enum) 전면 포섭 — covered. (3) backfill-placeholders 봇 계약 = L27/L312/L387/L396/L1131 밀집 — covered. (2) **sources/ 스크립트 커버리지 vs seed 정합** — forward-pointer 로만 2회 언급(decision-log :29·:2616)되고 미조사 신선 축 → 채택.
+- **발견**: `internal/bot/sources/` 디렉터리가 리포에 아예 부재하고 seed 마이그레이션에도 사이트 스크립트 파일 규칙 근거가 없음. 추적 결과 시각화의 스크립트 존재 판정은 **DB 기반**(visualize/repository.go:55 ListScriptKeysForGraph → scriptSet[scriptKey{SiteID,NodeType}] → types.go:34 HasScript → graphviz.go:44 색상)이며 파일 경로 검사 코드 0건. 이 과정에서 실행 검증으로 2건 확정:
+  - (a) **README.md:134** `go run internal/bot/cmd/visualize/main.go -format=png ...` — 해당 경로에 main.go 부재("no such file or directory" 실행 실패 확인). 실제 엔트리는 `cmd/bot-visualize/main.go`(Makefile show-map:102 가 사용, -format/-output/-filter-site 플래그 3종 실존 일치).
+  - (b) **CLAUDE.md:61-63** "Harvester script 경로 규칙: `apps/api/internal/bot/sources/<domain>/<node_type>.go` 존재하면 초록색" — 판정 메커니즘이 파일 경로가 아니라 DB bot_sources (site×node_type) 조회라 현재 사실 오기.
+- **confidence 3 근거**: (1) 실행 검증 — README 명령 실패 재현·수정 경로 `go build`+`-h` 통과·플래그 대조 일치. (2) census 대조 — **L1319**(cycle 2160 구조 문서 트리 drift baseline)는 target 아키텍처 트리 기술을 FP 반박하되 예외 조항이 "현재 사실을 단정하는 문서가 실행/검증에 실패하는" 격리 site 를 등록 가능으로 명시 — 본 건은 실행 명령·현재 메커니즘 단정이라 target 서술 아님. (3) cycle 2172 선례(README Bot CLI 실행 불가 명령 = REAL Processing) 동류.
+- **수정**: README.md:134 경로 교정(`cmd/bot-visualize/main.go`)·CLAUDE.md:61-63 을 DB bot_sources 기반 판정으로 교정(색상 규칙 유지).
+- 결정/변경: README.md·CLAUDE.md 수정(Processing). anti-patterns 추가 없음(REAL defect 는 baseline 아님).
+- 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2180. 후보: openspec validate --all 신선 재실행·bot_sources 스크립트 존재 판정(HasScript)의 spec 계약 유무·활성 change 3건의 tasks 진행 상태 재점검.
+
 ## 2026-07-03 — [system] cycle 2176 Discovery — 동시성: 3프로브 전수 census 포섭 (covered-by-census)
 
 - **축 선택**: 동시성 area 재진입 (6-area 로테이션 에러처리→동시성, 직전 동시성 = cycle 2164). cycle 2174 forward pointer 후보 3종을 순서대로 소진.

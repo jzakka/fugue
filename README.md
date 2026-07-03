@@ -131,7 +131,7 @@ make show-map
 ```bash
 # 예시
 cd apps/api
-go run internal/bot/cmd/visualize/main.go -format=png -output=graph.png
+go run cmd/bot-visualize/main.go -format=png -output=graph.png
 ```
 
 **Graphviz 설치** (PNG/SVG export용, 선택사항):
