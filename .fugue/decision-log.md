@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2154 NEW baseline — 봇: HarvestPipeline.Process 프로덕션 미배선 = 배치 통계 계약 미구현이라는 후보 FP 반박 (anti-patterns L1314 append)
+
+- **결정**: NEW baseline (FP 반박 → anti-patterns.md L1314 append). bot/spec.md :562 "처리 파이프라인이 배치 처리 통계를 반환한다"(+:516/:537/:550 파이프라인 계약군)를 구현하는 `HarvestPipeline.Process`(harvest_pipeline.go:180-251)가 프로덕션 호출자 0건이지만 — Requirement 는 컴포넌트 반환 계약이고 Process 가 전수 구현+테스트 고정 상태이며, 라이브 frontier 경로 통계는 harvester/spec.md 5-counter 가 별도 소유(capability 분리, cycle 1834 동형) → "계약 미구현/dead code/spec 불일치" 후보 금지.
+- **축 선택**: 6-area rotation 동시성→봇 (95주기째). cycle 2152 forward-pointer 후보 3건 중 HarvestStats↔spec 계약 채택(census '배치 처리 통계'/'HarvestStats' 0건 확인). 나머지: og_data 파생 필드 lockstep 후속(cycle 1832 예외 (d) 각도 — 이월)·image_cache TTL spec 정합(L333 커버 확인).
+- **검증**: (1) `.Process(` 비-test grep = harvest_pipeline.go:180 정의 + harvester_consumer.go:344 주석뿐·consumer pipeline 인터페이스(:55)는 ProcessDocument 만. (2) Process 분기 추적: batch seen dedup(:186-190)→deduped·BotPinExistsByURL 봇 CreatorID 한정(:193-205)→deduped·dedup에러/다운로드실패/CreatePin실패(:197/:209/:242)→failed·성공(:248)→pinsCreated, continue 상호배타 — 두 Scenario(혼합 2/2/1·전체중복 0/0/n) 충족. (3) harvest_pipeline_test.go 5 site(:138/:195/:229/:257/:292) 삼분 반환 assert. (4) harvester_consumer.go:113-157 nodeStats 5-counter = harvester/spec.md 계약 소유·:344-349 주석이 이원 구조 자체 문서화.
+- **비중첩(census)**: L426(harvester 5-counter consumer 분류)·L1144(adapter-fallback delta 미아카이브)·L664(downloadAndUpload 에러처리)·L1078(추출 ThumbnailURL 정합)·L149(atomic 집계 동시성) — 전부 별축임을 각 엔트리 원문 READ 로 확인.
+- **MANDATORY 체크**: census grep 수행 — '배치 처리 통계' 0건·'HarvestStats' 0건·'RawItem' 매치 8건 원문 확인(23/102/368/664/1078 등 별축).
+- **QA**: 문서-only 변경(코드 무변경)이라 실행 검증 비대상. baseline 예외 (a)-(d)에 Process 삭제·상호배타 파괴·이중 집계·CreatorID 한정 제거를 명시해 실결함 재등록 경로 확보.
+- **차기**: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭, 96주기째) → cycle 2156. 후보: openspec/changes/ 미아카이브 잔여 전수 스캔(L1144 이후 신규분)·pin/board/feed capability Requirement 대비 구현 대조(봇 외 미탐 영역)·pioneer 스냅샷 TTL 365일 lifecycle 계약(spec :577-600)↔terraform/helm 대응 존재 여부. 이월(타 축): helm _helpers.tpl 부재 렌더 실패(정합성)·og_data 파생 필드 lockstep 후속(봇).
+
 ## 2026-07-03 — [system] cycle 2152 covered-by-census — 동시성: sync/atomic 모집단 10파일·최근 7일 코드변경 3건 전수 기존 가드 커버
 
 - **결정**: covered-by-census (baseline 미등록·decision-log만). 동시성 94주기째 서베이 — apps/api 의 동시성 primitive 모집단과 최근 병합 코드 전수가 기존 census 에 매핑되어 신규 축 부재.
