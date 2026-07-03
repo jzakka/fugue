@@ -17,6 +17,12 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2210 — 에러처리: feed 캐시 graceful fallthrough·interaction Record 로그 포맷 (covered)
+- **축 선택**: rotation 에러처리 (직전 2198). cycle 2208 이 지정한 후보 2건 — (1) feed 캐시 경로 에러 graceful fallthrough 재점검, (2) interaction Record 로그 포맷 일관성.
+- **프로브 결과**: (1) feed/handler.go — 캐시 get 에러는 redis.Nil silent + 비-Nil 로깅 후 fallthrough(L97, 500 아님), 캐시 set 에러 로깅-only(L141), 보조 추천 GetUserMediaTypeFrequency(L247)·RecommendByMediaType(L280) 에러는 additive-logging 후 계속 진행(주 경로 RecommendByTags 만 에러 반환), 주 빌드 경로(CountUserPins/buildLatestFeed/buildPersonalizedFeed)는 log+writeError 500+return. (2) interaction/recorder.go — invalid type(L29)·db error(L37) 모두 `interaction.Record: <what>: %v (user=%s pin=%s [type=%s])` 포맷으로 일관, best-effort void 반환.
+- **판정**: covered — (1)은 census L96(feed cache get 에러는 500 아닌 graceful fallthrough·ctx.Canceled observability-only 계열) + additive-logging contract 시리즈(auth RevokeRefreshToken/RotateRefreshToken/RateLimiter/StoreRefreshToken, 캐시 set 브랜치)가 라인 열거 cover. (2)는 L88(interaction piggyback recording·best-effort void 계약) cover — 로그 포맷도 패키지 내 균일. writeError 규율은 L212/cycle 822(8-패키지) 기존 열거. 신규 결함·신규 baseline 없음.
+- **차기**: area = 정합성 (rotation: 에러처리→정합성) → cycle 2212. 이월 과제 docs/erd.md ↔ migrations 표본 대조는 본 사이클 대기 중 선행 프로브 완료 — tags 4컬럼 drift 는 anti-patterns L980(cycle 1694 baseline)이 정면 차단(예외조항=런타임 불일치, tags 는 seed 전용 read-only 라 미성립), pin_tags tag_id CASCADE 는 000028 로 기정렬, boards is_public/created_at NOT NULL 표기 누락은 동일 ERD 컬럼스펙 drift 클래스로 L980 포섭. cycle 2212 는 fresh 정합성 축 필요 — 후보: AGENTS.md API 열거 ↔ docs/api-endpoints.md 상호 대조(2196 후속), openspec capability spec ↔ 라우터 미들웨어 체인 대조.
+
 ### cycle 2208 — 정합성: README 구현 현황 체크박스 ↔ 실제 구현 대조 (판정: REAL defect → Processing)
 
 - **축 선택**: area = 정합성 (rotation: 보안→정합성). cycle 2206 forward pointer의 3후보 중 README 구현 현황 대조(cycle 2194 이월 보조 후보)를 이행. AGENTS.md는 엔드포인트 자체 열거 없이 docs/api-endpoints.md 링크만(AGENTS.md:27)이라 상호 정합 축은 모집단 0.
