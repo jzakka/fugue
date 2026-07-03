@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2410 — OpenSpec갭: validate 재검 → 상태 불변 (covered)
+
+- 축: 직전 OpenSpec갭 census(2398) 이후 스펙↔구현 갭 변화.
+- 조사: `openspec validate --specs --changes` = 14 passed / 0 failed. openspec/ 마지막 커밋 여전히 4c2e289b, active change 3건 보류 유지. apps/api 0줄 불변으로 구현측 갭 신규 발생 없음.
+- 판정: covered — 신규 갭 없음.
+- 차기: rotation 보안 cycle 2412 (직전 2400 covered). advisory 게이트 재검 예정.
+
 ### cycle 2408 — 봇: 표면 불변 재검 → 신규 없음 (covered)
 
 - 축: 직전 봇 census(2396) 이후 봇 표면 변화.
