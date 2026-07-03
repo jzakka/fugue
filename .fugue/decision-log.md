@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2242 — OpenSpec갭: 활성 change·validate·병합분 spec 정합 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation OpenSpec갭 (직전 2230).
+- **프로브 결과**: (1) 활성 change 3건 불변(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring) → L734/L1144 기커버. (2) `openspec validate --all` = 14 passed, 0 failed (cycle 2230과 동일). (3) 2230 이후 병합분(#3073 go.mod 범프·#3075/#3077/#3078/#3079 census 파일)은 capability 행위 변경 0 → spec 정합 재검 대상 없음.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 보안 cycle 2244 (직전 2232 — govulncheck REAL 처리). govulncheck 재스캔은 신규 CVE 공표 시에만 fresh(2232 forward pointer) → 다른 보안 fresh 축 탐색 필요.
+
 ### cycle 2240 — 봇: Makefile 봇 타깃 ↔ README/CLI 배선 대조 (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 봇 (직전 2228). robots/UA(L812)·HARVESTER_MODE(L1335)·show-map 렌더 보안(L1311) 기커버 → fresh 축 = Makefile 봇 타깃↔문서 배선 (census `make pioneer` 등 0건).
