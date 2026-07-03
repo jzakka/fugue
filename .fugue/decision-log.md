@@ -17,6 +17,17 @@
 
 ## 항목
 
+### cycle 2230 — OpenSpec갭: 활성 change 재스캔·2228 후속 spec 갭 점검 (판정: covered-by-census)
+
+- **축 선택**: rotation OpenSpec갭 (직전 2218). cycle 2228 forward pointer — 활성 change 3건 재스캔 + 신규 병합분 spec 정합 재검.
+- **프로브 결과**:
+  - (1) 활성 change: fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring — cycle 2218 과 동일 3건 불변 → L734/L1144(전부 구현 완료) 기커버.
+  - (2) `openspec validate --all` = 14 passed, 0 failed (cycle 2218 과 동일).
+  - (3) cycle 2228 후속 spec 갭: live spec(pioneer/bot spec.md)에 AI/script generation 잔존 서술 grep 0건 — 2228 의 stale AI 참조는 README/.env.example/CLI help 한정이었고 spec 표면 무영향. openspec 내 OPENAI 매치는 changes/archive/ 이력 기록뿐(수정 금지 대상).
+  - (4) 최근 병합분(cycle 2220-2228)은 decision-log·README·.env.example·CLI help 문구 변경뿐 — capability 행위 변경 0 이라 spec 정합 재검 대상 없음.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 보안 → cycle 2232. cycle 2220 에서 6축 전부 기커버 확인 — fresh 후보 탐색 필요 (미조사 축 예: 쿠키 속성(SameSite/Secure/HttpOnly) census 선확인, CORS 설정 census 선확인).
+
 ### cycle 2228 — 봇: 제거된 AI 클라이언트 잔존 문서 참조 (판정: REAL defect → Processing)
 
 - **축 선택**: rotation 봇 (직전 2216). cycle 2226 forward pointer "미조사 표면 재탐색" — AI_CLIENT_TYPE 이 census 0건 fresh 축.
