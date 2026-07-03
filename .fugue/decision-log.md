@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2232 — 보안: govulncheck 의존성 취약점 스캔 (판정: REAL — go 1.26.1→1.26.4·x/net v0.52.0→v0.55.0 업그레이드)
+
+- **축 선택**: rotation 보안 (직전 2220). 지정 후보 쿠키 속성(L186)·CORS(L192)는 census 선확인 결과 기커버 → fresh 축 = govulncheck 의존성 취약점 (census 0건, 루프 최초 스캔).
+- **프로브 결과**: `govulncheck ./...` (GOTOOLCHAIN=go1.26.4, CLI 미설치라 go run 방식) → 도달 가능 취약점 **16건** 검출.
+  - stdlib go1.26.1 계열 11건 (crypto/x509 ×4, html/template ×3, crypto/tls, net/http, net, net/textproto) — go1.26.2~1.26.4 에서 픽스. 호출 경로 실증: server.main ListenAndServe→tls.Conn.HandshakeContext, storage.Client.Upload→x509.Certificate.Verify, bot-visualize generateHTML→template.Template.Execute 등.
+  - golang.org/x/net v0.52.0 계열 6건 (GO-2026-5025/5027/5028/5029/5030/4918) — v0.53.0~v0.55.0 에서 픽스. 도달 경로: DefaultConsumerFetcher.Fetch→http.Client.Do 등.
+- **수정**: go.mod `go 1.26.1`→`1.26.4`, `golang.org/x/net v0.52.0`→`v0.55.0` (연쇄 x/text v0.35.0→v0.37.0). 코드 변경 0.
+- **QA (실측)**: 재스캔 도달 가능 취약점 **0건** ("Your code is affected by 0 vulnerabilities"; modules-only 1건은 호출 미도달 = govulncheck 자체 판정으로 후보 금지). `go build ./...` OK, `go test ./...` 668 passed / 23 packages 전부 통과.
+- **차기**: rotation 정합성 cycle 2234. 보안 축 차기 진입 시 govulncheck 재스캔은 신규 CVE 공표 시에만 fresh (동일 버전 재스캔은 기커버).
+
 ### cycle 2230 — OpenSpec갭: 활성 change 재스캔·2228 후속 spec 갭 점검 (판정: covered-by-census)
 
 - **축 선택**: rotation OpenSpec갭 (직전 2218). cycle 2228 forward pointer — 활성 change 3건 재스캔 + 신규 병합분 spec 정합 재검.
