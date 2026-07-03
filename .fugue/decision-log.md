@@ -287,6 +287,12 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2639 Discovery — states 290th round: base 자기참조 ARIA 상태 스타일 변형(`aria-pressed:*`/`aria-checked:*`/`aria-expanded:*`/`aria-selected:*`/`aria-disabled:*`/`aria-invalid:*`·arbitrary `aria-[…]:*` — 요소가 자기 자신의 ARIA 상태 속성값을 셀렉터로 삼아 스스로를 조건부 스타일하는 Tailwind 변형) 표면 폐기 (sub-dimension vacuous — aria 속성 semantic 존재하나 스타일 훅 0)
+- 축 선택: states area 290th round. 회전 responsive(291st)→states(290th). states 의사클래스/의사요소 전면 포화(폼·미디어·디스클로저·구조·링크·전이·마커 축 전부 전용 census 보유) 확인 후, 자기참조 aria-* 스타일 변형이 관계형 L841(group-aria/peer-aria)·data L858/L862·in-* L850·aria 노출여부 L493/L501/L509 어디에도 전용 subject 로 없는 신선 축임을 확정.
+- 프로브 결과: 코드 사실 — base `aria-*:` 스타일 변형·arbitrary `aria-[…]:` 0건, 반면 aria 속성은 semantic 으로 존재(aria-pressed 9·aria-expanded 1·aria-invalid 4). 시각 상태는 aria 셀렉터가 아닌 React 조건부 className 이 전담(aria=a11y 시맨틱·시각=className 2계층 분리). DESIGN.md aria/state-variant 실질 silent(매칭 3건은 "Pretendard Variable" 오탐).
+- 결정·변경: 코드 변경 없음. 자기참조 aria-* 스타일 훅이 0인 sub-dimension vacuous. anti-patterns.md EOF 1줄 census 추가. L841(관계형 aria·조상/형제)·L858/L862(data 변형)·L850(in-* 조상)·L493/L501/L509(aria 노출여부 semantic)·L1002(aria-pressed="mixed" 값)·L795(peer-*)와 비중첩(자기참조 aria 스타일 변형 차원만 폐기).
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2641, 313th round.
+
 ## 2026-07-03 — [design] cycle 2637 Discovery — responsive 291st round: 브레이크포인트-접두 네이티브 외형 리셋 토글(`sm:appearance-none`/`md:appearance-auto` — CSS `appearance`를 뷰포트 폭에 따라 켜고 끄는 반응형 토글) 표면 폐기 (responsive-toggle 차원 vacuous + base 외형 리셋 부재)
 - 축 선택: responsive area 291st round. 회전 aesthetic(313th)→responsive(291st). 후보 프로브 다수를 전용 census 기존 존재로 기각(portrait:/landscape: L106/L568, sm:pointer-events L838, sm:vertical-align/align-top L1328, sm:mix-blend L482). `sm:appearance-*`는 미언급 신선 축으로 확정.
 - 프로브 결과: 코드 사실 — `appearance-none`/`appearance` 0건, BP-접두 `sm:appearance-*`/`md:appearance-*` 0건, DESIGN.md는 appearance/네이티브 외형 리셋 전면 silent. base 외형 리셋 자체가 부재(L393 aesthetic "네이티브 폼 컨트롤 외형 리셋" 전용 census 존재하나 코드 population 0).
