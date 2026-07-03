@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2354 — 정합성: 문서↔구현 대조 표면 포화 → 전 후보 기커버 (covered)
+
+- **축 선택**: rotation 정합성. fresh 축 후보 3종 프로브 — (1) docs/tech-stack.md ↔ 실측 버전, (2) README 구현 현황 체크리스트 ↔ 실제 구현, (3) 문서 상대 링크.
+- **프로브 결과**: 전부 기커버 — (1) 버전 정합은 Next.js 15→16 drift REAL 수정 이력(decision-log :410-412, PG16/compose 정합 포함), (2) 구현 현황 체크박스는 cycle 2208 REAL 이력, (3) 링크 전수는 cycle 2270 baseline(31/31 실재, 문서 이동 커밋 병합 시에만 재검 fresh). 이외 정합 표면: api-endpoints 라우트(2330 REAL)·Makefile 타겟(2342 REAL)·AGENTS 봇 명령(2294 REAL)·env vars(:526)·ERD 4-baseline(L34/L94/L210/L980) — 정합성 축의 문서↔코드 대조 표면이 포화 상태이고 양쪽 population 불변(apps/api diff 0줄·docs 는 본 루프 REAL 수정 외 불변).
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 에러처리 cycle 2356 (직전 2344 NEW baseline). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2352 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - **축 선택**: rotation 보안. 의존성 advisory 게이트 재검.
