@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2358 — 동시성: 모집단 동결 + census 포화 (covered)
+
+- **축 선택**: rotation 동시성. 직전 2346에서 crawl 병행 워커 축까지 L126 기커버 확인 — 잔여 fresh 표면 탐색.
+- **프로브 결과**: Go 동시성 모집단 동결 지속(diff 0줄). census 포화 — 채널 close(674)·context cancel(686)·mutex+atomic 부분보호(698)·goroutine spawn 3곳(712)·atomic snapshot(724)·DB write race(736)·락 규율(748)·mutex-free map(662)·OAuth state GETDEL(L233, 848)·graceful shutdown(L52/L87, 2334 재확인)·crawl 병행 frontier claim(L126, 2346 재확인)·race detector 전 패키지 통과(2250). 신규 goroutine/락/채널 site 없음.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 봇 cycle 2360 (직전 2348 NEW baseline). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2356 — 에러처리: 모집단 동결 + census 포화 (covered)
 
 - **축 선택**: rotation 에러처리. 직전 2344에서 Makefile crawl 레시피 축까지 baseline 등록 완료 — 잔여 fresh 표면 탐색.
