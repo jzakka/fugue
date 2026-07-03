@@ -17,6 +17,17 @@
 
 ## 항목
 
+### cycle 2204 — OpenSpec갭: 아카이브 change spec 델타 미승격 ↔ 안정 spec suite 정합 (판정: NEW baseline)
+
+- **축 선택**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭). cycle 2202 forward pointer 3후보 프로브 중 (3) "search capability 계약 유무"에서 fresh 축 발견: 아카이브된 change의 spec 델타가 openspec/specs/에 미승격.
+- **프로브 결과**:
+  - (1) `openspec validate --all` → 14 passed, 0 failed 신선 통과.
+  - (2) active changes 3건 불변 — L734/L1144 커버.
+  - (3) `openspec/specs/search/` 부재인데 archive/2026-04-07-add-search/specs/search/spec.md에 `## ADDED Requirements`(통합 검색 SHALL) 델타 존재 → "아카이브 워크플로우가 델타 승격을 누락한 고립 결함" 가설 수립.
+- **FP 반박 (전수 대조)**: archive 전체의 `specs/<capability>/` 델타 ↔ `openspec/specs/<capability>/` 존재를 전수 대조 — **MISSING 25건이 체계적**: bot-cli-interface·bot-graph-management·bot-harvester-crawler·bot-pioneer-crawler·bot-run-tracking·bot-script-lifecycle(구 capability 명명, 이후 bot/pioneer/harvester로 통합 재편)·design-tokens 12건(DESIGN.md 소유 영역)·search(cycle 1762가 "코드-without-spec=inverse, enhancement territory"로 명시 제외 판정)·tag-seed-data. 반면 PROMOTED는 현존 capability(scheduler 7건·ratelimit 2건·profile 1건 등)를 타깃한 델타뿐 → 아카이브는 역사 기록이고 spec suite는 큐레이션된 11 capability 집합이며, 델타 승격은 "현존 capability 대상"에만 적용되는 관례. 고립 결함 아님.
+- **판정**: NEW baseline — anti-patterns.md EOF 등록 (아카이브 델타 미승격을 OpenSpec갭 후보로 올리지 않는다).
+- **차기**: area = 보안 (rotation: OpenSpec갭→보안) → cycle 2206. 후보: search 핸들러 pg_trgm 유사도 쿼리 SQL 주입 표면(파라미터 바인딩 확인)·cmd/bot CLI env 파싱(%q quoting 재점검)·og fetch SSRF 정책 L209 예외조건 재확인.
+
 ### cycle 2202 — 봇: errorKind 매핑·FilterChain 구성·ai_model 기록 경로 (판정: covered-by-census)
 
 - **축 선택**: area = 봇 (rotation: 동시성→봇). cycle 2200 forward pointer의 3후보를 프로브.
