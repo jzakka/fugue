@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2292 — 보안 (covered)
+
+- 축 선택: rotation 보안 (직전 2280 NEW baseline). 후보 축: docker-compose 포트 바인딩 노출 범위(5432/6379/9000/9001 전부 0.0.0.0 바인딩).
+- 프로브 결과: (1) 후보 축은 anti-patterns L15(docker-compose 완성도·args·wiring 결함은 배포 change 책임 — 사이클 후보 금지, cycle 29 rejected_self) 보류 범위에 해당. 리포 posture도 로컬 개발 전용(AGENTS.md c8e77ced 카나리/무중단 불필요 명시). (2) 보조 재스캔: npm audit 잔차 불변 — 2 moderate(next 16.2.10 vendored postcss@8.4.31, cycle 2256 기록) 그대로, 신규 advisory 0건.
+- 판정: covered-by-census. 후보 축 L15 기커버 + 재스캔 게이트 미발화.
+- 차기: rotation 정합성 cycle 2294 (직전 2282 REAL make seed 복원). fresh 축 후보: AGENTS.md harvester SITE=artstation 표기 vs Makefile harvester 타깃 SITE 미사용(전 사이트 소비) 정합.
+
 ### cycle 2290 — OpenSpec갭 (covered)
 
 - 축 선택: rotation OpenSpec갭 (직전 2278 covered). 재검 트리거: 활성 change 3건 변동 여부.
