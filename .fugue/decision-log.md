@@ -610,6 +610,13 @@
 - 비중첩: L471(tokens font-variant-numeric 정적 토큰), L498(type-scale), L533(leading), L537(tracking) — 모두 별개 축.
 - 차기: area = states (4-area rotation responsive→states) → cycle 2671, 294th round.
 
+## cycle 2671 — design/states 294th round (Discovery, 표면 폐기)
+- 축 선택: 배타적 아코디언 그룹 상태 조정 속성(`<details name="group">` — 형제 `<details>` 디스클로저를 `name` 으로 묶어 라디오처럼 상호 배타로 만들어 그룹 내 하나를 열면 나머지가 브라우저에 의해 자동으로 닫히는 *그룹 열림-상태 조정* 축). states 로테이션(responsive 2669 → states 2671)에서 단일 요소 열림/닫힘 상태(`:closed` L713·`[open]` L781·`open:*` L808)는 포화라, 디스클로저 패밀리 중 아직 미등재인 *크로스-요소 `name` 그룹 배타 조정*(한 번에 하나만 열림) 차원을 선택.
+- 프로브: (1) `<details>`/`<summary>` apps/web/src grep 0건 → `details[name=…]` 그룹 속성도 0건, 배타 그룹 호스트 부재. (2) 펼침/접힘 패널은 네이티브 `<details>` 가 아니라 React `useState` boolean + `<button aria-expanded>` 조건부 렌더 → 브라우저 `name` 그룹 배타 조정 개입 여지 0. (3) 아코디언/배타 그룹 idiom 부재(accordion 문자열 src 0건). (4) DESIGN.md(105줄) accordion/details/아코디언/배타/disclosure/펼침 grep 0건 → 배타 아코디언 그룹 정책 미규정.
+- 결정: 호스트(네이티브 `<details>`) 부재 + 메커니즘(`name` 그룹 배타 조정) 부재 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵 + 디스클로저 미사용 균일)로 이슈 아님. anti-patterns 1줄 추가(cycle 2671 baseline)·표면 폐기.
+- 비중첩: L713(:closed 단일 요소 닫힘 의사클래스), L781([open] 단일 요소 열림 boolean), L808(open:* 단일 요소 열림 변형), L841(group-aria-* 관계형 aria 상태), L858(data-[state=open] data 상태 변형) — 모두 *단일 요소 한 개의 열림/닫힘 상태*이지 크로스-요소 `name` 그룹 배타 조정이 아님(층위 상이).
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2673, 317th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
