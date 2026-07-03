@@ -17,6 +17,19 @@
 
 ## 항목
 
+### cycle 2220 — 보안: 보안 표면 6축 프로브 (판정: covered-by-census)
+
+- **축 선택**: rotation 보안 (직전 2206). cycle 2218 forward pointer 가 지정한 후보(multipart 상한 예외 선확인·OAuth redirect census 선확인) 포함 6축 프로브.
+- **프로브 결과** (재인용 검증: 전 축 코드 실측 후 census 대조):
+  - (1) 응답 보안 헤더 → L784 기커버.
+  - (2) 시크릿 timing-safe 비교 → L736 기커버.
+  - (3) logout 토큰 폐기 수명주기 → L175/L57 기커버.
+  - (4) JWT_SECRET 강도 검증: config.go:46-55 base64 decode + ≥32 bytes 실측 → L182/L381 기커버.
+  - (5) OAuth ReturnTo open-redirect: handler.go:55 `r.URL.Query().Get("redirect")` → state.go:35 `validateReturnTo` (:77-91 비-"/" 접두·"//"·"\\" 4중 거부) → callback :142-146 `h.frontend + stateData.ReturnTo` 실측 → L236(cycle 854 baseline) 이 4중 거부 로직까지 전수 커버. 인접축 CSRF state=L81/L284·CRLF 주입=L1167 기커버.
+  - (6) multipart 업로드 상한 → L156/L192 기커버 (예외 조항 트리거 없음 확인).
+- **판정**: covered — 6축 전부 기존 baseline 매핑, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 정합성 → cycle 2222. fresh 후보 선정 완료: `.env.example ↔ config.go env 열거` + `README 필수 환경변수 목록 ↔ config.Load 실제 필수 집합` 3면 대조 (census 0건 fresh — 선프로브에서 README 필수 목록이 OAUTH_CALLBACK_BASE_URL(config.go:58-61 미설정 시 기동 error) 을 누락함을 관측, cycle 2222 에서 판정).
+
 ## 2026-07-03 — [system] cycle 2218 — OpenSpec갭: 활성 change 재스캔·snapshot-first fetch 계약·스위트 검증 (covered)
 - **축 선택**: rotation OpenSpec갭 (직전 2204). cycle 2216 지정 후보 2건 — (1) 활성 change 잔여 여부 재스캔, (2) harvester snapshot-first fetch 계약 ↔ snapshot_first_fetch.go 재대조.
 - **프로브 결과**: (1) openspec/changes/ 활성 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring) — cycle 2192/L734/L1144 판정 이후 변동 0(신규 활성 change 0·전부 실구현+archive housekeeping 만 미수행 상태 유지). (2) snapshot-first fetch — L261(SnapshotKey write/read 대칭·cross-UTC-day fail-open tradeoff)·L328(sentinel 분류)·reader.go gzip-bomb 캡·CompositeFetcher fail-open(snapshot_first_fetch.go:107) 등 기존 census 가 전수 커버. (3) 보조: openspec validate --all = 14 passed / 0 failed — 스위트 무결.
