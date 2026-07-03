@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2284 — 에러처리 (covered)
+
+- 축 선택: rotation 에러처리 (직전 2272 covered).
+- 프로브 결과: git diff --stat 1dbad2a2..origin/main -- apps/api 공집합 지속 — Go 에러처리 모집단(핸들러/JSON decode 6 sites L195/스토리지 경로) 변경 0건. cycle 2282의 REAL 수정은 Makefile 한정으로 Go 코드 불변. 기존 census(L156/L192/L195 및 직전 covered 판정들) 증거 그대로 유효.
+- 판정: covered-by-census.
+- 차기: rotation 동시성 cycle 2286 (직전 2274 covered). Go 모집단 불변 지속 시 신속 covered — cycle 2250 race detector 동적 증거 유효.
+
 ### cycle 2282 — 정합성 (REAL, 수정 완료)
 
 - 축 선택: rotation 정합성 (직전 2270 NEW baseline). fresh 축: Makefile 타깃↔문서 명령 정합.
