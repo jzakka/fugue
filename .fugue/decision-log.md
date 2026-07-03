@@ -730,6 +730,13 @@
 - 비중첩: L669(구조적 부정 의사 클래스 결합자 `:not()` — `button:not([disabled])`/`[tabindex]:not([tabindex="-1"])` 처럼 속성·구조 셀렉터를 부정해 요소를 선택하는 구조적 매칭, 그 census 스스로 "요소의 상태가 아니라 셀렉터 매칭을 부정" 명시)과 비중첩 — 구조/속성 셀렉터 부정 매칭 vs 본 축=상호작용 상태 의사 클래스의 여집합 스타일 훅(`:not(:hover)`), 부정 대상 층위 상이.
 - 차기: area = tokens (4-area rotation states→tokens) → cycle 2681, 318th round.
 
+## cycle 2681 — design/tokens 318th round (Discovery, 표면 폐기)
+- 축 선택: 키프레임 반복 횟수 토큰(`animation-iteration-count` — `infinite`(무한)/유한 정수 N(N회 후 정지)/분수 값(부분 사이클), 애니메이션이 몇 번 반복 재생될지 정하는 재생 횟수 토큰). tokens 로테이션(states 2679 → tokens 2681)에서 재생 방향(2673)·fill-mode(L762)·play-state(L766)·composition(L770) 등 애니메이션 하위 속성이 포화라, 아직 미등재인 *반복 횟수/유한성*(몇 번 반복) 차원을 선택(`animation-iteration-count` dedicated census 부재·3개 애니메이션 census 비중첩 참조만).
+- 프로브: (1) `animation-iteration-count`/iteration apps/web/src·globals.css grep 0건 → 반복 횟수 명시 표면 부재. (2) 유일 애니메이션 shimmer 는 shorthand 내 `infinite` 단일(`animation: shimmer 1.5s linear infinite` globals.css L108)·reduced-motion `animation: none`(L113) → 유한 N회 반복 토큰 없음, 애니메이션 모집단 1. (3) 반복 횟수 토큰화 idiom 부재(단일 shimmer shorthand infinite). (4) DESIGN.md(105줄) iteration/반복 횟수/repeat/infinite/무한 반복 grep 0건(L90 easing enter/exit 는 이징 곡선 FP).
+- 결정: 호스트(반복 횟수 명시) 부재 + 애니메이션 모집단 1(shimmer infinite) → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵·단일 무한 반복)로 이슈 아님. anti-patterns 1줄 추가(cycle 2681 baseline)·표면 폐기.
+- 비중첩: L762(animation-fill-mode 전후 스타일 유지 forwards/backwards), L766(animation-play-state running/paused 재생 상태), L770(animation-composition replace/add/accumulate 합성), cycle 2673(animation-direction normal/reverse/alternate 재생 방향) — 모두 애니메이션 다른 하위 차원(유지·재생상태·합성·방향)이지 몇 번 반복 재생되는가(무한/유한 N회) 반복 횟수 차원 아님(층위 상이).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2683, 319th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
