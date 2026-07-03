@@ -926,6 +926,13 @@
 - 비중첩: 2693(브레이크포인트×상태=폭×상태 게이팅, 상태와 상태 아님) / 2679 states(`not-hover:`=한 상태 여집합, 두 상태 교집합 아님) / L674(`:has()` 관계 결합자로 부모 선택, 요소 자신 상태 AND 아님) vs 본 축=요소 자신의 두 상호작용 상태를 AND 교집합하는 체이닝(스택 대상 차원·논리 연산·셀렉터 분류 상이).
 - 차기: area = tokens (4-area rotation states→tokens) → cycle 2697, 320th round.
 
+## cycle 2697 — design/tokens 320th round (Discovery, 표면 폐기)
+- 축 선택: CSS `zoom` 요소 확대-배율 속성(요소를 배율로 확대/축소하되 레이아웃에 참여해 주변을 reflow 하는 확대 배율 토큰 — `zoom: 1.5`/`zoom: 150%`/`zoom: 0.8` 은 확대 크기가 실제 레이아웃 흐름에 반영되어 형제/후속을 재배치, 시각 전용·비-reflow `transform: scale()` 과 대비 — 2024 전 브라우저 표준화). tokens 로테이션(states 2695 → tokens 2697)에서 수학 함수(L406)·폰트 상대 단위(ch775·ex1292·cap1296·ic1288·lh/rlh1300)·컨테이너 쿼리 단위(709)·폴백(769)·스크롤바 gutter(1304)·overflow-anchor(860) 등이 포화라, 아직 미등재인 *레이아웃-반영 배율 확대(zoom)* 차원을 선택.
+- 프로브: (1) `zoom:`/`zoom-[N]` apps/web/src·globals.css grep exit 1(0건) → 배율로 요소를 키우며 레이아웃 반영하는 표면 부재. (2) 크기 확대/변형은 명시 크기 유틸(w-*/h-*/text-*)·소수 `transform: scale`(비-reflow, AP 2건)로 처리 → zoom 사용처 0. (3) 카드/썸네일을 `zoom: 1.5` 로 키우며 주변 reflow 하는 idiom 부재(확대는 명시 크기나 비-reflow scale). (4) DESIGN.md(105줄) L26/L57 "Scale:"=타입/간격 스케일(zoom 아님)·L86 "box-shadow 확대"=그림자 확대(FP)·zoom/배율 grep 0.
+- 결정: `zoom` 0(pure vacuous) + 크기 확대는 명시 크기/비-reflow transform 으로 균일 → 배율 확대 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN Scale=타입/간격·L86 그림자 FP·zoom 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2697 baseline)·표면 폐기.
+- 비중첩: `transform: scale`(비-reflow 시각 전용 배율, 레이아웃 박스 원본 유지) / L1090(@viewport min-zoom/max-zoom/user-zoom=뷰포트 at-rule 페이지 줌 범위) / L749(meta viewport user-scalable/zoom=페이지 뷰포트 줌) / L635(SVG vector-effect scale/zoom=도형 스트로크 기하) vs 본 축=요소 배율 확대가 레이아웃에 반영되어 주변 reflow 하는 zoom 속성(레이아웃 영향·적용 층위·대상 상이).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2699, 321st round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
