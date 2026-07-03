@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2156 NEW baseline — OpenSpec갭: 스냅샷 TTL 365일 삭제 SHALL 의 리포 내 집행 부재 후보 FP 반박 (anti-patterns L1316 append)
+
+- **결정**: NEW baseline (FP 반박 → anti-patterns.md L1316 append). bot/spec.md :595-606 "스냅샷 보존 365일, 지나면 삭제 SHALL" 의 삭제 집행이 앱 코드/terraform/helm 어디에도 없다는 후보 금지 — Decision 5(archive pioneer-snapshot-storage design.md:81-86)가 삭제 소유를 버킷 lifecycle policy 로 명시 확정(대안인 metadata+배치삭제 기각)·rollout 1단계+운영시점 결정(:116/:125)으로 IaC 이연·토글 기본 off(config.go:100)+helm 주석(cronjob-bot.yaml:64-67)이 lifecycle rule 을 flip 전제로 게이트·`snapshots/` prefix 하드코딩(key.go:33/:50)으로 rule 1개 커버·이미지 캐시 TTL Decision D3 동형 선례(L142).
+- **축 선택**: 6-area rotation 봇→OpenSpec갭 (96주기째). 1순위 후보였던 openspec/changes/ 미아카이브 스캔은 L734/L1037/L1144 기커버 + 신규분 0건(디렉터리 listing 동일 3건)으로 제외. 스냅샷 TTL lifecycle 축 채택(census '365' 매치는 L191/L391 frontier 재크롤뿐·'lifecycle' 스냅샷 축 0건).
+- **검증**: (1) spec :595-606 Requirement+Scenario "365일 경과 후 만료" READ. (2) design.md Decision 5(:81-86)·rollout(:116)·open question(:125) READ. (3) 앱 측 만료/삭제 경로 0건·terraform/ 부재(ls 확인)·helm lifecycle 리소스 0건. (4) config.go:100 envBool false 기본·cronjob-bot.yaml:64-80 optional env+전제 주석. (5) key.go:25-52 prefix 안정성.
+- **비중첩(census)**: L25(cycle 570 — bot↔pioneer 저장실패/toggle 소유 모순, spec-governance 등록금지)·L261(키 도출)·L1048/L1156/L1172(gzip 경로)·L142(이미지 캐시 쓰기 계약) — 전부 별축임을 원문 READ 로 확인.
+- **MANDATORY 체크**: census grep 수행 — 'PIONEER_SNAPSHOT_ENABLED'(L25 유일)·'365'(13매치 전수 확인, 스냅샷 TTL 축 0)·'lifecycle'(스냅샷 축 0)·'snapshots/'(L261 키 축).
+- **QA**: 문서-only 변경(코드 무변경)이라 실행 검증 비대상. 예외 (a)-(d)에 IaC 도입 시 rule 누락·prefix 변경·기본값 flip/주석 제거·spec 개정 시 미구현을 명시해 실갭 재등록 경로 확보.
+- **차기**: area = 보안 (6-area rotation OpenSpec갭→보안, 97주기째) → cycle 2158. 후보: 스냅샷 버킷 비공개+서버측 암호화 전제(design.md:109 "민감한 HTML 장기 보관" 리스크 항목)↔helm/values 반영 여부·S3_SECRET_KEY 등 시크릿의 로그/에러 메시지 누출 spot-check·og fetch 의 Content-Type 신뢰 경계. 이월(타 축): CLAUDE.md 프로젝트 구조가 terraform/ 을 명시하나 디렉터리 부재(정합성)·helm _helpers.tpl 부재 렌더 실패(정합성).
+
 ## 2026-07-03 — [system] cycle 2154 NEW baseline — 봇: HarvestPipeline.Process 프로덕션 미배선 = 배치 통계 계약 미구현이라는 후보 FP 반박 (anti-patterns L1314 append)
 
 - **결정**: NEW baseline (FP 반박 → anti-patterns.md L1314 append). bot/spec.md :562 "처리 파이프라인이 배치 처리 통계를 반환한다"(+:516/:537/:550 파이프라인 계약군)를 구현하는 `HarvestPipeline.Process`(harvest_pipeline.go:180-251)가 프로덕션 호출자 0건이지만 — Requirement 는 컴포넌트 반환 계약이고 Process 가 전수 구현+테스트 고정 상태이며, 라이브 frontier 경로 통계는 harvester/spec.md 5-counter 가 별도 소유(capability 분리, cycle 1834 동형) → "계약 미구현/dead code/spec 불일치" 후보 금지.
