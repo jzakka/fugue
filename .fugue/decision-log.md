@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2320 — 에러처리 (covered)
+
+- 축 선택: rotation 에러처리 (직전 2308 covered).
+- 프로브 결과: apps/api 모집단 1dbad2a2 이후 변경 0건 지속 — 에러처리 표면 불변, 기존 census(L195 JSON decode·L266 r.Context() 전파·config fail-fast 등) 증거 유효.
+- 판정: covered-by-census.
+- 차기: rotation 동시성 cycle 2322 (직전 2310 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2318 — 정합성 (covered)
 
 - 축 선택: rotation 정합성 (직전 2306 NEW baseline). 후보 축: docs/erd.md↔migrations 스키마 정합.
