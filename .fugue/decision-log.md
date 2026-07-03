@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2248 — 에러처리: bot-visualize CLI exec(dot) 에러 경로 프로브 (판정: covered-by-census)
+
+- **축 선택**: rotation 에러처리 (직전 2236 — census 전 축 재대조 covered). 미조사 잔여 표면 = dev CLI(cmd/bot-visualize)의 os/exec 경계.
+- **프로브 결과**: internal/bot/cmd/visualize/graphviz.go:95-99 — `exec.Command("dot", ...)` 후 `CombinedOutput()` 에러를 `fmt.Errorf("graphviz failed: %w\nOutput: %s", ...)` 로 stderr 임베드 전파, temp file Write/Close 에러도 %w 랩핑+defer cleanup, format 은 svg/png allowlist. L1208(exec 경계 에러 캡처/전파) safe-pattern 전부 부합 — 예외 조항(에러 폐기·산출물 미검증 영속) 해당 없음. one-shot dev CLI 라 ctx 바인딩 불필요(핸들러 hang 축 무관).
+- **신선도 검증**: cycle 2236 이후 병합분(#3079~#3083)은 census 파일·문서뿐 — 신규 에러처리 표면 0.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 동시성 cycle 2250 (직전 2238 — 인벤토리 불변 covered). 인벤토리 재실측으로 신속 판정.
+
 ### cycle 2246 — 정합성: 문서 기술스택 버전 표기 ↔ 실제 의존성 대조 (판정: REAL — README·ko/architecture Next.js 15→16 수정)
 
 - **축 선택**: rotation 정합성 (직전 2234). fresh 축 = 문서 스택 버전 표기 ↔ 실측(docker-compose 이미지·package.json·go.mod) 대조 (census `PostgreSQL 16` 등 0건).
