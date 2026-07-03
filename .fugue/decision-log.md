@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2282 — 정합성 (REAL, 수정 완료)
+
+- 축 선택: rotation 정합성 (직전 2270 NEW baseline). fresh 축: Makefile 타깃↔문서 명령 정합.
+- 프로브 결과: 문서 참조 make 명령 18종 census 중 `make seed`(AGENTS.md:93)만 Makefile 타깃 부재 — 실행 시 "No rule to make target" 실패. seed.sql 헤더도 "Run: make seed" 지시. 원인: b3b03883이 `make dev` 반복 실행 시 크롤 핀 TRUNCATE 문제로 seed 타깃을 통째로 제거하면서 문서·seed.sql 헤더를 미갱신 (신뢰도 5).
+- 수정: standalone `seed` 타깃 복원 (Makefile) — seed_tags.sql → seed.sql 순차 적용, TRUNCATE 경고 echo 포함, dev/ensure-infra 미배선(b3b03883 의도 보존), .PHONY 등재.
+- QA (실행): 로컬 postgres 부재 확인(파괴 위험 0) → make dev-infra + make migrate(28/u) → make seed exit 0 → tags 135/creators 6/pins 12 적재 검증 → 재실행 exit 0(idempotent) → make dev-stop 원상 복구.
+- 차기: rotation 에러처리 cycle 2284 (직전 2272 covered). apps/api 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2280 — 보안 (NEW baseline)
 
 - 축 선택: rotation 보안 (직전 2268 NEW baseline, 2256 REAL). fresh 축: CI 워크플로 GITHUB_TOKEN 권한/서드파티 액션 pin 상태 (npm audit/govulncheck 재스캔은 신규 advisory 전까지 보류).
