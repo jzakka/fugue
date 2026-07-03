@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2278 — OpenSpec갭 (covered)
+
+- 축 선택: rotation OpenSpec갭 (직전 2266 covered). 재검 트리거: 활성 change 3건 변동 여부.
+- 프로브 결과: (1) 활성 change 목록 불변 — fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring 3건 그대로 (전 tasks [x], 미아카이브 상태는 cycle 1858 baseline + L483 기커버). (2) openspec validate --all = 14 passed / 0 failed. (3) git diff --stat 1dbad2a2..origin/main -- openspec/ apps/api 공집합 — spec·구현 모집단 모두 불변.
+- 판정: covered-by-census. 재검 트리거(change 변동) 미발화, 기존 census 증거 그대로 유효.
+- 차기: rotation 보안 cycle 2280 (직전 2268 NEW baseline·2256 REAL npm audit). npm audit/govulncheck 재스캔은 신규 advisory 시에만 fresh — fresh 축 후보: CI 워크플로 권한(permissions)/서드파티 액션 pin 상태 점검.
+
 ### cycle 2276 — 봇 (covered)
 
 - 축 선택: rotation 봇 (직전 2264 covered). 직전 forward pointer가 지목한 fresh 후보 축: helm cronjob-bot 스케줄↔문서 정합.
