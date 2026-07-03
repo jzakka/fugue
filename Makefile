@@ -5,7 +5,7 @@ API_DIR = apps/api
 WEB_DIR = apps/web
 DB_URL = postgres://fugue:fugue@localhost:5432/fugue?sslmode=disable
 
-.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop migrate test show-map pioneer harvester \
+.PHONY: dev dev-kill dev-infra dev-api dev-web dev-stop migrate seed test show-map pioneer harvester \
 	migrate-up migrate-down migrate-create lint fmt setup fuguebot-progress fuguebot-graph \
 	ensure-infra crawl-status crawl
 
@@ -55,6 +55,15 @@ migrate:
 	if [ $$EXIT -ne 0 ]; then \
 		echo "❌ Migration failed (exit $$EXIT). Check database connection and migration files."; exit 1; \
 	fi
+
+# 수동 전용 — dev/ensure-infra 에서 자동 호출하지 않음 (기존 데이터 TRUNCATE 주의)
+seed:
+	@echo "⚠️  Seeding wipes pins/creators/tags data (TRUNCATE)"
+	@echo "🌱 Seeding tags..."
+	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed_tags.sql > /dev/null
+	@echo "🌱 Seeding data..."
+	@docker-compose exec -T postgres psql -U fugue -d fugue -v ON_ERROR_STOP=1 < $(API_DIR)/db/seed.sql > /dev/null
+	@echo "✅ Seed complete"
 
 # ============================================================
 # Go API 서버 (백그라운드)
