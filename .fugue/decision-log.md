@@ -587,6 +587,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## cycle 2669 — design/responsive 295th round (Discovery, 표면 폐기)
+- 축 선택: 브레이크포인트-접두 숫자 자형 변형 토글(`sm:tabular-nums` / `md:proportional-nums` / `lg:normal-nums` = CSS font-variant-numeric 의 tabular↔proportional 자형과 lining/oldstyle 를 뷰포트 폭에 따라 전환하는 반응형 조판 축). responsive 로테이션(aesthetic 2667 → responsive 2669)에서 정렬·표-폭·논리속성 공간이 포화라, font-variant-numeric 패밀리 중 tokens 측(L471 정적 숫자-스타일 토큰)만 등재되고 아직 미등재인 responsive BP-토글 차원을 선택.
+- 프로브: (1) BP-접두 nums 유틸(sm:/md:/lg:tabular-nums·proportional-nums·normal-nums) JSX 0건, 무접두 nums 유틸도 JSX 0건. (2) font-variant-numeric 적용은 globals.css L66 `.font-mono{font-variant-numeric:tabular-nums}` 단일 전역 규칙뿐, 브레이크포인트 분기 없이 균일. (3) 숫자 자형은 font-family(.font-mono=Geist Mono)로 결정되며 뷰포트 폭과 무관. (4) DESIGN.md L20 "Data/Tags: Geist Mono — 태그, 메타데이터, 수치…(tabular-nums 지원)"는 수치의 **균일** tabular-nums 를 명령 — BP별 자형 전환은 이 균일 의도와 상충하여 공허성 강화.
+- 결정: 호스트(BP-토글 대상 숫자 자형 유틸) 부재 + 메커니즘(반응형 font-variant-numeric 분기) 부재 → pure vacuous. loop 규칙 line 9 취향 문제(DESIGN 침묵 + 균일 명령)로 이슈 아님. anti-patterns 1줄 추가(cycle 2669 baseline)·표면 폐기.
+- 비중첩: L471(tokens font-variant-numeric 정적 토큰), L498(type-scale), L533(leading), L537(tracking) — 모두 별개 축.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2671, 294th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
