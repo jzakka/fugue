@@ -17,6 +17,19 @@
 
 ## 항목
 
+### cycle 2222 — 정합성: README 필수 환경변수 목록 ↔ config.Load 실제 필수 집합 3면 대조 (판정: REAL defect → Processing)
+
+- **축 선택**: rotation 정합성 (직전 2212). cycle 2220 forward pointer 지정 fresh 축 — `.env.example ↔ config.go env 열거` + `README 필수 환경변수 ↔ config.Load 필수 집합` 3면 대조 (census 0건).
+- **프로브 결과** (재인용 검증: 3면 전부 실측):
+  - config.Load 실제 필수(미설정 시 기동 error): JWT_SECRET(config.go:47-56, base64+≥32B)·OAUTH_CALLBACK_BASE_URL(:58-61)·GOOGLE_CLIENT_ID/SECRET(:63-67). DATABASE_URL/REDIS_URL 은 default 보유(:77-78)·DISCORD 는 optional(TODO :69).
+  - README 필수 환경변수 목록(README.md:57-62): DATABASE_URL·REDIS_URL·JWT_SECRET·GOOGLE_*·DISCORD_* — **OAUTH_CALLBACK_BASE_URL 누락**.
+  - .env.example 은 OAUTH_CALLBACK_BASE_URL 포함 → cp 경로는 동작하나 README 목록만으로 .env 구성 시 기동 실패.
+  - `.env.example` 미열거 변수(PORT·TWITTER_*·S3_*·SCHEDULER_HOST_*·PIONEER_SNAPSHOT_*)는 전부 default/optional — L12875(cycle 786) 기동 에러 처리 baseline 취지대로 결함 아님.
+- **판정**: REAL (confidence 3) — README "필수 환경변수" 목록이 실제 기동 필수인 OAUTH_CALLBACK_BASE_URL 을 누락. cycle 2208(README 구현 현황 drift) 과 동형의 문서 정확성 결함.
+- **수정**: README.md 필수 환경변수 목록에 `OAUTH_CALLBACK_BASE_URL` 1줄 추가 (최소 수정 — DATABASE_URL/REDIS_URL 열거는 로컬 실행 맥락의 보수적 안내로 유지, DISCORD 는 config TODO 의 목표 상태와 일치하므로 유지).
+- **QA**: 실 기동 — README 필수 목록 env 만으로 `go run cmd/server/main.go` → `config: OAUTH_CALLBACK_BASE_URL is required` exit 1 재현. OAUTH_CALLBACK_BASE_URL 추가 후 config 단계 통과(에러가 database ping 단계로 이동, 인프라 미기동 환경이라 그 이상은 범위 외).
+- **차기**: rotation 에러처리 → cycle 2224. fresh 후보 탐색 필요 (기수행 sub-surface: 기동 설정 로딩 L12875·feed 캐시 fallthrough 2210·interaction 로그 2210 등 — HTTPStatusError 분류 소비처·OG fetch 에러 매핑 등 미조사 축 후보).
+
 ### cycle 2220 — 보안: 보안 표면 6축 프로브 (판정: covered-by-census)
 
 - **축 선택**: rotation 보안 (직전 2206). cycle 2218 forward pointer 가 지정한 후보(multipart 상한 예외 선확인·OAuth redirect census 선확인) 포함 6축 프로브.
