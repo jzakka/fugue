@@ -17,6 +17,17 @@
 
 ## 항목
 
+### cycle 2226 — 동시성: 동기화 프리미티브 인벤토리 freshness 재검 (판정: covered-by-census)
+
+- **축 선택**: rotation 동시성 (직전 2214). cycle 2224 forward pointer 지정 — sync.Once/atomic 사용 규율·신규 병렬화 도입 여부 재스캔.
+- **프로브 결과** (재인용 검증: 전수 grep 실측 후 census 대조):
+  - (1) 동기화 프리미티브 인벤토리: `sync.Once`/`sync.WaitGroup`/`errgroup`/`sync.Pool`/`atomic.Value`/`atomic.Pointer` 전수 0건 — L421(cycle 1018 baseline) 인벤토리와 일치(불변).
+  - (2) goroutine spawn: `go func` 정확히 3곳(cmd/server/main.go:231·playwright_fetcher.go:114·goja_executor.go:47) — L183(cycle 788)·L338(cycle 954)·cycle 2164 baseline 인벤토리와 일치(불변). 신규 fire-and-forget/fan-out 0.
+  - (3) atomic 카운터: typed atomic.Uint64(harvester_consumer nodeStats·media_validator_metrics) → L361 기커버, untyped atomic.AddUint64(snapshot/metrics.go:42/50/78) → L361 이 참조하는 guard 278/294 기커버.
+  - (4) HTTP 경로 공유 가변 상태 → L201(cycle 812)·single-flight → L706·lock-ordering → L4080 기커버.
+- **판정**: covered — 인벤토리 전부 불변, 신규 병렬화 도입 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 봇 → cycle 2228. fresh 후보 탐색 필요 (선프로브: PIONEER_SNAPSHOT_BUCKET 폴백 체인은 L1318 기커버 — robots/goja/frontier/snapshot/pipeline/adapter 포화, 미조사 표면 재탐색 필요).
+
 ### cycle 2224 — 에러처리: 센티넬 매핑·ctx 취소 구분·자원정리 freshness 재검 (판정: covered-by-census)
 
 - **축 선택**: rotation 에러처리 (직전 2210). cycle 2090(L1240) forward pointer 지정 재진입축 — errors.Is 센티넬 매핑 일관성·defer 자원정리 freshness 재검.
