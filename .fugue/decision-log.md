@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2304 — 보안 (NEW baseline)
+
+- 축 선택: rotation 보안 (직전 2292 covered). fresh 축: JWT_SECRET 강도 검증(길이 하한) 존재 여부 (직전 forward pointer).
+- 프로브 결과: 후보 결함 = 약한 JWT 서명 키 허용 가능성(CWE-326). 반증: (1) 정적 — config.go:46-55가 JWT_SECRET 필수(:48)·base64 강제(:52)·디코드 후 32바이트 하한(:55)을 전부 구현. (2) 동적 — 8바이트 시크릿(base64 "shortkey")으로 서버 기동 시 "config: JWT_SECRET must be at least 32 bytes" 출력 후 exit 1 fail-fast 실증. HS256 권장 최소 키 길이(해시 출력 32바이트, RFC 7518 §3.2) 충족.
+- 판정: NEW baseline (FP 반증). anti-patterns EOF 등재. L175/L186(JWT 서명·검증 posture)·L429(미규정 하드닝)와 비중첩 — 본 축은 시크릿 자체의 강도 게이트.
+- 차기: rotation 정합성 cycle 2306 (직전 2294 REAL). fresh 축 후보: .env.example↔config.go 요구 환경변수 전수 정합.
+
 ### cycle 2302 — OpenSpec갭 (covered)
 
 - 축 선택: rotation OpenSpec갭 (직전 2290 covered). 재검 트리거: 활성 change 3건 변동 여부.
