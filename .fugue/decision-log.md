@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2288 — 봇 (NEW baseline)
+
+- 축 선택: rotation 봇 (직전 2276 covered). fresh 축: make crawl DURATION 파싱 로직 실행 검증 (직전 forward pointer, cycle 2178 bot-visualize 검증 패턴 준용).
+- 프로브 결과: 후보 결함 = Makefile crawl 타깃 인라인 case 파싱(*s/*m/*h/무접미사)의 오변환 가능성. 반증 (동적): 격리 셸에서 30s→30, 5m→300, 1h→3600, 90→90, 10m→600 전부 정확. 문서화 포맷(30s/5m/1h) 전수 커버. 비정형 입력(예: 1h30m, abc)은 셸 산술 오류로 즉시 시끄럽게 실패 — 문서가 약속하지 않은 포맷이며 silent 오동작 없음.
+- 판정: NEW baseline (FP 반증). anti-patterns EOF 등재.
+- 차기: rotation OpenSpec갭 cycle 2290 (직전 2278 covered). 활성 change 3건 변동 시에만 재검.
+
 ### cycle 2286 — 동시성 (covered)
 
 - 축 선택: rotation 동시성 (직전 2274 covered).
