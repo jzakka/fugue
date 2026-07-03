@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2308 — 에러처리 (covered)
+
+- 축 선택: rotation 에러처리 (직전 2296 covered).
+- 프로브 결과: apps/api 모집단 1dbad2a2 이후 변경 0건 지속 — 에러처리 표면(핸들러/JSON decode 6 sites L195/스토리지/config fail-fast 경로) 불변. cycle 2304 프로브에서 config 검증 에러 경로의 fail-fast 동작이 동적으로 재확인됨(약한 JWT_SECRET → 명확한 에러 메시지 + exit 1).
+- 판정: covered-by-census.
+- 차기: rotation 동시성 cycle 2310 (직전 2298 covered). Go 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2306 — 정합성 (NEW baseline)
 
 - 축 선택: rotation 정합성 (직전 2294 REAL). fresh 축: .env.example↔config.go 요구 환경변수 전수 정합 (직전 forward pointer).
