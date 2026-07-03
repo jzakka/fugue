@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2322 — 동시성 (covered)
+
+- 축 선택: rotation 동시성 (직전 2310 covered).
+- 프로브 결과: apps/api 모집단 1dbad2a2 이후 변경 0건 지속 — 동시성 프리미티브 인벤토리 불변, cycle 2250 race detector 동적 증거 유효.
+- 판정: covered-by-census.
+- 차기: rotation 봇 cycle 2324 (직전 2312 covered). 봇 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2320 — 에러처리 (covered)
 
 - 축 선택: rotation 에러처리 (직전 2308 covered).
