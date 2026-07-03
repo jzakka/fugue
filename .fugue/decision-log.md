@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2252 — 봇: 시각화 스크립트-판정 문서↔코드 대조·.env.dev 배선 실재 확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 봇 (직전 2240 — Makefile 타깃 baseline).
+- **프로브 결과**: (1) Makefile .env 폴백 대상 `.env.dev` 실재·git 추적 확인 — 배선 무결. (2) 세션 컨텍스트 캐시의 CLAUDE.md 는 "sources/<domain>/<node_type>.go 존재 시 초록색" 경로 규칙을 보였고 해당 디렉터리 부재라 drift 후보로 보였으나 — **워크트리 실측** 결과 CLAUDE.md:61-63 은 이미 "DB `bot_scripts` (site_id, node_type) 조회 판정"으로 수정돼 있고 코드(visualize/repository.go:55 ListScriptKeysForGraph → bot.sql:131 `FROM bot_scripts`)와 정확히 정합 → 스테일 컨텍스트가 만든 허위 후보. L29(부재/오기 주장은 반드시 워크트리 베이스로 검증) 재확인 사례.
+- **판정**: covered — 신규 결함·신규 baseline 없음 (L29 기커버).
+- **차기**: rotation OpenSpec갭 cycle 2254 (직전 2242 covered). 활성 change 변동 시에만 재검.
+
 ### cycle 2250 — 동시성: 인벤토리 재실측 + 전 스위트 race detector 동적 검증 (판정: covered-by-census)
 
 - **축 선택**: rotation 동시성 (직전 2238 — 인벤토리 불변 covered). 정적 인벤토리에 동적 증거를 보강.
