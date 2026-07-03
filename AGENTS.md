@@ -106,6 +106,8 @@ make test          # Go + Frontend 테스트
 ```bash
 make pioneer SITE=unsplash        # Pioneer 크롤러 실행 (SITE: unsplash|fma|pixiv)
 make harvester                    # Harvester 워커 실행 (전 사이트 URL을 우선순위 순으로 소비)
+make crawl SITE=unsplash          # Pioneer+Harvester 병행 크롤 (DURATION=10m 지정 가능, 기본 5m)
+make crawl-status                 # 크롤 상태 조회 (큐별 pending/done/dead, 봇 Pin 카운트)
 make show-map                     # Bot 그래프 시각화 (graph.html 생성)
 make fuguebot-progress            # Fuguebot 진행 현황/의존성 그래프 (fuguebot_graph.py)
 ```
