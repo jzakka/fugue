@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2372 — 봇: 모집단 동결 + census 포화 지속 (covered)
+
+- **축 선택**: rotation 봇. population 변화 여부 재검.
+- **프로브 결과**: 봇 모집단 동결 지속(diff 0줄, Makefile 봇 타겟 불변). census 포화 상태 유지(L25·L32·L172·L185·L191·L206·L235·L1361·2348 dead 임계값·2178 bot-visualize·harvester cycles 1000-1034). 활성 openspec 3건 in-progress 보류 유지 — cycle 2360 판정과 동일 근거.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation OpenSpec갭 cycle 2374 (직전 2362 covered). 활성 change 불변 시 신속 covered.
+
 ### cycle 2370 — 동시성: 모집단 동결 + census 포화 지속 (covered)
 
 - **축 선택**: rotation 동시성. population 변화 여부 재검.
