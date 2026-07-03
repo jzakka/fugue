@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2416 — 에러처리: 표면 불변 재검 → 신규 없음 (covered)
+
+- 축: 직전 에러처리 census(2404) 이후 에러처리 표면 변화.
+- 조사: `git log 22747864..origin/main -- apps/api Makefile .github/workflows` = 공백 (완전 불변). 에러 전파 경로·레시피·CI 게이트 무변화, 기존 anchor(2380/2344/L184) 전부 유효.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation 동시성 cycle 2418 (직전 2406 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2414 — 정합성: 모집단 변화 재검 → 외부 변경 없음 (covered)
 
 - 축: 직전 정합성 census(2402) 이후 모집단 표면 변화.
