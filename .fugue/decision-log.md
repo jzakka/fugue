@@ -39,6 +39,16 @@
 - 결정/변경: CLAUDE.md 수정(Processing). anti-patterns 추가 없음. 교훈: Processing 수정에서 코드 추적으로 얻은 사실(테이블명 등)을 문서에 옮길 때 원본 심볼을 재인용 검증할 것 — repository.go 주석("from DB")에서 테이블명을 추정 보간한 것이 오기 원인.
 - 차기: area = 에러처리 (6-area rotation 정합성→에러처리) → cycle 2186. 후보: docs/api-endpoints.md ↔ 라우터 표본 대조(이월분, 에러응답 계약 관점)·pioneerCmd 의 site 조회/생성 에러 경로 %w 정합(cycle 2174 동류 스캔)·bot.sql 신규 읽기 쿼리(ListScriptKeysForGraph 등) 호출부의 에러 분기.
 
+## 2026-07-03 — [design] cycle 2611 Discovery — aesthetic 310th round: 기본 분리형(RGB 채널별 산술) 블렌드 모드(`mix-blend-mode: multiply`/`screen`/`overlay`/`darken`/`lighten`/`difference`/`exclusion`) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 310th round)에서 "겹친 카드/썸네일/오버레이가 하위 레이어와 곱셈·스크린·차이 합성되거나 일부 표면만 multiply/screen 블렌드를 걸고 동종은 normal 이라 합성 방식이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: aesthetic. cycle 2603 forward-pointer(mix-blend-mode isolation binding L853-distinct) 경유 → `mix-blend-mode` 블렌드 값 열거에서 *기본 분리형 산술* 모드(multiply/screen/overlay/darken/lighten/difference/exclusion)가 design-line subject 0건임을 확인 — L1297 은 *non-separable*(hue/saturation/color/luminosity)·L1301 은 닷지/번/라이트 계열·L482 는 BP-토글/존재만 다뤄 *기본 RGB-채널 산술* 값은 미carve → GROUP-멤버 distinct-dimension sub-carve.
+- MANDATORY 체크: (1) `mix-blend-mode`/`mix-blend-*`(및 multiply/screen/overlay/darken/lighten/difference/exclusion 값) apps/web/src·globals.css grep **0건**. (2) 카드/모달/네비 오버랩은 `bg-surface`/`bg-surface-elevated` 불투명 배경+`--shadow-card-hover`·backdrop-blur-sm(3곳)로 표현·하위 레이어와 채널별 산술 합성 idiom 부재 → 합성 대상 0, 블렌드 발현 조건 부재. (3) DESIGN.md(105줄) blend/multiply/screen/overlay grep **0건**·합성은 그림자+불투명 서피스만 규정 → silent.
+- 근거: 세 독립 0-조건(mix-blend code 0 + 기본-산술 블렌드 subject 모집단 0 + DESIGN blend silent)로 triply/pure vacuous. "겹치는 카드가 있으니 어떤 건 multiply 로 어둡게 섞이고 어떤 건 normal 이라 톤이 갈릴 것" 정적 추정은 FP — `mix-blend-mode` 0·겹침은 불투명 배경+그림자.
+- DESIGN.md 확인: 블렌드 모드 미규정. Decoration level Minimal — 작품 썸네일을 불투명 카드에 격리해 보여줌. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: 표면 폐기(코드 변경 0)이므로 브라우저 QA 비대상 — census 항목은 grep 기반 vacuity 검증으로 갈음(mix-blend grep 0 + 겹침 census 불투명/그림자 + DESIGN grep 0).
+- 비중첩: `mix-blend-mode` 의 **기본 분리형 산술 블렌드 값(`multiply`/`screen`/`overlay`/`darken`/`lighten`/`difference`/`exclusion` — 채널별 곱/반전/최소최대/차 합성)** 차원만 폐기 — L1297(non-separable hue/saturation/color/luminosity)·L1301(닷지/번/라이트 color-dodge/color-burn/soft-light/hard-light)·L482(mix-blend/bg-blend BP 반응형 토글·존재)·L561(`isolation` 스태킹 격리)·L1236(`color-layers()`)·L1250(`feBlend` SVG)과 별개.
+- 차기 aesthetic 재진입 후보: `-webkit-text-stroke-width`/`-color` longhand(획 두께/색 분리 지정 subj 재검)·`filter` 다중 함수 순차 체인(brightness()+contrast() 한 요소 파이프라인 순서 의존 — L535 는 함수 존재 census 라 distinct)·`background-blend-mode` 배경-레이어 간 블렌드(요소-간 mix-blend 와 구별되는 단일 요소 다중 배경 합성). 단 블렌드/text-stroke 미도입 전엔 동일 pure-vacuous.
+
 ## 2026-07-03 — [system] cycle 2182 Discovery — 보안: 6프로브 전수 무결·census 포섭 (covered-by-census)
 
 - **축 선택**: 보안 area 재진입 (6-area 로테이션 OpenSpec갭→보안, 직전 보안 = cycle 2170). cycle 2180 forward pointer 후보 3종 + 보조 프로브 3종 소진.
