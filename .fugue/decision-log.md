@@ -17,6 +17,15 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2152 covered-by-census — 동시성: sync/atomic 모집단 10파일·최근 7일 코드변경 3건 전수 기존 가드 커버
+
+- **결정**: covered-by-census (baseline 미등록·decision-log만). 동시성 94주기째 서베이 — apps/api 의 동시성 primitive 모집단과 최근 병합 코드 전수가 기존 census 에 매핑되어 신규 축 부재.
+- **축 선택**: 6-area rotation 에러처리→동시성 (94주기째). cycle 2150 forward-pointer 후보 4건 + 확장 스크리닝 결과 전부 커버.
+- **검증(서베이 전수)**: (1) `grep -rn 'go func|sync\.|atomic\.' internal cmd --include='*.go'`(비-test) 모집단 = **정확히 10파일**: harvester_consumer.go(atomic stats→L98·L149)·snapshot/metrics.go(mutex→L138·L227)·media_validator_metrics.go(map+atomic→L98·L138)·playwright_fetcher.go(watcher+mutex→L87·L183·L227)·host_rate_limiter.go(RWMutex+DCL→L138·L189·L227·cycle1834)·backoff.go(클로저 mu→L138)·robots_filter.go(single-flight→L138·L227)·goja_executor.go(timeout watcher→L87·L183)·adapter.go(RWMutex→L138)·cmd/server/main.go(serverErr buffered chan→L87·L183). (2) **forward-pointer 후보**: harvester HarvestStats 집계 = atomic counter 순차 설계(L149 명시)·image_cache 카운터/맵 = harvester 단일-goroutine 순차 경로라 sync primitive 자체가 0(L37·L149 순차성 판정 패턴)·pioneer visited map = L37 + cycle 2132 batch-local fix 로 프로세스-수명 맵 제거됨·snapshot store 동시쓰기 = 단일-goroutine + metrics mutex(L138·L227). (3) **확장 각도**: DB check-then-act(L126)·lease/SKIP LOCKED(census 34매치)·DB 풀 sizing(L435 MaxOpenConns 25/5)·outbound HTTP client 재사용(L446)·time.After 타이머(L215)·WaitGroup/errgroup 부재(L149 모집단 0)·RWMutex 업그레이드(L162)·HTTP 핸들러 공유상태(L201 Redis Lua 원자)·mutex-free map(L37·L62). (4) **최근 7일 병합 코드 3건 신규 동시성 표면 0**: d7abd3cd(cycle 2132 CanonicalDedupFilter batch-local seen — 단일 goroutine 맵)·192f880e(og_data 재동기화 — 동시성 무관)·c0435b6c(og 에러 메시지 — 동시성 무관).
+- **MANDATORY 체크**: census grep 수행 — sync.Once/atomic(L75·L98)·SetMaxOpenConns(L435)·SKIP LOCKED/lease(34매치)·snapshot store(L261/445/1048/1156/1172)·goja/playwright(50매치, L64·L87·L102·L183) 매치 엔트리 원문 READ 로 커버 확인.
+- **QA**: 서베이 전용 주기(코드 무변경)라 실행 검증 비대상.
+- **차기**: area = 봇 (6-area rotation 동시성→봇, 95주기째) → cycle 2154. 후보: bot/spec.md:562 배치 처리 통계 반환 계약↔HarvestStats 필드 정합(census 0건 — 봇/OpenSpec갭 겸용 이월)·192f880e og_data 재동기화 후속 표면(ThumbnailURL 등 다른 파생 필드 lockstep, cycle 1832 예외 (d) 각도)·image_cache TTL/용량 정책↔spec L854-887 정합 재확인. 이월(타 축): helm _helpers.tpl 부재 렌더 실패(정합성·helm 미설치라 미검증).
+
 ## 2026-07-03 — [system] cycle 2150 Processing — 에러처리: fetchHTMLShared Body.Close 경고의 fmt.Printf(stdout) 채널을 log.Printf 로 교정
 
 - **결정**: Processing (실결함 fix, confidence 3). bot/helpers.go:54 fetchHTMLShared 의 resp.Body.Close() 실패 경고가 `fmt.Printf("Warning: ...")` 로 **stdout에 무타임스탬프·무프리픽스로 출력**되어 bot 패키지 전체의 `log.Printf`(stderr·타임스탬프) 컨벤션과 어긋남 → `log.Printf("fetchHTMLShared: failed to close response body: %v", closeErr)` 로 교정 + `log` import 추가. 에러 자체는 로깅되고 있었으나(삼킴 아님) 잘못된 채널로 보고되는 에러처리 결함.
