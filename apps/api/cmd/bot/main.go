@@ -127,7 +127,7 @@ Examples:
 var pioneerCmd = &cobra.Command{
 	Use:   "pioneer <site>",
 	Short: "Run Pioneer crawler for a site",
-	Long:  "Pioneer explores sites and generates parsing scripts using AI.",
+	Long:  "Pioneer explores sites and enqueues discovered URLs into the harvester frontier.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		siteName := args[0]
