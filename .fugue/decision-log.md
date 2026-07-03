@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2234 — 정합성: go.mod go 지시문 ↔ Dockerfile/CI Go 버전 배선 대조 (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 정합성 (직전 2222). docs/api-endpoints↔라우터 전수 대조는 cycle 2196 기커버(이후 병합분에 라우트 변경 0) → fresh 축 = cycle 2232 의 go 1.26.1→1.26.4 범프 직후 빌드 배선 3면(go.mod ↔ Dockerfile ↔ CI) 대조 (census `golang:1.` 0건).
+- **프로브 결과**: apps/api/Dockerfile:1 `FROM golang:1.26-alpine`(마이너 고정 유동 태그, GOTOOLCHAIN 오버라이드 없음) — 최신 1.26.x 패치 자동 추종. .github/workflows/ci.yml:24-26 setup-go `go-version-file: apps/api/go.mod` — go.mod 직접 참조. 표기 불일치처럼 보이나 두 배선 모두 패치 범프에 수정 없이 자동 정합 → 결함 모집단 0.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "go.mod 패치 범프 ↔ 유동 태그/go-version-file 배선 표기 차이는 FP". 예외 조건: Dockerfile 패치 고정 태그 전환 또는 CI go-version 하드코딩 전환 시 재평가.
+- **재인용 검증**: PR #3073 CI(go-version-file 경로)가 1.26.4 로 실제 통과·병합됨 — 배선 자동 추종 실증.
+- **차기**: rotation 에러처리 cycle 2236 (직전 2224 — ctx.Canceled/ErrNoRows 기커버 확인). 후보: govulncheck 도입 이후 신규 코드 없음 → 에러처리 census 재진입 축 선정 필요.
+
 ### cycle 2232 — 보안: govulncheck 의존성 취약점 스캔 (판정: REAL — go 1.26.1→1.26.4·x/net v0.52.0→v0.55.0 업그레이드)
 
 - **축 선택**: rotation 보안 (직전 2220). 지정 후보 쿠키 속성(L186)·CORS(L192)는 census 선확인 결과 기커버 → fresh 축 = govulncheck 의존성 취약점 (census 0건, 루프 최초 스캔).
