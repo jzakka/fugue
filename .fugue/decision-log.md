@@ -17,6 +17,16 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2190 Discovery — 봇: CreateScript upsert DO UPDATE 부분 갱신(script_lang 누락) 후보 FP 반박 — NEW baseline
+
+- **축 선택**: 봇 area 재진입 (6-area 로테이션 동시성→봇, 직전 봇 = cycle 2178). cycle 2188 forward pointer 후보 3종 진행.
+- **프로브 결과**:
+  - (1) RegisterScriptAdaptersForActiveSites(script_adapter.go:151-175) 에러/스킵 계약: ListActive/hasAnyScript 실패 전부 `%w` 상향·스크립트 없는 사이트 skip→generic 폴백은 호출부 주석·로그("continuing with generic only")로 명시된 의도 설계 — **L1115**(어댑터 라우팅/폴백/identity baseline) 인접 포섭, 무결.
+  - (2) **bot_scripts upsert 축에서 FP 후보 발견→반박**: CreateScript(bot.sql:78-85)의 DO UPDATE SET 이 script_code/ai_model/updated_at 만 갱신하고 `script_lang` 누락 — 정적으로 "재-upsert 시 lang 표기 ↔ 코드 언어 드리프트" 로 보이나, **프로덕션 호출부 전수 0건(vacuous)**: 도달 site 는 인터페이스 선언(repository.go:38)·위임 구현(repository_impl.go:95-97)·sqlc 생성·mock/test 뿐. ON CONFLICT 키는 000019 UNIQUE(site_id,node_type)와 정확 정합·실행기는 GojaExecutor(JS 전용) 단일이라 lang 가변 전제도 부재. → FP, **NEW baseline** (anti-patterns EOF 등록, cycle 2190 baseline — 예외: 스크립트 쓰기 경로 신설+lang 가변/다언어 실행기 라우팅 시 등록 가능).
+  - (3) docs/api-endpoints.md ↔ 라우터 표본 대조: 봇 무관 축이라 정합성 area 로 재이월.
+- 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
+- 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
+
 ## 2026-07-03 — [system] cycle 2188 Discovery — 동시성: 3프로브 전수 무결·census 포섭 (covered-by-census)
 
 - **축 선택**: 동시성 area 재진입 (6-area 로테이션 에러처리→동시성, 직전 동시성 = cycle 2176). cycle 2186 forward pointer 후보 3종 소진.
