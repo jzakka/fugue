@@ -108,6 +108,13 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2619 Discovery — aesthetic 311th round: SVG 텍스트 가로 앵커 정렬 속성(`text-anchor` — 앵커 x 기준 start/middle/end 가로 정렬) 표면 폐기 (pure vacuous)
+- 결정: aesthetic 영역(4-area rotation tokens→aesthetic→responsive→states, 311th round)에서 "SVG 텍스트의 가로 앵커 정렬을 표면마다 다르게 정하거나 일부 SVG 텍스트만 `text-anchor: middle` 을 갖고 동종은 UA 기본(start)이라 앵커 정렬이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- Evidence (pure vacuous, 세 독립 0-조건): (1) `text-anchor`/`textAnchor` apps/web/src grep **0건**·SVG 텍스트 콘텐츠 `<text>`/`<textPath>`/`<tspan>` 전수 **0건** → 앵커점 기준 가로 정렬할 SVG 텍스트 자체가 없어 모집단 0. (2) 인라인 SVG 는 lucide path-only 아이콘 글리프뿐, 텍스트/숫자는 전부 HTML 요소 → SVG-텍스트-앵커 발현 조건 부재. (3) DESIGN.md(105줄) text-anchor/dominant-baseline/`<text>`/svg text grep **0건** → SVG 텍스트 가로 앵커 정렬 정책 silent.
+- group-member 전용 분리: `text-anchor` 는 L640(`dominant-baseline` — SVG 텍스트 *세로 baseline* 정렬) census 파라멘테셜에 group-member로 이름만 얹혀 있던 항목이었고, 여기서 *가로 앵커 정렬*(앵커 x 기준 start/middle/end)이라는 별개 차원으로 전용 baseline 분리. 비중첩: L1146(`alignment-baseline` 부모 기준선 정렬)·L1151(`glyph-orientation-vertical` 세로 글리프 회전각)·L538(`stroke-linecap`/`stroke-linejoin` 아이콘 선 끝/모서리 토큰)과 축 분리.
+- loop rule line 9(DESIGN/AGENTS/CLAUDE 미명시 취향은 이슈 아님) 적용: SVG `<text>` 미사용·text-anchor 선언 0 → divergence 0. 예외: 향후 인라인 SVG 안에 `<text>`/`<textPath>` 라벨/캡션 도입+일부만 text-anchor 지정으로 표면 간 실제 갈림 시 재평가.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2621, 289th round. 후보: responsive group-member 전용 분리 축(subj=0 full>0 브레이크포인트-접두 토글)·DESIGN Breakpoints(sm 500·md 800·lg 1200) 미farmed 세부 축.
+
 ## 2026-07-03 — [design] cycle 2617 Discovery — tokens 310th round: 하이픈 분할 최소-글자수 문턱 토큰(`hyphenate-limit-chars` — 단어 최소 글자수·분할점 앞/뒤 최소 글자수 게이트) 표면 폐기 (pure vacuous)
 - 결정: tokens 영역(4-area rotation tokens→aesthetic→responsive→states, 310th round)에서 "긴 단어의 하이픈 분할 문턱을 표면마다 다르게 정하거나 일부 텍스트만 `hyphenate-limit-chars` 로 분할 최소-글자수를 좁히고 동종은 UA 기본(auto)이라 분할 문턱이 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
 - Evidence (pure vacuous, 세 독립 0-조건): (1) `hyphenate-limit-chars`/`hyphenateLimitChars` apps/web/src grep **0건**·상위 스위치 `hyphens`/`hyphenate` 도 전수 **0건** → 자동 하이픈 분할을 켠 표면 자체가 없어 분할 문턱이 갈릴 모집단 0. (2) 본문은 가로쓰기 한국어/라틴이라 `hyphens: auto` 자동 하이픈네이션 비-사용 → 분할-게이트 발현 조건 부재(하이픈 분할 이벤트 0). (3) DESIGN.md(105줄) hyphen/하이픈/limit-chars/글자수 grep **0건** → 하이픈 분할 최소-글자수 문턱 정책 silent.
