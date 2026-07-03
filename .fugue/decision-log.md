@@ -17,6 +17,20 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2182 Discovery — 보안: 6프로브 전수 무결·census 포섭 (covered-by-census)
+
+- **축 선택**: 보안 area 재진입 (6-area 로테이션 OpenSpec갭→보안, 직전 보안 = cycle 2170). cycle 2180 forward pointer 후보 3종 + 보조 프로브 3종 소진.
+- **프로브 결과**:
+  - (1) cycle 2178 수정 문서(README/CLAUDE.md) diff 자격증명 스캔: `key|secret|token|password|credential` 추가 라인 0건 — 노출 없음.
+  - (2) bot-visualize DB 접속 경로: `os.Getenv("DATABASE_URL")`(main.go:40) 표준 env 로딩·하드코딩 시크릿 0건. Makefile show-map 의 .env export 는 로컬 개발 관용(admin 도구).
+  - (3) show-map HTML 신규 sink 유무: 시각화 코드(cmd/bot-visualize/·internal/bot/cmd/visualize/) 최종 변경 14055aca(2026-04-15)로 cycle 2146 XSS census(크롤데이터 소스→tooltip sink 체인 조사) 이후 diff 0건 — 신규 sink 없음.
+  - (4) cycle 2174 수정의 `%w` DB 에러 CLI 노출: merge 는 operator 전용 admin CLI(로컬 stderr)로 미인증 사용자 도달 경로 없음 — **L312**(backfill admin CLI 동일 논거) 동류.
+  - (5) 최근 non-loop 커밋 보안 표면: b6e3c82f/4e882744/eb0de274/3de891fa 전부 본 루프의 에러분기·문서 수정 — 신규 입력 경계 0건.
+  - (6) cycle 2166 수정의 env 값 에코: `fmt.Errorf("HARVESTER_MODE must be ... got %q", mode)`(main.go:224) — `%q` 인용으로 제어문자 이스케이프, 터미널 인젝션 불가.
+- **판정**: 신규 보안 표면 0·전 표면 census 포섭 → covered-by-census. anti-patterns 추가 없음.
+- 결정/변경: decision-log 항목만 추가.
+- 차기: area = 정합성 (6-area rotation 보안→정합성) → cycle 2184. 후보: bot/spec.md:417-426(HasScript SHALL) Scenario ↔ ListScriptKeysForGraph 쿼리 술어 정합·README 지원 사이트 목록 ↔ sourceRegistry(main.go:29-32) lockstep·docs/api-endpoints.md ↔ 라우터 등록 경로 표본 대조.
+
 ## 2026-07-03 — [system] cycle 2180 Discovery — OpenSpec갭: 3프로브 전수 무갭·census 포섭 (covered-by-census)
 
 - **축 선택**: OpenSpec갭 area 재진입 (6-area 로테이션 봇→OpenSpec갭, 직전 OpenSpec갭 = cycle 2168). cycle 2178 forward pointer 후보 3종을 순서대로 소진.
