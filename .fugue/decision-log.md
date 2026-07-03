@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2338 — OpenSpec갭: 활성 change/스펙 population 불변 (covered)
+
+- **축 선택**: rotation OpenSpec갭. 활성 change 3건(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring)과 스펙 14종 population 재검.
+- **프로브 결과**: `openspec validate --all` = 14 passed / 0 failed. openspec/changes/ 마지막 커밋 = 4c2e289b(cycle 1158 아카이브) 이후 불변. 활성 3건은 in-progress 라 보류 원칙 유지. 스펙↔코드 갭 census 는 capability 별 baseline(184 ratelimit·190 pin·202 profile·216 interaction·228 feed·234 pin필터·248 board·L53 pioneer fanout·L151 dedup 위임 등) 전부 유효 — 모집단 양쪽(스펙·코드) 불변으로 신규 갭 표면 없음.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄.
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 보안 cycle 2340 (직전 2328 covered). 신규 advisory 없으면 신속 covered.
+
 ### cycle 2336 — 봇: harvester 미디어 다운로드(ObjectStorageFetcher) 축 프로브 → L32 기커버 (covered)
 
 - **축 선택**: rotation 봇. harvester 미디어 다운로드/스냅샷 read-path(ObjectStorageFetcher ← harvester_frontier.snapshot_key)를 fresh 축 후보로 프로브.
