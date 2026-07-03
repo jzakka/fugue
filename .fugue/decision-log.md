@@ -955,6 +955,13 @@
 - 비중첩: `transform: scale`(비-reflow 시각 전용 배율, 레이아웃 박스 원본 유지) / L1090(@viewport min-zoom/max-zoom/user-zoom=뷰포트 at-rule 페이지 줌 범위) / L749(meta viewport user-scalable/zoom=페이지 뷰포트 줌) / L635(SVG vector-effect scale/zoom=도형 스트로크 기하) vs 본 축=요소 배율 확대가 레이아웃에 반영되어 주변 reflow 하는 zoom 속성(레이아웃 영향·적용 층위·대상 상이).
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2699, 321st round.
 
+## cycle 2699 — design/aesthetic 321st round (Discovery, 표면 폐기)
+- 축 선택: 필터 함수 체이닝·파이프라인 순서(둘 이상의 `filter`/`backdrop-filter` 함수를 한 값에 공백-나열할 때의 합성 순서 — `blur(4px) brightness(0.8)` 은 각 함수가 앞 함수 출력을 입력받아 왼→오 순차 파이프되어 나열 순서가 최종 결과를 바꿈; `blur() brightness()` ≠ `brightness() blur()` — 필터 함수를 하나만 쓰는 단일-필터와 달리 둘 이상 함수의 나열 순서로 후보정 파이프라인 합성). aesthetic 로테이션(tokens 2697 → aesthetic 2699)에서 색/톤 필터 함수 종류(L535)·drop-shadow(L597)·마스크·그라디언트·반사·SVG 등이 포화라, 아직 미등재인 *다중 필터 함수 나열 순서(합성 파이프라인)* 차원을 선택.
+- 프로브: (1) 다중 필터 함수 나열(`filter: fn() fn()`) apps/web/src·globals.css grep exit 1(0건) → 여러 함수를 파이프해 순서로 합성하는 표면 부재. (2) 유일 필터 사용은 단일 `backdrop-blur-sm` 3곳(VideoTrimModal:195·AddToBoardButton:236·NavBar:12)·전부 blur 함수 하나 → 두 함수 이상 나열 모집단 0. (3) `blur() brightness() saturate()` 순차 파이프 idiom 부재(단일 backdrop-blur 만). (4) DESIGN.md(105줄) filter/blur/필터 순서/파이프라인 grep 0(L83 그라디언트 배경 FP)·필터 합성 순서 silent.
+- 결정: 다중 필터 함수 체이닝 0(pure vacuous) + 유일 필터는 단일 backdrop-blur-sm 단일-함수 균일 → 필터 합성 순서 모집단 부재. loop 규칙 line 9 취향 문제(DESIGN 필터 체이닝 침묵)로 이슈 아님. anti-patterns 1줄 추가(cycle 2699 baseline)·표면 폐기.
+- 비중첩: L535(색/톤 필터 함수 종류 — 어느 함수가 존재/사용되나) / L597(drop-shadow 단일 필터 함수) / backdrop-filter(필터 적용 대상=배경 vs 요소) vs 본 축=둘 이상 함수를 한 값에 나열할 때의 파이프라인 순서 합성(함수 종류/단일 함수/적용 대상 아닌 다중 함수 나열 순서, 존재 vs 순서 층위 상이).
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2701, 299th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
