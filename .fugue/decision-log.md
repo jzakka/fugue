@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2194 — 보안: bot-visualize env 시크릿 로그·fetchHTMLShared UA/redirect 정책·helm secretKeyRef 대조 (판정: covered-by-census)
+
+- **축 선택**: area = 보안 (rotation: OpenSpec갭→보안). cycle 2192 forward pointer의 3후보를 프로브.
+- **프로브 결과**:
+  - (1) bot-visualize DATABASE_URL: `os.Getenv("DATABASE_URL")`(main.go:40) → 값 자체를 로그/에러에 echo하지 않음(:42 에러 메시지는 변수명만). 관리자/개발 CLI 표면은 census L312(admin CLI unreachable by unauth users) 기존 커버.
+  - (2) fetchHTMLShared UA/redirect: bot/spec.md:405 공유 HTTP 경계 계약(사이즈 제한·리다이렉트 제한·타임아웃·User-Agent)과 helpers.go 구현 일치(SSRF-safe factory, ConnectTimeout 5s/TotalTimeout 10s/MaxRedirects 5). redirect hop별 재해소·사설 IP 거부는 harvester/spec.md:750-772 SHALL대로 CheckRedirect가 수행. 결함 없음.
+  - (3) helm cronjob-bot.yaml secretKeyRef: 차트에 Secret 매니페스트·Chart.yaml·values.yaml·_helpers.tpl 부재로 `helm template` 즉시 실패 — **cycle 2160 베이스라인 명시 커버**(배포 매니페스트 완성도 L15 보류·target 아키텍처 기술). 예외 (c) 확인: Makefile·.github/workflows/에 helm 참조 0건 → 미해당. 시크릿의 out-of-band 관리(git 밖)는 보안상 양호.
+- **판정**: covered-by-census. (1) L312, (2) spec 정합 clean, (3) cycle 2160 baseline. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = 정합성 (rotation: 보안→정합성) → cycle 2196. **이월 이행**: docs/api-endpoints.md ↔ 라우터(chi routes) 표본 대조 (cycle 2184/2190에서 2회 이월된 후보 — 이번에 반드시 수행). 보조 후보: README 구현 현황 체크박스 ↔ 실제 구현 대조.
+
 ### cycle 2192 — OpenSpec갭: validate 신선 재실행·어댑터 폴백 통계 계약·스크립트 upsert 계약 유무 (판정: covered-by-census)
 
 - **축 선택**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭). cycle 2190 forward pointer의 3후보를 그대로 프로브: (1) openspec validate --all 신선 재실행, (2) fix-harvester-adapter-fallback-counter 아카이브 여부·spec 측 카운터 계약 재점검, (3) bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 CreateScript 축의 spec 대응).
