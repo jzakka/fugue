@@ -62,10 +62,6 @@ cp .env.example .env
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: Google OAuth
 - `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`: Discord OAuth
 
-**Bot/Pioneer 사용 시 추가 필요**:
-- `AI_CLIENT_TYPE`: `cli` (기본, ChatGPT CLI 사용) 또는 `sdk` (OpenAI API)
-- SDK 모드 사용 시: `OPENAI_API_KEY`, `OPENAI_MODEL`
-
 ### 2. 실행
 
 ```bash
@@ -104,11 +100,7 @@ go run ./cmd/bot pioneer --help
 
 #### 환경변수
 
-Pioneer 실행 시 필수:
-- `OPENAI_API_KEY`: OpenAI API 키
-- `OPENAI_MODEL` (선택): 사용할 모델 (기본: gpt-4o)
-
-Harvester 실행 시:
+Pioneer/Harvester 실행 시:
 - Storage 및 DB 설정 필요 (`.env` 참조)
 
 

@@ -17,6 +17,18 @@
 
 ## 항목
 
+### cycle 2228 — 봇: 제거된 AI 클라이언트 잔존 문서 참조 (판정: REAL defect → Processing)
+
+- **축 선택**: rotation 봇 (직전 2216). cycle 2226 forward pointer "미조사 표면 재탐색" — AI_CLIENT_TYPE 이 census 0건 fresh 축.
+- **프로브 결과** (재인용 검증: 코드·이력·문서 3면 실측):
+  - 코드: `OPENAI|AI_CLIENT|chatgpt|gpt-4` case-insensitive grep — apps/api 비테스트 .go 전수 0건. exec.Command 사이트도 graphviz dot·ffprobe 뿐(외부 chatgpt CLI 호출 없음). 커밋 9dc467b0 "chore(bot): remove unused AI script generation path" 가 제거 이력 확증 (anti-patterns L29 워크트리 베이스 검증 이행).
+  - 문서 잔존: README.md:64-67 "Bot/Pioneer 사용 시 추가 필요: AI_CLIENT_TYPE·OPENAI_API_KEY/MODEL"·README.md:104-109 "Pioneer 실행 시 필수: OPENAI_API_KEY"·.env.example:22-28 AI Model Configuration 블록·cmd/bot/main.go:130 CLI help "generates parsing scripts using AI".
+  - openspec 매치는 changes/archive/ 뿐(사적 이력 기록이라 수정 금지)·live spec 0건.
+- **판정**: REAL (confidence 3) — 사용자가 존재하지 않는 필수 env(OpenAI API 키)를 준비하도록 오도하는 stale 문서. cycle 2208/2222 와 동형의 문서 정확성 결함, 봇 표면(봇 env 문서는 cycle 2216 HARVESTER_MODE 선례).
+- **수정**: README 2개 블록 삭제(환경변수 섹션은 "Pioneer/Harvester 실행 시: Storage 및 DB 설정 필요" 로 통합)·.env.example AI 블록 삭제·cmd/bot/main.go:130 help 를 실동작("enqueues discovered URLs into the harvester frontier") 로 교체.
+- **QA**: 실 실행 — OPENAI/AI env 전무 상태(`env -i`)에서 `go run ./cmd/bot pioneer --help` 정상 동작 + 수정된 help 출력 확인. `go build ./...` 통과.
+- **차기**: rotation OpenSpec갭 → cycle 2230. 활성 change 3건 재스캔 + 신규 병합분 spec 정합 재검 후보.
+
 ### cycle 2226 — 동시성: 동기화 프리미티브 인벤토리 freshness 재검 (판정: covered-by-census)
 
 - **축 선택**: rotation 동시성 (직전 2214). cycle 2224 forward pointer 지정 — sync.Once/atomic 사용 규율·신규 병렬화 도입 여부 재스캔.
