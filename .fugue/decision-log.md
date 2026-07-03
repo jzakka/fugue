@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2272 — 에러처리: 에러 경로 모집단 불변 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 에러처리 (직전 2260 covered). forward pointer: apps/api·apps/web/src 병합분 부재 지속 시 신속 covered.
+- **프로브 결과**: `git diff --stat 1dbad2a2..origin/main -- apps/api apps/web/src` = 0건 재실측 — #3085 이후 병합분은 census 파일(#3089-#3099)·의존성 범프(#3090, package.json/lock만)·design-loop 표면 폐기뿐. 에러 경로 모집단 불변, 기존 census 축(%w L35·discard L147·Body.Close L136·ErrNoRows L225·JSON decode L195·응답 encode L360) 전부 유효.
+- **판정**: covered — 신규 에러 경로 표면 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 동시성 cycle 2274 (직전 2262 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2270 — 정합성: 문서 스위트 상대 링크 무결성 전수 검사 (판정: NEW baseline — FP 반박)
 
 - **축 선택**: rotation 정합성 (직전 2258 — Node 배선 baseline). fresh 축 = 문서 스위트(README·CLAUDE·AGENTS·docs/**) 상대 마크다운 링크 무결성 (census `링크 무결`/`broken link` 0건).
