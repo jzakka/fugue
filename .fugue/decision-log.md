@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2268 — 보안: 웹 프록시 바디 상한(proxyClientMaxBodySize 500mb) ↔ API 바디 캡 정합 (판정: NEW baseline — FP 반박)
+
+- **축 선택**: rotation 보안 (직전 2256 — npm audit REAL). npm audit/govulncheck 재스캔은 신규 advisory 시에만 fresh → fresh 축 = next.config.ts `experimental.proxyClientMaxBodySize: "500mb"` (census `proxyClientMaxBodySize` 0건). rewrites 가 /api/:path* 를 Go API 로 프록시하는 경로의 바디 크기 방어선 정합.
+- **프로브 결과**: (1) 정적 후보 — "프론트 프록시가 500MB 까지 통과시켜 바디 DoS 표면". (2) 반박 — API 측이 전 mutation 핸들러에서 `http.MaxBytesReader` 로 스풀-전 거절(pin:82 requestBodyCap·boards:131/314/542·creator:169, L156/L192 기등재)하고 storage 가 per-type 상한(image 10M/audio 50M/video 100M)을 강제 → 프록시 통과분도 API 캡에서 절단. (3) 500mb 는 무제한이 아니고 API 최대 정당 업로드(video 100MB) 이상이라 정당 요청 차단도 없음. 프록시 캡을 API 캡과 동일치로 조이는 것은 미규정 하드닝(L429 선례) — 어느 문서도 SHALL 없음.
+- **판정**: NEW baseline (anti-patterns EOF 등재) — "웹 프록시 바디 상한이 API 캡보다 크다는 후보는 FP (API 가 스풀-전 강제)". 예외: API 캡이 500mb 초과로 상향(정당 요청 차단)·프론트 캡 무제한화+API 캡 제거 동시 발생 시 재평가.
+- **차기**: rotation 정합성 cycle 2270 (직전 2258 — Node 배선 baseline). fresh 축 탐색 필요.
+
 ### cycle 2266 — OpenSpec갭: 활성 change·validate 불변 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation OpenSpec갭 (직전 2254 covered). forward pointer: 활성 change 변동 시에만 재검.
