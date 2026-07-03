@@ -153,7 +153,10 @@ var pioneerCmd = &cobra.Command{
 		siteRepo := bot.NewSiteRepo(infra.DB)
 		site, err := siteRepo.GetByDomain(ctx, domain)
 		if err != nil {
-			return fmt.Errorf("site not found in database: %s (domain: %s)", siteName, domain)
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("site not found in database: %s (domain: %s)", siteName, domain)
+			}
+			return fmt.Errorf("failed to look up site %s (domain: %s): %w", siteName, domain, err)
 		}
 
 		log.Printf("fuguebot: found site: %s (id: %s)", domain, site.ID)
