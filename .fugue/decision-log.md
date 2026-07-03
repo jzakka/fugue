@@ -17,6 +17,16 @@
 
 ## 항목
 
+### cycle 2206 — 보안: search SQL 바인딩·CLI %q quoting·og SSRF 재확인 (판정: covered-by-census)
+
+- **축 선택**: area = 보안 (rotation: OpenSpec갭→보안). cycle 2204 forward pointer의 3후보를 프로브.
+- **프로브 결과**:
+  - (1) search pg_trgm/ILIKE 쿼리군(db/queries/search.sql): 전 쿼리가 sqlc `$1` 파라미터 바인딩 — 문자열 보간 0건, ILIKE도 `'%' || $1 || '%'` 바인딩 concat이라 SQL 주입 불가. search 쿼리군 정합은 census **L231** 커버.
+  - (2) cmd/bot CLI env 파싱 %q quoting: cycle 2182 보안 사이클에서 기수행(6프로브 clean) — 그 이후 cmd/bot 변경은 cycle 2174/2186 에러처리 수정(errors.Is 분기)뿐으로 quoting 표면 불변.
+  - (3) og fetch SSRF: `git log -- internal/og/` 최신 커밋이 PR #2579(SSRF 내부 IP 누출 수정, census 반영 완료)로 이후 무변경 — **L209** 커버 유효, 예외조건 미발동.
+- **판정**: covered-by-census. 신규 결함·신규 베이스라인 없음.
+- **차기**: area = 정합성 (rotation: 보안→정합성) → cycle 2208. 후보: README 구현 현황 체크박스 ↔ 실제 구현 대조(cycle 2194 이월 보조 후보)·docs/erd.md ↔ migrations 표본 대조·AGENTS.md API 열거 ↔ api-endpoints.md 상호 정합(cycle 2196 신규 추가분 반영 여부).
+
 ### cycle 2204 — OpenSpec갭: 아카이브 change spec 델타 미승격 ↔ 안정 spec suite 정합 (판정: NEW baseline)
 
 - **축 선택**: area = OpenSpec갭 (rotation: 봇→OpenSpec갭). cycle 2202 forward pointer 3후보 프로브 중 (3) "search capability 계약 유무"에서 fresh 축 발견: 아카이브된 change의 spec 델타가 openspec/specs/에 미승격.
