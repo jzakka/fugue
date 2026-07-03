@@ -17,6 +17,14 @@
 
 ## 항목
 
+### cycle 2382 — 동시성: 모집단 변화분(seed SQL) 원자성 점검 → 결함 없음 (covered)
+
+- 축: 직전 동시성 census(2370) 이후 모집단 변화분의 동시 접근 안전성.
+- 조사: apps/api Go 코드 0줄 불변 → 기존 동시성 anchor 전부 유효 (L52/L87 goroutine, L62 context, L126 frontier FOR UPDATE SKIP LOCKED, cycle 2250 race detector). 유일 변화 = seed 타겟 복원(22747864).
+- 검증: seed.sql(:5 BEGIN, :8 TRUNCATE CASCADE, :121 COMMIT)·seed_tags.sql(:4/:6/:173) 모두 단일 트랜잭션 → TRUNCATE+INSERT 원자적, 동시 리더는 구/신 상태만 관찰하고 부분 상태 없음. 수동 전용 타겟(dev/ensure-infra 미호출, TRUNCATE 경고 출력)이라 자동 경로와의 경합 없음.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation 봇 cycle 2384 (직전 2372 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2380 — 에러처리: 모집단 변화분(seed 레시피) 에러 전파 점검 → 결함 없음 (covered)
 
 - 축: 직전 에러처리 census(2368) 이후 모집단 변화분의 에러 전파 정책.
