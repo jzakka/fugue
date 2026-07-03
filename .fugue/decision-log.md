@@ -17,6 +17,17 @@
 
 ## 항목
 
+## 2026-07-03 — [system] cycle 2188 Discovery — 동시성: 3프로브 전수 무결·census 포섭 (covered-by-census)
+
+- **축 선택**: 동시성 area 재진입 (6-area 로테이션 에러처리→동시성, 직전 동시성 = cycle 2176). cycle 2186 forward pointer 후보 3종 소진.
+- **프로브 결과**:
+  - (1) 최근 merge 커밋 goroutine/channel diff: cycle 2176 점검 이후 유입 커밋(2174/2178/2180/2182/2184/2186 본 루프 + design-loop 문서) 전부 에러분기·문서 수정 — 신규 동시성 구조물 0건.
+  - (2) NewSiteRepo(infra.DB) vs infra.Queries 혼용(main.go:153 vs :440): NewSiteRepo 는 동일 *sql.DB 위에 db.New() 무상태 sqlc 래퍼를 재생성(repository_impl.go:17-19) — database/sql 풀(MaxOpenConns 5)은 goroutine-safe 계약이고 sqlc Queries 는 DBTX 보유 무상태라 공유 race 성립 불가. 래퍼 이중 생성은 "더 깔끔할 수도" 취향 영역·결함 아님.
+  - (3) 전체 go func census: apps/api non-test `go func` 3건 — cycle 2164 GOPOP 기준선과 동일(불변). **L87**(go func spawn 존재만으로 leak 후보 금지) 포섭.
+- **판정**: 신규 동시성 표면 0 → covered-by-census. anti-patterns 추가 없음.
+- 결정/변경: decision-log 항목만 추가.
+- 차기: area = 봇 (6-area rotation 동시성→봇) → cycle 2190. 후보: docs/api-endpoints.md ↔ 라우터 표본 대조(2184 이월분, 봇 무관 시 정합성 재이월)·RegisterScriptAdaptersForActiveSites(main.go:244) 에러/스킵 계약·bot_scripts UNIQUE(site_id,node_type) ↔ 스크립트 upsert 경로 정합.
+
 ## 2026-07-03 — [system] cycle 2186 Processing — 에러처리: pioneerCmd GetByDomain 에러 폐기·원인 오진 수정 (cycle 2174 동류 잔존분)
 
 - **축 선택**: 에러처리 area 재진입 (6-area 로테이션 정합성→에러처리, 직전 에러처리 = cycle 2174). cycle 2184 forward pointer 후보 "pioneerCmd 의 site 조회/생성 에러 경로 %w 정합(cycle 2174 동류 스캔)" 채택.
