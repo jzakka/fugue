@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2342 — 정합성: Makefile 타겟 전수 ↔ AGENTS.md 문서 대조 (REAL, doc 수정)
+
+- **축 선택**: rotation 정합성. cycle 2282(seed 단건)·2294(pioneer/harvester 표기 단건)와 달리 루트 Makefile 타겟 **전수**(23개) ↔ AGENTS.md Makefile 섹션(18개)의 양방향 대조는 미실시 — fresh 축.
+- **프로브 결과**: AGENTS.md 기재 18개 타겟 전부 Makefile 존재(역방향 갭 0). 미문서화 5개 중 3개는 내부 헬퍼(ensure-infra=crawl prerequisite·dev-kill=dev prerequisite·fuguebot-graph=fuguebot-progress 말미 호출)라 문서화 불요. **crawl·crawl-status 2개는 Usage 문자열·상태 리포트까지 갖춘 최상위 사용자 명령**인데 Bot 크롤러 섹션(나머지 4개 전부 나열)에 누락 — 2282/2294와 동일 doc 결함 클래스.
+- **판정**: REAL(신뢰도 3). AGENTS.md Bot 크롤러 섹션에 `make crawl SITE=...`(DURATION 옵션, 기본 5m)·`make crawl-status` 2줄 추가.
+- **QA(실행 기반)**: `make crawl`(SITE 미지정) → ensure-infra 후 Usage 출력+exit 2 확인. `make crawl-status` → postgres 미기동 시 graceful 안내 exit 0, 기동 시 큐별 pending/done/dead + bot_pins 카운트 리포트 정상 출력. `make dev-stop` 원상 복구(잔여 컨테이너 0).
+- **차기**: rotation 에러처리 cycle 2344 (직전 2332 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2340 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - **축 선택**: rotation 보안. 의존성 advisory 게이트(npm audit·Go 의존성) 재검.
