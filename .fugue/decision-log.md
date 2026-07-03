@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2266 — OpenSpec갭: 활성 change·validate 불변 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation OpenSpec갭 (직전 2254 covered). forward pointer: 활성 change 변동 시에만 재검.
+- **프로브 결과**: (1) `openspec/changes/` 활성 3건 불변(fix-harvester-adapter-fallback-counter·fix-harvester-wire-media-validator·fix-scheduler-host-rate-limiter-config-wiring). (2) `openspec validate --all` = 14 passed / 0 failed. (3) 2254 이후 병합분(#3090 next 범프·#3092-#3095 census 파일)은 capability 행위 변경 0 → spec 정합 재검 대상 없음.
+- **판정**: covered — 신규 결함·신규 baseline 없음.
+- **차기**: rotation 보안 cycle 2268 (직전 2256 — npm audit REAL). npm audit/govulncheck 재스캔은 신규 advisory 시에만 fresh — 다른 신선 보안 축 필요 (후보: 웹 next.config.ts 보안 헤더 표면·의존성 lockfile 무결성 census).
+
 ### cycle 2264 — 봇: 모집단 불변 + 후보 축(bot-visualize 플래그 실행 정합) 기커버 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 봇 (직전 2252 covered). forward pointer 후보 = bot-visualize CLI 플래그 조합 실행 검증.
