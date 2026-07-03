@@ -16,6 +16,14 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2334 — 동시성: graceful-shutdown serverErr 채널 축 프로브 → L52/L87 기커버 (covered)
+
+- **축 선택**: rotation 동시성. cmd/server/main.go graceful-shutdown 경로(signal.NotifyContext + serverErr 채널 + srv.Shutdown)의 채널/goroutine lifecycle 을 fresh 축 후보로 프로브.
+- **프로브 결과**: anti-patterns L52(cycle 674 — "make(chan T,N) 버퍼 채널 단일 send·close 부재 = graceful-shutdown serverErr 패턴")와 L87(cycle 712 — "main.go:231 graceful-shutdown run: serverErr:=make(chan error,1) 버퍼 1이라 select ctx.Done 분기에도 send 비블록, 누수 불가")가 해당 축을 명시 커버. L62(cycle 686)가 NotifyContext cancel 수명도 커버.
+- **모집단 확인**: `git diff --stat 1dbad2a2..origin/main -- apps/api` = 0줄. 동시성 기존 census: cycles 662/674/686/698/712/724/736/748 + L233(848 OAuth state GETDEL) + 2250(race detector 전 패키지 통과).
+- **판정**: covered. 신규 등록 없음.
+- **차기**: rotation 봇 cycle 2336 (직전 2324 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2332 — 에러처리: ratelimit Redis 장애 fail-open 축 프로브 → L184 기커버 (covered)
 
 - **축 선택**: rotation 에러처리. 직전 cycle 2330 QA에서 실측한 rate limiter(internal/auth/ratelimit.go)의 Redis 장애 시 에러 경로(fail-open/fail-closed)를 fresh 축 후보로 프로브.
