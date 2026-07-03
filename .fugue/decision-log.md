@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2274 — 동시성: 프리미티브 인벤토리 불변 재확인 (판정: covered-by-census)
+
+- **축 선택**: rotation 동시성 (직전 2262 covered). forward pointer: 모집단 불변 지속 시 신속 covered.
+- **프로브 결과**: apps/api 병합분 0건 지속(cycle 2272 재실측) — goroutine/mutex/channel/atomic 인벤토리(L87/L138/L183/L361/L421) 불변, cycle 2250 `go test -race ./...` 668 pass·DATA RACE 0 증거 동일 코드에 유효.
+- **판정**: covered — 신규 동시성 표면 0, 신규 결함·신규 baseline 없음.
+- **차기**: rotation 봇 cycle 2276 (직전 2264 covered). 봇 모집단 불변 지속 시 신속 covered — fresh 축 시도 시 후보: helm cronjob-bot 스케줄↔문서 정합(L15 배포 매니페스트 보류 범위 확인 필요).
+
 ### cycle 2272 — 에러처리: 에러 경로 모집단 불변 재확인 (판정: covered-by-census)
 
 - **축 선택**: rotation 에러처리 (직전 2260 covered). forward pointer: apps/api·apps/web/src 병합분 부재 지속 시 신속 covered.
