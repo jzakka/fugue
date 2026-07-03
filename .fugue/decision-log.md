@@ -47,6 +47,16 @@
 - 결정/변경: anti-patterns 1줄 추가(cycle 2190 baseline)·decision-log 항목 추가.
 - 차기: area = OpenSpec갭 (6-area rotation 봇→OpenSpec갭) → cycle 2192. 후보: openspec validate --all 신선 재실행·harvester spec 의 어댑터 폴백 통계(fix-harvester-adapter-fallback-counter 아카이브 여부) 재점검·bot/spec.md 스크립트 upsert 계약 유무(cycle 2190 축의 spec 측 대응).
 
+## 2026-07-03 — [design] cycle 2615 Discovery — states 287th round: WebKit 미터 게이지 준최적·최악 구간 값-채움 의사요소(`::-webkit-meter-suboptimum-value`/`::-webkit-meter-even-less-good-value`) 표면 폐기 (pure vacuous)
+- 결정: states 영역(4-area rotation tokens→aesthetic→responsive→states, 287th round)에서 "`<meter>` 게이지의 경고/위험 구간 채움을 브랜드 색으로 커스텀하거나 일부 미터만 suboptimum/even-less-good 을 스타일하고 동종은 UA 기본 노랑/빨강이라 게이지 구간색이 표면마다 갈리는지" 후보 → **표면 폐기(0-candidate census), 신규 코드 변경 없음**(anti-patterns 1줄 append + decision-log 기록·apps/web 무변경).
+- 축 선택: states. 미터 게이지 값-채움 의사요소군에서 준최적(경고)·최악(위험) 구간 형제(`::-webkit-meter-suboptimum-value`/`::-webkit-meter-even-less-good-value`)가 design-line subject 0건임을 확인 — L1133 은 `::-webkit-meter-optimum-value`(*최적/초록 구간* 채움)를 subject 로 삼고 이 둘을 형제로 *언급만* 하며 code 0 명시·L1122 는 `::-moz-meter-bar`(트랙 배경) → 경고/위험 *구간별 값-채움* 은 미carve → L1133 parenthetical 이 GROUP-멤버로 명명한 distinct-dimension(구간 zone 채움) sub-carve.
+- MANDATORY 체크: (1) `::-webkit-meter-suboptimum-value`/`::-webkit-meter-even-less-good-value`(및 host `<meter>`) apps/web/src grep **0건**. (2) 정량(재생시간/카운트)은 텍스트(`font-mono` tabular-nums)·아이콘·불투명 바로 표현·`<meter high low optimum>` 게이지 위젯 부재 → 구간 채움 대상 0, 발현 조건 부재. (3) DESIGN.md(105줄) meter/gauge/게이지 grep **0건**·상태색은 Semantic(warning #FFB800·error #FF3B30) 토큰뿐 meter 매핑 부재 → silent.
+- 근거: 세 독립 0-조건(meter-suboptimum/even-less-good code 0 + 구간 값-채움 subject 모집단 0 + DESIGN meter silent)로 triply/pure vacuous. "Semantic warning/error 색이 있으니 어떤 미터는 경고를 노랑·위험을 빨강 커스텀하고 어떤 건 UA 기본이라 갈릴 것" 정적 추정은 FP — `<meter>`·suboptimum/even-less-good 0·정량은 텍스트/불투명 바.
+- DESIGN.md 확인: 미터 게이지 구간색 미규정. loop-design.md L9 "셋 중 어느 것도 명시하지 않은 취향 문제는 이슈가 아니다".
+- QA: 표면 폐기(코드 변경 0)이므로 브라우저 QA 비대상 — census 항목은 grep 기반 vacuity 검증으로 갈음(meter-suboptimum grep 0 + 정량표시 census 텍스트/불투명 바 + DESIGN grep 0).
+- 비중첩: WebKit 미터의 **준최적·최악 구간 값-채움 의사요소(`::-webkit-meter-suboptimum-value`/`::-webkit-meter-even-less-good-value` — 경고/위험 zone 채움)** 차원만 폐기 — L1133(`::-webkit-meter-optimum-value` 최적 구간 채움)·L1122(`::-moz-meter-bar` 트랙 배경)·L1084(`::-webkit-media-controls` 미디어 컨트롤)·L334/L467(`accent-color` 강조색 토큰)과 별개.
+- 차기 states 재진입 후보: `::-webkit-meter-inner-element`(미터 최외곽 shadow 래퍼 — progress-inner-element L1143 의 meter 대응·designLineHits=0)·`::-moz-meter-bar` 의 값-채움 대응(Firefox 는 meter 채움을 별도 pseudo 없이 -moz-meter-bar 에 그림 — 엔진차 dimension)·`:state()` custom state via CustomStateSet(anySubj=2 어느 축 carve 확인). 단 `<meter>` 위젯 미도입 전엔 동일 pure-vacuous.
+
 ## 2026-07-03 — [system] cycle 2188 Discovery — 동시성: 3프로브 전수 무결·census 포섭 (covered-by-census)
 
 - **축 선택**: 동시성 area 재진입 (6-area 로테이션 에러처리→동시성, 직전 동시성 = cycle 2176). cycle 2186 forward pointer 후보 3종 소진.
