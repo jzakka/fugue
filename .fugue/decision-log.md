@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2438 — 정합성: 모집단 변화 재검 → 외부 변경 없음 (covered)
+
+- 축: 직전 정합성 census(2426) 이후 모집단 표면 변화.
+- 조사: `git log 22747864..origin/main` 대상 표면(apps/api, docs/, AGENTS.md, README.md, Makefile) 커밋 여전히 3건(전부 루프 자체 픽스) — 신규 커밋 0건, apps/api 0줄 불변.
+- 판정: covered — 외부 변경 없음, 신규 불일치 없음.
+- 차기: rotation 에러처리 cycle 2440 (직전 2428 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2436 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
 
 - 축: 직전 보안 census(2424) 이후 advisory 게이트 변화.
