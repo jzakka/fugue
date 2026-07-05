@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2424 — 보안: 의존성 advisory 게이트 재검 → 신규 없음 (covered)
+
+- 축: 직전 보안 census(2412) 이후 advisory 게이트 변화.
+- 조사: `npm audit` = 2 moderate 잔존 (cycle 2256 residual 동일 — next 내장 postcss@8.4.31). 의존성 파일 마지막 커밋 여전히 5389b72e — 외부 변경 없음. Go 의존성 동결로 기존 스캔 결과 유효.
+- 판정: covered — 신규 advisory 없음.
+- 차기: rotation 정합성 cycle 2426 (직전 2414 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2422 — OpenSpec갭: validate 재검 → 상태 불변 (covered)
 
 - 축: 직전 OpenSpec갭 census(2410) 이후 스펙↔구현 갭 변화.
