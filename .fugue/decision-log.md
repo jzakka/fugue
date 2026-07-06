@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2468 — 봇: 크롤러 표면 불변 재확인 → 신규 결함 없음 (covered)
+
+- 축: apps/api/internal/bot, cmd/bot, openspec/ 봇 모집단 변동 여부
+- 조사: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ = 0건. 외부 변경 없음
+- 판정: 직전 봇 census(2456) 이후 표면 불변 → covered (FilterChain 순서, RobotsFilter fail-open, crawl-status graceful degradation 기존 확인 유지. 활성 change 3건 보류 지속)
+- 차기: rotation OpenSpec갭 cycle 2470 (직전 2458 covered). openspec validate 재실행 예정
+
 ### cycle 2466 — 동시성: Go 코드 표면 불변 재확인 → 신규 결함 없음 (covered)
 
 - 축: apps/api 동시성 모집단(고루틴/락/채널/트랜잭션) 변동 여부
