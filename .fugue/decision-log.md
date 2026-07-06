@@ -1431,6 +1431,13 @@
 - 비중첩: column-count/column-width(단 개수·폭)·column-span 2667(단-가로지르기 breakout)·column-rule(단 구분선)·column-gap(단 간격) vs 본 축=`column-fill`(단 트랙 간 콘텐츠 균등/순차 분배·높이 균형)로 멀티컬럼 속성 대상 상이.
 - 차기: area = states (4-area rotation responsive→states) → cycle 2727, 332th round.
 
+## cycle 2727 — design/states 332th round (Discovery, 표면 폐기)
+- 축 선택: 부분 관심 표명 상태 의사클래스(`:has-partial-interest` — Interest Invoker API(관심 호출자)에서 관심이 *부분적으로* 표명된 중간 상태에 매칭되는 의사클래스, 관심이 완전 발현되기 전 진행 중(터치 long-press 진행·계층적 부분 관심)인 관심-레벨 상태 훅). states 로테이션(responsive 2725 → states 2727)에서 상호작용/미디어/표시/전환 상태가 포화라, Interest Invoker 상태 중 L708 `:has-interest`(완전 관심)만 등재되고 미등재인 *부분 관심*(:has-partial-interest) 관심-레벨 차원을 선택.
+- 프로브: (1) `:has-partial-interest`/`partial-interest` grep src+globals.css **0건**·그 이전에 `has-interest` 전체·`interesttarget`/`interestfor` 관심 호출자 속성 코드 전수 **0건**(pure vacuous) — 부분 관심 상태로 스타일 분기하는 표면 자체가 없어 "일부만 :has-partial-interest 로 부분 관심 스타일·동종은 완전 관심·부분 관심 방식 갈림" 비정합 모집단 0. (2) 툴팁/디스클로저 힌트는 조건부 렌더+hover `transition-colors` 로만 처리·Interest Invoker(`interesttarget`/`interestfor`) 미도입 → 관심 호출자 표면 부재(mechanism-absent, Interest Invoker 는 브라우저 실험적 Open UI 초안). (3) L708 `:has-interest`(완전 관심 발현) 과 별개 상태 — 본 축은 *부분 관심*(관심이 발현 중이나 완전 트리거 전 중간 레벨)이라는 별개 관심-레벨 상태(완전 관심 ≠ 부분 관심). 상태 의사클래스 개별 carve 는 :playing/:buffering/:seeking(미디어 상태)·:open/:closed(개폐 상태) 선례와 동일 granularity(과분할 아님). (4) DESIGN.md(105줄) partial-interest/interest 관심 의사클래스 grep **0건**(L13/L103 "Reference sites"/Masonry 표는 무관) → silent(셋 중 미명시·loop 규칙 취향 문제).
+- 결정: 코드 변경 없음. `:has-partial-interest` 선언 0(pure vacuous)+Interest Invoker(관심 호출자) 표면 0(mechanism-absent) 이중 공허 — 부분 관심 상태 스타일 미도입은 미명시 enhancement 이지 cross-surface 비정합 결함 아님(loop rule §정체성). anti-patterns 1줄 등록·표면 폐기·PR 없음(0-후보).
+- 비중첩: L708 `:has-interest`(완전 관심 발현 상태) vs 본 축=`:has-partial-interest`(부분/중간 관심 레벨)로 관심-레벨 상이·:hover/:focus(입력 상태)·:open/:closed(개폐)·미디어 재생 상태와도 대상 상이.
+- 차기: area = tokens (4-area rotation states→tokens) → cycle 2729, 333th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
