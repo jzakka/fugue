@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2460 — 보안: 의존성 advisory 게이트 재검사 → 신규 없음 (covered)
+
+- 축: npm audit / dep 파일(go.mod, go.sum, package.json, package-lock.json) advisory 변동 여부
+- 조사: npm audit = 2 moderate (next-vendored postcss@8.4.31, cycle 2256 잔존과 동일). dep 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(2448) 이후 표면 불변, 신규 advisory 없음 → covered
+- 차기: rotation 정합성 cycle 2462 (직전 2450 covered). 모집단 불변 지속 시 신속 covered
+
 ### cycle 2458 — OpenSpec갭: 스펙 검증 재실행 → 신규 갭 없음 (covered)
 
 - 축: openspec/ 스펙-구현 갭 및 validate 게이트 변동 여부
