@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2486 — 정합성: 문서-코드 표면 불변 재확인 → 신규 결함 없음 (covered)
+
+- 축: docs/AGENTS.md/README.md/Makefile ↔ apps/api 정합성 모집단 변동 여부
+- 조사: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile = 루프 자체 커밋 3건만 존재. design-loop 커밋(981fa009)은 모집단 밖으로 확인
+- 판정: 직전 정합성 census(2474) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 2488 (직전 2476 covered). 모집단 불변 지속 시 신속 covered
+
 ### cycle 2484 — 보안: 의존성 advisory 게이트 재검사 → 신규 없음 (covered)
 
 - 축: npm audit / dep 파일(go.mod, go.sum, package.json, package-lock.json) advisory 변동 여부
