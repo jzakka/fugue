@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2506 — OpenSpec갭: 스펙/체인지 정합성 재검증 → 표면 불변 (covered)
+
+- 축: openspec validate --specs --changes 전수 재실행으로 스펙-체인지 정합성 회귀 여부 확인
+- 조사: openspec validate = 14 passed / 0 failed. openspec/ 마지막 커밋 4c2e289b 이후 변동 없음 (활성 체인지 3건 동결 유지)
+- 판정: 직전 OpenSpec갭 census(2494) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 2508 (직전 2496 covered). npm audit 재실행 예정
+
 ### cycle 2504 — 봇: 크롤러 표면 불변 재확인 → 신규 결함 없음 (covered)
 
 - 축: apps/api/internal/bot, cmd/bot, openspec/ 봇 모집단 변동 여부
