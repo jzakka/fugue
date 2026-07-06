@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2524 — 에러처리: 에러 경로 표면 변동 재확인 → 표면 불변 (covered)
+
+- 축: 22747864 이후 apps/api·Makefile·.github/workflows 변동 freeze check로 에러처리 경로 회귀 확인
+- 조사: git log 22747864..origin/main 해당 경로 = 0건. baseline 2344(Makefile || true 억제)·2348(dead threshold 중복) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(2512) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 2526 (직전 2514 covered). apps/api freeze check 예정
+
 ### cycle 2522 — 정합성: 문서-구현 표면 변동 재확인 → 표면 불변 (covered)
 
 - 축: 22747864 이후 apps/api·docs·AGENTS.md·README.md·Makefile 변동 freeze check로 문서-구현 정합성 회귀 확인
