@@ -1298,6 +1298,13 @@
 - 비중첩: @property(프로퍼티 정의)·@counter-style 2093(카운터)·@font-palette-values(팔레트)·@layer(레이어)·@custom-media(미디어질의)·@custom-selector 2649(셀렉터 별칭)·@position-try 1984(대체 위치) vs 본 축=`@sheet`(명명 *임베디드 스타일시트 전체* 정의)로 정의 대상 차원 상이.
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2715, 326th round.
 
+## cycle 2715 — design/aesthetic 326th round (Discovery, 표면 폐기)
+- 축 선택: 인라인 공간 채움 생성 콘텐츠 함수(`leader()` — `content: leader('.')`/`leader(dotted)` 로 두 인라인 콘텐츠 사이 남는 폭을 반복 문자·점선으로 채우는 CSS Generated Content 함수, 목차 "제목 ……… 페이지" 의 점선 리더 조판 도구). aesthetic 로테이션(tokens 2713 → aesthetic 2715)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소·`@page` 코너 마진박스(직전 aesthetic)가 포화라, 생성 콘텐츠 함수 계열 중 아직 미등재인 `leader()`(공간 채움 리더) 차원을 선택.
+- 프로브: (1) `leader(` grep src+globals.css **0건**(pure vacuous) — 남는 인라인 폭을 반복 패턴으로 채우는 리더 표면 자체가 없어 "일부만 leader() 로 채움·동종은 수동 점선·리더 방식 갈림" 비정합 모집단 0. (2) 목차/제목-값 나열은 flex `justify-between`+개별 텍스트로 처리·`content: leader()` 로 점선 채움 하는 곳 0·CSS Generated Content 리더 조판 표면 부재(mechanism-absent, `leader()` 는 브라우저 미구현 Paged Media 초안). (3) 생성 콘텐츠 값 함수 계열(counter() 2093·attr()·quotes·counters()) 과 별개 — 본 축은 *인라인 공간 채움* 리더 함수라는 별개 대상(카운터 값/속성 값/인용부호 삽입 ≠ 남는 폭 반복 채움). (4) DESIGN.md(105줄) leader/점선 채움/도트 리더 grep **0건** → silent(셋 중 미명시·loop 규칙 취향 문제).
+- 결정: 코드 변경 없음. `leader()` 선언 0(pure vacuous)+생성 콘텐츠 리더 조판 표면 0(mechanism-absent) 이중 공허 — 리더 미도입은 미명시 enhancement 이지 cross-surface 비정합 결함 아님(loop rule §정체성). anti-patterns 1줄 등록·표면 폐기·PR 없음(0-후보).
+- 비중첩: counter() 2093(카운터 값 삽입)·attr()(속성 값)·quotes/counters()(인용부호·중첩 카운터) vs 본 축=`leader()`(남는 인라인 폭 반복 패턴 채움)로 생성 콘텐츠 함수 대상 상이.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2717, 327th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
