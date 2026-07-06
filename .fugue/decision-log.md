@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2490 — 동시성: Go 코드 표면 불변 재확인 → 신규 결함 없음 (covered)
+
+- 축: apps/api 동시성 모집단(고루틴/락/채널/트랜잭션) 변동 여부
+- 조사: git log 22747864..origin/main -- apps/api = 0건. 외부 변경 없음
+- 판정: 직전 동시성 census(2478) 이후 표면 불변 → covered (2250 race detector 통과, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성 기존 확인 유지)
+- 차기: rotation 봇 cycle 2492 (직전 2480 covered). 모집단 불변 지속 시 신속 covered
+
 ### cycle 2488 — 에러처리: 표면 불변 재확인 → 신규 결함 없음 (covered)
 
 - 축: apps/api/Makefile/.github/workflows 에러처리 모집단 변동 여부
