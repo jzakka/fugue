@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2606 — 정합성: apps/api·docs 경로 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile 외부 변경 검사 (loop 자체 커밋 제외)
+- 조사: 0건. 코드·문서 표면 모두 baseline 22747864 이후 외부 변동 없음
+- 판정: 직전 정합성 census(2594) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 2608 (직전 2596 covered). apps/api·Makefile·workflows 경로 freeze check 예정
+
 ### cycle 2604 — 보안: npm audit 재실행 → 표면 불변 (covered)
 
 - 축: apps/web npm audit + 의존성 파일(package.json/lock, go.mod/sum) 외부 변경 검사
