@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2532 — 보안: 의존성 취약점 재감사 → 표면 불변 (covered)
+
+- 축: npm audit 재실행 및 의존성 매니페스트 변동 여부로 취약점 표면 회귀 확인
+- 조사: apps/web npm audit = 2 moderate (next 내장 postcss@8.4.31, cycle 2256 잔존 항목과 동일). 의존성 파일(package.json/lock, go.mod/sum) 마지막 커밋 5389b72e 이후 변동 없음
+- 판정: 직전 보안 census(2520) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 2534 (직전 2522 covered). 22747864 이후 apps/api·docs 변동 freeze check 예정
+
 ### cycle 2530 — OpenSpec갭: 스펙/체인지 정합성 재검증 → 표면 불변 (covered)
 
 - 축: openspec validate --specs --changes 전수 재실행으로 스펙-체인지 정합성 회귀 여부 확인
