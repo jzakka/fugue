@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2568 — 보안: npm audit 재실행 → 표면 불변 (covered)
+
+- 축: apps/web npm audit + 의존성 파일(package.json/lock, go.mod/sum) 외부 변경 검사
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31, cycle 2256 잔여분과 동일). 의존성 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(2556) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 2570 (직전 2558 covered). apps/api·docs 경로 freeze check 예정
+
 ### cycle 2566 — OpenSpec갭: openspec validate 재실행 → 표면 불변 (covered)
 
 - 축: openspec validate --specs --changes 전수 검증 + openspec/ 경로 외부 변경 검사
