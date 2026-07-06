@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2488 — 에러처리: 표면 불변 재확인 → 신규 결함 없음 (covered)
+
+- 축: apps/api/Makefile/.github/workflows 에러처리 모집단 변동 여부
+- 조사: git log 22747864..origin/main -- apps/api Makefile .github/workflows = 0건. 외부 변경 없음
+- 판정: 직전 에러처리 census(2476) 이후 표면 불변 → covered (2344 baseline: Makefile || true 억제, 2348 baseline: dead threshold 중복 유지)
+- 차기: rotation 동시성 cycle 2490 (직전 2478 covered). 모집단 불변 지속 시 신속 covered
+
 ### cycle 2486 — 정합성: 문서-코드 표면 불변 재확인 → 신규 결함 없음 (covered)
 
 - 축: docs/AGENTS.md/README.md/Makefile ↔ apps/api 정합성 모집단 변동 여부
