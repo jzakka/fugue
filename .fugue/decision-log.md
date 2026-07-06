@@ -1382,6 +1382,13 @@
 - 비중첩: `@supports`(기능 질의·else 없음)·`@media`(미디어 질의·else 없음)·`@container`(컨테이너 질의)·인라인 `if()`(값-레벨 조건 함수) vs 본 축=`@when`/`@else`(규칙-레벨 조건 그룹 *else-체인* 분기)로 조건 층위·else 유무 상이.
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2723, 330th round.
 
+## cycle 2723 — design/aesthetic 330th round (Discovery, 표면 폐기)
+- 축 선택: 하드-엣지 균등 색 띠 생성 이미지 함수(`stripes()` — CSS Images 4/5 초안의 이미지 생성 함수, `stripes(to right, red, blue 30%, green)` 처럼 보간 없는 단색 띠(band)를 균등·비례 크기로 나열해 하드-엣지 줄무늬 배경을 만드는 배너딩 이미지 프리미티브). aesthetic 로테이션(tokens 2721 → aesthetic 2723)에서 그라디언트(linear/radial/conic·repeating-*)·cross-fade·image-set·paint()·element()·마스크·필터·SVG 필터 프리미티브(feTurbulence/feColorMatrix 등)가 포화라, 이미지 생성 함수 계열 중 아직 미등재인 `stripes()`(하드-엣지 띠) 차원을 선택(직전 후보 리스트 log 5470/5524 forward-pointer 였고 실제 baseline 미처리 확인).
+- 프로브: (1) `stripes(` grep src+globals.css **0건**(pure vacuous) — 보간 없는 단색 띠 배경을 생성하는 표면 자체가 없어 "일부만 stripes() 로 줄무늬·동종은 repeating-gradient·띠 생성 방식 갈림" 비정합 모집단 0. (2) 배경/장식은 Tailwind 색 유틸(`bg-*`)+globals.css 토큰·그라디언트/줄무늬 배경조차 0 → 하드-엣지 띠 생성 이미지 표면 부재(mechanism-absent, `stripes()` 는 브라우저 미구현 CSS Images 초안). (3) 이미지 생성 함수 계열(linear/radial/conic-gradient 매끄러운 보간·repeating-*-gradient 반복 패턴·cross-fade() 이미지 혼합·image-set() 해상도 선택·paint() Houdini 워클릿·element() 요소-이미지) 과 별개 함수 — 본 축은 *보간 없는 하드-엣지 균등/비례 단색 띠* 라는 별개 대상(매끄러운 색 전이/반복 그라디언트/혼합/해상도 선택 ≠ 하드-엣지 띠). (4) DESIGN.md(105줄) stripes/줄무늬/스트라이프 grep **0건** → silent(셋 중 미명시·loop 규칙 취향 문제).
+- 결정: 코드 변경 없음. `stripes(` 선언 0(pure vacuous)+하드-엣지 띠 생성 이미지 표면 0(mechanism-absent) 이중 공허 — 띠 배경 미도입은 미명시 enhancement 이지 cross-surface 비정합 결함 아님(loop rule §정체성). anti-patterns 1줄 등록·표면 폐기·PR 없음(0-후보).
+- 비중첩: linear/radial/conic-gradient(매끄러운 색 보간)·repeating-*-gradient(반복 그라디언트 패턴)·cross-fade()(이미지 혼합)·image-set()(해상도 선택)·paint()(Houdini 워클릿)·element()(요소-이미지) vs 본 축=`stripes()`(보간 없는 하드-엣지 균등/비례 단색 띠)로 이미지 생성 함수 대상 상이.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2725, 331th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
