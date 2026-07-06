@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2640 — 보안: apps/web npm audit + dep 파일 freeze check → 표면 불변 (covered)
+
+- 축: apps/web npm audit 취약점 카운트 + package.json/package-lock.json 마지막 커밋 확인
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31, cycle 2256 잔여 baseline 동일). dep 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(2628) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 2642 (직전 2630 covered). apps/api·docs·AGENTS.md·README·Makefile 경로 freeze check 예정
+
 ### cycle 2638 — OpenSpec갭: validate 전체 통과 + openspec/ 불변 → 표면 불변 (covered)
 
 - 축: openspec validate --specs --changes 전체 검증 + openspec/ 경로 마지막 커밋 확인
