@@ -17,6 +17,13 @@
 
 ## 항목
 
+### cycle 2444 — 봇: 표면 불변 재검 → 신규 없음 (covered)
+
+- 축: 직전 봇 census(2432) 이후 봇 표면 변화.
+- 조사: `git log 22747864..origin/main -- apps/api Makefile` = 공백 — 크롤 엔진·Source 플러그인·frontier·크롤 레시피 완전 불변. 봇 anchor(L32/L206/L1361, 2344/2348 baseline, 2384/2396 점검) 전부 유효.
+- 판정: covered — 신규 결함 없음.
+- 차기: rotation OpenSpec갭 cycle 2446 (직전 2434 covered). 모집단 불변 지속 시 신속 covered.
+
 ### cycle 2442 — 동시성: 표면 불변 재검 → 신규 없음 (covered)
 
 - 축: 직전 동시성 census(2430) 이후 동시성 표면 변화.
