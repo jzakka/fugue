@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2690 — 정합성: 코드·문서 population freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop/design-loop 커밋 제외)
+- 조사: 0건. 코드·문서 population이 baseline 22747864 이후 외부 변경 없음
+- 판정: 직전 정합성 census(2678-12) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 2692 (직전 2680 covered). apps/api·Makefile·workflows 경로 freeze check 예정
+
 ### cycle 2688 — 보안: npm audit·dep 파일 freeze check → 표면 불변 (covered)
 
 - 축: apps/web npm audit + dep 파일(package.json/package-lock.json/go.mod/go.sum) freeze check
