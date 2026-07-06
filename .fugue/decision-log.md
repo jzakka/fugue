@@ -1410,6 +1410,13 @@
 - 비중첩: linear/radial/conic-gradient(매끄러운 색 보간)·repeating-*-gradient(반복 그라디언트 패턴)·cross-fade()(이미지 혼합)·image-set()(해상도 선택)·paint()(Houdini 워클릿)·element()(요소-이미지) vs 본 축=`stripes()`(보간 없는 하드-엣지 균등/비례 단색 띠)로 이미지 생성 함수 대상 상이.
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2725, 331th round.
 
+## cycle 2725 — design/responsive 331th round (Discovery, 표면 폐기)
+- 축 선택: 멀티컬럼 단-내용 채움 분배 속성(`column-fill: auto | balance | balance-all` — 멀티컬럼 컨테이너에서 콘텐츠를 단 트랙에 *순차로 채울지(auto)* 아니면 *모든 단에 균등 분배(balance)* 할지 정하는 단-내용 흐름 분배 속성, 다단 조판 시 콘텐츠 높이 균형을 제어하는 반응형 흐름 도구). responsive 로테이션(aesthetic 2723 → responsive 2725)에서 미디어 특성·컨테이너 쿼리·뷰포트 단위(논리 vi/vb L990)·`zoom`(L1386)·`@viewport`(L1090)·프래그멘테이션(break-inside/orphans/widows)이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 단-내용 채움 분배(column-fill) 차원을 선택(column-span 2667 은 breakout·본 축은 내용 분배로 별개).
+- 프로브: (1) `column-fill` grep src+globals.css **0건**·그 이전에 멀티컬럼 자체(`column-count`/`columns`/`column-width`) 코드 전수 **0건**(pure vacuous) — 단 트랙에 콘텐츠를 순차/균등 분배하는 표면 자체가 없어 "일부만 balance·동종은 auto·단 채움 방식 갈림" 비정합 모집단 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성·CSS Multi-column 조판 표면 부재 → 단-내용 분배 host 부재(mechanism-absent). (3) 멀티컬럼 패밀리(column-count/column-width 단 개수·폭·column-span 2667 단-가로지르기 breakout·column-rule 단 구분선·column-gap 단 간격) 과 별개 속성 — 본 축은 *단 트랙 간 콘텐츠 균등/순차 분배*(높이 균형)라는 별개 대상(단 개수/폭/breakout/구분선/간격 ≠ 내용 채움 분배). (4) DESIGN.md(105줄) column-fill/단 채움/멀티컬럼 grep **0건** → silent(셋 중 미명시·loop 규칙 취향 문제).
+- 결정: 코드 변경 없음. `column-fill` 선언 0(pure vacuous)+멀티컬럼 조판 표면 0(mechanism-absent) 이중 공허 — 단-내용 분배 미도입은 미명시 enhancement 이지 cross-surface 비정합 결함 아님(loop rule §정체성). anti-patterns 1줄 등록·표면 폐기·PR 없음(0-후보).
+- 비중첩: column-count/column-width(단 개수·폭)·column-span 2667(단-가로지르기 breakout)·column-rule(단 구분선)·column-gap(단 간격) vs 본 축=`column-fill`(단 트랙 간 콘텐츠 균등/순차 분배·높이 균형)로 멀티컬럼 속성 대상 상이.
+- 차기: area = states (4-area rotation responsive→states) → cycle 2727, 332th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
