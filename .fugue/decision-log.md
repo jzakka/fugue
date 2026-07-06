@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2458 — OpenSpec갭: 스펙 검증 재실행 → 신규 갭 없음 (covered)
+
+- 축: openspec/ 스펙-구현 갭 및 validate 게이트 변동 여부
+- 조사: openspec validate --specs --changes = 14 passed / 0 failed (기존 동일). openspec/ 마지막 커밋 4c2e289b 불변, 구현 모집단(apps/api)도 22747864 이후 0건
+- 판정: 직전 OpenSpec갭 census(2446) 이후 표면 불변 → covered (활성 change 3건 보류 지속)
+- 차기: rotation 보안 cycle 2460 (직전 2448 covered). npm audit 재실행 예정
+
 ### cycle 2456 — 봇: 크롤러 표면 불변 재확인 → 신규 결함 없음 (covered)
 
 - 축: apps/api/internal/bot, cmd/bot, openspec/ 봇 모집단 변동 여부
