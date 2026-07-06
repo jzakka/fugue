@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2614 — OpenSpec갭: openspec validate 재실행 → 표면 불변 (covered)
+
+- 축: openspec validate --specs --changes 전수 검증 + openspec/ 경로 외부 변경 검사
+- 조사: Totals: 14 passed, 0 failed (14 items). openspec/ 마지막 커밋 4c2e289b 불변, 활성 체인지 3건 보류 상태 유지
+- 판정: 직전 OpenSpec갭 census(2602) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 2616 (직전 2604 covered). npm audit 재실행 예정
+
 ### cycle 2612 — 봇: bot/openspec 경로 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ 외부 변경 검사
