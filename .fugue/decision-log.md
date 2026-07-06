@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2546 — 정합성: 문서-구현 표면 변동 재확인 → 표면 불변 (covered)
+
+- 축: 22747864 이후 apps/api·docs·AGENTS.md·README.md·Makefile 변동 freeze check로 문서-구현 정합성 회귀 확인
+- 조사: git log 22747864..origin/main 해당 경로 신규 외부 변경 0건. 잔여 커밋은 기준선 3건(c9c4e4a4, 4ab43b2e, e2cb3a80)뿐
+- 판정: 직전 정합성 census(2534) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 2548 (직전 2536 covered). apps/api·Makefile·workflows freeze check 예정
+
 ### cycle 2544 — 보안: 의존성 취약점 재감사 → 표면 불변 (covered)
 
 - 축: npm audit 재실행 및 의존성 매니페스트 변동 여부로 취약점 표면 회귀 확인
