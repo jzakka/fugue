@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2550 — 동시성: 동시성 표면 변동 재확인 → 표면 불변 (covered)
+
+- 축: 22747864 이후 apps/api 변동 freeze check로 동시성 관련 코드 회귀 확인
+- 조사: git log 22747864..origin/main -- apps/api = 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
+- 판정: 직전 동시성 census(2538) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 2552 (직전 2540 covered). bot·openspec 경로 freeze check 예정
+
 ### cycle 2548 — 에러처리: 에러 경로 표면 변동 재확인 → 표면 불변 (covered)
 
 - 축: 22747864 이후 apps/api·Makefile·.github/workflows 변동 freeze check로 에러처리 경로 회귀 확인
