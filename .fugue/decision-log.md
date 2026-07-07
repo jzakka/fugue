@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3052 — 에러처리: 코드·CI freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api Makefile .github/workflows
+- 조사: 0건. baseline 앵커(2344 Makefile || true 억제, 2348 dead threshold 중복) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(3040) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 3054 (직전 3042 covered). apps/api freeze check 예정
+
 ### cycle 3050 — 정합성: 코드·문서 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop/design-loop 커밋 제외)
