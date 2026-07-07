@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2768 — 봇: bot·openspec 경로 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ 카운트
+- 조사: 0건. census 앵커(FilterChain 순서 Domain→Extension→PathPattern→Robots→Dedup, RobotsFilter fail-open, crawl-status graceful degradation) 이후 신규 변동 없음
+- 판정: 직전 봇 census(2756-12) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 2770 (직전 2758 covered). openspec validate 전수 검증 예정
+
 ### cycle 2766 — 동시성: apps/api 경로 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api 카운트
