@@ -2831,6 +2831,13 @@
 - 비중첩: 선언형 커스텀 프로퍼티 `var(--)`(토큰 참조·38)·선언형 typed 등록 `@property`(17)·명령형 typed 등록 `CSS.registerProperty()`(cycle 2801·1)·문자열 `element.style` CSSOM(레거시 미타입) vs 본 축=CSS Typed OM(`attributeStyleMap`/`computedStyleMap` + `CSSUnitValue`/`CSS.px()` 수치 팩토리)으로 메커니즘·대상 상이(var()=선언 참조·@property=선언 프로퍼티 등록·registerProperty()=명령형 프로퍼티 등록·본 축=명령형 타입드 값 객체 표현/조작 — 프로퍼티 정의가 아닌 값 표현 계층·Typed OM 자체 미사용이라 pure vacuous).
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 2811, 374th round.
 
+## cycle 2811 — design/aesthetic 374th round (Discovery, 표면 폐기)
+- 축 선택: SVG `<foreignObject>` 이질-콘텐츠 임베딩 구성물(SVG 좌표 공간 안에 HTML/다른 네임스페이스 콘텐츠를 심어 SVG 아트워크와 리치 문서 콘텐츠를 합성하는 SVG DOM 구성물). aesthetic 로테이션(tokens 2809 → aesthetic 2811)에서 마스크·필터 프리미티브·그라디언트·조판 공간이 포화라, SVG 구성물 패밀리 중 아직 미등재인 foreign-content-embedding 축을 선택 — paint-server(`<pattern>`·cycle 2795)·clip-region(`<clipPath>`·cycle 2803)·filter-primitive(feX)와 구분되는 이질-콘텐츠 임베딩 SVG 구성물 유형(per-SVG-construct split).
+- 프로브: (1) src `foreignObject` 0(pure vacuous). (2) globals.css `foreignObject` 0(mechanism-absent). (3) DESIGN.md `foreignobject`/`svg` 침묵. (4) anti-patterns `foreignObject`/`<foreignObject>` 0 — 전용 baseline 부재(기존 `<pattern>` 2·`<clipPath>` 1·feX 는 각각 paint-server·clip-region·filter-primitive 구성물로 임베딩 구성물과 역할 상이).
+- 결정: 코드 변경 없음. `<foreignObject>` 사용 0(pure vacuous)+SVG 이질-콘텐츠 임베딩 표면 자체 0(mechanism-absent·리치 콘텐츠는 HTML/CSS 로 직접 배치·SVG 임베딩 미도입) — 미사용은 SVG 아트워크 미채택에 따른 균일 부재이지 cross-surface 비정합 결함 아님(loop rule §정체성). anti-patterns 1줄 등록·표면 폐기·PR 없음(0-후보).
+- 비중첩: SVG paint-server `<pattern>`(타일 페인트·cycle 2795·2)·clip-region `<clipPath>`(클립 영역·cycle 2803·1)·filter-primitive feX(feImage 7 등 픽셀 연산)·`<mask>`(알파 마스크) vs 본 축=`<foreignObject>`(이질 네임스페이스 콘텐츠 임베딩)으로 SVG 구성물 역할 상이(pattern=페인트 서버·clipPath=클립 영역·feX=필터 픽셀 연산·본 축=SVG 좌표계 내 HTML/foreign 콘텐츠 임베딩 — per-SVG-construct 분할·임베딩 구성물 자체 미사용이라 pure vacuous).
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 2813, 375th round.
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
