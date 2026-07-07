@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2784 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
+
+- 축: apps/web npm audit 실행 + package.json/package-lock.json/go.mod/go.sum 마지막 커밋 확인
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31, cycle 2256 잔여 baseline 동일). dep 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(2772-12) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 2786 (직전 2774 covered). 코드·문서 population freeze check 예정
+
 ### cycle 2782 — OpenSpec갭: openspec validate 전수 검증 → 표면 불변 (covered)
 
 - 축: openspec validate --specs --changes 전수 실행 + openspec/ 경로 마지막 커밋 확인
