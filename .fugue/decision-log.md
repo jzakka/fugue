@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2938 — OpenSpec갭: openspec validate 전수 검증 → 표면 불변 (covered)
+
+- 축: openspec validate --specs --changes 전수 검증 + openspec/ 마지막 커밋 확인
+- 조사: Totals: 14 passed, 0 failed (14 items). openspec/ 마지막 커밋 4c2e289b로 baseline 동일. 활성 체인지 3건(fix-harvester-adapter-fallback-counter, fix-harvester-wire-media-validator, fix-scheduler-host-rate-limiter-config-wiring) 보류 유지
+- 판정: 직전 OpenSpec갭 census(2926) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 2940 (직전 2928 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 2936 — 봇: bot·openspec population freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/
