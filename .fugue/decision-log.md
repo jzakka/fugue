@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2850 — 동시성: apps/api freeze check → 표면 불변 (covered)
+
+- 축: apps/api 대상 baseline 22747864 이후 커밋 조회
+- 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
+- 판정: 직전 동시성 census(2838) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 2852 (직전 2840 covered). bot·cmd/bot·openspec/ freeze check 예정
+
 ### cycle 2848 — 에러처리: apps/api·Makefile·workflows freeze check → 표면 불변 (covered)
 
 - 축: apps/api·Makefile·.github/workflows 대상 baseline 22747864 이후 커밋 조회
