@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2870 — 정합성: 코드·문서 population freeze check → 표면 불변 (covered)
+
+- 축: apps/api·docs/·AGENTS.md·README.md·Makefile 대상 baseline 22747864 이후 비루프 커밋 카운트
+- 조사: 0건. 코드·문서 population이 baseline 22747864 이후 외부 변경 없음
+- 판정: 직전 정합성 census(2858) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 2872 (직전 2860 covered). apps/api·Makefile·workflows freeze check 예정
+
 ### cycle 2868 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
 
 - 축: apps/web npm audit + dep 파일(package.json/package-lock.json/go.mod/go.sum) freeze check
