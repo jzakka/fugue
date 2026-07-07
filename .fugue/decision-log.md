@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 2872 — 에러처리: apps/api·Makefile·workflows freeze check → 표면 불변 (covered)
+
+- 축: apps/api·Makefile·.github/workflows 대상 baseline 22747864 이후 커밋 조회
+- 조사: 0건. baseline 앵커(2344 Makefile || true 억제, 2348 dead threshold 중복) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(2860) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 2874 (직전 2862 covered). apps/api freeze check 예정
+
 ### cycle 2870 — 정합성: 코드·문서 population freeze check → 표면 불변 (covered)
 
 - 축: apps/api·docs/·AGENTS.md·README.md·Makefile 대상 baseline 22747864 이후 비루프 커밋 카운트
