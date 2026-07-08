@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3128 — 봇: bot population freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/
+- 조사: 0건. census 앵커(FilterChain 순서 Domain→Extension→PathPattern→Robots→Dedup, RobotsFilter fail-open, crawl-status graceful degradation) 이후 신규 변동 없음
+- 판정: 직전 봇 census(3116) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 3130 (직전 3118 covered). openspec validate + openspec/ 커밋 freeze check 예정
+
 ### cycle 3126 — 동시성: 코드 population freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api
