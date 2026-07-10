@@ -7374,6 +7374,13 @@
 - 비중첩: 본 축은 결속 대상의 *기본값 지정(수요 측)*이지 — L742 *일괄 census*·L1720 anchor-name(*공급 선언*)·L1232 anchor()(*참조 인자*)·L1092 anchor-scope(*스코프*)·L1711/L1714/L1717/L1157/L1277(가시성/배치/폴백/정렬/정의)가 아님(공급 vs 수요-기본값 vs 참조 vs 스코프). anti-patterns L1723 등재 — **CSS Anchor Positioning 패밀리(L742 census 전 10멤버) 개별 carve 완결**.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3373, 515th round(tokens).
 
+## cycle 3373 — design/tokens 515th round (Discovery, 표면 폐기)
+- 축 선택: 카운터 스타일 마커 글리프 목록 디스크립터(`@counter-style` 의 `symbols`=CSS Counter Styles 3 — 카운터 표기에 쓸 글리프/문자열 목록을 나열·cyclic/numeric/alphabetic/symbolic/fixed system 의 필수 원재료 심볼 집합). 당초 후보 font-display 디스크립터는 L217(display=swap URL 파라미터 축)과 중첩 위험으로 기각. @counter-style 패밀리 중 at-규칙(L634)·additive-symbols(L1249)·pad(L1262)·fallback(L1266)·extends(L1272)·speak-as(L1283)·negative(L1313)·prefix/suffix(L1368)·range(L1676)·symbols() 함수(L999)·CSSOM(L1503)은 carve 완료·`symbols` 디스크립터 자체는 body 언급뿐 → census-member-only 개별 carve.
+- 프로브: (1) `symbols` grep apps/web/src 전수 **0건**(pure-vacuous — JS 식별자 매치도 0). (2) 호스트 @counter-style 0건·list-style/::marker/counter() 소비 표면 0건 — at-규칙도 마커도 부재(mechanism-absent). (3) DESIGN.md(105줄) counter/marker/리스트 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). symbols 는 pure vacuous·호스트/소비 양측 부재·DESIGN silent 이므로 "심볼 목록 미통일·cyclic 조기 반복·이모지 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 커스텀 카운터 미도입을 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 *원재료 글리프 목록*이지 — L634 *at-규칙 census*·L999 symbols() *인라인 함수*(별개 표면)·L1249 additive-symbols(*가중치* 체계 전용)·L1262/L1266/L1272/L1283/L1313/L1368/L1676(패딩/폴백/상속/낭독/음수/접사/범위)·L1503 CSSOM 이 아님. anti-patterns L1724 등재 — **@counter-style 디스크립터 패밀리 10종 개별 carve 완결**.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3375, 591st round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
