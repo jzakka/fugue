@@ -7346,6 +7346,13 @@
 - 비중첩: 본 축은 곡률의 *연속 파라미터화 값 함수*이지 — L732 corner-shape *속성/키워드 목록*·L988/L1644/L1647/L1650 *물리 모서리별 롱핸드*·L1055 *흐름상대 롱핸드*·L1338 border-radius 슬래시 2-값(*반경 크기*)이 아님(속성 vs 롱핸드 vs 크기 vs 값 함수). anti-patterns L1719 등재·corner-shape 패밀리는 이로써 값-함수 차원까지 완결.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3365, 589th round(responsive).
 
+## cycle 3365 — design/responsive 589th round (Discovery, 표면 폐기)
+- 축 선택: 앵커 이름 선언 속성(`anchor-name`=CSS Anchor Positioning — 요소를 명명된 앵커로 선언해 position-anchor/anchor()/anchor-size() 참조가 위치·크기를 파생시키게 하는 앵커 관계의 *공급(선언) 측*). 앵커 패밀리 중 position-visibility(L1711)·position-area(L1714)·position-try-fallbacks(L1717)·anchor-scope(L1092)·position-try-order(L1157)·anchor()(L1232)·anchor-size()(L1228)·@position-try(L1277)는 subject carve 완료·anchor-name 은 L742 census·L1092/L1232 body 언급뿐 → census-member-only 개별 carve. 잔여 형제는 position-anchor 뿐.
+- 프로브: (1) `anchor-name`/`anchorName` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 이름 소비 측(position-anchor·anchor()·anchor-size()·position-area) 전수 0건 — 관계-공급 속성인데 소비자 부재(mechanism-absent·cycle 3347/3353/3359 프로브 일치). (3) DESIGN.md(105줄) anchor/앵커 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). anchor-name 은 pure vacuous·소비자 부재·DESIGN silent 이므로 "네이밍 컨벤션 부재·죽은 앵커·중복 이름 오결속" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 정적으로 앵커 미도입을 responsive 결함으로 보면 FP.
+- 비중첩: 본 축은 앵커 관계의 *이름 공급 선언*이지 — L742 *일괄 census*·L1092 anchor-scope(이름 *스코프 제한*)·L1232 anchor()(이름 *참조 함수*)·L1711(*가시성*)·L1714(*격자 배치*)·L1717(*넘침 폴백*)·L1157(*정렬*)·L1277(*대체 위치 정의*)가 아님(선언 vs 스코프 vs 참조 vs 배치/폴백). anti-patterns L1720 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3367, 514th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
