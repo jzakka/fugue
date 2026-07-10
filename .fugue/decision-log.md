@@ -6324,6 +6324,13 @@
 - 비중첩: scrollIntoView(2581/3141)·scrollTo/scrollBy(777/809)·scrollend 이벤트(3141 L1608)·VisualViewport per-property(3053/3179/3185/3191/3197/3203)·ScreenOrientation(1037/2877/2885/3061)와 별개 — 본 축은 *스크롤-루트 요소 식별* `document.scrollingElement`(뷰포트를 스크롤하는 루트 Element 반환)로, 스크롤-동작 트리거(scrollIntoView/scrollTo)·스크롤-완료 이벤트(scrollend)·뷰포트 기하 read(VisualViewport)와 대상·차원 분리(스크롤-루트 식별 vs 스크롤-동작/이벤트/기하).
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3211, 488th round(tokens).
 
+## cycle 3211 — design/tokens 488th round (Discovery, 표면 폐기)
+- 축 선택: 명령형 CSS Typed OM `lch()` 색상 값 객체(`CSSLCH` — CSS Typed Object Model 에서 `lch(L C H / alpha)` CIE LCH 지각 균일 색공간 색상 함수를 문자열 파싱 없이 `new CSSLCH(lightness, chroma, hue, alpha?)` 로 생성하고 `.l`/`.c`/`.h`/`.alpha` 를 `CSSNumericValue` 타입드 컴포넌트로 읽고 쓰는 per-subclass 색상 값-표현 계층·CSSColorValue 패밀리 per-color-subclass 분할). tokens 로테이션(responsive 3209 → tokens 3211)에서 Typed OM 색상 서브클래스 CSSRGB(3057)·CSSHSL(3129)·CSSHWB(3157)·CSSOKLCH(3151)·CSSLab(3205)이 이미 개별 등재라, 아직 미등재인 CSSLCH(lch 색상 값 객체) 차원을 선택.
+- 프로브: (1) src `CSSLCH`/`lch(` 0건 → lch 색상 값을 타입드로 조작하거나 lch() 색상을 선언하는 표면 부재(색 토큰은 globals.css hex #E85A2A·rgba 리터럴). (2) globals.css `CSSLCH`/`lch(` 0 → Typed OM lch 색상 host 부재(mechanism-absent·색은 hex/rgba 문자열 토큰). (3) 동적 lch 색상을 문자열 파싱 없이 타입드 조작할 필요 부재 → CSSLCH 대체 미SHALL. (4) DESIGN.md(105줄) CSSLCH/lch grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
+- 결정: 코드 변경 없음. CSSLCH 접근 0(pure vacuous)·lch 색상 값 객체를 생성/조작하는 워크플로 자체 비-사용(색은 hex/rgba 문자열 토큰·Typed OM 색상 host 부재·mechanism-absent)에 따른 부재이지 결함 아님. 0-후보 표면 폐기(anti-patterns EOF 등재, cycle 3211 baseline).
+- 비중첩: CSSRGB(3057)·CSSHSL(3129)·CSSHWB(3157)·CSSOKLCH(3151)·CSSLab(3205)·broad Typed OM computedStyleMap(2809 L1442)과 별개 — 본 축은 CSSColorValue 서브클래스 중 *lch() CIE LCH 색공간* 값 객체 `CSSLCH`(L/C/H 타입드 컴포넌트)로, sRGB(CSSRGB)·HSL(CSSHSL)·HWB(CSSHWB)·OKLCH(CSSOKLCH)·Lab(CSSLab) 색공간과 색공간·차원 분리(per-color-subclass 분할·CSS Typed OM 명세상 각 색상 함수가 별개 인터페이스).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3213, 564th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
