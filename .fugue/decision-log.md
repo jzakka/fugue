@@ -7479,6 +7479,13 @@
 - 비중첩: 본 축은 *물리 가로* 크기 특성 개별이지 — L502 *모-센서스*·L998(*방향*)·L1003(*논리 블록*)·L1396(*종횡비*)·L1696(*물리 세로*)·L1735(*논리 인라인*)가 아님. anti-patterns L1738 등재 — **컨테이너 쿼리 크기 특성 6종 개별 carve 완결**.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3403, 520th round(tokens).
 
+## cycle 3403 — design/tokens 520th round (Discovery, 표면 폐기)
+- 축 선택: 코사인 함수(`cos(<angle>|<number>)`=CSS Values 4 삼각 — 각도를 [-1,1] 코사인 진폭으로 변환·sin 과 위상 90° 짝·원주 배치 x-성분/회전 투영 폭). L406 census 삼각 7형제 중 atan2(3391, L1733)·sin(3397, L1736)은 carve 완료·cos 는 census 언급+sin 항목 sibling 언급뿐 전용 subject 부재 → census-member-only 개별 carve(삼각 셋째 멤버).
+- 프로브: (1) CSS cos()/JS Math.cos grep apps/web/src 전수 **0건**(pure-vacuous). (2) 코사인 소비 전무 — CSS rotate()/translate() 수식 0건·원주/투영/주기 표면 부재, 파형-유사 표면은 seeded hash 막대뿐(mechanism-absent). (3) DESIGN.md(105줄) cos/원주/삼각 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). cos() 는 pure vacuous·원주/투영 표면 부재·DESIGN silent 이므로 "JS/CSS 갈림·sin/cos 성분 뒤바뀜·단위 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 원주 배치 미도입을 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 *순방향 코사인(위상-시프트 x-성분)* 개별이지 — L406 *일괄 census*·L1736 sin(*y-성분*)·L1733 atan2(*역방향*)·L1709/L1712/L1715(*스텝/나머지*)·L1308(*부호/크기*)이 아님. anti-patterns L1739 등재 — 삼각 잔여 4형제(tan/asin/acos/atan) census-only.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3405, 596th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
