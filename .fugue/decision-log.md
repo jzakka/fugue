@@ -7437,6 +7437,13 @@
 - 비중첩: 본 축은 *스냅 선택 여부* 선언형 개별 질의이지 — L735 *일괄 census*·L1726 scrollable(*여지*)·L1729 stuck(*부착*)·L1529 scrollsnapchange(JS *명령형 이벤트*)가 아님(census vs 여지 vs 부착 vs 명령형 vs 선택). anti-patterns L1732 등재 — **scroll-state() 상태 질의 3종(stuck·snapped·scrollable) 개별 carve 완결**.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3391, 518th round(tokens).
 
+## cycle 3391 — design/tokens 518th round (Discovery, 표면 폐기)
+- 축 선택: 사분면-정확 아크탄젠트 함수(`atan2(y, x)`=CSS Values 4 삼각 — 좌표 (x, y)의 각도를 -180deg~180deg 전 사분면에서 반환하는 유일한 2-인자 삼각 함수·좌표→방향 각도 변환 축). L406 수학 함수 census 중 스텝 3형제(round 3343/mod 3349/rem 3355)·부호 abs/sign(L1308)은 carve 완료·삼각 7형제는 census 언급뿐 전용 subject 부재 → census-member-only 개별 carve(삼각 첫 멤버).
+- 프로브: (1) CSS `atan2()`/`atan()`/`asin()`/`acos()` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 각도 소비 메커니즘 전무 — rotate()/JS Math.atan2/angle 표면 grep 0건, 회전·방사 배치·좌표 기반 방향 표면 자체 부재(mechanism-absent). (3) DESIGN.md(105줄) atan/삼각/각도 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). atan2() 는 pure vacuous·각도 소비 부재·DESIGN silent 이므로 "JS/CSS 갈림·사분면 미보정 atan 산재·인자 순서 혼동·단위 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 좌표 기반 회전 미도입을 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 *2-인자 사분면-정확 아크탄젠트* 개별이지 — L406 *일괄 census*·L1709 round()(*스텝-전략 반올림*)·L1712 mod()(*제수-부호 나머지*)·L1715 rem()(*피제수-부호 나머지*)·L1308 abs()/sign()(*부호/크기*)이 아님(census vs 스텝 vs 나머지 vs 부호 vs 사분면 각도). anti-patterns L1733 등재 — 삼각 7형제 중 첫 개별, 잔여 6형제(sin/cos/tan/asin/acos/atan) census-only.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3393, 594th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
