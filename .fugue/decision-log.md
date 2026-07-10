@@ -7353,6 +7353,13 @@
 - 비중첩: 본 축은 앵커 관계의 *이름 공급 선언*이지 — L742 *일괄 census*·L1092 anchor-scope(이름 *스코프 제한*)·L1232 anchor()(이름 *참조 함수*)·L1711(*가시성*)·L1714(*격자 배치*)·L1717(*넘침 폴백*)·L1157(*정렬*)·L1277(*대체 위치 정의*)가 아님(선언 vs 스코프 vs 참조 vs 배치/폴백). anti-patterns L1720 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3367, 514th round(tokens).
 
+## cycle 3367 — design/tokens 514th round (Discovery, 표면 폐기)
+- 축 선택: 컬러 폰트 기준 팔레트 선택 디스크립터(`base-palette`=CSS Fonts 4 — @font-palette-values 안에서 COLR/CPAL 컬러 폰트 내장 팔레트 중 커스텀 팔레트의 시작 기준을 인덱스/light/dark 로 선택). @font-palette-values 패밀리 중 at-규칙 자체(L639)·구성 census(L1258 합산)·override-colors(L1321 개별)·palette-mix()(L1598)는 carve 완료·base-palette 는 L1258 합산 멤버 + 타 항목 body 언급뿐, 개별 subject 부재 → census-member-only 개별 carve(override-colors L1321 개별 carve와 대칭 이동).
+- 프로브: (1) `base-palette`/`font-palette` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 호스트 @font-palette-values 0건·COLR/CPAL 컬러 폰트 미사용(Pretendard/General Sans/Geist Mono 모노크롬 아웃라인) — 기준 삼을 내장 팔레트 부재(mechanism-absent). (3) DESIGN.md(105줄) palette/팔레트 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). base-palette 는 pure vacuous·컬러 폰트 메커니즘 부재·DESIGN silent 이므로 "테마 전환 light/dark 미매핑·인덱스 매직넘버·0번 암묵 의존" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 컬러 폰트 미도입을 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 커스텀 팔레트의 *시작 기준 인덱스 선택*이지 — L639 *at-규칙 자체*·L1258 *합산 구성 census*·L1321 override-colors(*개별 색 슬롯 덮어쓰기*)·L1598 palette-mix()(*보간 함수*)가 아님(at-규칙 vs 합산 vs 덮어쓰기 vs 보간 vs 기준 선택). anti-patterns L1721 등재·@font-palette-values 디스크립터 패밀리는 이로써 개별 차원까지 완결.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3369, 590th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
