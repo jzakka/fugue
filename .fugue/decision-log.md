@@ -7086,6 +7086,13 @@
 - 비중첩: AP1184(`border-image-slice` 9분할 오프셋)·AP1110(`border-image-width` 테두리 영역 폭)·AP1101(`border-image-outset` 박스 외부 확장)·AP1106(`border-image-repeat` 타일링)·AP707(`border-image` shorthand 그룹)·AP1114(`mask-border-slice` 마스크 대응) — 전부 슬라이스/폭/확장/타일링/shorthand/마스크 대응을 다루지 소스 이미지 자체(url/gradient/none)를 지정하는 source longhand 차원은 미커버. border-image 5-longhand carve(slice/width/outset/repeat 완료 + source 로 완결·longhand 개별-carve 선례).
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3317, 581st round(responsive).
 
+## cycle 3317 — design/responsive 581th round (Discovery, 표면 폐기)
+- 축 선택: 물리 블록축 컨테이너 쿼리 크기 특성(`@container (height:)`/`(min-height:)`/`(max-height:)` — 질의 컨테이너의 *물리* 세로 치수로 후손 스타일을 분기하는 크기 컨테이너 쿼리 특성, writing-mode 무관하게 항상 수직 방향). responsive 로테이션(aesthetic 3315 → responsive 3317)에서 미디어 피처·뷰포트 단위·논리 속성·플렉스/그리드 정렬 BP 토글이 전면 포화라, 컨테이너 쿼리 크기-특성 패밀리 중 아직 미등재인 *물리 블록축 height* 차원을 선택.
+- 프로브: `@container`/`container-type` grep 0 (apps/web/src 전수·globals.css 0), `@container (height`/`(min-height` 등재 0(anti=0). 컨테이너 쿼리 자체가 코드베이스 전무 → 순수 공허 + 이중 공허(쿼리 컨테이너 컨텍스트 부재). DESIGN.md 는 "container" 언급 0건(컨테이너 쿼리·컨테이너 크기 분기 침묵).
+- 결정: 표면 폐기(0-후보). 물리 블록축 height 컨테이너 크기 특성은 (1) 코드 사용 0(container-type/@container 전무) (2) 메커니즘 부재(쿼리 컨테이너를 세우는 container-type 선언이 없어 어떤 크기 특성도 평가 자리 없음) (3) DESIGN.md 침묵 (4) 전용 anti-patterns baseline 부재(L1003 논리 block-size 의 vs-목록에 "물리 width/height" 로 형제 언급될 뿐 자신이 subject 인 전용 라인 없음 — sibling-mention-only 선례) — 결함 클래스 미성립.
+- 비중첩: L1003(논리 `@container (block-size:)` — writing-mode 로 해소되는 논리 블록축)·L998(`@container (orientation)`)·L1396(`@container (aspect-ratio)`)·L502(base 컨테이너 쿼리 inline-size)·L1317(container-name)·L1088(container 단축)과 별개 — 본 축은 *물리(항상 수직) 세로 치수 컨테이너 크기 특성*(writing-mode 무관·L1003 논리 block-size 의 물리 대응짝) 차원. 물리 width/height 개별-carve 선례(overscroll-behavior-x/y 물리 vs -block/-inline 논리 각각 등재)와 정합.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3319, 506th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
