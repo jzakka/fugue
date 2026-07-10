@@ -7416,6 +7416,13 @@
 - 비중첩: 본 축은 *스티키 부착 여부* 개별 질의이지 — L735 *일괄 census*·L1726 scrollable(*스크롤 여지*)·L275 hover-capable(*매체 분기*)가 아님(census vs 여지 vs hover vs 부착). anti-patterns L1729 등재·scroll-state census 잔여 미개별 멤버는 snapped 뿐.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3385, 517th round(tokens).
 
+## cycle 3385 — design/tokens 517th round (Discovery, 표면 폐기)
+- 축 선택: CSS 형제 순번 함수(`sibling-index()`=CSS Values 5 트리 카운팅 — 형제 중 몇 번째인지 1-기반 정수 반환·per-요소 stagger 시차/순번 비례 위상 파생의 *분자* 축). L423 합산 carve 의 잔여 멤버 — cycle 3379 sibling-count()(분모) 개별 carve와 대칭 이동(합산-멤버 개별 carve).
+- 프로브: (1) `sibling-index()` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 순번 소비 표면 부재 — nth-child/animation-delay/stagger/--index 수동 주입 전수 0건(mechanism-absent·cycle 3379 프로브 일치). (3) DESIGN.md(105줄) index/순번/서수 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). sibling-index() 는 pure vacuous·소비 표면 부재·DESIGN silent 이므로 "nth-child 열거 하드코딩·--index 수동 주입 혼용·지연 계수 갈림" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 미도입 함수 부재를 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 형제 *순번(분자)* 반환이지 — L423 *합산 census*·L1727 sibling-count()(*분모*)·L1034 ident()(*식별자 구성*)·L1231 toggle()(*순환*)이 아님(합산 vs 분모 vs 식별자 vs 순환 vs 분자). anti-patterns L1730 등재 — **L423 트리 카운팅 합산 양 멤버 개별 carve 완결**.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3387, 593rd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
