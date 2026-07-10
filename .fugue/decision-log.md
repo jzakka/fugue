@@ -7332,6 +7332,13 @@
 - 비중첩: 본 축은 넘침 시 시도할 *대체 배치 후보 목록의 나열*(position-try-fallbacks·명명 참조+flip 전술)이지 — L742 *일괄 census*·L1157 position-try-order(목록의 *정렬 기준*)·L1277 @position-try(명명 위치 *정의* at-규칙)·L1711 position-visibility(재배치 아닌 *숨김*)·L1714 position-area(넘침 무관 *기본 배치*)·L1092 anchor-scope(이름 *스코프*)가 아님(정의 vs 참조 나열 vs 정렬 vs 숨김 vs 기본 배치). anti-patterns L1717 등재·앵커 패밀리 잔여 형제는 anchor-name·position-anchor.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3361, 513th round(tokens).
 
+## cycle 3361 — design/tokens 513th round (Discovery, 표면 폐기)
+- 축 선택: `@font-face` 서브셋 코드포인트 범위 디스크립터(`unicode-range`=CSS Fonts 4 — face 가 적용될 유니코드 범위를 한정해 온디맨드 서브셋 로딩을 유도하는 축). @font-face 디스크립터 패밀리 중 src(L1688)·폴백 메트릭 4종 size-adjust/ascent-override/descent-override/line-gap-override(L1390 합산 carve)는 subject carve 완료·unicode-range 는 L226(CDN 서브셋 커버리지 항목 vs-list)·L1390/L1494 body 언급뿐 → sibling-mention-only 개별 carve(position-try-fallbacks 3359·border-image-source 3357 선례와 동형).
+- 프로브: (1) `unicode-range`/`unicodeRange` grep apps/web/src·globals.css 전수 **0건**(pure-vacuous). (2) 로컬 `@font-face` 규칙 자체 0건 — Pretendard/General Sans/Geist Mono 전부 외부 CDN CSS link 로드·서브셋 분할은 CDN(dynamic-subset.min.css) 상류 위임 → unicode-range 를 선언할 호스트 at-규칙 부재(종속 디스크립터·mechanism-absent). (3) DESIGN.md(105줄) unicode/서브셋 정책 무규정 — L23 dynamic-subset CDN URL 은 외부 위임의 방증(silent).
+- 결정: 표면 폐기(0-후보). unicode-range 는 pure vacuous(선언 0)·호스트 @font-face 부재·DESIGN silent 이므로 "미지정 전체 다운로드·범위 중복 이중 로드·한글 범위 누락" 은 미명시 취향(loop rule line 9)이지 결함이 아님. CDN 위임 구조에서 로컬 범위 부재를 tokens 결함으로 보면 FP.
+- 비중첩: 본 축은 face 의 *적용 코드포인트 범위 한정*(unicode-range)이지 — L1390 폴백 *메트릭 보정*(글리프 스케일/세로 메트릭)·L1688 src(*로딩 소스* 힌트)·L226 *CDN 분할 커버리지 갭*(외부 정합성)·L1494 CSSFontFaceRule *명령형 CSSOM 조회*가 아님(적용 범위 vs 메트릭 vs 소스 vs 외부 분할 vs CSSOM). anti-patterns L1718 등재·@font-face 디스크립터 잔여 형제는 font-display·font-family/weight/style 등 기본 매칭 디스크립터.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3363, 589th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
