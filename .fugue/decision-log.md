@@ -7198,6 +7198,13 @@
 - 비중첩: stroke-linecap(선 *끝* 모양 cap·L1698)·stroke-miterlimit(miter *한계* 비율·L657)·stroke-dasharray(점선 패턴·L651)·stroke-width(선 *두께*·L538)·stroke-align(획 *정렬* 위치·L933)과 별개 — 본 축은 두 선분이 만나는 *꼭짓점(이음부)*의 모양(miter/round/bevel)이지 선 끝(cap)이나 miter 한계나 점선이나 두께나 획 정렬이 아님. cycle 3321 stroke-linecap census-consistency carve 와 동형 방법(사용되나 전수 균일·drift 0)으로 stroke-linejoin 을 subject 완성 등재하여 SVG stroke 패밀리 개별 carve 완결.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3329, 583rd round(responsive).
 
+## cycle 3329 — design/responsive 583rd round (Discovery, 표면 폐기)
+- 축 선택: 박스 계산 모델 뷰포트 분기 토글(`sm:box-border`/`md:box-content` — 화면폭 브레이크포인트별로 요소의 box-sizing(width/height 가 패딩·테두리를 포함하는 border-box 인지 콘텐츠만인 content-box 인지)을 다르게 전환하는 반응형 조판 축). responsive 로테이션(aesthetic 3327 → responsive 3329)에서 order/gap/transform/object-fit/visibility/border-radius/font-weight/whitespace/float/bg-attachment/scroll-behavior/mix-blend 등 반응형 토글 축이 포화라, 아직 미등재인 box-sizing 의 *뷰포트 분기 토글*(정적 토큰 L565 와 별개인 반응형 축) 차원을 선택.
+- 프로브: (1) `(sm|md|lg|xl|2xl):box-(border|content)` grep src/ tsx 전수 **0건** — 박스 모델을 브레이크포인트별로 바꾸는 반응형 토글 표면이 코드에 전무(pure-vacuous). (2) DESIGN.md(105줄) box-sizing/box-border/박스 모델 grep 0건 — 반응형 박스 모델 전환 정책 무규정(silent). (3) L565(box-sizing tokens)는 preflight border-box 전역 단일의 *정적* cross-surface 코히런스 축이라 뷰포트 분기 토글과 담당 차원이 별개.
+- 결정: 표면 폐기(0-후보). box-sizing 은 Tailwind v4 preflight 가 border-box 로 전역 단일 적용 → 뷰포트별로 박스 모델을 토글하는 idiom 이 코드에 0건이고 DESIGN 도 silent 이므로, "화면폭 분기에서 box-sizing 이 안 바뀜·반응형 박스 모델 토글 누락" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 정적으로 `sm:box-border` 부재를 반응형 결함으로 보면 FP.
+- 비중첩: 본 축은 box-sizing 의 **뷰포트 분기 토글**(반응형)이지 — L565 box-sizing *정적 토큰*(preflight border-box 전역 단일 coherence·tokens)이 아니고·기존 반응형 토글 선례(order L292/L809·gap L373·object-fit+object-position L875·resize L843·appearance L1345·hyphens L915·font-stretch L911·bg-origin L887)의 각 속성과도 담당 속성이 별개. box-sizing 은 width/height 의 패딩·테두리 포함 여부를 정하는 박스 계산 모델의 화면폭별 전환 축.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3331, 508th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
