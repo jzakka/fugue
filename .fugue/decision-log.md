@@ -7472,6 +7472,13 @@
 - 비중첩: 본 축은 *앵커 좌표계 중심 정렬 키워드 값* 개별이지 — L742 *속성군 census*(미열거)·L1720(*공급*)·L1723(*지정*)·L1228/L1232(*함수*)·L556 justify-self(*컨테이너 좌표계* 속성 일반)·L513 align-items 가 아님(census vs 공급 vs 지정 vs 함수 vs 컨테이너-좌표 vs 앵커-좌표 값). anti-patterns L1737 등재 — 앵커 패밀리 값-차원까지 마감.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3401, 595th round(responsive).
 
+## cycle 3401 — design/responsive 595th round (Discovery, 표면 폐기)
+- 축 선택: 컨테이너 쿼리 물리 가로 크기 특성(`@container (width: …)`=CSS Containment 3 — 질의 컨테이너의 물리 가로 치수 질의·@media (width) 감각의 이주-친화 축·수평 쓰기 모드에서 inline-size 와 동치). 크기 특성 패밀리 중 orientation(L998)·block-size(L1003)·aspect-ratio(L1396)·height(L1696)·inline-size(L1735, c3395)는 carve 완료·width 는 L1696 "물리 width" sibling 언급뿐 전용 subject 부재 → sibling-mention-only 개별 carve(패밀리 마지막 멤버).
+- 프로브: (1) `@container`/`container-type` grep apps/web/src 전수 **0건** → width 질의 0건(pure-vacuous). (2) 쿼리 컨테이너 전무 — container-type 선언 0건, 반응형은 Tailwind 뷰포트 BP 전용(mechanism-absent). (3) DESIGN.md(105줄) container/컨테이너 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). width 특성은 pure vacuous·컨테이너 부재·DESIGN silent 이므로 "물리/논리 갈림·BP 값 불일치·문법 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 컨테이너 쿼리 미도입을 responsive 결함으로 보면 FP(L111·c3395 판정과 정합).
+- 비중첩: 본 축은 *물리 가로* 크기 특성 개별이지 — L502 *모-센서스*·L998(*방향*)·L1003(*논리 블록*)·L1396(*종횡비*)·L1696(*물리 세로*)·L1735(*논리 인라인*)가 아님. anti-patterns L1738 등재 — **컨테이너 쿼리 크기 특성 6종 개별 carve 완결**.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3403, 520th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
