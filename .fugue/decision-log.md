@@ -7290,6 +7290,13 @@
 - 비중첩: 본 축은 앵커/자신의 화면 내 존재 여부에 따른 *조건부 가시성*(position-visibility)이지 — L742 앵커 속성군 *일괄 census*·L1092 anchor-scope(이름 *스코프*)·L1157 position-try-order(시도 *순서*)·L1228 anchor-size()(치수 파생)·L1232 anchor()(좌표 파생)·L1277 @position-try(대체 위치 *정의*)·L327 BP-접두 가시성 토글(뷰포트 *폭* 분기)이 아님(폭 분기 vs 스크롤/오버플로 상태 분기). anti-patterns L1711 등재·앵커 패밀리 잔여 형제는 anchor-name·position-anchor·position-area·position-try-fallbacks.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3349, 511th round(tokens).
 
+## cycle 3349 — design/tokens 511th round (Discovery, 표면 폐기)
+- 축 선택: CSS 모듈로 나머지 함수(`mod()`=CSS Values 4 — `mod(A, B)` 로 A÷B 나머지를 제수(B) 부호를 따라 반환·각도 0~360° 래핑/반복 패턴 오프셋 주기화 등 연속 계산값을 주기 구간으로 래핑하는 토큰 계산 축). 수학 패밀리 중 개별 subject carve 는 round()(L1709 cycle 3343)뿐·mod() 는 L406 census 멤버+L1225/L1236 vs-list 언급뿐 → census-member-only 개별 carve 로 스텝 3형제 둘째 멤버를 선택(round() 3343·mask-size 3345·position-visibility 3347 선례와 동형).
+- 프로브: (1) CSS `mod(` grep src·globals.css 전수 **0건**(pure-vacuous·JS 나머지는 `%` 연산자 별개 레이어). (2) 주기 래핑 대상 연속 값 메커니즘 부재: globals.css calc() 0건·각도는 shimmer `90deg`(globals L105) 정적 리터럴 1건뿐·src 유일 calc() 는 VideoTrimModal 트림 핸들 연속 매핑 2건(cycle 3343 재확인)·증가 카운터/회전 변수 0건 → 주기로 래핑할 연속/증가 계산값 부재(mechanism-absent). (3) DESIGN.md(105줄) mod/나머지/모듈로/주기 grep 0건 — 주기 래핑 정책 무규정(silent).
+- 결정: 표면 폐기(0-후보). mod() 는 pure vacuous(선언 0)·주기 래핑 대상 부재(효력 대상 0)·DESIGN silent 이므로 "각도 오버플로·주기 래핑 누락·mod() 미적용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 정적으로 mod() 부재를 토큰 결함으로 보면 FP.
+- 비중첩: 본 축은 나눈 *나머지 잉여* 반환(mod()·주기 래핑)이지 — L406 수학 함수군 *일괄 census*·L1709 round()(간격 배수 *스냅*=배수 자체 선택 vs 모듈로=배수 초과분)·rem()(피제수 부호·잔여 형제·CSS rem 길이 단위와 함수 vs 단위로 별개)·L746 progress()(진행도 정규화)·L737 if()(조건 분기)·L730 random()(무작위)·JS `%`(명령형)가 아님. anti-patterns L1712 등재·스텝 3형제 잔여는 rem() 뿐.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3351, 587th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
