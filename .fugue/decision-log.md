@@ -6499,6 +6499,13 @@
 - 비중첩: font-variant-alternates 패밀리 토큰(689)·@font-feature-values @swash/@ornaments/@annotation/@stylistic 명명 블록 그룹(1004, *작성자측 @-블록 네이밍*)·styleset()(1253, ss01–ss20 *스타일 세트* 함수)·character-variant()(1237, cvXX *문자별 변형* 함수)·CSSFontFeatureValuesRule CSSOM(1511)과 별개 — 본 축은 *사용자측 함수형 값 stylistic()* 로 OpenType `salt`(단일 Stylistic Alternates) 를 켜는 차원, @-블록 네이밍(1004)·세트 함수 styleset()(ss·1253)·문자별 함수 character-variant()(cv·1237)과 OpenType feature·표기 계층 분리(salt 단일 대체 함수 vs ssXX 세트 함수 vs cvXX 문자별 함수 vs 작성자 @-블록 vs CSSOM 규칙).
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 3233, 567th round(responsive).
 
+## cycle 3233 — design/responsive 567th round (Discovery, 표면 폐기)
+- 축 선택: 논리축 소/대/동적 뷰포트-백분율 단위(`svi`/`svb`·`lvi`/`lvb`·`dvi`/`dvb` — CSS Values 4 의 writing-mode 상대 인라인/블록 축 뷰포트 단위 중 *small/large/dynamic* 변형, 모바일 주소창 show/hide 로 변하는 논리축 뷰포트 영역을 인라인/블록 축으로 잡는 단위). responsive 로테이션(aesthetic 3231 → responsive 3233)에서 물리축 동적 단위·논리 기본 단위가 이미 등재라, 그 교집합 밖 *논리축 × 소/대/동적* 변형 차원을 선택.
+- 프로브: (1) `[0-9]svi/svb/lvi/lvb/dvi/dvb` 수치+단위 0건(src·globals.css grep) → 논리축 소/대/동적 뷰포트 단위 사용 표면 부재. (2) 뷰포트 사이징은 Tailwind h-screen/min-h-screen(100vh 물리)·max-h-[Nvh] 로만 구성, writing-mode 논리축 뷰포트 사이징 idiom 미사용 → 논리 동적 단위 산출 mechanism-absent. (3) DESIGN.md(105줄) svi/svb/dvi/dvb grep 0건 → 셋 중 미명시. (4) anti-patterns: 논리 소/대/동적 뷰포트 단위 전용 baseline 부재 — 529(물리 dvh/svh/lvh·dvw/svw)·990(논리 *기본* vi/vb) 라인에도 소/대/동적 논리 변형 미포함, 전용 exact ap=0.
+- 결정: actionable-defect 부재(논리축 동적 뷰포트로 잡을 writing-mode 뷰포트 사이징 표면 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 3233 baseline).
+- 비중첩: 물리축 동적 뷰포트 단위 dvh/svh/lvh·dvw/svw(529, *물리 h/w* × 소/대/동적)·논리 *기본* 뷰포트 단위 vi/vb(990, 논리축이나 소/대/동적 변형 없음)·컨테이너 쿼리 단위 cqi/cqb(709, *질의 컨테이너* 상대)·유체 clamp()/vw/vmin(265)과 별개 — 본 축은 *논리축(writing-mode 상대 인라인/블록) × 소/대/동적(모바일 주소창) 변형* 뷰포트 단위로, 물리축 동적(529)·논리 기본(990)·컨테이너(709)와 축·기준·소대동적변형 차원 분리(논리축+소대동적 vs 물리축+소대동적 vs 논리축+기본 vs 컨테이너-상대).
+- 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3235, 492th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
