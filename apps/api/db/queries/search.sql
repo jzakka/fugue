@@ -8,14 +8,14 @@ SELECT
     (similarity(p.title, $1) +
       CASE WHEN EXISTS (
         SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
-        WHERE pt.pin_id = p.id AND t.name = $1
+        WHERE pt.pin_id = p.id AND t.name ILIKE '%' || $1 || '%'
       ) THEN 0.5 ELSE 0 END)::float4 AS score
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE similarity(p.title, $1) > 0.1
    OR EXISTS (
      SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
-     WHERE pt.pin_id = p.id AND t.name = $1
+     WHERE pt.pin_id = p.id AND t.name ILIKE '%' || $1 || '%'
    )
 ORDER BY score DESC, p.created_at DESC, p.id DESC
 LIMIT $2 OFFSET $3;
@@ -47,14 +47,14 @@ SELECT
     (similarity(p.title, $1) +
       CASE WHEN EXISTS (
         SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
-        WHERE pt.pin_id = p.id AND t.name = $1
+        WHERE pt.pin_id = p.id AND t.name ILIKE '%' || $1 || '%'
       ) THEN 0.5 ELSE 0 END)::float4 AS score
 FROM pins p
 JOIN creators c ON c.id = p.creator_id
 WHERE (similarity(p.title, $1) > 0.1
    OR EXISTS (
      SELECT 1 FROM pin_tags pt JOIN tags t ON t.id = pt.tag_id
-     WHERE pt.pin_id = p.id AND t.name = $1
+     WHERE pt.pin_id = p.id AND t.name ILIKE '%' || $1 || '%'
    ))
   AND (SELECT COUNT(*) FROM pin_tags pt2
        WHERE pt2.pin_id = p.id AND pt2.tag_id = ANY($4::uuid[])) = array_length($4::uuid[], 1)

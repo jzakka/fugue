@@ -13,3 +13,6 @@ fuguebot-graph.html
 
 # Claude Code plugin local state (e.g. ralph-loop)
 ralph-loop.local.md
+
+# mining-issue 스크래치 (코드리뷰 이슈 채굴 결과, 커밋 금지)
+local-docs/
