@@ -6798,6 +6798,12 @@
 - 결정: 표면 폐기(0-후보). CJK 강조점(傍点)을 다는 컨텍스트 자체가 코드에 0이라 강조점 마크가 존재하지 않고, 마크가 없으므로 그 색을 줄 대상도 0. 호스트 표면(강조점 마크) 부재로 색 토큰이 갈릴 지점 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3271 baseline), 코드 변경 0.
 - 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3273, 574th round(aesthetic).
 
+## cycle 3273 — design/aesthetic 574th round (Discovery, 표면 폐기)
+- 축 선택: SVG 경로 길이 재보정 속성 `pathLength`(SVG `<path>`/기본도형의 기하학적 총 길이를 저자가 지정한 값으로 재보정(normalize)해 `stroke-dasharray`/`stroke-dashoffset` 의 길이 단위가 실제 픽셀 길이가 아닌 정규화된 값에 매핑되게 하는 SVG 프레젠테이션 속성 — 선-그리기(line-drawing) 애니메이션에서 dashoffset 을 0→pathLength 로 애니메이트해 획을 그려나가는 효과의 좌표계 보정 도구). aesthetic 로테이션(tokens 3271 → aesthetic 3273)에서 SVG 스트로크 패밀리(stroke-dasharray cycle 1531·stroke-miterlimit 1539·fill-opacity/stroke-opacity 1547·fill-rule/clip-rule 1523·stroke-linecap/linejoin/width dedicated)는 카브됐으나 경로 길이 재보정 축 `pathLength` 는 미등재라 이 인접 차원을 선택.
+- 프로브: `pathLength` 코드(apps/web/src + globals.css) 0건·AP `pathLength` 0건(exact ap=0, 전용 baseline 부재). SVG 아이콘은 연속 실선 stroke 윤곽선만 그리고 stroke-dasharray/dashoffset 점선/선-그리기 애니메이션 자체가 0(cycle 1531 에서 확인)이라 경로 길이를 재보정할 대상이 부재. DESIGN.md(105줄) pathLength/경로 길이/선 그리기 silent. 기존 stroke-dasharray 라인(L651)과 비중첩 — pathLength 는 dash 패턴이 매핑될 *길이 좌표계* 재보정이지 dash 배열/오프셋 자체가 아님(SVG 명세상 별개 속성).
+- 결정: 표면 폐기(0-후보). stroke-dasharray/dashoffset 점선·선-그리기 애니메이션 컨텍스트 자체가 0이라 pathLength 로 길이 좌표계를 재보정할 대상이 없음. 호스트 표면(dash 패턴/획 애니메이션) 부재로 pathLength 가 갈릴 지점 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3273 baseline), 코드 변경 0.
+- 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 3275, 574th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
