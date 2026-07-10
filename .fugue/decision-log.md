@@ -6604,6 +6604,13 @@
 - 비중첩: 단일-값 주축/교차축 분배 align-content/justify-content(348, 컨테이너 *전체* 단일 정렬값)·grid-auto-flow 암묵 트랙 흐름(285, dense/row/col 흐름)·react-masonry-css 라이브러리 마스너리(피처, 네이티브 그리드 아님)와 별개 — 본 축은 *네이티브 CSS Grid 마스너리 트랙마다 개별 정렬값 리스트*(align-tracks/justify-tracks)로, 단일-값 정렬·트랙 흐름·라이브러리 마스너리와 정렬 단위(트랙별 리스트 vs 컨테이너 단일 vs 흐름 방향 vs 라이브러리)·메커니즘 차원 분리.
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3247, 494th round(tokens).
 
+## cycle 3247 — design/tokens 494th round (Discovery, 표면 폐기)
+- 축 선택: CSS Color 4 색공간 함수 ProPhoto(ROMM) RGB 초광색역 색공간(`color(prophoto-rgb r g b)` — ProPhoto RGB(ROMM RGB) 미리정의 색공간 채널 표기, 가시광의 ~90%를 담는 고급 사진 워크플로용 초광색역 RGB 공간, Adobe RGB(a98-rgb)·BT.2020(rec2020)보다도 넓은 원색). tokens 로테이션(responsive 3245 → tokens 3247)에서 color() 미리정의 색공간이 per-space 로 카브돼 왔고(srgb 2105·rec2020 2113·srgb-linear·a98-rgb 3235·xyz-d50 3241) 아직 미카브인 prophoto-rgb(ROMM RGB) 색공간을 선택.
+- 프로브: (1) `prophoto` 0건(src·globals.css·DESIGN.md grep·anti-patterns 전무) → ProPhoto RGB 색공간 채널 표기 표면 부재. (2) 색 토큰은 hex(--accent:#E85A2A)·rgba 리터럴로만 구성, color() 색공간 함수·초광색역 파이프라인 미구성 → color(prophoto-rgb …) 산출 mechanism-absent. (3) DESIGN.md(105줄) prophoto/color() grep 0건 → 셋 중 미명시. (4) anti-patterns: prophoto-rgb 전용 baseline 부재 — 987(srgb)·991(rec2020)·995(srgb-linear)·a98-rgb(3235)·xyz-d50(3241) per-space 라인에도 prophoto 미포함, 전용 exact ap=0.
+- 결정: actionable-defect 부재(ProPhoto 초광색역 색을 지정할 color() 색공간 함수 표면 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 3247 baseline).
+- 비중첩: color(srgb …)(987, cycle 2105 표준 sRGB)·color(rec2020 …)(991, cycle 2113 BT.2020)·color(srgb-linear …)(995, 선형광 sRGB)·color(a98-rgb …)(3235, Adobe RGB 1998)·color(xyz-d50 …)(3241, CIE XYZ 삼자극치)·그라디언트 보간(414)·color-gamut 미디어(596)과 별개 — 본 축은 *ProPhoto(ROMM) RGB 미리정의 초광색역 색공간* 채널 표기로, 다른 RGB 계열 미리정의 공간(srgb/rec2020/srgb-linear/a98-rgb)·XYZ 삼자극치·보간·색역 매체와 색공간·원색(ROMM 초광색역) 차원 분리.
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3249, 570th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
