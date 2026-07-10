@@ -6513,6 +6513,13 @@
 - 비중첩: 물리축 동적 뷰포트 단위 dvh/svh/lvh·dvw/svw(529, *물리 h/w* × 소/대/동적)·논리 *기본* 뷰포트 단위 vi/vb(990, 논리축이나 소/대/동적 변형 없음)·컨테이너 쿼리 단위 cqi/cqb(709, *질의 컨테이너* 상대)·유체 clamp()/vw/vmin(265)과 별개 — 본 축은 *논리축(writing-mode 상대 인라인/블록) × 소/대/동적(모바일 주소창) 변형* 뷰포트 단위로, 물리축 동적(529)·논리 기본(990)·컨테이너(709)와 축·기준·소대동적변형 차원 분리(논리축+소대동적 vs 물리축+소대동적 vs 논리축+기본 vs 컨테이너-상대).
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3235, 492th round(tokens).
 
+## cycle 3235 — design/tokens 492th round (Discovery, 표면 폐기)
+- 축 선택: CSS Color 4 색공간 함수 Adobe RGB(1998) 미리정의 색공간(`color(a98-rgb r g b)` — Adobe RGB 1998 광색역 RGB 채널 표기, sRGB 보다 넓은 원색을 가진 인쇄/사진 워크플로 표준 색공간). tokens 로테이션(responsive 3233 → tokens 3235)에서 color() 미리정의 색공간이 per-space 로 카브돼 왔고(srgb 2105·rec2020 2113·srgb-linear) 아직 미카브인 a98-rgb(Adobe RGB 1998) 색공간을 선택 — display-p3 는 census 언급만·a98-rgb/prophoto-rgb/xyz 는 전용 미등재.
+- 프로브: (1) `a98-rgb`/`color(a98-rgb` 0건(src·globals.css·DESIGN.md grep) → Adobe RGB 색공간 채널 표기 표면 부재. (2) 색 토큰은 hex(--accent:#E85A2A)·rgba 리터럴로만 구성, color() 색공간 함수·광색역 파이프라인 미구성 → color(a98-rgb …) 산출 mechanism-absent. (3) DESIGN.md(105줄) a98-rgb/color() grep 0건 → 셋 중 미명시. (4) anti-patterns: a98-rgb 전용 baseline 부재 — 987(srgb)·991(rec2020)·995(srgb-linear) per-space 라인에도 a98-rgb 미포함, 전용 exact ap=0.
+- 결정: actionable-defect 부재(Adobe RGB 광색역 색을 지정할 color() 색공간 함수 표면 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 3235 baseline).
+- 비중첩: color(srgb …)(987, cycle 2105 표준 sRGB)·color(rec2020 …)(991, cycle 2113 BT.2020 초광색역)·color(srgb-linear …)(995, 선형광 sRGB)·그라디언트 보간 색공간 in oklch/srgb(414)·color-gamut 미디어 srgb/p3/rec2020(596)과 별개 — 본 축은 *Adobe RGB 1998 미리정의 광색역 색공간*(a98-rgb) 채널 표기로, 표준/초광/선형 sRGB 계열·보간 색공간·색역 미디어 질의와 색공간·원색 차원 분리(Adobe RGB 1998 원색 vs sRGB/rec2020/srgb-linear vs 그라디언트 보간 vs 색역 매체 질의).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3237, 568th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
