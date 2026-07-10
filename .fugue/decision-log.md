@@ -7339,6 +7339,13 @@
 - 비중첩: 본 축은 face 의 *적용 코드포인트 범위 한정*(unicode-range)이지 — L1390 폴백 *메트릭 보정*(글리프 스케일/세로 메트릭)·L1688 src(*로딩 소스* 힌트)·L226 *CDN 분할 커버리지 갭*(외부 정합성)·L1494 CSSFontFaceRule *명령형 CSSOM 조회*가 아님(적용 범위 vs 메트릭 vs 소스 vs 외부 분할 vs CSSOM). anti-patterns L1718 등재·@font-face 디스크립터 잔여 형제는 font-display·font-family/weight/style 등 기본 매칭 디스크립터.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3363, 589th round(aesthetic).
 
+## cycle 3363 — design/aesthetic 589th round (Discovery, 표면 폐기)
+- 축 선택: 모서리 초타원 곡률 함수(`superellipse()`=CSS Borders 4 — `corner-shape: superellipse(<k>)` 로 모서리 곡선을 초타원 지수 k 로 연속 파라미터화하는 값 함수·round(k=2)/squircle(k=4)/bevel(k=1) 등 키워드가 이 함수의 프리셋). 당초 후보 border-image-width 는 L1110 전용 subject carve 기존재로 기각. corner-shape 패밀리는 속성 L732·물리 롱핸드 4종 L988/L1644/L1647/L1650·흐름상대 4종 L1055 전부 carve 완료·superellipse() 는 L732 vs-list 값 언급 1건뿐 → sibling-mention-only 개별 carve(값 함수 carve — round()/mod()/rem() 3343/3349/3355 선례와 동형).
+- 프로브: (1) `superellipse`/`squircle` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 호스트 속성 corner-shape·corner-*-shape 자체 0건 — 곡률 함수를 받을 속성 선언 부재(종속 값 함수·mechanism-absent). (3) DESIGN.md(105줄) corner/superellipse/squircle/모서리 grep 0건 — radius *크기* 스케일만 규정하고 곡선 *형상* 은 전면 silent.
+- 결정: 표면 폐기(0-후보). superellipse() 는 pure vacuous·호스트 부재·DESIGN silent 이므로 "스쿼클 곡률 미통일·k 값 산재·키워드-함수 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 정적으로 스쿼클 부재를 aesthetic 결함으로 보면 FP.
+- 비중첩: 본 축은 곡률의 *연속 파라미터화 값 함수*이지 — L732 corner-shape *속성/키워드 목록*·L988/L1644/L1647/L1650 *물리 모서리별 롱핸드*·L1055 *흐름상대 롱핸드*·L1338 border-radius 슬래시 2-값(*반경 크기*)이 아님(속성 vs 롱핸드 vs 크기 vs 값 함수). anti-patterns L1719 등재·corner-shape 패밀리는 이로써 값-함수 차원까지 완결.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3365, 589th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
