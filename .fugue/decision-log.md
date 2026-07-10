@@ -7402,6 +7402,13 @@
 - 비중첩: 본 축은 형제 *총 개수(분모)* 반환이지 — L423 *합산 census*·L1034 ident()(*식별자 구성*)·L1231 toggle()(형제 순서 *순환*)·L730 random()(*무작위*)이 아님(합산 vs 식별자 vs 순환 vs 무작위 vs 분모). anti-patterns L1727 등재·합산 잔여 멤버는 sibling-index() 개별.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3381, 592nd round(aesthetic).
 
+## cycle 3381 — design/aesthetic 592nd round (Discovery, 표면 폐기)
+- 축 선택: 모션 경로 정의 속성(`offset-path`=CSS Motion Path 1 — ray()/path()/basic-shape/url()/coord-box 로 요소가 따라 이동할 경로 자체를 정의하는 패밀리 *공급 루트*). cycle 3375에서 확인한 잔여 형제 — longhand 4종(L1045/L1704/L1722/L1725)은 완결·offset-path 자체는 L726 census + L1006/L1263 vs-list 언급뿐, 전용 subject 부재 → census-member-only 개별 carve(패밀리 루트 마감).
+- 프로브: (1) `offset-path`/`offsetPath`/`ray()` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 경로 이동류 모션 표면 부재 — 코드베이스 모션은 shimmer @keyframes(배경 스윕)·테마 transition·hover translateY 뿐·파생 longhand 4종도 0건(cycle 3369/3375 일치) — 경로를 소비할 이동 표면 전무(mechanism-absent). (3) DESIGN.md Motion 섹션 easing/duration/hover 만 규정·path/경로 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). offset-path 는 pure vacuous·이동 표면 부재·DESIGN silent 이므로 "ray/path 혼용·좌표 하드코딩·유영 경로 미통일" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 경로 모션 미도입을 aesthetic 결함으로 보면 FP.
+- 비중첩: 본 축은 *경로 자체의 정의(공급 루트)*이지 — L726 *일괄 census*·L1045/L1704/L1722/L1725 *경로 위 파생 longhand*·L1006 SVG d *속성 기하*·L1263 shape() *도형 함수*가 아님(census vs 파생 vs SVG vs 도형 vs 정의). anti-patterns L1728 등재 — **CSS Motion Path 패밀리 경로 루트까지 개별 carve 완결**(잔여 offset 단축 표기뿐).
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3383, 592nd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
