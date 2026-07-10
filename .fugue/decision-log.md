@@ -6464,6 +6464,13 @@
 - 비중첩: scrollingElement 스크롤-루트 식별(3209 L1642)·scrollWidth/scrollHeight 콘텐츠 치수(3215 L1645)·offsetWidth/offsetHeight border-box 치수(3221 L1648)·scrollIntoView/scrollTo 스크롤-동작(2581/3141/777/809)·scrollend 스크롤-완료 이벤트(3141 L1608)와 별개 — 본 축은 *요소의 현재 스크롤 위치 오프셋* scrollTop/scrollLeft(read/write)로, 스크롤-루트 식별(scrollingElement)·콘텐츠-오버플로 크기(scrollWidth)·border-box 크기(offsetWidth)·스크롤-동작 트리거(scrollIntoView/scrollTo)·스크롤-완료 이벤트(scrollend)와 측정/조작 대상·차원 분리(스크롤 오프셋 값 read/write vs 루트-식별/콘텐츠-크기/border-box-크기/동작-트리거/완료-이벤트).
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3229, 491th round(tokens).
 
+## cycle 3229 — design/tokens 491th round (Discovery, 표면 폐기)
+- 축 선택: CSS Typed OM 수치 컴포넌트 컬렉션 인터페이스(`CSSNumericArray` — CSSMathSum.values·CSSMathProduct.values·CSSTransformValue 순회가 반환하는 CSSNumericValue의 read-only 배열형 컨테이너, 개별 값-객체가 아닌 *컬렉션 인터페이스* 자체 차원). tokens 로테이션(responsive 3227 → tokens 3229)에서 값-객체 서브클래스(CSSUnitValue/CSSMathSum/CSSPositionValue/CSSColorValue 서브클래스)가 포화라, 아직 미등재인 컨테이너-인터페이스(CSSNumericArray) 차원을 선택.
+- 프로브: (1) `CSSNumericArray` 0건(src·globals.css grep) → Typed OM 수학식 컴포넌트 순회 host 부재. (2) globals.css 토큰은 hex(--accent:#E85A2A)·rgba 리터럴로만 구성, CSSMathSum/Product 등 계산식 값·attributeStyleMap/computedStyleMap 순회 파이프라인 미구성 → CSSNumericArray를 산출할 mechanism-absent. (3) DESIGN.md(105줄) CSSNumericArray/Typed OM grep 0건 → 셋 중 미명시. (4) anti-patterns exact ap=0.
+- 결정: actionable-defect 부재(수치 컴포넌트 컬렉션을 순회할 Typed OM 계산식 값 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 3229 baseline).
+- 비중첩: CSSUnitValue/CSSKeywordValue 단일 값-객체·CSSMathSum/Product/Negate/Invert 계산식 값-객체·CSSPositionValue <position> 값(3223)·CSSColorValue 서브클래스(3057~3217)·broad Typed OM computedStyleMap(2809 L1442)와 별개 — 본 축은 *값-객체를 담는 read-only 배열형 컨테이너 인터페이스*(CSSNumericArray)로, 개별 값-객체(CSSUnitValue/CSSMath*/CSSColor*/CSSPosition*)·전체 스타일맵(computedStyleMap)과 추상화 계층 분리(값-객체를 원소로 갖는 컬렉션 인터페이스 vs 개별 값-객체 vs 프로퍼티→값 맵).
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3231, 567th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
