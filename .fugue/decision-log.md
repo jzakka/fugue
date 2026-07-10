@@ -6824,6 +6824,12 @@
 - 결정: 표면 폐기(0-후보). 모든 스크롤 컨테이너가 기본 시작 위치(0)에서 시작하고 초기 오프셋을 지정하는 표면이 0이라 scroll-start 가 갈릴 대상 없음. 초기 스크롤 위치 커스터마이즈 요구가 스펙/DESIGN 에 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3275 baseline), 코드 변경 0.
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3277, 499th round(tokens).
 
+## cycle 3277 — design/tokens 499th round (Discovery, 표면 폐기)
+- 축 선택: 사용자 정의 카운터 스타일 적용 범위 디스크립터 `@counter-style` 의 `range`(CSS Counter Styles 3 — 커스텀 카운터 스타일이 적용될 카운터 값의 정수 범위를 `range: [<integer>|infinite]{1,2}#` 로 한정해, 범위 안의 값만 이 스타일로 표기하고 범위를 벗어난 값은 `fallback` 스타일로 넘기는 디스크립터 — 예 `@counter-style ten{ system:numeric; symbols:...; range: 1 10; }`). tokens 로테이션(responsive 3275 → tokens 3277)에서 @counter-style 디스크립터 패밀리(at-규칙 L634·system:additive+additive-symbols L1249·pad L1262·fallback L1266·system:extends L1272·speak-as L1283·negative L1313·prefix/suffix L1368)는 카브됐으나 *적용 범위* 디스크립터 `range` 는 미등재(fallback L1266 census 에서 "range 벗어난 값 대체" 로만 곁가지 언급)라 이 차원을 선택.
+- 프로브: `@counter-style` at-규칙 코드(apps/web/src + globals.css) 0건·counter-reset/counter-increment/list-style/list-decimal 0건·순서 리스트 마커 0건(mechanism-absent) + `range` 디스크립터 전용 baseline 부재(fallback L1266 이 range 개념을 대체 관점에서만 언급·`range` 디스크립터 자체 미카브). DESIGN.md(105줄) counter-style/카운터/list-style silent. fallback(L1266)과 비중첩 — range 는 *스타일이 적용될 값 범위 한정*이고 fallback 은 *범위 이탈 시 대체 스타일*로 층위가 별개.
+- 결정: 표면 폐기(0-후보). @counter-style 커스텀 카운터 스타일 정의가 코드에 0이라 적용 범위를 한정할 카운터 스타일 자체가 부재. 카운터/순서 리스트 마커 미사용으로 range 가 적용될 대상 0 → 결함 클래스 미성립. AP +1 라인(cycle 3277 baseline), 코드 변경 0.
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3279, 575th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
