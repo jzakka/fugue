@@ -7465,6 +7465,13 @@
 - 비중첩: 본 축은 *순방향 각도→진폭* 개별이지 — L406 *일괄 census*·L1733 atan2(*역방향* 좌표→각도)·L1709/L1712/L1715(*스텝/나머지*)·L1308(*부호/크기*)이 아님(census vs 역방향 vs 스텝 vs 부호 vs 순방향). anti-patterns L1736 등재 — 삼각 잔여 5형제(cos/tan/asin/acos/atan) census-only.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3399, 595th round(aesthetic).
 
+## cycle 3399 — design/aesthetic 595th round (Discovery, 표면 폐기)
+- 축 선택: 앵커 중심 자기-정렬 키워드(`anchor-center`=CSS Anchor Positioning — align-self/justify-self/place-self 의 값으로 요소를 기본 앵커의 축 중심에 자동 정렬·anchor(center)+translate 수동 보정 대체). 앵커 패밀리 *속성* 10멤버는 완결(c3371)이나 anchor-center 는 속성 아닌 *정렬 키워드 값*으로 anti-patterns 전체 0건 언급 — mention-absent 신규 carve(패밀리 잔여 값-차원 마감).
+- 프로브: (1) anchor-center grep apps/web/src 전수 **0건**(pure-vacuous). (2) 앵커 좌표계 전무 — anchor-name/position-anchor 선언 0건, 중심 맞출 기본 앵커 부재·팝오버류는 fixed/absolute+flex 센터링(mechanism-absent). (3) DESIGN.md(105줄) anchor/앵커 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). anchor-center 는 pure vacuous·앵커 부재·DESIGN silent 이므로 "키워드/수동 보정 갈림·축별 비대칭·폴백 미정의" 는 미명시 취향(loop rule line 9)이지 결함이 아님. 앵커 포지셔닝 미도입을 aesthetic 결함으로 보면 FP.
+- 비중첩: 본 축은 *앵커 좌표계 중심 정렬 키워드 값* 개별이지 — L742 *속성군 census*(미열거)·L1720(*공급*)·L1723(*지정*)·L1228/L1232(*함수*)·L556 justify-self(*컨테이너 좌표계* 속성 일반)·L513 align-items 가 아님(census vs 공급 vs 지정 vs 함수 vs 컨테이너-좌표 vs 앵커-좌표 값). anti-patterns L1737 등재 — 앵커 패밀리 값-차원까지 마감.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3401, 595th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
