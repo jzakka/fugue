@@ -205,6 +205,19 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 	}, nil
 }
 
+// Delete removes an object by key. Deleting a nonexistent key succeeds
+// (S3 DeleteObject semantics), so the call is idempotent.
+func (c *Client) Delete(ctx context.Context, key string) error {
+	_, err := c.s3.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(c.bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return fmt.Errorf("storage: s3 delete: %w", err)
+	}
+	return nil
+}
+
 func extensionForMIME(mime string) string {
 	switch mime {
 	case "image/jpeg":

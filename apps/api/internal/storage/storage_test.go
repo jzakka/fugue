@@ -3,6 +3,8 @@ package storage
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -153,4 +155,61 @@ func TestUpload_AllowsAliasedDeclared_AudioXWav(t *testing.T) {
 
 func TestUpload_AllowsExactMatch_PNG(t *testing.T) {
 	validateAcceptThroughMismatch(t, "photo.png", "image/png", pngBytes)
+}
+
+// Delete has no pre-S3 validation logic, so unlike the Upload tests above it is
+// verified against a fake S3 endpoint (Config.Endpoint injection) that captures
+// the outgoing DeleteObject request.
+func TestDelete_IssuesDeleteObjectForBucketAndKey(t *testing.T) {
+	var gotMethod, gotPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotMethod = r.Method
+		gotPath = r.URL.Path
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	c, err := NewClient(Config{
+		Endpoint:  srv.URL,
+		Bucket:    "test-bucket",
+		AccessKey: "test",
+		SecretKey: "test",
+		PublicURL: srv.URL + "/test-bucket",
+	})
+	if err != nil {
+		t.Fatalf("NewClient error: %v", err)
+	}
+
+	if err := c.Delete(context.Background(), "image/abc123.png"); err != nil {
+		t.Fatalf("Delete error: %v", err)
+	}
+	if gotMethod != http.MethodDelete {
+		t.Errorf("expected DELETE request, got %s", gotMethod)
+	}
+	// UsePathStyle=true → DELETE /<bucket>/<key>
+	if gotPath != "/test-bucket/image/abc123.png" {
+		t.Errorf("expected path /test-bucket/image/abc123.png, got %s", gotPath)
+	}
+}
+
+func TestDelete_ReturnsErrorOnS3Failure(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	c, err := NewClient(Config{
+		Endpoint:  srv.URL,
+		Bucket:    "test-bucket",
+		AccessKey: "test",
+		SecretKey: "test",
+		PublicURL: srv.URL + "/test-bucket",
+	})
+	if err != nil {
+		t.Fatalf("NewClient error: %v", err)
+	}
+
+	if err := c.Delete(context.Background(), "image/abc123.png"); err == nil {
+		t.Fatal("expected error on S3 500 response, got nil")
+	}
 }
