@@ -7128,6 +7128,13 @@
 - 비중첩: L514(aspect-ratio 유틸 aspect-video/aspect-square 사용·값 산포)·L804(sm:aspect-* BP-토글)과 별개 — 본 축은 *@theme --aspect-* 네임스페이스 커스텀 명명 종횡비 토큰 정의* 차원. @theme 네임스페이스 개별-carve 선례(--breakpoint/--spacing/--container/--animate/--perspective/--drop-shadow/--inset-shadow/--ring/--blur/--ease/--radius 각각 전용 등재)와 정합.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3321, 582nd round(aesthetic).
 
+## cycle 3321 — design/aesthetic 582nd round (Discovery, 표면 폐기)
+- 축 선택: SVG 선 끝 모양 속성(`stroke-linecap`=SVG `<path>`/도형 열린 윤곽선의 끝(cap)을 뭉툭(butt)·둥근(round)·사각(square) 중 어떻게 그릴지 정하는 획 끝 형상 속성). aesthetic 로테이션(tokens 3319 → aesthetic 3321)에서 마스크·반사·3D·필터·그라디언트·멀티컬럼·의사요소 공간이 포화라, SVG 스트로크 표현 패밀리 중 형제-언급만 되고 자신이 subject 인 전용 라인이 없는 *stroke-linecap(선 끝 모양)* 차원을 선택. 본 축은 pure-vacuous 가 아닌 *census-consistency*(실제 사용·전 표면 균일)형.
+- 프로브: `strokeLinecap` 은 apps/web/src 6개 표면 12선언 전부 `="round"` 균일(비-round 값 0·drift 0). L657(stroke-miterlimit)·L651(stroke-dasharray) 의 vs-목록이 "선 끝 모양 stroke-linecap(별개 선-끝축·dedicated baseline·subj-ded=1)" 로 형제-언급·심지어 dedicated 로 태깅했으나 실제 stroke-linecap 이 subject 인 전용 라인은 grep 0(sibling-mention-only + 과잉-태깅 정정). DESIGN.md linecap/선 끝 언급 0.
+- 결정: 표면 폐기(0-후보). stroke-linecap 은 (1) 실사용(12선언 6표면)이나 전 표면 `round` 균일이라 cross-surface drift 0 (2) DESIGN.md 는 선 끝 모양 침묵(미규정 시 아이콘은 일관 round) (3) 전용 baseline 부재(L657 stroke-miterlimit·L651 stroke-dasharray·L538 stroke-width 각각 별개 subject·stroke-linecap 은 형제-언급만) — cross-surface 비정합 결함 미성립.
+- 비중첩: L657(stroke-miterlimit 모서리 한계)·L651(stroke-dasharray 점선 패턴)·L538(stroke-width 선 두께 토큰)·stroke-linejoin(선 이음 모양·역시 형제-언급만·별개 축)과 별개 — 본 축은 *SVG 획 끝 형상 stroke-linecap*(butt/round/square) 차원. SVG 스트로크 속성 개별-carve 선례(stroke-dasharray cycle 1531·stroke-miterlimit cycle 1539·fill-rule cycle 1523 각각 전용)와 정합.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3323, 582nd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
