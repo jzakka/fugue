@@ -7388,6 +7388,13 @@
 - 비중첩: 본 축은 *요소 박스의 어느 지점이 경로에 걸리나*(요소-측 결속점)이지 — L726 *일괄 census*·L1045 offset-position(경로 *초기 시작점*)·L1704 offset-rotate(*회전*)·L1722 offset-distance(경로 위 *진행 거리*)가 아님(경로 시작점 vs 회전 vs 거리 vs 결속점). anti-patterns L1725 등재(당초 "패밀리 완결" 문구는 offset-path 자체 미carve 확인 후 "longhand 4종 완결·잔여 offset-path/offset 단축"으로 정정).
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3377, 591st round(responsive).
 
+## cycle 3377 — design/responsive 591st round (Discovery, 표면 폐기)
+- 축 선택: 스크롤 여지 방향 컨테이너 상태 질의(`@container scroll-state(scrollable: <방향>)`=CSS Conditional 5 — 컨테이너가 해당 방향으로 더 스크롤할 여지가 있는지 질의해 "더 보기" 힌트를 조건부 표시하는 어포던스 축). 앵커 패밀리(cycle 3371 완결) 후속으로 scroll-state census(L735)의 미개별 멤버 탐색 — stuck/snapped 는 census+body 언급·scrollable 은 census 1건뿐 → census-member-only 개별 carve.
+- 프로브: (1) `scroll-state`/`scrollable` grep apps/web/src 전수 **0건**(pure-vacuous). (2) 호스트 container-type/container-name/@container 전수 0건 — scroll-state 질의는 container-type: scroll-state 선언이 전제인데 컨테이너 쿼리 표면 전무(mechanism-absent·globals.css .scrollbar-hide 는 스크롤바 표시 숨김이지 여지 질의 아님). (3) DESIGN.md(105줄) scroll/스크롤 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). scrollable 질의는 pure vacuous·컨테이너 쿼리 메커니즘 부재·DESIGN silent 이므로 "잘림 인지 힌트 부재·페이드 잔존·JS 리스너 혼용" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 미도입 질의 부재를 responsive 결함으로 보면 FP.
+- 비중첩: 본 축은 *스크롤 여지 방향* 개별 질의이지 — L735 scroll-state 3종 *일괄 census*·L1529 scrollsnapchange *명령형 이벤트 관측*·L1396 @container *종횡비 크기 특성*이 아님(census vs 명령형 vs 크기 vs 여지). anti-patterns L1726 등재·scroll-state census 잔여 미개별 멤버는 stuck·snapped.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3379, 516th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
