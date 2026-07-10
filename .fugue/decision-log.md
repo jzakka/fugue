@@ -6555,6 +6555,13 @@
 - 비중첩: 크기 키워드 보간 interpolate-size/calc-size()(427, 내재 키워드로/에서 *애니메이션*)·min-intrinsic-sizing 기여 제어(1053, min-content *기여* 여부)·벤더 채움 키워드 -webkit-fill-available/-moz-available(1083, 가용공간 *채움* 외재 키워드)와 별개 — 본 축은 *인자 있는 내재 크기 클램프 함수 fit-content(<length>)* 로 min~max-content 사이를 상한 캡하는 사이징 값, 키워드-보간·기여-제어·채움-키워드와 값·연산 차원 분리(인자 클램프 함수 vs 키워드 애니메이션 vs 기여 제어 vs 외재 채움 키워드).
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3241, 493th round(tokens).
 
+## cycle 3241 — design/tokens 493th round (Discovery, 표면 폐기)
+- 축 선택: CSS Color 4 색공간 함수 CIE XYZ 프로파일 연결 색공간(`color(xyz-d50 x y z)` — CIE 1931 XYZ 삼자극치(tristimulus) 좌표에 D50 기준백색을 쓰는 프로파일 연결 색공간(PCS) 채널 표기, RGB 채널이 아닌 X/Y/Z 삼자극치 값 모델). tokens 로테이션(responsive 3239 → tokens 3241)에서 color() 미리정의 RGB 계열이 per-space 로 카브돼 왔고(srgb 2105·rec2020 2113·srgb-linear·a98-rgb 3235) 아직 미카브인 xyz-d50(CIE XYZ D50 삼자극치) 색공간을 선택 — RGB 채널 모델과 다른 삼자극치 값 모델.
+- 프로브: (1) `xyz-d50`/`color(xyz` 0건(src·globals.css·DESIGN.md grep)·anti-patterns "xyz" 전무 → CIE XYZ 색공간 채널 표기 표면 부재. (2) 색 토큰은 hex(--accent:#E85A2A)·rgba 리터럴로만 구성, color() 색공간 함수·XYZ 삼자극치 파이프라인 미구성 → color(xyz-d50 …) 산출 mechanism-absent. (3) DESIGN.md(105줄) xyz/color() grep 0건 → 셋 중 미명시. (4) anti-patterns: xyz-d50 전용 baseline 부재 — 987(srgb)·991(rec2020)·995(srgb-linear)·a98-rgb(3235) per-space 라인에도 xyz 미포함, 전용 exact ap=0.
+- 결정: actionable-defect 부재(CIE XYZ 삼자극치 색을 지정할 color() 색공간 함수 표면 부재), confidence<3, 후보 0건 — 표면 폐기(anti-patterns EOF 등재, cycle 3241 baseline).
+- 비중첩: color(srgb …)(987, cycle 2105 표준 sRGB)·color(rec2020 …)(991, cycle 2113 BT.2020)·color(srgb-linear …)(995, 선형광 sRGB)·color(a98-rgb …)(3235, Adobe RGB 1998)·그라디언트 보간 색공간(414)·color-gamut 미디어(596)과 별개 — 본 축은 *CIE 1931 XYZ 삼자극치 프로파일 연결 색공간(D50 백색)* 채널 표기로, RGB 계열 미리정의 색공간(srgb/rec2020/srgb-linear/a98-rgb)·보간·색역 매체와 값 모델(삼자극치 X/Y/Z vs RGB 채널)·백색점 차원 분리.
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3243, 569th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
