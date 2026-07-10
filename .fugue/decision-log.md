@@ -6811,6 +6811,12 @@
 - 결정: 표면 폐기(0-후보). stroke-dasharray/dashoffset 점선·선-그리기 애니메이션 컨텍스트 자체가 0이라 pathLength 로 길이 좌표계를 재보정할 대상이 없음. 호스트 표면(dash 패턴/획 애니메이션) 부재로 pathLength 가 갈릴 지점 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3273 baseline), 코드 변경 0.
 - 차기: area = responsive (4-area rotation aesthetic→responsive) → cycle 3275, 574th round(responsive).
 
+## cycle 3275 — design/responsive 574th round (Discovery, 표면 폐기)
+- 축 선택: 스크롤 컨테이너 초기 스크롤 위치 속성 `scroll-start`(CSS Scroll Snap Module Level 2 — 스크롤 컨테이너가 처음 렌더될 때 어느 스크롤 오프셋에서 시작할지를 지정해 기본값(0,0)이 아닌 특정 위치로 초기 스크롤되게 하는 속성·`scroll-start-block`/`scroll-start-inline`/물리축 x·y longhand 계열 — 가로 칩 스트립이나 세로 리스트를 중간/끝 지점부터 보이게 초기화하는 반응형 스크롤 초기화 도구). responsive 로테이션(aesthetic 3273 → responsive 3275)에서 scroll-behavior(스크롤 애니메이션)·scroll-snap(스냅)·overscroll-behavior(연쇄) 계열은 카브됐으나 초기 스크롤 위치 축 `scroll-start` 는 미등재라 이 차원을 선택.
+- 프로브: `scroll-start`/`scrollStart` 코드(apps/web/src + globals.css) 0건·AP `scroll-start`/초기 스크롤 위치 0건(exact ap=0·전용 baseline 부재). 코드에 스크롤 컨테이너는 존재(overflow-x-auto 가로 칩 스트립 다수·overflow-y-auto 리스트)하나 어느 것도 `scroll-start` 로 초기 스크롤 오프셋을 지정하지 않고 전부 기본 시작 위치(0)에서 시작. DESIGN.md(105줄) scroll-start/초기 스크롤 silent. scroll-behavior(L?)/scroll-snap(snap-align L?)/overscroll-behavior(L549) 라인과 비중첩 — scroll-start 는 *초기 스크롤 오프셋*이지 스크롤 애니메이션·스냅 정렬·연쇄 차단이 아님.
+- 결정: 표면 폐기(0-후보). 모든 스크롤 컨테이너가 기본 시작 위치(0)에서 시작하고 초기 오프셋을 지정하는 표면이 0이라 scroll-start 가 갈릴 대상 없음. 초기 스크롤 위치 커스터마이즈 요구가 스펙/DESIGN 에 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3275 baseline), 코드 변경 0.
+- 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3277, 499th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
