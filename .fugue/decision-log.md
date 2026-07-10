@@ -6785,6 +6785,12 @@
 - 결정: 표면 폐기(0-후보). 스크롤 연쇄 제어(overscroll-behavior 계열)를 코드 어디에도 사용하지 않아(모달·가로 칩 스트립·마스킹 스크롤 컨테이너에 contain 미지정) 물리축별 연쇄/바운스 차단 대상이 0. 호스트 표면 부재로 x/y 개별 제어가 갈릴 지점 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3269 baseline), 코드 변경 0.
 - 차기: area = tokens (4-area rotation responsive→tokens) → cycle 3271, 498th round(tokens).
 
+## cycle 3271 — design/tokens 498th round (Discovery, 표면 폐기)
+- 축 선택: CJK 강조점 색 토큰 `text-emphasis-color`(CJK 텍스트에 다는 강조점(傍点)/방점 마크의 *색*을 지정하는 색 longhand — `text-emphasis` shorthand 의 색 성분·`text-emphasis-style`(형상, cycle 2153)/`text-emphasis-position`(위치)/`text-emphasis-skip`(스킵) 형제 중 *색* 축). tokens 로테이션(responsive 3269 → tokens 3271)에서 text-emphasis 패밀리 중 style(cycle 2153 dedicated)은 카브됐으나 색 longhand 는 style 라인(L1016)에서 "text-emphasis-color 색 longhand" sibling 언급으로만 존재(전용 색 baseline 부재)라 강조점 색 토큰 차원을 선택.
+- 프로브: `text-emphasis-color` 코드(apps/web/src + globals.css) 0건·`text-emphasis`(전형태) 전체 0건 doubly-vacuous. AP 매칭(L476/L901/L939/L1016)은 모두 shorthand·style·skip·position 축 라인의 색 형제 곁가지 언급 → text-emphasis-color 전용 baseline 부재(sibling-mention-only) 확인. DESIGN.md(105줄) emphasis/강조점/방점 silent(강조는 accent 색 토큰으로만 처리).
+- 결정: 표면 폐기(0-후보). CJK 강조점(傍点)을 다는 컨텍스트 자체가 코드에 0이라 강조점 마크가 존재하지 않고, 마크가 없으므로 그 색을 줄 대상도 0. 호스트 표면(강조점 마크) 부재로 색 토큰이 갈릴 지점 없음 → 결함 클래스 미성립. AP +1 라인(cycle 3271 baseline), 코드 변경 0.
+- 차기: area = aesthetic (4-area rotation tokens→aesthetic) → cycle 3273, 574th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
