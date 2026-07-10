@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3494 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop/design-loop 커밋 제외)
+- 조사: 0건. 코드·문서 population이 baseline 22747864 이후 외부 변경 없음
+- 판정: 직전 정합성 census(3482) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 3496 (직전 3484 covered). 코드·CI freeze check 예정
+
 ### cycle 3492 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
 
 - 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
