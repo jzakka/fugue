@@ -7297,6 +7297,13 @@
 - 비중첩: 본 축은 나눈 *나머지 잉여* 반환(mod()·주기 래핑)이지 — L406 수학 함수군 *일괄 census*·L1709 round()(간격 배수 *스냅*=배수 자체 선택 vs 모듈로=배수 초과분)·rem()(피제수 부호·잔여 형제·CSS rem 길이 단위와 함수 vs 단위로 별개)·L746 progress()(진행도 정규화)·L737 if()(조건 분기)·L730 random()(무작위)·JS `%`(명령형)가 아님. anti-patterns L1712 등재·스텝 3형제 잔여는 rem() 뿐.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3351, 587th round(aesthetic).
 
+## cycle 3351 — design/aesthetic 587th round (Discovery, 표면 폐기)
+- 축 선택: 9-slice 테두리 이미지 분할 기하 longhand(`border-image-slice`=`<number-percentage>{1,4} && fill?` 로 border-image-source 이미지를 상/우/하/좌 오프셋으로 9분할해 테두리 각 부위에 배정할 영역을 자르는 절단 축·fill 로 중앙 보존까지 결정). border-image longhand 패밀리 중 outset(L1101)·repeat(L1106)은 subject carve 완료·source/slice/width 는 L707 속성군 census·L1101 vs-list 에 sibling 으로만 언급돼 미carve → sibling-mention-only 개별 carve 로 slice 를 선택(mod() 3349·position-visibility 3347·mask-size 3345 선례와 동형).
+- 프로브: (1) `border-image-slice`/`borderImageSlice`/`border-image`(단축 포함) grep src·globals.css 전수 **0건**(pure-vacuous). (2) 테두리 이미지 메커니즘 자체 비-사용: `border-image-source`/`border-image:` 0건(L707 census 와 일치)·테두리는 단색 `border`+`--color-border`(#2A2A2A)+`border-radius` 로만 구현 → slice 가 자를 소스 이미지 부재(종속 longhand·mechanism-absent). (3) DESIGN.md(105줄) border-image/테두리 이미지/slice grep 0건(L46 Border 는 단색 보더 색 토큰·L73 radius·L86 hover accent border 는 단색 테두리) — 이미지 테두리 분할 정책 무규정(silent).
+- 결정: 표면 폐기(0-후보). border-image-slice 는 pure vacuous(선언 0)·테두리 이미지 메커니즘 부재(절단 대상 0)·DESIGN silent 이므로 "9-slice 분할 비정합·slice 누락" 은 미명시 취향(loop rule line 9)이지 결함이 아님. 정적으로 slice 부재를 테두리 결함으로 보면 FP.
+- 비중첩: 본 축은 소스 이미지를 9영역으로 *자르는 분할 오프셋 기하*(border-image-slice·절단 단계)이지 — L707 속성군 *일괄 census*·L1101 border-image-outset(박스 *외부 확장량*)·L1106 border-image-repeat(잘린 슬라이스의 *타일링 방식*)·L1130 mask-border-repeat(마스킹 레이어 9-slice)·일반 border 색/폭·border-radius(DESIGN L73 모서리축)가 아님(절단→타일링→확장 파이프라인 중 절단 담당). anti-patterns L1713 등재·잔여 형제는 border-image-source·border-image-width.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3353, 587th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
