@@ -7661,6 +7661,13 @@
 - 비중첩: 본 축은 oblique *각도 인자 값* 차원이지 — L174(토큰/유틸 존재)·L1105(font-synthesis-style 합성)·L1351(BP italic 토글)이 아님. anti-patterns L1764 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3455, 604th round(responsive).
 
+## cycle 3455 — design/responsive 604th round (Discovery, 표면 폐기)
+- 축 선택: `IntersectionObserver` `rootMargin` 사전-로드 오프셋 옵션(무한 스크롤 프리페치 거리). anti-patterns rootMargin/thresholds/ResizeObserverSize 0건 확인 — IO 자체는 L1440/L1477/L1615 가 타 축 대비 언급만 하고 옵션 인자 전용 carve 부재로 미개척 확정.
+- 프로브: (1) IO 사용 전수 2곳(PinsGrid.tsx:91-95·FeedContainer.tsx:138-144) **동일 idiom**(sentinel+rootMargin "200px"+isIntersecting→loadMore+disconnect) — divergence 0(uniform). (2) threshold 양쪽 생략(기본 0) 균일. (3) DESIGN.md 프리페치 거리 미규정(silent).
+- 결정: 표면 폐기(uniform·모집단 2 정합). 값 갈림이 없으므로 "프리페치 거리 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 IO *옵션 인자(프리페치 거리)* 차원이지 — L1440(ResizeObserver 요소-크기 관측)·L167(scroll-margin CSS 스냅 여백)이 아님. anti-patterns L1765 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3457, 529th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
