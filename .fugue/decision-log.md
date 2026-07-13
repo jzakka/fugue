@@ -8032,6 +8032,13 @@
 - 비중첩: 본 축은 *키프레임 스텝 오프셋의 철자 형태* 차원이지 — L1526(CSSKeyframeRule CSSOM 인터페이스)·L740(animation-timeline 스크롤 연동)·L495(--ease-* 이징 토큰화)·L1775/L1776/L1778(색·폰트 문법-형태)이 아님. anti-patterns L1779 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3485, 609th round(responsive).
 
+## cycle 3485 — design/responsive 609th round (Discovery, 표면 폐기)
+- 축 선택: TouchEvent 멀티-접촉 목록·접촉-기하 판독(`onTouch*`·`touches`/`targetTouches`/`changedTouches`·`Touch.radiusX/force/rotationAngle`). anti 전수 — TouchEvent/changedTouches/radiusX/touchstart 0건(maxTouchPoints 5건은 L1508 장치 티어 타축·orientationchange 1건은 L1476 타축) — 미개척 확정. 후보 조사 중 MQ 범위 구문(L703)·브레이크포인트 토큰(L569)·단위 계열(L529/L709 등)·MQ 장치-능력 특성군(L576-L688) 전부 기등재 확인.
+- 프로브: (1) Touch API apps/web/src 전수 **0건**(핸들러·목록·기하·addEventListener 전부 0, pure vacuous). (2) 접촉 입력 파이프라인은 Pointer Events 단일 idiom(VideoTrimModal onPointerDown/Move/Up/Leave) — Pointer Events 가 touch 를 포섭·멀티터치 요구 표면(핀치/회전 UI) 0. (3) DESIGN.md touch/터치 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 터치 전용 이벤트 표면 부재이므로 "멀티터치 미지원·터치 파이프라인 누락" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *터치 전용 채널의 멀티-접촉 목록·접촉 기하* 차원이지 — L1777(PointerEvent 입력-특성)·L1508(maxTouchPoints 티어)·L553(touch-action 제스처 선언)·L275(hover MQ)·L311(포인터 취소)이 아님. anti-patterns L1780 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3487, 534th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
