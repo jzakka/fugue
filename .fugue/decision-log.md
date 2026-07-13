@@ -7633,6 +7633,13 @@
 - 비중첩: 본 축은 font-size *키워드 값 종류* 차원이지 — L928 크기-토큰축(속성/수치 스케일)·L909 글꼴크기축(크기/행간 짝)·L272/L459(사이징 보정)·L1293(font-size-adjust 메트릭 기준 키워드)이 아님(c3427·c3439 직교 carve 선례). anti-patterns L1760 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3447, 604th round(aesthetic).
 
+## cycle 3447 — design/aesthetic 604th round (Discovery, 표면 폐기)
+- 축 선택: 모션 경로 단축 `offset`(CSS Motion Path 1 — position/path/distance/rotate/anchor 5 longhand 일괄 shorthand). corner-shape/border-image/paint-order/stroke-dasharray/text-shadow/SVG baseline·필터 색·::picker/::column/::scroll-marker/overlay/interpolate-size/caret-* 등 후보 전수 기carve 확인 후, L1728 이 "잔여는 offset 단축 표기뿐" 으로 명시 열거한 미개척 축 선택(c3443 stretch 선례).
+- 프로브: (1) CSS offset 단축 선언 apps/web/src 전수 **0건** — `offset:` 매치는 전부 JS 페이지네이션 파라미터(fetchPins/useState, 7곳) substring 오탐 배제·offset-* longhand 0(pure vacuous). (2) 모션 표면은 hover translateY(-2px)+색/그림자 전이+shimmer background-position 키프레임(globals.css:99-113) 단일 관례(uniform-alternative·mechanism-absent). (3) DESIGN.md Motion(L88-94) Minimal-functional 만 규정·경로 모션 silent.
+- 결정: 표면 폐기(0-후보). 경로 모션 모집단 0·단축을 받을 longhand 표면조차 0 이므로 "단축/롱핸드 표기 갈림" 은 성립하지 않는 가정 결함. Motion Path 패밀리 shorthand 까지 carve 완결.
+- 비중첩: 본 축은 5종 묶음 *shorthand 표기* 차원이지 — L726(일괄 census)·L1728(path)·L1722(distance)·L1704(rotate)·L1725(anchor)·L1045(position) 각 longhand 축이 아님. anti-patterns L1761 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3449, 603rd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
