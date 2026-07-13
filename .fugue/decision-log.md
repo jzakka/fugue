@@ -8095,6 +8095,13 @@
 - 비중첩: 본 축은 *비구조화 UA 문자열 정규식 파싱* 차원이지 — L1472(UA-CH 구조화 API)·L1508(maxTouchPoints 티어)·L1460(devicePixelRatio 밀도)·L1777(PointerEvent 입력 특성)이 아님. anti-patterns L1783 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3493, 535th round(tokens).
 
+## cycle 3493 — design/tokens 535th round (Discovery, 표면 폐기)
+- 축 선택: CSS 커스텀 프로퍼티 명명 케이스-형태(kebab-case vs camelCase/snake_case — 대소문자 구분 식별자 철자). anti 전수 — 명명 케이스/식별자 케이스/camelCase 토큰 0건(snake_case 5건은 L825/L830 API JSON 키 *system 도메인* 타축·var() 폴백은 L769/c426 기등재 확인) — 미개척 확정. 문법-형태 carve 패밀리 연속(c3475/c3481/c3487 동형).
+- 프로브: (1) 커스텀 프로퍼티 정의 apps/web/src 전수 36개(globals.css :root/.light/@theme 단일 파일) — 전부 소문자 kebab-case·대문자/언더스코어 혼입 0(non-kebab grep 0·divergence 0). (2) 참조 globals 내부 var() 19곳 동일 kebab·tsx var(--) 0건 — second surface 부재·소비는 @theme 매핑 Tailwind 유틸 단일. (3) DESIGN.md 명명 규약 grep 0건(silent)·팔레트 표기 동형 kebab.
+- 결정: 표면 폐기(0-후보). 정의·참조 전수 단일 케이스 균일이므로 "명명 케이스 비정합·규약 미통일" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *커스텀 프로퍼티 식별자의 케이스 철자* 차원이지 — L825/L830(API DTO 키)·L511(시맨틱 토큰화)·L164(토큰 정의 유무)·L1034(ident() 동적 생성)·L1775~L1782(다른 속성군 문법-형태)이 아님. anti-patterns L1784 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3495, 612th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
