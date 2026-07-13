@@ -7738,6 +7738,13 @@
 - 비중첩: 본 축은 *가시 세로 크기* 멤버이지 — 시리즈 형제 offsetTop/scale/pageTop/width/offsetLeft/pageLeft(각기 오프셋/배율/문서 위치/가로 크기)가 아님. anti-patterns L1768 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3463, 530th round(tokens).
 
+## cycle 3463 — design/tokens 530th round (Discovery, 표면 폐기)
+- 축 선택: 웹 앱 매니페스트 색 멤버 토큰(`theme_color`/`background_color` — 설치 앱 크롬 색·스플래시 배경색 JSON 멤버). 배치 조사에서 수치 함수(round/mod/sin 등)·@theme 옵션·accent/scrollbar-color·meta theme-color(L1454) 전부 기carve 확인 — manifest 언급 6건은 전부 타 축(L374 orientation·L576 display-mode·L1086/L1747 env)으로 색 멤버 전용 carve 부재 확정. L1454(HTML 메타 표면)와 직교하는 *매니페스트 파일 멤버* 전달 차원.
+- 프로브: (1) manifest grep src·public·next.config 전수 **0건**·`app/manifest.ts`/`manifest.json` 파일 부재·`<link rel="manifest">` 0(mechanism-absent·pure vacuous). (2) 색 전달은 globals.css `:root`/`.light` 커스텀 프로퍼티 단일 idiom(second surface 0). (3) DESIGN.md PWA/splash/설치 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 매니페스트 자체가 없으므로 "색 멤버 팔레트 불일치·누락" 은 성립하지 않는 가정 결함. 미도입은 제품 결정(미명시 enhancement).
+- 비중첩: 본 축은 *매니페스트 색 멤버* 차원이지 — L1454(HTML 메타 크롬 색)·L374(orientation 멤버)·L576(display-mode)·L1747(WCO)·L1086(env 인셋)이 아님. anti-patterns L1769 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3465, 607th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
