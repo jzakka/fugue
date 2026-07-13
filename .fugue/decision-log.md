@@ -9012,6 +9012,13 @@
 - 비중첩: 본 축은 *선언 레벨 철자 대소문자* 차원이지 — L1816(MQ)·L1784(명명 케이스)·L1815(keyframes 이름)·L1775(hex)·L1778(폰트명 인용)·L508(텍스트 변환)이 아님. anti-patterns L1821 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3569, 623rd round(responsive).
 
+## cycle 3569 — design/responsive 623rd round (Discovery, 표면 폐기)
+- 축 선택: at-rule 키워드-prelude 사이 공백 표기-형태 — `@media (…)`≡`@media(…)`·`@import "x"`≡`@import"x"` (괄호/문자열 prelude 에서 공백 어휘상 선택적·완전 동치). 식별자 prelude(@theme inline·@keyframes shimmer)는 공백 강제라 범위 밖 명시. anti 전수 — prelude 매치 2건(L1804 결합 구조·L1807 변형 체인)뿐·at-키워드 직후 공백 축 0매치로 미개척 확정. 기각 후보: range 구문(L703)·미디어 타입 명시/생략(L1801) 기커버.
+- 프로브: (1) 모집단 2·균일 — globals.css at-rule 4건 중 자유-선택 위치 2건(:1 @import·:111 @media) 둘 다 공백형·밀착형 0. (2) 대체 채널 — matchMedia 0·insertRule 0·tsx `@media` 문자열 0·Tailwind 유틸 컴파일 방출. (3) DESIGN.md at-rule/공백 규정 0매치.
+- 결정: 표면 폐기(0-후보). 자유-선택 모집단 2건 단일 형태라 "표기 비정합" 가정 결함.
+- 비중첩: 본 축은 *at-키워드 직후 공백* 차원이지 — L1819(괄호 안쪽)·L1813(특성 콜론)·L1804(결합 구조)·L1817(중괄호 전치)·L1792(배치)·L1801(타입 명시/생략)이 아님. anti-patterns L1822 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3571, 548th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
