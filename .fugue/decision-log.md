@@ -8396,6 +8396,13 @@
 - 비중첩: 본 축은 *className 문자열 내 BP-변형 서술 순서 형태* 차원이지 — L809(order 속성)·L649(@layer)·L525(변형 명명)·L1792(@media 배치)·L160(표시 토글 기능)이 아님. anti-patterns L1795 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3517, 539th round(tokens).
 
+## cycle 3517 — design/tokens 539th round (Discovery, 표면 폐기)
+- 축 선택: 루트 요소 지칭 셀렉터 표기-형태 — `:root` 의사클래스 vs `html` 타입 셀렉터(HTML 에서 동일 요소 매치·specificity 만 상이한 조건부-등가·단일 형태 사용 시 순수 철자 선택). anti 전수 — ":root vs/html 셀렉터/정의 위치" grep 0건·L457 은 color-scheme *속성* 정합·L1784 는 커스텀 프로퍼티 *명명* case 차원으로 본 축 미개척 확정. var() 폴백 후보는 L769 기존재로, color-scheme 채널 후보는 L457 인접으로 기각.
+- 프로브: (1) 루트 지칭 저작 셀렉터 전수 1건(globals.css:8 `:root` 다크 기본 토큰 블록)·`html` 형 0건 — 두 번째 지칭 부재(divergence 0)·혼용 없어 specificity 차이 발현 불가. `.light`(:28)는 테마 상태 클래스로 별개 차원. (2) tsx 루트 접근 3곳(ThemeToggle:11/:23/:26)은 documentElement DOM API 클래스 토글 — 셀렉터 철자 비관여 채널. (3) DESIGN.md 침묵.
+- 결정: 표면 폐기(0-후보). 루트 지칭 1건 단일 형태라 ":root/html 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *루트 요소 지칭 셀렉터의 철자 형태* 차원이지 — L457(color-scheme 속성)·L1784(명명 case)·L1792(@media 배치)·L761(& 중첩)·L168(초기 테마 동작)이 아님. anti-patterns L1796 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3519, 616th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
