@@ -7605,6 +7605,13 @@
 - 비중첩: 본 축은 *lazy 이미지 sizes 자동값(레이아웃 실측 vs 수기 조건 목록)* 차원이지 — L754(저자 명시 srcset/sizes/picture census)·L1753(프리로드 단계 imagesrcset/imagesizes·c3431)·L91(fetchpriority/decoding 힌트)·L141(아트디렉션 FP-노트)이 아님. anti-patterns L1756 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3439, 526th round(tokens).
 
+## cycle 3439 — design/tokens 526th round (Discovery, 표면 폐기)
+- 축 선택: 환경 변수 폴백 인자(`env(<name>, <fallback>)` 2번째 인자 — UA 환경 값 부재 대비 방어 인자). anti-patterns keyword 서베이에서 env 폴백 **0건**(mention-absent) — image-set·cross-fade·element()·string-set·leader()·margin-trim·line-fit-edge·scrollbar-width/color·initial-letter·text-emphasis·anchor 계열 등 여타 후보 전부 기carve 확인 후 선택. env 변수 *종류* carve(safe-area·titlebar·keyboard-inset·preferred-text-scale·viewport-segment) 대비 *폴백 인자* 직교 차원(c3427 함수 vs 상수 직교 선례와 동형).
+- 프로브: (1) `env(` apps/web/src 전수 grep **0건**(pure-vacuous — 폴백 인자를 담을 호스트 함수 부재). (2) 환경 변수 소비 메커니즘 전무 — 노치/PWA/WCO/가상 키보드 경로 전부 0(c3407/3419/3425 확립)이라 폴백 유무가 갈릴 모집단 0(mechanism-absent). (3) DESIGN.md(105줄) env/폴백/fallback grep 0건(silent).
+- 결정: 표면 폐기(0-후보). env() 표면 0·소비 메커니즘 부재·DESIGN silent 이므로 "일부만 폴백 지정·폴백 값 산재" 는 성립하지 않는 가정 결함이지 실 결함이 아님.
+- 비중첩: 본 축은 *env() 폴백 인자 유무/일관성* 직교 차원이지 — L617/L1086/L1741/L1750/L1408(env 변수 *종류*)·var() 폴백 축(*커스텀 프로퍼티* 미설정)·first-valid()(L1225 *유효성 목록*)이 아님. anti-patterns L1757 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3441, 603rd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
