@@ -8529,6 +8529,13 @@
 - 비중첩: 본 축은 *미디어 타입 키워드 명시/생략* 차원이지 — L1789(특성 값 생략형)·L1792(@media 배치)·L582(@media print 기능)·L703(range 문법)·L1420(link media 속성)이 아님. anti-patterns L1801 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3529, 541st round(tokens).
 
+## cycle 3529 — design/tokens 541st round (Discovery, 표면 폐기)
+- 축 선택: CSS 블록 마지막 선언의 종결 세미콜론 표기-형태 — `prop: val; }` vs `prop: val }`(명세상 세미콜론은 구분자·마지막 선언 뒤 생략 가능·파싱 완전 동치). anti 전수 — 세미콜론 grep 0건으로 미개척 확정(L1787 은 숫자 leading-zero *철자*·L1797 은 의사요소 *콜론 개수*). 문법-형태 carve 의 선언 종결 구두점 적용.
+- 프로브: (1) 저작 CSS 전수 = globals.css 단 1개 — 전 블록(중첩 @media·원라이너 keyframe 포함) 세미콜론 종결·생략형(`[^;{] *}`) 0건(divergence 0). (2) 대안 채널 — styled-jsx/`<style>`/style 문자열 0건·tsx 인라인은 JS 객체(세미콜론 비관여)·Tailwind 컴파일 채널 비노출. (3) DESIGN.md 세미콜론/semicolon 무언급(silent).
+- 결정: 표면 폐기(0-후보). 저작 CSS 가 세미콜론 종결 단일 형태로 균일이라 "생략/명시 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *선언 종결 세미콜론 명시/생략* 차원이지 — L1787(leading-zero 철자)·L1790(zero-unit)·L1797(의사요소 콜론)·L1792(@media 배치)·L1799(@import 인자)가 아님. anti-patterns L1802 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3531, 618th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
