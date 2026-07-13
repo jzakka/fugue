@@ -7689,6 +7689,13 @@
 - 비중첩: 본 축은 *벤더 사설 별칭 병기* 차원이지 — L1081(ui-* Fonts 4 표준 제네릭)·L609(@theme 기본 글꼴 토큰)·L1390(@font-face 메트릭 서술자)·L1293(font-size-adjust 기준)이 아님. anti-patterns L1766 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3459, 606th round(aesthetic).
 
+## cycle 3459 — design/aesthetic 606th round (Discovery, 표면 폐기)
+- 축 선택: 그라디언트 색 정지점 이중-위치 구문(CSS Images 4 double-position color stop — `red 20% 40%` 한 색 + 위치 인자 2개 = 하드 밴드 구문 설탕). 배치 조사에서 paint-order/mask-border/font-palette/SVG 계열 등 25개 후보 전부 기carve 확인 — double-position/이중 위치/hard stop 은 anti 0건으로 미개척 확정. L840(단일 위치)·L885(보간 힌트)·L602(반복)·L889(hue 경로)와 직교하는 *인자-개수* 차원(c3453/c3439 인자-차원 선례).
+- 프로브: (1) 이중-위치 표기 apps/web/src 전수 **0건** — gradient host 8곳 census: Tailwind `bg-gradient-to-br` 7곳(위치 무지정)+shimmer 1곳(globals.css:105 단일-위치 0%/50%/100%) → pure vacuous. (2) host 전수 매끄러운 보간 단일 idiom(하드 밴드/줄무늬 표면 0·같은 색 2회 표기 등가물도 0). (3) DESIGN.md gradient/정지점/band/stripe grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 하드 밴드 표면 자체가 없으므로 "이중-위치 표기 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *한 색의 위치 인자 2개* 구문 차원이지 — L840(단일 위치 유틸)·L885(색 없는 힌트)·L602(반복 패턴)·L889(보간 색공간)·L798(via 중간 정지점)이 아님. anti-patterns L1767 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3461, 605th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
