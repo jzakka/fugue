@@ -7577,6 +7577,13 @@
 - 비중첩: 본 축은 *색상환 회전(색조 시프트)* 개별 멤버이지 — L535(*census*)·L1743/L1746/L1749(*입힘/제거/반전*)·L1059(*각도 단위*)가 아님. 잔여 census-only: brightness/contrast/saturate. anti-patterns L1752 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3431, 600th round(responsive).
 
+## cycle 3431 — design/responsive 600th round (Discovery, 표면 폐기)
+- 축 선택: 반응형 이미지 프리로드 속성(`<link rel="preload" as="image" imagesrcset imagesizes>` — 뷰포트 폭·DPR 조건으로 LCP 이미지 후보를 렌더 전 선적재·Next.js `<Image priority>` 자동 생성). anti-patterns keyword 서베이에서 imagesizes/imagesrcset **0건**(mention-absent) — 컨테이너 쿼리 변형(@sm:/@max-*)·resize·max-sm·device-posture 등 여타 후보는 전부 기carve 확인 후 선택.
+- 프로브: (1) imagesrcset/imagesizes/imageSrcSet/imageSizes apps/web/src 전수 grep **0건**(pure-vacuous). (2) `rel="preload"` 링크 0건·next/image `priority` 0건 — 프리로드 링크 메커니즘 자체 부재. 실재 preload 6건은 전부 media 요소 `preload="metadata|auto"` 버퍼링 힌트로 별개 메커니즘(mechanism-absent). (3) DESIGN.md(105줄) preload/프리로드 grep 0건(silent) — LCP 성능 힌트는 DESIGN 미배킹(L91 fetchpriority 선례).
+- 결정: 표면 폐기(0-후보). 프리로드 표면 0·priority 미사용·DESIGN silent 이므로 "일부 히어로만 프리로드·imagesizes 불일치" 는 성립하지 않는 가정 결함이지 실 결함이 아님.
+- 비중첩: 본 축은 *link 프리로드 단계의 뷰포트-조건부 선적재* 차원이지 — L754(렌더 시점 srcset/sizes/picture 마크업)·L572(next/image 자동 srcset idiom)·L91(fetchpriority/decoding img 속성 FP-노트)·L1257(media preload 버퍼링)·L1512(storage.estimate 티어 관측)가 아님. anti-patterns L1753 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3433, 525th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
