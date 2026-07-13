@@ -8865,6 +8865,13 @@
 - 비중첩: 본 축은 *@keyframes 이름 custom-ident 철자* 차원이지 — L1784(프로퍼티명 케이스)·L1482(CSSOM 변이)·L80(사용 존재)·L1779(오프셋 별칭)·L1809(스텝 순서)·L1034(동적 구성)가 아님. anti-patterns L1815 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3557, 621st round(responsive).
 
+## cycle 3557 — design/responsive 621st round (Discovery, 표면 폐기)
+- 축 선택: 미디어 특성명·값 키워드 대소문자 표기-형태 — `(prefers-reduced-motion: reduce)` vs `(PREFERS-REDUCED-MOTION: Reduce)`(명세상 ASCII case-insensitive·완전 등가·순수 cosmetic). anti 전수 — L1784 는 case-sensitive *커스텀 프로퍼티명*(참조 실패 실익 존재)·L1775 는 hex *니블* 케이스·L1813 은 MQ 특성 콜론 *공백*·L1801 은 *타입* 명시/생략으로 본 축(MQ 식별자 케이스) 미개척 확정. 케이스-표기 계열의 @media prelude sub-차원.
+- 프로브: (1) 모집단 1·균일 — 저작 @media 1건(globals.css:111 전부 소문자)·대문자 혼입 grep 0건(분기 0·짝 부재). (2) 대체 채널 — matchMedia 0·arbitrary MQ 변형 0·Tailwind BP-변형 24곳은 컴파일 방출 채널. (3) DESIGN.md MQ 표기 규정 침묵(c3551 확인 재사용).
+- 결정: 표면 폐기(0-후보). 모집단 1이라 "케이스 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *MQ 특성명·값 키워드 대소문자* 차원이지 — L1813(콜론 공백)·L1801(타입)·L1804(결합자)·L1789(값 생략형)·L703(비교 구문)·L1810(단위)·L1784(프로퍼티명)·L1775(hex 니블)가 아님. anti-patterns L1816 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3559, 546th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
