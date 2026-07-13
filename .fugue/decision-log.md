@@ -8837,6 +8837,13 @@
 - 비중첩: 본 축은 *콤마 구분자 뒤 공백 유무* 차원이지 — L1776(문법 선택)·L1805(선언 콜론)·L1811(var() 괄호)·L1813(MQ 콜론)·L1806(목록 항목 순서)·L1787(leading-zero)이 아님. anti-patterns L1814 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3555, 622nd round(aesthetic).
 
+## cycle 3555 — design/aesthetic 622nd round (Discovery, 표면 폐기)
+- 축 선택: @keyframes 애니메이션 이름 명명-형태 — custom-ident 를 kebab-case `fade-in` vs camelCase `fadeIn` vs snake_case `fade_in` 로 쓸지의 식별자 철자 차원. anti 전수 — L1784 는 *커스텀 프로퍼티명* 케이스·L1482 는 CSSOM *변이*·L80 은 애니메이션 *사용 존재*·L1779/L1809 는 오프셋 *별칭*/스텝 *순서*로 본 축(@keyframes 이름 철자) 미개척 확정. 명명-형태 계열의 애니메이션 custom-ident sub-차원.
+- 프로브: (1) 모집단 1·단일어 — 저작 @keyframes 1건(globals.css:99 `shimmer`·참조 :108 일치)·단일어 소문자라 케이스 분기가 문자열에 드러나지 않음·다단어 0건(pure vacuous). (2) 대체 채널 — WAAPI `.animate()` 0·arbitrary `animate-[…]` 0·animate-spin 11곳은 컴파일러 이름 방출 채널. (3) DESIGN.md 명명/keyframes 규정 0매치.
+- 결정: 표면 폐기(0-후보). 다단어 이름 부재라 "명명 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *@keyframes 이름 custom-ident 철자* 차원이지 — L1784(프로퍼티명 케이스)·L1482(CSSOM 변이)·L80(사용 존재)·L1779(오프셋 별칭)·L1809(스텝 순서)·L1034(동적 구성)가 아님. anti-patterns L1815 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3557, 621st round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
