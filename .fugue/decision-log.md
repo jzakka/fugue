@@ -8417,6 +8417,13 @@
 - 비중첩: 본 축은 *루트 요소 지칭 셀렉터의 철자 형태* 차원이지 — L457(color-scheme 속성)·L1784(명명 case)·L1792(@media 배치)·L761(& 중첩)·L168(초기 테마 동작)이 아님. anti-patterns L1796 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3519, 616th round(aesthetic).
 
+## cycle 3519 — design/aesthetic 616th round (Discovery, 표면 폐기)
+- 축 선택: 의사요소 콜론 개수 표기-형태 — Selectors 3 이중 콜론 `::before` vs CSS2.1 레거시 단일 콜론 `:before`(before/after/first-line/first-letter 4종만 두 철자 등가·그 외는 이중 콜론 강제). anti 전수 — "콜론" grep 2건(L969 무관·L1164 는 스크롤바 sub-pseudo *기능* 차원)으로 본 축(콜론 개수 철자) 미개척 확정.
+- 프로브: (1) 저작 의사요소 전수 2건(globals.css:79 `::placeholder`·:122 `::-webkit-scrollbar`) — 둘 다 단일 콜론이 무효인 종류라 강제 균일·단일 콜론 0. (2) 이중-형태 허용 4종(before/after/first-line/first-letter) 저작 CSS 0·Tailwind before:/after: 유틸 0 — 철자가 갈릴 모집단 pure vacuous. (3) DESIGN.md 침묵.
+- 결정: 표면 폐기(0-후보). 이중-형태 허용 의사요소 사용 자체가 0이라 "콜론 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *의사요소 콜론 개수 철자* 차원이지 — L1164(sub-pseudo 기능)·L761(& 중첩)·L1779(keyframe 셀렉터 철자)·L1796(루트 셀렉터 철자)이 아님. anti-patterns L1797 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3521, 615th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
