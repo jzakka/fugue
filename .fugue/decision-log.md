@@ -7563,6 +7563,13 @@
 - 비중첩: 본 축은 *OS 텍스트 배율의 선언형 소비* 개별이지 — L272 text-size-adjust(*억제 속성*)·L617(*노치*)·L1741(*키보드*)·L1747(*타이틀바*)·L749(*페이지 줌*)가 아님. anti-patterns L1750 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3427, 524th round(tokens).
 
+## cycle 3427 — design/tokens 524th round (Discovery, 표면 폐기)
+- 축 선택: CSS 수치 상수 키워드(`e`/`pi`/`infinity`/`-infinity`/`NaN`=CSS Values 4 calc 상수 — 함수가 아닌 사전정의 상수 값 어휘·알약 radius calc(infinity*1px)·원주율 pi). anti-patterns 전체 infinity/pi/수치 상수 grep 0건 — mention-absent carve. 수학 *함수* 축(L406 census + 개별 carve 완결)과 직교하는 *상수* 차원.
+- 프로브: (1) CSS e/pi/infinity/NaN·JS Infinity grep apps/web/src 전수 **0건**(pure-vacuous). (2) 소비 메커니즘 전무 — `calc(` CSS 전역 0건이라 상수가 등장할 계산식 표면 통째 부재·알약 radius 는 rounded-full 단일 소싱(mechanism-absent). (3) DESIGN.md L77 radius full 을 `9999px` **고정 리터럴로 명시 규정** — calc(infinity*1px) 대체는 개선이 아니라 DESIGN 위반·pi/e/infinity grep 0건.
+- 결정: 표면 폐기(0-후보). 상수 사용 0·계산식 표면 부재·DESIGN 이 리터럴을 명시하므로 "infinity vs 9999px 갈림" 은 성립하지 않는 가정 결함(loop rule line 9)이지 실 결함이 아님.
+- 비중첩: 본 축은 *수치 상수 키워드* 값 어휘이지 — L406(*함수 census*)·L265/L442/L447(*Values-3 함수*)·L1733~L1748(*함수 개별*)·L73/L1644(*radius 스케일 값*)가 아님(함수 vs 상수). anti-patterns L1751 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3429, 601st round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
