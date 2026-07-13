@@ -12,6 +12,16 @@ RETURNING *;
 -- The literal MUST stay in sync with `BotCreatorID` in
 -- apps/api/internal/bot/source.go and the partial index predicate in
 -- apps/api/db/migrations/000027_add_pins_url_bot_unique.up.sql.
+-- The prev CTE has no such constraint, so it uses the $1 parameter.
+--
+-- The prev CTE is evaluated on the same snapshot as the INSERT, so
+-- prev_og_image is the og_image value BEFORE this upsert overwrote it
+-- (NULL on a fresh insert). The caller uses it to clean up the previously
+-- referenced image-cache object when the reference is replaced.
+WITH prev AS (
+    SELECT og_image FROM pins
+    WHERE url = $4 AND creator_id = $1
+)
 INSERT INTO pins (creator_id, media_url, media_type, url, title, description, og_image, og_data)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (url) WHERE creator_id = '00000000-0000-0000-0000-00000000f096'
@@ -22,7 +32,8 @@ DO UPDATE SET
     description = EXCLUDED.description,
     og_image = EXCLUDED.og_image,
     og_data = EXCLUDED.og_data
-RETURNING *, (xmax = 0) AS inserted;
+RETURNING *, (xmax = 0) AS inserted,
+    (SELECT og_image FROM prev) AS prev_og_image;
 
 -- name: LinkPinTag :exec
 INSERT INTO pin_tags (pin_id, tag_id) VALUES ($1, $2);

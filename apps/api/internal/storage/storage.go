@@ -135,15 +135,15 @@ type UploadResult struct {
 	MediaType MediaType // image, audio, video
 }
 
-// Upload validates and stores a media file. It reads the first 512 bytes
-// to detect the real content type, validates against the allowlist, checks
-// size, then streams to S3.
-func (c *Client) Upload(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (*UploadResult, error) {
+// validateMedia reads the first 512 bytes to detect the real content type,
+// validates against the allowlist, checks size, and returns the canonical
+// MIME, media type, and the full payload buffered for a seekable upload.
+func validateMedia(contentType string, size int64, body io.Reader) (string, MediaType, []byte, error) {
 	// Detect real MIME from first 512 bytes
 	buf := make([]byte, 512)
 	n, err := io.ReadAtLeast(body, buf, 1)
 	if err != nil {
-		return nil, fmt.Errorf("storage: read header: %w", err)
+		return "", "", nil, fmt.Errorf("storage: read header: %w", err)
 	}
 	detected := http.DetectContentType(buf[:n])
 
@@ -152,7 +152,7 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 	// 쓰기 전에 거부한다. declared가 비어 있거나 generic octet-stream이면 비교를 skip.
 	if contentType != "" && contentType != "application/octet-stream" &&
 		normalizeMIME(contentType) != normalizeMIME(detected) {
-		return nil, fmt.Errorf("storage: unsupported file type: content type mismatch (declared=%q sniffed=%q)", contentType, detected)
+		return "", "", nil, fmt.Errorf("storage: unsupported file type: content type mismatch (declared=%q sniffed=%q)", contentType, detected)
 	}
 
 	// Normalize: use detected type, but if it's generic octet-stream
@@ -167,27 +167,25 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 
 	mt, ok := allowedMIME[mime]
 	if !ok {
-		return nil, fmt.Errorf("storage: unsupported file type: %s", mime)
+		return "", "", nil, fmt.Errorf("storage: unsupported file type: %s", mime)
 	}
 
 	limit := maxBytes[mt]
 	if size > limit {
-		return nil, fmt.Errorf("storage: file too large: %d bytes (max %d for %s)", size, limit, mt)
+		return "", "", nil, fmt.Errorf("storage: file too large: %d bytes (max %d for %s)", size, limit, mt)
 	}
-
-	// Build the S3 key: <mediatype>/<uuid>.<ext>
-	ext := extensionForMIME(mime)
-	key := fmt.Sprintf("%s/%s%s", mt, uuid.New().String(), ext)
 
 	// Read remaining body and combine with header bytes into a seekable reader.
 	// bytes.Reader implements io.ReadSeeker, which AWS SDK needs for checksum calculation.
 	rest, err := io.ReadAll(body)
 	if err != nil {
-		return nil, fmt.Errorf("storage: read body: %w", err)
+		return "", "", nil, fmt.Errorf("storage: read body: %w", err)
 	}
-	full := append(buf[:n], rest...)
+	return mime, mt, append(buf[:n], rest...), nil
+}
 
-	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
+func (c *Client) putObject(ctx context.Context, key string, mime string, full []byte) error {
+	_, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(c.bucket),
 		Key:           aws.String(key),
 		Body:          bytes.NewReader(full),
@@ -195,7 +193,25 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 		ContentLength: aws.Int64(int64(len(full))),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("storage: s3 put: %w", err)
+		return fmt.Errorf("storage: s3 put: %w", err)
+	}
+	return nil
+}
+
+// Upload validates and stores a media file under a client-generated
+// `<mediatype>/<uuid>.<ext>` key. The filename argument does not influence
+// the key; callers that need a specific key must use UploadWithKey.
+func (c *Client) Upload(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (*UploadResult, error) {
+	mime, mt, full, err := validateMedia(contentType, size, body)
+	if err != nil {
+		return nil, err
+	}
+
+	ext := extensionForMIME(mime)
+	key := fmt.Sprintf("%s/%s%s", mt, uuid.New().String(), ext)
+
+	if err := c.putObject(ctx, key, mime, full); err != nil {
+		return nil, err
 	}
 
 	return &UploadResult{
@@ -203,6 +219,46 @@ func (c *Client) Upload(ctx context.Context, filename string, contentType string
 		URL:       c.pubURL + "/" + key,
 		MediaType: mt,
 	}, nil
+}
+
+// UploadWithKey validates and stores a media file exactly like Upload but
+// under the caller-provided key instead of a client-generated one. Callers
+// own the key's namespace semantics (e.g. the bot image cache's collision-
+// avoiding keys).
+func (c *Client) UploadWithKey(ctx context.Context, key string, contentType string, size int64, body io.Reader) (*UploadResult, error) {
+	if key == "" {
+		return nil, fmt.Errorf("storage: empty key")
+	}
+
+	mime, mt, full, err := validateMedia(contentType, size, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.putObject(ctx, key, mime, full); err != nil {
+		return nil, err
+	}
+
+	return &UploadResult{
+		Key:       key,
+		URL:       c.pubURL + "/" + key,
+		MediaType: mt,
+	}, nil
+}
+
+// KeyFromURL reverses the public URL construction (pubURL + "/" + key).
+// It returns the object key and true when rawURL points into this client's
+// public URL space, and ("", false) otherwise.
+func (c *Client) KeyFromURL(rawURL string) (string, bool) {
+	prefix := c.pubURL + "/"
+	if !strings.HasPrefix(rawURL, prefix) {
+		return "", false
+	}
+	key := strings.TrimPrefix(rawURL, prefix)
+	if key == "" {
+		return "", false
+	}
+	return key, true
 }
 
 // Delete removes an object by key. Deleting a nonexistent key succeeds

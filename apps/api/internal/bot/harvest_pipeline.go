@@ -268,21 +268,28 @@ func (p *HarvestPipeline) ProcessDocument(ctx context.Context, _ db.BotGraphNode
 		return false, uuid.Nil, fmt.Errorf("pin document missing media_url (no thumbnail or media candidate)")
 	}
 
+	// Serialize og_data BEFORE the cache upload: once a cache object is
+	// stored, the only failure left before the upsert is the upsert itself,
+	// so the compensating delete below covers the whole window (no
+	// uncompensated orphan can be created by a marshal failure).
+	ogJSON, jsonErr := MarshalOGData(doc.OGData)
+	if jsonErr != nil {
+		return false, uuid.Nil, fmt.Errorf("marshal og_data: %w", jsonErr)
+	}
+
 	// Optionally download+cache the primary image so we serve the Pin's
 	// og_image from our own storage. On any failure we fall back to the
 	// extractor-provided URL so we still have something to render.
 	ogImage := sql.NullString{}
+	cacheStored := false
 	if p.imageCacheEnabled && doc.ThumbnailURL != "" {
 		cached, cacheErr := p.cacheImage(ctx, doc.ThumbnailURL)
 		if cacheErr != nil {
 			log.Printf("harvest: doc image cache fallback (canonical=%s thumb=%s): %v", doc.CanonicalURL, doc.ThumbnailURL, cacheErr)
+		} else {
+			cacheStored = true
 		}
 		ogImage = sql.NullString{String: cached, Valid: true}
-	}
-
-	ogJSON, jsonErr := MarshalOGData(doc.OGData)
-	if jsonErr != nil {
-		return false, uuid.Nil, fmt.Errorf("marshal og_data: %w", jsonErr)
 	}
 
 	row, err := p.db.UpsertBotPinByURL(ctx, db.UpsertBotPinByURLParams{
@@ -296,7 +303,25 @@ func (p *HarvestPipeline) ProcessDocument(ctx context.Context, _ db.BotGraphNode
 		OgData:      pqtype.NullRawMessage{RawMessage: ogJSON, Valid: len(ogJSON) > 0},
 	})
 	if err != nil {
+		// Compensating delete: the cache object stored this attempt is now
+		// unreferenced. Best-effort — the upsert error is returned unchanged
+		// either way (spec: 미참조가 된 이미지 캐시 객체는 처리 경로에서 정리된다).
+		if cacheStored {
+			if delErr := p.storage.DeleteByURL(ctx, ogImage.String); delErr != nil {
+				log.Printf("harvest: image cache compensating delete failed (url=%s): %v", ogImage.String, delErr)
+			}
+		}
 		return false, uuid.Nil, fmt.Errorf("upsert bot pin: %w", err)
+	}
+
+	// Replacement cleanup: the row no longer references its previous
+	// og_image, so delete the old cache object. Ownership checks (our URL?
+	// image cache namespace?) live in the adapter; here we only compare
+	// values. Best-effort — failures never affect the pipeline result.
+	if row.PrevOgImage.Valid && (!ogImage.Valid || row.PrevOgImage.String != ogImage.String) {
+		if delErr := p.storage.DeleteByURL(ctx, row.PrevOgImage.String); delErr != nil {
+			log.Printf("harvest: image cache replaced-object delete failed (url=%s): %v", row.PrevOgImage.String, delErr)
+		}
 	}
 	return row.Inserted, row.ID, nil
 }
@@ -459,8 +484,12 @@ func inferContentType(mediaType string, mediaURL string) string {
 
 // extensionFromURL extracts the file extension from a URL path.
 func extensionFromURL(rawURL string) string {
-	// Strip query string
+	// Strip fragment and query string; either would leak into the object
+	// key (and thus the public URL) since uploads respect the caller's key.
 	u := rawURL
+	if idx := strings.Index(u, "#"); idx != -1 {
+		u = u[:idx]
+	}
 	if idx := strings.Index(u, "?"); idx != -1 {
 		u = u[:idx]
 	}
