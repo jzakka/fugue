@@ -7668,6 +7668,13 @@
 - 비중첩: 본 축은 IO *옵션 인자(프리페치 거리)* 차원이지 — L1440(ResizeObserver 요소-크기 관측)·L167(scroll-margin CSS 스냅 여백)이 아님. anti-patterns L1765 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3457, 529th round(tokens).
 
+## cycle 3457 — design/tokens 529th round (Discovery, 표면 폐기)
+- 축 선택: 벤더 접두 시스템 폰트 별칭 키워드(`-apple-system`/`BlinkMacSystemFont` — 표준 system-ui 이전 벤더 사설 별칭). 배치 조사에서 ch/ex/cap/ic/lh/attr()/rem()/light-dark()/random() 등 전부 기carve 확인 — 벤더 별칭은 L609/L1081/L1293/L1390 의 census 부수 언급뿐 전용 carve 부재로 미개척 확정. L1081(ui-* 표준 제네릭)과 직교하는 *표준화-이전 사설 별칭* 차원.
+- 프로브: (1) 사용 전수 **1곳**(globals.css:72 body 스택) — display/mono 토큰(:58-59)은 명명 폰트 전용으로 시스템 폴백 스택 아님 → second surface 0(single-site·divergence 0). (2) 그 1곳이 별칭→system-ui→sans-serif 정식 progressive 순서(표준 병기·uniform). (3) DESIGN.md apple/Blink/벤더/폴백 grep 0건(silent).
+- 결정: 표면 폐기(single-site 정합). 비교 대상이 없으므로 "별칭 병기 비정합·순서 엇갈림" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *벤더 사설 별칭 병기* 차원이지 — L1081(ui-* Fonts 4 표준 제네릭)·L609(@theme 기본 글꼴 토큰)·L1390(@font-face 메트릭 서술자)·L1293(font-size-adjust 기준)이 아님. anti-patterns L1766 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3459, 606th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
