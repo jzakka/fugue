@@ -8270,6 +8270,13 @@
 - 비중첩: 본 축은 *영값의 단위 기재 여부 철자* 차원이지 — L1779(keyframes 셀렉터 표기)·L1787(소수 leading-zero)·L103(정지점 어휘)·L1775(hex)·L1785/L1788(단축/longhand)가 아님. anti-patterns L1790 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3507, 614th round(aesthetic).
 
+## cycle 3507 — design/aesthetic 614th round (Discovery, 표면 폐기)
+- 축 선택: box-shadow 성분 순서 표기-형태(색-전치 `rgba() 0 8px 32px` vs 색-후치 `0 8px 32px rgba()` — 명세상 색/inset 은 길이 묶음 앞뒤 자유·파싱 동치). anti 전수 — "그림자 색 순서"·"shadow 순서"·"box-shadow 표기" grep 0건(L163 은 토큰 정의·parity 기능·L597/L601 은 @theme override 유무) — 미개척 확정. 문법-형태 carve 패밀리(c3501/c3505)의 성분 배열 적용.
+- 프로브: (1) 저작 <shadow> 리터럴 전수 1건(globals.css:62 --shadow-card-hover 토큰 정의 — 색-후치 형) — raw box-shadow 0·tsx boxShadow 0·text-shadow/drop-shadow/inset 0·다중 그림자 0(divergence 0·두 번째 리터럴 부재). (2) 소비는 shadow-card-hover 유틸 10곳 단일 컴파일 채널 — 순서 선택 비노출. (3) DESIGN.md L86 "box-shadow 확대" 는 시각 값 규정 — 성분 순서 무언급(silent).
+- 결정: 표면 폐기(0-후보). 그림자 리터럴 1건 단일 형태라 "성분 순서 비정합·혼재" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *<shadow> 성분 나열 순서 형태* 차원이지 — L163(토큰 정의·parity)·L416(BP 결부)·L597/L601(override 유무)·L1775~L1790(다른 표면 문법-형태)가 아님. anti-patterns L1791 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3509, 613th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
