@@ -7836,6 +7836,13 @@
 - 비중첩: 본 축은 *벤더 사설 설치 메타* 차원이지 — L1454(표준 theme-color)·L1769(매니페스트 멤버)·L1770(mask-icon tint)·c3457(벤더 폰트 별칭)이 아님. anti-patterns L1772 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3471, 608th round(aesthetic).
 
+## cycle 3471 — design/aesthetic 608th round (Discovery, 표면 폐기)
+- 축 선택: SVG 비율 유지 스케일링/정렬 속성(`preserveAspectRatio` — viewBox 콘텐츠의 뷰포트 맞춤 거동: `xMidYMid meet`(기본)/`slice`/`none` + 정렬 키워드). 6배치 42개 후보 서베이 끝에 anti 전수 **0건** 유일 축으로 확정(CSS object-fit 의 SVG 네이티브 대응물·미개척).
+- 프로브: (1) preserveAspectRatio apps/web/src·public 전수 **0건**(pure vacuous). (2) host 15곳/7파일(PinCard·SearchBar·AddToBoardButton·BoardCover·LoginButtons·pins/[id]·SearchClient) 전부 `viewBox="0 0 24 24"` 정사각 + width/height 동수(12·16·24)/`w-5 h-5` 정사각 렌더 박스 → 뷰포트비=viewBox비라 meet/slice/none 분기가 원천 무효과(coherent no-op)·기본 xMidYMid meet 균일. (3) DESIGN.md preserveAspectRatio/meet/slice/xMidYMid grep 0건(L82 종횡비는 핀 이미지 규정·silent).
+- 결정: 표면 폐기(0-후보). 선언 0 + 정사각×정사각이라 속성이 발화할 비율 불일치 자체가 부재 — "SVG 맞춤 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *SVG 콘텐츠의 뷰포트 맞춤·정렬* 차원이지 — L306(아이콘 stroke 광학 두께)·L586(object-view-box 비트맵 크롭)·L203(반응형 object-fit/aspect 전이)·L1338(타원 아크 모서리)이 아님. anti-patterns L1773 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3473, 607th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
