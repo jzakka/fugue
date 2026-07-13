@@ -8354,6 +8354,13 @@
 - 비중첩: 본 축은 *방향 인자의 철자 형태* 차원이지 — L1059(각도 단위 어휘)·L414(보간 색공간)·L889(hue 방향)·L103/L178(시각 구성)·L1399(stripes())가 아님. anti-patterns L1794 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3515, 614th round(responsive).
 
+## cycle 3515 — design/responsive 614th round (Discovery, 표면 폐기)
+- 축 선택: BP-접두 변형의 className 문자열 내 서술 순서 형태 — base-first(`flex-col sm:flex-row`) vs 변형-선행·다중-BP 오름차순 vs 뒤섞임(class attribute 순서는 캐스케이드 무영향·순수 저작-형태). anti 전수 — L809 는 `order` *속성* BP-토글·L649 는 @layer 우선순위·L525 는 BP 변형 *명명*·L1792 는 @media *배치* 차원으로 본 축(클래스 서술 순서) 미개척 확정.
+- 프로브: (1) BP-변형 포함 className 전수 24건 전부 base-first·다중-BP 체인 2건(SearchClient:320/:358) sm→md 오름차순·변형-선행 0(divergence 0); 스택 변형(sm:hover:) 0·max-*/arbitrary BP 0·템플릿 리터럴 BP 0. (2) prettier-plugin-tailwindcss 미설치 — 도구 강제 아닌 자발 균일이고 class 순서는 계산 스타일 무영향. (3) DESIGN.md 침묵 — 클래스 서술 순서 규정 0.
+- 결정: 표면 폐기(0-후보). 서술 순서 완전 균일이라 "클래스 순서 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *className 문자열 내 BP-변형 서술 순서 형태* 차원이지 — L809(order 속성)·L649(@layer)·L525(변형 명명)·L1792(@media 배치)·L160(표시 토글 기능)이 아님. anti-patterns L1795 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3517, 539th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
