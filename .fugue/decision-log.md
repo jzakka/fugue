@@ -8151,6 +8151,13 @@
 - 비중첩: 본 축은 *transition 선언의 단축/longhand 표기 형태* 차원이지 — L1782(animation 다른 속성군)·L60(transition-all 속성 과대범위)·L148(duration 값)·L308(delay 기능)·L42(easing 방향)·L155(테마 전이 fallback)가 아님. anti-patterns L1785 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3497, 611th round(responsive).
 
+## cycle 3497 — design/responsive 611th round (Discovery, 표면 폐기)
+- 축 선택: DOM 이벤트 핸들러 등록 표기-형태(on-프로퍼티 대입 `window.onresize = fn` vs `addEventListener('resize', fn)` — 등록 채널 형태·on-프로퍼티는 단일 핸들러 한정 덮어쓰기). anti 전수 — matchMedia/VisualViewport/ResizeObserver/range syntax/@custom-media/srcset/link-media 등 후보 전멸 확인 후 "onresize"·"이벤트 등록"·"핸들러 등록" grep 0건 — 미개척 확정. 형태-carve 패밀리(c3489/c3493/c3495)의 JS 등록 채널 적용.
+- 프로브: (1) 직접 DOM 등록 apps/web/src 전수 5곳(VideoTrimModal:62/:99·AddToBoardButton:140/:167 keydown·SearchBar:64 mousedown) — 전부 addEventListener+removeEventListener cleanup 짝·on-프로퍼티 대입 0건(divergence 0). (2) 반응형 이벤트(resize/orientationchange) 구독 자체 0건(L1436 뷰포트 관측 전무와 정합) — responsive 모집단 부재. (3) 주 채널은 React JSX 합성 props 단일(5개 파일) — 등록 형태가 저작 표면에 비노출. (4) DESIGN.md 이벤트/listener grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 직접 등록 전수가 단일 형태 균일이므로 "등록 형태 비정합·혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *등록 채널 형태* 차원이지 — L1480(MQL 전용 addListener 별칭)·L341/L351(keydown 기능 census)·L1436/L1484/L1768(뷰포트 관측 기능 부재)·L1782~L1785(CSS 문법-형태)가 아님. anti-patterns L1786 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3499, 536th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
