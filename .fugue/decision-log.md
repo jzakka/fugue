@@ -8319,6 +8319,13 @@
 - 비중첩: 본 축은 *@media 블록의 배치 위치 형태* 차원이지 — L761(& 선택자 중첩)·L1789(특성 값 생략형)·L525(BP 변형 명명)·L1523(CSSOM 조회)가 아님. anti-patterns L1792 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3511, 538th round(tokens).
 
+## cycle 3511 — design/tokens 538th round (Discovery, 표면 폐기)
+- 축 선택: 완전 투명 색 표기-형태 — `transparent` 키워드 vs 등가 함수형 `rgba(0,0,0,0)`/`rgb(0 0 0 / 0)` vs 알파-hex `#0000`(CSS Color 4 완전 등가·순수 철자 형태). anti 전수 — L1775 는 hex *철자*·L1776 은 rgb *함수 내부 문법*·L750/L916 은 *시스템 색 키워드*(OS-유래 기능)·L135 는 팔레트 규율 차원으로 본 축(투명 값 철자) 미개척 확정. 시간 단위 s/ms 후보는 L1063 기존재로 기각.
+- 프로브: (1) transparent 키워드 전수 21건 — 저작 CSS 2건(globals.css:105 shimmer 그라디언트 단일 선언)+tsx 유틸 19건/12파일, 전부 키워드 형(divergence 0). (2) 등가 대체형 0건 — rgba(…,0)/rgb(…/0)·#0000·arbitrary [rgba(0,0,0,0)] grep 0(L1776 census rgba 5곳 전부 비-영 알파). (3) DESIGN.md 침묵 — transparent/투명 언급 0.
+- 결정: 표면 폐기(0-후보). 투명 값이 키워드 단일 형태로 완전 균일이라 "투명 표기 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *완전 투명 값의 철자 형태* 차원이지 — L1775(hex 철자)·L1776(함수 내부 문법)·L750/L916(시스템 색 키워드)·L135(팔레트 규율)·L178(그라디언트 시각 구성)·L38(아웃라인 기능)가 아님. anti-patterns L1793 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3513, 615th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
