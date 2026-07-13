@@ -7801,6 +7801,13 @@
 - 비중첩: 본 축은 *observe() 등록-시점 box 옵션* 이지 — c3449(entry 판독 borderBoxSize)·L1552(devicePixelContentBoxSize)·L1440(RO 모-census)·L1765(IO rootMargin)가 아님. anti-patterns L1771 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3469, 531th round(tokens).
 
+## cycle 3469 — design/tokens 531th round (Discovery, 표면 폐기)
+- 축 선택: 벤더 사설 설치-표면 메타 색/스타일 토큰(`msapplication-TileColor`(+browserconfig.xml)·`apple-mobile-web-app-status-bar-style` — Windows 타일 배경색·iOS standalone 상태바 스타일). 설치-표면 패밀리(L1454 theme-color·L1769 매니페스트·L1770 mask-icon)의 벤더 사설 잔여 축 — anti 전수 0건으로 미개척 확정. c3457(벤더 폰트 별칭 그룹)과 동형의 *벤더-사설 그룹* carve.
+- 프로브: (1) msapplication/TileColor/apple-mobile-web-app/browserconfig apps/web/src·public 전수 **0건**·layout.tsx metadata other/appleWebApp 미설정(pure vacuous). (2) 설치-표면 색 전달 패밀리 전체 부재(표준 3종도 0)·팔레트 전달은 globals.css 커스텀 프로퍼티 단일(uniform). (3) DESIGN.md tile/타일/status-bar/상태바/standalone grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 벤더 메타 표면 자체가 없으므로 "TileColor 팔레트 불일치·상태바 테마 불일치" 는 성립하지 않는 가정 결함. 미도입은 제품 결정(enhancement).
+- 비중첩: 본 축은 *벤더 사설 설치 메타* 차원이지 — L1454(표준 theme-color)·L1769(매니페스트 멤버)·L1770(mask-icon tint)·c3457(벤더 폰트 별칭)이 아님. anti-patterns L1772 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3471, 608th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
