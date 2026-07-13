@@ -8739,6 +8739,13 @@
 - 비중첩: 본 축은 *치수 임계값의 길이 단위 선택* 차원이지 — L703(비교 구문)·L1065(특성 존재)·L1789(값 생략형)·L1801(타입 철자)·L1067(주파수 단위)이 아님. anti-patterns L1810 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3547, 544th round(tokens).
 
+## cycle 3547 — design/tokens 544th round (Discovery, 표면 폐기)
+- 축 선택: `var()` 함수 인자 괄호 안쪽 공백 표기-형태 — `var(--x)` 밀착형 vs `var( --x )` 여백형(파싱 완전 등가·순수 표기 차원). anti 전수 — L769 는 폴백 *두 번째 인자 값*·L1805 는 *선언 콜론* 둘레 공백·L1011 은 var() 소비의 *inherit 키워드*로 본 축(함수 괄호 내부 공백) 미개척 확정. 공백-표기 계열의 함수-인자 위치 sub-차원.
+- 프로브: (1) 모집단 균일 — apps/web/src 전수 var() 참조 19곳(전부 globals.css: @theme 매핑 15·body 2·::placeholder 1·shimmer 1) 전부 밀착형·여백형 0건(분기 0). (2) 대체 채널 — tsx arbitrary `[var(…)]` 0·JS style 문자열 var() 0·Tailwind 유틸은 컴파일 산출물이라 비참여. (3) DESIGN.md var/공백 규정 0매치(미명시 취향 — 루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 전 표면 균일이라 "표기 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *var() 괄호 내부 공백 유무* 차원이지 — L769(폴백 값)·L1805(선언 콜론 공백)·L1802(종결 세미콜론)·L730/L737(토큰-참조 여부)이 아님. anti-patterns L1811 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3549, 621st round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
