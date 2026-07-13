@@ -8235,6 +8235,13 @@
 - 비중첩: 본 축은 *미디어 특성 값 기재/생략 표기 형태* 차원이지 — L616(모션-감소 기능)·L1414(URL-조건부 그룹)·L1388(논리 결합)·L703(range-type 비교 구문)·L525(BP 방향)·L1786(등록 채널)가 아님. anti-patterns L1789 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3505, 537th round(tokens).
 
+## cycle 3505 — design/tokens 537th round (Discovery, 표면 폐기)
+- 축 선택: 길이 0 단위 생략/기재 표기-형태(unitless `0` vs `0px`/`0%` — <length> 문맥 unitless 0 유효·값 0 에서 계산 동치). anti 전수 — 1차 후보 hex 대소문자는 L1775 기커버(대문자/소문자 니블 명시)로 기각·CSS-wide 키워드(L437/L769)·calc(L730)·@theme inline(다수) 기등재 확인 후 "단위 생략"·"zero-length" grep 0건 — 미개척 확정. 문법-형태 carve 패밀리(c3499/c3503)의 영값 표기 적용.
+- 프로브: (1) 저작 0 길이값 전수 4곳 — unitless 3(globals.css :62 shadow x·:100/:101 position y)·`0%` 1(:105 gradient 첫 정지점)·`0px` 0건·tsx arbitrary 영값 0건. (2) 혼재는 인접-값 정합: 정지점 목록(0%/50%/100%)은 퍼센트 축 내부 균일·position 쌍/shadow offset 은 관용 unitless — 동일 목록 내 형태 갈림 0(list-scope divergence 0). (3) DESIGN.md 영값 표기 무언급(silent).
+- 결정: 표면 폐기(0-후보). 표기가 목록-로컬로 정합하므로 "0 표기 비정합·통일 필요" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *영값의 단위 기재 여부 철자* 차원이지 — L1779(keyframes 셀렉터 표기)·L1787(소수 leading-zero)·L103(정지점 어휘)·L1775(hex)·L1785/L1788(단축/longhand)가 아님. anti-patterns L1790 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3507, 614th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
