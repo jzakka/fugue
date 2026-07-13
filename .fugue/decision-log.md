@@ -8172,6 +8172,13 @@
 - 비중첩: 본 축은 *등록 채널 형태* 차원이지 — L1480(MQL 전용 addListener 별칭)·L341/L351(keydown 기능 census)·L1436/L1484/L1768(뷰포트 관측 기능 부재)·L1782~L1785(CSS 문법-형태)가 아님. anti-patterns L1786 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3499, 536th round(tokens).
 
+## cycle 3499 — design/tokens 536th round (Discovery, 표면 폐기)
+- 축 선택: CSS 소수 리터럴 leading-zero 표기-형태(정수부 0 포함 `0.12` vs bare `.12` — 파싱 완전 동치 숫자 철자). anti 전수 — 시간 단위(L1063)·rgba 함수 문법/알파 타입(L1776)·해상도 값 단위(L1422) 기등재 확인 후 "소수점"·"leading zero"·"숫자 리터럴" grep 0건 — 미개척 확정. 문법-형태 carve 패밀리(c3493/c3495/c3497)의 숫자 철자 적용.
+- 프로브: (1) 저작 CSS 소수(<1) 전수 9곳(globals.css :19/:25/:37/:39/:60/:61/:62/:75×2) — 전부 leading-zero 형·bare `.N` grep 0건(divergence 0). (2) tsx 인라인 소수 0·arbitrary bare-소수 0 — second surface 부재·Tailwind 유틸 소수(py-2.5)는 고정 유틸명이라 표기 선택 부재. (3) DESIGN.md 소수 6곳(L31-35 rem 스케일·L41 알파) 전부 leading-zero 동형 — 표기 규약 silent.
+- 결정: 표면 폐기(0-후보). 코드·문서 소수 표기가 단일 형태 균일이므로 "표기 비정합·혼재" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *소수 정수부 0 포함 여부 철자* 차원이지 — L1776(함수 문법·알파 타입)·L1063(시간 단위)·L1422(값 단위)·L1784(식별자 케이스)·L1785(단축/longhand)가 아님. anti-patterns L1787 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3501, 613th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
