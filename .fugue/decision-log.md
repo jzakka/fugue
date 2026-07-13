@@ -7878,6 +7878,13 @@
 - 비중첩: 본 축은 *창의 화면상 위치 좌표 + 프로그래매틱 이동/리사이즈/배치* 차원이지 — L1484(innerWidth/outerWidth 치수 판독)·L1444(다중 모니터 토폴로지)·L1464(물리 화면 크기)·L1436(시각 뷰포트)이 아님. anti-patterns L1774 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3475, 532th round(tokens).
 
+## cycle 3475 — design/tokens 532th round (Discovery, 표면 폐기)
+- 축 선택: hex 색 리터럴 표기 형태(6-digit `#RRGGBB` vs 3-digit 축약 `#RGB` vs 알파 내장 8-digit `#RRGGBBAA` vs 니블 대소문자). anti 전수 — "3-digit"/"축약 hex"/"RRGGBBAA" 0건·L511 은 시맨틱 토큰화(다른 축)·대소문자 언급은 text-transform/DB enum 무관 — 미개척 확정. c3459(이중-위치)·c3453(oblique 각도)과 동형의 문법-형태 carve.
+- 프로브: (1) hex 리터럴은 globals.css 단일 파일 22개 전수 — 전부 6-digit 대문자·축약 0·8-digit 0·소문자 0(uniform·divergence 0·축약 가능 값 #888888/#FFFFFF 등도 완전형 유지). (2) 알파 표현은 rgba() 리터럴 단일(L1362 census)이라 8-digit hex 혼재 대상 부재. (3) DESIGN.md 팔레트도 동일 22개 6-digit 대문자(코드와 표기 일치)·표기/축약/uppercase 정책 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 표기 형태가 완전 균일(divergence 0)이므로 "hex 표기 비정합·축약/대소문자 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *hex 리터럴의 문법 형태* 차원이지 — L511(시맨틱 토큰화)·L1362(--alpha() 파생 함수)·L987/991/995(color() 색공간 함수)·L199(text-transform 텍스트 대소문자)가 아님. anti-patterns L1775 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3477, 609th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
