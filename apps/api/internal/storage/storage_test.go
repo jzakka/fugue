@@ -192,6 +192,92 @@ func TestDelete_IssuesDeleteObjectForBucketAndKey(t *testing.T) {
 	}
 }
 
+func TestKeyFromURL(t *testing.T) {
+	c := newTestClient() // pubURL = "http://example.test/test-bucket"
+	cases := []struct {
+		name    string
+		url     string
+		wantKey string
+		wantOK  bool
+	}{
+		{"cache key", "http://example.test/test-bucket/images/hash/1.png", "images/hash/1.png", true},
+		{"user media key", "http://example.test/test-bucket/image/u.png", "image/u.png", true},
+		{"external URL", "https://other.example.com/images/x.png", "", false},
+		{"prefix-similar bucket", "http://example.test/test-bucket2/images/x.png", "", false},
+		{"pubURL without key", "http://example.test/test-bucket/", "", false},
+		{"pubURL itself", "http://example.test/test-bucket", "", false},
+		{"empty", "", "", false},
+	}
+	for _, tc := range cases {
+		key, ok := c.KeyFromURL(tc.url)
+		if key != tc.wantKey || ok != tc.wantOK {
+			t.Errorf("%s: KeyFromURL(%q) = (%q, %v), want (%q, %v)", tc.name, tc.url, key, ok, tc.wantKey, tc.wantOK)
+		}
+	}
+}
+
+// UploadWithKey must store under the caller-provided key (unlike Upload,
+// which generates its own <mediatype>/<uuid>.<ext> key).
+func TestUploadWithKey_StoresUnderCallerKey(t *testing.T) {
+	var gotMethod, gotPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotMethod = r.Method
+		gotPath = r.URL.Path
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	c, err := NewClient(Config{
+		Endpoint:  srv.URL,
+		Bucket:    "test-bucket",
+		AccessKey: "test",
+		SecretKey: "test",
+		PublicURL: srv.URL + "/test-bucket",
+	})
+	if err != nil {
+		t.Fatalf("NewClient error: %v", err)
+	}
+
+	result, err := c.UploadWithKey(context.Background(), "images/hash/1.png", "image/png", int64(len(pngBytes)), bytes.NewReader(pngBytes))
+	if err != nil {
+		t.Fatalf("UploadWithKey error: %v", err)
+	}
+	if gotMethod != http.MethodPut {
+		t.Errorf("expected PUT request, got %s", gotMethod)
+	}
+	// UsePathStyle=true → PUT /<bucket>/<key>
+	if gotPath != "/test-bucket/images/hash/1.png" {
+		t.Errorf("expected path /test-bucket/images/hash/1.png, got %s", gotPath)
+	}
+	if result.Key != "images/hash/1.png" {
+		t.Errorf("result.Key = %q, want caller key", result.Key)
+	}
+	if result.URL != srv.URL+"/test-bucket/images/hash/1.png" {
+		t.Errorf("result.URL = %q", result.URL)
+	}
+}
+
+// UploadWithKey keeps Upload's validation: declared/sniffed MIME mismatch is
+// rejected before any S3 call.
+func TestUploadWithKey_RejectsMimeMismatch(t *testing.T) {
+	c := newTestClient() // nil s3 — rejection must happen before any S3 call
+	_, err := c.UploadWithKey(context.Background(), "images/hash/1.png", "image/png", int64(len(webmBytes)), bytes.NewReader(webmBytes))
+	if err == nil {
+		t.Fatal("expected error for declared=image/png with WebM bytes, got nil")
+	}
+	if !strings.Contains(err.Error(), "content type mismatch") {
+		t.Errorf("error message missing mismatch detail: %v", err)
+	}
+}
+
+func TestUploadWithKey_RejectsEmptyKey(t *testing.T) {
+	c := newTestClient()
+	_, err := c.UploadWithKey(context.Background(), "", "image/png", int64(len(pngBytes)), bytes.NewReader(pngBytes))
+	if err == nil {
+		t.Fatal("expected error for empty key, got nil")
+	}
+}
+
 func TestDelete_ReturnsErrorOnS3Failure(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -43,7 +43,8 @@ func harvestTestPNG(w, h int) []byte {
 
 // MockBotDB implements BotDB for testing.
 type MockBotDB struct {
-	ExistingURLs map[string]bool // sourceURL -> exists
+	ExistingURLs map[string]bool           // sourceURL -> exists
+	OgImages     map[string]sql.NullString // sourceURL -> current og_image (upsert history)
 	CreatedPins  []db.CreatePinParams
 	CreateErr    error
 	DedupErr     error
@@ -52,6 +53,7 @@ type MockBotDB struct {
 func NewMockBotDB() *MockBotDB {
 	return &MockBotDB{
 		ExistingURLs: make(map[string]bool),
+		OgImages:     make(map[string]sql.NullString),
 	}
 }
 
@@ -86,7 +88,14 @@ func (m *MockBotDB) UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinBy
 	}
 	url := arg.Url.String
 	inserted := !m.ExistingURLs[url]
+	// Mirror the CTE snapshot semantics: prev_og_image is the value the row
+	// held BEFORE this upsert, NULL on a fresh insert.
+	prev := sql.NullString{}
+	if !inserted {
+		prev = m.OgImages[url]
+	}
 	m.ExistingURLs[url] = true
+	m.OgImages[url] = arg.OgImage
 	m.CreatedPins = append(m.CreatedPins, db.CreatePinParams(arg))
 	return db.UpsertBotPinByURLRow{
 		ID:          uuid.New(),
@@ -99,6 +108,7 @@ func (m *MockBotDB) UpsertBotPinByURL(ctx context.Context, arg db.UpsertBotPinBy
 		MediaUrl:    arg.MediaUrl,
 		MediaType:   arg.MediaType,
 		Inserted:    inserted,
+		PrevOgImage: prev,
 	}, nil
 }
 
@@ -767,5 +777,28 @@ func TestWithImageCacheTTLDays(t *testing.T) {
 	p3 := NewHarvestPipeline(NewMockBotDB(), NewMockStorage(), WithImageCacheTTLDays(-5))
 	if got := p3.ImageCacheTTLDays(); got != DefaultImageCacheTTLDays {
 		t.Errorf("ImageCacheTTLDays() after negative option = %d, want default %d", got, DefaultImageCacheTTLDays)
+	}
+}
+
+func TestExtensionFromURL(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{"plain path", "https://example.com/a.png", ".png"},
+		{"query stripped", "https://example.com/a.png?width=200", ".png"},
+		{"fragment stripped", "https://example.com/a.png#frag", ".png"},
+		{"query then fragment", "https://example.com/a.png?x=1#y", ".png"},
+		{"question mark inside fragment", "https://example.com/a.png#y?z", ".png"},
+		{"no extension", "https://example.com/image", ".bin"},
+		{"percent-encoded hash preserved", "https://example.com/a%23b.jpg", ".jpg"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extensionFromURL(tt.url); got != tt.want {
+				t.Errorf("extensionFromURL(%q) = %q, want %q", tt.url, got, tt.want)
+			}
+		})
 	}
 }
