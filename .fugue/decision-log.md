@@ -8438,6 +8438,13 @@
 - 비중첩: 본 축은 *의사요소 콜론 개수 철자* 차원이지 — L1164(sub-pseudo 기능)·L761(& 중첩)·L1779(keyframe 셀렉터 철자)·L1796(루트 셀렉터 철자)이 아님. anti-patterns L1797 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3521, 615th round(responsive).
 
+## cycle 3521 — design/responsive 615th round (Discovery, 표면 폐기)
+- 축 선택: 반응형 설정 객체 키 서술 형태 — breakpointCols 수치 키 서술 순서(내림차순 vs 오름차순)·default 위치·수치 키 인용 여부(ECMAScript 정수형 키 자동 오름차순 열거·라이브러리 수치 파싱이라 런타임 무영향·순수 저작-형태). anti 전수 — L211 은 컬럼 수 *값* 정합·L222 는 콘텐츠 *패리티 기능*·L851 은 CSS multicol·L1795 는 *className* 표면으로 본 축(JS 설정 객체 서술) 미개척 확정.
+- 프로브: (1) 반응형 설정 객체 전수 1건(MasonryGrid.tsx:6-11 `{default: 4, 1199: 3, 799: 2, 499: 1}` — default 선두·내림차순·비인용)·소비 1곳(:16) — 두 번째 설정 객체 부재(divergence 0). (2) 정수형 키 열거는 명세상 오름차순 강제 — 서술 순서가 소스 표기에만 존재·동작 관여 불가. (3) DESIGN.md L70 은 BP 값 규정 — 서술 형태 무언급(silent).
+- 결정: 표면 폐기(0-후보). 설정 객체 1건 단일 형태라 "키 서술 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *JS 반응형 설정 객체의 키 서술 형태* 차원이지 — L211(값 정합)·L222(패리티)·L851(multicol)·L1795(className 서술 순서)·L525(변형 명명)가 아님. anti-patterns L1798 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3523, 540th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
