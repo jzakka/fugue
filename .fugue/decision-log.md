@@ -7647,6 +7647,13 @@
 - 비중첩: 본 축은 *CSS 픽셀 border-box 프래그먼트 배열* 차원이지 — L1440(관측 API 일괄 census)·L1552(devicePixelContentBoxSize 디바이스 픽셀 차원)이 아님. anti-patterns L1762 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3451, 528th round(tokens).
 
+## cycle 3451 — design/tokens 528th round (Discovery, 표면 폐기)
+- 축 선택: `font-weight` 상대 키워드 값(`bolder`/`lighter` — 부모 두께 기준 매핑 사다리 계산). line-height/font-weight 키워드·oblique 각도·font-kerning·font-variant-emoji·text-rendering 등 조회 후 bolder 0건(lighter 매치는 Canvas 합성·plus-lighter blend 무관 오탐 배제)으로 미개척 확정.
+- 프로브: (1) bolder/lighter·원시 font-weight 선언 apps/web/src 전수 **0건**(pure vacuous). (2) 두께 표면은 Tailwind 수치 매핑 유틸 54곳(font-semibold 19·font-medium 19·font-bold 16) 단일 idiom(uniform-alternative). (3) DESIGN.md L17 절대 수치(General Sans 700)만 규정·상대 키워드 silent.
+- 결정: 표면 폐기(0-후보). 상대 키워드 사용 0·수치 유틸 단일 관례이므로 "상대/수치 혼용·중첩 누적" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 font-weight *키워드 값 종류*(상대) 차원이지 — L164(커스텀 토큰 정의 vs 빌트인)·L441/L454(BP 전이)·L488(font-synthesis 합성)이 아님(c3445 font-size 키워드 직교 선례). anti-patterns L1763 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3453, 605th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
