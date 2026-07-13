@@ -7934,6 +7934,13 @@
 - 비중첩: 본 축은 *rgb 계열 함수 리터럴의 문법 형태* 차원이지 — L1775(hex 표기)·L511(시맨틱 토큰화)·L384(relative color 파생)·L987/991/995(color() 색공간)·L1362(--alpha() 헬퍼)가 아님. anti-patterns L1776 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3479, 608th round(responsive).
 
+## cycle 3479 — design/responsive 608th round (Discovery, 표면 폐기)
+- 축 선택: PointerEvent 입력-특성 판독 속성(`pointerType`·`pressure`·`tiltX/tiltY`·`twist`·`isPrimary`·`getCoalescedEvents()` — 이벤트 단위로 입력 장치 종류/필압/기울기를 판독해 입력별 적응). anti 전수 — pointerType/PointerEvent/tiltX/isPrimary exact 0(onPointer 5건은 L275/L311/L329/L553/L559 타축·pressure 2건은 Go backpressure·Compute Pressure 무관) — 미개척 확정.
+- 프로브: (1) 판독 속성 apps/web/src 전수 **0건**(pure vacuous). (2) 포인터 파이프라인은 VideoTrimModal.tsx 단일 사이트(onPointerDown/Move/Up/Leave 트림 드래그)·mouse/touch/pen 불문 clientX 만 판독하는 입력-통합 균일 idiom → second surface 0. (3) DESIGN.md pointerType/필압/기울기/펜/stylus grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 입력-특성 판독 표면 자체가 없으므로 "입력 종류 분기 비정합·터치/펜 적응 누락" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *이벤트 단위 입력-특성 판독* 차원이지 — L275(hover:hover 능력 MQ)·L311(포인터 취소 정책)·L553(touch-action 제스처 제어)·L1493(Pointer Lock 커서 잠금)·L1504(Compute Pressure 디바이스 압력)가 아님. anti-patterns L1777 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3481, 533th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
