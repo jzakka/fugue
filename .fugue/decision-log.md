@@ -8046,6 +8046,13 @@
 - 비중첩: 본 축은 *터치 전용 채널의 멀티-접촉 목록·접촉 기하* 차원이지 — L1777(PointerEvent 입력-특성)·L1508(maxTouchPoints 티어)·L553(touch-action 제스처 선언)·L275(hover MQ)·L311(포인터 취소)이 아님. anti-patterns L1780 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3487, 534th round(tokens).
 
+## cycle 3487 — design/tokens 534th round (Discovery, 표면 폐기)
+- 축 선택: font-weight 절대 두께 표기-형태(절대 키워드 `normal`/`bold` vs 수치 `400`/`700` — 완전 동치 매핑). anti 전수 — font-weight 키워드/bold vs/숫자 가중치 0건(L1763 은 상대 키워드 bolder/lighter 전용·"절대 키워드와 구분" 명시, L164 토큰 정의·L441 BP 전이·L488 합성 타축) — 미개척 확정. c3475(hex)·c3477(rgba)·c3481(폰트명 인용)·c3483(키프레임 셀렉터)와 동형의 문법-형태 carve 패밀리.
+- 프로브: (1) raw `font-weight` 선언·tsx 인라인 `fontWeight`·arbitrary `font-[...]` apps/web/src 전수 **0건**(pure vacuous — 철자를 고를 저자 표면 부재). (2) 두께 지정은 Tailwind 명명 유틸 54곳(font-bold 16·font-semibold 19·font-medium 19) 단일 채널·컴파일 산출 일괄 수치(uniform-alternative·divergence 0). (3) DESIGN.md L17 "General Sans 700·Pretendard Bold" 는 산문 병기·CSS 표기 정책 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 저자 표기 표면 0·유틸 채널 균일이므로 "키워드/수치 혼용·표기 미통일" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *font-weight 절대값의 키워드/수치 철자 형태* 차원이지 — L1763(상대 키워드 값 종류)·L164(토큰 정의)·L441/L454(BP 전이)·L488(합성)·L1775/L1776/L1778/L1779(다른 속성군 문법-형태)이 아님. anti-patterns L1781 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3489, 611th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
