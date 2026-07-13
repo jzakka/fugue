@@ -8228,6 +8228,13 @@
 - 비중첩: 본 축은 *background 선언의 단축/longhand 표기 형태* 차원이지 — L1782(animation)·L1785(transition)·L267/L547/L1379(background-image 기능)·L807/L879(반복 기능)·L103(gradient 방향 어휘)가 아님. anti-patterns L1788 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3503, 612th round(responsive).
 
+## cycle 3503 — design/responsive 612th round (Discovery, 표면 폐기)
+- 축 선택: 미디어 특성 boolean-context/명시값 표기-형태(`@media (prefers-reduced-motion)` 값 생략 boolean 문맥 vs `(prefers-reduced-motion: reduce)` 명시값 — 이 특성은 non-default 값이 하나뿐이라 평가 동치). anti 전수 — 1차 후보 named/arbitrary BP 변형 표기는 L525 프로브(3)이 임의 분기점 0건까지 기커버라 중첩 기각, "boolean-context"·"불리언 문맥" grep 0건 — 미개척 확정. 문법-형태 carve 패밀리(c3495/c3499/c3501)의 미디어 질의 표기 적용.
+- 프로브: (1) 저작 @media 전수 1건(globals.css:111 명시값 형) — boolean 축약형 grep 0건(divergence 0·두 번째 저작 질의 부재). (2) tsx matchMedia/media= 0건 — second surface 부재·반응형 분기는 Tailwind 컴파일 변형(sm: 26·md: 2) 단일 채널. (3) DESIGN.md 질의 표기 무언급(silent).
+- 결정: 표면 폐기(0-후보). 저작 질의 1건 단일 표기라 "표기 비정합·혼재" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *미디어 특성 값 기재/생략 표기 형태* 차원이지 — L616(모션-감소 기능)·L1414(URL-조건부 그룹)·L1388(논리 결합)·L703(range-type 비교 구문)·L525(BP 방향)·L1786(등록 채널)가 아님. anti-patterns L1789 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3505, 537th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
