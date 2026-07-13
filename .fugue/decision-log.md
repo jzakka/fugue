@@ -7542,6 +7542,13 @@
 - 비중첩: 본 축은 *데스크톱 PWA 타이틀바 선언형 소비* 개별이지 — L1086(*합산 census*)·L1741 keyboard-inset(*가상 키보드*)·L617(*노치*)·L1404(*리사이즈 정책*)·L1408(*폴더블*)이 아님. L1086 양 멤버 완결. anti-patterns L1747 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3421, 523rd round(tokens).
 
+## cycle 3421 — design/tokens 523rd round (Discovery, 표면 폐기)
+- 축 선택: 지수 함수 5형제(`pow()`/`sqrt()`/`hypot()`/`log()`/`exp()`=CSS Values 4 — 거듭제곱 모듈러 스케일·제곱근·유클리드 거리·로그 압축·자연지수의 비선형 성장/크기 합성 sub-family). L406 수학 census 의 마지막 census-only 잔여 — sub-family 합산 carve.
+- 프로브: (1) CSS 지수 함수·JS Math.pow/sqrt/hypot/log/exp grep apps/web/src 전수 **0건**(console.log 제외)(pure-vacuous). (2) 비선형 스케일 메커니즘 전무 — globals.css scale/modular/ratio 유일 매치는 grayscale 부분문자열·타이포 크기 전부 고정 리터럴 단계(mechanism-absent). (3) DESIGN.md(105줄) pow/sqrt/지수/모듈러/비선형 grep 0건 — Typography scale 은 고정 리터럴 규정(silent).
+- 결정: 표면 폐기(0-후보). 지수 함수 사용 0·파생 표면 부재·DESIGN 은 리터럴 규정이므로 "pow 모듈러 파생 vs 리터럴 갈림·hypot vs 매직넘버 혼용" 은 성립하지 않는 가정 결함(loop rule line 9)이지 실 결함이 아님.
+- 비중첩: 본 축은 *지수/거듭제곱/거리* sub-family 이지 — L406(*census*)·삼각 개별(L1733/L1736/L1739/L1742/L1745)·스텝(L1709/L1712/L1715)·부호(L1308)가 아님. **L406 수학 census 전 멤버 완결**(스텝·삼각·부호·지수). anti-patterns L1748 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3423, 600th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
