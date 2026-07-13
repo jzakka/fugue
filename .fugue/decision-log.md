@@ -8956,6 +8956,13 @@
 - 비중첩: 본 축은 *MQ 특성 괄호 안쪽 공백* 차원이지 — L1811(var() 괄호)·L1813(콜론 공백)·L1816(케이스)·L1801(타입)·L1804(결합자)·L1789(값 생략형)·L703(비교 구문)이 아님. anti-patterns L1819 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3565, 547th round(tokens).
 
+## cycle 3565 — design/tokens 547th round (Discovery, 표면 폐기)
+- 축 선택: 셀렉터 결합자 둘레 공백 표기-형태 — `.col > *` 공백형 vs `.col>*` 무공백형(명시 결합자 둘레 공백은 파싱 비유의미·완전 동치. 자손 `A B` vs 자식 `A > B` 는 비등가로 제외 명시). anti 전수 — 결합자 공백 축 0매치·L1303 은 결합자-스코프 *채택*·L1804 는 *MQ* 결합자·L1817 은 *중괄호 전치*로 본 축(셀렉터 결합자 공백) 미개척 확정. 공백-표기 계열의 셀렉터 결합자 위치 sub-차원.
+- 프로브: (1) 모집단 1·균일 — 저작 명시 결합자 1건(globals.css:95 둘레 공백형)·무공백형 0건(분기 0·짝 부재). (2) 대체 채널 — querySelectorAll 문자열 2곳(VideoTrimModal:82·AddToBoardButton:150)은 콤마 목록만·arbitrary variant `[&>…]` 0·Tailwind 유틸은 컴파일 산출물. (3) DESIGN.md 셀렉터/공백 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 1이라 "표기 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *셀렉터 명시 결합자 둘레 공백* 차원이지 — L1303(스코프 채택)·L1804(MQ 결합자)·L1817(중괄호 전치)·L1805(선언 콜론)·L1814(콤마 뒤)가 아님. anti-patterns L1820 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3567, 624th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
