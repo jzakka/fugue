@@ -8711,6 +8711,13 @@
 - 비중첩: 본 축은 *스텝 블록 나열 순서* 차원이지 — L1779(셀렉터 철자)·L1808(선언문 순서)·L1800(animation 성분)·L1806(transition 목록 항목)이 아님. anti-patterns L1809 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3545, 619th round(responsive).
 
+## cycle 3545 — design/responsive 619th round (Discovery, 표면 폐기)
+- 축 선택: 미디어 특성 길이 값의 단위 표기-형태 — `(min-width: 800px)` vs `(min-width: 50em)`(기본 16px 환경 등가·사용자 폰트 확대 시 조건부 등가). anti 전수 — L703 은 *비교 구문*·L1065 는 height *특성 존재*·L1801 은 타입 *철자*·L1067 은 *주파수* 단위로 본 축(치수 임계값의 길이 단위 선택) 미개척 확정. @media prelude 의 값-단위 sub-차원.
+- 프로브: (1) 길이-값 특성 모집단 0 — min/max-width·height 등 치수 특성 grep 전수 0건(저작 @media 는 prefers-reduced-motion 1건뿐)·matchMedia 0건(pure vacuous). (2) Tailwind BP-변형 23곳 컴파일 채널 — 단위 선택 비노출. (3) DESIGN.md L70 은 BP *값*(px) 명세이나 저작 치수 MQ 0건이라 적용 표면 부재(BP 위반 후보 등록은 L20 이 금지).
+- 결정: 표면 폐기(0-후보). 치수 MQ 자체가 없어 "단위 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *치수 임계값의 길이 단위 선택* 차원이지 — L703(비교 구문)·L1065(특성 존재)·L1789(값 생략형)·L1801(타입 철자)·L1067(주파수 단위)이 아님. anti-patterns L1810 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3547, 544th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
