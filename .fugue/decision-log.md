@@ -8683,6 +8683,13 @@
 - 비중첩: 본 축은 *블록 내 선언문 나열 순서* 차원이지 — L1806(값 내 목록 항목)·L1800(성분 순서)·L1795(className 토큰)·L1798(설정 키)·L1784(명명 케이스)가 아님. anti-patterns L1808 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3543, 620th round(aesthetic).
 
+## cycle 3543 — design/aesthetic 620th round (Discovery, 표면 폐기)
+- 축 선택: @keyframes 스텝 블록 나열 순서 표기-형태 — 키프레임 규칙은 오프셋 정렬로 적용되어 `0%…100%` 오름차순이든 역순이든 렌더 완전 동치(동일 오프셋 중복은 마지막-우선 병합이라 축 제외). anti 전수 — L1779 는 스텝 셀렉터 *철자*(from/to vs %)·L1808 은 커스텀 프로퍼티 *선언문* 순서로 본 축(스텝 블록 나열 순서) 미개척 확정. 순서-형태 carve 의 @keyframes 스텝 적용.
+- 프로브: (1) 저작 @keyframes 전수 1건(globals.css:99 shimmer 0%→100% 2-스텝)·WAAPI element.animate 0건 — 두 번째 keyframes 부재(divergence 0). (2) tsx 애니메이션 전부 animate-spin 등 Tailwind 내장 유틸 컴파일 채널 — 스텝 나열 선택 비노출. (3) DESIGN.md L88-93 Motion — duration/목적만 규정·스텝 나열 무언급(silent).
+- 결정: 표면 폐기(0-후보). 저작 keyframes 1건 단일 형태라 "스텝 나열 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *스텝 블록 나열 순서* 차원이지 — L1779(셀렉터 철자)·L1808(선언문 순서)·L1800(animation 성분)·L1806(transition 목록 항목)이 아님. anti-patterns L1809 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3545, 619th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
