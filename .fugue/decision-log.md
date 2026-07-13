@@ -8599,6 +8599,13 @@
 - 비중첩: 본 축은 *복수 조건 논리 결합자 조합* 차원이지 — L1801(타입 철자)·L1789(값 생략형)·L703(range 비교 문법)·L1792(@media 배치)·L715(타입 키워드 존재)가 아님. anti-patterns L1804 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3535, 542nd round(tokens).
 
+## cycle 3535 — design/tokens 542nd round (Discovery, 표면 폐기)
+- 축 선택: CSS 선언 콜론 둘레 공백 표기-형태 — `prop: val` vs `prop:val`(명세상 구분자 둘레 공백 비유의미·파싱 완전 동치). anti 전수 — 콜론 관련 축은 L1797(의사요소 콜론 *개수*)뿐이라 본 축(선언 구분자 콜론 *둘레 공백*) 미개척 확정. 문법-형태 carve 의 구분자 공백 적용.
+- 프로브: (1) 저작 선언 전수 68건(globals.css) 전부 콜론+공백형·무공백형 0건·미디어 특성 콜론도 공백형(divergence 0). (2) 대안 채널 — tsx 인라인 style 은 JS 객체(CSS 선언 문법 비관여)·styled-jsx/`<style>` 0건·Tailwind 컴파일 채널 비노출. (3) DESIGN.md 공백/whitespace grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 저작 CSS 가 콜론+공백 단일 형태로 균일이라 "공백 표기 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *선언 구분자 콜론 둘레 공백* 차원이지 — L1802(종결 세미콜론)·L1797(의사요소 콜론 개수)·L1787(leading-zero)·L1784(명명 케이스)가 아님. anti-patterns L1805 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3537, 619th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
