@@ -7584,6 +7584,13 @@
 - 비중첩: 본 축은 *link 프리로드 단계의 뷰포트-조건부 선적재* 차원이지 — L754(렌더 시점 srcset/sizes/picture 마크업)·L572(next/image 자동 srcset idiom)·L91(fetchpriority/decoding img 속성 FP-노트)·L1257(media preload 버퍼링)·L1512(storage.estimate 티어 관측)가 아님. anti-patterns L1753 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3433, 525th round(tokens).
 
+## cycle 3433 — design/tokens 525th round (Discovery, 표면 폐기)
+- 축 선택: 가변폰트 명명 인스턴스 디스크립터(`font-named-instance` — @font-face 안에서 가변폰트의 제작자 정의 명명 인스턴스(fvar 프리셋)를 이름으로 선택). anti-patterns keyword 서베이에서 font-named-instance **0건**(mention-absent) — unicode-range·메트릭 오버라이드 4종·font-palette·sibling-index/count·first-valid·device-cmyk·hwb·시간/주파수/fr 단위 등 여타 후보는 전부 기carve 확인 후 선택.
+- 프로브: (1) font-named-instance/named-instance apps/web/src 전수 grep **0건**(pure-vacuous). (2) `@font-face` at-규칙 자체 0건(폰트는 --font-display/--font-mono 패밀리 이름 참조만·L459 확립)·font-variation-settings 0건 — 가변폰트 축 좌표 선택/조작 메커니즘 부재(mechanism-absent). (3) DESIGN.md(105줄) named-instance/인스턴스/font-face grep 0건(silent).
+- 결정: 표면 폐기(0-후보). @font-face 부재·가변축 조작 표면 0·DESIGN silent 이므로 "인스턴스 선택 혼용·프리셋 vs 수치 불일치" 는 성립하지 않는 가정 결함이지 실 결함이 아님.
+- 비중첩: 본 축은 *명명 인스턴스 프리셋 선택* 디스크립터이지 — L459(메트릭 오버라이드 4종)·L1718(unicode-range 코드포인트 범위)·font-display(로딩 표시 전략)·L672(font-variation-settings 수치 조작 속성)·L1402(font-tech(variations) 능력 질의)가 아님. anti-patterns L1754 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3435, 602nd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
