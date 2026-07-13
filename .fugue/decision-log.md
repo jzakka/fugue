@@ -7626,6 +7626,13 @@
 - 비중첩: 본 축은 *표준화 margin-box 채움 키워드* 차원이지 — L1083(벤더 -webkit-fill-available/-moz-available)·L1666(내재 크기 모델)·L1657(fit-content() 클램프)·L427(내재 크기 애니메이션)·L1047(논리 제약)이 아님. anti-patterns L1759 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3445, 527th round(tokens).
 
+## cycle 3445 — design/tokens 527th round (Discovery, 표면 폐기)
+- 축 선택: `font-size` 절대/상대 크기 키워드 값(absolute-size `xx-small`~`xxx-large`·relative-size `larger`/`smaller`·`math`). local(/tech(/font-stretch/full-size-kana/auto-phrase/white-space-collapse/text-wrap-mode/text-underline-position/font-variant-position/text-spacing-trim/counter-set/CSS.escape/size-adjust/font-feature-settings/supports()/layer()/@import/font-language-override/math-depth/text-box-trim/line-clamp/hyphenate-* 등 후보 전수 기carve 확인 후, absolute-size/relative-size grep 0 으로 미개척 확정.
+- 프로브: (1) 키워드 값 7종+원시 font-size 선언 apps/web/src 전수 grep **0건**(pure vacuous). (2) 글자 크기 표면은 Tailwind 수치 스케일 text-* 145곳(sm 71·xs 45·lg 11·2xl 8·3xl 5·base 3·xl 2) 단일 idiom(uniform-alternative). (3) DESIGN.md L26 Scale 수치 타입 스케일만 규정(silent).
+- 결정: 표면 폐기(0-후보). 키워드 크기 사용 0·수치 rem 스케일 단일 관례이므로 "키워드/수치 혼용·UA 매핑 의존" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 font-size *키워드 값 종류* 차원이지 — L928 크기-토큰축(속성/수치 스케일)·L909 글꼴크기축(크기/행간 짝)·L272/L459(사이징 보정)·L1293(font-size-adjust 메트릭 기준 키워드)이 아님(c3427·c3439 직교 carve 선례). anti-patterns L1760 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3447, 604th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
