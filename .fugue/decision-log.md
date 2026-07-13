@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3578 — 정합성: 코드·문서 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop/design-loop 커밋 제외)
+- 조사: 신규 0건. 잔여 3건(c9c4e4a4, 4ab43b2e, e2cb3a80)은 2026-07-03 loop 산출·baseline 커밋으로 기존 census에서 계수 완료
+- 판정: 직전 정합성 census(3566) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 3580 (직전 3568 covered). 코드·CI freeze check 예정
+
 ### cycle 3576 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
 
 - 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
