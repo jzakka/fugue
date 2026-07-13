@@ -7941,6 +7941,13 @@
 - 비중첩: 본 축은 *이벤트 단위 입력-특성 판독* 차원이지 — L275(hover:hover 능력 MQ)·L311(포인터 취소 정책)·L553(touch-action 제스처 제어)·L1493(Pointer Lock 커서 잠금)·L1504(Compute Pressure 디바이스 압력)가 아님. anti-patterns L1777 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3481, 533th round(tokens).
 
+## cycle 3481 — design/tokens 533th round (Discovery, 표면 폐기)
+- 축 선택: 폰트 패밀리명 인용-형태(작은따옴표 vs 큰따옴표 vs 무인용 — CSS Fonts 명세상 키워드/제네릭은 무인용 필수). anti 전수 — 폰트명 인용/quoting/unquoted 0건(따옴표 6건은 L323 오너먼트·L367 구두점·L413 quotes 장식·L439 :lang·L1256 hanging-punctuation·L1431 대체텍스트 타축) — 미개척 확정. c3475(hex)·c3477(rgba)와 동형의 문법-형태 carve 패밀리.
+- 프로브: (1) 폰트 패밀리 선언 apps/web/src 전수 3곳(globals.css L58/L59/L72) — 공백 포함 명명 패밀리 5회 전부 작은따옴표·키워드/제네릭 6회 전부 무인용(spec 필수 형태)·큰따옴표 0·tsx 인라인 fontFamily 0(uniform·divergence 0). (2) 무인용 항목은 전부 CSS 키워드라 인용 불가 — 명명/키워드 간 형태 차이는 명세 요구 자체(혼용 아님). (3) DESIGN.md L17-25 폰트명은 산문/백틱 표기·인용 정책 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 인용 형태 완전 균일(divergence 0)이므로 "작은/큰따옴표 혼용·인용 미통일" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *패밀리명 리터럴의 인용 철자 형태* 차원이지 — c3457/L1766(벤더 별칭 스택 구성원)·L1081(ui-* 제네릭 어휘)·L413(quotes 장식)·L1775(hex 표기)·L1776(rgba 문법)이 아님. anti-patterns L1778 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3483, 610th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
