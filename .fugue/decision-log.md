@@ -7906,6 +7906,13 @@
 - 비중첩: 본 축은 *hex 리터럴의 문법 형태* 차원이지 — L511(시맨틱 토큰화)·L1362(--alpha() 파생 함수)·L987/991/995(color() 색공간 함수)·L199(text-transform 텍스트 대소문자)가 아님. anti-patterns L1775 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3477, 609th round(aesthetic).
 
+## cycle 3477 — design/aesthetic 609th round (Discovery, 표면 폐기)
+- 축 선택: rgb()/rgba() 색 함수 문법 형태(레거시 콤마 `rgba(R, G, B, A)` vs 모던 공백-슬래시 `rgb(R G B / A%)` vs 알파 number/percentage vs rgb/rgba 별칭). anti 전수 — 레거시 콤마/콤마 문법/공백-슬래시 전용 0건(공백 구분 3건은 ARIA id-list·drop-shadow 스택 무관) — 미개척 확정. c3475(hex 표기 L1775)와 동형의 문법-형태 carve 패밀리.
+- 프로브: (1) rgb 계열 리터럴 apps/web/src 전수 5곳(globals.css L19/L25/L37/L39/L62) 전부 레거시 콤마+number 알파+rgba() 별칭 단일 형태 — 모던 공백-슬래시 0·percentage 0(uniform·divergence 0). (2) hsl/hwb/lab 등 이웃 색 함수 0건이라 문법이 비교될 대상도 없음. (3) DESIGN.md L41 `rgba(232, 90, 42, 0.12)` 동일 형태(코드가 원문 보존)·콤마/슬래시 정책 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 문법 형태 완전 균일(divergence 0)이므로 "레거시/모던 혼용·알파 표기 혼재" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *rgb 계열 함수 리터럴의 문법 형태* 차원이지 — L1775(hex 표기)·L511(시맨틱 토큰화)·L384(relative color 파생)·L987/991/995(color() 색공간)·L1362(--alpha() 헬퍼)가 아님. anti-patterns L1776 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3479, 608th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
