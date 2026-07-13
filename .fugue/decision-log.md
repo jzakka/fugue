@@ -7724,6 +7724,13 @@
 - 비중첩: 본 축은 *한 색의 위치 인자 2개* 구문 차원이지 — L840(단일 위치 유틸)·L885(색 없는 힌트)·L602(반복 패턴)·L889(보간 색공간)·L798(via 중간 정지점)이 아님. anti-patterns L1767 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3461, 605th round(responsive).
 
+## cycle 3461 — design/responsive 605th round (Discovery, 표면 폐기)
+- 축 선택: 명령형 `VisualViewport.height` 시각 뷰포트 가시 세로 크기 판독(핀치 줌·가상 키보드 인셋 반영). 배치 조사에서 visualViewport 시리즈 6멤버(offsetTop 3053·scale 3179·pageTop 3185·width 3191·offsetLeft 3197·pageLeft 3203) 기carve 확인 — `height` 만 잔여 census 멤버로 미개척 확정(c3191 width 선례와 동형).
+- 프로브: (1) `visualViewport` apps/web/src 전수 **0건**(pure vacuous). (2) `addEventListener('resize')` 0·`innerHeight` 0 — 뷰포트 세로 대응은 선언형 Tailwind BP·뷰포트 단위(L696/L701)만의 단일 관례(파이프라인 부재). (3) DESIGN.md viewport/keyboard/뷰포트 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 판독 표면 자체가 없으므로 "가시 높이 판독 비정합·innerHeight 혼용" 은 성립하지 않는 가정 결함. VisualViewport per-property census 완결.
+- 비중첩: 본 축은 *가시 세로 크기* 멤버이지 — 시리즈 형제 offsetTop/scale/pageTop/width/offsetLeft/pageLeft(각기 오프셋/배율/문서 위치/가로 크기)가 아님. anti-patterns L1768 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3463, 530th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
