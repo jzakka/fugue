@@ -7535,6 +7535,13 @@
 - 비중첩: 본 축은 *중립 무채색(채도 제거)* 개별 멤버이지 — L535(*census*)·L1743 sepia(*황갈색조*)·L793(*토큰*)·L871(*토글*)·L1387(*체이닝*)이 아님. anti-patterns L1746 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3419, 598th round(responsive).
 
+## cycle 3419 — design/responsive 598th round (Discovery, 표면 폐기)
+- 축 선택: 타이틀바 영역 환경변수(`env(titlebar-area-*)`=Window Controls Overlay — 설치형 데스크톱 PWA 타이틀바 기하의 선언형 CSS 소비). L1086 합산(titlebar+keyboard)의 잔존 멤버 — keyboard-inset c3407 개별 carve 에 이은 합산-멤버 개별 carve로 양 멤버 완결.
+- 프로브: (1) titlebar/window-controls/windowControlsOverlay/display_override grep apps/web 전수 **0건**·`env(` 선언 0건(pure-vacuous). (2) 호스트 컨텍스트 전무 — public/ 에 manifest 파일 부재(svg 아이콘뿐)·layout manifest 링크 없음 → PWA 설치 가능성 자체가 없어 WCO opt-in 전제 통째 부재(mechanism-absent). (3) DESIGN.md(105줄) titlebar/PWA/설치/standalone grep 0건(silent).
+- 결정: 표면 폐기(0-후보). WCO 사용 0·PWA 전제 부재·DESIGN silent 이므로 "타이틀바 배치 선언형/명령형 갈림" 은 성립하지 않는 가정 결함(loop rule line 9)이지 실 결함이 아님.
+- 비중첩: 본 축은 *데스크톱 PWA 타이틀바 선언형 소비* 개별이지 — L1086(*합산 census*)·L1741 keyboard-inset(*가상 키보드*)·L617(*노치*)·L1404(*리사이즈 정책*)·L1408(*폴더블*)이 아님. L1086 양 멤버 완결. anti-patterns L1747 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3421, 523rd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
