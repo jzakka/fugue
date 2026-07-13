@@ -8284,6 +8284,13 @@
 - 비중첩: 본 축은 *<shadow> 성분 나열 순서 형태* 차원이지 — L163(토큰 정의·parity)·L416(BP 결부)·L597/L601(override 유무)·L1775~L1790(다른 표면 문법-형태)가 아님. anti-patterns L1791 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3509, 613th round(responsive).
 
+## cycle 3509 — design/responsive 613th round (Discovery, 표면 폐기)
+- 축 선택: 조건부 at-규칙(@media) 배치 토폴로지 — 최상위 배치 vs CSS Nesting 셀렉터 내부 중첩(명세상 `&` 불요·계산 스타일 동치·순수 저작-형태). anti 전수 — L761 은 `&` *선택자* 중첩 차원·L1789 는 특성 *값 생략형* 차원·L1523 은 명령형 CSSOM 조회 차원으로 본 축(at-규칙 *위치* 형태) 미개척 확정.
+- 프로브: (1) 저작 @media 전수 1건(globals.css:111 prefers-reduced-motion — 최상위 배치)·셀렉터 내부 중첩 0·styled-jsx/`<style>` 0 — 모집단 1 균일·중첩 측 pure vacuous. (2) 반응형 분기 23곳 전부 Tailwind BP-접두 변형 — 컴파일러가 항상 최상위 @media 방출·배치 선택 비노출 채널. (3) DESIGN.md 침묵(L103 "배치"는 masonry 콘텐츠 배치로 무관).
+- 결정: 표면 폐기(0-후보). @media 1건 단일 배치라 "배치 비정합·혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *@media 블록의 배치 위치 형태* 차원이지 — L761(& 선택자 중첩)·L1789(특성 값 생략형)·L525(BP 변형 명명)·L1523(CSSOM 조회)가 아님. anti-patterns L1792 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3511, 538th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
