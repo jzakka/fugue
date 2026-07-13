@@ -8634,6 +8634,13 @@
 - 비중첩: 본 축은 *콤마-목록 항목 나열 순서* 차원이지 — L1785(묶음 형태)·L1800(성분 순서)·L1791(box-shadow 성분)·L1387(filter 파이프라인)·L1795(className 토큰 순서)가 아님. anti-patterns L1806 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3539, 618th round(responsive).
 
+## cycle 3539 — design/responsive 618th round (Discovery, 표면 폐기)
+- 축 선택: Tailwind BP-변형×상태-변형 체인 결합 순서 표기-형태 — `md:hover:bg-x` vs `hover:md:bg-x`(미디어 래핑×의사클래스 부가는 교환 가능·동일 CSS 생성·동일 특이성). anti 전수 — L1795 는 문자열 내 *서술 위치*·L1798 은 JS 설정 *키 형태*·L1377 은 not-* variant *존재*로 본 축(변형 체인 내부 결합 순서) 미개척 확정. 문법-형태 carve 의 variant 체인 적용.
+- 프로브: (1) 스택 변형 모집단 0 — `(sm|md|lg|xl):(hover|focus|active|group-hover)` 및 역순 조합 tsx 전수 0건(pure vacuous). (2) BP-변형 24건·상태-변형 다수 전부 단독 접두 사용 — 체인 결합 선택 미발생. (3) DESIGN.md variant/변형 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). BP×상태 스택 변형 자체가 없어 "체인 순서 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *변형 체인 결합 순서* 차원이지 — L1795(서술 위치)·L1798(설정 키 형태)·L1377(not-* 존재)·L1804(@media 결합자)가 아님. anti-patterns L1807 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3541, 543rd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
