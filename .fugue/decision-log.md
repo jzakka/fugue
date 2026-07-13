@@ -8760,6 +8760,13 @@
 - 비중첩: 본 축은 *var() 괄호 내부 공백 유무* 차원이지 — L769(폴백 값)·L1805(선언 콜론 공백)·L1802(종결 세미콜론)·L730/L737(토큰-참조 여부)이 아님. anti-patterns L1811 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3549, 621st round(aesthetic).
 
+## cycle 3549 — design/aesthetic 621st round (Discovery, 표면 폐기)
+- 축 선택: 이징 키워드 vs 함수형 등가 표기-형태 — `ease` vs `cubic-bezier(0.25, 0.1, 0.25, 1)`·`linear` vs `cubic-bezier(0, 0, 1, 1)`(명세상 별칭·완전 등가·순수 철자 차원). anti 전수 — L42 는 방향성 유틸 *사용 여부*·L495 는 이징 *어휘 선택*·L893/L921 은 *steps()/linear() 함수 채택*·L1779 는 keyframe *오프셋* 별칭으로 본 축(동일 곡선의 키워드 vs 함수형 철자) 미개척 확정. 키워드-별칭 계열의 이징 대상 sub-차원.
+- 프로브: (1) 모집단 균일 — apps/web/src 전수 저작 이징 리터럴 2곳(globals.css:75 `ease` ×2·:108 `linear`) 전부 키워드형·함수형 저작 0건(분기 0). (2) 대체 채널 — tsx arbitrary `ease-[…]` 0·WAAPI easing 0·`ease-*` 유틸 0(transition-colors 등 83곳은 timing-function 미지정 → 컴파일러 방출 채널). (3) DESIGN.md L86/L90/L92 는 곡선 *값* 명세이지 표기 규정 아님 — 코드도 전부 키워드형이라 위반 표면 부재.
+- 결정: 표면 폐기(0-후보). 전 표면 키워드형 균일이라 "표기 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *동일 곡선의 키워드 vs 함수형 철자* 차원이지 — L42(유틸 사용 여부)·L495(어휘 선택)·L589(기본 전환 토큰)·L893(steps 채택)·L921(linear() 채택)·L1782(shorthand 여부)·L1800(성분 순서)이 아님. anti-patterns L1812 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3551, 620th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
