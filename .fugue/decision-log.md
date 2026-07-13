@@ -8585,6 +8585,13 @@
 - 비중첩: 본 축은 *정지점 위치 숫자의 명시/생략 철자* 차원이지 — L1794(방향 철자)·L885(보간 힌트)·L798(via 토큰)·L103(Tailwind 정지점 어휘)·L1793(transparent 철자)이 아님. anti-patterns L1803 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3533, 617th round(responsive).
 
+## cycle 3533 — design/responsive 617th round (Discovery, 표면 폐기)
+- 축 선택: 미디어 쿼리 논리 결합자 조합 표기-형태 — 복수 조건의 `and` 연접 vs 콤마 목록(OR) vs `not` 부정 vs 레거시 `only` 가드. anti 전수 — L1801 은 타입 *명시/생략 철자*·L1789 는 특성 *값 생략*·L703 은 단일 특성 *비교 표기*로 본 축(복수 조건의 논리 조합 형태) 미개척 확정. @media prelude 의 결합 구조 sub-차원.
+- 프로브: (1) 결합자 모집단 0 — 저작 @media 전수 1건(globals.css:111 단일 특성)·and/콤마/not/only 0건·matchMedia 0건(pure vacuous). (2) Tailwind BP-변형 23곳 단일-특성 쿼리 방출 컴파일 채널·스택 변형(md:max-lg: 등) 0건 — 결합자 선택 비노출. (3) DESIGN.md 결합자/조합 문법 무언급(silent).
+- 결정: 표면 폐기(0-후보). 복수 조건 쿼리 자체가 없어 "조합 표기 혼용" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *복수 조건 논리 결합자 조합* 차원이지 — L1801(타입 철자)·L1789(값 생략형)·L703(range 비교 문법)·L1792(@media 배치)·L715(타입 키워드 존재)가 아님. anti-patterns L1804 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3535, 542nd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
