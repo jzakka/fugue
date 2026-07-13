@@ -8914,6 +8914,13 @@
 - 비중첩: 본 축은 *여는 중괄호 전치 공백* 차원이지 — L1805(선언 콜론)·L1811(var() 괄호)·L1813(MQ 콜론)·L1814(콤마 뒤)·L1792(토폴로지)·L1808(선언 순서)·L1802(세미콜론)가 아님. anti-patterns L1817 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3561, 623rd round(aesthetic).
 
+## cycle 3561 — design/aesthetic 623rd round (Discovery, 표면 폐기)
+- 축 선택: 2D 이동 함수의 축-특정 vs 일반형 0-채움 등가 표기 — `translateY(-2px)` vs `translate(0, -2px)`(2D 렌더 완전 등가·translate3d 는 합성 승격 힌트라 등가 주장은 2D 짝 한정 명시). anti 전수 — L776 은 개별 변환 *속성* vs 단축·L1374 는 *행렬* vs 명명 함수·L1631 은 CSSOM *명령형 객체*·L1699 는 transform-*origin*으로 본 축(명명 함수의 축-특정/일반 철자) 미개척 확정. background 단축/longhand(L1788 covered)·그라디언트 방향(L1794 covered) 후보는 중복으로 기각.
+- 프로브: (1) 모집단 0 — 저작 transform/translate 함수 리터럴 css 0·tsx/ts 0(pure vacuous). (2) 컴파일 채널 — Tailwind translate 유틸 11곳(-translate-y-0.5 ×10·-translate-y-1/2 ×1)은 컴파일러 방출·WAAPI 0·inline style transform 0. (3) DESIGN.md L86/L92 translateY(-2px) 는 이동량 *값* 명세이지 표기 규정 아님.
+- 결정: 표면 폐기(0-후보). 저작 리터럴 부재라 "표기 비정합" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *축-특정 vs 일반 함수 0-채움 철자* 차원이지 — L776(속성 vs 단축)·L1374(행렬)·L1631(Typed OM)·L670(3D 탐지 MQ)·L1699(origin)·L1812(이징 철자)가 아님. anti-patterns L1818 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3563, 622nd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
