@@ -7857,6 +7857,13 @@
 - 비중첩: 본 축은 *SVG 콘텐츠의 뷰포트 맞춤·정렬* 차원이지 — L306(아이콘 stroke 광학 두께)·L586(object-view-box 비트맵 크롭)·L203(반응형 object-fit/aspect 전이)·L1338(타원 아크 모서리)이 아님. anti-patterns L1773 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3473, 607th round(responsive).
 
+## cycle 3473 — design/responsive 607th round (Discovery, 표면 폐기)
+- 축 선택: 브라우저 창 화면상 배치 판독/제어(CSSOM View window placement — `screenX`/`screenY`/`screenLeft`/`screenTop` 좌표 판독·`moveTo()`/`moveBy()`/`resizeTo()`/`resizeBy()` 창 이동/리사이즈·`window.open` 배치 feature). anti exact 전수 0(moveTo 1건은 L1539 canvas 경로 프리미티브 부수 언급·window.open 3건도 타축 부수 언급) — 전용 baseline 부재 확정. L1484(치수 판독)와 위치/제어 vs 치수로 차원 분리.
+- 프로브: (1) screenX/screenY/screenLeft/screenTop/moveBy/resizeBy/resizeTo/.moveTo apps/web/src 전수 **0건**(pure vacuous). (2) 유일 window.open 은 PinCard.tsx:114 `window.open(url, "_blank", "noopener,noreferrer")` — 배치 feature(left/top/width/height/popup) 0·새 탭 열기(팝업 아님)·auth 리다이렉트 방식이라 팝업 배치 host 0(uniform). (3) DESIGN.md screenX/moveTo/resizeTo/창 위치/창 배치/팝업 grep 0건(silent).
+- 결정: 표면 폐기(0-후보). 창 배치 판독/제어 표면 자체가 없으므로 "팝업 배치 비정합·창 배치 정책 미통일" 은 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *창의 화면상 위치 좌표 + 프로그래매틱 이동/리사이즈/배치* 차원이지 — L1484(innerWidth/outerWidth 치수 판독)·L1444(다중 모니터 토폴로지)·L1464(물리 화면 크기)·L1436(시각 뷰포트)이 아님. anti-patterns L1774 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3475, 532th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
