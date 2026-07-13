@@ -8193,6 +8193,13 @@
 - 비중첩: 본 축은 *소수 정수부 0 포함 여부 철자* 차원이지 — L1776(함수 문법·알파 타입)·L1063(시간 단위)·L1422(값 단위)·L1784(식별자 케이스)·L1785(단축/longhand)가 아님. anti-patterns L1787 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3501, 613th round(aesthetic).
 
+## cycle 3501 — design/aesthetic 613th round (Discovery, 표면 폐기)
+- 축 선택: background 단축/longhand 표기-형태(단축 `background:` vs longhand background-* 나열 — animation/transition 단축과 달리 미기재 하위 속성 initial 리셋 시맨틱스 보유). anti 전수 — "background 단축" grep 0건(L103 gradient 방향 어휘·L267/L547/L1379 background-image 기능 census 는 타축) — 미개척 확정. shorthand-표기 carve 패밀리(L1761/L1782/L1785)의 background 속성군 적용.
+- 프로브: (1) 저작 background 계열 전수 7곳 — 단축 1(globals.css:70 body)·longhand 6(:92 clip·:100-101 keyframes position·:105-107 shimmer image/size/repeat)·tsx 0. (2) longhand 6곳 전부 기능 강제: shimmer 는 유틸 background-color 보존 부분-오버라이드(단축이면 배경색 리셋 시각 회귀)·keyframes 는 애니메이션 대상 속성 한정·clip 은 단독 지정 — 자유 선택 지점은 body :70 1곳뿐(divergence 측정 불성립). (3) DESIGN.md 표기 형태 무언급(silent).
+- 결정: 표면 폐기(0-후보). 혼재가 리셋-시맨틱스에 강제된 정확한 형태 선택이므로 "표기 비정합·통일 필요" 는 성립하지 않는 가정 결함.
+- 비중첩: 본 축은 *background 선언의 단축/longhand 표기 형태* 차원이지 — L1782(animation)·L1785(transition)·L267/L547/L1379(background-image 기능)·L807/L879(반복 기능)·L103(gradient 방향 어휘)가 아님. anti-patterns L1788 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3503, 612th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
