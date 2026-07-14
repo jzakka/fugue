@@ -10530,6 +10530,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3679 — design/responsive 641st round (Discovery, 표면 폐기)
+- 축 선택: 뷰포트 축소 내비게이션 아키타입 채널(상시 인라인 nav vs 햄버거+드로어 vs 바텀 탭바 — c3671 모달 그릇 아키타입 장르를 내비게이션 그릇에 적용). 사전 프로브에서 브레이크포인트 값(anti-patterns L20/L43)·그리드 컬럼(L36/L211/L285)·뷰포트 단위(L529)·srcset(L754)·pointer/hover 매체(L584)·safe-area(L617)·viewport meta(L749)·JS 관측 채널(L1436/L1440/L1480/L1484) 전부 기재 확인 → 햄버거/드로어/오프캔버스/탭바 grep 0건인 본 축 선택.
+- 프로브: (1) 내비 표면 단일 — NavBar.tsx:11-75 `<header><nav>` 전 페이지 공유, 제2 내비 0건 → 표면 간 아키타입이 갈릴 모집단 0(pure vacuous). (2) 축소 아키타입 채널 0건 — 햄버거/드로어/menu 토글 grep 0건(src *.tsx 전수). (3) 좁은 뷰포트 적응은 요소-수준 축소로 처리 — SearchBar:142 `flex-1 max-w-md` 유동 흡수·NavBar:14/30 `shrink-0`·NavBar:55 `hidden sm:block` 닉네임(L160 baseline), 아키타입은 전 뷰포트 단일. (4) DESIGN.md(105줄)/AGENTS.md/CLAUDE.md nav·내비·헤더·햄버거·드로어 grep 전수 0건 → 셋 중 미명시(루프 규칙 L9 취향 문제).
+- 판정: 후보 0건, 표면 폐기. anti-patterns L1875 등재(제2 내비 표면 또는 햄버거/드로어 채널 도입으로 아키타입 2원화 시에만 재평가).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 3681, 566th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
