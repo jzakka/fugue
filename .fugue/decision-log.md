@@ -9985,6 +9985,13 @@
 - 비중첩: 본 축은 *같은 값을 담는 채널* 차원이지 값 step 수렴(L297)·반응형 변형 부재(L74)·정렬(L513)이 아님. anti-patterns L1857 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3641, 635th round(responsive).
 
+## cycle 3641 — design/responsive 635th round (Discovery, 표면 폐기)
+- 축 선택: 균일(4방향 동치) 패딩의 저작 채널 — 같은 값의 사방 패딩을 `p-N` 단축 vs 동치 `px-N py-N` 축-쌍 vs 4-side longhand 중 어느 채널로 저작하는가(축-쌍 표기 순서 포함). L1855 정사각 치수 carve 의 패딩 판. 기각 후보(기커버): 모달 가장자리 여백 채널(L1852 가 mx-4 vs 컨테이너 패딩을 정확히 커버)·masonry 컬럼 채널(L211/L520/L851/L760 인접 포화)·dvh/뷰포트 단위(L54)·srcset(L83)·viewport meta(L749)·auto-fit minmax(L760)·컨테이너 쿼리(L502 계열).
+- 프로브: (1) p-N 단축 지배 ~31건(p-3 ×9·p-8 ×8·p-6 ×6·p-4 ×4·p-2 ×3·p-5 ×1). (2) 동치 축-쌍 2곳 — SearchClient:230 `px-6 py-6`·AddToBoardButton:308 `px-3 py-3` — p-N 과 페인트 완전 등가·동종 표면 간 갈림 비교쌍 부재. (3) 비동치 px/py 쌍 60+건 전수 px 선행·역순 `py-3 px-4` 1건(LoginButtons:74) — 순서는 계산 무영향 순수 표기. (4) 동치 4-side longhand 풀-나열 0건. (5) DESIGN.md L54-65 는 값 스케일만 — 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 채널 혼용(2+1)이 실재하나 페인트 등가·동종 표면 내 갈림 0·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *동치 사방 패딩을 담는 유틸 채널* 차원이지 패딩 값(L280)·반응형 전이(L131/L506)·BP 서술 순서(L1795)·정사각 치수 채널(L1855)이 아님. anti-patterns L1858 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3643, 560th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
