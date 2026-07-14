@@ -9691,6 +9691,13 @@
 - 비중첩: 본 축은 *보조 그리드 칼럼 사다리의 역할 간 정합*이지 base 1-col 존재(L36)·masonry 칼럼(L211)·BP 표기 순서(L1795)·base 명시성 페어링(L1846)·BP 타입 스케일(L498)·BP 패딩(L506)이 아님. anti-patterns L1849 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3625, 557th round(tokens).
 
+## cycle 3625 — design/tokens 557th round (Discovery, 표면 폐기)
+- 축 선택: 폰트 패밀리 이름의 인용 표기-형태 — `font-family`/`--font-*` 값의 패밀리 이름을 인용할지·어느 따옴표 문자로 인용할지가 표면 간 갈리는지. 기각 후보 다수(var() 폴백 L769/L1838·선언 순서 L1808·크로스-블록 순서 L1808 내포·@property L629·color-scheme 653/839/1151·leading/trailing zero L1787/L1835·:root/html L1796·@theme static/reference L896/L900·.light 패리티 L146·의미색 소비 L135·@layer L649·짝 모디파이어 L1703/L1706)는 기커버로 제외.
+- 프로브: (1) 저작 모집단 전수 3행(globals.css:58 --font-display·:59 --font-mono·:72 body font-family) — 공백 포함 웹폰트 이름 4건('General Sans'·'Pretendard Variable' ×2·'Geist Mono') 전수 작은따옴표 인용(큰따옴표 0·비인용 공백 이름 0)·벤더/시스템 식별자 3건(-apple-system·BlinkMacSystemFont·system-ui) 전수 비인용·generic 키워드 3건(sans-serif ×2·monospace) 전수 비인용(CSS Fonts 명세상 generic 인용 시 리터럴 패밀리로 의미 변경 — 비인용이 규범). (2) 대체 채널 비참여 — tsx fontFamily 0건·layout.tsx 폰트 `<link>` 3종은 URL 쿼리 채널·globals.css 내 큰따옴표는 :1 `@import "tailwindcss"` 뿐(별개 컨텍스트). (3) DESIGN.md L16-25 Typography 는 패밀리 이름·로딩 URL 만 규정·인용 표기 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 인용 형태가 이름 부류(공백 웹폰트명/벤더 식별자/generic 키워드)에 1:1 대응하는 role-bound 균일·인용 문자 전수 작은따옴표(divergence 0)라 "인용 혼용" 가정 결함.
+- 비중첩: 본 축은 *패밀리 이름 철자의 인용 형태*이지 스택 구성(L813)·로딩 전략(L217)·@theme 토큰 정의(L169)·명명 케이스(L1784)·quotes 속성(L413)·@font-face 메트릭(L459/L1390)·선언 순서(L1808)·중괄호 공백(L1817)이 아님. anti-patterns L1850 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3627, 634th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
