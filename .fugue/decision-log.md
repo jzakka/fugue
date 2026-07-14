@@ -9817,6 +9817,13 @@
 - 비중첩: 본 축은 *거터의 저작 채널(패널-마진 vs 컨테이너-패딩)* 차원이지 max-w cap 값(L152)·내부 패딩 전이(L131/L773)·오프셋(L243)·z 층위(L412)·scrim 블러/알파(L104/L114)·BP base 페어링(L1846)·칼럼 사다리(L1849)가 아님. anti-patterns L1852 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3631, 558th round(tokens).
 
+## cycle 3631 — design/tokens 558th round (Discovery, 표면 폐기)
+- 축 선택: 토큰 이름의 한정어 어순 구조 — 커스텀 프로퍼티 이름 안에서 base 명사와 한정어(상태·정도·역할)를 어느 순서로 배열하는지(base-선행 `--surface-elevated` vs 한정어-선행 `--elevated-surface`). 명명-구조 carve 계보(L1784 케이스 → L1847 레이어 간 미러 → 본 축 이름 내부 어순). anti 전수 — 어순/한정어/접미사 0매치·미개척 확정. 기각 후보: CSS 주석 표기(L1833 기커버)·알파 색 hex/rgba 혼재(L1775 기커버 — "알파 hex/rgba 혼재" 명시)·rgb 문법 형태(L1776)·폰트 스택 구성(L813)·@theme 수식자(L896/L900).
+- 프로브: (1) 한정어 보유 base 토큰 전수 8개(surface-elevated·surface-hover·text-primary·text-muted·text-dim·accent-hover·accent-subtle·shimmer-highlight, globals.css:8-26) 전부 base-선행·한정어-후미(한정어-선행 0건). (2) @theme 접두(--color-*/--font-*/--text-*/--shadow-*)는 Tailwind v4 네임스페이스 계약(role-bound·유틸 생성 결정)·--shadow-card-hover 는 상태 한정어 최후미로 base 토큰 -hover 접미와 동일 위치. (3) 정의 전수 globals.css 단일 파일(L1784 census·tsx 0건)·DESIGN.md L37-52 라벨("Surface elevated" 등)이 전수 base-선행이고 코드가 정확 미러 — 어순 규정 자체는 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 어순이 전수 base-선행+상태 한정어 최후미 단일 스킴(divergence 0)이라 "어순 혼용" 가정 결함.
+- 비중첩: 본 축은 *이름 내부 성분 어순* 차원이지 케이스 철자(L1784)·레이어 간 미러/노출 경계(L1847)·@keyframes 이름(L1815)·참조 구조(L1844)·선언 나열 순서(L1808)가 아님. anti-patterns L1853 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3633, 635th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
