@@ -9166,6 +9166,13 @@
 - 비중첩: 본 축은 *행두 인덴트 폭/문자* 차원이지 — L1817(중괄호 전치 공백)·L1823(세미콜론 전치)·L1826(콤마 앞)·L1822(at-키워드 직후)·L289(tab-size 렌더 탭폭)·L478(text-indent 속성)이 아님. anti-patterns L1828 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3583, 550th round(tokens).
 
+## cycle 3583 — design/tokens 550th round (Discovery, 표면 폐기)
+- 축 선택: CSS 행말 공백 표기-형태 — 행말 공백/탭은 파싱 비유의미(유무 완전 동치). 공백-위치 walk 의 마지막 미개척 위치(행두 L1828·행내 구분자 전부 기carve → 행말로 완결). anti 전수 — 행말/trailing whitespace/줄 끝/후행 공백 0매치·미개척 확정. 기각 후보: 블록 간 빈 줄 수(동시 후보였으나 행말이 walk 완결 우선).
+- 프로브: (1) 모집단 균일 — globals.css 전 124행 전수 행말 공백/탭 0건(divergence 0). (2) 대체 채널 — 저작 CSS 채널 globals.css 유일·tsx style JS 객체·Tailwind 컴파일 방출·css-in-js 0. (3) DESIGN.md 공백/행말 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 전체 무-행말-공백 단일이라 "줄 끝 비정합" 가정 결함.
+- 비중첩: 본 축은 *행말 잔여 공백 유무* 차원이지 — L1828(행두 인덴트)·L1823(세미콜론 전치)·L1826(콤마 앞)·L1814(콤마 뒤)·L1817(중괄호 전치)·L1805(콜론 둘레)가 아님. anti-patterns L1829 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3585, 627th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
