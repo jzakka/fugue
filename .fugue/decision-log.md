@@ -9677,6 +9677,13 @@
 - 비중첩: 본 축은 *그라디언트 배경의 저작 채널 선택*이지 방향/정지점 어휘·알파 단계·shimmer 값·애니메이션 정합·아이콘/조건 채널이 아님. anti-patterns L1848 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3623, 632nd round(responsive).
 
+## cycle 3623 — design/responsive 632nd round (Discovery, 표면 폐기)
+- 축 선택: 보조(비-masonry) 그리드의 반응형 칼럼 사다리 정합 — 커버 카드·행 카드·핀 미리보기 그리드가 서로 다른 칼럼 사다리를 쓰는 것이 비정합인지. 기각 후보 다수(BP 방향·명명·base 페어링·masonry 칼럼·BP 타입 스케일·BP 패딩 등)는 L525/L1795/L1846/L211/L498/L506 기커버로 제외.
+- 프로브: (1) 보조 그리드 전수 7곳 3역할군 — ①커버-썸네일 카드 `grid-cols-2 sm:grid-cols-3` ×2(BoardGrid:17, MyPageClient:143), ②아이콘+텍스트 행 카드 `grid-cols-1 sm:grid-cols-2 md:grid-cols-3` ×2(SearchClient:320 크리에이터·:358 보드 — 동일 카드 골격), ③핀 미리보기 `grid-cols-1 sm:grid-cols-2` ×3(PinsGrid:140/:148, ProfileSkeleton:19). 역할 내 사다리 완전 동일. (2) 사다리 차이는 카드 해부(커버 이미지 vs 아이콘+텍스트 행)와 컨테이너 폭(SearchClient max-w-5xl 만 md 단계 보유, 프로필 계열 max-w-4xl)에 1:1 대응 — role-bound. (3) DESIGN.md L69 칼럼 규정은 masonry 피드 전용(L36 기판정: 보조 그리드 = 자의적 확장)·보조 그리드 사다리 규정 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 역할군별 사다리가 카드 해부·컨테이너 폭에 종속되는 role-bound 라 "사다리 통일" 가정 결함.
+- 비중첩: 본 축은 *보조 그리드 칼럼 사다리의 역할 간 정합*이지 base 1-col 존재(L36)·masonry 칼럼(L211)·BP 표기 순서(L1795)·base 명시성 페어링(L1846)·BP 타입 스케일(L498)·BP 패딩(L506)이 아님. anti-patterns L1849 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3625, 557th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
