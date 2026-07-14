@@ -10167,6 +10167,13 @@
 - 비중첩: 본 축은 *JS 클래스 문자열 조립 메커니즘* 차원이지 테마 분기(L1841)·뷰포트 분기(L1861)·상태 의사클래스(L473/L1347)가 아님. anti-patterns L1865 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3657, 639th round(aesthetic).
 
+## cycle 3657 — design/aesthetic 639th round (Discovery, 표면 폐기)
+- 축 선택: 스크롤 컨테이너의 저작 채널 — 축-특정 `overflow-x-auto`/`overflow-y-auto` vs 축-무관 `overflow-auto` vs 상시 스크롤바 `overflow-scroll` 중 어느 채널로 스크롤 영역을 저작하는가. 기각 후보(기커버): 드롭다운 포지셔닝 채널(L407 :popover-open·L1092 anchor-scope·L1441 toggle events 로 메커니즘-부재 차원 기점유)·스크롤바 표현 토큰(L534)·오버스크롤 연쇄(L549)·마스크 페이드(L558)·ScrollTimeline(L1607).
+- 프로브: (1) 스크롤 의도 컨테이너 전수 8건 축-특정 단일 채널 — overflow-x-auto ×6(필터 칩 행 등)·overflow-y-auto ×2(드롭다운 목록). (2) overflow-auto 0건·overflow-scroll 0건 — 대안 채널 부재로 divergence 성립 불가. (3) overflow-hidden ×17 은 클리핑/marquee 역할군(role-bound)이지 스크롤 저작이 아님. (4) DESIGN.md 는 스크롤 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *스크롤 컨테이너 저작 채널* 차원이지 스크롤바 표현 토큰(L534)·오버스크롤 연쇄(L549)·reflow a11y(L177)·BP overflow 전이(L309)가 아님. anti-patterns L1866 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3659, 638th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
