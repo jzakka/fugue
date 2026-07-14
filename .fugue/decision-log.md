@@ -10083,6 +10083,13 @@
 - 비중첩: 본 축은 *뷰포트 분기 메커니즘 채널* 차원이지 @media 내부 표기(L703/L1789/L1801/L1810/L1831)·배치 토폴로지(L1792)·테마 분기 채널(L1841)이 아님. anti-patterns L1861 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3649, 561st round(tokens).
 
+## cycle 3649 — design/tokens 561st round (Discovery, 표면 폐기)
+- 축 선택: 폰트 패밀리 소비(참조)의 저작 채널 — @theme `--font-*` 파생 명명 유틸(`font-display`/`font-mono`) vs arbitrary `font-[…]` vs 인라인 `style={{fontFamily}}` vs raw CSS `font-family` 중 어느 채널로 소비하는가. L1856 색 토큰 참조 carve 의 폰트 판. 기각 후보(기커버): --container 토큰 패밀리(L577)·폰트명 인용 표기(L1778/L1850)·font-smoothing(L249)·tabular-nums(L179).
+- 프로브: (1) 명명 유틸 전수 39건 단일 채널(font-display ×16·font-mono ×23) — @theme --font-display/--font-mono(globals.css:58-59) 파생. (2) arbitrary font-[…] 0건·인라인 fontFamily 0건. (3) raw CSS 1건(globals.css:72 body Pretendard)은 전역 상속 루트 — raw-CSS 계층 role-bound·--font-sans 토큰 부재라 유틸 선택지 자체 없음. (4) DESIGN.md L16-25 는 폰트 *값*만 SHALL — 소비 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *폰트 패밀리 소비 채널* 차원이지 폰트명 인용 표기(L1778/L1850)·색 토큰 참조 채널(L1856)·타이포 스케일 값이 아님. anti-patterns L1862 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3651, 638th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
