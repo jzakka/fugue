@@ -9355,6 +9355,13 @@
 - 비중첩: 본 축은 *소수 말미 제거-가능 0 철자* 차원이지 — L1787(leading-zero)·L1829(행말 공백)·L1832(<time> 단위)·L1790(영값 단위)이 아님. anti-patterns L1835 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3597, 629th round(aesthetic).
 
+## cycle 3597 — design/aesthetic 629th round (Discovery, 표면 폐기)
+- 축 선택: @keyframes 스텝 셀렉터 표기-형태 — 시작/끝 스텝을 from/to 키워드로 쓸지 0%/100% 백분율로 쓸지(CSS Animations 1 완전 동치). anti 전수 — from/to·keyframes 셀렉터·0%/100% 0매치·L1815 는 애니메이션 *이름* 명명 축으로 별개·미개척 확정. 기각 후보: 그림자 다중 나열(모집단 1건 예상 보류)·transition all 키워드(동치 아님·거동 차이로 표기축 부적합).
+- 프로브: (1) 모집단 균일 — globals.css 저작 @keyframes 1개(shimmer :98-101)·스텝 셀렉터 2건 전수 백분율(0%·100%)·from/to 0건(divergence 0). (2) 대체 채널 — tsx @keyframes/animate-[ 0건·Tailwind 내장 animate-* 는 컴파일 방출·WAAPI 키프레임 객체 0건. (3) DESIGN.md keyframes/from/키프레임 0매치.
+- 결정: 표면 폐기(0-후보). 스텝 셀렉터가 백분율로 단일이라 "from/to 혼용" 가정 결함.
+- 비중첩: 본 축은 *스텝 셀렉터의 from/to↔백분율 철자* 차원이지 — L1815(이름 명명)·L1827(스텝 내부 선언 값)·L1830(빈-줄)·L1828(행두 인덴트)이 아님. anti-patterns L1836 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3599, 628th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
