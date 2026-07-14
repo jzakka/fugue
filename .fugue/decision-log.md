@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3894 — 동시성: apps/api 코드 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api
+- 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
+- 판정: 직전 동시성 census(3882) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 3896 (직전 3884 covered). bot/openspec 표면 freeze check 예정
+
 ### cycle 3892 — 에러처리: 코드·빌드 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api Makefile .github/workflows (loop 커밋 제외)
