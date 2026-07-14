@@ -9138,6 +9138,13 @@
 - 비중첩: 본 축은 *position 값 키워드/백분율 철자* 차원이지 — L1794(그라디언트 방향)·L1809(스텝 순서)·L1790(0 단위)·L1818(translateY 인수)·L1803(정지점 명시/생략)이 아님. anti-patterns L1827 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3581, 625th round(responsive).
 
+## cycle 3581 — design/responsive 625th round (Discovery, 표면 폐기)
+- 축 선택: CSS 중첩 룰 행두 들여쓰기 표기-형태 — 행두 공백은 파싱 비유의미(2칸/4칸/탭 완전 동치). 공백-표기 walk 의 미개척 *행두* 위치·중첩 depth-2 유일 표면이 @media 블록(:111-115)이라 responsive 소속. anti 전수 — 행두/소스 들여쓰기/indentation 0매치·미개척 확정. 기각 후보: 명명 BP vs 임의 BP 변형(L525 가 `min-[Npx]:` 명시 커버)·MQ 콤마 쿼리 목록(L1804 커버)·update/scan MQ 특성(L592/L612 커버)·명령형 치수 API 패밀리(L1484/L1645/L1648 등 포화).
+- 프로브: (1) 모집단 균일 — globals.css 행두 전수 탭 0·depth-1 73행 2칸·depth-2 1행(:113) 4칸 = 2칸/깊이 단일 스킴(divergence 0)·3칸 3행은 배너 주석 연속행(비문법 위치 제외). (2) 대체 채널 — tsx style JS 객체·css-in-js 0·Tailwind 컴파일 방출. (3) DESIGN.md indent/들여쓰기 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 전체 단일 인덴트 스킴이라 "들여쓰기 비정합" 가정 결함.
+- 비중첩: 본 축은 *행두 인덴트 폭/문자* 차원이지 — L1817(중괄호 전치 공백)·L1823(세미콜론 전치)·L1826(콤마 앞)·L1822(at-키워드 직후)·L289(tab-size 렌더 탭폭)·L478(text-indent 속성)이 아님. anti-patterns L1828 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3583, 550th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
