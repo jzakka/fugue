@@ -10391,6 +10391,13 @@
 - 결정: 표면 폐기(0-후보). 단일 채널 + role-bound partition + 스펙 침묵 — 이슈 부재. anti-patterns L1872 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3671, 640th round(responsive).
 
+## cycle 3671 — design/responsive 640th round (Discovery, 표면 폐기)
+
+- 축: 모달 프레젠테이션 아키타입의 뷰포트 적응 채널 — 오버레이 다이얼로그를 전 뷰포트 센터 다이얼로그로 둘지 모바일 바텀시트로 전이시킬지.
+- 프로브: (1) 사전 기각 — 드래그 입력 채널(Pointer vs Mouse/Touch)은 VideoTrimModal 단일 표면이라 비교쌍 부재 격리 site. (2) census — role="dialog" 모달 2건 전수 센터 다이얼로그 동형(VideoTrimModal:195·AddToBoardButton:232 둘 다 fixed inset-0+items-center justify-center+rounded-[16px]+mx-4), 바텀시트 idiom(items-end 도킹·rounded-t-*·translate-y 슬라이드업) 0건 — 유일 items-end 는 PinCard:32 오디오 파형 정렬 role-bound, BP-접두 프레젠테이션 전이 0건 전역 균일. (3) DESIGN.md 모달 규정은 L44 surface 색·L76 radius 16px 뿐이고 둘 다 준수 — 프레젠테이션 아키타입은 DESIGN.md·AGENTS.md 침묵(규칙 L9).
+- 결정: 표면 폐기(0-후보). 단일 채널 + 균일 부재 + 스펙 침묵 — 이슈 부재. anti-patterns L1873 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3673, 565th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
