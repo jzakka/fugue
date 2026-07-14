@@ -9495,6 +9495,13 @@
 - 비중첩: 본 축은 *같은 테마 조건의 저작 채널 선택* 차원이지 토큰 패리티·OS 동기화·FOUC·미디어 보정·UA 스킴·색 토큰 통일이 아님. anti-patterns L1841 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3609, 631st round(aesthetic).
 
+## cycle 3609 — design/aesthetic 631st round (Discovery, 표면 폐기)
+- 축 선택: 상호작용-상태(:hover/:focus-visible/:active/:disabled) 조건부 스타일의 저작 채널 선택 — 같은 상태 분기를 상태 변형 유틸로 쓸지 저작 CSS 의사클래스 블록으로 쓸지 JS 이벤트 인라인으로 쓸지 (채널-선택 장르 L1837/L1840/L1841 의 상호작용-상태 판). anti 전수 — hover 채널 0매치·L275(hover-capable 게이팅)·L377(placeholder 빈/채움)은 별개 차원·미개척 확정. 기각 후보: 애니메이션 저작 채널(L517 정합·L581 --animate 토큰이 "일부 토큰·일부 raw 키프레임" 혼용 차원을 이미 커버 — 중첩 위험).
+- 프로브: (1) 모집단 균일 — 상호작용-상태 조건부 사이트 전수 상태 변형 유틸 채널(hover: ×89·focus-visible: ×93·focus: ×23·active: ×1·disabled: ×18 ≈ 224건)·저작 CSS 상호작용 의사클래스 0건(globals 유일 저작 의사 셀렉터 ::placeholder:79 는 의사-요소·L377 기확인). (2) 대체 채널 — onMouseEnter/onMouseLeave 0건·onFocus 1건(SearchBar:164)은 드롭다운 open 기능 로직 role-bound·css-in-js 0건. (3) DESIGN.md — L40/L45/L86/L92 가 hover 값·효과만 SHALL·저작 채널 침묵(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 상태 채널이 유틸 단일이라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *같은 상호작용-상태 조건의 저작 채널 선택* 차원이지 hover 효과 정합·미디어 게이팅·placeholder 상태가 아님. anti-patterns L1842 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3611, 630th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
