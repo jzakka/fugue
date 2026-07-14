@@ -10048,6 +10048,13 @@
 - 비중첩: 본 축은 *수평 행 형제 간격 유틸 채널* 차원이지 gap 반응형 전이(L74)·BP space 스텝(L510)·RTL 토글(L1693)·세로 적층 채널(L1857)이 아님. anti-patterns L1860 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3647, 636th round(responsive).
 
+## cycle 3647 — design/responsive 636th round (Discovery, 표면 폐기)
+- 축 선택: 뷰포트 반응형 분기의 저작 채널 — 같은 뷰포트-너비 분기를 Tailwind BP-접두 유틸(`sm:`/`md:`) vs raw `@media (width)` vs JS `matchMedia`/resize vs `@container` 중 어느 채널로 저작하는가. L1841 테마 분기 채널의 뷰포트 판이자 L1857/L1860 저작-채널 carve 동형. 기각 후보(기커버): @media 범위 구문(L703)·at-규칙 배치(L1792)·미디어 타입 표기(L1801)·임계값 단위(L1810)·boolean 표기(L1789)·override 셀렉터 재서술(L1831).
+- 프로브: (1) BP-접두 유틸 전수 28건 단일 채널(sm: ×26·md: ×2). (2) JS matchMedia/innerWidth/resize 0건·@container 0건. (3) raw @media 1건(globals.css:111)은 prefers-reduced-motion 사용자-선호 질의 — 뷰포트 분기 비모집단·raw-CSS 계층 role-bound. (4) MasonryGrid:6/:16 breakpointCols 는 react-masonry-css API 강제 JS-config — 채널 선택지 부재(masonry 자체 L211 등 기커버). (5) DESIGN.md L70 은 BP 값만 — 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *뷰포트 분기 메커니즘 채널* 차원이지 @media 내부 표기(L703/L1789/L1801/L1810/L1831)·배치 토폴로지(L1792)·테마 분기 채널(L1841)이 아님. anti-patterns L1861 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3649, 561st round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
