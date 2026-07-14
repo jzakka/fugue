@@ -9131,6 +9131,13 @@
 - 비중첩: 본 축은 *콤마 앞 공백* 차원이지 — L1814(콤마 뒤)·L1823(세미콜론 전치)·L1776(콤마/슬래시 문법)·L1805(콜론 둘레)·L1811(var() 괄호)이 아님. anti-patterns L1826 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3579, 626th round(aesthetic).
 
+## cycle 3579 — design/aesthetic 626th round (Discovery, 표면 폐기)
+- 축 선택: background-position 키워드/백분율·길이 등가 표기-형태 — `top`≡`0%`·`center`≡`50%`·두-값 `0`≡`0%` 등 계산값 동치인 position 값 철자 선택. anti 전수 — background-position/포지션 키워드 축 0매치·미개척 확정. 기각 후보: keyframes 스텝 병합(0%,100% 콤마-그룹핑 — shimmer 두 블록 선언이 상이해 그룹핑 자체 불가·모집단 0)·scale() 인수 개수(L1818 translateY 동형이나 저작 scale() 0건 — L97 확인 저작 transform 은 Tailwind hover:-translate-y-0.5 유틸뿐).
+- 프로브: (1) 모집단 균일 — globals.css background-position 2곳(:100 `-200% 0`·:101 `200% 0`) 전수 두-값 백분율·0 단일 표기·키워드형 0건(divergence 0)·object-position 등 동문법 속성 저작 0건. (2) 대체 채널 — tsx backgroundPosition/objectPosition 0건·Tailwind bg-top/bg-[position:…] 유틸 0건. (3) DESIGN.md "position" 표기 규정 0매치.
+- 결정: 표면 폐기(0-후보). `-200%`는 키워드 표현 불가라 백분율이 유일 표기 — "키워드 전환 개선" 프레임 자체가 결함.
+- 비중첩: 본 축은 *position 값 키워드/백분율 철자* 차원이지 — L1794(그라디언트 방향)·L1809(스텝 순서)·L1790(0 단위)·L1818(translateY 인수)·L1803(정지점 명시/생략)이 아님. anti-patterns L1827 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3581, 625th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
