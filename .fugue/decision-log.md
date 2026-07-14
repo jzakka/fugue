@@ -10419,6 +10419,13 @@
 - 결정: 표면 폐기(0-후보). 단일 채널 + 균일 부재 + 스펙 침묵 — 이슈 부재. anti-patterns L1873 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3673, 565th round(tokens).
 
+## cycle 3673 — design/tokens 565th round (Discovery, 표면 폐기)
+
+- 축: 빌트인 유틸 클래스명 CSS 후킹 채널 — 저작 CSS 가 Tailwind 유틸 클래스명 자체를 셀렉터로 재사용해 부가 선언을 주입할지(.font-mono 의미 확장·유틸 자손 타게팅) 전용 커스텀 클래스/@utility 정식 채널로 저작할지.
+- 프로브: (1) 사전 기각 — opacity 채널(L95/L114/L487 기판정)·미디어타입 카드 변주(L18/L46)·.light 재정의 커버리지(L146 기판정: 재정의 10개 = DESIGN.md 이중값 토큰 집합과 정확히 일치). (2) census — 후킹 2건(globals.css:63-64 `.font-mono{font-variant-numeric:tabular-nums}`·:101-106 `.skeleton-shimmer .bg-surface-elevated{shimmer}`) / 전용 클래스 4건(.masonry-grid+_column react-masonry-css 계약·.scrollbar-hide·.skeleton-shimmer 루트·.light)·@utility/@custom-variant/@apply 0건(L868/L864/L888 기판정). (3) 후킹 2건 role-bound — 둘 다 불변식 강제(mono 수치 전부 tabular-nums 원자 결합·스켈레톤 내부 착색 블록 전부 shimmer 일괄)라 나열 누락 구조 방지 결정론, paint-equivalence 성립. (4) 3대 문서 CSS 저작 채널 정책 침묵(규칙 L9).
+- 결정: 표면 폐기(0-후보). paint-equivalence + role-bound + 스펙 침묵 → confidence < 3. anti-patterns L1874 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3675, 642nd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
