@@ -10020,6 +10020,13 @@
 - 비중첩: 본 축은 *동치 사방 패딩을 담는 유틸 채널* 차원이지 패딩 값(L280)·반응형 전이(L131/L506)·BP 서술 순서(L1795)·정사각 치수 채널(L1855)이 아님. anti-patterns L1858 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3643, 560th round(tokens).
 
+## cycle 3643 — design/tokens 560th round (Discovery, 표면 폐기)
+- 축 선택: 균일 inset(full-bleed 커버)의 저작 채널 — 부모를 가득 덮는 절대/고정 레이어를 `inset-0` 단축 vs 동치 4-side longhand vs `inset-x-0 inset-y-0` 축-쌍 vs arbitrary/raw CSS 중 어느 채널로 저작하는가. L1856 색 토큰 참조·L1858 균일 패딩 carve 의 포지셔닝 판. 기각 후보(기커버): 투명 저작 채널(L1793 이 transparent 키워드 21건·대체형 0건으로 동일 모집단 커버)·@theme 토큰 패밀리 전종(L573-L593)·색 토큰 참조 채널(L1856).
+- 프로브: (1) inset-0 전수 6건/3파일 전부 단축 형 — VideoTrimModal:195/:259·AddToBoardButton:232/:236·PinCard:60/:98. (2) 대체 채널 전수 0건 — `bottom-0` 자체 0건이라 4-side longhand 성립 불가·inset-x/y-0 0·arbitrary inset-[…] 0·globals.css raw inset: 0. (3) 부분 앵커 top-0 left-0(VideoTrimModal:245)·top-0 right-0(:249)는 h-full+width% 부분 딤으로 role-bound 비모집단. (4) DESIGN.md L67-77 Layout 은 masonry/BP/radius 만 — 포지셔닝 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단이 단축 단일 채널 완전 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *full-bleed 포지셔닝 유틸 채널* 차원이지 vh 오버레이 도달성(L67)·모달 거터(L1852)·scrim 구조(L1854)·정사각 치수(L1855)·색 토큰 참조(L1856)·균일 패딩(L1858)이 아님. anti-patterns L1859 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3645, 637th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
