@@ -9929,6 +9929,13 @@
 - 비중첩: 본 축은 *동치 치수를 담는 유틸 채널* 차원이지 아바타 전이 유무(L196)·터치 타깃 값(L237)·신축(L541)·서술 순서(L1795)·base 페어링(L1846)·CSS 프로퍼티 롱핸드 계열이 아님. anti-patterns L1855 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3637, 559th round(tokens).
 
+## cycle 3637 — design/tokens 559th round (Discovery, 표면 폐기)
+- 축 선택: 색상 토큰 참조의 저작 채널 — sanctioned 토큰을 @theme 매핑 유틸(`bg-accent`) vs arbitrary `bg-[var(--accent)]` vs v4 단축 `bg-(--accent)` vs 인라인 style var() 중 어느 채널로 소비하는가. 저작-채널 carve 계보(L1852 거터 → L1854 scrim → L1855 정사각 → 본 축 색 토큰 소비 경로). 기각 후보(전부 기커버): hex 표기(L1775)·폰트명 인용(L1778/L1850)·시간 단위(L1063)·background 단축(L1788)·소수 표기(L1835)·선언 순서(L1808)·light-dark()(L625)·@property(L629)·테마 오버라이드 서브셋(L146)·scrollbar-hide 번들(L534)·tabular-nums(L179)·font-smoothing(L249)·::placeholder(L128/L332)·body 테마 전환 transition(L155/L589/L1832)·z-index(L109)·arbitrary radius(L17/L503)·opacity 모디파이어(L114/L95).
+- 프로브: (1) 매핑 유틸 채널 전수 ~544건 단일(border-accent 69·border-border 68·text-text-primary 67·text-text-muted 53·bg-accent 32 등)·대체 채널 3종 전수 0건(`[var(--` 0·`(--` 단축 0·인라인 style var() 0, tsx+ts). (2) globals.css 의 var() 직참조(body/::placeholder/.skeleton-shimmer/@theme 매핑)는 className 채널이 없는 raw-CSS 계층이라 role-bound 격리 — TSX=유틸·CSS=var() 계층별 결정론적 분할. (3) 네 채널 모두 동일 custom property 해석·테마 스왑 추종 동일 → 페인트 등가. (4) DESIGN.md L37-52 는 토큰 값·정의 메커니즘("CSS custom properties로 구현")만 SHALL, 소비 채널 미규정 — 셋 중 미명시(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 채널이 전수 단일(divergence 0)이라 "참조 채널 혼용" 가정 결함·var()/단축 미채택은 미명시 enhancement.
+- 비중첩: 본 축은 *색 토큰의 컴포넌트 소비 채널* 차원이지 값-공간 수렴(L135)·relative color 파생(L384)·inherit()(L1011)·Typed OM(c3073)·오버라이드 서브셋(L146)·네이밍 케이스(L1784)·그라디언트/keyframes/거터/scrim/정사각 채널(L1848/L1851/L1852/L1854/L1855)이 아님. anti-patterns L1856 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3639, 636th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
