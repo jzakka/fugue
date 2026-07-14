@@ -10244,6 +10244,13 @@
 - 비중첩: 본 축은 *body 레벨 스크롤 차단 저작 채널* 차원이지 오버스크롤 연쇄(L549)·거터 예약(L1304)·스크롤바 표현(L534)·요소 스크롤 컨테이너(L1866)·모달 거터(L1852)·scrim 구조(L1854)가 아님. anti-patterns L1867 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3661, 563rd round(tokens).
 
+## cycle 3661 — design/tokens 563rd round (Discovery, 표면 폐기)
+- 축 선택: 스타일 값 주입의 저작 채널 — JSX 인라인 `style` prop vs className 유틸 vs CSS 변수 간접(`style={{'--x'}}`+`w-[var(--x)]`) vs 명령형 setProperty 중 어느 채널로 비-토큰 수치/기하 값을 주입하는가. L1856(색 토큰 소비)·L1862(폰트 소비)·L1865(className 조립)과 병렬의 주입-메커니즘 차원. 기각 후보(기커버): z-index 토큰(L109/L412/L483)·transition-all(L60)·duration(L148/L589)·size 단축(L1855)·text-sm/N 짝 모디파이어(c3331)·음수 마진(L254)·border-x/y(L797)·group-hover(L275).
+- 프로브: (1) 런타임-계산 동적 값 7건 전수 style prop 단일 채널 — VideoTrimModal:246/:250/:256/:271/:280(드래그 %·calc)·PinCreateForm:382(진행률 %)·PinCard:37(웨이브폼 bar px), className 은 빌드타임 컴파일이라 role-필연·CSS 변수 간접 0·setProperty 0. (2) 정적 값 style prop 1건 단독 — LoginButtons:75 `minHeight:44`, min-height 모집단 나머지 3건은 className(layout:30·login/page:34·PinCard:36)이나 버튼 min-height 동종 비교쌍 0(c3653 divergence-tolerant 동형). (3) 페인트 등가 — 채널 무관 동일 계산 스타일. (4) DESIGN.md 주입 메커니즘 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 동적/정적 분할이 role-bound·잔여 divergence 1건은 동종 비교쌍 부재·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *수치/기하 값 주입 채널* 차원이지 색 토큰 소비(L1856)·폰트 소비(L1862)·className 조립(L1865)·min/max-h 값 갈림(L545)·터치타겟 BP 전이(L237)가 아님. anti-patterns L1868 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3663, 640th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
