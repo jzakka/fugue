@@ -10027,6 +10027,13 @@
 - 비중첩: 본 축은 *full-bleed 포지셔닝 유틸 채널* 차원이지 vh 오버레이 도달성(L67)·모달 거터(L1852)·scrim 구조(L1854)·정사각 치수(L1855)·색 토큰 참조(L1856)·균일 패딩(L1858)이 아님. anti-patterns L1859 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3645, 637th round(aesthetic).
 
+## cycle 3645 — design/aesthetic 637th round (Discovery, 표면 폐기)
+- 축 선택: 가로 배치(수평 형제 간격)의 저작 채널 — 한 행의 형제 간격을 `flex`(row)+`gap-N` vs `space-x-N` vs `grid-flow-col`+gap vs `ml/mr` 마진 반복 중 어느 채널로 저작하는가. L1857 세로 적층 carve 의 가로 판. 기각 후보(기커버): BP-접두 space-* 전이(L510)·rtl:space-x-reverse(L1693)·first/last 가장자리 변형(L846)·세로 적층 채널(L1857).
+- 프로브: (1) flex(row)+gap 지배 ~58건 단일 채널. (2) space-x-N 0건·grid-flow-col 0건. (3) ml-N 5건 전부 role-bound — SearchClient:279·TagFilter:71(비-flex 인라인 칩이라 gap 불가)·PinsGrid:131·FeedContainer:199(에러 텍스트 인라인 흐름)·PinCreateForm:559(gap-1 안 × 아이콘 ml-0.5 쌍별 보충) → 행-컨테이너에서 채널 갈림 0. (4) DESIGN.md L54-65 는 값 스케일만 — 채널 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *수평 행 형제 간격 유틸 채널* 차원이지 gap 반응형 전이(L74)·BP space 스텝(L510)·RTL 토글(L1693)·세로 적층 채널(L1857)이 아님. anti-patterns L1860 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3647, 636th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
