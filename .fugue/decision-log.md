@@ -9243,6 +9243,13 @@
 - 비중첩: 본 축은 *override 셀렉터 자구/등가-변형 철자* 차원이지 — L1792(@media 배치)·L1801(미디어 타입)·L1804(결합자 조합)·L1822(at-키워드 공백)·L1828(행두 인덴트)·L669(:not())가 아님. anti-patterns L1831 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3589, 551st round(tokens).
 
+## cycle 3589 — design/tokens 551st round (Discovery, 표면 폐기)
+- 축 선택: CSS `<time>` 값 단위 표기-형태 — 같은 지속시간을 초(s)로 쓸지 밀리초(ms)로 쓸지의 단위 선택 철자. anti 전수 — 밀리초/<time>/시간 표기 0매치·미개척 확정. 기각 후보: hex 축약형(L1775 가 3/6/8자리·대소문자 전부 기커버)·따옴표 스타일(L1778 폰트 인용-형태와 중첩 위험)·길이 0 단위(L1790)·font-weight 표기(L1781)·주석 형식(매치 전부 루비 주석 노이즈이나 tokens 영역 부적합으로 보류).
+- 프로브: (1) 모집단 균일 — globals.css <time> 리터럴 3건 전수 s 표기(:75 0.3s ×2·:108 1.5s)·ms 0건(divergence 0). (2) 대체 채널 — tsx 인라인/arbitrary <time> 0건·duration-200/300 은 명명 유틸(컴파일 방출)·css-in-js 0. (3) DESIGN.md L86/L91/L92 는 duration 값을 ms 산문 서술할 뿐 리터럴 철자 무규정(값 모순은 L21 별개).
+- 결정: 표면 폐기(0-후보). 저작 <time> 표기가 s 로 단일이라 "s/ms 혼용" 가정 결함.
+- 비중첩: 본 축은 *<time> 단위 선택 철자* 차원이지 — L1787(leading-zero)·L1790(<length> 영값 단위)·L1781(font-weight)·L589(@theme 전환 토큰 정의)·L21(모션 값 모순)이 아님. anti-patterns L1832 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3591, 628th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
