@@ -10454,6 +10454,13 @@
 - 결정: 표면 폐기(0-후보). paint-equivalence + role-bound + 스펙 침묵 → confidence < 3. anti-patterns L1874 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3675, 642nd round(aesthetic).
 
+## cycle 3675 — design/aesthetic 642nd round (Discovery, 후보 1건 등재)
+
+- 축: 선택-활성 채움 어휘 — aria-pressed 선택 칩의 활성 상태를 액센트 채움(bg-accent text-white)으로 칠할지 반전 채움(bg-text-primary text-bg)으로 칠할지의 role 배분.
+- 프로브: (1) census — aria-pressed 선택 표면 9곳 전수: 태그 칩 3곳(PinCreateForm:622·SearchClient:274·TagFilter:66)은 활성 액센트 채움+비활성 bg-accent-subtle(DESIGN.md L41 'Accent subtle — 태그 배경, 선택 상태' 명시 role), 타입/카테고리 뷰-필터 4곳(FieldFilter:39·SearchClient:249·PinCreateForm:586·:600)은 활성 반전 채움+비활성 surface/transparent border — 어휘가 role 로 정확히 이분. (2) 이탈 — PinsGrid:110-114 미디어타입 필터만 하이브리드: 비활성은 뷰-필터 role(bg-surface border)인데 활성은 태그 role 의 bg-accent text-white, hover:border-accent(확립형 hover:border-text-muted 이탈)·py-2·font-medium 누락. FieldFilter 는 동일 MEDIA_TYPES 라벨의 정확한 동종 비교쌍. (3) 기판정 대조 — anti-patterns L38(WCAG use-of-color)·L66(selected×hover)·L72(selected×focus)는 상이 축, PinsGrid×FieldFilter 활성-채움 어휘 pairing 미등재; decision-log 상 PinsGrid 필터 선례는 cycle 963 scrollbar-hide(PR#1577) 뿐. (4) VideoThumbnailPicker:144-146 은 썸네일 선택 별개 아키타입 제외.
+- 결정: 후보 1건 등재(design-20260714-pinsgrid-filter-active-fill-vocab, impact 3·confidence 3·effort 1·risk 1 → score 9.0, status pending). 동종 비교쌍 실재 divergence + role 이분 침범 — confidence 컷 통과.
+- 차기: pending=1 → 처리 모드. area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3677, 641st round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).

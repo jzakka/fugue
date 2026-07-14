@@ -3370,3 +3370,23 @@ items:
     status: done
     pr: 1602
     note: "cycle 989 발견(tokens area 90th round), cycle 991 처리(PR#1602). globals.css 에 전역 `::placeholder { color: var(--text-dim); }` 룰 추가(코드 +5줄, 단일 소스·:root/.light 테마 자동 연동). SearchBar 인라인 placeholder:text-text-dim 은 동일 값이라 무해 유지(diff 최소화). 실 브라우저 QA(dark): SearchBar placeholder=rgb(85,85,85)(text-dim)·유틸리티 없는 plain input(9개 폼 입력과 동일 className 패턴 bg-surface/border/text-text-primary)도 placeholder=rgb(85,85,85) → 전역 룰이 유틸 없는 입력에도 text-dim 적용 확인(Chrome UA 기본 placeholder≠#555 이므로 본 룰에서만 나옴, 9-input 시나리오 입증)·input value 색=rgb(232,232,232)(text-primary) 미오염·라이트모드 토글 placeholder=rgb(170,170,170)(#AAA) 테마 연동·콘솔 에러 0. lint 0 errors·tsc 0·vitest 47 passed. qa_partial(실 폼 페이지는 auth 게이트라 동일 className plain input 으로 전역 룰 적용 측정 — caret/audio-card PR#1555 선례)."
+  - id: "design-20260714-pinsgrid-filter-active-fill-vocab"
+    title: "PinsGrid(마이페이지/프로필) 미디어타입 필터 칩만 활성 상태를 액센트 채움(bg-accent text-white)으로 렌더해, 동일 아키타입(타입/카테고리 뷰-필터)의 확립 어휘인 반전 채움(bg-text-primary text-bg)과 갈리고 태그 칩 전용 액센트-채움 role 을 침범한다"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/profile/PinsGrid.tsx:104-119"
+        - "apps/web/src/components/feed/FieldFilter.tsx:31-47"
+        - "apps/web/src/components/search/SearchClient.tsx:240-260"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:575-605"
+        - "apps/web/src/components/feed/TagFilter.tsx:55-75"
+      cite: "DESIGN.md L38 '액센트는 사용자 액션(CTA, 호버, 선택)에만' · L41 'Accent subtle: rgba(232,90,42,0.12) — 태그 배경, 선택 상태'. aria-pressed 선택 칩 9표면 전수: 활성 채움 어휘가 role 로 이분된다 — (a) 태그 칩(액센트 계열 role, L41 명시): PinCreateForm:622·SearchClient:274·TagFilter:66 활성 `bg-accent text-white` + 비활성 `bg-accent-subtle`; (b) 타입/카테고리 뷰-필터(반전 채움 role): FieldFilter:39·SearchClient:249 활성 `bg-text-primary text-bg` + 비활성 `bg-transparent border border-border text-text-muted hover:border-text-muted`, PinCreateForm:586·:600 활성 `bg-text-primary text-bg` + 비활성 `bg-surface border border-border`. PinsGrid:110-114 미디어타입 필터만 하이브리드: 뷰-필터 role(비활성 `bg-surface border border-border text-text-muted`)인데 활성은 태그 role 의 `bg-accent text-white`, hover 도 `hover:border-accent`(뷰-필터 확립형 hover:border-text-muted 와 이탈), chip 클래스도 `py-2`·font-medium 누락(FieldFilter 는 `py-1.5 font-medium`). FieldFilter 는 MEDIA_TYPES(전체/이미지/음악/영상) 라벨까지 동일한 정확한 동종 비교쌍 — 같은 콘텐츠의 필터가 피드에서는 반전, 프로필에서는 액센트로 렌더돼 cross-surface 활성-채움 어휘가 깨진다. VideoThumbnailPicker:144-146(border-accent 링)은 썸네일 선택 별개 아키타입으로 제외."
+      repro: "dev 서버: /(피드) FieldFilter 에서 '이미지' 클릭 → 활성 칩 반전 채움(밝은 배경+어두운 글자). /mypage(또는 크리에이터 프로필) 미디어타입 필터에서 '이미지' 클릭 → 활성 칩 주황 액센트 채움(bg-accent+white). 동일 라벨·동일 역할 필터의 활성 시각이 표면 간 상이."
+    qa_plan: "dev 서버 + 실 브라우저: (1) 수정 후 /mypage(auth 게이트 시 크리에이터 프로필 또는 동일 className 마운트로 폴백) 미디어타입 필터 활성 칩이 FieldFilter 와 동일한 반전 어휘(bg-text-primary text-bg)·hover:border-text-muted 로 렌더되는지 computed style 확인. (2) 활성/비활성 전환·aria-pressed·필터링 동작 유지. (3) 인접 회귀: 피드 FieldFilter·SearchClient 탭·태그 칩(TagFilter 등 액센트 role)이 변형되지 않는지 대조."
+    impact: 3
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 9.0
+    status: pending
+    note: "cycle 3675 발견(aesthetic 642nd round). 태그 칩=액센트 채움(L41 명시) vs 뷰-필터=반전 채움의 role 이분에서 PinsGrid 가 유일 하이브리드. cycle 963(PR#1577)은 동일 레일의 scrollbar-hide 축만 처리, 활성 채움 어휘는 미대조."
