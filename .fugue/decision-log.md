@@ -10503,6 +10503,12 @@
 - 결정: 후보 1건 등재(design-20260714-pinsgrid-filter-active-fill-vocab, impact 3·confidence 3·effort 1·risk 1 → score 9.0, status pending). 동종 비교쌍 실재 divergence + role 이분 침범 — confidence 컷 통과.
 - 차기: pending=1 → 처리 모드. area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3677, 641st round(responsive).
 
+## cycle 3677 — design 처리 모드 (design-20260714-pinsgrid-filter-active-fill-vocab, PR #4562)
+
+- 변경: PinsGrid.tsx:110-114 미디어타입 필터 className 정합화 — 활성 `bg-accent text-white`→`bg-text-primary text-bg`(뷰-필터 반전 어휘), hover/focus-visible `border-accent`→`border-text-muted`, `py-2`→`py-1.5`+`font-medium`(FieldFilter 아키타입 정렬). 비활성 base `bg-surface border`는 PinCreateForm 카테고리 필터 선례 따라 보존(보수 원칙 a). OpenSpec `pinsgrid-filter-active-fill-vocab` 아카이브(profile 델타: 프로필 필터 칩은 피드 필터와 선택 시각 어휘 공유, 액센트 채움은 태그 role 한정).
+- QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).

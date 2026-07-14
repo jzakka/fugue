@@ -3388,5 +3388,6 @@ items:
     effort: 1
     risk: 1
     score: 9.0
-    status: pending
+    status: done
+    pr: 4562
     note: "cycle 3675 발견(aesthetic 642nd round). 태그 칩=액센트 채움(L41 명시) vs 뷰-필터=반전 채움의 role 이분에서 PinsGrid 가 유일 하이브리드. cycle 963(PR#1577)은 동일 레일의 scrollbar-hide 축만 처리, 활성 채움 어휘는 미대조."
