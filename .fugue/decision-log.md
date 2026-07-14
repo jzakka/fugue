@@ -9544,6 +9544,13 @@
 - 비중첩: 본 축은 *outline 의 화면폭-조건부 토글* 차원이지 outline-none 제거·대체 정합(L49/L133)·focus-ring 토큰 스코프(L283)가 아님. anti-patterns L1843 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3613, 555th round(tokens).
 
+## cycle 3613 — design/tokens 555th round (Discovery, 표면 폐기)
+- 축 선택: 토큰 정의의 참조 체이닝 구조 — @theme 시맨틱 토큰이 값을 var(--base) 1-hop 간접 참조로 정의하나 리터럴 직정의하나·체인 깊이가 토큰 간 갈리나. anti 전수 — 간접 참조/indirection/1-hop/참조 깊이 0매치·L146(패리티)·L511(색 통일)·L1808(선언 순서)·L1838(fallback 인자)·L1841(테마 채널)은 별개 차원·미개척 확정. 기각 후보: 토큰 선언 순서(L1808 기커버)·@theme inline 키워드 단독 축(블록 1개뿐이라 혼용 불가·체이닝 축의 프로브 (1)에 흡수).
+- 프로브: (1) theme-variant --color-* 15종 전수 var(--base) 1-hop 체인(런타임 .light 스왑 반영에 기능 필수·리터럴 직정의 0건)·mode-invariant 5종(--font-display/--font-mono/--text-2xs/--text-3xs/--shadow-card-hover) 전수 리터럴(불변이라 스왑 레이어 불요·체인 0건) — 역할 내 혼용 0. (2) :root/.light base 값 내 var() 0건(체인 깊이 정확히 1·2+ hop 0)·tsx var(--) 직접 참조 0건. (3) DESIGN.md 체이닝/레이어 구조 미규정(L52 는 custom properties 수단 SHALL — 침묵, 루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 참조 구조가 테마-가변성 역할에 1:1 대응하는 role-bound 균일이라 "구조 혼용" 가정 결함.
+- 비중첩: 본 축은 *토큰 정의 값의 참조 구조(체인 vs 리터럴·깊이)* 차원이지 패리티·색 통일·선언 순서·fallback 인자·저작 채널이 아님. anti-patterns L1844 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3615, 632nd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
