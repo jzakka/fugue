@@ -9586,6 +9586,13 @@
 - 비중첩: 본 축은 *아이콘 콘텐츠의 렌더링 채널 선택*이지 aria-hidden 접근성(L515)·마스코트 이미지-텍스트(L267)·조건 분기 채널(L1837/L1840/L1841/L1842)이 아님. anti-patterns L1845 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3617, 631st round(responsive).
 
+## cycle 3617 — design/responsive 631st round (Discovery, 표면 폐기)
+- 축 선택: 브레이크포인트 오버라이드의 base 명시성 페어링 구조 — BP-접두 유틸이 같은 className 에 동일 프로퍼티의 명시적 base(모바일 값) 유틸을 짝지어 선언하나, base 생략(디폴트 의존)과 혼용되나. c3613 토큰 참조 구조(L1844)와 동형의 저작-구조 carve 를 BP 페어링에 적용. anti 전수 — 오버라이드 페어/짝 선언/base 명시/디폴트 의존 0매치·L327(BP-토글 여부)·L498/L506(프로퍼티별 전이)·L1380(범위 스택)·L1840(채널)은 별개 차원·미개척 확정. 기각 후보: 인터랙션 미디어 피처(L584 기커버)·뷰포트 메타(L749/L1404 기커버)·BP 토큰 재정의(L569/L20/L43 기커버).
+- 프로브: (1) src BP-접두 유틸 전수 28건(sm: ×26·md: ×2·lg:/xl:/2xl:/max-*: 0) 전부 명시적 base 카운터파트 보유 — p-6→sm:p-8 ×5·text-2xl→sm:text-3xl ×3·text-sm→sm:text-base ×2·grid-cols ×7·flex-col→sm:flex-row ×2·w-20/h-20→sm:w-24/h-24 ×6·hidden→sm:block ×1·sm:grid-cols-2→md:grid-cols-3 ×2(체인 단계별 명시) → 디폴트-의존 0건. (2) 저작 CSS @media/JS 너비 분기 0건(L1840 기확인) — 대체 채널 부재. (3) DESIGN.md L55/L69/L70 은 단위·칼럼·BP 값만 규정, 페어링 구조 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 전수가 명시 페어링 단일 스킴으로 균일해 "base 생략 혼용" 가정 결함.
+- 비중첩: 본 축은 *BP 오버라이드와 명시적 base 의 짝 선언 구조*이지 프로퍼티별 BP-전이·방향/명명·스택·채널·토큰 참조 구조가 아님. anti-patterns L1846 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3619, 556th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
