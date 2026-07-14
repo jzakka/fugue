@@ -9425,6 +9425,13 @@
 - 비중첩: 본 축은 *단축 내부 값 순서 철자* 차원이지 — L1782(단축/longhand 선택)·L1836(스텝 셀렉터)·L1832(<time> 단위)·L1795(className 서술 순서)가 아님. anti-patterns L1839 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3605, 629th round(responsive).
 
+## cycle 3605 — design/responsive 629th round (Discovery, 표면 폐기)
+- 축 선택: 뷰포트-너비 분기의 저작 채널 선택 — 같은 min-width 조건을 Tailwind sm:/md: 변형으로 쓸지 저작 @media 블록으로 쓸지 JS 너비 관측으로 쓸지. anti 전수 — 너비 분기 채널/BP 채널 0매치·L1837(reduced-motion 채널)과 동형이나 조건이 별개·미개척 확정. 기각 후보: 다크모드 테마 채널(dark: 변형 0건이나 responsive 부적합·차후 후보)·@media not(L1388)·스택 범위 변형(L1380).
+- 프로브: (1) 모집단 균일 — 너비 조건부 사이트 전수 Tailwind BP 변형 채널(sm: ×26·md: ×2 = 28건)·저작 @media width 0건(divergence 0). (2) 대체 채널 — matchMedia/innerWidth src 0매치(현 시점 census·과거 ThemeToggle matchMedia 는 제거됨)·breakpointCols 1건은 라이브러리 계약 role-bound(L1798 별개축)·css-in-js 0. (3) DESIGN.md breakpoint/@media/채널 0매치.
+- 결정: 표면 폐기(0-후보). 너비 분기 채널이 유틸 단일이라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *같은 너비 조건의 저작 채널 선택* 차원이지 — L1837(모션 조건 채널)·L525(BP 방향·명명)·L1834(병합/분할)·L1798(breakpointCols)·L1484(innerWidth API)가 아님. anti-patterns L1840 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3607, 554th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
