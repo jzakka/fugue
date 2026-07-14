@@ -9579,6 +9579,13 @@
 - 비중첩: 본 축은 *토큰 정의 값의 참조 구조(체인 vs 리터럴·깊이)* 차원이지 패리티·색 통일·선언 순서·fallback 인자·저작 채널이 아님. anti-patterns L1844 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3615, 632nd round(aesthetic).
 
+## cycle 3615 — design/aesthetic 632nd round (Discovery, 표면 폐기)
+- 축 선택: 아이콘의 저작 채널 선택 — 같은 아이콘류 시각 요소를 인라인 SVG 로 저작하나 텍스트 글리프/이모지로 저작하나. 채널-선택 장르(L1837/L1840/L1841/L1842 조건 분기 채널)를 정적 아이콘 콘텐츠에 적용한 첫 carve. anti 전수 — "아이콘 채널|아이콘 저작|이모지.*아이콘" 매치는 L515(aria-hidden 접근성 명명)·L267(마스코트 1.4.5)뿐·채널 차원 미개척 확정. 기각 후보: rgb()/rgba() 레거시/모던 문법 형태 — L1793 의 교차 참조를 따라 L1776 확인 결과 완전 기커버(전수 5곳 레거시 콤마+rgba() 별칭 균일 기판정).
+- 프로브: (1) SVG 채널 전수 15곳/7파일 — 돋보기·복원·X ×2·보드 그리드 ×6(+grid+plus)·plus·외부링크 ×2·Google/Discord 로고, 전수 aria-hidden·viewBox 24·currentColor 균일(기능 UI 아이콘+로고). (2) 글리프 채널 전수 9곳/7파일 — 🐡 마스코트 ×3·☀️/🌙 테마 상태·✓ 선택 배지·▶ 재생 오버레이 ×2·♪/▶/◻ 미디어타입 폴백 배지(전수 배지 컨테이너 내부 문자 또는 마스코트). 동일 역할 채널 교차 0(X·그리드·외부링크·plus 전부 SVG / 재생 배지·마스코트 전부 글리프). (3) DESIGN.md L85 "재생 아이콘 오버레이"만(현 ▶ 글리프 충족·채널 미지정)·아이콘 채널 규정 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 두 채널이 역할 경계(기능 UI/로고 vs 마스코트/상태·타입 배지)로 완전 분할된 role-bound 라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *아이콘 콘텐츠의 렌더링 채널 선택*이지 aria-hidden 접근성(L515)·마스코트 이미지-텍스트(L267)·조건 분기 채널(L1837/L1840/L1841/L1842)이 아님. anti-patterns L1845 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3617, 631st round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
