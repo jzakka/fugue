@@ -10209,6 +10209,13 @@
 - 비중첩: 본 축은 *스크롤 컨테이너 저작 채널* 차원이지 스크롤바 표현 토큰(L534)·오버스크롤 연쇄(L549)·reflow a11y(L177)·BP overflow 전이(L309)가 아님. anti-patterns L1866 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3659, 638th round(responsive).
 
+## cycle 3659 — design/responsive 638th round (Discovery, 표면 폐기)
+- 축 선택: 모달 배경 스크롤 잠금의 저작 채널 — 명령형 인라인 스타일(`document.body.style.overflow`) vs CSS 클래스 토글 vs 스크롤 잠금 라이브러리 vs overscroll-contain 중 어느 채널로 body 스크롤을 차단하는가. 기각 후보(기커버): 브레이크포인트 방향 채널(L525 min/max-width)·내재 반응형 트랙(L760/L1412 auto-fit/minmax)·orientation 분기(L106)·뷰포트 단위(L54/L67)·text-wrap(L299/L468/L1290)·분수 폭(L789)·scrollbar-gutter(L1304).
+- 프로브: (1) 모달 모집단 2건 전수 동일 채널 — VideoTrimModal:67-70·AddToBoardButton:124-127 이 useEffect 마운트 "hidden"/클린업 "" 복원 대칭. (2) 대안 채널 0건 — scroll-lock 라이브러리 의존성 0·body 잠금 CSS 클래스 0·globals.css overflow:hidden 0·classList 는 ThemeToggle .light 만(L1841 role-bound). (3) 스크롤바 소멸 폭 보상(paddingRight) 양쪽 균일 부재·비모달 드롭다운은 잠금 비대상 role-bound. (4) DESIGN.md 스크롤 잠금 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *body 레벨 스크롤 차단 저작 채널* 차원이지 오버스크롤 연쇄(L549)·거터 예약(L1304)·스크롤바 표현(L534)·요소 스크롤 컨테이너(L1866)·모달 거터(L1852)·scrim 구조(L1854)가 아님. anti-patterns L1867 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3661, 563rd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
