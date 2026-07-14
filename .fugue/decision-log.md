@@ -9782,6 +9782,13 @@
 - 비중첩: 본 축은 *키프레임 모션 정의의 저작 채널*이지 duration 값(L80)·키프레임 값 정합(L517)·--animate-* 토큰(L581)·shorthand/성분·스텝 순서·이징 표기(L1782/L1800/L1809/L1812)·reduced-motion 조건부 채널(L1837)·그라디언트 배경 채널(L1848)이 아님. anti-patterns L1851 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3629, 633rd round(responsive).
 
+## cycle 3629 — design/responsive 633rd round (Discovery, 표면 폐기)
+- 축 선택: 중앙-정렬 패널의 소형 화면 가장자리 거터 확보 저작 채널 — 같은 뷰포트-가장자리 여백을 패널 자체 마진(`w-full max-w-* mx-4`)으로 저작하나 중앙정렬 컨테이너 패딩(`px-4`)으로 저작하나 (채널-선택 carve 를 레이아웃 거터에 적용). anti 전수 — mx-4 매치는 L835(scroll-mx 스냅 아웃셋)뿐·거터/여백 확보 저작 0매치·미개척 확정. 기각 후보: 컨테이너 max-w 사다리(L152)·뷰포트 높이 단위(L54/L67/L529/L1654)·srcset/sizes 채널(L83/L754/L1756)·변형 스택 순서(L1380/L1384/L1385)·내재적 트랙(L760)·스켈레톤 BP 미러(L166/L196/L270/L520)·safe-area(L617).
+- 프로브: (1) fixed 오버레이 패널 전수 2곳 — VideoTrimModal(:195 컨테이너 패딩 0·:204 패널 `w-full max-w-xl mx-4`)·AddToBoardButton(:232 컨테이너 패딩 0·:245 패널 `w-full max-w-sm mx-4`) 전수 패널-마진 채널 단일 스킴. (2) 인플로우 페이지-중앙 패널 전수 1곳 — login/page.tsx:34 래퍼 `min-h-screen flex items-center justify-center px-4`·:35 패널 `w-full max-w-[400px]`(마진 0) — 역할 경계(fixed 오버레이 vs 인플로우 페이지)가 채널에 1:1 대응·거터 값 전 채널 16px(md 스케일) 동일. (3) 대체 메커니즘 0(calc max-w·BP-조건 거터·네이티브 `<dialog>`)·DESIGN.md L76 은 모달 radius 만 SHALL(거터 저작 위치 0매치 — 루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 채널이 역할에 1:1 대응하는 role-bound·역할 내 divergence 0·거터 값 동일이라 "거터 채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *거터의 저작 채널(패널-마진 vs 컨테이너-패딩)* 차원이지 max-w cap 값(L152)·내부 패딩 전이(L131/L773)·오프셋(L243)·z 층위(L412)·scrim 블러/알파(L104/L114)·BP base 페어링(L1846)·칼럼 사다리(L1849)가 아님. anti-patterns L1852 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3631, 558th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
