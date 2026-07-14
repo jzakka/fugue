@@ -10551,6 +10551,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3681 — design/tokens 566th round (Discovery, 표면 폐기)
+- 축 선택: 폰트 자산 로딩의 저작 채널(CDN `<link>` vs `next/font` vs 로컬 `@font-face`/`@import` — 채널-선택 장르를 폰트 파이프라인에 적용). 사전 프로브에서 알파/opacity(L95/L114/L403/L487)·var() 참조(63)·arbitrary 값(225)·@apply(L888)·@utility(15)·dark: 변형(5)·font-display(L217)·서브셋(L226)·폴백 메트릭(L1390) 전부 기재 확인 → 로딩 채널 전용 항목 0건인 본 축 선택.
+- 프로브: (1) 채널 전수 균일 — 3/3 폰트가 layout.tsx:17-28 CDN `<link>`(Geist Mono googleapis·Pretendard jsdelivr·General Sans fontshare), next/font 0건·로컬 @font-face 0건·폰트 @import 0건 → divergence 0. (2) 채널 선택 = 기록된 결정 — cycle 845(PR #1459) §5 "`<link>` 방식 유지, next/font 마이그레이션 회피(AGENTS.md 'NOT the Next.js you know')" → 루프 규칙 L10 결정 침범 금지. (3) 호스트 편차 기결정 — DESIGN.md L25 jsdelivr geist@1.2.0 은 404 stale(cycle 843 curl 실증)→googleapis 교체가 845 결정, General Sans 는 Google Fonts 미보유라 Fontshare 가 design-20260515 해결 결정. "L25 복원" 후보는 404 재도입이라 기각, "next/font 통일" 후보는 결정 침범이라 기각.
+- 판정: 후보 0건, 표면 폐기. anti-patterns L1876 등재(일부 폰트만 채널 이관해 2원화되거나 CDN href 404 회귀 시에만 재평가).
+- 차기: pending=0 → 발견 모드. area = aesthetic → cycle 3683, 643rd round(aesthetic).
+
 ## cycle 3679 — design/responsive 641st round (Discovery, 표면 폐기)
 - 축 선택: 뷰포트 축소 내비게이션 아키타입 채널(상시 인라인 nav vs 햄버거+드로어 vs 바텀 탭바 — c3671 모달 그릇 아키타입 장르를 내비게이션 그릇에 적용). 사전 프로브에서 브레이크포인트 값(anti-patterns L20/L43)·그리드 컬럼(L36/L211/L285)·뷰포트 단위(L529)·srcset(L754)·pointer/hover 매체(L584)·safe-area(L617)·viewport meta(L749)·JS 관측 채널(L1436/L1440/L1480/L1484) 전부 기재 확인 → 햄버거/드로어/오프캔버스/탭바 grep 0건인 본 축 선택.
 - 프로브: (1) 내비 표면 단일 — NavBar.tsx:11-75 `<header><nav>` 전 페이지 공유, 제2 내비 0건 → 표면 간 아키타입이 갈릴 모집단 0(pure vacuous). (2) 축소 아키타입 채널 0건 — 햄버거/드로어/menu 토글 grep 0건(src *.tsx 전수). (3) 좁은 뷰포트 적응은 요소-수준 축소로 처리 — SearchBar:142 `flex-1 max-w-md` 유동 흡수·NavBar:14/30 `shrink-0`·NavBar:55 `hidden sm:block` 닉네임(L160 baseline), 아키타입은 전 뷰포트 단일. (4) DESIGN.md(105줄)/AGENTS.md/CLAUDE.md nav·내비·헤더·햄버거·드로어 grep 전수 0건 → 셋 중 미명시(루프 규칙 L9 취향 문제).
