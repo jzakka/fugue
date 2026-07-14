@@ -9271,6 +9271,13 @@
 - 비중첩: 본 축은 *<time> 단위 선택 철자* 차원이지 — L1787(leading-zero)·L1790(<length> 영값 단위)·L1781(font-weight)·L589(@theme 전환 토큰 정의)·L21(모션 값 모순)이 아님. anti-patterns L1832 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3591, 628th round(aesthetic).
 
+## cycle 3591 — design/aesthetic 628th round (Discovery, 표면 폐기)
+- 축 선택: CSS 주석 표기-형태 — 배너 블록 vs 단행·rail 문자·내부 공백·연속행 인덴트의 주석 철자 형태. anti 전수 — 주석 매치 115건 전부 루비 주석(ruby annotation)·산문 노이즈이고 주석 *형태* carve 0·미개척 확정. 기각 후보: hex 축약(L1775)·시간 단위(직전 L1832)·따옴표 스타일(L1778 중첩 위험).
+- 프로브: (1) 모집단 균일(role-bound) — globals.css 주석 3건: 헤더 배너 1건(:3-6, = rail 60자·3칸 연속행)·룰 단행 2건(:78/:83, `/* … */` 동일 형태) → 역할별 단일 표기·역할 내 분기 0. (2) 대체 채널 — tsx 주석은 JS/JSX 문법으로 CSS 주석 채널 아님·css-in-js 0. (3) DESIGN.md 주석/comment 0매치.
+- 결정: 표면 폐기(0-후보). 배너/단행 공존은 역할 차이지 혼용이 아니라 "주석 형식 비정합" 가정 결함.
+- 비중첩: 본 축은 *주석 자체의 철자 형태* 차원이지 — L1830(블록 간 빈-줄)·L1828(행두 인덴트·배너 연속행 명시 제외)·L1829(행말 공백)가 아님. anti-patterns L1833 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3593, 627th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
