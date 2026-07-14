@@ -10307,6 +10307,13 @@
 - 비중첩: 본 축은 *추가-로드 트리거 채널* 차원이지 IO rootMargin 옵션(L1765)·3-way 상태 처리(L219)·append shimmer(L39)·WCAG 3.2.4 식별 일관(L404)이 아님. anti-patterns L1870 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3667, 564th round(tokens).
 
+## cycle 3667 — design/tokens 564th round (Discovery, 표면 폐기)
+
+- 축: 상태 블록 컴포넌트화 저작 채널 — 반복 상태-UI 조각을 공용 컴포넌트 import 로 저작할지 인라인 JSX 복제로 저작할지의 코드-조직 채널.
+- 프로브: (1) census 2/2 채널 분할 — 공용: EmptyState(소비 7파일·🐡 마스코트+message/description/children 3-slot)·CardSkeleton(소비 3파일·다중 프리미티브 shimmer 합성) / 인라인: 에러 배너 8곳(PinCreateForm:323·BoardActions:69·AddToBoardButton:282·MyPageClient:94·PinsGrid:126·ProfileEditForm:60·TagFilter:52·FeedContainer:188)·스피너 11곳(L1869 census). ErrorBanner/Spinner 공용 컴포넌트 0건, 공용 우회 인라인 재작성 0건(🐡 여타 2곳은 로고 용법). (2) 채널 선택은 렌더 픽셀 무영향 — 시각 분산 각도는 L200(p-3/p-2 폼 규모 결정론)·L219(3-way 마크업 균일)·L1869(스피너 시각 동일)가 기판정. (3) 역할 가설 성립 — 고정 콘텐츠·복합 구조는 컴포넌트, 표면-파라미터화(메시지·retry 지역 결합)·1-liner 는 인라인. (4) DESIGN.md·AGENTS.md·CLAUDE.md 컴포넌트 추출/재사용 정책 0매치 — 셋 중 미명시(규칙 L9).
+- 결정: 표면 폐기(0-후보). paint-equivalence + 역할 가설 + 스펙 침묵으로 confidence < 3. anti-patterns L1871 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3669, 641st round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
