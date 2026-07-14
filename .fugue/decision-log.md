@@ -9635,6 +9635,13 @@
 - 비중첩: 본 축은 *두 토큰 레이어 간 명명 대응과 노출 경계*이지 참조 구조·케이스·패리티·선언 순서·테마 채널이 아님. anti-patterns L1847 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3621, 633rd round(aesthetic).
 
+## cycle 3621 — design/aesthetic 633rd round (Discovery, 표면 폐기)
+- 축 선택: 그라디언트의 저작 채널 선택 — 같은 그라디언트류 배경을 Tailwind bg-gradient-to-* 유틸로 저작하나 저작 CSS linear-gradient() 로 저작하나. c3615 아이콘 채널(L1845)과 동형의 채널-선택 carve 를 그라디언트에 적용. anti 전수 — 그라디언트 채널/그라디언트 저작 0매치·L103(방향·정지점 어휘)·L95(알파 단계)·L178(shimmer alpha 값)은 별개 차원·미개척 확정.
+- 프로브: (1) 유틸 채널 전수 7곳 — 아바타 플레이스홀더 ×6 + 오디오 오버레이 ×1(PinCard:60), 전부 bg-gradient-to-br 정적 채움. (2) 저작 CSS 채널 전수 1곳 — globals.css:105 shimmer sweep(@keyframes 결합·background-size 200%·하위 결합자 스코핑·비노출 토큰 var(--shimmer-highlight) 소비 — 유틸로 등가 표현 불가, 기능 필수). 동일 역할 채널 교차 0(정적 채움이 저작 CSS 에 0·sweep 이 유틸에 0). (3) DESIGN.md L83 은 오디오 카드 그라디언트의 존재·accent 계열만 SHALL(채널 미지정)·채널 규정 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 역할(정적 채움 vs 키프레임 sweep)이 채널에 1:1 대응하는 role-bound 라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *그라디언트 배경의 저작 채널 선택*이지 방향/정지점 어휘·알파 단계·shimmer 값·애니메이션 정합·아이콘/조건 채널이 아님. anti-patterns L1848 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3623, 632nd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
