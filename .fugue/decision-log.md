@@ -9208,6 +9208,13 @@
 - 비중첩: 본 축은 *행말 잔여 공백 유무* 차원이지 — L1828(행두 인덴트)·L1823(세미콜론 전치)·L1826(콤마 앞)·L1814(콤마 뒤)·L1817(중괄호 전치)·L1805(콜론 둘레)가 아님. anti-patterns L1829 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3585, 627th round(aesthetic).
 
+## cycle 3585 — design/aesthetic 627th round (Discovery, 표면 폐기)
+- 축 선택: CSS 최상위 블록 간 빈-줄 구분 표기-형태 — 룰/at-룰 사이 수직 빈 줄은 파싱 비유의미(0/1/2줄 완전 동치). 공백-표기 walk 의 수직 축(행두 L1828·행말 L1829 완결 후). anti 전수 — 빈 줄/수직 공백/블록 간 0매치(`:blank` 의사클래스 L452 등은 노이즈)·미개척 확정.
+- 프로브: (1) 모집단 균일 — globals.css 최상위 구성물 16개(@import·배너 주석·블록 14) 경계 15개 전수 빈 줄 정확히 1개(빈 줄 총 15 = 경계 15 일치·연속 0·무-구분 인접 0)·블록 내부 빈 줄 0건(divergence 0). (2) 대체 채널 — 저작 CSS globals.css 유일·tsx JS 객체·Tailwind 컴파일 방출. (3) DESIGN.md 빈 줄/수직 공백 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 전체 1-빈-줄 단일 스킴이라 "수직 리듬 비정합" 가정 결함.
+- 비중첩: 본 축은 *블록 간 빈-줄 개수* 차원이지 — L1828(행두 인덴트)·L1829(행말 공백)·L1817(중괄호 전치)·L1823(세미콜론 전치)이 아님. anti-patterns L1830 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3587, 626th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
