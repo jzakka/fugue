@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 3900 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
+
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31, cycle 2256 잔여 baseline 동일). dep 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(3888) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 3902 (직전 3890 covered). 코드·문서 freeze check 예정
+
 ### cycle 3898 — OpenSpec갭: validate + openspec 표면 freeze check → 표면 불변 (covered)
 
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (0건)
