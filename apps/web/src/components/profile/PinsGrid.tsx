@@ -107,10 +107,10 @@ export default function PinsGrid({
             key={mt.value}
             onClick={() => handleTypeChange(mt.value)}
             aria-pressed={activeType === mt.value}
-            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${
               activeType === mt.value
-                ? "bg-accent text-white"
-                : "bg-surface border border-border text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent"
+                ? "bg-text-primary text-bg"
+                : "bg-surface border border-border text-text-muted hover:text-text-primary hover:border-text-muted focus-visible:text-text-primary focus-visible:border-text-muted"
             }`}
           >
             {mt.label}
