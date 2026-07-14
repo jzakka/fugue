@@ -10363,6 +10363,13 @@
 - 결정: 표면 폐기(0-후보). paint-equivalence + 역할 가설 + 스펙 침묵으로 confidence < 3. anti-patterns L1871 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3669, 641st round(aesthetic).
 
+## cycle 3669 — design/aesthetic 641st round (Discovery, 표면 폐기)
+
+- 축: 텍스트 절단 저작 채널 — 한-줄 말줄임을 truncate 단축 유틸 / line-clamp-1 / 수동 longhand 중 어느 채널로 저작하는지.
+- 프로브: (1) 사전 기각 — 날짜 표기 채널은 단일 표면(SearchClient:341 toLocaleDateString 1건)이라 비교쌍 부재 격리 site. (2) census 완전 정합 — 한-줄 절단 15건 전수 truncate 단일 채널(PinCreateForm:407·SearchClient:337/:386·BoardGrid:26·AddToBoardButton:339·MyPageClient:152·PinCard:71/:72/:185·SearchBar:215/:298/:301/:335/:374/:377)·line-clamp-1 0건·text-ellipsis/text-overflow 수동 longhand 0건(tsx·css 전수). (3) 다중줄 2건만 line-clamp-2(SearchClient:390·PinCard:157) — truncate 로 표현 불가라 role-bound 필연 분할. (4) DESIGN.md·AGENTS.md 절단/ellipsis/clamp 0매치(규칙 L9).
+- 결정: 표면 폐기(0-후보). 단일 채널 + role-bound partition + 스펙 침묵 — 이슈 부재. anti-patterns L1872 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3671, 640th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
