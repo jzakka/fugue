@@ -9726,6 +9726,13 @@
 - 비중첩: 본 축은 *패밀리 이름 철자의 인용 형태*이지 스택 구성(L813)·로딩 전략(L217)·@theme 토큰 정의(L169)·명명 케이스(L1784)·quotes 속성(L413)·@font-face 메트릭(L459/L1390)·선언 순서(L1808)·중괄호 공백(L1817)이 아님. anti-patterns L1850 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3627, 634th round(aesthetic).
 
+## cycle 3627 — design/aesthetic 634th round (Discovery, 표면 폐기)
+- 축 선택: 키프레임 애니메이션의 저작 채널 선택 — 같은 애니메이션류 모션을 Tailwind `animate-*` 유틸 채널로 저작할지 저작 CSS `@keyframes`+클래스 채널로 저작할지 (채널-선택 계보: L1837 reduced-motion → L1840 width → L1841 theme → L1842 states → L1845 icons → L1848 gradients → 본 축 keyframe 모션). 값/구성 정합(L80/L517)·토큰(L581)·표기-형태(L1782/L1800/L1809/L1812)와 별개 차원.
+- 프로브: (1) 유틸 채널 전수 11곳 — 전부 `animate-spin` 로딩 스피너 회전(빌트인 키프레임 존재 효과). (2) 저작 CSS 채널 전수 1곳 — `@keyframes shimmer`(globals.css:99-102)+`.skeleton-shimmer` 스코핑(:104-109)+reduced-motion 가드(:111-115) — 빌트인 등가 부재(animate-pulse 는 opacity 펄스)·하위 결합자 스코핑·가드 결합으로 유틸 등가 표현 불가(기능 필수). 동일 역할 채널 교차 0·대체 채널 비참여(arbitrary animate-[...] 0·WAAPI .animate( 0·@theme --animate-* 0). (3) DESIGN.md L94 는 skeleton shimmer 존재만 SHALL(채널 미지정)·L88-94 Motion 채널 규정 0매치(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 역할(빌트인 제공 회전 vs 커스텀 sweep)이 채널에 1:1 대응하는 role-bound 라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *키프레임 모션 정의의 저작 채널*이지 duration 값(L80)·키프레임 값 정합(L517)·--animate-* 토큰(L581)·shorthand/성분·스텝 순서·이징 표기(L1782/L1800/L1809/L1812)·reduced-motion 조건부 채널(L1837)·그라디언트 배경 채널(L1848)이 아님. anti-patterns L1851 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3629, 633rd round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
