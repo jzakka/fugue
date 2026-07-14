@@ -9236,6 +9236,13 @@
 - 비중첩: 본 축은 *블록 간 빈-줄 개수* 차원이지 — L1828(행두 인덴트)·L1829(행말 공백)·L1817(중괄호 전치)·L1823(세미콜론 전치)이 아님. anti-patterns L1830 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3587, 626th round(responsive).
 
+## cycle 3587 — design/responsive 626th round (Discovery, 표면 폐기)
+- 축 선택: 반응형 override 룰의 셀렉터 재서술 표기-형태 — @media 내부 override 룰의 셀렉터를 base 와 자구 동일하게 쓸지 등가 변형(:is()/:where() 래핑 등)으로 쓸지. anti 전수 — 셀렉터 자구/재서술/override 셀렉터 0매치(L669 는 :not() 노이즈)·미개척 확정. 기각 후보: className 내 서술 순서(L1795 기커버)·변형 체인 결합 순서(L1807)·BP-토글 per-property 패밀리(cursor/user-select/accent-color 등 포화)·명령형 치수 API(포화).
+- 프로브: (1) 모집단 균일 — 저작 @media 1개(:111) 내부 override 룰 1건 셀렉터(:112)가 base(:104)와 자구 완전 일치·:is()/:where() 0건(divergence 0). (2) 대체 채널 — JS 매체-분기 override 0(matchMedia 는 테마 판독)·Tailwind 컴파일 방출. (3) DESIGN.md 셀렉터/override 규정 0매치.
+- 결정: 표면 폐기(0-후보). 유일 override 가 자구-일치 단일 표기라 "재서술 비정합" 가정 결함.
+- 비중첩: 본 축은 *override 셀렉터 자구/등가-변형 철자* 차원이지 — L1792(@media 배치)·L1801(미디어 타입)·L1804(결합자 조합)·L1822(at-키워드 공백)·L1828(행두 인덴트)·L669(:not())가 아님. anti-patterns L1831 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3589, 551st round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
