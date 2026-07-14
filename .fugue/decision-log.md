@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4096 — 에러처리: apps/api·Makefile·workflows freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api Makefile .github/workflows
+- 조사: 0건. baseline 앵커(2344 Makefile || true 억제, 2348 dead threshold 중복) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(4084) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 4098 (직전 4086 covered). apps/api 코드 freeze check 예정
+
 ### cycle 4094 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile
