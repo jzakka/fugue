@@ -10104,6 +10104,13 @@
 - 비중첩: 본 축은 *폰트 패밀리 소비 채널* 차원이지 폰트명 인용 표기(L1778/L1850)·색 토큰 참조 채널(L1856)·타이포 스케일 값이 아님. anti-patterns L1862 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3651, 638th round(aesthetic).
 
+## cycle 3651 — design/aesthetic 638th round (Discovery, 표면 폐기)
+- 축 선택: 형제 구분선의 저작 채널 — 부모 `divide-y` 유틸 vs 아이템별 `border-b` 반복 vs 독립 divider 요소(div border-t/`<hr>`) 중 어느 채널로 저작하는가. L1857/L1860 저작-채널 carve 의 구분선 판. 기각 후보(기커버): first/last 가장자리 변형(L846)·세로 적층 채널(L1857)·가로 배치 채널(L1860)·모달 거터(L1852).
+- 프로브: (1) 반복 리스트 구분선 0건 — divide-y/divide-x 0·map 아이템 border-b 반복 0(리스트는 gap/hover 배경으로 구분). (2) 독립 divider 1건 단독(pins/[id]:193 div border-t) — hr 0건이라 비교쌍 부재. (3) 가장자리 border 6건(VideoTrimModal:206/:293·AddToBoardButton:248/:359·NavBar:12·SearchBar:391)은 컨테이너 크롬 role-bound. (4) DESIGN.md L67-86 구분선 미언급(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 채널 갈림이 성립할 모집단 부재(비교쌍 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *형제-사이 가름선 채널* 차원이지 가장자리 자식 변형(L846)·적층/배치 간격 채널(L1857/L1860)이 아님. anti-patterns L1863 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3653, 637th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
