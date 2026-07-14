@@ -10300,6 +10300,13 @@
 - 비중첩: 본 축은 *스피너 시각체 구성 채널* 차원이지 애니메이션 값(L80)·--animate-* 토큰(L581)·아이콘 채널(L1845)·비동기 상태 처리(L300)·skeleton shimmer(L94)가 아님. anti-patterns L1869 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3665, 639th round(responsive).
 
+## cycle 3665 — design/responsive 639th round (Discovery, 표면 폐기)
+- 축 선택: 페이지네이션 추가-로드 트리거의 저작 채널 — IntersectionObserver 센티널 자동 vs 수동 "더보기" 버튼 vs scroll 리스너 vs 페이지 번호 중 어느 채널로 다음 페이지를 개시하는가. 기각 후보(기커버): 이미지 치수/CLS(L1516 계열)·JS 뷰포트 감지(L1436/L1440/L1480/L1484 명령형 시리즈 전수 기점유)·비-마스코니 grid BP 컬럼 전이(L520)·IO rootMargin 옵션(L1765).
+- 프로브: (1) census 4표면 2/2 분할 — 자동 IO: FeedContainer·PinsGrid:91-99(rootMargin 200px) / 수동 버튼: SearchClient:419·LoadMorePins:42, scroll 리스너·페이지 번호 0건. (2) 분할이 표면 의도와 부분 상관(검색=사용자 주도 확장 idiom·L219 incremental 의도 기술)이라 역할 가설 성립 — 추론 개입. (3) 채널 내부 각각 균일(IO 2곳 센티널 동형·버튼 2곳 aria-busy 동형, L300/L487 기판정). (4) DESIGN.md·AGENTS.md·CLAUDE.md 트리거 채널 규정 0매치 — 셋 중 미명시 취향은 이슈 아님(루프 규칙 L9 명문).
+- 결정: 표면 폐기(0-후보). divergence 2/2 실재하나 근거 스펙 전무·역할 가설 성립으로 confidence < 3 (c3653 divergence-tolerant 동형).
+- 비중첩: 본 축은 *추가-로드 트리거 채널* 차원이지 IO rootMargin 옵션(L1765)·3-way 상태 처리(L219)·append shimmer(L39)·WCAG 3.2.4 식별 일관(L404)이 아님. anti-patterns L1870 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3667, 564th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
