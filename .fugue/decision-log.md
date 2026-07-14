@@ -10160,6 +10160,13 @@
 - 비중첩: 본 축은 *폭 캡 소비 채널* 차원이지 --container 토큰 override(L577)·고정폭 reflow(L177)·모달 거터(L1852)가 아님. anti-patterns L1864 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3655, 562nd round(tokens).
 
+## cycle 3655 — design/tokens 562nd round (Discovery, 표면 폐기)
+- 축 선택: 조건부 className 조립의 저작 채널 — JS 템플릿 리터럴+삼항 vs `clsx`/`classnames` vs `tailwind-merge`/`cva` vs 배열 join 중 어느 채널로 조립하는가. L1841 테마 분기·L1861 뷰포트 분기와 병렬의 상태-분기 조립 차원. 기각 후보(기커버): 그림자 어휘(L288)·애니메이션 채널(L581 이 spin 유틸 단일·shimmer raw 단일 census 로 기점유)·자간 토큰(L475)·radius 채널(L503)·굵기 토큰(L164)·불투명도 모디파이어(L114)·아이콘 채널(L1845).
+- 프로브: (1) 템플릿 리터럴 전수 10건/7파일 단일 채널(칩/토글 선택 상태). (2) clsx/classnames/tailwind-merge/cva 의존성 0(package.json)·배열 join 0·간접 변수 조립 0. (3) 조립 채널은 최종 클래스 집합 동일 시 렌더 동일 — 순수 저작 취향. (4) DESIGN.md 는 시각 토큰만 규정 — 조립 메커니즘 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *JS 클래스 문자열 조립 메커니즘* 차원이지 테마 분기(L1841)·뷰포트 분기(L1861)·상태 의사클래스(L473/L1347)가 아님. anti-patterns L1865 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3657, 639th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
