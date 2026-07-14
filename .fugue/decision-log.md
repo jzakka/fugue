@@ -9866,6 +9866,13 @@
 - 비중첩: 본 축은 *스크림 페인트를 담는 DOM 구조* 차원이지 블러/톤 값(L104)·알파 표기(L114)·::backdrop vs 커스텀 div 채널(L434)·backdrop 다중 함수(L1322)·z 층위(L412/L109)·패널 거터(L1852)가 아님. anti-patterns L1854 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3635, 634th round(responsive).
 
+## cycle 3635 — design/responsive 634th round (Discovery, 표면 폐기)
+- 축 선택: 정사각(동치 폭·높이) 치수의 저작 채널 — `w-N h-N` 쌍 vs Tailwind `size-N` 단축(반응형 전이 형태 `sm:w-24 sm:h-24` vs `sm:size-24` 포함). 저작-채널 carve 계보(L1852 거터 → L1854 scrim 구조 → 본 축 정사각 sizing). anti 전수 — size-* 단축/정사각 채널 0매치·미개척 확정. 기각 후보: 인터랙션 미디어 피처(L584)·클래스 BP 서술 순서(L1795)·유체 사이징 clamp(L265)·그리드 컬럼 사다리(L520)·BP 방향/사용 census(L525)·breakpoint 값 정렬(L20 사용자 결정 동결)·모바일 내비 오버플로(L177 리플로우 기커버).
+- 프로브: (1) 동치 w-N h-N 쌍 전수 44곳(w-4~w-20 스케일 10종) 전부 쌍 채널·size-N/sm:size-N 0건(유일 매치는 resize-none 오탐). (2) 역순 h-N w-N 0건·arbitrary 동치 쌍 0건·반응형 정사각 전이 3곳(ProfileHeader:21/:24·ProfileSkeleton:7) 전부 w-20 h-20 sm:w-24 sm:h-24 쌍-동조. (3) size-N 은 w+h 순수 단축이라 페인트 등가·w-full aspect-square 2곳(BoardCover)은 유동-폭 종횡비 역할(role-bound)이라 제3 채널 아님. (4) DESIGN.md L54-65 는 값 스케일만 — 유틸 채널 미명시(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 채널이 전수 단일(divergence 0)이라 "채널 혼용" 가정 결함·단축 미채택은 미명시 enhancement.
+- 비중첩: 본 축은 *동치 치수를 담는 유틸 채널* 차원이지 아바타 전이 유무(L196)·터치 타깃 값(L237)·신축(L541)·서술 순서(L1795)·base 페어링(L1846)·CSS 프로퍼티 롱핸드 계열이 아님. anti-patterns L1855 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3637, 559th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
