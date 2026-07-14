@@ -10265,6 +10265,13 @@
 - 비중첩: 본 축은 *수치/기하 값 주입 채널* 차원이지 색 토큰 소비(L1856)·폰트 소비(L1862)·className 조립(L1865)·min/max-h 값 갈림(L545)·터치타겟 BP 전이(L237)가 아님. anti-patterns L1868 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3663, 640th round(aesthetic).
 
+## cycle 3663 — design/aesthetic 640th round (Discovery, 표면 폐기)
+- 축 선택: 무한 로딩 스피너의 시각 구성(도형) 저작 채널 — border-트릭(투명 변 보더 회전) vs SVG stroke-dasharray vs conic-gradient 링 vs 이미지 에셋 중 어느 채널로 스피너 시각체를 저작하는가. 기각 후보(기커버): 센터링 정렬(L292/L348/L513 분할 기점유)·sr-only 가시성(L160/L855)·clip-path(L562/L1013)·disabled 디밍(L487/L786)·버튼 archetype 패딩(L280).
+- 프로브: (1) 11건/10파일 전수 동일 border-트릭 — `border-2 border-accent border-t-transparent rounded-full animate-spin` 시퀀스 완전 균일(PinCreateForm:366/:509·SearchClient:428·LoadMorePins:51·VideoThumbnailPicker:121·AddToBoardButton:297/:350·MyPageClient:63·PinsGrid:162·FeedContainer:220·SearchBar:254). (2) 크기 w-4/5/6 3단계는 인라인/중앙/섹션 컨텍스트 위계 role-bound(L306 동일 논리). (3) 대안 채널 0건 — SVG 스피너 0·conic 0(L590 vacuous)·에셋/라이브러리 0. (4) DESIGN.md L88-94 Motion 은 스피너 구성 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 모집단 단일 채널 균일(divergence 0)·미명시 취향이라 confidence < 3.
+- 비중첩: 본 축은 *스피너 시각체 구성 채널* 차원이지 애니메이션 값(L80)·--animate-* 토큰(L581)·아이콘 채널(L1845)·비동기 상태 처리(L300)·skeleton shimmer(L94)가 아님. anti-patterns L1869 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3665, 639th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
