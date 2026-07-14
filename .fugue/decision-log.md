@@ -9019,6 +9019,13 @@
 - 비중첩: 본 축은 *at-키워드 직후 공백* 차원이지 — L1819(괄호 안쪽)·L1813(특성 콜론)·L1804(결합 구조)·L1817(중괄호 전치)·L1792(배치)·L1801(타입 명시/생략)이 아님. anti-patterns L1822 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3571, 548th round(tokens).
 
+## cycle 3571 — design/tokens 548th round (Discovery, 표면 폐기)
+- 축 선택: CSS 선언 세미콜론 전치 공백 표기-형태 — `color: red;` 밀착형 vs `color: red ;` 공백형(전치 공백 비유의미·파싱 완전 동치). 세미콜론 *유무*(L1802)와 구별되는 *앞 공백* 차원. anti 전수 — 세미콜론 매치 11건 검사: L1802 는 종결 *생략/기재*·L1805 는 *콜론 둘레*로 세미콜론 전치 공백 축 0매치·미개척 확정. 기각 후보: 종결 세미콜론(L1802)·@import 인자(L1799)·폰트명 인용(L1778)·루트 셀렉터(L1796) 기커버.
+- 프로브: (1) 모집단 73·균일 — globals.css 세미콜론 전수 73건·` ;` 공백형 0건(divergence 0). (2) 대체 채널 — cssText 0·setProperty 0·tsx style 은 JS 객체라 CSS 세미콜론 비저작·Tailwind 유틸 컴파일 방출. (3) DESIGN.md 구두점/공백 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 전체 단일 밀착형이라 "표기 비정합" 가정 결함.
+- 비중첩: 본 축은 *세미콜론 앞 공백* 차원이지 — L1802(유무)·L1805(콜론 둘레)·L1817(중괄호 전치)·L1814(콤마 뒤)·L1811(var() 괄호)·L1822(at-키워드 직후)가 아님. anti-patterns L1823 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3573, 625th round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
