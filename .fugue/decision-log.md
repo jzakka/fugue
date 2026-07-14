@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4162 — OpenSpec갭: validate + openspec 표면 freeze check → 신규 1건 조사 후 covered
+
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 1건)
+- 조사: 신규 507daab4 (#4562, design-loop 3677) = PinsGrid 필터 시각 정합화의 openspec 아카이브 + profile spec 델타 동기화. apps/web 전용 디자인 트랙 산출물이며 validate 전체 통과로 스펙 갭 없음. 이후 census에서 계수 완료분으로 제외
+- 판정: validate green + 신규 변동은 디자인 트랙 spec 동기화(갭 아님) → covered
+- 차기: rotation 보안 cycle 4164 (직전 4152 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4160 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/
