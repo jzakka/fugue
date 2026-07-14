@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4174 — OpenSpec갭: validate + openspec 표면 freeze check → 표면 불변 (covered)
+
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
+- 조사: 스펙·체인지 전체 validate 통과. 잔여 1건(507daab4, #4562)은 cycle 4162에서 계수 완료된 디자인 트랙 spec 동기화
+- 판정: 직전 OpenSpec갭 census(4162) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 4176 (직전 4164 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4172 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/
