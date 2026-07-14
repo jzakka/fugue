@@ -9376,6 +9376,13 @@
 - 비중첩: 본 축은 *스텝 셀렉터의 from/to↔백분율 철자* 차원이지 — L1815(이름 명명)·L1827(스텝 내부 선언 값)·L1830(빈-줄)·L1828(행두 인덴트)이 아님. anti-patterns L1836 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3599, 628th round(responsive).
 
+## cycle 3599 — design/responsive 628th round (Discovery, 표면 폐기)
+- 축 선택: reduced-motion 조건부 스타일의 저작 채널 선택 — 같은 prefers-reduced-motion 분기를 Tailwind motion-reduce:/motion-safe: 변형으로 쓸지 저작 @media 블록으로 쓸지. anti 전수 — 채널 선택/유틸 vs 저작 carve 0매치·L262 는 coverage 거동축으로 별개·미개척 확정. 기각 후보: @media not 논리(L1388 기커버)·스택 범위 변형(L1380)·미디어 타입 한정자(L1392).
+- 프로브: (1) 모집단 균일 — reduced-motion 조건부 사이트 총 1건(globals.css :111 저작 @media·내부 룰 1건)·tsx motion-reduce:/motion-safe: 0건 → 단일 채널(divergence 0). (2) 대체 채널 — matchMedia 2건은 테마 판독·css-in-js 0·인라인 style 은 미디어 조건 표현 불가. (3) DESIGN.md motion-reduce/reduced 0매치.
+- 결정: 표면 폐기(0-후보). 채널이 저작 @media 단일이라 "채널 혼용" 가정 결함.
+- 비중첩: 본 축은 *같은 조건의 저작 채널 선택* 차원이지 — L262(coverage)·L1792(배치)·L1834(병합/분할)·L1816(대소문자)·L1804(결합자)가 아님. anti-patterns L1837 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3601, 553rd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
