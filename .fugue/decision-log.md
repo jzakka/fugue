@@ -9292,6 +9292,13 @@
 - 비중첩: 본 축은 *주석 자체의 철자 형태* 차원이지 — L1830(블록 간 빈-줄)·L1828(행두 인덴트·배너 연속행 명시 제외)·L1829(행말 공백)가 아님. anti-patterns L1833 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3593, 627th round(responsive).
 
+## cycle 3593 — design/responsive 627th round (Discovery, 표면 폐기)
+- 축 선택: 동일 미디어 조건의 @media 블록 병합/분할 토폴로지 — 같은 조건 룰들을 블록 하나에 병합할지 룰마다 블록을 반복할지의 개수-그룹핑. anti 전수 — 토폴로지 carve 는 L1792(최상위 vs 중첩 배치)뿐이고 병합/분할·중복 블록 0매치·미개척 확정. 기각 후보: MQ 특성 대소문자(L1816 기커버)·범위 문법(L703)·@custom-media(L697)·dvh/svh(L529)·중첩 배치(L1792).
+- 프로브: (1) 모집단 균일 — globals.css 저작 @media 총 1개(:111 prefers-reduced-motion·내부 룰 1건)·조건 종류 1·조건당 블록 1·동일 조건 중복 0(divergence 0). (2) 대체 채널 — tsx 저작 @media 0·Tailwind BP 방출 그룹핑은 컴파일러 소관·matchMedia 는 테마 판독. (3) DESIGN.md 병합/media/그룹핑 0매치.
+- 결정: 표면 폐기(0-후보). 조건 1개·블록 1개라 병합/분할이 갈릴 표면 자체가 없어 "그룹핑 비정합" 가정 결함.
+- 비중첩: 본 축은 *동일 조건 블록의 개수-그룹핑* 차원이지 — L1792(배치)·L1804(결합자)·L1801(타입)·L1831(override 셀렉터 철자)이 아님. anti-patterns L1834 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3595, 552nd round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
