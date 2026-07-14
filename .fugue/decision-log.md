@@ -9089,6 +9089,13 @@
 - 비중첩: 본 축은 *initial 성분 기재 유무* 차원이지 — L1785/L1782(longhand 채널)·L1800(순서)·L1812(easing 철자)·L1372(direction 토큰 채택)·L1803(정지점)·L1801(미디어 타입)이 아님. anti-patterns L1824 등재.
 - 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3575, 624th round(responsive).
 
+## cycle 3575 — design/responsive 624th round (Discovery, 표면 폐기)
+- 축 선택: 미디어 쿼리 조건 여분 괄호 표기-형태 — MQ4 `<media-in-parens>` 재귀 래핑 허용으로 `(cond)`≡`((cond))` 평가 완전 동치. 의사요소 콜론 개수(L1797)와 동형의 구두점-개수 carve 를 MQ 괄호에 적용. anti 전수 — 여분 괄호/래핑 축 0매치·미개척 확정. 기각 후보: 결합 구조(L1804)·뷰포트 메타(L749)·BP 방향(L525)·`and` 항 순서(L1804 결합 구조의 sub-차원이라 중첩 위험으로 회피) 기커버/기각.
+- 프로브: (1) 모집단 1·균일 — globals.css @media 1건(:111) 단일 괄호·`((` 0건. (2) 대체 채널 — matchMedia 0·insertRule 0·tsx MQ 문자열 0·Tailwind 유틸 컴파일 방출. (3) DESIGN.md MQ/괄호 표기 규정 0매치.
+- 결정: 표면 폐기(0-후보). 모집단 1 단일 형태라 "표기 비정합" 가정 결함.
+- 비중첩: 본 축은 *괄호 래핑 겹 수* 차원이지 — L1819(안쪽 공백)·L1822(at-키워드 직후)·L1804(결합 구조)·L1789(값 생략)·L1813(콜론 공백)·L1816(대소문자)·L1797(의사요소 콜론)이 아님. anti-patterns L1825 등재.
+- 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3577, 549th round(tokens).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
