@@ -9068,6 +9068,13 @@
 - 비중첩: 본 축은 *세미콜론 앞 공백* 차원이지 — L1802(유무)·L1805(콜론 둘레)·L1817(중괄호 전치)·L1814(콤마 뒤)·L1811(var() 괄호)·L1822(at-키워드 직후)가 아님. anti-patterns L1823 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3573, 625th round(aesthetic).
 
+## cycle 3573 — design/aesthetic 625th round (Discovery, 표면 폐기)
+- 축 선택: transition/animation 단축 내 initial-value 성분 명시/생략 표기-형태 — 단축 생략 성분은 initial 리셋이라 `background 0.3s ease`(ease=initial 명시)≡`background 0.3s`(생략) 완전 동치. 비기본값 성분(linear·infinite)은 명시 필수라 범위 밖 명시. anti 전수 — 기본값 명시/생략 계열 3건(L1794 그라디언트 방향·L1801 미디어 타입·L1803 정지점) 검사·전이/애니메이션 단축 성분 축 0매치·미개척 확정. 기각 후보: box-shadow 성분 순서(L1791)·단축/longhand(L1785/L1782)·성분 순서(L1800) 기커버.
+- 프로브: (1) 모집단 2 — :75 는 initial ease 명시(×2)·delay/behavior 생략, :108 은 비기본값만 명시·initial 전부 생략 → 명시/생략 혼재이나 계산값 동치·렌더 차이 0. (2) 대체 채널 — WAAPI 0·transition 유틸 컴파일 방출·arbitrary transition-[…] 0. (3) DESIGN.md L86/L90/L92 는 값 스펙이지 표기 규정 아님(silent).
+- 결정: 표면 폐기(0-후보). 등가 표기의 혼재는 시각 이슈 아님·미명시 취향(L9).
+- 비중첩: 본 축은 *initial 성분 기재 유무* 차원이지 — L1785/L1782(longhand 채널)·L1800(순서)·L1812(easing 철자)·L1372(direction 토큰 채택)·L1803(정지점)·L1801(미디어 타입)이 아님. anti-patterns L1824 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3575, 624th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
