@@ -9411,6 +9411,13 @@
 - 비중첩: 본 축은 *fallback 인자 유무 철자* 차원이지 — L1811(괄호 공백)·L1784(명명 케이스)·L146(light 재정의 coverage)·L437(전역 키워드)·L629(@property)가 아님. anti-patterns L1838 등재.
 - 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3603, 630th round(aesthetic).
 
+## cycle 3603 — design/aesthetic 630th round (Discovery, 표면 폐기)
+- 축 선택: CSS 단축 속성 내부 구성값 나열 순서 표기-형태 — transition/animation 단축 안의 값 배열 순서(<time> 2개 상대 순서만 유의·나머지 자유·파싱 동치). anti 전수 — shorthand 순서/구성값 순서/나열 순서 0매치·L1782 는 단축 vs longhand *선택* 축으로 별개·미개척 확정. 기각 후보: transition 단축/longhand(L1782 동형 기커버 계열)·offset 단축(L1761).
+- 프로브: (1) 모집단 균일 — globals.css 재배열-가능 단축 3개 콤마-항목(:75 transition 2항목·:108 animation) 전수 식별자 선행→<time>→easing→기타 단일 스킴·:70/:113 은 단일-값이라 범위 밖(divergence 0). (2) 대체 채널 — tsx 단축 문자열 0건(c3589 census)·css-in-js 0·Tailwind 방출 순서는 컴파일 소관. (3) DESIGN.md 단축/순서/나열 0매치.
+- 결정: 표면 폐기(0-후보). 전 항목 단일 순서 스킴이라 "순서 혼용" 가정 결함.
+- 비중첩: 본 축은 *단축 내부 값 순서 철자* 차원이지 — L1782(단축/longhand 선택)·L1836(스텝 셀렉터)·L1832(<time> 단위)·L1795(className 서술 순서)가 아님. anti-patterns L1839 등재.
+- 차기: area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3605, 629th round(responsive).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
