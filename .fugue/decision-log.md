@@ -9614,6 +9614,13 @@
 - 비중첩: 본 축은 *BP 오버라이드와 명시적 base 의 짝 선언 구조*이지 프로퍼티별 BP-전이·방향/명명·스택·채널·토큰 참조 구조가 아님. anti-patterns L1846 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3619, 556th round(tokens).
 
+## cycle 3619 — design/tokens 556th round (Discovery, 표면 폐기)
+- 축 선택: base 토큰과 @theme 시맨틱 토큰의 명명 미러링 구조 — `--color-X: var(--Y)` 매핑의 X=Y 정확 미러 vs 리네임 혼용 + base 토큰의 @theme 노출 경계. c3613 참조 구조(L1844)·c3617 BP 페어링(L1846)과 동형의 저작-구조 carve. anti 전수 — 명명 대응/이름 대응/쌍 명명/명명 미러 0매치·L1844(체인 vs 리터럴)·L1784(케이스)·L146(패리티)은 별개 차원·미개척 확정. 기각 후보: hex 표기 형태 — L1776 의 교차 참조를 따라 L1775 확인 결과 완전 기커버(c3475).
+- 프로브: (1) @theme --color-* 15종 전수 `--color-X: var(--X)` 동명 매핑(리네임 0·타 base 참조 0). (2) :root base 16종 중 15종 미러 보유·유일 비미러 --shimmer-highlight 는 globals.css :105 skeleton 그라디언트 단독 소비(tsx/유틸 0건)라 유틸 파생 노출 불요의 CSS-내부 전용 — 노출 경계가 역할에 정확 대응(role-bound). invariant 5종은 base 쌍 없는 리터럴(L1844 기판정). (3) tsx var(--) 0건·.light 도 동명 사용. (4) DESIGN.md 명명 대응/네임스페이스 미규정(루프 규칙 L9).
+- 결정: 표면 폐기(0-후보). 명명 대응 15/15 완전 미러·노출 경계 role-bound 라 "미러/리네임 혼용·고아 토큰" 가정 결함.
+- 비중첩: 본 축은 *두 토큰 레이어 간 명명 대응과 노출 경계*이지 참조 구조·케이스·패리티·선언 순서·테마 채널이 아님. anti-patterns L1847 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3621, 633rd round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
