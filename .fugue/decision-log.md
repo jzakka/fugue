@@ -9467,6 +9467,13 @@
 - 비중첩: 본 축은 *같은 너비 조건의 저작 채널 선택* 차원이지 — L1837(모션 조건 채널)·L525(BP 방향·명명)·L1834(병합/분할)·L1798(breakpointCols)·L1484(innerWidth API)가 아님. anti-patterns L1840 등재.
 - 차기: area = tokens (4-area 로테이션 responsive→tokens) → cycle 3607, 554th round(tokens).
 
+## cycle 3607 — design/tokens 554th round (Discovery, 표면 폐기)
+- 축 선택: 테마(다크↔라이트) 조건부 스타일의 저작 채널 선택 — 같은 테마 분기를 dark:/light: 변형으로 쓸지 .light 커스텀 프로퍼티 override 로 쓸지 prefers-color-scheme @media 로 쓸지 JS 인라인으로 쓸지 (c3605 이월 후보). anti 전수 — L146(토큰 패리티)·L168(OS 동기화)·L173(FOUC)·L198(미디어 보정)·L457(UA 위젯 스킴)·L511(색 토큰 통일) 전부 별개 차원·채널-선택 장르는 L1837/L1840 뿐(타 조건)·미개척 확정.
+- 프로브: (1) 모집단 균일 — 테마 조건부 스타일 저작 전수가 .light 블록 1개(globals.css:28-40, color-scheme+토큰 10종 스왑)·@theme inline 매핑으로 전 토큰 유틸 자동 반영(divergence 0). (2) 대체 채널 — dark:/light: 변형 0건·prefers-color-scheme 0건·matchMedia/colorScheme JS 0건·ThemeToggle 밖 isLight 참조 0건(classList 3사이트는 스위치·isLight 삼항은 컨트롤 자체 상태 role-bound). (3) DESIGN.md 침묵 아님 — L52 "CSS custom properties로 구현" 이 현 채널을 직접 SHALL(스펙 배킹).
+- 결정: 표면 폐기(0-후보). 단일 채널 + 스펙 지정 채널 정확 일치라 "채널 혼용" 가정 결함이고 이관은 L52 위반 방향.
+- 비중첩: 본 축은 *같은 테마 조건의 저작 채널 선택* 차원이지 토큰 패리티·OS 동기화·FOUC·미디어 보정·UA 스킴·색 토큰 통일이 아님. anti-patterns L1841 등재.
+- 차기: area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3609, 631st round(aesthetic).
+
 ## cycle 2667 — design/aesthetic 317th round (Discovery, 표면 폐기)
 - 축 선택: 멀티컬럼 단-가로지르기 breakout 속성(`column-span: all | none` — 멀티컬럼 컨테이너에서 특정 요소가 모든 단을 가로질러 전체폭으로 돌출할지 정하는 조판 breakout 속성, 잡지풍 헤드라인/콜아웃 강조 도구). aesthetic 로테이션(tokens 2665 → aesthetic 2667)에서 마스크·반사·3D·필터·그라디언트·SVG·카운터·의사요소 공간이 포화라, 멀티컬럼 패밀리 중 아직 미등재인 column-span(단-가로지르기) 차원을 선택.
 - 프로브: (1) `column-span` 0건·`column-count`/`column-width`/`columns:` 멀티컬럼 0건(src·globals.css grep) → 단-흐름 host 부재, breakout 대상 0. (2) 레이아웃은 flex/grid/react-masonry-css 로만 구성 → CSS Multi-column 조판 표면 부재(mechanism-absent). (3) 전체폭 강조는 grid 컬럼 span·flex w-full·컨테이너 폭으로 직접 처리 → column-span 대체 미SHALL. (4) DESIGN.md(105줄) 멀티컬럼/column-span grep 0건 → 셋 중 미명시(loop 규칙 line 9 취향 문제).
