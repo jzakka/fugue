@@ -10929,6 +10929,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3705 — design/aesthetic 646th round (Discovery, 표면 폐기)
+- 축 선택: 진행(pending) 라벨 마이크로카피 철자 채널(가시 "〈동사구〉 중..." idiom·ASCII vs 유니코드 말줄임·aria-label 구두점). 사전 프로브에서 숫자 포맷(30)·disabled(18)·placeholder(75)·빈 상태(11)·닫기 버튼(6)·말줄임 truncate(183)·스피너 메커니즘(9)·버튼 순서(3) 기재 확인, 진행 라벨 어휘 축은 L404(3.2.4 동일-기능 식별)·L300(aria-busy 컨테이너)·L93(에러 고지)과 별개 차원으로 미기재 확인 후 선택. 병행 후보였던 날짜/타임스탬프 표기 어휘는 렌더 site 1곳(SearchClient:341 toLocaleDateString("ko-KR"))으로 모집단 1 → divergence 불가, 부수 확인으로 기재.
+- 프로브: 가시 pending 텍스트 12곳 전수 "〈동사(구)〉 중..." + ASCII 점3개 균일(PinCreateForm 374/516/665·BoardActions 100·LoginButtons 78·VideoThumbnailPicker 122·AddToBoardButton 386·LogoutButton 30·MyPageClient 124·ProfileEditForm 129·lib/media/image.ts 33/41), 유니코드 `…` 0건·영문 Loading 가시 0건. 스피너 aria-label 10곳 전수 "〈대상〉 로딩 중" 말줄임-무 균일. 채널 간 차이(가시=말줄임有/aria=無)는 역할-결정론. 완료/정보 stage 메시지는 모집단 밖.
+- 결정: 두 채널 각각 census-consistency 균일 + 채널 간 role-bound + DESIGN.md 마이크로카피 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등록(비중첩: L404·L300·L93·cycle 688 spinner-vs-skeleton·L512 aria-live).
+- 차기: pending=0 → 발견 모드. area = aesthetic→responsive 로테이션 → cycle 3707, 645th round(responsive).
+
 ## cycle 3703 — design/tokens 569th round (Discovery, 표면 폐기)
 - 축 선택: Tailwind arbitrary 길이 유틸의 단위 철자 채널(`rounded-[6px]` px vs `rounded-[0.375rem]` rem/em — arbitrary 값의 길이 단위 표기 차원). 사전 프로브에서 alpha 모디파이어·font-weight 토큰(L164)·tracking/leading·duration/shadow/gradient 토큰·미디어 임계값 단위(L1810)·시간 단위(L1832)·영값 단위(L1790)·물리 단위(L924)·폰트-메트릭 단위(L410 계열) 기재 확인 → arbitrary 유틸 px/rem 철자 축 미기재 확인 후 선택.
 - 프로브: (1) src arbitrary 길이 유틸 전수 63건 — px 62건(rounded-[6/8/10/16px] 53·w-[3/14px] 4·max/min-h/w-[Npx] 5) 균일·rem/em 0건·잔여 max-h-[80vh] 1건은 뷰포트-상대 role-bound(철자 선택지 부재). (2) globals.css 는 --text-2xs/3xs rem(폰트 스케일 idiom·L197)·shadow/거터 px 로 역할-결정론(role-bound). (3) DESIGN.md L27-35 "42px / 2.625rem" 병기는 토큰 값 정의이지 arbitrary 철자 규정 아님·L73-77 radius px 표기 — arbitrary 단위 정책 silent(루프 규칙 L9 미명시).
