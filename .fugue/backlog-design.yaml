@@ -3511,4 +3511,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    pr: 4730
+    note: "cycle 3737 처리. FeedContainer.tsx:165 EmptyState 메시지 '이 분야의 작품이 아직 없어요' → '이 분야의 작품이 아직 없습니다'로 어체 정렬(공유 EmptyState role-identical 4곳 중 유일 해요체 이탈 → 지배 관례 합쇼체), 문형 프레임 유지·어순 재배열 없음, 테스트 단언 동기 갱신. 실 브라우저 QA(headless Chrome CDP) — /?media_type=music 빈 결과 새 문구 렌더·🐡 마스코트·전체 보기 무변경(p 14px #888 스타일 불변), 프로필 음악 탭 클릭 '아직 등록된 작품이 없습니다' 회귀 0, apps/web/src 해요체 잔존 grep 0, 콘솔 에러 0. tsc 통과·vitest 47/47. OpenSpec emptystate-speech-level 아카이브(어체 SHALL Requirement base feed spec 병합)."
