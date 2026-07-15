@@ -21,6 +21,12 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
+function formatTime(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toFixed(1).padStart(4, "0")}`;
+}
+
 export default function PinCreateForm() {
   const router = useRouter();
 
@@ -415,7 +421,7 @@ export default function PinCreateForm() {
                   </span>
                   {trimStart != null && trimEnd != null && (
                     <span className="text-text-dim font-mono">
-                      {trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s ({(trimEnd - trimStart).toFixed(1)}초)
+                      {formatTime(trimStart)} ~ {formatTime(trimEnd)} ({(trimEnd - trimStart).toFixed(1)}초)
                     </span>
                   )}
                   {optimizeResult &&
