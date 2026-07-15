@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4210 — OpenSpec갭: validate + openspec 표면 freeze check → 신규 1건 조사 후 covered
+
+- 축: openspec validate --specs --changes (15 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건, loop/design-loop 제외)
+- 조사: validate 항목 14→15 증가. 원인은 design-loop cycle 3691(fa9b02d1, #4593)이 추가한 활성 체인지 loadmore-button-fill-vocab — apps/web 전용 LoadMorePins 시각 정합화 산출물로 validate 통과, 스펙 갭 아님. 잔여 507daab4(#4562)는 cycle 4162 계수 완료
+- 판정: 신규 항목은 디자인 트랙 활성 체인지로 계수 완료(이후 census에서 validate baseline 15 또는 design-loop 아카이브에 따른 증감은 동일 패턴으로 제외) → covered
+- 차기: rotation 보안 cycle 4212 (직전 4200 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4208 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 제외)
