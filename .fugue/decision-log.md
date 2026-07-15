@@ -10677,6 +10677,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3691 — design 처리 모드 (design-20260715-loadmore-button-fill-vocab, PR #4593)
+
+- 변경: LoadMorePins.tsx:45 더보기 버튼 className 정합화 — `py-2.5`→`py-3`, `bg-surface` 삽입(SearchClient:422 어휘 순서 미러링). manual load-more 아키타입 3표면 중 유일 outlier 를 2:1 majority 어휘로 정렬, canonical 2표면 무변경. OpenSpec `loadmore-button-fill-vocab` 아카이브(board 델타: 보드 상세 추가 로드 컨트롤은 동일 역할 컨트롤과 일관된 시각 표현).
+- QA(browse headless, dev+API+시드 DB): /boards/[id] 더보기 computed bg rgb(22,22,22)·py 12px == /search?q=QA&type=pins 더보기 완전 일치, 클릭 시 핀 20→28 로드·disabled/aria-busy/spinner/opacity 0.5·hasMore=false unmount, hover/focus-visible 규칙 존재, light 테마 bg #FFFFFF, 인접 diff 0(SearchClient·FeedContainer 무변경)·콘솔 에러 0. lint 0/tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드. area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3693, 645th round(responsive).
+
 ## cycle 3689 — design/aesthetic 644th round (Discovery, 후보 등록)
 - 축 선택: 버튼 시각 위계 아키타입(primary 액센트 채움 pill vs secondary 보더 pill 의 채움/패딩 어휘 cross-surface 정합). 사전 프로브 '버튼 아키타입'·'버튼 위계'·'입력 아키타입' 안티패턴 0매치. 단 L280(padding cross-surface, cycle 933)이 인접 축 — 예외 조항('동일 tier·동일 archetype 무근거 padding 분기 격리 site 등록 가능')이 본 발견의 등록 경로.
 - 프로브: (1) primary CTA census — bg-accent pill 이 대형(px-5/6 py-2.5)·compact(px-3 py-1.5)·nav(px-4 py-2) size tier 로 일관(L280 기판정 유지). (2) secondary 보더 pill ~17곳 — 폼 취소(px-5 py-2.5)·소형 액션(px-3 py-1.5) tier 균일. (3) **manual load-more 아키타입 3표면에서 실재 divergence**: SearchClient:422·FeedContainer:229(noscript 앵커) 는 `px-6 py-3 bg-surface border` 균일, LoadMorePins:45 만 `px-6 py-2.5` + bg-surface 부재. 세 표면 동일 아키타입(flex justify-center py-8 컨테이너·hasMore·동일 스피너·disabled:opacity-50) 확인.

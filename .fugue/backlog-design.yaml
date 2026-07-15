@@ -3408,4 +3408,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 4593
+    note: "cycle 3691 처리. py-2.5→py-3 + bg-surface 삽입으로 manual load-more 3표면 어휘 통일. 실 브라우저 QA — 보드/검색 더보기 computed style 완전 일치, 클릭·spinner·disabled·unmount·light 테마·인접 회귀 0 확인. OpenSpec loadmore-button-fill-vocab 아카이브."
