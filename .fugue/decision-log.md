@@ -10957,6 +10957,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3709 — design/tokens 570th round (Discovery, 표면 폐기)
+- 축 선택: 선언적 캐스케이드 우선순위 강제 플래그(`!important`·Tailwind important 모디파이어 `!util`/`util!`·설정 레벨 옵션). 사전 프로브에서 z-index(7)·tabular-nums(28)·transition(30)·animate(32)·currentColor(12)·var 폴백(11)·시맨틱 색(14)·ring(22)·blur(34)·hex 표기(L1775)·rgb 문법(L1776)·명명 케이스(L1784)·전역 키워드(L437)·@layer(L649) 기재 확인, !important 선언적 저작 축은 L1542(CSSOM getPropertyPriority 명령형 내성)와 별개 차원으로 미기재 확인 후 선택.
+- 프로브: 저작 CSS `!important` 0건(globals.css 포함 전 .css)·className 선행/후행 important 모디파이어 0건·설정 채널 부재(v4 CSS-first @theme inline, tailwind.config 없음) — 서드파티 react-masonry-css 오버라이드도 plain 선언으로 처리.
+- 결정: 전 채널 pure vacuous(모집단 0) + 통상 캐스케이드 균일 위임 + DESIGN.md 우선순위 정책 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등록(비중첩: L1542·L649·L444·L561·L437).
+- 차기: pending=0 → 발견 모드. area = tokens→aesthetic 로테이션 → cycle 3711, 647th round(aesthetic).
+
 ## cycle 3707 — design/responsive 645th round (Discovery, 표면 폐기)
 - 축 선택: 음수 마진 유틸/속성 표면(-m-*/-mx-*/-space-*·arbitrary 음수·BP-접두 음수·저작 CSS margin:-N — 풀블리드 브레이크아웃/시각 정렬/겹침/거터 상쇄 차원). 사전 프로브 4회(scroll-snap 33·container 52·orientation 86·print L1690·BP방향 L525·스택BP L1380·motion-safe 채널 L1837·contrast-more L326·변형순서 L1795·not-변형 L1377/1384·srcset/sizes L754/1753/1756·range 문법 L703·gap-x/y L373 등 전부 기재) 후 음수 마진 축 미기재 확인(오탐 2건: L254 radius·L835 scroll-mx)하고 선택.
 - 프로브: 코드 BP-접두 유틸 전수 census(sm 9종 26건·md 1종 2건·lg/xl 0). 음수 마진 — className 채널(Tailwind 음수 유틸·arbitrary·BP-접두) 전수 0건(exit 1), 저작 CSS 1건 globals.css:86 `.masonry-grid{margin-left:-16px}` = react-masonry-css 공식 거터 idiom(:91 padding-left:16px 짝, DESIGN.md L72 gap 16px 구현 mechanism)으로 role-bound.
