@@ -11354,6 +11354,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3731 — design/responsive 648th round (Discovery, 표면 폐기)
+- 순번: responsive 648번째 라운드. 축: 입력 능력(pointer-capability) variant 유틸리티 채널 — Tailwind v4.1 `pointer-coarse:`/`pointer-fine:`/`any-pointer-*:` 및 `supports-[...]:` 임의 variant 를 표면이 사용하는가.
+- census: `pointer-coarse|pointer-fine|any-pointer|supports-[` grep apps/web/src(tsx/ts/css 전수) 0건 — 순수 공허. 입력 적응은 현재 너비 BP(sm: 26곳·md: 2곳, L568 census)와 @media (hover)/(pointer) CSS 계층(L275)만으로 균일.
+- 판단: 표면 폐기. 베이스 축은 전부 기왕 기각(미디어 특성 hover-capability L275·BP-접두 cursor/pointer-events L420 cycle 1109·orientation L568 cycle 1375), variant-유틸 형은 L1290-1310 BP-접두 토글 계열 선례대로 별개 축으로 격리 기각. DESIGN.md L70 은 너비 BP만 규정, 입력 능력 variant 는 미규정(L9 취향).
+- 차기: cycle 3733 발견 모드(rotation: tokens 573rd round).
+
 ## cycle 3729 — design/aesthetic 649th round (Discovery, 표면 폐기)
 - 축 선택: 수치 표기 포맷 채널(Intl.NumberFormat/toLocaleString vs 수동 문자열 조립). 사전 프로브 — ::backdrop/box-decoration-break/initial-letter/paint-order/scrollbar-gutter/overflow-clip-margin/print-color-adjust/ruby/zoom/view-transition/margin-trim/anchor-name/position-try/reading-flow/caret-shape/tap-highlight/overflow-anchor/@page/orphans 전부 기재 확인; 모션·호버 어휘(150/200ms 모순 L21 포함)·마이크로카피 진행 라벨(L1884)·아이콘 저작 채널(L1845)·텍스트 절단 채널(L1872)·<time>/datetime 기재; Intl./toLocaleString/RelativeTimeFormat 은 anti-patterns 표기 전 변형 grep 0 미기재 확인 후 선택.
 - 프로브: (1) 채널 균일 — Intl./toLocaleString/NumberFormat grep 코드 전수 0건, 전 수치 수동 조립 단일 채널. (2) 카운트 4 site 균일 — ProfileHeader:49·boards/[id]/page:66·BoardGrid:30·AddToBoardButton:343 전부 "{pin_count} pins"+font-mono(DESIGN.md L20 수치 Geist Mono 정합), 크기/색 차는 헤더 vs 카드 메타 role-bound. (3) 파일 크기 toFixed(1) KB/MB 단일 site(PinCreateForm:20-21)·재생 시간 m:ss.d 헬퍼 문자 동일 중복(PinCreateForm:27↔VideoTrimModal:18 — 출력 동일·시각 divergence 0, 코드 중복 정리는 트랙 범위 밖). (4) 카드 duration 미표시는 L46 기재 확인.
