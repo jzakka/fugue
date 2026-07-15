@@ -11167,6 +11167,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3721 — design/aesthetic 648th round (Discovery, 표면 폐기)
+- 축 선택: 비디오 poster 정지-프레임 저작 채널(`<video poster>` 속성 vs img 썸네일 오버레이 vs 무-poster 첫 프레임). 사전 프로브 — backdrop/gradient/mix-blend/text-decoration/word-break/cursor/user-select/pointer-events/will-change/object-fit/aspect-ratio/first-letter/::marker/list-style/hyphens/font-smoothing/placeholder/writing-mode/border-image/@media print/forced-colors/currentColor 등 전부 기재 확인; mark/kbd/abbr/dl 은 코드 모집단 0 vacuous 라 기각; "poster 속성/정지 프레임" 표기 grep 0 미기재 확인 후 선택.
+- 프로브: (1) poster-eligible 모집단 1건 단독 — 원격 og_image 가용 표시 비디오는 pins/[id]:70-76 뿐, `poster={pin.og_image || undefined}` 사용, 동종 비교쌍 0. (2) 무-poster 전수 role-bound — PinCreateForm:403(로컬 blob, og_image 미존재)·VideoTrimModal:217(스크러버 preload="auto")·VideoThumbnailPicker:19/lib/media/video.ts:5(비표시 캡처 유틸). (3) 피드 비디오 카드는 video 요소 부재 — DESIGN.md L85 가 img 썸네일+재생 아이콘 아키타입으로 role 규정. (4) L1257 이 열거한 MyPageClient:77 비디오는 현행 코드에서 소멸 확인(재검증).
+- 결정: divergence 성립 불가(비교쌍 0) + role-bound 분할 + DESIGN.md 상세 페이지 poster 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등재(비중첩: preload 버퍼링·og_image fallback·:buffering·재생 아이콘 아키타입).
+- 차기: pending=0 → 발견 모드. area = aesthetic→responsive 로테이션 → cycle 3723, 647th round(responsive).
+
 ## cycle 3719 — design/tokens 571st round (Discovery, 표면 폐기)
 - 축 선택: CSS `font` 단축 속성 저작 채널(단축 vs 롱핸드·시스템 단축 키워드 caption/menu 등 — c1858 패딩 짝·c1859 inset·background/transition/animation 단축 carve 와 동류의 단축-선택 장르를 font 속성군에 적용). 사전 프로브에서 radius(c1241)·accent-color·caret-color·color-scheme·::selection·scrollbar-color·font-optical-sizing/synthesis/size-adjust/palette·@utility/@apply/@theme 채널·color-mix/relative-color·text-box·inset 단축(c1859) 등 전부 기재 확인, "폰트 단축/font:" 표기 전 변형 grep 0 으로 미기재 확인 후 선택.
 - 프로브: 저작 CSS `font:` 0건(전 .css)·tsx inline/arbitrary `font:` 0건·시스템 단축 키워드 0건 — 단축 채널 순수 vacuous. 롱핸드 2건 role-bound(globals.css:72 body font-family=DESIGN L18 기본 스택·:66 .font-mono font-variant-numeric=L20 mono 수치 정렬), 나머지 폰트 스타일링 전부 Tailwind 유틸 위임 균일. 병행 census: tsx raw hex/rgba 0건·text-* 스케일 소비 기존 done 판정(typography-scale-unmapped) 범위 재확인.
