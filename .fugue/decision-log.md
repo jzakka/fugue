@@ -10747,6 +10747,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3697 — design/aesthetic 645th round (Discovery, 후보 1건 등재)
+- 축 선택: 사용자-가시 duration 판독 표기 어휘 — 같은 시각 위치/구간 길이를 `m:ss.s` 포맷으로 렌더할지 raw 초+단위 접미로 렌더할지, 단위 접미를 라틴 's'로 쓸지 한글 '초'로 쓸지의 표기 채널. 사전 프로브에서 밑줄 데코(L315)·CSS <time> 단위 철자(L1832 — CSS 값 차원 별개)·motion duration 혼동(L380)·backend timestamp(L187/L466 정합성 트랙) 기재 확인 → UI 텍스트 duration 표기 축 전용 항목 0건(toFixed·formatTime·padStart·mm:ss grep 전수 0)인 본 축 선택.
+- 프로브: (1) census — duration 판독 아키타입 전수 2표면: VideoTrimModal 은 위치 fmt() `m:ss.s` 3사이트(:229/:231/:288)·길이 '초' 3사이트(:211/:230×2) 균일, PinCreateForm:418 트림 요약 칩만 동일 값(onConfirm(start,end) 직결)을 `X.Xs ~ X.Xs (X.X초)` 로 렌더 — 위치 포맷 이탈 + 한 줄 내 's'/'초' 단위 혼용. (2) 동일 사용자 플로우(모달 확인 직후 요약) 동일 값의 재표기 divergence 라 격리 아님. (3) DESIGN.md 는 duration 포맷 미규정이나 L20 Data mono(두 표면 준수)·L34 2xs role 하의 동일 아키타입 무근거 분기 — cycle 3689 loadmore 와 동형의 majority 정렬 축(modal 어휘 canonical).
+- 결정: 후보 1건 등재(design-20260715-trim-duration-format-vocab, impact 2·confidence 3·effort 1·risk 1 → score 6.0, status pending). 동일 플로우 동일 값 divergence + 한 줄 내 단위 혼용 — confidence 컷 통과.
+- 차기: pending=1 → 처리 모드. cycle 3699 에서 design-20260715-trim-duration-format-vocab 처리.
+
 ## cycle 3695 — design/tokens 568th round (Discovery, 표면 폐기)
 - 축 선택: 아이콘 벡터의 재사용 저작 채널(SVG 스프라이트/`<use>` 심볼 vs 공유 아이콘 모듈 vs 파일-로컬 컴포넌트 추출 vs raw 인라인 반복 vs 아이콘 라이브러리 — 채널-선택 장르를 동일 글리프의 코드 재사용 차원에 적용). 사전 프로브에서 벡터 vs 글리프 콘텐츠 채널(L1845)·표현 속성 토큰(L538)·선 끝/이음(L1698/L1701)·vector-effect(L635)·preserveAspectRatio(L1773) 기재 확인 → 재사용 채널 전용 항목 0건(스프라이트 grep 0)인 본 축 선택.
 - 프로브: (1) `<use>`/스프라이트/아이콘 라이브러리 전수 0건, 인라인 `<svg>` 15사이트(7파일) + 파일-로컬 추출 2건(PinCard:107 ExternalLinkIcon·AddToBoardButton:63 BoardIcon). (2) path 데이터 중복 전수 1건 — external-link 글리프 2곳(PinCard:132 추출 vs pins/[id]:236 raw 인라인), 동일 path·동일 stroke 규격(strokeWidth 2·round)·크기 12/14 는 컨텍스트 role-bound 라 시각 divergence 0. (3) DESIGN.md/AGENTS.md/CLAUDE.md 아이콘 재사용·모듈화 규정 0건 — 셋 중 미명시(루프 규칙 L9)·공유 모듈 추출은 시각 무영향 리팩터링이라 루프 범위 밖.
