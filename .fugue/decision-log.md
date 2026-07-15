@@ -11420,6 +11420,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3737 — [design] 피드 빈 상태 메시지 어체 정합 (해요체→합쇼체)
+
+결정/변경: FeedContainer.tsx:165 EmptyState 메시지를 "이 분야의 작품이 아직 없어요" → "이 분야의 작품이 아직 없습니다"로 변경, 테스트 단언 동기 갱신. 문형 프레임("이 분야의 작품이 아직 ~") 유지·어순 재배열 없음. (PR #4730, OpenSpec emptystate-speech-level 아카이브·어체 SHALL Requirement base feed spec 병합)
+이유: 공유 EmptyState role-identical 빈 상태 4곳 중 유일 해요체 이탈. 해요체 어미 grep apps/web/src 전수 1건 = 이 site 뿐, 나머지 문장형 UI 카피 전부 합쇼체 — 지배 관례로의 정렬이며 어체 취향 선택 아님. 역방향(전체 해요체화 33+건)은 변경 폭·기존 머지 결정 충돌로 기각.
+QA: headless Chrome CDP — /?media_type=music 빈 결과 새 문구 렌더·🐡 마스코트·"전체 보기" 무변경(p 14px #888 불변), 프로필 음악 탭 클릭 "아직 등록된 작품이 없습니다" 회귀 0·해요체 잔존 0, 콘솔 에러 0. tsc 통과·vitest 47/47. 차기: pending=0 → 발견 모드(rotation: responsive 649th). cycle 3739.
+
 ## cycle 3735 — design/aesthetic 650th round (Discovery, 후보 1건 등재)
 - 순번: aesthetic 650번째 라운드. 축 2개 census: (A) UI 평서문 종결 부호 채널 — 무부호 종결 전수 균일(divergence 0, 두 문장 메시지도 '. '+최종 무부호 단일 idiom 4곳)·표면 폐기, baseline 등재. (B) 빈 상태 메시지 어체 채널 — 해요체 어미 grep 전수 1건(FeedContainer:165 "이 분야의 작품이 아직 없어요") vs 같은 공유 EmptyState role-identical 3곳 합쇼체("없습니다") — cross-surface divergence 실재.
 - 판단: (B)를 후보 등재(design-20260715-emptystate-speech-level, impact 2·confidence 3·effort 1·risk 1·score 6.0). 어체 자체는 DESIGN.md 미규정이나 지배 관례(합쇼체 전수)로의 정렬이며 취향 선택이 아님 — L7 "디자인 시스템 일관성·빈 상태" 범위.

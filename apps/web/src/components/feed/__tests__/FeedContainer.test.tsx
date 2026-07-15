@@ -84,7 +84,7 @@ describe("FeedContainer", () => {
   it("shows empty state when no pins and not loading", () => {
     render(<FeedContainer initialPins={[]} initialHasMore={false} initialMediaType="" />);
 
-    expect(screen.getByText("이 분야의 작품이 아직 없어요")).toBeInTheDocument();
+    expect(screen.getByText("이 분야의 작품이 아직 없습니다")).toBeInTheDocument();
   });
 
   it("sets up IntersectionObserver when hasMore is true", () => {

@@ -162,7 +162,7 @@ export default function FeedContainer({
 
   if (!loading && pins.length === 0 && !error) {
     return (
-      <EmptyState message="이 분야의 작품이 아직 없어요">
+      <EmptyState message="이 분야의 작품이 아직 없습니다">
         <button
           onClick={() => router.push("/", { scroll: false })}
           className="text-accent text-sm hover:underline focus-visible:underline cursor-pointer"
