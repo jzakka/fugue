@@ -3471,4 +3471,6 @@ items:
     effort: 2
     risk: 2
     score: 2.25
-    status: pending
+    status: done
+    pr: 4670
+    note: "cycle 3717 처리. creators/[id]/loading.tsx 신설(앱 첫 route-level loading 컨벤션)로 고아 ProfileSkeleton 배선 + NavBar 자리 미러 스켈레톤(42px SearchBar pill 실측)으로 스왑 기하 점프 방지, phantom 행(bio 바·칩 2개)→실 ProfileHeader 앵커(h1 닉네임 + mt-4 핀 카운트) 정합. 실 브라우저 QA — 핀 상세→크리에이터 클라이언트 내비게이션 MutationObserver 관찰(sawSkeleton/sawNavPill/sawPinCountBar true·phantom false→실 콘텐츠 교체), 스트리밍 HTML fallback 선행 확인, shimmer animationName 적용, 콘솔 에러 0, 미존재 id 404, 피드 CardSkeleton 무변경. tsc 통과·vitest 47/47. OpenSpec profile-skeleton-loading-wire 아카이브(delta에 SHALL 키워드 보강 후 base profile spec에 병합)."

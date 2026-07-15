@@ -5,13 +5,9 @@ export default function ProfileSkeleton() {
       <div className="bg-surface rounded-[16px] p-6 sm:p-8 border border-border">
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface-elevated shrink-0" />
-          <div className="flex-1 space-y-3">
+          <div className="flex-1">
             <div className="h-8 bg-surface-elevated rounded w-48" />
-            <div className="h-4 bg-surface-elevated rounded w-72" />
-            <div className="flex gap-2">
-              <div className="h-6 bg-surface-elevated rounded-full w-16" />
-              <div className="h-6 bg-surface-elevated rounded-full w-14" />
-            </div>
+            <div className="mt-4 h-5 bg-surface-elevated rounded w-20" />
           </div>
         </div>
       </div>
