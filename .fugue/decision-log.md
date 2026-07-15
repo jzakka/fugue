@@ -11294,6 +11294,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3725 — [design] ProfileSkeleton 제목 바 BP 타이포 전이 미러 (h-8 sm:h-9)
+
+결정/변경: ProfileSkeleton.tsx:9 제목 바를 h-8 → h-8 sm:h-9 로 변경해 실 h1 의 text-2xl sm:text-3xl 라인박스 전이(32→36px)를 미러, ≥sm 스켈레톤→실물 스왑 4px 기하 점프 해소. (PR #4692, OpenSpec profile-skeleton-title-bp-mirror 아카이브·뷰포트 반응형 크기 전환 SHALL 절 base profile spec 병합)
+이유: 미러 쌍 BP 전이 5건 census 중 유일 누락. cycle 3717 PR #4670 의 "실 ProfileHeader 앵커 정합·스왑 기하 점프 방지" 채택 관례 연장.
+QA: headless Chrome CDP 클라이언트 내비게이션 실측 — ≥sm 36px=36px·핀 카운트 top 192↔193, <sm 32px=32px, shimmer 적용·콘솔 에러 0·피드 CardSkeleton 무변경. 차기: pending=0 → 발견 모드(rotation: tokens 572nd). cycle 3727.
+
 ## cycle 3723 — design/responsive 647th round (Discovery, 후보 1건 등재)
 - 축 선택: 스켈레톤 미러의 BP 충실도 — 스켈레톤 BP 유틸이 미러 대상 실 컴포넌트의 BP 전이를 정합 미러하는가. 사전 프로브: safe-area/touch-action/hover·pointer 매체/visualViewport/clamp/dvh/DPR/matchMedia/scroll-snap/content-visibility/field-sizing/text-size-adjust/user-scalable/range syntax(L703)/breakpoint 토큰(L20/L43/L525/L569)/reflow(L177) 전부 기재 확인 후, 최신 신설 responsive 표면(c3717 loading.tsx 계열)의 미러 쌍 census 로 전환.
 - 프로브: ProfileHeader↔ProfileSkeleton BP 전이 5건 census — p-6 sm:p-8·flex-col sm:flex-row·아바타 sm:w-24 sm:h-24·works grid sm:grid-cols-2 는 정합, h1 text-2xl sm:text-3xl(라인박스 32→36px)만 스켈레톤 제목 바 h-8(32px) 정적으로 유일 누락 → ≥sm 스왑 시 4px 기하 점프. CardSkeleton↔PinCard 는 BP 유틸 0 균일. NavBar 미러 최소화는 c3717 기록 결정이라 제외. L196 예외 조항(미러 쌍 idiom 어긋남 등록 가능) 정확 해당.
