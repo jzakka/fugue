@@ -3429,4 +3429,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 4619
+    note: "cycle 3699 처리. formatTime 파일-로컬 헬퍼 추가 + 요약 칩 위치 표기 raw `X.Xs`→`m:ss.s` 정합화, 단위 혼용(s/초) 제거. 실 브라우저 QA — 20초 비디오 업로드 → 모달 판독 0:04.2/15.0초/0:19.2 → 선택 완료 후 요약 칩 `0:04.2 ~ 0:19.2 (15.0초)` 동일 표기 확인, 콘솔 에러 0, 인접 회귀(mediaType 칩·formatSize·모달 판독 행) 0. OpenSpec trim-duration-format-vocab 아카이브."
