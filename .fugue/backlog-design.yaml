@@ -3537,4 +3537,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    pr: 4736
+    note: "AddToBoardButton:200 카피를 '보드 추가에 실패했습니다. 다시 시도해주세요'로 정렬. CDP 실 브라우저 QA(500/409/200 유도) 통과."

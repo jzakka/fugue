@@ -11432,6 +11432,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3745 — design/aesthetic 처리 — AddToBoardButton 보드 추가 실패 카피 지배 문형 정렬 (PR #4736)
+
+- 결정/변경: `AddToBoardButton.tsx:200` "보드에 추가하지 못했습니다. 다시 시도해주세요" → "보드 추가에 실패했습니다. 다시 시도해주세요". OpenSpec `addtoboard-failure-copy-frame` — board capability에 실패 안내 문형 SHALL 추가 후 아카이브(2026-07-16).
+- 이유: 뮤테이션 실패 카피 지배 문형 "〈명사구〉에 실패했습니다" 9곳 vs 이탈 1곳(c3743 census). c3737 선례(role-identical 지배 관례 정렬 = L7). '다시 시도해주세요' 접미는 login 선례 동형 보존.
+- QA: headless Chrome CDP + dev JWT 민팅 세션(fugue_access 쿠키 주입, /api/auth/me 200 검증) — /pins 상세 인증 렌더, POST 500 유도 시 신규 카피 렌더·구 카피 부재, 409 카피·성공 카피 무변경, 페이지 에러 0. lint 0 errors·tsc 0·vitest 47/47. QA 세션 구성 위해 API 프로세스 env(JWT_SECRET, 로컬 더미)와 시드 계정만 참조 — 코드 변경은 apps/web 1행.
+
 ## cycle 3743 — design/aesthetic 651st round (Discovery, 후보 1건 등재)
 
 - **축 선택**: 로테이션(responsive→tokens→aesthetic)에 따라 aesthetic. 실패 카피(mutation 실패 토스트/알림) 문형 일관성을 프로브.
