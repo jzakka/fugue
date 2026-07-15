@@ -3451,5 +3451,5 @@ items:
     risk: 1
     score: 6.0
     status: done
-    pr: PENDING
+    pr: 4654
     note: "cycle 3713 처리. login/page.tsx 에러 카피 3건(invalid_state·exchange_failed·fallback) '다시 시도해 주세요'→'다시 시도해주세요' 붙여쓰기 정합화, 동일 재시도 문구 2표기 갈림 해소(코드베이스 9곳 전수 붙여쓰기 통일). 실 브라우저 QA — /login?error=exchange_failed·invalid_state·nonexistent_code 3케이스 붙여쓰기 렌더 확인, role=alert·aria-live=polite·클래스 무변경, 콘솔 에러 0, AddToBoardButton 무변경. tsc 통과·vitest 47/47. OpenSpec retry-copy-spacing-vocab 아카이브(specs delta는 리뷰에서 MODIFIED→ADDED 정정 후 base auth spec에 병합)."
