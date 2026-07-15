@@ -10740,6 +10740,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3695 — design/tokens 568th round (Discovery, 표면 폐기)
+- 축 선택: 아이콘 벡터의 재사용 저작 채널(SVG 스프라이트/`<use>` 심볼 vs 공유 아이콘 모듈 vs 파일-로컬 컴포넌트 추출 vs raw 인라인 반복 vs 아이콘 라이브러리 — 채널-선택 장르를 동일 글리프의 코드 재사용 차원에 적용). 사전 프로브에서 벡터 vs 글리프 콘텐츠 채널(L1845)·표현 속성 토큰(L538)·선 끝/이음(L1698/L1701)·vector-effect(L635)·preserveAspectRatio(L1773) 기재 확인 → 재사용 채널 전용 항목 0건(스프라이트 grep 0)인 본 축 선택.
+- 프로브: (1) `<use>`/스프라이트/아이콘 라이브러리 전수 0건, 인라인 `<svg>` 15사이트(7파일) + 파일-로컬 추출 2건(PinCard:107 ExternalLinkIcon·AddToBoardButton:63 BoardIcon). (2) path 데이터 중복 전수 1건 — external-link 글리프 2곳(PinCard:132 추출 vs pins/[id]:236 raw 인라인), 동일 path·동일 stroke 규격(strokeWidth 2·round)·크기 12/14 는 컨텍스트 role-bound 라 시각 divergence 0. (3) DESIGN.md/AGENTS.md/CLAUDE.md 아이콘 재사용·모듈화 규정 0건 — 셋 중 미명시(루프 규칙 L9)·공유 모듈 추출은 시각 무영향 리팩터링이라 루프 범위 밖.
+- 판정: 표면 폐기(0-후보). 시각 결함 0 + 스펙 침묵 → confidence < 3. anti-patterns 1줄 등재(cycle 3695 baseline). PR 없음(상태 파일만).
+- 차기: pending=0 → 발견 모드. area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3697, 645th round(aesthetic).
+
 ## cycle 3693 — design/responsive 643rd round (Discovery, 표면 폐기)
 - 축 선택: 히스토리 내비게이션 스크롤 위치 복원의 저작 채널(기본 위임 vs scrollRestoration manual+scrollTo vs sessionStorage 좌표 vs scrollIntoView — 채널-선택 장르를 뒤로가기 복귀 좌표 복원 차원에 적용). 사전 프로브에서 스크롤 스냅(L474)·스크롤바 표현(L534)·거터 예약(L1304)·스크롤 컨테이너/잠금 채널(L1866-1867)·추가-로드 트리거 채널(L1870)·aspect 채널(L125/L203/L514 실질 커버, padding-hack 0건 vacuous) 기재/포화 확인 → 스크롤 복원 채널 전용 항목 0건인 본 축 선택. (직전 3691 로그의 '645th round' 표기는 오기 — responsive 직전 라운드는 3685 642nd, 본 라운드가 643rd.)
 - 프로브: (1) `scrollRestoration`/`window.scrollTo`/`scrollIntoView`/`sessionStorage`/`history.state` src 전수 0건 — 명령형 복원 채널 전무, 전 표면이 Next.js App Router 기본 복원 위임 단일 채널(내비도 next/link 표준, PinCard:145). (2) DESIGN.md(105줄) scroll/스크롤 grep 0건·AGENTS.md 스크롤 복원 0건 — 셋 중 미명시(루프 규칙 L9). (3) 뒤로가기 시 클라이언트 추가-로드 상태 유실 가설은 라우터 캐시 거동 차원·실측 없는 추론이라 confidence < 3 버림.
