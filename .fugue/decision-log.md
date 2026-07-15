@@ -10943,6 +10943,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3707 — design/responsive 645th round (Discovery, 표면 폐기)
+- 축 선택: 음수 마진 유틸/속성 표면(-m-*/-mx-*/-space-*·arbitrary 음수·BP-접두 음수·저작 CSS margin:-N — 풀블리드 브레이크아웃/시각 정렬/겹침/거터 상쇄 차원). 사전 프로브 4회(scroll-snap 33·container 52·orientation 86·print L1690·BP방향 L525·스택BP L1380·motion-safe 채널 L1837·contrast-more L326·변형순서 L1795·not-변형 L1377/1384·srcset/sizes L754/1753/1756·range 문법 L703·gap-x/y L373 등 전부 기재) 후 음수 마진 축 미기재 확인(오탐 2건: L254 radius·L835 scroll-mx)하고 선택.
+- 프로브: 코드 BP-접두 유틸 전수 census(sm 9종 26건·md 1종 2건·lg/xl 0). 음수 마진 — className 채널(Tailwind 음수 유틸·arbitrary·BP-접두) 전수 0건(exit 1), 저작 CSS 1건 globals.css:86 `.masonry-grid{margin-left:-16px}` = react-masonry-css 공식 거터 idiom(:91 padding-left:16px 짝, DESIGN.md L72 gap 16px 구현 mechanism)으로 role-bound.
+- 결정: pure vacuous(className 0) + 유일 CSS 사이트 라이브러리-계약 role-bound + DESIGN.md 음수 마진/브레이크아웃 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등록(비중첩: L373·L1857·L1852·L835·L1859·L254).
+- 차기: pending=0 → 발견 모드. area = responsive→tokens 로테이션 → cycle 3709, 570th round(tokens).
+
 ## cycle 3705 — design/aesthetic 646th round (Discovery, 표면 폐기)
 - 축 선택: 진행(pending) 라벨 마이크로카피 철자 채널(가시 "〈동사구〉 중..." idiom·ASCII vs 유니코드 말줄임·aria-label 구두점). 사전 프로브에서 숫자 포맷(30)·disabled(18)·placeholder(75)·빈 상태(11)·닫기 버튼(6)·말줄임 truncate(183)·스피너 메커니즘(9)·버튼 순서(3) 기재 확인, 진행 라벨 어휘 축은 L404(3.2.4 동일-기능 식별)·L300(aria-busy 컨테이너)·L93(에러 고지)과 별개 차원으로 미기재 확인 후 선택. 병행 후보였던 날짜/타임스탬프 표기 어휘는 렌더 site 1곳(SearchClient:341 toLocaleDateString("ko-KR"))으로 모집단 1 → divergence 불가, 부수 확인으로 기재.
 - 프로브: 가시 pending 텍스트 12곳 전수 "〈동사(구)〉 중..." + ASCII 점3개 균일(PinCreateForm 374/516/665·BoardActions 100·LoginButtons 78·VideoThumbnailPicker 122·AddToBoardButton 386·LogoutButton 30·MyPageClient 124·ProfileEditForm 129·lib/media/image.ts 33/41), 유니코드 `…` 0건·영문 Loading 가시 0건. 스피너 aria-label 10곳 전수 "〈대상〉 로딩 중" 말줄임-무 균일. 채널 간 차이(가시=말줄임有/aria=無)는 역할-결정론. 완료/정보 stage 메시지는 모집단 밖.
