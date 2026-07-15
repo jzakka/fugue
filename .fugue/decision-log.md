@@ -11132,6 +11132,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3719 — design/tokens 571st round (Discovery, 표면 폐기)
+- 축 선택: CSS `font` 단축 속성 저작 채널(단축 vs 롱핸드·시스템 단축 키워드 caption/menu 등 — c1858 패딩 짝·c1859 inset·background/transition/animation 단축 carve 와 동류의 단축-선택 장르를 font 속성군에 적용). 사전 프로브에서 radius(c1241)·accent-color·caret-color·color-scheme·::selection·scrollbar-color·font-optical-sizing/synthesis/size-adjust/palette·@utility/@apply/@theme 채널·color-mix/relative-color·text-box·inset 단축(c1859) 등 전부 기재 확인, "폰트 단축/font:" 표기 전 변형 grep 0 으로 미기재 확인 후 선택.
+- 프로브: 저작 CSS `font:` 0건(전 .css)·tsx inline/arbitrary `font:` 0건·시스템 단축 키워드 0건 — 단축 채널 순수 vacuous. 롱핸드 2건 role-bound(globals.css:72 body font-family=DESIGN L18 기본 스택·:66 .font-mono font-variant-numeric=L20 mono 수치 정렬), 나머지 폰트 스타일링 전부 Tailwind 유틸 위임 균일. 병행 census: tsx raw hex/rgba 0건·text-* 스케일 소비 기존 done 판정(typography-scale-unmapped) 범위 재확인.
+- 결정: pure vacuous(모집단 0) + 롱핸드 role-bound 균일 + DESIGN.md L16-35 저작 채널 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등록(비중첩: 시스템 폰트 별칭·size/weight 키워드·패밀리 인용-형태·로딩 채널·짝 모디파이어·c1858/c1859).
+- 차기: pending=0 → 발견 모드. area = tokens→aesthetic 로테이션 → cycle 3721, 648th round(aesthetic).
+
 ## cycle 3717 — design/states 처리 모드 (design-20260715-profile-skeleton-loading-wire, PR #4670)
 
 - 변경: `creators/[id]/loading.tsx` 신설(앱 첫 route-level loading 컨벤션, fork docs loading.md 근거)로 고아 ProfileSkeleton 배선. NavBar 자리 미러 스켈레톤(nav 박스 px-6 py-4 + SearchBar 42px pill·로고 w-8 h-8·액션 w-9 h-9 실측)으로 스왑 기하 점프 방지. ProfileSkeleton phantom 행(bio 바 h-4 w-72·칩 h-6 w-16/w-14 2개)→실 ProfileHeader 앵커(h-8 w-48 제목 + mt-4 h-5 w-20 핀 카운트, space-y-3→mt-4) 정합. page.tsx 비변경(§5 보수: 롤백 = 파일 삭제). OpenSpec `profile-skeleton-loading-wire` 아카이브(델타에 SHALL 키워드 보강 후 base profile spec 병합).
