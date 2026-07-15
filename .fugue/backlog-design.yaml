@@ -3493,3 +3493,22 @@ items:
     status: done
     pr: 4692
     note: "cycle 3725 처리. ProfileSkeleton.tsx:9 제목 바 h-8 → h-8 sm:h-9 로 실 h1 의 text-2xl sm:text-3xl 라인박스 전이(32→36px) 미러, ≥sm 스켈레톤→실물 스왑 4px 기하 점프 해소. 실 브라우저 QA(headless Chrome CDP, 핀 상세→크리에이터 클라이언트 내비게이션 MutationObserver+rAF 실측) — ≥sm 1280px 스켈레톤 36px=실 h1 36px·핀 카운트 top 192↔193, <sm 500px 32px=32px, shimmer animationName 적용·barBg surface-elevated 무변경, 프로필 직접 진입 콘솔 에러 0, 피드 CardSkeleton 무변경. lint 0 errors·tsc 통과·vitest 47/47. OpenSpec profile-skeleton-title-bp-mirror 아카이브(뷰포트 반응형 크기 전환 SHALL 절 base profile spec 병합)."
+
+  - id: "design-20260715-emptystate-speech-level"
+    title: "빈 상태 메시지 어체 비정합 — FeedContainer 분야 필터 빈 상태만 해요체('이 분야의 작품이 아직 없어요'), 같은 공유 EmptyState 의 나머지 빈 상태·전체 UI 카피는 합쇼체('-습니다')"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:165"
+        - "apps/web/src/components/profile/PinsGrid.tsx:146"
+        - "apps/web/src/components/profile/MyPageClient.tsx:141"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:300"
+      cite: "DESIGN.md L14 '로고/빈 상태/온보딩에서 활용'(빈 상태는 디자인 표면) — 어체 자체는 DESIGN.md 미규정이나, 같은 공유 EmptyState 컴포넌트·같은 '아직 ~ 없-' 문형의 role-identical 빈 상태 4곳 중 1곳만 해요체로 갈리는 cross-surface divergence. 해요체 어미 grep(어요|아요|해요|예요|에요|네요|죠) apps/web/src 전수 1건(FeedContainer:165)·나머지 문장형 UI 카피는 전부 합쇼체(-습니다/-세요) — 지배 관례(합쇼체)로의 정렬이며 어체 취향 선택이 아님."
+      repro: "피드에서 작품이 없는 분야 필터 선택 → '이 분야의 작품이 아직 없어요' 렌더. 프로필/보드 빈 상태는 '아직 등록된 작품이 없습니다'/'아직 생성된 보드가 없습니다'."
+    qa_plan: "dev 서버 + 실 브라우저: (1) 피드 분야 필터로 빈 결과 도달 → EmptyState 메시지 '이 분야의 작품이 아직 없습니다' 렌더 확인. (2) 프로필 작품 없음·보드 없음 빈 상태 문구 회귀 없음. (3) EmptyState 마스코트·레이아웃 무변경, 콘솔 에러 0."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
