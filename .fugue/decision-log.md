@@ -11384,6 +11384,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3733 — design/tokens 573rd round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 없음)
+- 순번: tokens 573번째 라운드. 이번 라운드는 신규 축 발굴 대신 토큰 영역 축 공간 전수 탐침을 수행.
+- census: 약 100개 축 탐침 전수가 기존 baseline 매칭 — 파생 함수(--alpha c2657·--spacing 함수-토큰 L573·color-mix·oklch·light-dark), Tailwind v4 디렉티브(@utility·@custom-variant·@apply·@layer·@source·@theme inline 62건), 표기-형태 패밀리(hex c3475·rgb 문법 c3477·leading-zero L1787·명명 케이스 L1784), sub-token(짝 모디파이어 L1703 — line-height/letter-spacing/font-weight 3종 포괄), 위생(고아 토큰 L1879·명명 미러링 L1847), 메타/에셋(theme-color·manifest·og:image·next/image 12건·블러 123건), 순서 채널(클래스 순서 L1795·선언 순서 L1808). 미기재 문자열(LQIP·모달 토큰 0건)은 전부 기존 축의 동의어/부분집합으로 판정.
+- 판단: 표면 폐기 — 프로토콜 발견 모드 5단계(anti-patterns 매칭 버림)에 의해 후보 0건. 전 탐침이 기존 baseline 에 귀속되므로 신규 anti-patterns baseline 도 기록하지 않는다(중복 등재 방지).
+- 차기: cycle 3735 발견 모드(rotation: aesthetic 650th round).
+
 ## cycle 3731 — design/responsive 648th round (Discovery, 표면 폐기)
 - 순번: responsive 648번째 라운드. 축: 입력 능력(pointer-capability) variant 유틸리티 채널 — Tailwind v4.1 `pointer-coarse:`/`pointer-fine:`/`any-pointer-*:` 및 `supports-[...]:` 임의 variant 를 표면이 사용하는가.
 - census: `pointer-coarse|pointer-fine|any-pointer|supports-[` grep apps/web/src(tsx/ts/css 전수) 0건 — 순수 공허. 입력 적응은 현재 너비 BP(sm: 26곳·md: 2곳, L568 census)와 @media (hover)/(pointer) CSS 계층(L275)만으로 균일.
