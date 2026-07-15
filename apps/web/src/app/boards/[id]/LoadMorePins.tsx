@@ -42,7 +42,7 @@ export default function LoadMorePins({
             onClick={loadMore}
             disabled={loading}
             aria-busy={loading}
-            className="px-6 py-2.5 border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:text-text-primary focus-visible:border-accent transition-colors disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <div
