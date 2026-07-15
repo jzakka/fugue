@@ -11330,6 +11330,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3727 — design/tokens 572nd round (Discovery, 표면 폐기)
+- 축 선택: route-level loading 미러 표면의 토큰 어휘 census — 최신 신설 표면(c3717 loading.tsx·c3725 ProfileSkeleton)의 색/radius/shape 토큰이 미러 대상 실 컴포넌트와 정합하는가(c3723 방식의 tokens 적용). 사전 프로브에서 font 단축(c3719)·!important(c3709)·arbitrary 단위 철자(c3703)·radius magic values(L17)·size-N 짝(L1855)·comment 표기(L1833)·keyframe from/to(L1779) 등 스펙 축 전부 기재 확인 후 선택.
+- 프로브: 미러 쌍 토큰 전수 대조 — nav 컨테이너 클래스열 동일(loading.tsx:7↔NavBar:12, +skeleton-shimmer 만 차이)·로고 박스 rounded-md(:9↔:17)·아바타 w-9 h-9 rounded-full(:16↔:50/:53)·SearchBar pill rounded-full(:13↔SearchBar:177)·작품 카드 bg-surface rounded-[10px]/h-48/p-3(ProfileSkeleton:17-21↔PinCard:147↔CardSkeleton:3-5) — 색/radius 토큰 divergence 0. 잔여 단서 wordmark 바 h-6(24px) vs NavBar:21 text-xl 라인박스(28px)는 flex items-center 행이 42px SearchBar pill 에 지배되어 스왑 기하 점프 0 — c3725(블록 흐름 h1, 하위 4px 점프)와 장르만 같고 기하 영향 부재, NavBar 미러 최소화는 c3717 기록 결정(c3723 프로브에서도 제외 판정).
+- 결정: 토큰 어휘 전수 정합 + 잔여 단서 기하 무영향(confidence<3) + DESIGN.md 자리표시자 바 높이 미규정(L9) → 표면 폐기. anti-patterns 말미 baseline 등재(비중첩: c3725 제목 바 BP 미러·L196 hero 미러 idiom 예외·L17 radius magic values).
+- 차기: pending=0 → 발견 모드. area = tokens→aesthetic 로테이션 → cycle 3729, 649th round(aesthetic).
+
 ## cycle 3725 — [design] ProfileSkeleton 제목 바 BP 타이포 전이 미러 (h-8 sm:h-9)
 
 결정/변경: ProfileSkeleton.tsx:9 제목 바를 h-8 → h-8 sm:h-9 로 변경해 실 h1 의 text-2xl sm:text-3xl 라인박스 전이(32→36px)를 미러, ≥sm 스켈레톤→실물 스왑 4px 기하 점프 해소. (PR #4692, OpenSpec profile-skeleton-title-bp-mirror 아카이브·뷰포트 반응형 크기 전환 SHALL 절 base profile spec 병합)
