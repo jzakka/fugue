@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4376 — 봇: bot/openspec 표면 freeze check → 신규 1건 조사, bot 갭 없음 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
+- 조사: 신규 1건 5bb5d317(#4692, ProfileSkeleton 제목 바 BP 미러 정합) = apps/web 전용 + openspec 체인지(profile-skeleton-title-bp-mirror) 추가, bot 코드 비접촉. validate 15 passed 0 failed(체인지 +1로 baseline 14→15). 잔여 2건(507daab4=cycle 4162, 95fea1d9=cycle 4340)은 계수 완료분
+- 판정: 직전 봇 census(4364) 이후 bot 코드 표면 불변, 신규 커밋은 봇 갭 아님 → covered. 5bb5d317 계수 완료로 이후 census에서 제외
+- 차기: rotation OpenSpec갭 cycle 4378 (직전 4366 covered). validate + openspec 표면 freeze check 예정 (validate baseline 15)
+
 ### cycle 4374 — 동시성: apps/api freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api (loop/design-loop 커밋 제외 필터)
 - 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
