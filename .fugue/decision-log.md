@@ -10698,6 +10698,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3693 — design/responsive 643rd round (Discovery, 표면 폐기)
+- 축 선택: 히스토리 내비게이션 스크롤 위치 복원의 저작 채널(기본 위임 vs scrollRestoration manual+scrollTo vs sessionStorage 좌표 vs scrollIntoView — 채널-선택 장르를 뒤로가기 복귀 좌표 복원 차원에 적용). 사전 프로브에서 스크롤 스냅(L474)·스크롤바 표현(L534)·거터 예약(L1304)·스크롤 컨테이너/잠금 채널(L1866-1867)·추가-로드 트리거 채널(L1870)·aspect 채널(L125/L203/L514 실질 커버, padding-hack 0건 vacuous) 기재/포화 확인 → 스크롤 복원 채널 전용 항목 0건인 본 축 선택. (직전 3691 로그의 '645th round' 표기는 오기 — responsive 직전 라운드는 3685 642nd, 본 라운드가 643rd.)
+- 프로브: (1) `scrollRestoration`/`window.scrollTo`/`scrollIntoView`/`sessionStorage`/`history.state` src 전수 0건 — 명령형 복원 채널 전무, 전 표면이 Next.js App Router 기본 복원 위임 단일 채널(내비도 next/link 표준, PinCard:145). (2) DESIGN.md(105줄) scroll/스크롤 grep 0건·AGENTS.md 스크롤 복원 0건 — 셋 중 미명시(루프 규칙 L9). (3) 뒤로가기 시 클라이언트 추가-로드 상태 유실 가설은 라우터 캐시 거동 차원·실측 없는 추론이라 confidence < 3 버림.
+- 판정: 표면 폐기(0-후보). 단일 채널 + 스펙 침묵 — 이슈 부재. anti-patterns 1줄 등재(cycle 3693 baseline). PR 없음(상태 파일만).
+- 차기: pending=0 → 발견 모드. area = tokens (4-area 로테이션 responsive→tokens) → cycle 3695, 568th round(tokens).
+
 ## cycle 3691 — design 처리 모드 (design-20260715-loadmore-button-fill-vocab, PR #4593)
 
 - 변경: LoadMorePins.tsx:45 더보기 버튼 className 정합화 — `py-2.5`→`py-3`, `bg-surface` 삽입(SearchClient:422 어휘 순서 미러링). manual load-more 아키타입 3표면 중 유일 outlier 를 2:1 majority 어휘로 정렬, canonical 2표면 무변경. OpenSpec `loadmore-button-fill-vocab` 아카이브(board 델타: 보드 상세 추가 로드 컨트롤은 동일 역할 컨트롤과 일관된 시각 표현).
