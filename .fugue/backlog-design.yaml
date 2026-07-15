@@ -3474,3 +3474,20 @@ items:
     status: done
     pr: 4670
     note: "cycle 3717 처리. creators/[id]/loading.tsx 신설(앱 첫 route-level loading 컨벤션)로 고아 ProfileSkeleton 배선 + NavBar 자리 미러 스켈레톤(42px SearchBar pill 실측)으로 스왑 기하 점프 방지, phantom 행(bio 바·칩 2개)→실 ProfileHeader 앵커(h1 닉네임 + mt-4 핀 카운트) 정합. 실 브라우저 QA — 핀 상세→크리에이터 클라이언트 내비게이션 MutationObserver 관찰(sawSkeleton/sawNavPill/sawPinCountBar true·phantom false→실 콘텐츠 교체), 스트리밍 HTML fallback 선행 확인, shimmer animationName 적용, 콘솔 에러 0, 미존재 id 404, 피드 CardSkeleton 무변경. tsc 통과·vitest 47/47. OpenSpec profile-skeleton-loading-wire 아카이브(delta에 SHALL 키워드 보강 후 base profile spec에 병합)."
+
+  - id: "design-20260715-profile-skeleton-title-bp-mirror"
+    title: "ProfileSkeleton 제목 바(h-8 정적)가 실 h1 의 BP 타이포 전이(text-2xl→sm:text-3xl, 라인박스 32→36px)를 미러하지 않아 ≥sm 뷰포트에서 스켈레톤→실물 스왑 시 4px 기하 점프 — 미러 쌍 5개 BP 전이 중 유일 누락"
+    area: responsive
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileSkeleton.tsx:9"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:32"
+      cite: "ProfileHeader↔ProfileSkeleton 미러 쌍의 BP 전이 census 5건: p-6 sm:p-8(:13↔:5 정합)·flex-col sm:flex-row(:14↔:6 정합)·아바타 w-20 h-20 sm:w-24 sm:h-24(:21/:24↔:7 정합)·works grid grid-cols-1 sm:grid-cols-2(PinsGrid:140/:148↔:15 정합)·h1 text-2xl sm:text-3xl(:32↔:9 h-8 정적, 유일 누락). Tailwind 기본 스케일에서 text-2xl 라인박스 2rem(32px)=h-8, text-3xl 라인박스 2.25rem(36px)=h-9 — ≥sm 에서 스켈레톤 제목 바 32px vs 실 h1 36px 로 4px 어긋나 스왑 시 핀 카운트 행 이하가 점프. 근거 관례: cycle 3717 PR #4670 이 '실 ProfileHeader 앵커 정합·스왑 기하 점프 방지'를 명시 채택한 머지 결정. anti-patterns L196 예외 조항('프로필 hero 미러 쌍 idiom 이 서로 어긋나는 격리 site 는 등록 가능') 정확 해당·L166 도 미러 쌍 균일을 전제로 성립한 baseline 이라 어긋남은 예외 등록 대상. DESIGN.md L94(skeleton shimmer)는 기하 미규정이나 본 건은 확립 미러 관례의 잔여 결함."
+      repro: "≥640px 뷰포트에서 /creators/[id] 클라이언트 내비게이션 → 스켈레톤 제목 바 computed height 32px, 스왑 후 h1 36px — 핀 카운트 행이 4px 하강."
+    qa_plan: "dev 서버 + 실 브라우저: (1) ≥sm(1280px) 스켈레톤 제목 바 computed height 36px 확인, 스왑 후 h1 라인박스 36px 와 일치·핀 카운트 y-오프셋 불변. (2) <sm(500px) 제목 바 32px 유지. (3) shimmer 모션·skeleton-shimmer 착색 무변경, 콘솔 에러 0. (4) 인접 회귀: 피드 CardSkeleton 무변경."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending

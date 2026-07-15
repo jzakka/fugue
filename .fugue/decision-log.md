@@ -11188,6 +11188,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3723 — design/responsive 647th round (Discovery, 후보 1건 등재)
+- 축 선택: 스켈레톤 미러의 BP 충실도 — 스켈레톤 BP 유틸이 미러 대상 실 컴포넌트의 BP 전이를 정합 미러하는가. 사전 프로브: safe-area/touch-action/hover·pointer 매체/visualViewport/clamp/dvh/DPR/matchMedia/scroll-snap/content-visibility/field-sizing/text-size-adjust/user-scalable/range syntax(L703)/breakpoint 토큰(L20/L43/L525/L569)/reflow(L177) 전부 기재 확인 후, 최신 신설 responsive 표면(c3717 loading.tsx 계열)의 미러 쌍 census 로 전환.
+- 프로브: ProfileHeader↔ProfileSkeleton BP 전이 5건 census — p-6 sm:p-8·flex-col sm:flex-row·아바타 sm:w-24 sm:h-24·works grid sm:grid-cols-2 는 정합, h1 text-2xl sm:text-3xl(라인박스 32→36px)만 스켈레톤 제목 바 h-8(32px) 정적으로 유일 누락 → ≥sm 스왑 시 4px 기하 점프. CardSkeleton↔PinCard 는 BP 유틸 0 균일. NavBar 미러 최소화는 c3717 기록 결정이라 제외. L196 예외 조항(미러 쌍 idiom 어긋남 등록 가능) 정확 해당.
+- 결정: 후보 1건 등재(design-20260715-profile-skeleton-title-bp-mirror, impact 2·confidence 3·effort 1·risk 1 → score 6.0, pending). 근거 관례 = c3717 PR #4670 앵커 정합·기하 점프 방지 머지 결정.
+- 차기: pending=1 → 처리 모드. cycle 3725.
+
 ## cycle 3721 — design/aesthetic 648th round (Discovery, 표면 폐기)
 - 축 선택: 비디오 poster 정지-프레임 저작 채널(`<video poster>` 속성 vs img 썸네일 오버레이 vs 무-poster 첫 프레임). 사전 프로브 — backdrop/gradient/mix-blend/text-decoration/word-break/cursor/user-select/pointer-events/will-change/object-fit/aspect-ratio/first-letter/::marker/list-style/hyphens/font-smoothing/placeholder/writing-mode/border-image/@media print/forced-colors/currentColor 등 전부 기재 확인; mark/kbd/abbr/dl 은 코드 모집단 0 vacuous 라 기각; "poster 속성/정지 프레임" 표기 grep 0 미기재 확인 후 선택.
 - 프로브: (1) poster-eligible 모집단 1건 단독 — 원격 og_image 가용 표시 비디오는 pins/[id]:70-76 뿐, `poster={pin.og_image || undefined}` 사용, 동종 비교쌍 0. (2) 무-poster 전수 role-bound — PinCreateForm:403(로컬 blob, og_image 미존재)·VideoTrimModal:217(스크러버 preload="auto")·VideoThumbnailPicker:19/lib/media/video.ts:5(비표시 캡처 유틸). (3) 피드 비디오 카드는 video 요소 부재 — DESIGN.md L85 가 img 썸네일+재생 아이콘 아키타입으로 role 규정. (4) L1257 이 열거한 MyPageClient:77 비디오는 현행 코드에서 소멸 확인(재검증).
