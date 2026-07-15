@@ -11432,6 +11432,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3739 — design/responsive 649th round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 없음)
+- 순번: responsive 649번째 라운드. 신규 축 발굴 대신 responsive 축 공간 전수 탐침 수행(c3733 tokens 선례).
+- census: 349개 responsive baseline 대비 후보 축 40여 개 탐침 전수 기재 확인 — 컨테이너 쿼리(@container)·scroll-margin/padding·text-wrap balance·hyphens/word-break/overflow-wrap·srcset/sizes·min-w-0/shrink·max-* variant·grid-template-areas·scrollbar·meta viewport·h-screen/dvh·논리 속성(inline-start/ps-/me-)·writing-mode·image-set/resolution/display-mode·prefers-contrast/forced-colors·portrait/landscape·@starting-style·interpolate-size·contain-intrinsic·min()/max()·@media print·iframe/picture/figure·테이블·폼 필드 폭(폼 186·PinCreateForm 188·ProfileEditForm 83 매치)·터치 타깃·truncate 절단 전부 기왕 baseline 귀속. 실 코드 BP census — md: 2곳(SearchClient:320/:358 sm:grid-cols-2 md:grid-cols-3)은 L1849 보조 그리드 사다리 role-bound 판정에 정확 포함, apps/web 신규 responsive 표면 유입 0(2026-07-14 이후 커밋 전수 = 본 루프 산출물, c3723/c3727에서 기채굴).
+- 판단: 표면 폐기 — 발견 모드 5단계(anti-patterns 매칭 버림)에 의해 후보 0건. 전 탐침이 기존 baseline 귀속이므로 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3741 발견 모드(rotation: tokens 574th round).
+
 ## cycle 3737 — [design] 피드 빈 상태 메시지 어체 정합 (해요체→합쇼체)
 
 결정/변경: FeedContainer.tsx:165 EmptyState 메시지를 "이 분야의 작품이 아직 없어요" → "이 분야의 작품이 아직 없습니다"로 변경, 테스트 단언 동기 갱신. 문형 프레임("이 분야의 작품이 아직 ~") 유지·어순 재배열 없음. (PR #4730, OpenSpec emptystate-speech-level 아카이브·어체 SHALL Requirement base feed spec 병합)
