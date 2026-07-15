@@ -10880,6 +10880,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3701 — design/responsive 644th round (Discovery, 표면 폐기)
+- 축 선택: 테두리 선 스타일 브레이크포인트 토글(`sm:border-dashed` 류 — `border-style` 값을 BP에서 전환하는 반응형 선 스타일 전이). 사전 프로브에서 hover-only 어포던스(L275, Tailwind v4 hover 자동 `@media (hover:hover)` 게이팅)·터치 타깃 크기(L237 c889)·인터랙션 미디어(L584 c1407)·maxTouchPoints(L1508 c2941)·srcset/sizes(L754)·truncate/whitespace/z-index/list-style BP-토글(L408/L470/L412/L490)·`@media (update)`(L592) 전부 기재 확인. border 계열은 두께 BP-토글(L398)·스타일 토큰 매핑(L546·비반응형)만 carve → 선 스타일 *값의 BP 전이* 축 미기재 확인 후 선택.
+- 프로브: (1) BP-접두 border 유틸 `sm:/md:/lg:/xl:border*` src 전수 grep 0건(pure vacuous — 스타일·두께·색 포함 border 계열 BP 변형 자체 0). (2) 명시 border-style = dashed 2곳(PinCreateForm:352 드롭존·AddToBoardButton:403 새 보드 트리거) 전 뷰포트 정적·role-bound(L546 idiom), dotted/double/solid 명시 0·인라인 borderStyle 0. (3) DESIGN.md L46 테두리 색·L73 radius·L86 hover accent border 뿐 BP 선 스타일 silent(루프 규칙 L9 미명시). (부수 확인: next/image 사용 0건 — 과거 항목 "next/image 1곳" 기록은 stale, 전 이미지 raw `<img>` 균일.)
+- 결정: 후보 0건(표면 폐기). BP 전이 모집단 0·정적 층위 균일·DESIGN silent 이라 cross-surface 비정합 결함 부재. anti-patterns cycle 3701 baseline 등재.
+- 차기: pending=0 → 발견 모드. area = tokens (4-area 로테이션 responsive→tokens) → cycle 3703, tokens round.
+
 ## cycle 3699 — design 처리 모드 (design-20260715-trim-duration-format-vocab, PR #4619)
 
 - 변경: PinCreateForm.tsx 트림 요약 칩 duration 표기 정합화 — 위치 `{trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s`→`{formatTime(trimStart)} ~ {formatTime(trimEnd)}`(`m:ss.s`, VideoTrimModal fmt 어휘), 길이 `(N.N초)` 유지. formatTime 은 파일-로컬 4줄 헬퍼(cycle 3695 판정대로 공유 모듈 신설 없음). canonical 모달 표면 무변경. OpenSpec `trim-duration-format-vocab` 아카이브(pin 델타: 폼 트림 요약은 트리밍 모달과 동일 시간 표기).
