@@ -6,7 +6,7 @@ export default function ProfileSkeleton() {
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface-elevated shrink-0" />
           <div className="flex-1">
-            <div className="h-8 bg-surface-elevated rounded w-48" />
+            <div className="h-8 sm:h-9 bg-surface-elevated rounded w-48" />
             <div className="mt-4 h-5 bg-surface-elevated rounded w-20" />
           </div>
         </div>
