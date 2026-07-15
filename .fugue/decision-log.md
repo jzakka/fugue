@@ -11055,6 +11055,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3717 — design/states 처리 모드 (design-20260715-profile-skeleton-loading-wire, PR #4670)
+
+- 변경: `creators/[id]/loading.tsx` 신설(앱 첫 route-level loading 컨벤션, fork docs loading.md 근거)로 고아 ProfileSkeleton 배선. NavBar 자리 미러 스켈레톤(nav 박스 px-6 py-4 + SearchBar 42px pill·로고 w-8 h-8·액션 w-9 h-9 실측)으로 스왑 기하 점프 방지. ProfileSkeleton phantom 행(bio 바 h-4 w-72·칩 h-6 w-16/w-14 2개)→실 ProfileHeader 앵커(h-8 w-48 제목 + mt-4 h-5 w-20 핀 카운트, space-y-3→mt-4) 정합. page.tsx 비변경(§5 보수: 롤백 = 파일 삭제). OpenSpec `profile-skeleton-loading-wire` 아카이브(델타에 SHALL 키워드 보강 후 base profile spec 병합).
+- QA(dev+API 실기동, 실 브라우저): 핀 상세→크리에이터 클라이언트 내비게이션 MutationObserver 관찰(rAF 는 백그라운드 탭 미발화라 교체) — sawSkeleton/sawNavPill/sawPinCountBar true·phantom false→h1 qa-creator 교체. 스트리밍 HTML fallback(idx 3535)이 실 콘텐츠(idx 22807) 선행·phantom 부재. shimmer animationName "shimmer" 적용, 콘솔 에러 0, 미존재 id 404 렌더, 피드 CardSkeleton 20카드 무변경. tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드. cycle 3719, area 로테이션.
+
 ## cycle 3715 — design/responsive 646th round (Discovery, 후보 1건 등록)
 - 축 선택: BP-접두 유틸 census 재주사(sm:p-8 5·sm:grid-cols-2 5·sm:w-24 3·sm:text-3xl 3·sm:text-base 2·sm:flex-row 2·sm:grid-cols-3 2·md:grid-cols-3 2 등). h1 래더 role-bound 균일·본문 sm:text-base 2곳 균일·패널 패딩 L131·aux 그리드 래더 L1849·masonry breakpointCols 단일 공유 상수 — 기존 baseline/균일 판정 재확인으로 responsive 순수 축 소거. census 중 ProfileSkeleton 이 BP 유틸을 실 헤더와 미러(L196 "정확 미러" 인용)하면서도 참조 0건임을 발견.
 - 프로브: ProfileSkeleton grep 참조 전수 0건(자체 export 만·탄생 커밋 6adbf9bf 부터 born-orphan), apps/web/src/app 전체 loading.tsx 0건, creators/[id]/page.tsx force-dynamic+3 직렬 서버 fetch 로 내비게이션 중 로딩 피드백 전무, fork docs loading.md 지원 확인, 대조 CardSkeleton 3표면(FeedContainer:156·SearchClient:291·PinsGrid:142) 배선. 스켈레톤에 실 ProfileHeader 에 없는 phantom 행(bio 바+칩 2개). anti-patterns 인용 28곳 전부 census 증거 역할·배선 축 미기재(L219 는 컴포넌트 3-way 축).
