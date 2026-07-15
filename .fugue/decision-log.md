@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4222 — OpenSpec갭: validate + openspec 표면 freeze check → 표면 정상 (covered)
+
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건, loop/design-loop 제외)
+- 조사: cycle 4210에서 계수한 활성 체인지 loadmore-button-fill-vocab이 design-loop에 의해 archive(2026-07-15)로 이동, validate baseline 14로 복귀. 잔여 507daab4(#4562)는 cycle 4162 계수 완료
+- 판정: 직전 OpenSpec갭 census(4210) 대비 유의미한 갭 없음(계수 완료 항목의 아카이브 이동만 관찰) → covered
+- 차기: rotation 보안 cycle 4224 (직전 4212 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4220 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 제외)
