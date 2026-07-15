@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4340 — 봇: bot/openspec 표면 freeze check → 신규 1건 계수, bot 비접촉 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 제외)
+- 조사: 신규 1건(95fea1d9, #4670) — design-loop cycle 3717의 apps/web 전용 변경(creators/[id] loading.tsx + ProfileSkeleton 배선) + openspec profile 체인지·spec 동기화. validate 14 passed 유지, bot 코드 비접촉. 잔여 507daab4는 cycle 4162 계수 완료분
+- 판정: bot 표면 비접촉·validate 통과 → 봇 갭 아님, covered. 95fea1d9는 계수 완료로 이후 census에서 제외
+- 차기: rotation OpenSpec갭 cycle 4342 (직전 4330 covered). validate + openspec 표면 freeze check 예정
+
 ### cycle 4338 — 동시성: apps/api 코드 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api
