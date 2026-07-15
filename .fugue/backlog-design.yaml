@@ -3453,3 +3453,22 @@ items:
     status: done
     pr: 4654
     note: "cycle 3713 처리. login/page.tsx 에러 카피 3건(invalid_state·exchange_failed·fallback) '다시 시도해 주세요'→'다시 시도해주세요' 붙여쓰기 정합화, 동일 재시도 문구 2표기 갈림 해소(코드베이스 9곳 전수 붙여쓰기 통일). 실 브라우저 QA — /login?error=exchange_failed·invalid_state·nonexistent_code 3케이스 붙여쓰기 렌더 확인, role=alert·aria-live=polite·클래스 무변경, 콘솔 에러 0, AddToBoardButton 무변경. tsc 통과·vitest 47/47. OpenSpec retry-copy-spacing-vocab 아카이브(specs delta는 리뷰에서 MODIFIED→ADDED 정정 후 base auth spec에 병합)."
+
+  - id: "design-20260715-profile-skeleton-loading-wire"
+    title: "ProfileSkeleton 이 참조 0건 고아(탄생 커밋부터 미배선)로 존재해 creators/[id](force-dynamic·3 직렬 fetch) 내비게이션 중 로딩 피드백 전무 — 스켈레톤 로딩 확립 관례(CardSkeleton 3표면 배선) 중 유일하게 저작만 되고 미배선인 표면"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/profile/ProfileSkeleton.tsx:1-32"
+        - "apps/web/src/app/creators/[id]/page.tsx:1"
+        - "apps/web/src/components/profile/ProfileHeader.tsx:1-56"
+        - "apps/web/src/components/feed/FeedContainer.tsx:156"
+      cite: "ProfileSkeleton 참조 grep 전수 0건(유일 매치 = 자체 export default 라인·탄생 커밋 6adbf9bf 시점 git grep 도 자체 참조뿐 — born-orphan). apps/web/src/app 전체에 loading.tsx 0건. creators/[id]/page.tsx 는 `export const dynamic = \"force-dynamic\"` + 3 직렬 서버 fetch(fetchCreator→fetchPins→fetchBoards)로 클라이언트 내비게이션 중 서버 렌더 완료까지 로딩 피드백 전무. fork 문서(node_modules/next/dist/docs .../file-conventions/loading.md)가 route-level loading.tsx 관례 지원 확인(unstable_instant 힌트 포함). 대조: CardSkeleton 은 FeedContainer:156·SearchClient:291·PinsGrid:142 3표면 배선 — globals.css skeleton-shimmer 단일 정의를 공유하는 스켈레톤 로딩이 확립 관례이며 ProfileSkeleton 만 저작-미배선. 부수 정합: 스켈레톤에 실 ProfileHeader(아바타+닉네임 h1+핀 카운트뿐)에 없는 phantom 행(h-4 w-72 bio 바 + h-6 rounded-full 칩 w-16/w-14 2개) 존재 — 배선 시 실 앵커 정합 필요. anti-patterns L219 는 컴포넌트 레벨 3-way(로딩/에러/빈) 처리 축으로 route-level loading 비포함, ProfileSkeleton 인용 28곳 전부 census 증거 역할로 배선 여부 축 미기재. 삭제 프레이밍은 시각 영향 0으로 L7(UI/UX/상태 처리) 정체성·L9 기준 비이슈라 기각, 배선이 상태 처리 결함 해소."
+      repro: "dev 서버: 피드/검색에서 크리에이터 링크로 /creators/[id] 클라이언트 내비게이션 → 서버 렌더 완료까지 이전 화면이 무피드백 유지(네트워크 스로틀 시 체감 명확). ProfileSkeleton 은 어떤 경로에서도 렌더되지 않음."
+    qa_plan: "dev 서버 + 실 브라우저: (1) 네트워크 스로틀 하 /creators/[id] 내비게이션 → loading.tsx 스켈레톤 렌더 후 실 콘텐츠 전환 확인. (2) 스켈레톤 anatomy 실 ProfileHeader/그리드 정합(phantom bio/칩 행 제거)·skeleton-shimmer 모션 동작·콘솔 에러 0. (3) 직접 URL 진입·존재하지 않는 id(notFound 404) 경로 회귀 0. (4) 인접 회귀: 피드/검색/보드 CardSkeleton 배선 무변경, light 테마 대조."
+    impact: 3
+    confidence: 3
+    effort: 2
+    risk: 2
+    score: 2.25
+    status: pending

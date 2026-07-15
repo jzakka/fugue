@@ -11048,6 +11048,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3715 — design/responsive 646th round (Discovery, 후보 1건 등록)
+- 축 선택: BP-접두 유틸 census 재주사(sm:p-8 5·sm:grid-cols-2 5·sm:w-24 3·sm:text-3xl 3·sm:text-base 2·sm:flex-row 2·sm:grid-cols-3 2·md:grid-cols-3 2 등). h1 래더 role-bound 균일·본문 sm:text-base 2곳 균일·패널 패딩 L131·aux 그리드 래더 L1849·masonry breakpointCols 단일 공유 상수 — 기존 baseline/균일 판정 재확인으로 responsive 순수 축 소거. census 중 ProfileSkeleton 이 BP 유틸을 실 헤더와 미러(L196 "정확 미러" 인용)하면서도 참조 0건임을 발견.
+- 프로브: ProfileSkeleton grep 참조 전수 0건(자체 export 만·탄생 커밋 6adbf9bf 부터 born-orphan), apps/web/src/app 전체 loading.tsx 0건, creators/[id]/page.tsx force-dynamic+3 직렬 서버 fetch 로 내비게이션 중 로딩 피드백 전무, fork docs loading.md 지원 확인, 대조 CardSkeleton 3표면(FeedContainer:156·SearchClient:291·PinsGrid:142) 배선. 스켈레톤에 실 ProfileHeader 에 없는 phantom 행(bio 바+칩 2개). anti-patterns 인용 28곳 전부 census 증거 역할·배선 축 미기재(L219 는 컴포넌트 3-way 축).
+- 결정: 후보 1건 등록 — design-20260715-profile-skeleton-loading-wire(area=states 교차 발견, score 2.25 = 3×3/(2×2)). 삭제 프레이밍(시각 영향 0)은 L7 정체성·L9 기준 비이슈로 기각, 배선 프레이밍이 확립 스켈레톤 관례(skeleton-shimmer 공유 정의) 근거의 상태 처리 결함.
+- 차기: pending=1 → 처리 모드. cycle 3717, profile-skeleton-loading-wire 처리.
+
 ## cycle 3713 — design 처리 모드 (design-20260715-retry-copy-spacing-vocab, PR #4654)
 
 - 변경: login/page.tsx 에러 카피 3건 정합화 — ERROR_MESSAGES.invalid_state(:7)·exchange_failed(:8)·fallback(:29)의 "다시 시도해 주세요"(띄어쓰기)→"다시 시도해주세요"(붙여쓰기). 문자열 리터럴만 변경, 렌더 구조(role=alert·aria-live=polite·mt-4 text-center text-sm text-error) 무변경. 코드베이스 "~해주세요" 9곳 전수 붙여쓰기 통일, AddToBoardButton:200과의 동일 재시도 문구 2표기 갈림 해소. OpenSpec `retry-copy-spacing-vocab` 아카이브(auth 델타: 설계 리뷰에서 base spec 미존재 요구사항의 MODIFIED→ADDED 정정 1건 반영 후 병합).
