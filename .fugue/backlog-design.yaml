@@ -3514,3 +3514,27 @@ items:
     status: done
     pr: 4730
     note: "cycle 3737 처리. FeedContainer.tsx:165 EmptyState 메시지 '이 분야의 작품이 아직 없어요' → '이 분야의 작품이 아직 없습니다'로 어체 정렬(공유 EmptyState role-identical 4곳 중 유일 해요체 이탈 → 지배 관례 합쇼체), 문형 프레임 유지·어순 재배열 없음, 테스트 단언 동기 갱신. 실 브라우저 QA(headless Chrome CDP) — /?media_type=music 빈 결과 새 문구 렌더·🐡 마스코트·전체 보기 무변경(p 14px #888 스타일 불변), 프로필 음악 탭 클릭 '아직 등록된 작품이 없습니다' 회귀 0, apps/web/src 해요체 잔존 grep 0, 콘솔 에러 0. tsc 통과·vitest 47/47. OpenSpec emptystate-speech-level 아카이브(어체 SHALL Requirement base feed spec 병합)."
+
+  - id: "design-20260716-addtoboard-failure-copy-frame"
+    title: "액션 실패 카피 문형 이탈 — AddToBoardButton 보드 추가 실패만 '〈동사〉하지 못했습니다' 문형('보드에 추가하지 못했습니다'), role-identical 뮤테이션 실패 카피 9곳은 전부 '〈명사구〉에 실패했습니다' 문형"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:200"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:223"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:142"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:289"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:41"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:56"
+        - "apps/web/src/components/profile/MyPageClient.tsx:49"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:40"
+        - "apps/web/src/app/login/page.tsx:8"
+      cite: "DESIGN.md 문형 미규정이나 c3737(어체 정합 PR #4730) 선례 — role-identical 카피의 지배 관례 정렬은 L7 '디자인 시스템 일관성' 범위·취향 아님. 뮤테이션 실패 카피 census: '〈명사구〉에 실패했습니다' 9곳(파일 처리·핀 등록·보드 수정·보드 삭제·보드 생성 ×2·프로필 업데이트·인증·로그인) vs '〈동사〉하지 못했습니다' 1곳(AddToBoardButton:200, 같은 컴포넌트 :223 은 지배 문형) — 페치 실패('불러올 수 없습니다' 4곳)·파이프라인('오류가 발생했습니다' 2곳)은 c3713 역할 분업 기판정이라 모집단 밖, 본 건은 동일 뮤테이션 역할 내 이탈. '다시 시도해주세요' 접미는 login 선례(인증에 실패했습니다. 다시 시도해주세요)와 동형이라 보존."
+      repro: "핀 상세에서 보드에 추가 실패 시 '보드에 추가하지 못했습니다. 다시 시도해주세요' 렌더. 같은 컴포넌트의 보드 생성 실패는 '보드 생성에 실패했습니다'."
+    qa_plan: "dev 서버 + 실 브라우저: (1) 핀 상세 → 보드에 추가 → API 실패 유도(네트워크 차단 또는 비정상 응답) → '보드 추가에 실패했습니다. 다시 시도해주세요' 렌더 확인. (2) 409 중복 카피('이미 이 보드에 추가된 핀입니다')·성공 카피('~보드에 추가했습니다') 무변경. (3) 같은 컴포넌트 보드 생성 실패 카피('보드 생성에 실패했습니다') 회귀 없음, 콘솔 에러 0."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending

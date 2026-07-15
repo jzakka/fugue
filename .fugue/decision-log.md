@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3743 — design/aesthetic 651st round (Discovery, 후보 1건 등재)
+
+- **축 선택**: 로테이션(responsive→tokens→aesthetic)에 따라 aesthetic. 실패 카피(mutation 실패 토스트/알림) 문형 일관성을 프로브.
+- **프로브**: (1) 재시도 라벨 lead — anti-patterns L404(WCAG 3.2.4, LogoutButton '재시도' by-construction consistent)가 커버 → 기각. (2) ellipsis/날짜 포맷 — L1884(진행 라벨 마이크로카피 철자 채널) 기재 → 기각. (3) '다시 시도해주세요' 접미 붙여쓰기 — 9곳 균일(c3713 PR #4654 수정 이후 회귀 없음) → 비이슈. (4) 실패 보고 문형 census — 지배 문형 "〈명사구〉에 실패했습니다" 9곳(PinCreateForm:142/:289, BoardActions:41/:56, login:8/:29, AddToBoardButton:223, MyPageClient:49, ProfileEditForm:40) vs 이탈 1곳 AddToBoardButton.tsx:200 "보드에 추가하지 못했습니다. 다시 시도해주세요".
+- **결정**: c3713 기판정은 실패 보고 동사 3-frame(실패했습니다/할 수 없습니다/오류가 발생했습니다) 간 역할 분업 시도를 confidence<3으로 버린 것이고, '못했습니다'는 그 목록 밖·같은 mutation 실패 역할 내 단독 이탈. anti-patterns 무기재. c3737 선례(동일 역할 내 지배 관례 정렬은 L7 결함)에 따라 후보 등재: `design-20260716-addtoboard-failure-copy-frame` (impact 2, confidence 3, effort 1, risk 1, score 6.0). 목표 카피 "보드 추가에 실패했습니다. 다시 시도해주세요" — '다시 시도해주세요' 접미는 login 선례 동형 보존. 409 중복 카피·성공 카피는 무변경.
+- **차기**: cycle 3745 처리 모드(top-1: design-20260716-addtoboard-failure-copy-frame).
+
 ## cycle 3741 — design/tokens 574th round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 없음)
 - 순번: tokens 574번째 라운드. c3733(573rd, 약 100축 전수 탐침 전부 기재)의 후속 — 이번 라운드는 (a) c3733 미포함 신규 축 탐침 + (b) 신규 토큰 표면 유입 검사.
 - census: (a) 신규 축 탐침 전수 기재 — currentColor(12)·var() 폴백(5/79)·z-index(28)·shadow(143)·accent-color(26)·caret-color(25)·::selection(21)·color-scheme(27)·SVG stroke/fill(69/8)·inherit/unset/revert(14/4/3) 전부 기왕 baseline 귀속, CSS-wide 키워드(unset/revert-layer)는 코드 모집단 0(공허 — 후보 성립 불가). (b) 신규 표면 유입 0 — c3735(anti-patterns 최종 갱신) 이후 apps/web 델타는 FeedContainer 어체 문자열 2행(c3737)뿐, 토큰 비관여.
