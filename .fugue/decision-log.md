@@ -11013,6 +11013,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3713 — design 처리 모드 (design-20260715-retry-copy-spacing-vocab, PR #4654)
+
+- 변경: login/page.tsx 에러 카피 3건 정합화 — ERROR_MESSAGES.invalid_state(:7)·exchange_failed(:8)·fallback(:29)의 "다시 시도해 주세요"(띄어쓰기)→"다시 시도해주세요"(붙여쓰기). 문자열 리터럴만 변경, 렌더 구조(role=alert·aria-live=polite·mt-4 text-center text-sm text-error) 무변경. 코드베이스 "~해주세요" 9곳 전수 붙여쓰기 통일, AddToBoardButton:200과의 동일 재시도 문구 2표기 갈림 해소. OpenSpec `retry-copy-spacing-vocab` 아카이브(auth 델타: 설계 리뷰에서 base spec 미존재 요구사항의 MODIFIED→ADDED 정정 1건 반영 후 병합).
+- QA(실 브라우저, dev 실기동): /login?error=exchange_failed → "인증에 실패했습니다. 다시 시도해주세요", invalid_state → "세션이 만료되었습니다. 다시 시도해주세요", nonexistent_code → "로그인에 실패했습니다. 다시 시도해주세요" 각 렌더 확인. role=alert·aria-live=polite·클래스 문자열 무변경, 콘솔 에러 0. 띄어쓰기 잔존 grep 0건, vitest 문구 참조 0건. tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3715, 646th round(responsive).
+
 ## cycle 3711 — design/aesthetic 647th round (Discovery, 후보 1건 등록)
 - 축 선택: 에러/권고 카피 어휘(사용자-대면 에러 메시지의 재시도 권고 문구·보조용언 띄어쓰기). 사전 프로브에서 placeholder 문구(1)·빈 상태 문구(1)·alt(2)·카운트 표기(9)·파일 크기(19)·이모지(13) 등 기재 확인, 에러 메시지 어휘(0)·문장 부호(0)·CTA 동사형(0) 미기재 → 에러 카피 축 선택(L245 WCAG 3.3.3 정정 제안·L93 고지 채널·3705 진행 라벨과 별개 차원 확인).
 - 프로브: setError/throw/ERROR_MESSAGES/EmptyState 전수 census. 검증 프롬프트 "~해주세요" 붙여쓰기 5곳 균일, 실패 보고 동사("실패했습니다"/"할 수 없습니다"/"오류가 발생했습니다")는 의미 뉘앙스 분업으로 confidence<3 버림. 재시도 권고 문구는 동일 문구 2표기 갈림 — 붙여쓰기 "다시 시도해주세요"(AddToBoardButton:200) vs 띄어쓰기 "다시 시도해 주세요"(login/page.tsx:7/8/29), 전체 "~해주세요" majority 6:3 붙여쓰기.
