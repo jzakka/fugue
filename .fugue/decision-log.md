@@ -10824,6 +10824,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3699 — design 처리 모드 (design-20260715-trim-duration-format-vocab, PR #4619)
+
+- 변경: PinCreateForm.tsx 트림 요약 칩 duration 표기 정합화 — 위치 `{trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s`→`{formatTime(trimStart)} ~ {formatTime(trimEnd)}`(`m:ss.s`, VideoTrimModal fmt 어휘), 길이 `(N.N초)` 유지. formatTime 은 파일-로컬 4줄 헬퍼(cycle 3695 판정대로 공유 모듈 신설 없음). canonical 모달 표면 무변경. OpenSpec `trim-duration-format-vocab` 아카이브(pin 델타: 폼 트림 요약은 트리밍 모달과 동일 시간 표기).
+- QA(claude-in-chrome, dev+API+시드 DB, JWT 쿠키 인증): /pin/new 20초 비디오 업로드 → 모달 판독 `0:04.2`/`15.0초 / 15초`/`0:19.2`/`전체 0:20.0` → 선택 완료 후 요약 칩 `0:04.2 ~ 0:19.2 (15.0초)` 모달 값과 동일 표기, 콘솔 에러 0, 인접 회귀(mediaType 칩·formatSize 조건부 표시·모달 판독 행) 0. lint 0/tsc 0/vitest 47. (환경 노트: hidden 탭에서 Chrome 이 video metadata 로드를 지연 — 탭 활성화 후 판독 재개.)
+- 차기: pending=0 → 발견 모드. area = responsive (4-area 로테이션 aesthetic→responsive) → cycle 3701, 644th round(responsive).
+
 ## cycle 3697 — design/aesthetic 645th round (Discovery, 후보 1건 등재)
 - 축 선택: 사용자-가시 duration 판독 표기 어휘 — 같은 시각 위치/구간 길이를 `m:ss.s` 포맷으로 렌더할지 raw 초+단위 접미로 렌더할지, 단위 접미를 라틴 's'로 쓸지 한글 '초'로 쓸지의 표기 채널. 사전 프로브에서 밑줄 데코(L315)·CSS <time> 단위 철자(L1832 — CSS 값 차원 별개)·motion duration 혼동(L380)·backend timestamp(L187/L466 정합성 트랙) 기재 확인 → UI 텍스트 duration 표기 축 전용 항목 0건(toFixed·formatTime·padStart·mm:ss grep 전수 0)인 본 축 선택.
 - 프로브: (1) census — duration 판독 아키타입 전수 2표면: VideoTrimModal 은 위치 fmt() `m:ss.s` 3사이트(:229/:231/:288)·길이 '초' 3사이트(:211/:230×2) 균일, PinCreateForm:418 트림 요약 칩만 동일 값(onConfirm(start,end) 직결)을 `X.Xs ~ X.Xs (X.X초)` 로 렌더 — 위치 포맷 이탈 + 한 줄 내 's'/'초' 단위 혼용. (2) 동일 사용자 플로우(모달 확인 직후 요약) 동일 값의 재표기 divergence 라 격리 아님. (3) DESIGN.md 는 duration 포맷 미규정이나 L20 Data mono(두 표면 준수)·L34 2xs role 하의 동일 아키타입 무근거 분기 — cycle 3689 loadmore 와 동형의 majority 정렬 축(modal 어휘 canonical).
