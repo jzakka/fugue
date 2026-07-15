@@ -3490,4 +3490,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: in_progress
+    status: done
+    pr: 4692
+    note: "cycle 3725 처리. ProfileSkeleton.tsx:9 제목 바 h-8 → h-8 sm:h-9 로 실 h1 의 text-2xl sm:text-3xl 라인박스 전이(32→36px) 미러, ≥sm 스켈레톤→실물 스왑 4px 기하 점프 해소. 실 브라우저 QA(headless Chrome CDP, 핀 상세→크리에이터 클라이언트 내비게이션 MutationObserver+rAF 실측) — ≥sm 1280px 스켈레톤 36px=실 h1 36px·핀 카운트 top 192↔193, <sm 500px 32px=32px, shimmer animationName 적용·barBg surface-elevated 무변경, 프로필 직접 진입 콘솔 에러 0, 피드 CardSkeleton 무변경. lint 0 errors·tsc 통과·vitest 47/47. OpenSpec profile-skeleton-title-bp-mirror 아카이브(뷰포트 반응형 크기 전환 SHALL 절 base profile spec 병합)."
