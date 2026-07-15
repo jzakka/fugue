@@ -3391,3 +3391,21 @@ items:
     status: done
     pr: 4562
     note: "cycle 3675 발견(aesthetic 642nd round). 태그 칩=액센트 채움(L41 명시) vs 뷰-필터=반전 채움의 role 이분에서 PinsGrid 가 유일 하이브리드. cycle 963(PR#1577)은 동일 레일의 scrollbar-hide 축만 처리, 활성 채움 어휘는 미대조."
+
+  - id: "design-20260715-loadmore-button-fill-vocab"
+    title: "LoadMorePins(보드 상세) '더보기' 버튼만 동종 manual load-more 아키타입의 확립 어휘(bg-surface 채움 + py-3)에서 이탈해 채움 없는 py-2.5 로 렌더 — 동일 아키타입 3표면 중 유일 outlier"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/LoadMorePins.tsx:45"
+        - "apps/web/src/app/search/SearchClient.tsx:422"
+        - "apps/web/src/components/feed/FeedContainer.tsx:229"
+      cite: "manual load-more 컨트롤 아키타입 3표면 전수: SearchClient:422 더보기 button `px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary hover:border-accent focus-visible:… disabled:opacity-50` · FeedContainer:229 noscript '다음 페이지' anchor `px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted …` 로 2곳이 bg-surface 채움+py-3 어휘 균일. LoadMorePins:45 더보기 button 만 `px-6 py-2.5 border border-border …` 로 bg-surface 부재+py-2.5. 세 표면은 동일 아키타입: 목록 하단 flex justify-center py-8 컨테이너·hasMore 게이트·동일 스피너(w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto, backlog design-20260609 항목에서 기정렬)·disabled:opacity-50. DESIGN.md 는 secondary 버튼 채움을 미규정하나 anti-patterns L280 예외 조항('동일 tier·동일 archetype 인데 명백히 무근거로 padding 이 갈리는 격리 site 는 등록 가능')에 해당 — px-6 동일 tier 내 py 및 채움이 2:1 무근거 분기. LoadMorePins 는 과거 2회(스피너 텍스트→spinner 정렬·focus-visible 추가) 동일 outlier 논리로 SearchClient 에 정렬된 전력이 있어 majority 어휘(bg-surface+py-3)가 canonical. L33(off-grid spacing 보류)은 grid 정책 축이고 본 후보는 동종쌍 majority 정렬 축이라 별개(py-3=12px 는 4px 배수)."
+      repro: "dev 서버: 핀 ≥21 보드의 /boards/[id] 하단 더보기 버튼 → 채움 없는 얇은(py-2.5) pill. /search?q=<쿼리> 결과 ≥21 하단 더보기 버튼 → bg-surface 채움 py-3 pill. 동일 역할·동일 라벨 컨트롤의 시각이 표면 간 상이."
+    qa_plan: "dev 서버 + 실 브라우저: (1) 수정 후 /boards/[id] 더보기 버튼이 bg-surface+py-3 로 렌더되어 /search 더보기와 computed style(배경색·padding) 일치 확인. (2) 클릭 시 loadMore 동작·spinner 표시·disabled 디밍·hasMore=false unmount 유지. (3) hover/focus-visible 시각(text-text-primary+border-accent) 회귀 0. (4) 인접 회귀: SearchClient 더보기·FeedContainer noscript 앵커 무변경, light 테마 대조."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending

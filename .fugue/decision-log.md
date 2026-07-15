@@ -10649,6 +10649,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3689 — design/aesthetic 644th round (Discovery, 후보 등록)
+- 축 선택: 버튼 시각 위계 아키타입(primary 액센트 채움 pill vs secondary 보더 pill 의 채움/패딩 어휘 cross-surface 정합). 사전 프로브 '버튼 아키타입'·'버튼 위계'·'입력 아키타입' 안티패턴 0매치. 단 L280(padding cross-surface, cycle 933)이 인접 축 — 예외 조항('동일 tier·동일 archetype 무근거 padding 분기 격리 site 등록 가능')이 본 발견의 등록 경로.
+- 프로브: (1) primary CTA census — bg-accent pill 이 대형(px-5/6 py-2.5)·compact(px-3 py-1.5)·nav(px-4 py-2) size tier 로 일관(L280 기판정 유지). (2) secondary 보더 pill ~17곳 — 폼 취소(px-5 py-2.5)·소형 액션(px-3 py-1.5) tier 균일. (3) **manual load-more 아키타입 3표면에서 실재 divergence**: SearchClient:422·FeedContainer:229(noscript 앵커) 는 `px-6 py-3 bg-surface border` 균일, LoadMorePins:45 만 `px-6 py-2.5` + bg-surface 부재. 세 표면 동일 아키타입(flex justify-center py-8 컨테이너·hasMore·동일 스피너·disabled:opacity-50) 확인.
+- 판정: 등록 (design-20260715-loadmore-button-fill-vocab, score 6.0 = impact 2 × confidence 3 / (effort 1 × risk 1)). 근거 — L280 예외 조항 정합(동일 px-6 tier·동일 archetype 의 2:1 무근거 분기 격리 site), LoadMorePins 는 스피너 정렬(design-20260609)·focus-visible 추가 2회 선례에서 동일 outlier 논리로 SearchClient 에 정렬된 전력. 선행 판정 대조 — L39(spinner vs skeleton)·L1869(스피너 도형)·L1870(트리거 채널)·log 10578(스피너 균일)·10585(트리거 census)는 모두 버튼 채움/패딩 어휘 미대조. L33(off-grid 보류)은 grid 정책 축, 본 건은 majority 정렬 축(py-3=12px 4px 배수)이라 비저촉.
+- 차기: pending=1 → 처리 모드. cycle 3691 에서 design-20260715-loadmore-button-fill-vocab 처리.
+
 ## cycle 3687 — design/tokens 567th round (Discovery, 표면 폐기)
 - 축 선택: @theme 디자인 토큰의 정의-소비 패리티(고아 토큰 존재 여부). 사전 프로브에서 rounded arbitrary vs named(L503)·알파 모디파이어 단계(L95/L114)·--alpha() 파생(L1362)·opacity 유틸(L487)·테마 조건부 채널(L1841)·명명 미러링(L1847)·light 재정의 subset(L146)·z/w/gap arbitrary·placeholder·selection/caret/accent-color·tabular(전부 포화) 기재 확인 → 정의-소비 패리티 전용 항목 0건(고아/미소비/데드 토큰 grep 미등재)인 본 축 선택.
 - 프로브: @theme 20종(색 15·폰트 2·text-2xs/3xs·shadow-card-hover) 소비 전수 grep — warning(#FFB800)·info(#5AC8FA) 2종만 유틸 소비 0(`(text|bg|…)-(warning|info)` src 0건), 나머지 18종 소비 실재(success 는 AddToBoardButton:281). DESIGN.md L50 이 시맨틱 4종 팔레트를 SHALL — 정의는 규정 이행이고 제거가 오히려 위반. 전수 소비 SHALL 은 셋 중 어디에도 없음.
