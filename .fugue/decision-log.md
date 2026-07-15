@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4364 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
+
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 제외)
+- 조사: 신규 0건. 잔여 2건(507daab4=cycle 4162, 95fea1d9=cycle 4340)은 계수 완료된 디자인 트랙 spec 동기화이며 bot 코드 비접촉
+- 판정: 직전 봇 census(4352) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 4366 (직전 4354 covered). validate + openspec 표면 freeze check 예정
+
 ### cycle 4362 — 동시성: apps/api 코드 freeze check → 표면 불변 (covered)
 
 - 축: git log 22747864..origin/main -- apps/api
