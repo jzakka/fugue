@@ -3432,3 +3432,22 @@ items:
     status: done
     pr: 4619
     note: "cycle 3699 처리. formatTime 파일-로컬 헬퍼 추가 + 요약 칩 위치 표기 raw `X.Xs`→`m:ss.s` 정합화, 단위 혼용(s/초) 제거. 실 브라우저 QA — 20초 비디오 업로드 → 모달 판독 0:04.2/15.0초/0:19.2 → 선택 완료 후 요약 칩 `0:04.2 ~ 0:19.2 (15.0초)` 동일 표기 확인, 콘솔 에러 0, 인접 회귀(mediaType 칩·formatSize·모달 판독 행) 0. OpenSpec trim-duration-format-vocab 아카이브."
+
+  - id: "design-20260715-retry-copy-spacing-vocab"
+    title: "login/page.tsx 에러 카피 3건이 재시도 권고 문구를 '다시 시도해 주세요'(보조용언 띄어쓰기)로 렌더 — 코드베이스 확립 어휘 '~해주세요'(붙여쓰기, 6표면)에서 이탈해 동일 문구가 2표기로 갈림"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/login/page.tsx:7"
+        - "apps/web/src/app/login/page.tsx:8"
+        - "apps/web/src/app/login/page.tsx:29"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:200"
+      cite: "사용자-대면 '~해주세요' 권고 카피 전수 9곳 중 붙여쓰기 6곳(PinCreateForm:256 '미디어 파일을 선택해주세요'·:260 '제목을 입력해주세요'·BoardActions:26 '보드 이름을 입력해주세요'·ProfileEditForm:27 '닉네임을 입력해주세요'·search/page.tsx:76 '검색어를 입력해주세요'·AddToBoardButton:200 '보드에 추가하지 못했습니다. 다시 시도해주세요') vs 띄어쓰기 3곳(전부 login/page.tsx — :7 invalid_state '세션이 만료되었습니다. 다시 시도해 주세요'·:8 exchange_failed '인증에 실패했습니다. 다시 시도해 주세요'·:29 fallback '로그인에 실패했습니다. 다시 시도해 주세요'). 특히 동일한 재시도 권고 문구('다시 시도해주세요')가 AddToBoardButton 과 login 페이지에서 두 표기로 갈림. 국어 규범상 두 표기 모두 유효(보조용언 붙여쓰기 허용)하므로 규범 문제가 아니라 표면 간 표기 정합 문제이며, majority(6:3)와 재시도 문구 직접 충돌 기준으로 붙여쓰기가 canonical. DESIGN.md 는 마이크로카피 미규정이나 cycle 3689(loadmore 어휘)·3699(trim duration 표기)와 동형의 동일-역할 문구 majority 정렬 축. anti-patterns 에 에러 카피 띄어쓰기/재시도 문구 축 미기재(L245 는 WCAG 3.3.3 정정 제안 별개·L93 은 고지 채널 별개·cycle 3705 baseline 은 진행(pending) 라벨 축으로 에러/권고 카피 비포함)."
+      repro: "/login?error=exchange_failed 접속 → role=alert 문단이 '인증에 실패했습니다. 다시 시도해 주세요'(띄어쓰기) 렌더. 보드 추가 실패 시 동일 권고가 '다시 시도해주세요'(붙여쓰기)로 렌더되어 동일 문구 2표기."
+    qa_plan: "dev 서버 + 실 브라우저: (1) /login?error=exchange_failed·invalid_state·없는코드(fallback) 각각 접속 → 에러 문단이 '다시 시도해주세요'(붙여쓰기)로 렌더 확인. (2) role=alert·text-error 클래스 등 렌더 구조 무변경·콘솔 에러 0. (3) 인접 회귀: 로그인 버튼 동작·로고/카피 무변경, AddToBoardButton 재시도 문구 무변경."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending

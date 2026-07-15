@@ -10971,6 +10971,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3711 — design/aesthetic 647th round (Discovery, 후보 1건 등록)
+- 축 선택: 에러/권고 카피 어휘(사용자-대면 에러 메시지의 재시도 권고 문구·보조용언 띄어쓰기). 사전 프로브에서 placeholder 문구(1)·빈 상태 문구(1)·alt(2)·카운트 표기(9)·파일 크기(19)·이모지(13) 등 기재 확인, 에러 메시지 어휘(0)·문장 부호(0)·CTA 동사형(0) 미기재 → 에러 카피 축 선택(L245 WCAG 3.3.3 정정 제안·L93 고지 채널·3705 진행 라벨과 별개 차원 확인).
+- 프로브: setError/throw/ERROR_MESSAGES/EmptyState 전수 census. 검증 프롬프트 "~해주세요" 붙여쓰기 5곳 균일, 실패 보고 동사("실패했습니다"/"할 수 없습니다"/"오류가 발생했습니다")는 의미 뉘앙스 분업으로 confidence<3 버림. 재시도 권고 문구는 동일 문구 2표기 갈림 — 붙여쓰기 "다시 시도해주세요"(AddToBoardButton:200) vs 띄어쓰기 "다시 시도해 주세요"(login/page.tsx:7/8/29), 전체 "~해주세요" majority 6:3 붙여쓰기.
+- 결정: 후보 1건 등록 — design-20260715-retry-copy-spacing-vocab(login/page.tsx 3건 띄어쓰기→붙여쓰기 정합, score 6.0 = 2×3/(1×1)). 3689 loadmore 어휘·3699 trim duration 표기와 동형의 majority 정렬 축.
+- 차기: pending=1 → 처리 모드. cycle 3713, retry-copy-spacing-vocab 처리.
+
 ## cycle 3709 — design/tokens 570th round (Discovery, 표면 폐기)
 - 축 선택: 선언적 캐스케이드 우선순위 강제 플래그(`!important`·Tailwind important 모디파이어 `!util`/`util!`·설정 레벨 옵션). 사전 프로브에서 z-index(7)·tabular-nums(28)·transition(30)·animate(32)·currentColor(12)·var 폴백(11)·시맨틱 색(14)·ring(22)·blur(34)·hex 표기(L1775)·rgb 문법(L1776)·명명 케이스(L1784)·전역 키워드(L437)·@layer(L649) 기재 확인, !important 선언적 저작 축은 L1542(CSSOM getPropertyPriority 명령형 내성)와 별개 차원으로 미기재 확인 후 선택.
 - 프로브: 저작 CSS `!important` 0건(globals.css 포함 전 .css)·className 선행/후행 important 모디파이어 0건·설정 채널 부재(v4 CSS-first @theme inline, tailwind.config 없음) — 서드파티 react-masonry-css 오버라이드도 plain 선언으로 처리.
