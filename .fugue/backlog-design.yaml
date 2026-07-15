@@ -3411,3 +3411,22 @@ items:
     status: done
     pr: 4593
     note: "cycle 3691 처리. py-2.5→py-3 + bg-surface 삽입으로 manual load-more 3표면 어휘 통일. 실 브라우저 QA — 보드/검색 더보기 computed style 완전 일치, 클릭·spinner·disabled·unmount·light 테마·인접 회귀 0 확인. OpenSpec loadmore-button-fill-vocab 아카이브."
+
+  - id: "design-20260715-trim-duration-format-vocab"
+    title: "PinCreateForm 트림 요약 칩이 동일 값(트림 시작/종료)을 VideoTrimModal 의 확립 표기(m:ss.s)와 다른 raw 초 표기(12.3s)로 렌더하고, 한 줄 안에서 단위 어휘를 라틴 's'와 한글 '초'로 혼용 — duration 판독 아키타입 2표면 중 유일 outlier"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:418"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:15-18"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:229-231"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:288"
+      cite: "duration 판독(readout) 아키타입 전수 2표면: VideoTrimModal 은 시각 위치를 fmt() `m:ss.s`(:229 fmt(start)·:231 fmt(end)·:288 fmt(videoDuration), text-2xs font-mono)로, 구간 길이를 한글 '초'(:230 `{clip.toFixed(1)}초 / {MAX_CLIP}초`·:211 카피 '최대 {MAX_CLIP}초')로 균일 렌더. PinCreateForm:418 트림 요약 칩만 모달 onConfirm(start,end)에서 그대로 넘어온 동일 값을 `{trimStart.toFixed(1)}s ~ {trimEnd.toFixed(1)}s ({…}초)` 로 렌더 — (a) 위치 표기가 raw 초+라틴 's'로 모달 fmt 채널에서 이탈(같은 사용자 플로우에서 모달이 '0:05.0 ~ 0:12.3'으로 보여준 값을 요약이 '5.0s ~ 12.3s'로 재표기), (b) 한 줄 안에서 위치 단위 's'와 길이 단위 '초'가 혼용. DESIGN.md 는 duration 포맷을 미규정하나 L20(Data 수치 Geist Mono — 두 표면 모두 font-mono 준수)·L34(2xs timestamps/duration role) 하의 동일 아키타입 내 무근거 표기 분기이며, cycle 3689(loadmore 어휘)와 동형의 majority 정렬 축 — 위치 표기 fmt 3사이트 vs raw-s 1표면, 길이 단위 '초' 3사이트 vs 혼용 1표면으로 modal 어휘가 canonical. anti-patterns 에 duration 표기/단위 어휘 축 미등재(toFixed·formatTime·padStart·mm:ss grep 0건, L1832 는 CSS <time> 단위 철자 별개 축, L380 은 motion duration 폰트크기 혼동 별개)."
+      repro: "dev 서버: /pin/new 에서 비디오 파일 선택 → 트림 모달에서 구간 확인('0:00.0 ~ 0:12.3' + 'N.N초') 후 선택 완료 → 파일 정보 행 요약 칩이 '0.0s ~ 12.3s (12.3초)' 로 렌더. 방금 모달이 보여준 동일 값이 다른 포맷·혼용 단위로 재표기됨."
+    qa_plan: "dev 서버 + 실 브라우저: (1) /pin/new 에서 테스트 비디오 업로드 → 트림 모달 선택 완료 → 요약 칩이 modal 어휘(`m:ss.s ~ m:ss.s (N.N초)`)로 렌더되고 모달 판독 값과 동일한지 확인. (2) 트림 구간 변경 후 재확인·콘솔 에러 0. (3) 인접 회귀: VideoTrimModal 판독 행·파일 크기 표기(formatSize)·mediaType 칩 무변경."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
