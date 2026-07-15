@@ -11396,6 +11396,11 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3735 — design/aesthetic 650th round (Discovery, 후보 1건 등재)
+- 순번: aesthetic 650번째 라운드. 축 2개 census: (A) UI 평서문 종결 부호 채널 — 무부호 종결 전수 균일(divergence 0, 두 문장 메시지도 '. '+최종 무부호 단일 idiom 4곳)·표면 폐기, baseline 등재. (B) 빈 상태 메시지 어체 채널 — 해요체 어미 grep 전수 1건(FeedContainer:165 "이 분야의 작품이 아직 없어요") vs 같은 공유 EmptyState role-identical 3곳 합쇼체("없습니다") — cross-surface divergence 실재.
+- 판단: (B)를 후보 등재(design-20260715-emptystate-speech-level, impact 2·confidence 3·effort 1·risk 1·score 6.0). 어체 자체는 DESIGN.md 미규정이나 지배 관례(합쇼체 전수)로의 정렬이며 취향 선택이 아님 — L7 "디자인 시스템 일관성·빈 상태" 범위.
+- 차기: cycle 3737 처리 모드(top-1: design-20260715-emptystate-speech-level).
+
 ## cycle 3733 — design/tokens 573rd round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 없음)
 - 순번: tokens 573번째 라운드. 이번 라운드는 신규 축 발굴 대신 토큰 영역 축 공간 전수 탐침을 수행.
 - census: 약 100개 축 탐침 전수가 기존 baseline 매칭 — 파생 함수(--alpha c2657·--spacing 함수-토큰 L573·color-mix·oklch·light-dark), Tailwind v4 디렉티브(@utility·@custom-variant·@apply·@layer·@source·@theme inline 62건), 표기-형태 패밀리(hex c3475·rgb 문법 c3477·leading-zero L1787·명명 케이스 L1784), sub-token(짝 모디파이어 L1703 — line-height/letter-spacing/font-weight 3종 포괄), 위생(고아 토큰 L1879·명명 미러링 L1847), 메타/에셋(theme-color·manifest·og:image·next/image 12건·블러 123건), 순서 채널(클래스 순서 L1795·선언 순서 L1808). 미기재 문자열(LQIP·모달 토큰 0건)은 전부 기존 축의 동의어/부분집합으로 판정.
