@@ -4,8 +4,8 @@ import LoginButtons from "./LoginButtons";
 
 const ERROR_MESSAGES: Record<string, string> = {
   unknown_provider: "알 수 없는 로그인 방법입니다",
-  invalid_state: "세션이 만료되었습니다. 다시 시도해 주세요",
-  exchange_failed: "인증에 실패했습니다. 다시 시도해 주세요",
+  invalid_state: "세션이 만료되었습니다. 다시 시도해주세요",
+  exchange_failed: "인증에 실패했습니다. 다시 시도해주세요",
   profile_failed: "프로필 정보를 가져올 수 없습니다",
   account_failed: "계정 처리 중 오류가 발생했습니다",
   token_failed: "로그인 처리 중 오류가 발생했습니다",
@@ -26,7 +26,7 @@ export default async function LoginPage({
   const params = await searchParams;
   const errorCode = params.error;
   const errorMessage = errorCode
-    ? ERROR_MESSAGES[errorCode] || "로그인에 실패했습니다. 다시 시도해 주세요"
+    ? ERROR_MESSAGES[errorCode] || "로그인에 실패했습니다. 다시 시도해주세요"
     : null;
   const redirectTo = params.redirect || "";
 
