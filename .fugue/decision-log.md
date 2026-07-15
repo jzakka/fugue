@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4378 — OpenSpec갭: validate + openspec 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (15 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
+- 조사: 스펙·체인지 전체 validate 통과, baseline 15 유지. 잔여 3건(507daab4=cycle 4162, 95fea1d9=cycle 4340, 5bb5d317=cycle 4376)은 계수 완료된 디자인 트랙 변경
+- 판정: 직전 OpenSpec갭 census(4366) 이후 표면 불변(신규 계수분 제외) → covered
+- 차기: rotation 보안 cycle 4380 (직전 4368 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4376 — 봇: bot/openspec 표면 freeze check → 신규 1건 조사, bot 갭 없음 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
 - 조사: 신규 1건 5bb5d317(#4692, ProfileSkeleton 제목 바 BP 미러 정합) = apps/web 전용 + openspec 체인지(profile-skeleton-title-bp-mirror) 추가, bot 코드 비접촉. validate 15 passed 0 failed(체인지 +1로 baseline 14→15). 잔여 2건(507daab4=cycle 4162, 95fea1d9=cycle 4340)은 계수 완료분
