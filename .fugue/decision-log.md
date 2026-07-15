@@ -10894,6 +10894,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3703 — design/tokens 569th round (Discovery, 표면 폐기)
+- 축 선택: Tailwind arbitrary 길이 유틸의 단위 철자 채널(`rounded-[6px]` px vs `rounded-[0.375rem]` rem/em — arbitrary 값의 길이 단위 표기 차원). 사전 프로브에서 alpha 모디파이어·font-weight 토큰(L164)·tracking/leading·duration/shadow/gradient 토큰·미디어 임계값 단위(L1810)·시간 단위(L1832)·영값 단위(L1790)·물리 단위(L924)·폰트-메트릭 단위(L410 계열) 기재 확인 → arbitrary 유틸 px/rem 철자 축 미기재 확인 후 선택.
+- 프로브: (1) src arbitrary 길이 유틸 전수 63건 — px 62건(rounded-[6/8/10/16px] 53·w-[3/14px] 4·max/min-h/w-[Npx] 5) 균일·rem/em 0건·잔여 max-h-[80vh] 1건은 뷰포트-상대 role-bound(철자 선택지 부재). (2) globals.css 는 --text-2xs/3xs rem(폰트 스케일 idiom·L197)·shadow/거터 px 로 역할-결정론(role-bound). (3) DESIGN.md L27-35 "42px / 2.625rem" 병기는 토큰 값 정의이지 arbitrary 철자 규정 아님·L73-77 radius px 표기 — arbitrary 단위 정책 silent(루프 규칙 L9 미명시).
+- 결정: 후보 0건(표면 폐기). 유틸 채널 내 철자 100% px 단일(divergence 0)·rem 전환은 미명시 enhancement. anti-patterns cycle 3703 baseline 등재.
+- 차기: pending=0 → 발견 모드. area = aesthetic (4-area 로테이션 tokens→aesthetic) → cycle 3705, aesthetic round.
+
 ## cycle 3701 — design/responsive 644th round (Discovery, 표면 폐기)
 - 축 선택: 테두리 선 스타일 브레이크포인트 토글(`sm:border-dashed` 류 — `border-style` 값을 BP에서 전환하는 반응형 선 스타일 전이). 사전 프로브에서 hover-only 어포던스(L275, Tailwind v4 hover 자동 `@media (hover:hover)` 게이팅)·터치 타깃 크기(L237 c889)·인터랙션 미디어(L584 c1407)·maxTouchPoints(L1508 c2941)·srcset/sizes(L754)·truncate/whitespace/z-index/list-style BP-토글(L408/L470/L412/L490)·`@media (update)`(L592) 전부 기재 확인. border 계열은 두께 BP-토글(L398)·스타일 토큰 매핑(L546·비반응형)만 carve → 선 스타일 *값의 BP 전이* 축 미기재 확인 후 선택.
 - 프로브: (1) BP-접두 border 유틸 `sm:/md:/lg:/xl:border*` src 전수 grep 0건(pure vacuous — 스타일·두께·색 포함 border 계열 BP 변형 자체 0). (2) 명시 border-style = dashed 2곳(PinCreateForm:352 드롭존·AddToBoardButton:403 새 보드 트리거) 전 뷰포트 정적·role-bound(L546 idiom), dotted/double/solid 명시 0·인라인 borderStyle 0. (3) DESIGN.md L46 테두리 색·L73 radius·L86 hover accent border 뿐 BP 선 스타일 silent(루프 규칙 L9 미명시). (부수 확인: next/image 사용 0건 — 과거 항목 "next/image 1곳" 기록은 stale, 전 이미지 raw `<img>` 균일.)
