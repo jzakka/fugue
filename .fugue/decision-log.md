@@ -12086,6 +12086,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3847 — design/aesthetic 666th round (Discovery, 후보 1건 등재 — 동적 이름 인용부호 글리프 갈림)
+
+관찰: pending 0 → 발견 모드, rotation aesthetic(666th). 직전 aesthetic census(c3841, 576cba21 커버) 이후 델타 0건이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침(기커버 사전 확인: 파괴 확인 채널 L1897·title 툴팁 L548/L1898·낙관적 갱신 L99·성공 auto-dismiss L139·아이콘 저작 채널 L1845 등 제외 후 선정). (1) **가시 카피 동적 이름 인용부호 글리프 채널** — 전수 3곳: SearchClient:233(&ldquo;{query}&rdquo; 헤딩)·:413(“${query}” EmptyState) 곡선따옴표 vs AddToBoardButton:194("${boardName}" role=status 피드백) 직선따옴표 — 동일 role·동일 가시-카피 채널 2:1 실갈림(경계 결정론 반증), head 메타 2곳(search/page.tsx:23/:25 직선)은 비가시 채널 모집단 밖 — **등재**. (2) **가운뎃점 구분자 채널** — VideoTrimModal:211 단 1곳 단일 사이트 격리(비교쌍 부재) 폐기. (3) **외부 이탈 새창/rel 보안 어휘 채널** — 전수 2곳(pins/[id]:222-223 앵커·PinCard:114 window.open) 둘 다 _blank+noopener+noreferrer 균일, 앵커/명령형 갈림은 중첩 앵커 문법 결정론(L279 선례) — FP 폐기.
+결정/변경: 후보 1건 등재(design-20260716-dynamic-name-quote-glyph, impact 2·confidence 3·effort 1·risk 1 → score 6.0, status pending — 지배 관례 곡선따옴표 “ ” 정렬). 폐기 2축 anti-patterns baseline 등재. 코드 무변경(상태 파일 3종만).
+차기: pending=1 → cycle 3849 처리 모드(design-20260716-dynamic-name-quote-glyph).
+
 ## cycle 3845 — design/tokens 589th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 589번째 라운드. c3839(588th, 델타 차원 비접촉 폐기) 이후 라운드.
