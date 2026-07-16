@@ -11852,6 +11852,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3827 — design/aesthetic 663rd round (Discovery, 표면 폐기 — fresh 축 3건 전원 vacuous/경계 일치)
+
+- 순번: aesthetic 663번째 라운드. c3821(662nd, fresh 축 3건 격리/균일 폐기) 이후 라운드.
+- census: 직전 aesthetic census(c3821, a21e0b12까지 커버) 이후 origin/main 헤드 740ae430까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(전부 상태 파일 chore) — aesthetic 관례(c3781)에 따라 fresh-axis 탐침 3건 수행. 후보 축 선정 전 기커버 확인: 스피너(animate-spin 27건)·maxLength·aria-label·이모지 글리프 채널·페이지 metadata.title(L68)·whitespace 전부 기커버로 제외.
+- fresh 축 탐침: (1) **클립보드 복사/공유 어포던스 채널** — navigator.clipboard/share·복사/공유 카피 전수 0곳, 모집단 0 vacuous 폐기. (2) **한국어 조사 병기 채널** — "을(를)"식 병기 0곳, 동적 카피 전부 명사 병치 idiom 균일, divergence 모집단 0 폐기. (3) **동일 기능 개시 버튼 라벨/어포던스 채널** — 보드 생성 폼 개시 2곳(MyPageClient:74 "새 보드" accent pill·aria-expanded 토글형 vs AddToBoardButton:404 "새 보드 만들기" dashed w-full replace-in-place형) 갈림 실재하나 aria=구조 경계(토글형만 expanded 상태 보유)·어포던스=위치 역할(헤더 CTA vs 리스트 말미 append)·라벨 길이=공간 규모로 전 차원 경계 일치, confidence<3 폐기. commit 버튼 라벨은 5곳(등록/저장×2/생성/생성 및 추가) 전부 명사형 균일 확인.
+- 판정: 표면 폐기 — 후보 0건. 3축 모두 anti-patterns baseline 등재(재탐침 방지).
+- 차기: cycle 3829 발견 모드(rotation: responsive 662nd round).
+
 ## cycle 3825 — design/tokens 586th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 586번째 라운드. c3819(585th, #4823 델타 tokens 비접촉 폐기) 이후 라운드.
