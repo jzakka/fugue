@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3757 — design/aesthetic 653rd round (Discovery, 후보 1건 등재)
+
+- 순번: aesthetic 653번째 라운드. 탐침 2축: (1) 진행 카피 census — 가시 채널 "X 중..."·aria 채널 "~중" 각 채널 내 균일, 이탈 0 → 사장. (2) CTA 어형 census — decision-log:11578에서 CTA 동사형 축 미기재(fresh) 확인 후 탐침.
+- 발견: 폼 제출 CTA 6곳 중 명사형 5('저장'×2·'생성'·'생성 및 추가'·'선택 완료') vs ~하기형 1('등록하기' PinCreateForm:665) — 동일 클래스 내 무상관 단독 이탈. busy 짝 비대칭('등록하기'↔'등록 중...' vs 타 표면 'X'↔'X 중...') 부수 논거. c24593 버튼 순서 FP와 구별(그건 컨텍스트-상관 분기), c3737/c3745 카피 정렬 선례 계열.
+- 등재: design-20260716-pincreate-submit-cta-noun-form (impact 2·confidence 3·effort 1·risk 1·score 6.0, pending).
+- 차기: cycle 3759 처리 모드(top-1 pincreate-submit-cta-noun-form).
+
 ## cycle 3755 — design/tokens 576th round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
 
 - 순번: tokens 576번째 라운드. c3741(574th) 신규 축 전수 탐침 + c3749(575th) 델타 census 이후 라운드.
