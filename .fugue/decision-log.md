@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4496 — 봇: bot/openspec 표면 freeze check → 표면 신규 1건 계수 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
+- 조사: 신규 1건 b2979a65(#4791, board 편집 폼 Enter 저장) = apps/web BoardActions.tsx + openspec 아카이브 체인지(board-edit-enter-submit) + board 스펙 델타 동기화. bot 코드 비접촉, validate 14 유지. 기존 잔여 6건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436)과 합쳐 잔여 7건으로 갱신
+- 판정: 신규 1건 디자인 트랙 변경으로 bot 표면 갭 없음 → covered (b2979a65=4496 계수)
+- 차기: rotation OpenSpec갭 cycle 4498 (직전 4486 covered). validate + openspec 표면 freeze check 예정 (validate baseline 14, 잔여 7건)
+
 ### cycle 4494 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api (loop/design-loop 커밋 제외 필터)
 - 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
