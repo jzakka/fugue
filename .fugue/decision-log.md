@@ -11696,6 +11696,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3813 — design/aesthetic 661st round (Discovery, 후보 1건 등록 — 외부 이미지 onError degrade 역할 내 부분 적용)
+
+관찰: pending 0 → 발견 모드, rotation aesthetic(661st). 델타 census: apps/web 앵커 b2979a65(#4791, c3801 BoardActions Enter) 이후 apps/web·DESIGN.md 커밋 0건 — 단 aesthetic 라운드는 델타 0 에서도 fresh-axis 탐침 수행(c3781 관례). fresh 축 3건 탐침: (1) **로딩 라벨 문형** — "…중..." 라벨 10곳 전수(저장 중/생성 중/등록 중/로그아웃 중/처리 중/리다이렉트 중/썸네일 추출 중 등) 전부 "동사(구) + 중..." 문형 균일 → 비이슈. (2) **target=_blank 외부 링크** — 2곳 전수(pins/[id]:221 rel="noopener noreferrer"·PinCard:114 window.open noopener,noreferrer) 전부 rel 보안 어휘 동반 균일 → 비이슈(L279 링크 목적 축 기커버와 별개 확인). (3) **외부 이미지 onError degrade** — 보유 5곳(PinCard:88/:167/:178·SearchBar:284·ProfileEditForm:105, 전부 display:none hide idiom) vs 동종 표면 부재 7곳(NavBar:61·pins/[id]:43/:202·SearchClient:328·ProfileHeader:18·BoardCover:34·AddToBoardButton:313). 아바타 역할 6곳 중 2곳만·og_image/미디어 역할 5곳 중 2곳만 보유 — 동일 엔티티(creator avatar)가 PinCard 에선 hide·pins 상세/ProfileHeader/SearchClient 에선 broken glyph 로 역할 경계와 무관하게 갈림. PinCard:88·SearchBar:284 코멘트가 스스로 근거 문서화(harvester cache TTL eviction → broken glyph 방지)인데 동일 실패 모드의 BoardCover cover_images·pins/[id] media_url 미처리.
+결정/변경: backlog 1건 등록 — design-20260716-img-onerror-degrade-partial (impact 3 · confidence 4 · effort 3 · risk 2 · score 2.0, pending). 코드 무변경(문서 3종만).
+이유: L91 예외 조항("일부 <img> 만 설정해 동종 이미지 간 어휘가 실제로 엇갈리는 격리 site = 등록 가능 — 실제 어휘 비정합") 정확 해당 — L83/L91 이 FP 였던 근거는 uniform 부재(0/17)였는데 onError 는 5/12 부분 적용으로 모집단 갈림 실재. cycle 210 기판정은 보유 5곳 간 일관("display:none 일관")만 확인했고 미보유 동종 표면과의 비대칭은 미판정(c3809 재진입점 목록에도 "(43) onError fallback idiom, fresh"로 미커버 명시). L239 는 null-값 placeholder 축(로드 실패 degrade 와 별개)·역할-경계 정합 FP 원칙(L1894 등) 불성립(분기가 역할/층위 경계와 불일치 — 동일 creator avatar 역할 내부에서 갈림). effort 3 = NavBar·ProfileHeader·pins/[id] 서버 컴포넌트의 클라이언트 추출 필요. confidence 4 = 코드 코멘트 자체가 실패 모드·의도를 문서화한 지배 관례 실재 + 전수 census 완료.
+영향 범위: 문서 3종(backlog·decision-log·상태 갱신)만, 코드 무변경. 다음 사이클 = 처리 모드(top-1 design-20260716-img-onerror-degrade-partial). aesthetic 재진입점: 로딩 라벨 문형·target=_blank rel 은 본 사이클 비이슈 확인.
+
+
 ## cycle 3811 — design/tokens 584th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 584번째 라운드. c3805(583rd, #4791 델타 tokens 비접촉 폐기) 이후 라운드.
