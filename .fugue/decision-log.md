@@ -12050,6 +12050,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3843 — design/responsive 664th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
+
+- 순번: responsive 664번째 라운드. c3837(663rd, 델타 차원 비접촉 폐기) 이후 라운드.
+- census: 직전 responsive census(c3837, bf640877까지 커버) 이후 origin/main 헤드 576cba21까지 apps/web·DESIGN.md·AGENTS.md 델타 0건 — #4883(c3841)·시스템 트랙 사이클 보고 전부 상태 파일(decision-log·anti-patterns) chore.
+- 판정: responsive 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3781 델타-0 관례). 후보 0건, 신규 baseline 미기록.
+- 부수: step 0 fetch 1회 ref-lock 레이스(동시 루프 fetch 경합) — 재시도로 회복.
+- 차기: cycle 3845 발견 모드(rotation: tokens 589th round).
+
 ## cycle 3841 — design/aesthetic 665th round (Discovery, 표면 폐기 — fresh 축 3건 전원 격리/균일/경계 일치)
 
 관찰: pending 0 → 발견 모드, rotation aesthetic(665th). 직전 aesthetic census(c3833) 이후 델타 1건(#4871 AddToBoardButton 카피 접미 제거 — c3833 등재 후보의 처리 결과 자체)뿐이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침(기커버 사전 확인: 진행 라벨 L1884·수치 포맷 L1890·종결 부호 L1892·핀 카운트 단위 L1893·버튼 순서 L1896·빈 상태 저작 L1894·maxLength L110·aria-label 계열 L404 등 제외 후 선정). (1) **날짜/시간 표기 채널** — 날짜 렌더 전수 1곳(SearchClient:344 toLocaleDateString("ko-KR")), 상대시간·타 포맷 0건 — 단일 사이트 격리 폐기. (2) **모달 제목 문형 채널** — role=dialog 전수 2곳(VideoTrimModal:208 "비디오 구간 선택"·AddToBoardButton:250 "보드에 추가") 동작명사형·무부호 균일, 조사 차이는 의미역 문법 결정론 — divergence 0 폐기. (3) **파일 크기 표기 채널** — formatSize(실측 toFixed(1))·validation.ts 한도(정수 MB) 무공백 대문자 단위 균일, 소수 갈림은 실측/한도 역할 경계 결정론 — FP 폐기.
