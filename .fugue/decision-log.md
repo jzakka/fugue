@@ -11480,6 +11480,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3789 — design/responsive 656th round (Discovery, 표면 폐기 — 후보 0건·델타 responsive 비접촉)
+
+- 순번: responsive 656번째 라운드. c3781(655th, 델타 0) 이후 라운드.
+- census: 직전 responsive census(c3781) 이후 apps/web 델타 전수 = cd3afab6(#4762) NavBar.tsx·MyPageClient.tsx 2파일(+32 -4) — 텍스트 '+' 접두 → aria-hidden SVG plus 교체 + `inline-flex items-center gap-1.5/gap-1` 정적 유틸 추가. 디프 내 BP-접두 유틸(sm:/md:/lg:/max-*)·@media·grid-cols·flex-wrap·min-w 0건. SVG 크기는 고정 14/12px(아이콘 크기 BP 전이 모집단 기존 0 유지, L306 위계 정적).
+- 판단: 표면 폐기 — 후보 0건. 델타가 아이콘 저작 채널(aesthetic) 차원만 접촉하고 responsive 차원(BP 전이·유체·컨테이너 분기) 비접촉이므로 responsive 표면 불변. 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3791 발견 모드(rotation: tokens 581st round).
+
+
 ## cycle 3787 — design/aesthetic 처리 — 생성 트리거 plus 마크 SVG 채널 정렬 (PR #4762)
 
 - 변경: NavBar.tsx:37 "+ 핀 생성"·MyPageClient.tsx:80 "+ 새 보드"의 텍스트 '+' 접두를 AddToBoardButton:405 idiom 의 aria-hidden 인라인 SVG plus(viewBox 24·currentColor·strokeWidth 2, NavBar 14px·MyPageClient 12px)로 교체, `inline-flex items-center gap-1.5/gap-1` 병치. 접근 이름 "+ 핀 생성"→"핀 생성"·"+ 새 보드"→"새 보드". AddToBoardButton 비접촉. OpenSpec `create-trigger-plus-svg-channel` 아카이브(pin·board 스펙에 생성 트리거 추가 기호 장식 처리 요구사항 추가, validate --specs 11/11).
