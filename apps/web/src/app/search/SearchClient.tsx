@@ -329,6 +329,9 @@ export default function SearchClient({
                         src={creator.avatar_url}
                         alt=""
                         className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-hover shrink-0 border-2 border-border" />

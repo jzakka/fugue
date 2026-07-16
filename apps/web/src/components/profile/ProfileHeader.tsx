@@ -1,3 +1,4 @@
+import HideOnErrorImage from "@/components/ui/HideOnErrorImage";
 import type { CreatorPublic } from "@/lib/api";
 
 export default function ProfileHeader({
@@ -15,7 +16,7 @@ export default function ProfileHeader({
         {/* Avatar */}
         <div className="shrink-0">
           {creator.avatar_url ? (
-            <img
+            <HideOnErrorImage
               src={creator.avatar_url}
               alt=""
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-border object-cover"

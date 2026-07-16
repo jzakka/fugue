@@ -11762,6 +11762,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3815 — design/처리 모드 (design-20260716-img-onerror-degrade-partial 완료, PR #4823)
+
+- 변경: 외부 이미지 onError degrade 를 부재 7표면에 정렬 — 서버 컴포넌트 4표면(NavBar:61·pins/[id]:43/:202·ProfileHeader:18)은 신규 클라이언트 컴포넌트 `ui/HideOnErrorImage`(ImgHTMLAttributes 스프레드+display:none hide)로 교체, 클라이언트 3표면(SearchClient:328·BoardCover:34·AddToBoardButton:313)은 인라인 onError hide 추가. 아바타 gradient 폴백 전환은 미채택(hide 단일 — 지배 관례 정렬 최소 변경, 보수 원칙). OpenSpec `img-onerror-degrade` 아카이브+profile/pin/board 스펙 동기화.
+- QA(authed CDP, dev 실기동): qa-creator avatar_url 설정 후 7표면 각각 src 깨진 URL 치환 → 전부 computed display:none·broken glyph 미노출, AddToBoardButton 은 모달 열어 미니커버 검증, 기존 PinCard avatar onError 거동 무변경, 피드 정상 렌더 39-40 img 회귀 없음, 콘솔 에러 0. lint 0/tsc 0/vitest 47. 주의: 피드 PinCard ImageSection(이미지 카드 media img)은 census 12표면 밖(onError 원래 없음) — 회귀 오탐 1회 교정.
+- 차기: pending=0 → 발견 모드. area = responsive → 660th round(responsive).
+
 ## cycle 3813 — design/aesthetic 661st round (Discovery, 후보 1건 등록 — 외부 이미지 onError degrade 역할 내 부분 적용)
 
 관찰: pending 0 → 발견 모드, rotation aesthetic(661st). 델타 census: apps/web 앵커 b2979a65(#4791, c3801 BoardActions Enter) 이후 apps/web·DESIGN.md 커밋 0건 — 단 aesthetic 라운드는 델타 0 에서도 fresh-axis 탐침 수행(c3781 관례). fresh 축 3건 탐침: (1) **로딩 라벨 문형** — "…중..." 라벨 10곳 전수(저장 중/생성 중/등록 중/로그아웃 중/처리 중/리다이렉트 중/썸네일 추출 중 등) 전부 "동사(구) + 중..." 문형 균일 → 비이슈. (2) **target=_blank 외부 링크** — 2곳 전수(pins/[id]:221 rel="noopener noreferrer"·PinCard:114 window.open noopener,noreferrer) 전부 rel 보안 어휘 동반 균일 → 비이슈(L279 링크 목적 축 기커버와 별개 확인). (3) **외부 이미지 onError degrade** — 보유 5곳(PinCard:88/:167/:178·SearchBar:284·ProfileEditForm:105, 전부 display:none hide idiom) vs 동종 표면 부재 7곳(NavBar:61·pins/[id]:43/:202·SearchClient:328·ProfileHeader:18·BoardCover:34·AddToBoardButton:313). 아바타 역할 6곳 중 2곳만·og_image/미디어 역할 5곳 중 2곳만 보유 — 동일 엔티티(creator avatar)가 PinCard 에선 hide·pins 상세/ProfileHeader/SearchClient 에선 broken glyph 로 역할 경계와 무관하게 갈림. PinCard:88·SearchBar:284 코멘트가 스스로 근거 문서화(harvester cache TTL eviction → broken glyph 방지)인데 동일 실패 모드의 BoardCover cover_images·pins/[id] media_url 미처리.

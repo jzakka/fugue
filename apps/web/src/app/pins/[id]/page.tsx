@@ -7,6 +7,7 @@ import PinCard from "@/components/feed/PinCard";
 import MasonryGrid from "@/components/feed/MasonryGrid";
 import PinDetailTracker from "./PinDetailTracker";
 import AddToBoardButton from "@/components/board/AddToBoardButton";
+import HideOnErrorImage from "@/components/ui/HideOnErrorImage";
 import { getAuthUser } from "@/lib/auth";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -40,7 +41,7 @@ function MediaPlayer({ pin }: { pin: Pin }) {
     case "image":
       return (
         <div className="overflow-hidden">
-          <img
+          <HideOnErrorImage
             src={pin.media_url}
             alt={pin.title}
             className="w-full object-cover max-h-[480px]"
@@ -199,7 +200,7 @@ export default async function PinDetailPage({ params }: Props) {
                 className="flex items-center gap-3 group"
               >
                 {pin.creator.avatar_url ? (
-                  <img
+                  <HideOnErrorImage
                     src={pin.creator.avatar_url}
                     alt=""
                     className="w-10 h-10 rounded-full border-2 border-border object-cover group-hover:border-accent group-focus-visible:border-accent transition-colors"

@@ -36,6 +36,9 @@ export default function BoardCover({ images }: { images: string[] }) {
             alt=""
             className="w-full h-full object-cover"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
           />
         </div>
       ))}

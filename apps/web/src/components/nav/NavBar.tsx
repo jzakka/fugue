@@ -1,3 +1,4 @@
+import HideOnErrorImage from "@/components/ui/HideOnErrorImage";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import LogoutButton from "@/components/auth/LogoutButton";
 import SearchBar from "@/components/nav/SearchBar";
@@ -58,7 +59,7 @@ export default async function NavBar() {
                   className="flex items-center gap-2 group"
                 >
                   {user.avatar_url ? (
-                    <img
+                    <HideOnErrorImage
                       src={user.avatar_url}
                       alt=""
                       className="w-9 h-9 rounded-full border-2 border-border object-cover group-hover:border-accent group-focus-visible:border-accent transition-colors"
