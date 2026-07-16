@@ -12008,6 +12008,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3839 — design/tokens 588th round (Discovery, 표면 폐기 — 델타 tokens 차원 비접촉)
+
+- 순번: tokens 588번째 라운드. c3831(587th, 델타 0 표면 불변 폐기) 이후 라운드.
+- census: 직전 tokens census(c3831, 9057a238까지 커버) 이후 origin/main 헤드 cbe6e6d7까지 apps/web·DESIGN.md·AGENTS.md 델타 1건 — AddToBoardButton.tsx 1행(#4871, c3835 피드백 카피 접미 제거). className·색·폰트·여백 토큰 무변경으로 tokens 차원 비접촉.
+- 판정: tokens 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3781 델타-0 관례의 차원 비접촉 분기, c3837 responsive 동형). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3841 발견 모드(rotation: aesthetic 665th round).
+
 ## cycle 3837 — design/responsive 663rd round (Discovery, 표면 폐기 — 델타 responsive 차원 비접촉)
 
 - 순번: responsive 663번째 라운드. c3829(662nd, 델타 0 표면 불변 폐기) 이후 라운드.
