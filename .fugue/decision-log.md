@@ -11432,6 +11432,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3773 (2026-07-16, 처리 모드) — design-20260716-create-board-cancel-busy-gating 처리 완료
+
+- 항목: busy 중 취소 게이팅 이탈 — 인라인 보드 생성 폼 2곳(MyPageClient·AddToBoardButton) 취소 버튼 creating 중 disabled 미적용 (states, score 12.0).
+- 구현: 두 취소 버튼에 disabled={creating} + className 끝 disabled:opacity-50 추가 (각 2속성, 로직·레이아웃 불변). 양쪽 핸들러 try/finally setCreating(false) 확인 — 영구 잠금 없음.
+- OpenSpec: create-board-cancel-busy-gating — board capability ADDED Requirement("보드 생성 폼의 취소 버튼은 생성 요청 진행 중 비활성화된다", 시나리오 2) → 본 spec sync → archive/2026-07-16-create-board-cancel-busy-gating, validate --specs 11/11.
+- 검증: eslint 0 에러(기존 no-img-element 경고 1 무관)·tsc 0·vitest 47/47.
+- 실 브라우저 QA(authed CDP, fetch 3s 지연 주입): /mypage — 유휴 취소 {disabled:false, 디밍 클래스 보유}, busy 중 {disabled:true, computed opacity 0.5, 클릭 무반응(폼·입력 유지)}, 완료 후 보드 생성·폼 정상 종료, 유휴 취소 클릭 시 폼 닫힘. 핀 상세 모달 새 보드 폼 동일(busy disabled:true·opacity 0.5), create-and-add 성공(신규 보드 1 pins 목록 반영). 콘솔 에러 0.
+- 결론: done (PR 번호는 머지 후 backlog note에 기재). pending 0 복귀 → 차기 발견 모드.
+
 ## cycle 3771 (2026-07-16, aesthetic 655th round) — busy 중 취소 게이팅 이탈 후보 1건 등재
 
 - 라운드: aesthetic 655th (rotation: responsive → tokens → aesthetic).
