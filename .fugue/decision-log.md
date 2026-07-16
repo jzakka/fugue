@@ -12020,6 +12020,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3841 — design/aesthetic 665th round (Discovery, 표면 폐기 — fresh 축 3건 전원 격리/균일/경계 일치)
+
+관찰: pending 0 → 발견 모드, rotation aesthetic(665th). 직전 aesthetic census(c3833) 이후 델타 1건(#4871 AddToBoardButton 카피 접미 제거 — c3833 등재 후보의 처리 결과 자체)뿐이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침(기커버 사전 확인: 진행 라벨 L1884·수치 포맷 L1890·종결 부호 L1892·핀 카운트 단위 L1893·버튼 순서 L1896·빈 상태 저작 L1894·maxLength L110·aria-label 계열 L404 등 제외 후 선정). (1) **날짜/시간 표기 채널** — 날짜 렌더 전수 1곳(SearchClient:344 toLocaleDateString("ko-KR")), 상대시간·타 포맷 0건 — 단일 사이트 격리 폐기. (2) **모달 제목 문형 채널** — role=dialog 전수 2곳(VideoTrimModal:208 "비디오 구간 선택"·AddToBoardButton:250 "보드에 추가") 동작명사형·무부호 균일, 조사 차이는 의미역 문법 결정론 — divergence 0 폐기. (3) **파일 크기 표기 채널** — formatSize(실측 toFixed(1))·validation.ts 한도(정수 MB) 무공백 대문자 단위 균일, 소수 갈림은 실측/한도 역할 경계 결정론 — FP 폐기.
+결정/변경: 후보 0건. 폐기 3축 anti-patterns baseline 등재. 코드 무변경(문서 2종만). DESIGN.md·AGENTS.md·CLAUDE.md 세 축 모두 무규정(미명시 취향 비이슈, 루프 규칙 L9).
+차기: cycle 3843 발견 모드(rotation: responsive 664th round).
+
 ## cycle 3839 — design/tokens 588th round (Discovery, 표면 폐기 — 델타 tokens 차원 비접촉)
 
 - 순번: tokens 588번째 라운드. c3831(587th, 델타 0 표면 불변 폐기) 이후 라운드.
