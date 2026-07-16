@@ -11432,6 +11432,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3779 (2026-07-16, aesthetic 656th round) — 3축 프로브 전부 사망, 후보 0건
+
+- 라운드: aesthetic 656th (rotation: responsive → tokens → aesthetic).
+- 프로브 1 — aria-label 카피 문형: anti-patterns aria-label 관련 baseline 38건(접근성 이름 L84·로딩 라벨 census L93 등)으로 기커버 → 버림.
+- 프로브 2 — 날짜 표기: toLocaleDateString 사용처 SearchClient:341 단 1곳 — 모집단 1이라 갈림 불가(uniform by singleton) → 사망.
+- 프로브 3 — 핀 카운트 단위 표기: "{pin_count} pins" 5곳(boards/[id]:66·BoardGrid:30·AddToBoardButton:343·MyPageClient:157·ProfileHeader:49) 전수 동일 템플릿, divergence 0. "1 pins" 복수형 문법 이슈는 표면 간 갈림이 아니라 균일 표기의 기능 개선 영역(DESIGN.md 카피 silent → L9 취향) → 비이슈. TagFilter bare number는 칩 role 분리. anti-patterns L(신규, cycle 3779 baseline)로 등재.
+- 결론: 후보 0건. 신규 baseline 1건(핀 카운트 단위 표기 채널).
+
 ## cycle 3777 (2026-07-16, tokens 579th round) — 델타 어휘 정합 폐기, 후보 0건
 
 - 라운드: tokens 579th (rotation: responsive → tokens → aesthetic).
