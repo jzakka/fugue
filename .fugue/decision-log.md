@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4532 — 봇: bot/openspec 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
+- 조사: 신규 0건. 잔여 7건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496)은 계수 완료된 디자인 트랙 변경이며 bot 코드 비접촉
+- 판정: 직전 봇 census(4520) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 4534 (직전 4522 covered). validate + openspec 표면 freeze check 예정 (validate baseline 14)
+
 ### cycle 4530 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api (loop/design-loop 커밋 제외 필터)
 - 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
