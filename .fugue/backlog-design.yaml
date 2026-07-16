@@ -3540,3 +3540,23 @@ items:
     status: done
     pr: 4736
     note: "AddToBoardButton:200 카피를 '보드 추가에 실패했습니다. 다시 시도해주세요'로 정렬. CDP 실 브라우저 QA(500/409/200 유도) 통과."
+  - id: "design-20260716-pincreate-submit-cta-noun-form"
+    title: "제출 CTA 어형 이탈 — PinCreateForm '등록하기'만 ~하기형, role-identical 폼 제출 CTA 5곳은 전부 명사형('저장'×2·'생성'·'생성 및 추가'·'선택 완료')"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:665"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:100"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:129"
+        - "apps/web/src/components/profile/MyPageClient.tsx:124"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:386"
+        - "apps/web/src/components/pin/VideoTrimModal.tsx:307"
+      cite: "DESIGN.md 어형 미규정이나 c3737(어체 PR #4730)·c3745(실패 문형 PR #4736) 선례 — role-identical 카피 지배 관례 정렬은 L7 '디자인 시스템 일관성' 범위. 폼 제출 CTA census: 명사형 5곳('저장' BoardActions:100·ProfileEditForm:129, '생성' MyPageClient:124, '생성 및 추가' AddToBoardButton:386, '선택 완료' VideoTrimModal:307) vs ~하기형 1곳('등록하기' PinCreateForm:665). busy 짝 대칭 논거: 타 표면은 'X'↔'X 중...' 짝(저장↔저장 중...·생성↔생성 중...)인데 본 표면만 '등록하기'↔'등록 중...' 비대칭 — '등록' 정렬 시 짝 복원. c24593 버튼 순서 FP(컨텍스트-상관 분기·양립 관례)와 달리 동일 클래스(폼 제출 CTA) 내 무상관 단독 이탈. decision-log:11578에서 CTA 동사형 축 미기재(fresh) 확인."
+      repro: "/pin/new 제출 버튼 라벨이 '등록하기'. 타 폼 제출 버튼은 전부 명사형."
+    qa_plan: "dev 서버 + 실 브라우저: (1) /pin/new 렌더 → 제출 버튼 라벨 '등록' 확인. (2) 제출 경로에서 '등록 중...' busy 라벨·disabled·aria-busy 무변경. (3) 취소 버튼·폼 레이아웃 회귀 없음, 콘솔 에러 0. (4) 인접 폼(ProfileEditForm '저장') 회귀 없음."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
