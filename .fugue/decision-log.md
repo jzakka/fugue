@@ -12122,7 +12122,7 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
-## cycle 3849 — design 처리 모드 (design-20260716-dynamic-name-quote-glyph, PR #0000)
+## cycle 3849 — design 처리 모드 (design-20260716-dynamic-name-quote-glyph, PR #4907)
 
 - 변경: AddToBoardButton.tsx:194 보드 추가 성공 피드백 보드명 인용부호 직선(")→곡선따옴표(“ ”) 단일 지점 교체 — 가시 카피 지배 관례(SearchClient:233 헤딩·:413 EmptyState) 정렬. 대안 기각: SearchClient 역정렬(지배 관례 2:1 곡선), 인용 헬퍼 공통화(3표면 1행에 과잉, c3835 Decision 1 동형). head 메타(search/page.tsx:23/:25 직선)는 비가시 채널로 유지. OpenSpec `dynamic-name-quote-glyph` 아카이브(board 델타 ADDED: 성공 안내 보드명 인용 표기 = 가시 카피 인용 표기, main spec 동기화).
 - QA(authed CDP, dev 실기동): 성공 피드백 '“qa-3849-quote” 보드에 추가했습니다' 곡선 렌더·직선따옴표 부재(새 보드 생성-추가 플로우), 409 중복 카피 무변경, 실패 카피 무변경(fetch 500 강제 '보드 추가에 실패했습니다'), 검색 헤딩 곡선 회귀 없음, EmptyState 곡선 확인 — 초회 NO_EMPTY_MSG 는 QA 생성 보드(qa-3849-quote)가 'qa3849noresult' 검색에 매칭된 데이터 오염으로 판명, 무오염 쿼리(zzxqv98w17) 재검증 PASS. 콘솔 에러 0. tsc 0·vitest 47 pass.

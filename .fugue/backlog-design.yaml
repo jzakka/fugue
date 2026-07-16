@@ -3688,5 +3688,5 @@ items:
     risk: 1
     score: 6.0
     status: done
-    pr: 0
+    pr: 4907
     note: "cycle 3849 처리. AddToBoardButton:194 성공 피드백 보드명 인용부호 직선→곡선따옴표(“ ”) 단일 지점 교체. board 스펙 ADDED(성공 안내 보드명 인용 표기 = 가시 카피 인용 표기) 동기화. 실 브라우저 CDP QA 통과: 성공 피드백 '“보드명” 보드에 추가했습니다' 곡선 렌더·직선따옴표 부재, 409 중복·실패 카피 무변경(fetch 500 강제), 검색 헤딩·EmptyState 곡선따옴표 회귀 없음(오염 없는 쿼리 재검증 포함), 콘솔 에러 0. tsc 0·vitest 47 pass."
