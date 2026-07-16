@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3753 — design/responsive 651st round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
+
+- 순번: responsive 651번째 라운드. c3739(649th) 축 공간 전수 탐침 + c3747(650th) 델타 census 이후 라운드.
+- census: apps/web 델타 전수 = a4a07374(#4736) 이후 0 커밋(#4737~#4739는 .fugue/decision-log.md 단독). #4736 자체는 c3747에서 responsive 비접촉(카피 1행) 기판정. 신규 responsive 표면 유입 0.
+- 판단: 표면 폐기 — 후보 0건. 표면 불변이므로 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3755 발견 모드(rotation: tokens 576th round).
+
 ## cycle 3751 — design/aesthetic 652nd round (Discovery, 표면 폐기 — 후보 0건)
 
 - 순번: aesthetic 652번째 라운드. c3743(651st)이 실패 카피 지배 문형 census로 AddToBoardButton 후보 등재(→c3745 처리 완료) → 이번 라운드는 신규 축 4개 탐침 + 델타 검사.
