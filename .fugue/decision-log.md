@@ -11768,6 +11768,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3817 — design/responsive 660th round (Discovery, 표면 폐기 — 델타 responsive 비접촉)
+
+- 순번: responsive 660번째 라운드. c3809(659th, 델타 0 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive census(c3809, aaf176c5까지 커버) 이후 origin/main 헤드 caa59a0e까지 apps/web·DESIGN.md·AGENTS.md 델타 전수 = 6a6846b7(#4823, c3815 처리분) 1건 — HideOnErrorImage.tsx 신설 + 6파일 img→onError degrade 정렬. 디프 추가 라인의 className 문자열은 기존 img 속성 원문 그대로 이동(시각·레이아웃 불변), 신규 BP-접두 유틸(sm:/md:/lg:)·@media·grid-cols·flex-wrap·min-w·임의 크기 리터럴 도입 0건. 잔여 22커밋은 전부 상태 파일(decision-log·anti-patterns·backlog) chore.
+- 판정: 표면 폐기 — 후보 0건. 델타가 이미지 로드 실패 degrade(aesthetic 처리분) 차원만 접촉하고 responsive 차원(BP 전이·유체·컨테이너 분기) 비접촉이므로 responsive 표면 불변, 기존 전수 census 유효(c3803 동형 관례). 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3819 발견 모드(rotation: tokens 585th round).
+
 ## cycle 3815 — design/처리 모드 (design-20260716-img-onerror-degrade-partial 완료, PR #4823)
 
 - 변경: 외부 이미지 onError degrade 를 부재 7표면에 정렬 — 서버 컴포넌트 4표면(NavBar:61·pins/[id]:43/:202·ProfileHeader:18)은 신규 클라이언트 컴포넌트 `ui/HideOnErrorImage`(ImgHTMLAttributes 스프레드+display:none hide)로 교체, 클라이언트 3표면(SearchClient:328·BoardCover:34·AddToBoardButton:313)은 인라인 onError hide 추가. 아바타 gradient 폴백 전환은 미채택(hide 단일 — 지배 관례 정렬 최소 변경, 보수 원칙). OpenSpec `img-onerror-degrade` 아카이브+profile/pin/board 스펙 동기화.
