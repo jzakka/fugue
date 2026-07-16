@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3749 — design/tokens 575th round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
+
+- 순번: tokens 575번째 라운드. c3741(574th)이 신규 축(currentColor/var fallback/z-index/shadow/accent-color/caret-color/::selection/color-scheme/SVG/CSS-wide keywords) 전수 탐침 완료 → 이번 라운드는 census 앵커 이후 델타 검사.
+- census: 앵커 b65fd96a(c3741 PR #4734) 이후 apps/web 델타 전수 = a4a07374(#4736) AddToBoardButton.tsx 1행 — 실패 카피 문자열만 변경, 색/폰트/여백/클래스 토큰 어휘 비접촉. 신규 tokens 표면 유입 0.
+- 판단: 표면 폐기 — 후보 0건. 표면 불변이므로 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3751 발견 모드(rotation: aesthetic 652nd round).
+
 ## cycle 3747 — design/responsive 650th round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
 
 - 순번: responsive 650번째 라운드. c3739(649th)가 축 공간 40여 개 전수 탐침으로 전부 기왕 baseline 귀속 판정 완료 → 이번 라운드는 census 앵커 이후 델타 검사.
