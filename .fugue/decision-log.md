@@ -11552,6 +11552,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3799 — design/aesthetic 659th round (Discovery, 후보 1건 등재)
+
+- 순번: aesthetic 659번째 라운드. c3793(658th, 빈 상태 저작 채널 role-bound baseline) 이후 라운드. apps/web 델타 cd3afab6(#4762) 이후 0 → 신선 축 프로브.
+- 축 선택: 제출형 텍스트 입력의 Enter 제출 어포던스. 기각 후보(전부 기커버 확인): 스피너 저작 채널(L39/L80/L300)·에러 배너 채널(L200/L1871)·maxLength 카운터(L110)·cursor 어포던스(L528)·disabled 시각(L51/L70/L493)·enterKeyHint(L552).
+- 프로브: 제출형 입력 전수 6표면 — native form 2곳(PinCreateForm:319·ProfileEditForm:49, Enter 암시적 제출)·onKeyDown Enter 3곳(MyPageClient:124·AddToBoardButton:372·SearchBar:166) = 5곳 Enter 제출 가능 vs BoardActions 보드 편집 폼(:74/:85)만 Enter 무반응. MyPageClient 보드 생성 폼과 idiom·엔티티 동일한데 거동만 갈림, ProfileEditForm(2-input 편집)이 native form 으로 Enter 가능해 다중 입력 역할 가설 불성립.
+- 등재: design-20260716-board-edit-enter-submit-affordance (impact 3·confidence 4·effort 1·risk 1·score 12.0). decision-log 내 BoardActions Enter 관련 기결정 없음 확인.
+- 차기: cycle 3801 처리 모드(top-1 = 위 후보).
+
+
 ## cycle 3797 — design/tokens 582nd round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 582번째 라운드. c3791(581st, #4762 델타 토큰 정합 폐기) 이후 라운드.

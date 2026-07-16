@@ -3602,3 +3602,23 @@ items:
     status: done
     pr: 4762
     note: "NavBar·MyPageClient 텍스트 '+' 접두를 aria-hidden SVG plus(14/12px)로 교체, inline-flex 병치. CDP 실 브라우저 QA(접근 이름 '핀 생성'/'새 보드'·SVG aria-hidden·pill 시각·aria-expanded 토글·/pin/new 내비게이션·AddToBoardButton 비접촉·콘솔 0) 통과."
+  - id: "design-20260716-board-edit-enter-submit-affordance"
+    title: "Enter 제출 어포던스 역할 내 갈림 — 제출형 텍스트 입력 6표면 중 BoardActions 보드 편집 폼만 Enter 키 제출 불가 (지배 관례 5/6 정렬)"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:74-92"
+        - "apps/web/src/components/profile/MyPageClient.tsx:124-129"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:372-378"
+        - "apps/web/src/components/nav/SearchBar.tsx:165-170"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:48-49"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:319"
+      cite: "제출형 텍스트 입력 표면 전수 6곳 census: native <form onSubmit>+type=submit 2곳(PinCreateForm:319/:660·ProfileEditForm:49/:124 — Enter 암시적 제출)·onKeyDown Enter 핸들러 3곳(MyPageClient:124 보드 생성 handleCreate·AddToBoardButton:372 보드 생성 handleCreateAndAdd·SearchBar:166 검색 handleSubmit) = 5곳 Enter 제출 가능. BoardActions 보드 편집 폼(:74 이름·:85 설명)만 비-form div 저작 + onKeyDown 부재로 Enter 무반응. 특히 MyPageClient 보드 생성 폼과 input/button className idiom·엔티티(보드명)가 동일한데 Enter 거동만 갈리고, ProfileEditForm 이 2-input 편집 폼인데 native form 으로 Enter 제출 가능해 '다중 입력 편집 폼이라 Enter 미지원' 역할 가설 불성립. anti-patterns 비커버(L552 는 가상 키보드 enterKeyHint 라벨 힌트 차원·L322 는 onChange 자동제출 차원·L341 은 단일 문자 단축키 차원). DESIGN.md 직접 규정은 없으나(105줄) 동일 역할 표면 6곳 중 5곳 지배 관례 정렬 — c3785 plus 채널과 동형의 역할 내 갈림."
+      repro: "/boards/<id> 에서 편집 클릭 → 보드 이름 입력에서 Enter → 아무 일도 안 일어남. /mypage 새 보드 입력에서 Enter → 즉시 생성."
+    qa_plan: "dev 서버 + authed CDP: (1) /boards/<id> 편집 모드 → 이름 입력 Enter → handleSave 실행(편집 모드 종료·변경 반영·콘솔 에러 0). (2) 설명 입력 Enter 도 동일 저장. (3) saving 중 Enter 중복 제출 없음(disabled 게이팅). (4) 인접 /mypage 보드 생성 폼 Enter 회귀 없음."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
