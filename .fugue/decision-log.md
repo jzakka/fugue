@@ -11432,6 +11432,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3759 — design/aesthetic 처리 — PinCreateForm 제출 CTA 어형 명사형 정렬 (PR #4743)
+
+- 변경: PinCreateForm.tsx:665 유휴 제출 라벨 "등록하기" → "등록" (1행 문자열). 폼 제출 CTA 지배 관례(명사형 5곳: 저장×2·생성·생성 및 추가·선택 완료)로 정렬, busy 짝 "등록" ↔ "등록 중..." 대칭 복원. OpenSpec `pincreate-submit-cta-noun-form` 아카이브(pin 스펙에 제출 CTA 명사형 요구사항 추가).
+- QA(CDP 실 브라우저, 인증 쿠키 주입): /pin/new 제출 버튼 라벨 "등록"·"등록하기" 잔존 0·aria-busy/disabled 무변경·빈 폼 클릭 시 HTML 검증 차단 정상·콘솔 에러 0, 인접 /mypage 편집 폼 "저장"/"취소" 회귀 없음. lint 0/tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드(rotation: responsive 652nd round).
+
 ## cycle 3757 — design/aesthetic 653rd round (Discovery, 후보 1건 등재)
 
 - 순번: aesthetic 653번째 라운드. 탐침 2축: (1) 진행 카피 census — 가시 채널 "X 중..."·aria 채널 "~중" 각 채널 내 균일, 이탈 0 → 사장. (2) CTA 어형 census — decision-log:11578에서 CTA 동사형 축 미기재(fresh) 확인 후 탐침.

@@ -662,7 +662,7 @@ export default function PinCreateForm() {
             aria-busy={isDisabled}
             className="px-6 py-2.5 bg-accent text-white rounded-full text-sm font-semibold hover:bg-accent-hover focus-visible:bg-accent-hover transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {submitting ? "등록 중..." : optimizing ? "처리 중..." : "등록하기"}
+            {submitting ? "등록 중..." : optimizing ? "처리 중..." : "등록"}
           </button>
         </div>
       </form>
