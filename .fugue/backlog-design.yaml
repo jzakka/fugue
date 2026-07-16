@@ -3621,4 +3621,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 0
+    note: "BoardActions 편집 폼 이름·설명 입력에 onKeyDown Enter → handleSave 추가(MyPageClient:124 idiom). CDP 실 브라우저 QA 14/14(이름 Enter 저장·편집 종료·타이틀 반영, 설명 Enter 저장, 빈 이름 Enter 검증 에러 유지, /mypage 생성 폼 Enter 회귀 없음, 콘솔 0) 통과. lint 0·tsc 0·vitest 47/47."

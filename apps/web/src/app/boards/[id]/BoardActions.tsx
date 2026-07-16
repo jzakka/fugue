@@ -81,6 +81,12 @@ export default function BoardActions({
           aria-invalid={!!error && !name.trim()}
           aria-describedby={error ? "board-name-error" : undefined}
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSave();
+            }
+          }}
         />
         <input
           type="text"
@@ -89,6 +95,12 @@ export default function BoardActions({
           placeholder="보드 설명 (선택)"
           aria-label="보드 설명"
           className="w-full px-3 py-2 bg-bg border border-border rounded-[6px] text-sm text-text-primary outline-none focus:border-accent transition-colors"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSave();
+            }
+          }}
         />
         <div className="flex gap-2">
           <button
