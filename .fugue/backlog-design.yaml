@@ -3651,3 +3651,21 @@ items:
     status: done
     pr: 4823
     note: "cycle 3815 처리 완료. 서버 컴포넌트 4표면은 HideOnErrorImage 클라이언트 컴포넌트로 교체, 클라이언트 3표면은 인라인 onError hide 추가(지배 관례 display:none 정렬, 아바타 gradient 폴백 전환은 스코프 최소화로 미채택 — hide 단일). QA: authed CDP 로 7표면 각각 src 깨진 URL 치환 → 전부 computed display:none 확인, 기존 PinCard avatar 거동 무변경, 정상 렌더 회귀 없음, 콘솔 에러 0."
+  - id: "design-20260716-error-retry-suffix-align"
+    title: "재시도 유도 접미('. 다시 시도해주세요') 동일 feedback 채널 내 갈림 — AddToBoardButton 보드 추가 실패엔 접미, 같은 setFeedback 채널의 보드 생성 실패엔 무접미"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:200"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:223"
+        - "apps/web/src/app/login/page.tsx:8"
+        - "apps/web/src/app/login/page.tsx:29"
+      cite: "에러 카피 전수 13곳 census: 지배 관례는 무접미 사실 서술형 '…에 실패했습니다/할 수 없습니다' 10곳(PinCreateForm:115/:142/:289·BoardActions:41/:56·AddToBoardButton:223·MyPageClient:49·ProfileEditForm:40·lib/media/image.ts:63·video.ts:14). 접미 보유 3곳 중 login:8/:29 는 OAuth 리다이렉트 왕복 실패의 페이지 층위(경계 정합·스코프 외)이나, AddToBoardButton:200 '보드 추가에 실패했습니다. 다시 시도해주세요' 는 :223 '보드 생성에 실패했습니다' 와 동일 컴포넌트·동일 모달·동일 setFeedback({type:\"error\"}) 채널·동일 재시도가능 mutation 실패 범주인데 접미가 갈림 — 층위/역할/채널 어느 경계로도 설명 불가(경계 결정론 반증). 같은 함수의 409 분기 '이미 이 보드에 추가된 핀입니다'(:199)도 무접미."
+      repro: "핀 상세 → 보드에 추가 모달에서 보드 추가 실패 시(네트워크 차단) '…다시 시도해주세요' 접미 노출, 같은 모달에서 새 보드 생성 실패 시 접미 없는 메시지 — 동일 feedback 영역에서 카피 문형이 갈림."
+    qa_plan: "dev 서버 + authed CDP: (1) 핀 상세 모달에서 addBoardPin fetch 를 실패로 강제(CDP Network 차단 또는 fetch 모킹) → feedback 메시지가 무접미 '보드 추가에 실패했습니다' 로 정렬 확인. (2) 보드 생성 실패 메시지 기존 무접미 유지. (3) 정상 추가/생성 성공 플로우 회귀 없음. (4) login 페이지 에러 카피 무변경. (5) 콘솔 에러 0."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
