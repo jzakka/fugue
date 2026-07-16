@@ -11510,6 +11510,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3793 — design/aesthetic 658th round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 등재)
+
+- 순번: aesthetic 658번째 라운드. c3785(657th, plus 채널 후보 등재→c3787 처리 #4762) 이후 라운드. apps/web 델타 = #4762 자체(채널 정렬 완료분)뿐 → 신선 축 프로브.
+- 축 선택: 빈 상태(empty state)의 저작 채널 — 공유 EmptyState 컴포넌트 vs 인라인 status 텍스트. 기각 후보(전부 기커버 확인): 내비 트리거 채널(L1877)·성공 피드백 lifetime(L139)·스피너/스켈레톤 로딩 채널(L39)·transition duration 토큰(L148/L589)·포커스 링(L72)·confirm() 다이얼로그(N=1 singleton)·빈 상태 어체(기존 emptystate-speech-level 처리분).
+- 프로브: (1) 페이지/섹션 레벨 빈 상태 전수 7곳/7파일 전부 공유 EmptyState(마스코트 🐡+py-16 중앙) — search/page:75·SearchClient:409·boards/[id]:92·AddToBoardButton:300·MyPageClient:156·PinsGrid:146·FeedContainer:165. (2) 드롭다운 마이크로 빈 상태 전수 2곳(PinCreateForm:636 태그 자동완성·SearchBar:258 검색 드롭다운) 전부 인라인 role=status aria-live=polite+py-4 중앙+text-text-dim 동일 idiom(폰트 크기는 각 드롭다운 항목 스케일 정합). (3) 동일 층위 채널 교차 0. (4) DESIGN.md L14 마스코트 빈 상태 규정과 정합 — L19 baseline 이 드롭다운을 마스코트 범위에서 면제 기판정.
+- 결정: 표면 폐기 — 후보 0건. 두 채널이 표면 층위(페이지/섹션 vs 드롭다운) 경계로 완전 분할된 role-bound 라 "채널 혼용" 가정 결함. anti-patterns 신규 baseline 등재(빈 상태 저작 채널).
+- 차기: cycle 3795 발견 모드(rotation: responsive 657th round).
+
+
 ## cycle 3791 — design/tokens 581st round (Discovery, 표면 폐기 — 후보 0건·델타 토큰 정합)
 
 - 순번: tokens 581번째 라운드. c3783(580th, 델타 0) 이후 라운드.
