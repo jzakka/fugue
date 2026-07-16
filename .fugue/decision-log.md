@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4436 — 봇: bot/openspec 표면 freeze check → 신규 3건 조사, bot 갭 없음 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
+- 조사: 신규 3건 a4a07374(#4736), cb52ec72(#4743), 22c39f2b(#4750) = 모두 apps/web 전용 디자인 트랙 변경 + openspec 체인지·스펙 동기화, bot 코드 비접촉. validate 14 passed 0 failed (baseline 14 유지). 기존 잔여 3건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376)도 계수 완료분
+- 판정: 직전 봇 census(4424) 이후 bot 코드 표면 불변, 신규 3건은 봇 갭 아님 → covered. a4a07374·cb52ec72·22c39f2b 계수 완료로 이후 census에서 제외 (잔여 총 6건)
+- 차기: rotation OpenSpec갭 cycle 4438 (직전 4426 covered). validate + openspec 표면 freeze check 예정 (validate baseline 14)
+
 ### cycle 4434 — 동시성: apps/api freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api (loop/design-loop 커밋 제외 필터)
 - 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
