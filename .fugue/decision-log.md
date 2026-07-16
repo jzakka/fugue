@@ -11432,6 +11432,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3747 — design/responsive 650th round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
+
+- 순번: responsive 650번째 라운드. c3739(649th)가 축 공간 40여 개 전수 탐침으로 전부 기왕 baseline 귀속 판정 완료 → 이번 라운드는 census 앵커 이후 델타 검사.
+- census: 앵커 b74b7283(c3739 PR #4733) 이후 apps/web 델타 전수 = a4a07374(#4736) AddToBoardButton.tsx 1행 — 실패 카피 문자열만 변경, className/브레이크포인트/레이아웃 비접촉. 신규 responsive 표면 유입 0.
+- 판단: 표면 폐기 — 후보 0건. 표면 불변이므로 신규 baseline 미기록(중복 등재 방지).
+- 부수 판정(§5 회색지대): AGENTS.md 워크플로우 규칙 "PR을 절대 생성하지 않는다"(b8599c2b, 구식)와 루프 프로토콜(prompts/loop-design.md step 8-9 `gh pr create`+merge-on-green, 매 반복 재주입되는 사용자 지시 "PR, main 머지까지 진행한다") 충돌 발견 → 프로토콜 우선으로 판정. 근거: 사용자 지시가 더 최신·구체적이며 decision-log에 PR 선례 548건 누적. 본 루프는 계속 PR+merge-on-green 워크플로우를 따른다.
+- 차기: cycle 3749 발견 모드(rotation: tokens 575th round).
+
 ## cycle 3745 — design/aesthetic 처리 — AddToBoardButton 보드 추가 실패 카피 지배 문형 정렬 (PR #4736)
 
 - 결정/변경: `AddToBoardButton.tsx:200` "보드에 추가하지 못했습니다. 다시 시도해주세요" → "보드 추가에 실패했습니다. 다시 시도해주세요". OpenSpec `addtoboard-failure-copy-frame` — board capability에 실패 안내 문형 SHALL 추가 후 아카이브(2026-07-16).
