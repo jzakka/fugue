@@ -11990,6 +11990,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3837 — design/responsive 663rd round (Discovery, 표면 폐기 — 델타 responsive 차원 비접촉)
+
+- 순번: responsive 663번째 라운드. c3829(662nd, 델타 0 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive census(c3829, aea421a7까지 커버) 이후 origin/main 헤드 bf640877까지 apps/web·DESIGN.md·AGENTS.md 델타 1건 — AddToBoardButton.tsx 1행(#4871, c3835 피드백 문자열 접미 제거). 카피 축약은 동일 컨테이너 내 텍스트 단축으로 wrap/overflow 위험이 오히려 감소하며 브레이크포인트·레이아웃·치수 어느 responsive 차원도 건드리지 않음.
+- 판정: responsive 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3781 델타-0 관례의 차원 비접촉 분기). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3839 발견 모드(rotation: tokens 588th round).
+
 ## cycle 3835 — design 처리 모드 (design-20260716-error-retry-suffix-align, PR #4871)
 
 - 변경: AddToBoardButton.tsx:200 보드 추가 실패 fallback 메시지 ". 다시 시도해주세요" 접미 제거 → "보드 추가에 실패했습니다" — 지배 관례(무접미 사실 서술형 10/13) 정렬, 동일 모달 :223 보드 생성 실패 안내와 문형 일치. 409 분기·보드 생성 실패·login 페이지 카피(페이지 층위 경계) 무변경. OpenSpec `error-retry-suffix-align` 아카이브(board 델타 MODIFIED: 재시도 안내 SHALL 제거 → 동일 피드백 영역 문형 일치 SHALL + 문형 일치 시나리오 추가, 메인 스펙 동기화·validate 11/11).
