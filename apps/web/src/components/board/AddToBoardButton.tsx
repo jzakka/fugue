@@ -197,7 +197,7 @@ function BoardSelectModal({
       const message =
         err instanceof Error && err.message.includes("409")
           ? "이미 이 보드에 추가된 핀입니다"
-          : "보드 추가에 실패했습니다. 다시 시도해주세요";
+          : "보드 추가에 실패했습니다";
       setFeedback({ type: "error", message });
     } finally {
       setAdding(null);
