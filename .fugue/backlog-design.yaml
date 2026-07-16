@@ -3559,4 +3559,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    pr: 4743
+    note: "PinCreateForm:665 유휴 제출 라벨 '등록하기'→'등록' 정렬. CDP 실 브라우저 QA(라벨·aria-busy·인접 폼 '저장') 통과."
