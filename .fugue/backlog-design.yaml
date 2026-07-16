@@ -3668,4 +3668,6 @@ items:
     effort: 1
     risk: 1
     score: 6.0
-    status: pending
+    status: done
+    pr: 4871
+    note: "cycle 3835 처리. AddToBoardButton 보드 추가 실패 fallback 접미 제거('보드 추가에 실패했습니다'). board 스펙 MODIFIED(재시도 안내 SHALL → 동일 피드백 영역 문형 일치 SHALL) 동기화. 실 브라우저 CDP QA 16/16 PASS: 추가 실패 강제 무접미 정렬·생성 실패 문형 유지·정상 플로우 회귀 없음·콘솔 에러 0. tsc 0·vitest 47 pass."

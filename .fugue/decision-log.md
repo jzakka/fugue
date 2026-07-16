@@ -11984,6 +11984,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3835 — design 처리 모드 (design-20260716-error-retry-suffix-align, PR #4871)
+
+- 변경: AddToBoardButton.tsx:200 보드 추가 실패 fallback 메시지 ". 다시 시도해주세요" 접미 제거 → "보드 추가에 실패했습니다" — 지배 관례(무접미 사실 서술형 10/13) 정렬, 동일 모달 :223 보드 생성 실패 안내와 문형 일치. 409 분기·보드 생성 실패·login 페이지 카피(페이지 층위 경계) 무변경. OpenSpec `error-retry-suffix-align` 아카이브(board 델타 MODIFIED: 재시도 안내 SHALL 제거 → 동일 피드백 영역 문형 일치 SHALL + 문형 일치 시나리오 추가, 메인 스펙 동기화·validate 11/11).
+- QA(실 브라우저 CDP authed, 16/16 PASS): (1) POST /api/boards/{id}/pins 500 강제 → role=alert "보드 추가에 실패했습니다" 무접미 정렬·구 접미 부재. (2) createBoard 실패 강제 → "보드 생성에 실패했습니다" 문형 유지. (3) 정상 추가 성공 피드백 회귀 없음. (4) 콘솔 에러 0(강제 실패 노이즈 제외). tsc 0·vitest 47 pass. 부수: /tmp/jwt-3801.txt 만료 → dev secret(.env.dev)로 재발급 후 QA 진행.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3837, 663rd round(responsive).
+
 ## cycle 3833 — design/aesthetic 664th round (Discovery, 후보 1건 등록 — 재시도 유도 접미 동일 채널 내 갈림)
 
 관찰: pending 0 → 발견 모드, rotation aesthetic(664th). 델타 census: 직전 aesthetic census(c3827, 740ae430까지 커버) 이후 apps/web·DESIGN.md·AGENTS.md 델타 0건 — aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침(기커버 확인: 재시도 링크 어휘 L516·아이콘 크기 L306·성공 피드백 L139·따옴표 L413 제외 후 선정). (1) **에러 카피 톤/재시도 접미 채널** — 에러 카피 전수 13곳: 사과형 0(톤 자체는 사실 서술형 균일), 단 재시도 유도 접미 ". 다시 시도해주세요" 가 3곳(login:8/:29·AddToBoardButton:200) vs 무접미 10곳으로 갈림. login 2곳은 OAuth 왕복 실패 페이지 층위(경계 정합)이나 **AddToBoardButton:200 vs :223 은 동일 컴포넌트·동일 모달·동일 setFeedback 채널·동일 재시도가능 mutation 실패 범주 내 갈림**(코드 확인: 두 catch 모두 setFeedback({type:"error"}) 렌더) — 경계 결정론 반증, 등재. (2) **메타 텍스트 구분자 글리프 채널** — 구분자 사용 전수 1곳(VideoTrimModal:211) 격리 폐기. (3) **비로그인 게이트 어포던스 채널** — NavBar 핀 생성=숨김 vs AddToBoardButton=노출+redirect 갈림 실재하나 전역 크롬 vs 콘텐츠 액션 역할 경계 완전 일치 폐기.
