@@ -11654,6 +11654,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3807 — design/aesthetic 660th round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 2건 등재)
+
+- 순번: aesthetic 660번째 라운드. c3799(659th, Enter 어포던스 후보 등재→c3801 처리 #4791) 이후 라운드. apps/web 델타 = #4791 자체(처리 완료분)뿐 → 신선 축 프로브 3개.
+- 탐침 1(소멸형 UI Escape 어포던스): Escape 핸들러 전수 3곳(VideoTrimModal:60·AddToBoardButton:138·SearchBar:170) = 오버레이 층위 3/3 지원 vs 인라인 reveal 미니 폼(BoardActions 편집·MyPageClient 생성) 0/2 미지원 — 층위 경계 완전 분할 role-bound(인라인 폼은 가시 취소 버튼이 dismiss 채널, WAI-ARIA Esc 권장은 dialog 한정). 비이슈, baseline 등재.
+- 탐침 2(폼 액션 버튼 순서): 풀페이지/모달 3/3 취소→primary·justify-end·px-5 text-sm(PinCreateForm·VideoTrimModal·ProfileEditForm) vs 인라인 미니 폼 3/3 primary→취소·좌정렬·px-3 text-xs(BoardActions·MyPageClient·AddToBoardButton) — 폼 규모 결정론(AP200 동형), 군내 갈림 0. 비이슈, baseline 등재.
+- 탐침 3(필수/선택 마커): PinCreateForm 설명 미마킹 vs 원본URL·태그 "(선택)" 리드 재발견 → c783 기판정·c3751 탐침 4 기폐기·L128 baseline 매칭으로 버림(재등재 방지).
+- 판단: 표면 폐기 — 후보 0건. anti-patterns EOF 에 Escape 층위 결정론·버튼 순서 규모 결정론 baseline 2건 등재.
+- 차기: cycle 3809 발견 모드(rotation: responsive 659th round).
+
 ## cycle 3805 — design/tokens 583rd round (Discovery, 표면 폐기 — 델타 tokens 비접촉)
 
 - 순번: tokens 583번째 라운드. c3797(582nd, 델타 0 표면 불변 폐기) 이후 라운드.
