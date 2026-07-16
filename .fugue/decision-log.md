@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3777 (2026-07-16, tokens 579th round) — 델타 어휘 정합 폐기, 후보 0건
+
+- 라운드: tokens 579th (rotation: responsive → tokens → aesthetic).
+- 델타 census: 직전 tokens census(c3769) 이후 apps/web·DESIGN.md 델타는 22c39f2b(#4750) 단건 — 취소 버튼 2곳에 disabled 속성+`disabled:opacity-50` 클래스 추가.
+- 판정: 유일 추가 유틸 `disabled:opacity-50`은 anti-patterns L786 census가 확립한 비활성 디밍 지배 어휘(비활성 가능 버튼 16곳 전원 동일)와 정확히 일치 — 신규 토큰 도입·raw 값·어휘 분산 0. 오히려 어휘 수렴(+2곳). tokens 표면 실질 불변, c3769까지의 전수 census 유효.
+- 결론: 후보 0건. 신규 baseline 없음.
+
 ## cycle 3775 (2026-07-16, responsive 654th round) — 델타 표면 불변 폐기, 후보 0건
 
 - 라운드: responsive 654th (rotation: responsive → tokens → aesthetic).
