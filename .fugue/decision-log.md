@@ -11486,6 +11486,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3791 — design/tokens 581st round (Discovery, 표면 폐기 — 후보 0건·델타 토큰 정합)
+
+- 순번: tokens 581번째 라운드. c3783(580th, 델타 0) 이후 라운드.
+- census: 직전 tokens census(c3783) 이후 apps/web 델타 전수 = cd3afab6(#4762) NavBar.tsx·MyPageClient.tsx 2파일 — 유입 토큰 값 전수 검증: `gap-1.5`(기존 4곳 사용례 내)·`gap-1`(기존 다수)·SVG `strokeWidth="2"`(전수 15곳 균일, 비-2 값 0건 — L538 baseline 유지)·크기 14/12(기존 아이콘 크기 집합 {12×3·14×6·16×2·18×1} 내, L306 위계 정합)·`currentColor`(L1845 SVG 채널 균일 속성 유지)·`viewBox 24`(균일). 신규 토큰 정의·이탈 값·임의 리터럴 유입 0.
+- 판단: 표면 폐기 — 후보 0건. 델타가 기존 토큰 값 집합 내부만 사용해 tokens 차원 갈림 신설 0(L270 gap role-bound·L538 stroke-width·L306 크기 위계 baseline 전부 유지). 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3793 발견 모드(rotation: aesthetic 658th round).
+
+
 ## cycle 3789 — design/responsive 656th round (Discovery, 표면 폐기 — 후보 0건·델타 responsive 비접촉)
 
 - 순번: responsive 656번째 라운드. c3781(655th, 델타 0) 이후 라운드.
