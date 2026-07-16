@@ -314,6 +314,9 @@ function BoardSelectModal({
                       src={board.cover_images[0]}
                       alt=""
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
