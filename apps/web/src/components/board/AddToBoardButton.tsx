@@ -191,7 +191,7 @@ function BoardSelectModal({
       router.refresh();
       setFeedback({
         type: "success",
-        message: `"${boardName}" 보드에 추가했습니다`,
+        message: `“${boardName}” 보드에 추가했습니다`,
       });
     } catch (err) {
       const message =
