@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3775 (2026-07-16, responsive 654th round) — 델타 표면 불변 폐기, 후보 0건
+
+- 라운드: responsive 654th (rotation: responsive → tokens → aesthetic).
+- 델타 census: 직전 responsive census(c3767) 이후 apps/web·DESIGN.md 델타는 22c39f2b(#4750, c3773 처리분) 단건 — MyPageClient·AddToBoardButton 취소 버튼 2곳에 disabled 속성+disabled:opacity-50 추가(+4/-2행).
+- 판정: 변경이 states 채널(비활성 게이팅·디밍) 한정으로 브레이크포인트·레이아웃·크기·간격·타이포 스텝 무관 → responsive 표면 불변, c3767까지의 전수 census 유효. 재프로브 없이 폐기(중복 등재 방지).
+- 결론: 후보 0건. 신규 baseline 없음.
+
 ## cycle 3773 (2026-07-16, 처리 모드) — design-20260716-create-board-cancel-busy-gating 처리 완료
 
 - 항목: busy 중 취소 게이팅 이탈 — 인라인 보드 생성 폼 2곳(MyPageClient·AddToBoardButton) 취소 버튼 creating 중 disabled 미적용 (states, score 12.0).
