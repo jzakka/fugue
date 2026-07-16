@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4546 — OpenSpec갭: validate + openspec 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
+- 조사: 스펙·체인지 전체 validate 통과, baseline 14 유지. 잔여 8건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544)은 계수 완료된 디자인 트랙 변경
+- 판정: 직전 OpenSpec갭 census(4534) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 4548 (직전 4536 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 4544 — 봇: bot/openspec 표면 freeze check → 표면 신규 1건 계수 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop/design-loop 커밋 제외 필터)
 - 조사: 신규 1건 6a6846b7(#4823, 외부 이미지 onError degrade 7표면 정렬) = apps/web 컴포넌트 + openspec 아카이브 체인지(img-onerror-degrade) + board/pin/profile 스펙 델타 동기화. bot 코드 비접촉, validate 14 유지. 기존 잔여 7건과 합쳐 잔여 8건으로 갱신
