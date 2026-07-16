@@ -11444,6 +11444,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3785 — design/aesthetic 657th round (Discovery, 후보 1건 등재)
+
+- 순번: aesthetic 657번째 라운드. c3779(656th) 신선 축 3종 폐사 + 핀 카운트 단위 baseline 등재 이후 라운드. apps/web 델타 22c39f2b(#4750) 이후 0 → 신선 축 프로브.
+- 축 선택: 생성 트리거의 add-어포던스 plus 마크 저작 채널 — 같은 역할의 plus 마크를 텍스트 글리프 '+' 라벨 접두로 저작하나 aria-hidden 인라인 SVG 로 저작하나. 기각 후보: placeholder 문형(L128 어조·L150 optionality 기커버)·truncate/line-clamp 절단 저작 채널(L1872 기커버)·CTA 어형(c3757 기처리)·수치 표기(L1890)·종결 부호(L1892).
+- 프로브: (1) 생성 트리거 plus 마크 전수 3곳 — 텍스트 글리프 2(NavBar:37 '+ 핀 생성'·MyPageClient:80 '+ 새 보드') vs SVG 1(AddToBoardButton:405 새 보드 만들기, aria-hidden viewBox 24 currentColor strokeWidth 2). (2) L1845(c3615) baseline 검증: 당시 census 는 'plus ×2 전부 SVG'로 SVG 요소만 계수 — 텍스트 '+' 접두 2곳이 어느 모집단에도 미포함(글리프 모집단은 마스코트·배지 한정), 동 baseline 예외 조항(동일 역할 아이콘의 역할 내 채널 갈림 격리 site 는 등록 가능)에 정확 해당. (3) 컨텍스트 상관 반박: pill vs dashed-tile 분할은 존재하나 baseline 자체가 보드그리드 ×6 을 컨테이너 불문 단일 채널로 판정(아이콘 역할 기준) → 컨테이너 상관은 채널 갈림을 정당화 못함. (4) 부수 a11y: 텍스트 '+' 는 접근 이름 포함(SR '플러스' 발화) vs SVG aria-hidden 제외 — L515 장식 아이콘 관례와 어긋남. (5) DESIGN.md plus/아이콘 채널 규정 0매치이나 L1845 예외 조항이 일관성 결함 클래스를 명시 인정.
+- 결정: 후보 1건 등재 — design-20260716-create-plus-glyph-svg-channel (impact 3 · confidence 4 · effort 1 · risk 1 · score 12.0). 수정 방향: NavBar:37·MyPageClient:80 텍스트 '+' 접두 → AddToBoardButton:405 idiom 의 aria-hidden SVG plus 로 채널 정렬.
+- 차기: pending 1 → cycle 3787 처리 모드(top-1: design-20260716-create-plus-glyph-svg-channel).
+
+
 ## cycle 3783 (2026-07-16, tokens 580th round) — 델타 표면 불변 폐기, 후보 0건
 
 - 라운드: tokens 580th (rotation: responsive → tokens → aesthetic).

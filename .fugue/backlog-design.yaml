@@ -3583,3 +3583,20 @@ items:
     status: done
     pr: 4750
     note: "MyPageClient·AddToBoardButton 새 보드 폼 취소에 disabled={creating}+disabled:opacity-50 추가. CDP 실 브라우저 QA(busy 중 disabled·opacity 0.5·클릭 무반응, 유휴 취소 정상, 성공 경로 회귀 없음) 통과."
+  - id: "design-20260716-create-plus-glyph-svg-channel"
+    title: "plus 아이콘 채널 역할 내 갈림 — 생성 트리거의 add-어포던스 plus 마크가 텍스트 글리프 2곳(NavBar '+ 핀 생성'·MyPageClient '+ 새 보드') vs aria-hidden SVG 1곳(AddToBoardButton '새 보드 만들기')으로 저작 채널 혼용"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/nav/NavBar.tsx:37"
+        - "apps/web/src/components/profile/MyPageClient.tsx:80"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:401-420"
+      cite: "생성 트리거 plus 마크 census 3곳: 텍스트 글리프 '+' 라벨 접두 2곳(NavBar:37 '+ 핀 생성' accent pill Link·MyPageClient:80 '+ 새 보드' accent pill button) vs aria-hidden 인라인 SVG plus 1곳(AddToBoardButton:405 새 보드 만들기 트리거 — 14px viewBox 24 currentColor strokeWidth 2, gap-2 로 라벨 병치). 세 site 전부 '새 콘텐츠 생성 진입'이라는 동일 역할의 add-어포던스 마크+라벨 합성 구조인데 렌더링 채널이 갈림. anti-patterns L1845(cycle 3615) baseline 은 'plus ×2 전부 SVG'로 SVG 요소만 계수해 텍스트 '+' 접두 2곳을 어느 모집단에도 미포함(글리프 채널 모집단은 마스코트·상태/타입 배지 한정) — 동 baseline 의 예외 조항 '동일 역할 아이콘을 다른 채널로 저작해 역할 내 채널이 실제 갈리는 격리 site 는 등록 가능(실제 채널 비정합)'에 정확 해당. baseline 스스로 '기능 UI 아이콘은 전수 SVG(aria-hidden·currentColor 균일)'를 지배 채널로 판정했고 보드그리드 ×6 은 컨테이너 맥락이 달라도 단일 채널을 유지 → pill vs dashed-tile 컨테이너 상관은 반박 불가(아이콘 역할 기준 채널 판정이 baseline 자체 원칙). 부수 a11y 갈림: SVG plus 는 aria-hidden 으로 접근 이름 제외('새 보드 만들기'), 텍스트 '+' 는 접근 이름에 포함('+ 핀 생성' — SR 이 '플러스' 발화)되어 L515 장식 아이콘 aria-hidden 관례와도 어긋남."
+      repro: "NavBar 우측 CTA 가 '+ 핀 생성'(텍스트 +), /mypage 보드 섹션 버튼이 '+ 새 보드'(텍스트 +), 핀 상세 보드 모달의 새 보드 트리거는 SVG plus + '새 보드 만들기'."
+    qa_plan: "dev 서버 + authed CDP: (1) NavBar CTA 가 aria-hidden SVG plus + '핀 생성' 렌더·접근 이름에 '+' 미포함·pill 시각(px-4 py-2 rounded-full accent) 유지. (2) /mypage '새 보드' 버튼 동일 확인 + aria-expanded 토글·폼 열림 회귀 없음. (3) AddToBoardButton 새 보드 만들기 트리거 무변경. (4) 콘솔 에러 0, 링크 내비게이션(/pin/new) 정상."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending
