@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3781 (2026-07-16, responsive 655th round) — 델타 표면 불변 폐기, 후보 0건
+
+- 라운드: responsive 655th (rotation: responsive → tokens → aesthetic).
+- 델타 census: 직전 responsive census(c3775, 22c39f2b #4750까지 커버) 이후 origin/main 헤드 c840d08b까지 apps/web·DESIGN.md 델타 0건 — #4751(c3775)·#4752(c3777)·#4753(c3779) 전부 상태 파일(decision-log·anti-patterns) chore.
+- 판정: responsive 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(중복 등재 방지).
+- 결론: 후보 0건. 신규 baseline 없음.
+
 ## cycle 3779 (2026-07-16, aesthetic 656th round) — 3축 프로브 전부 사망, 후보 0건
 
 - 라운드: aesthetic 656th (rotation: responsive → tokens → aesthetic).
