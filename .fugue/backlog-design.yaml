@@ -3580,4 +3580,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: 4750
+    note: "MyPageClient·AddToBoardButton 새 보드 폼 취소에 disabled={creating}+disabled:opacity-50 추가. CDP 실 브라우저 QA(busy 중 disabled·opacity 0.5·클릭 무반응, 유휴 취소 정상, 성공 경로 회귀 없음) 통과."
