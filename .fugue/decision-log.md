@@ -11810,6 +11810,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3821 — design/aesthetic 662nd round (Discovery, 표면 폐기 — fresh 축 3건 전원 격리/균일)
+
+- 순번: aesthetic 662번째 라운드. c3813(661st, onError degrade 후보 등록→c3815 처리 완료) 이후 라운드.
+- census: 직전 aesthetic census(c3813, b2979a65까지 커버) 이후 origin/main 헤드 a21e0b12까지 apps/web·DESIGN.md·AGENTS.md 델타 = 6a6846b7(#4823, c3815 처리분 — onError degrade 정렬 자체) 1건뿐, 잔여는 전부 상태 파일 chore. 델타가 곧 직전 후보의 처리분이므로 재관찰 무의미 — aesthetic 관례(c3781)에 따라 fresh-axis 탐침 3건 수행.
+- fresh 축 탐침: (1) **파괴 액션 확인 채널** — confirm( 전수 1곳(BoardActions.tsx:49 보드 삭제)뿐이고 deletePin·removeBoardPin 은 api.ts 정의만 존재·UI 호출부 0곳 → 파괴 액션 UI 모집단 자체가 1로 비교쌍 부재 격리 site(c3653/c3669 동형), confidence<3 폐기. (2) **title 속성 툴팁 채널** — title= 전수 1곳(PinCard.tsx:117 "원본 보기") 단일 사이트 격리, divergence 성립 불가 폐기. (3) **placeholder 카피 문형 채널** — 전수 10곳 전부 명사형/명사구 균일(명령형 0곳), divergence 0 비이슈.
+- 판정: 표면 폐기 — 후보 0건. 3축 모두 anti-patterns baseline 등재(재탐침 방지).
+- 차기: cycle 3823 발견 모드(rotation: responsive 661st round).
+
 ## cycle 3819 — design/tokens 585th round (Discovery, 표면 폐기 — 델타 tokens 비접촉)
 
 - 순번: tokens 585번째 라운드. c3811(584th, 델타 0 표면 불변 폐기) 이후 라운드.
