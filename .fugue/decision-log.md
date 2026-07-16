@@ -11432,6 +11432,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3761 — design/responsive 652nd round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
+
+- 순번: responsive 652번째 라운드. c3739(649th) 축 공간 전수 탐침 + c3753(651st) 델타 census 이후 라운드.
+- census: 직전 responsive census(c3753, 델타 0) 이후 apps/web 델타 전수 = cb52ec72(#4743) PinCreateForm.tsx 1행 — 제출 CTA 카피 문자열만 변경(등록하기→등록), className/브레이크포인트/레이아웃 비접촉. 신규 responsive 표면 유입 0.
+- 판단: 표면 폐기 — 후보 0건. 표면 불변이므로 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3763 발견 모드(rotation: tokens 577th round).
+
 ## cycle 3759 — design/aesthetic 처리 — PinCreateForm 제출 CTA 어형 명사형 정렬 (PR #4743)
 
 - 변경: PinCreateForm.tsx:665 유휴 제출 라벨 "등록하기" → "등록" (1행 문자열). 폼 제출 CTA 지배 관례(명사형 5곳: 저장×2·생성·생성 및 추가·선택 완료)로 정렬, busy 짝 "등록" ↔ "등록 중..." 대칭 복원. OpenSpec `pincreate-submit-cta-noun-form` 아카이브(pin 스펙에 제출 CTA 명사형 요구사항 추가).
