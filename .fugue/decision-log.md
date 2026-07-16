@@ -11786,6 +11786,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3819 — design/tokens 585th round (Discovery, 표면 폐기 — 델타 tokens 비접촉)
+
+- 순번: tokens 585번째 라운드. c3811(584th, 델타 0 표면 불변 폐기) 이후 라운드.
+- census: 직전 tokens census(c3811, 8f79c3bf까지 커버) 이후 origin/main 헤드 52d8a09e까지 apps/web·DESIGN.md·AGENTS.md 델타 전수 = 6a6846b7(#4823, c3815 처리분) 1건 — HideOnErrorImage.tsx 신설 + 6파일 onError degrade 정렬. 디프 추가 라인에 className 0건·색/폰트/여백/radius/그림자 리터럴 0건(grep 검증, 기존 className 은 컨텍스트 라인으로만 존재). 잔여 23커밋은 전부 상태 파일(decision-log·anti-patterns·backlog) chore.
+- 판정: 표면 폐기 — 후보 0건. 델타가 이미지 로드 실패 degrade(JS 이벤트 핸들러) 차원만 접촉하고 tokens 차원(색/폰트/여백 값 집합) 비접촉이므로 tokens 표면 불변, 기존 전수 census 유효(c3805 동형 관례). 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3821 발견 모드(rotation: aesthetic 662nd round).
+
 ## cycle 3817 — design/responsive 660th round (Discovery, 표면 폐기 — 델타 responsive 비접촉)
 
 - 순번: responsive 660번째 라운드. c3809(659th, 델타 0 표면 불변 폐기) 이후 라운드.
