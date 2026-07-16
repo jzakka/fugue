@@ -11600,6 +11600,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3801 — design/board-edit-enter-submit-affordance (처리 모드)
+
+- 대상: design-20260716-board-edit-enter-submit-affordance (score 12.0) — 제출형 텍스트 입력 6표면 중 BoardActions 보드 편집 폼만 Enter 제출 불가(지배 관례 5/6 갈림).
+- 변경: BoardActions.tsx 편집 모드 이름 입력(:74)·설명 입력(:91)에 onKeyDown Enter → preventDefault + handleSave 추가(MyPageClient:124 idiom 동형). native form 전환은 기각 — 인라인 미니 폼 onKeyDown 채널이 지배 idiom(3곳). saving 게이팅은 기존 handleSave 경로 재사용(인접 idiom 도 진입 게이팅 없음). OpenSpec `board-edit-enter-submit` 아카이브(board 델타: 편집 폼 Enter = 저장 실행, 빈 이름 검증 에러 유지).
+- QA(CDP headless, dev+API+DB 실기동, authed): 14/14 PASS — 이름 입력 Enter → 저장·편집 모드 종료·h1 타이틀 반영, 설명 입력 Enter → 저장, 빈 이름 Enter → "보드 이름을 입력해주세요" 에러·편집 모드 유지, /mypage 보드 생성 폼 Enter 회귀 없음, 콘솔 에러 0(양 페이지). 1차 실행 8/14는 공유 /tmp/jwt.txt 가 동시 루프에 덮여 만료 토큰(PUT 401 X-Token-Expired)이 원인 — 사이클 스코프 /tmp/jwt-3801.txt 로 교체 후 전건 통과(자체 회복). lint 0/tsc 0/vitest 47.
+- 차기: pending=0 → 발견 모드. area = responsive, 658th round.
+
 ## cycle 3799 — design/aesthetic 659th round (Discovery, 후보 1건 등재)
 
 - 순번: aesthetic 659번째 라운드. c3793(658th, 빈 상태 저작 채널 role-bound baseline) 이후 라운드. apps/web 델타 cd3afab6(#4762) 이후 0 → 신선 축 프로브.
