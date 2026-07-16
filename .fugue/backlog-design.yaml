@@ -3562,3 +3562,22 @@ items:
     status: done
     pr: 4743
     note: "PinCreateForm:665 유휴 제출 라벨 '등록하기'→'등록' 정렬. CDP 실 브라우저 QA(라벨·aria-busy·인접 폼 '저장') 통과."
+  - id: "design-20260716-create-board-cancel-busy-gating"
+    title: "busy 중 취소 게이팅 이탈 — 인라인 보드 생성 폼 2곳(MyPageClient·AddToBoardButton)의 취소 버튼만 creating 중 disabled 미적용, role-identical 비동기 폼 취소 3곳은 busy 중 disabled+디밍"
+    area: states
+    evidence:
+      files:
+        - "apps/web/src/components/profile/MyPageClient.tsx:126-133"
+        - "apps/web/src/components/board/AddToBoardButton.tsx:389-396"
+        - "apps/web/src/app/pin/new/PinCreateForm.tsx:654"
+        - "apps/web/src/app/boards/[id]/BoardActions.tsx:109"
+        - "apps/web/src/components/profile/ProfileEditForm.tsx:118"
+      cite: "비동기 폼 취소 census 5곳: busy 중 disabled 게이팅 3곳(PinCreateForm:654 disabled={isDisabled}·ProfileEditForm:118 disabled={saving}·BoardActions:109 disabled={saving}, 전부 disabled:opacity-50 동반) vs 미게이팅 2곳(MyPageClient 취소·AddToBoardButton 취소 — disabled 속성 자체 없음). BoardActions는 동일 컴팩트 스타일(px-3 py-1.5 text-xs) 인라인 보드 폼인데 게이팅함 → 컴팩트/대형 컨텍스트 상관으로 설명 불가(동일 클래스 내 이탈). 행위 결함: creating 중 취소 클릭 시 폼 숨김+입력 초기화되지만 in-flight POST는 계속 진행되어 보드가 그대로 생성됨(취소가 취소하지 못함) — 게이팅 3곳은 이 창을 disabled로 봉쇄. backlog design-20260515-cancel-button-disabled-style-missing(done) 선례가 '짝꿍 취소의 busy 디밍'을 관례로 확립. anti-patterns L786은 disabled 속성 보유 버튼의 디밍 시각화 축(비활성 불가 표면은 모집단 제외)이라 본 게이팅 축과 비중첩. VideoTrimModal 취소는 비동기 busy 부재(동기 선택 모달)로 모집단 제외."
+      repro: "/mypage 새 보드 폼에서 '생성' 클릭 직후(creating=true) 취소 버튼이 여전히 클릭 가능 — 누르면 폼이 닫히지만 보드는 생성됨. 핀 상세 AddToBoardButton 모달 새 보드 폼 동일."
+    qa_plan: "dev 서버 + authed CDP: (1) /mypage 새 보드 폼 열고 fetch override로 POST /api/boards 지연 → 생성 클릭 후 취소 버튼 disabled+opacity 디밍 확인. (2) 핀 상세 → 보드에 추가 모달 → 새 보드 폼 동일 확인. (3) 비-busy 시 취소 정상 동작(폼 닫힘·입력 초기화) 회귀 없음. (4) 생성 성공/실패 경로 회귀 없음, 콘솔 에러 0."
+    impact: 3
+    confidence: 4
+    effort: 1
+    risk: 1
+    score: 12.0
+    status: pending

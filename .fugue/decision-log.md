@@ -11432,6 +11432,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3771 (2026-07-16, aesthetic 655th round) — busy 중 취소 게이팅 이탈 후보 1건 등재
+
+- 라운드: aesthetic 655th (rotation: responsive → tokens → aesthetic).
+- 프로브 축 선정: 미프로브 축 3종 점검 — 수치 표기 포맷은 anti-patterns L1890 baseline 매칭 버림, 보조 CTA '취소' census와 busy 인터랙션 게이팅은 fresh.
+- census: '취소' 라벨 6곳 전수 — 라벨 6/6 균일, 스타일 2단(대형 px-5/text-sm 3곳 vs 컴팩트 px-3/text-xs 3곳)은 폼 규모 상관으로 정합. 단 busy 게이팅이 갈림: 비동기 폼 취소 5곳 중 3곳(PinCreateForm:654·ProfileEditForm:118·BoardActions:109)은 busy 중 disabled+disabled:opacity-50, 2곳(MyPageClient:126·AddToBoardButton:389)은 disabled 속성 자체 없음. VideoTrimModal은 동기 선택 모달이라 모집단 제외.
+- 컨텍스트 상관 반박: BoardActions는 outlier 2곳과 동일한 컴팩트 인라인 보드 폼 스타일인데 게이팅함 → c24593류 컨텍스트-상관 FP 아님.
+- 행위 근거: creating 중 취소 클릭 시 폼 숨김+입력 초기화되나 in-flight POST 계속 → 보드 생성됨(취소가 취소 못 함). 게이팅 3곳은 이 창을 봉쇄.
+- 비중첩: anti-patterns L786(disabled 보유 버튼의 디밍 시각화, disabled 없는 요소는 모집단 제외)·backlog :512 done(disabled 보유 취소의 디밍 클래스)과 별개인 'disabled 속성 부여 여부' 게이팅 축.
+- 결론: design-20260716-create-board-cancel-busy-gating (states, score 12.0) pending 등재. 차기 처리 모드.
+
 ## cycle 3769 (2026-07-16, tokens 578th round) — 델타 표면 불변 폐기, 후보 0건
 
 - 라운드: tokens 578th (rotation: responsive → tokens → aesthetic).
