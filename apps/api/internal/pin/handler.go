@@ -54,9 +54,17 @@ type PinQuerier interface {
 	CreateInteraction(ctx context.Context, arg db.CreateInteractionParams) error
 }
 
+// mediaStore is the minimal storage surface Create needs; *storage.Client
+// satisfies it. Narrowing the type lets tests inject a fake to verify the
+// compensating-delete contract without a live object store.
+type mediaStore interface {
+	Upload(ctx context.Context, filename string, contentType string, size int64, body io.Reader) (*storage.UploadResult, error)
+	Delete(ctx context.Context, key string) error
+}
+
 type Handler struct {
 	q     PinQuerier
-	store *storage.Client
+	store mediaStore
 }
 
 func NewHandler(database *sql.DB, store *storage.Client) *Handler {
@@ -135,6 +143,36 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "존재하지 않는 태그가 포함되어 있습니다")
 			return
 		}
+	}
+
+	// Optional field validation happens before any storage write so a 4xx
+	// rejection never creates an orphan object (spec: pin `핀 생성 실패 시
+	// 업로드된 미디어를 보상 삭제한다` — 검증 실패 시 객체 미생성).
+	description := sql.NullString{}
+	if d := strings.TrimSpace(r.FormValue("description")); d != "" {
+		if utf8.RuneCountInString(d) > 500 {
+			writeError(w, http.StatusBadRequest, "설명은 500자 이내여야 합니다")
+			return
+		}
+		description = sql.NullString{String: d, Valid: true}
+	}
+
+	urlField := sql.NullString{}
+	if u := strings.TrimSpace(r.FormValue("url")); u != "" {
+		if utf8.RuneCountInString(u) > 1000 {
+			writeError(w, http.StatusBadRequest, "URL은 1000자 이내여야 합니다")
+			return
+		}
+		urlField = sql.NullString{String: u, Valid: true}
+	}
+
+	ogImage := sql.NullString{}
+	if o := strings.TrimSpace(r.FormValue("og_image")); o != "" {
+		if utf8.RuneCountInString(o) > 1000 {
+			writeError(w, http.StatusBadRequest, "og_image URL은 1000자 이내여야 합니다")
+			return
+		}
+		ogImage = sql.NullString{String: o, Valid: true}
 	}
 
 	// Media file (required)
@@ -299,33 +337,9 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Optional fields
-	description := sql.NullString{}
-	if d := strings.TrimSpace(r.FormValue("description")); d != "" {
-		if utf8.RuneCountInString(d) > 500 {
-			writeError(w, http.StatusBadRequest, "설명은 500자 이내여야 합니다")
-			return
-		}
-		description = sql.NullString{String: d, Valid: true}
-	}
-
-	urlField := sql.NullString{}
-	if u := strings.TrimSpace(r.FormValue("url")); u != "" {
-		if utf8.RuneCountInString(u) > 1000 {
-			writeError(w, http.StatusBadRequest, "URL은 1000자 이내여야 합니다")
-			return
-		}
-		urlField = sql.NullString{String: u, Valid: true}
-	}
-
-	ogImage := sql.NullString{}
-	if o := strings.TrimSpace(r.FormValue("og_image")); o != "" {
-		if utf8.RuneCountInString(o) > 1000 {
-			writeError(w, http.StatusBadRequest, "og_image URL은 1000자 이내여야 합니다")
-			return
-		}
-		ogImage = sql.NullString{String: o, Valid: true}
-	}
+	// Track every object written to storage in this request so failure paths
+	// below can compensate-delete them instead of leaving orphans.
+	uploadedKeys := []string{result.Key}
 
 	// Upload video thumbnail if provided
 	if thumbFile, thumbHeader, err := r.FormFile("thumbnail"); err == nil {
@@ -335,6 +349,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			log.Printf("pin.Create: thumbnail upload warning: %v", err)
 		} else {
 			ogImage = sql.NullString{String: thumbResult.URL, Valid: true}
+			uploadedKeys = append(uploadedKeys, thumbResult.Key)
 		}
 	}
 
@@ -349,6 +364,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("pin.Create: insert error: %v", err)
+		h.deleteUploadedMedia(r.Context(), uploadedKeys)
 		writeError(w, http.StatusInternalServerError, "핀 등록에 실패했습니다")
 		return
 	}
@@ -360,11 +376,16 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			// Rollback: delete the orphan pin. log both DB error and rowsAffected==0
 			// so an orphan that survives this cleanup leaves an operator-visible trail
 			// (otherwise pins.creator_id rows + S3 media linger silently).
-			if rowsAffected, delErr := h.q.DeletePin(r.Context(), db.DeletePinParams{ID: p.ID, CreatorID: creatorID}); delErr != nil {
+			// context.WithoutCancel: when the LinkPinTag failure was caused by
+			// client cancellation, r.Context() is already canceled and would make
+			// both rollbacks fail in cascade.
+			rollbackCtx := context.WithoutCancel(r.Context())
+			if rowsAffected, delErr := h.q.DeletePin(rollbackCtx, db.DeletePinParams{ID: p.ID, CreatorID: creatorID}); delErr != nil {
 				log.Printf("pin.Create: rollback DeletePin error: %v (pin=%s creator=%s)", delErr, p.ID, creatorID)
 			} else if rowsAffected == 0 {
 				log.Printf("pin.Create: rollback DeletePin matched 0 rows (pin=%s creator=%s)", p.ID, creatorID)
 			}
+			h.deleteUploadedMedia(rollbackCtx, uploadedKeys)
 			writeError(w, http.StatusInternalServerError, "태그 연결에 실패했습니다")
 			return
 		}
@@ -374,6 +395,23 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	interaction.Record(r.Context(), h.q, creatorID, p.ID, "pin")
 
 	writeJSON(w, http.StatusCreated, toCreatedResponse(p))
+}
+
+// deleteUploadedMedia best-effort deletes objects uploaded during a failed
+// Create so they don't linger as orphans (spec: pin `핀 생성 실패 시 업로드된
+// 미디어를 보상 삭제한다`). Delete failures must not change the user-facing
+// error response; they are logged with the object key so operators can
+// identify surviving orphans (spec: pin `보상 삭제 실패는 요청 결과와
+// 독립적으로 기록된다`). context.WithoutCancel: the failure that triggered
+// compensation may itself be a client cancellation, which would otherwise
+// cancel the compensating deletes too.
+func (h *Handler) deleteUploadedMedia(ctx context.Context, keys []string) {
+	ctx = context.WithoutCancel(ctx)
+	for _, key := range keys {
+		if err := h.store.Delete(ctx, key); err != nil {
+			log.Printf("pin.Create: rollback storage delete error: %v (key=%s)", err, key)
+		}
+	}
 }
 
 // GetByID handles GET /api/pins/{id}

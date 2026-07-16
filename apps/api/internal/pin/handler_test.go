@@ -51,6 +51,13 @@ type mockQuerier struct {
 	fbLatestErr       error
 	lastFBLatestP     db.FallbackRelatedLatestParams
 	tagsForPins       []db.GetTagsForPinsRow
+
+	// Create failure-path injection (compensating-delete tests)
+	createPinErr   error
+	linkPinTagErr  error
+	tagsByIDs      []db.Tag
+	deletePinCalls int
+	deletePinRows  int64
 }
 
 func (m *mockQuerier) ListPinsWithCreator(_ context.Context, arg db.ListPinsWithCreatorParams) ([]db.ListPinsWithCreatorRow, error) {
@@ -74,15 +81,19 @@ func (m *mockQuerier) CountPinsByCreatorFiltered(_ context.Context, arg db.Count
 }
 
 func (m *mockQuerier) CreatePin(_ context.Context, _ db.CreatePinParams) (db.Pin, error) {
+	if m.createPinErr != nil {
+		return db.Pin{}, m.createPinErr
+	}
 	return db.Pin{}, nil
 }
 
 func (m *mockQuerier) LinkPinTag(_ context.Context, _ db.LinkPinTagParams) error {
-	return nil
+	return m.linkPinTagErr
 }
 
 func (m *mockQuerier) DeletePin(_ context.Context, _ db.DeletePinParams) (int64, error) {
-	return 0, nil
+	m.deletePinCalls++
+	return m.deletePinRows, nil
 }
 
 func (m *mockQuerier) GetPinWithCreator(_ context.Context, _ uuid.UUID) (db.GetPinWithCreatorRow, error) {
@@ -109,7 +120,7 @@ func (m *mockQuerier) FallbackRelatedLatest(_ context.Context, arg db.FallbackRe
 }
 
 func (m *mockQuerier) GetTagsByIDs(_ context.Context, _ []uuid.UUID) ([]db.Tag, error) {
-	return nil, nil
+	return m.tagsByIDs, nil
 }
 
 func (m *mockQuerier) GetTagsForPins(_ context.Context, _ []uuid.UUID) ([]db.GetTagsForPinsRow, error) {
