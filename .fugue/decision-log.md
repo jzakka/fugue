@@ -16,6 +16,24 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 4576 — 에러처리: 코드·빌드 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api Makefile .github/workflows (loop/design-loop 커밋 제외 필터)
+- 조사: 0건. baseline 앵커(2344 Makefile || true 억제, 2348 dead threshold 중복) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(4564) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 4578 (직전 4566 covered). 코드 freeze check 예정
+
+### cycle 4574 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop/design-loop 커밋 제외 필터)
+- 조사: 신규 0건. 잔여 1건(e2cb3a80, 2026-07-03 #3115)은 baseline 커밋으로 기존 census에서 계수 완료
+- 판정: 직전 정합성 census(4562) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 4576 (직전 4564 covered). 코드·빌드 freeze check 예정
+
+### cycle 4572 — 보안: npm audit + dep 파일 freeze check → 표면 불변 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31, cycle 2256 잔여 baseline 동일). dep 파일 마지막 커밋 5389b72e 불변
+- 판정: 직전 보안 census(4560) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 4574 (직전 4562 covered). 코드·문서 freeze check 예정
+
 ### cycle 4570 — OpenSpec갭: validate + 스펙 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
 - 조사: 스펙·체인지 전체 validate 통과, baseline 14 유지. 잔여 8건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544)은 계수 완료된 디자인 트랙 변경
