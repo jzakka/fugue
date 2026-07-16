@@ -12176,6 +12176,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3851 — design/responsive 665th round (Discovery, 표면 폐기 — 델타 차원 비접촉)
+
+- 순번: responsive 665번째 라운드. c3843(664th, 델타-0 폐기) 이후 라운드.
+- census: 직전 responsive census 커버(576cba21) 이후 origin/main 헤드 79308813까지 apps/web·DESIGN.md·AGENTS.md 델타 1건 — AddToBoardButton.tsx:194 텍스트 글리프 1행(c3849 인용부호 직선→곡선, #4907). 레이아웃·브레이크포인트·사이징·미디어쿼리 등 반응형 차원 비접촉.
+- 판정: 반응형 표면 실변화 없음 → 기존 전수 census 유효. 재프로브 없이 델타 차원 비접촉으로 폐기(c3837 동형). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3853 발견 모드(rotation: tokens 590th round).
+
 ## cycle 3849 — design 처리 모드 (design-20260716-dynamic-name-quote-glyph, PR #4907)
 
 - 변경: AddToBoardButton.tsx:194 보드 추가 성공 피드백 보드명 인용부호 직선(")→곡선따옴표(“ ”) 단일 지점 교체 — 가시 카피 지배 관례(SearchClient:233 헤딩·:413 EmptyState) 정렬. 대안 기각: SearchClient 역정렬(지배 관례 2:1 곡선), 인용 헬퍼 공통화(3표면 1행에 과잉, c3835 Decision 1 동형). head 메타(search/page.tsx:23/:25 직선)는 비가시 채널로 유지. OpenSpec `dynamic-name-quote-glyph` 아카이브(board 델타 ADDED: 성공 안내 보드명 인용 표기 = 가시 카피 인용 표기, main spec 동기화).
