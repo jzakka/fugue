@@ -11612,6 +11612,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3803 — design/responsive 658th round (Discovery, 표면 폐기 — 델타 responsive 비접촉)
+
+- 순번: responsive 658번째 라운드. c3795(657th, 델타 0 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive census(c3795, 036414fa까지 커버) 이후 origin/main 헤드 b2979a65까지 apps/web·DESIGN.md 델타 전수 = b2979a65(#4791) BoardActions.tsx 1파일(+12 -0) — 편집 폼 이름·설명 입력 onKeyDown Enter 핸들러 추가뿐. 디프 내 BP-접두 유틸(sm:/md:/lg:/max-*)·@media·grid-cols·flex-wrap·min-w·임의 크기 리터럴 0건(grep 검증). AGENTS.md·DESIGN.md 불변.
+- 판정: 표면 폐기 — 후보 0건. 델타가 키보드 인터랙션(aesthetic 처리분) 차원만 접촉하고 responsive 차원(BP 전이·유체·컨테이너 분기) 비접촉이므로 responsive 표면 불변, 기존 전수 census 유효(c3789 동형 관례). 신규 baseline 미기록(중복 등재 방지).
+- 차기: cycle 3805 발견 모드(rotation: tokens 583rd round).
+
 ## cycle 3801 — design/board-edit-enter-submit-affordance (처리 모드)
 
 - 대상: design-20260716-board-edit-enter-submit-affordance (score 12.0) — 제출형 텍스트 입력 6표면 중 BoardActions 보드 편집 폼만 Enter 제출 불가(지배 관례 5/6 갈림).
