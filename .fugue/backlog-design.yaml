@@ -3671,3 +3671,20 @@ items:
     status: done
     pr: 4871
     note: "cycle 3835 처리. AddToBoardButton 보드 추가 실패 fallback 접미 제거('보드 추가에 실패했습니다'). board 스펙 MODIFIED(재시도 안내 SHALL → 동일 피드백 영역 문형 일치 SHALL) 동기화. 실 브라우저 CDP QA 16/16 PASS: 추가 실패 강제 무접미 정렬·생성 실패 문형 유지·정상 플로우 회귀 없음·콘솔 에러 0. tsc 0·vitest 47 pass."
+  - id: "design-20260716-dynamic-name-quote-glyph"
+    title: "가시 카피의 동적 이름 인용부호 글리프 갈림 — SearchClient 는 곡선따옴표(“ ”), AddToBoardButton 성공 피드백은 직선따옴표(\")"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/board/AddToBoardButton.tsx:194"
+        - "apps/web/src/app/search/SearchClient.tsx:233"
+        - "apps/web/src/app/search/SearchClient.tsx:413"
+      cite: "가시 UI 카피에서 동적 엔티티명(검색어·보드명)을 따옴표로 감싸는 표면 전수 3곳: SearchClient:233(&ldquo;{query}&rdquo; 검색 결과 헤딩)·:413(“${query}” EmptyState 메시지)은 곡선따옴표, AddToBoardButton:194(\"${boardName}\" 보드에 추가했습니다 role=status 피드백)만 직선따옴표 — 동일 role(사용자 유래 동적 텍스트 인용 안내문)·동일 채널(가시 카피)인데 글리프가 2:1 로 갈림(경계 결정론 반증: 컴포넌트 경계만으로 갈림 설명 불가). head 메타데이터 2곳(search/page.tsx:23/:25 직선)은 비가시 plain-text 채널로 모집단 밖. DESIGN.md·AGENTS.md 따옴표/인용 규정 0매치이나 동일 role 실갈림은 일관성 정렬 대상(c3833 접미 정렬 선례 동형)."
+      repro: "검색 결과 페이지 헤딩·빈 결과 메시지는 “쿼리” 곡선따옴표, 핀 상세 보드 추가 성공 피드백은 \"보드명\" 직선따옴표 — 같은 인용 안내문 문형에서 글리프 상이."
+    qa_plan: "dev 서버 + authed CDP: (1) 핀 상세 → 보드에 추가 → 보드 선택 성공 → 피드백 메시지가 “보드명” 곡선따옴표로 렌더 확인. (2) 409 중복·실패 카피 무변경. (3) 검색 헤딩·EmptyState 곡선따옴표 회귀 없음. (4) 콘솔 에러 0."
+    impact: 2
+    confidence: 3
+    effort: 1
+    risk: 1
+    score: 6.0
+    status: pending
