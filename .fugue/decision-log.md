@@ -11432,6 +11432,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3765 (2026-07-16, aesthetic 654th round) — 종결 부호 축 baseline 매칭 폐기, 후보 0건
+
+- 라운드: aesthetic 654th (rotation: responsive → tokens → aesthetic).
+- 프로브 축: UI 가시 평서문의 문장 종결 부호(마침표·느낌표·무부호) 일관성.
+- 판정: anti-patterns L1892 (cycle 3735 baseline)가 정확히 이 축을 다룸 — 가시 평서문 종결 부호 전수 무부호 통일(divergence 0), 두 문장 메시지 4곳 '. ' 내부 경계 동일 idiom, 물음표/metadata 마침표는 role-bound 모집단 밖. 발견 모드 step 5(anti-patterns 매칭 후보는 버림)에 따라 폐기.
+- 예외 조항 점검: L1892 예외(신규 카피가 같은 role 내 종결 부호를 실제 가르는 격리 site)는 발동 안 함 — cb52ec72(#4743) 이후 apps/web 델타 0건, #4743 자체도 CTA 어형 1행(구두점 무관).
+- 인접 축 비중첩 확인: 진행 카피/CTA 어형 census는 c3757 기수행(유일 outlier '등록하기'는 c3759 #4743으로 해소), L1884 진행 라벨 말줄임 채널·어체 축과 별개.
+- 결론: 후보 0건. 신규 baseline 없음(L1892 기존 baseline 재사용, 중복 등재 방지).
+
 ## cycle 3763 — design/tokens 577th round (Discovery, 표면 폐기 — 후보 0건·표면 불변)
 
 - 순번: tokens 577번째 라운드. c3741(574th) 신규 축 전수 탐침 + c3755(576th) 델타 census 이후 라운드.
