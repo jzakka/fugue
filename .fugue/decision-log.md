@@ -11444,6 +11444,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3787 — design/aesthetic 처리 — 생성 트리거 plus 마크 SVG 채널 정렬 (PR #TBD)
+
+- 변경: NavBar.tsx:37 "+ 핀 생성"·MyPageClient.tsx:80 "+ 새 보드"의 텍스트 '+' 접두를 AddToBoardButton:405 idiom 의 aria-hidden 인라인 SVG plus(viewBox 24·currentColor·strokeWidth 2, NavBar 14px·MyPageClient 12px)로 교체, `inline-flex items-center gap-1.5/gap-1` 병치. 접근 이름 "+ 핀 생성"→"핀 생성"·"+ 새 보드"→"새 보드". AddToBoardButton 비접촉. OpenSpec `create-trigger-plus-svg-channel` 아카이브(pin·board 스펙에 생성 트리거 추가 기호 장식 처리 요구사항 추가, validate --specs 11/11).
+- QA(CDP 실 브라우저, 인증 쿠키 주입): NavBar CTA 텍스트 "핀 생성"·SVG aria-hidden=true·14px·pill 시각(rounded-full·px-4 py-2·accent bg) 유지·클릭 시 /pin/new 정상 진입, /mypage "새 보드" SVG 12px·aria-expanded false→true→false 토글·폼 열림/닫힘 정상, 핀 상세 새 보드 만들기 트리거 무변경(SVG 14 aria-hidden), 콘솔 에러 0. tsc 0/eslint 0 errors/vitest 47.
+- 차기: pending=0 → 발견 모드(rotation: responsive 656th round).
+
+
 ## cycle 3785 — design/aesthetic 657th round (Discovery, 후보 1건 등재)
 
 - 순번: aesthetic 657번째 라운드. c3779(656th) 신선 축 3종 폐사 + 핀 카운트 단위 baseline 등재 이후 라운드. apps/web 델타 22c39f2b(#4750) 이후 0 → 신선 축 프로브.

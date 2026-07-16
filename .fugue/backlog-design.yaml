@@ -3599,4 +3599,6 @@ items:
     effort: 1
     risk: 1
     score: 12.0
-    status: pending
+    status: done
+    pr: TBD
+    note: "NavBar·MyPageClient 텍스트 '+' 접두를 aria-hidden SVG plus(14/12px)로 교체, inline-flex 병치. CDP 실 브라우저 QA(접근 이름 '핀 생성'/'새 보드'·SVG aria-hidden·pill 시각·aria-expanded 토글·/pin/new 내비게이션·AddToBoardButton 비접촉·콘솔 0) 통과."
