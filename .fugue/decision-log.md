@@ -11522,6 +11522,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3795 — design/responsive 657th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
+
+- 순번: responsive 657번째 라운드. c3789(656th, #4762 델타 responsive 비접촉 폐기) 이후 라운드.
+- census: 직전 responsive census(c3789, cd3afab6 #4762까지 커버) 이후 origin/main 헤드 036414fa까지 apps/web·DESIGN.md 델타 0건 — #4764(c3789)·#4768(c3791)·#4771(c3793)·#4767~#4774(시스템 트랙) 전부 상태 파일(decision-log·anti-patterns·backlog) chore.
+- 판정: responsive 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(중복 등재 방지·c3781 관례). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3797 발견 모드(rotation: tokens 582nd round).
+
+
 ## cycle 3793 — design/aesthetic 658th round (Discovery, 표면 폐기 — 후보 0건·신규 baseline 등재)
 
 - 순번: aesthetic 658번째 라운드. c3785(657th, plus 채널 후보 등재→c3787 처리 #4762) 이후 라운드. apps/web 델타 = #4762 자체(채널 정렬 완료분)뿐 → 신선 축 프로브.
