@@ -12242,6 +12242,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3861 — design/aesthetic 668th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+관찰: pending 0 → 발견 모드, rotation aesthetic(668th). 직전 aesthetic census(c3855, 98466632) 이후 origin/main 헤드 02acd029까지 apps/web·DESIGN.md·AGENTS.md 델타 0건이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침. 기커버 사전 확인: enterkeyhint/inputmode/spellcheck/autofocus/`<time>`/`<details>`/취소선/sup·sub(L685·L950)/blockquote·quotes(L413·L992)/figcaption 캡션/구분선 `<hr>`(L1863) 전부 기존 baseline 존재 → 제외 후 3축 선정. (1) **정의 리스트 채널 `<dl>/<dt>/<dd>`** — 전수 0건, 가시 라벨:값 정의쌍 병치 저작 자체 0건(핀 상세 메타는 칩/링크 idiom·프로필 통계는 수량 카피) — pure vacuous 폐기. (2) **연산 결과 표기 채널 `<output>`** — 전수 0건, maxLength 4곳(PinCreateForm:475·AddToBoardButton:372·MyPageClient:122·ProfileEditForm:76)은 브라우저 제한만 적용·x/200 형 가시 카운터 저작 전무 — 모집단 0 pure vacuous 폐기. (3) **부가 정보 축소 표기 채널 `<small>`** — 전수 0건, 축소 카피 전부 text-xs 유틸(14파일) 균일·inline fontSize 0건 — 요소 채널 divergence 모집단 0 pure vacuous 폐기(kbd c3855 동형). DESIGN.md·AGENTS.md 전부 침묵(dl/정의 목록/output/small/definition list/잔글씨/fine-print 0매치).
+결정/변경: 후보 0건. 폐기 3축 anti-patterns baseline 등재(정의 리스트 채널·연산 결과 표기 채널·부가 정보 축소 표기 채널). 코드 무변경(상태 파일 2종만).
+차기: cycle 3863 발견 모드(rotation: responsive 667th round).
+
 ## cycle 3859 — design/tokens 591st round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 591번째 라운드. c3853(590th, 델타 차원 비접촉 폐기) 이후 라운드.
