@@ -12224,6 +12224,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3857 — design/responsive 666th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
+
+- 순번: responsive 666번째 라운드. c3851(665th, 델타 차원 비접촉 폐기) 이후 라운드.
+- census: 직전 responsive census 커버(79308813) 이후 origin/main 헤드 98466632까지 apps/web·DESIGN.md·AGENTS.md 델타 0건 — c3853/c3855(#4916·#4923)·시스템 트랙 사이클 보고(#4912~#4922) 전부 상태 파일 chore.
+- 판정: 반응형 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3843 동형, c3781 델타-0 관례). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3859 발견 모드(rotation: tokens 591st round).
+
 ## cycle 3855 — design/aesthetic 667th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
 
 관찰: pending 0 → 발견 모드, rotation aesthetic(667th). 직전 aesthetic census(c3847) 이후 델타는 AddToBoardButton.tsx:194 글리프 1행뿐이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침. 기커버 사전 확인에서 최초 선정 축들이 전부 기커버로 판명되어 재선정 반복 — 말줄임 글리프·진행 카피 문형은 L1884(진행 pending 라벨 마이크로카피, 12곳 uniform), 선택 마커 부분 적용은 c783 L150(필수 `*`/선택 `(선택)` disambiguation 목적-바운드), placeholder 어조는 c763 L128(3-idiom 목적-바운드). 최종 fresh 3축: (1) **키캡 표기 채널 `<kbd>`** — 전수 0건, 가시 단축키 힌트 카피 0, globals.css 키캡 스타일 0. accesskey(L567)·aria-keyshortcuts(L587)는 할당/AT-고지 축으로 별개 채널이며 가시 키캡 표기 모집단 자체가 0 — pure vacuous 폐기. (2) **축약어 주해 채널 `<abbr>`** — 전수 0건, 주해 필요한 축약 표기 모집단 0(영문 토큰은 카테고리 라벨·브랜드 고유명뿐) — pure vacuous 폐기. (3) **검색어 매치 하이라이트 채널 `<mark>`** — 전수 0건, 검색 결과 3종 표면(핀·보드·크리에이터) 모두 하이라이트 없이 균일, 대체 하이라이트 저작 0 — pure vacuous 폐기. DESIGN.md·AGENTS.md 전부 침묵(kbd/단축키/축약/약어/하이라이트/highlight/mark 0매치).
