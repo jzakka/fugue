@@ -13040,6 +13040,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3983 — design/aesthetic 688th round (Discovery, fresh 축 3건 프로브 — 전원 vacuous, baseline 3건)
+
+- 순번: aesthetic 688번째 라운드. c3977(687th, param·generator·표-행그룹 baseline) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(8b6d3c06, c3977) 이후 origin/main 헤드 d5f5c052까지 표면 델타 0건(구간 커밋 전부 상태 파일 chore #5114-#5121). aesthetic 라운드 규칙(c3781)에 따라 델타 무관 fresh 축 3건 프로브 수행.
+- fresh 축 프로브 3건:
+  - `<template shadowrootmode>` 선언적 Shadow DOM 채널: `shadowrootmode`/`attachShadow` grep 0건(L1929 템플릿 저작 축·L611 :host 의사클래스 축과 별개 차원 — c3891) — Shadow DOM 인프라 부재, 모집단 0 pure vacuous.
+  - `nomodule` 모듈 스크립트 폴백 채널: grep 0건·수동 `<script>` 저작 자체 0건(Next.js 빌드 전담) — 모집단 0 pure vacuous.
+  - iframe `allow`/`allowfullscreen` 임베드 권한 정책 채널: `<iframe`/`allowfullscreen`/`allow=` grep 0건(sandbox L271·L1255 격리 축·L1926 호스트 채택 축과 별개 차원 — c3891) — 호스트 부재, 모집단 0 pure vacuous.
+- 판정: 3축 전원 vacuous → 후보 0건. anti-patterns.md L1972-1974 baseline 3건 기록(파일 1974행). 포인터 d5f5c052 갱신.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3985, 687th round(responsive).
+
 ## cycle 3981 — design/tokens 611th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 611번째 라운드. c3975(610th, 표면 불변 폐기) 이후 라운드.
