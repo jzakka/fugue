@@ -14667,6 +14667,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4235 — design/aesthetic 730th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 730th round. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 43dfd7d0..origin/main(26367bc5) 스타일 표면 diff 0건 — chore 커밋만 존재. aesthetic 라운드는 c3781 관례상 delta 무관 fresh 축 프로브 3건 필수.
+- 프로브 1(접근자 프로퍼티 저작): get/set 접근자·defineProperty 0건, 클래스 저작도 테스트 mock 1건뿐 — 순수 vacuous 모집단 0. L1580/1584는 플랫폼 static getter 우연.
+- 프로브 2(레이블 문): 레이블 for/while·레이블 break/continue 0건 — 순수 vacuous 모집단 0. L930·L1940은 용어 우연.
+- 프로브 3(모듈 export 표기): 컴포넌트 38파일 default 수렴, named는 Next 규약(metadata·dynamic)·lib 유틸 한정 — 용도별 분담 수렴.
+- 기록: anti-patterns.md 2097→2100행, baseline 3건 append.
+- 포인터: aesthetic 43dfd7d0 → 26367bc5 전진.
+- 차기: cycle 4237, 발견 모드(rotation: responsive 729th round).
+
 ## cycle 4233 — design/tokens 653rd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 653rd round. backlog pending 0건 → 발견 모드.
