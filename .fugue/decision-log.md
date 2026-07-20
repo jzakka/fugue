@@ -14522,6 +14522,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4217 — design/aesthetic 727th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 727th round.
+- 센서스: aesthetic 포인터 ce930dbe..origin/main(5bc2e114) 스타일 표면 diff 0건 — 루프 상태 chore 커밋만 존재. aesthetic 라운드는 delta 0이어도 fresh 축 프로브 3건 필수(c3781 관례).
+- 프로브 1 (문자열 대소문자 변환): toLowerCase 2건 1표면(PinCreateForm.tsx:232 양쪽 소문자화 비교)·toUpperCase·toLocale* 0건 — divergence 0, clean baseline.
+- 프로브 2 (객체 병합): Object.assign 0건, 합성 전부 object spread 단일 idiom — clean baseline.
+- 프로브 3 (프로미스 소비): await 26파일 기본, .then( 체이닝은 async 불가 콜백·병렬 프리페치 구성 문맥 한정, .catch 인라인 폴백 관용구 일관 — 문맥 결정적 분담, clean baseline.
+- 제외 판정: "대소문자 변환" 히트 @199/504/508/976은 CSS text-transform/font-variant 축 우연 일치(c3891 관례상 미커버 확인). new Date/toISOString은 L1905 날짜 표기 채널 인접, typeof는 L2057 전역 참조 baseline 증거 내 언급으로 보수 제외.
+- 기록: anti-patterns.md 2088 → 2091줄 (baseline 3건 추가).
+- 포인터: aesthetic ce930dbe → 5bc2e114 전진.
+- 차기: cycle 4219, 발견 모드(rotation: responsive 726th round).
+
 ## cycle 4215 — design/tokens 650th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 650th round.
