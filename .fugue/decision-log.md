@@ -12572,6 +12572,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3915 — design/aesthetic 677th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 677번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3909, e494b075) 이후 헤드 d0665c10까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(11커밋 전부 상태 파일 chore). c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: kbd(L1910)·abbr(L1911)·mark(L1912)·dl(L1913)·output(L1914)·small(L1915)·cite(L1916)·samp(L1917)·data(L1918)·fieldset(L165)·caption(L486 caption-side)·blockquote/q(L413·L992 인용부호 장식)·sub/sup(L685·L950·L953 첨자 토큰군) → 제외. dfn/var 의 L174 매치는 italic 토큰 축 증거 언급(c3891 template 선례 동형), `<ins` 매치는 CSS `<inset>`(L1679·L1731) 오탐, `<del`·colgroup 0매치 — 3축 fresh 판정.
+- fresh 축 3건 판정:
+  - (1) 정의 용어 표기 채널 `<dfn>`: src 전수 0건, 용어집/정의 콘텐츠 표면 전무 — 모집단 0. pure vacuous 폐기.
+  - (2) 편집 추적 표기 채널 `<ins>/<del>`: src 전수 0건, line-through/편집 이력 UI 0건(콘텐츠는 현재 상태만 표시) — 모집단 0. pure vacuous 폐기.
+  - (3) 변수 표기 채널 `<var>`: src 전수 0건, 수식/변수 콘텐츠 표면 전무 — 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: dfn/ins/del/var/편집 이력 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(정의 용어 표기 채널·편집 추적 표기 채널·변수 표기 채널). known-fresh 이월 후보: colgroup. 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3917 발견 모드(rotation: responsive 676th round).
+
 ## cycle 3913 — design/tokens 600th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 600번째 라운드. c3907(599th, 델타 0건 표면 불변 폐기) 이후 라운드.
