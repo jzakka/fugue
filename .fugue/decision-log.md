@@ -12752,6 +12752,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3935 — design/aesthetic 680th round (Discovery, 델타 동형 커버 + fresh 축 3건 baseline)
+
+- 순번: aesthetic 680번째 라운드. c3927(679th, noscript 후보 등재·pre/code baseline) 이후 라운드.
+- census 델타: 직전 aesthetic 커버(c53bddef) 이후 헤드 66e75a43까지 apps/web 델타 2파일 — 전부 c3929 #5040 자기 변경, 신규 마크업은 기커버 FeedContainer:224-235 동형 복제 → covered. 포인터 66e75a43 갱신.
+- fresh 축 3건(c3781 관례): `<s>`(무효 표기 — ins/del L1941 편집 추적 축과 별개)·`<u>`(비언어적 주해 — L794 데코레이션 토큰 축과 별개)·`translate` 속성(번역 제외 — lang L56 언어 선언 축과 별개). 셋 다 src 전수 0건+대체 채널 0건(line-through 0·상시 underline 0·notranslate 0)+규범 침묵 — pure vacuous → anti-patterns L1948-1950 baseline 3건.
+- 판정: 후보 0건. 차기: cycle 3937 발견 모드(rotation: responsive 679th round).
+
 ## cycle 3933 — design/tokens 603rd round (Discovery, 델타 동형 커버 판정)
 
 - 순번: tokens 603번째 라운드. c3925(602nd, 델타 0건 표면 불변 폐기) 이후 라운드.
