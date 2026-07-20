@@ -13736,6 +13736,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4097 — design/aesthetic 707th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- 순번: rotation상 aesthetic 707번째 라운드. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 72b53af8 이후 origin/main(5daaf312)까지 스타일 표면 diff 0건(루프 상태 chore만). 단 aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1 — navigator.sendBeacon(이탈 비콘 전송 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 2 — MutationObserver(DOM 변이 감시 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 3 — 명령형 History API(pushState/replaceState 직접 조작 채널): 직접 조작 0건, 내비게이션은 useRouter/router.push 위임 일관(8개+ 파일) — coherent absence, divergence 0. baseline 기록.
+- 기록: anti-patterns.md에 baseline 3건 추가(L2029-2031).
+- 포인터: aesthetic 72b53af8 → 5daaf312 전진.
+- 차기: cycle 4099, 발견 모드(rotation: responsive 706th round).
+
 ## cycle 4095 — design/tokens 630th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation상 tokens 630번째 라운드. backlog pending 0건 → 발견 모드.
