@@ -13694,6 +13694,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4091 — design/aesthetic 706th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- 순번: rotation상 aesthetic 706번째 라운드. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 696e9811 이후 origin/main(72b53af8)까지 스타일 표면 diff 0건(루프 상태 chore만). 단 aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1 — Gamepad API(게임패드 입력 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 2 — dblclick/onDoubleClick(더블클릭 제스처 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 3 — 해시 앵커/location.hash(인페이지 내비게이션 채널): 모집단 1건(layout.tsx:32 스킵 링크 href="#main"), 타깃 id="main" 각 페이지 일관, JS 해시 변이 0건 — divergence 0. baseline 기록.
+- 기록: anti-patterns.md에 baseline 3건 추가(L2026-2028).
+- 포인터: aesthetic 696e9811 → 72b53af8 전진.
+- 차기: cycle 4093, 발견 모드(rotation: responsive 705th round).
+
 ## cycle 4089 — design/tokens 629th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation상 tokens 629번째 라운드. backlog pending 0건 → 발견 모드.
