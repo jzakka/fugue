@@ -12728,6 +12728,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3931 — design/responsive 678th round (Discovery, 델타 동형 커버 판정)
+
+- 순번: responsive 678번째 라운드. c3923(677th, 델타 0건 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive census 커버(019d165c) 이후 origin/main 헤드 a2bad6c6까지 apps/web 델타 2파일 — 전부 c3929 #5040(PinsGrid noscript 폴백) 자기 변경. 신규 마크업은 FeedContainer:224-235 동형 복제(BP 모디파이어 0·고정폭 0·flex 중앙정렬 뷰포트 불변)로 기존 census 커버 범위, page.tsx 델타는 서버 로직 전용 마크업 무변.
+- 판정: 델타 표면이 커버 마크업 동형 → covered, 후보 0건. census 포인터 a2bad6c6 갱신. anti-patterns 신규 baseline 불필요(reject 아님).
+- 차기: cycle 3933 발견 모드(rotation: tokens 603rd round).
+
 ## cycle 3929 — design 처리 (pinsgrid-noscript-pagination-fallback, PR #5040)
 
 - 변경: creators/[id]/page.tsx searchParams(offset) 해석 신설(app/page.tsx:68 동형)→fetchPins offset 전달→PinsGrid initialOffset 하향; PinsGrid.tsx initialOffset prop(offsetRef=initialOffset+initialPins.length, FeedContainer:42 동형)+FeedContainer:224-235 동형 noscript '다음 페이지' 블록(`?offset=N`만 — 필터는 클라이언트 상태 전용). OpenSpec `pinsgrid-noscript-pagination-fallback` 아카이브(profile 델타 ADDED: 스크립트 비활성 페이지네이션 수단).
