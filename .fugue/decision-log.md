@@ -12524,6 +12524,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3909 — design/aesthetic 676th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 676번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3903, 41cd7bec) 이후 헤드 e494b075까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(13커밋 전부 상태 파일 chore). c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: novalidate(L571 formnovalidate 전용)·pattern(28)·wrap(72)·readonly(8) → 제외. multiple 매치는 WCAG 2.4.5 Multiple Ways(L390) 오탐, formenctype·dirname 0매치(c3903 이월 후보) — 3축 fresh 판정.
+- fresh 축 3건 판정:
+  - (1) 제출 인코딩 오버라이드 채널 `formenctype`/`enctype`: src 전수 0건, 폼 2곳(PinCreateForm:319·ProfileEditForm:48-49) 모두 onSubmit JS 제출 균일 — 네이티브 인코딩 제출 채널 미사용, 모집단 0. pure vacuous 폐기.
+  - (2) 텍스트 방향 제출 채널 `dirname`/`dir`: src 전수 0건, `<html lang="ko">` LTR 단일 방향 균일 — RTL/방향 재정의 표면 전무, 모집단 0. pure vacuous 폐기.
+  - (3) 다중 선택 채널 `multiple`: src 전수 0건, `<select>` 0곳·file input 단일(PinCreateForm:447) — 다중 선택 저작 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: formenctype/dirname/multiple/enctype/dir 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(제출 인코딩 오버라이드 채널·텍스트 방향 제출 채널·다중 선택 채널). 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3911 발견 모드(rotation: responsive 675th round).
+
 ## cycle 3907 — design/tokens 599th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 599번째 라운드. c3901(598th, 델타 0건 표면 불변 폐기) 이후 라운드.
