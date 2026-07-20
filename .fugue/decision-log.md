@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5502 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
+- 판정: 직전 동시성 census(5490) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 5504 (직전 5492 covered). 봇·스펙 freeze check 예정
+
 ### cycle 5500 — 에러처리: 코드·빌드 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api Makefile .github/workflows
 - 조사: 0건. baseline 앵커(2344 Makefile || true 억제, 2348 dead threshold 중복) 이후 신규 변동 없음
