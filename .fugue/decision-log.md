@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5484 — 보안: 신규 high 취약점(brace-expansion DoS) 발견 → npm audit fix로 해소
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 3 vulnerabilities (2 moderate, 1 high)로 baseline 이탈. 신규 high = brace-expansion <1.1.16 DoS (GHSA-3jxr-9vmj-r5cp, advisory 신규 게시). dep 파일 커밋은 5389b72e 불변이므로 advisory DB 갱신 기인
+- 조치: npm audit fix (non-breaking) 적용 → package-lock.json 갱신, 재감사 결과 2 moderate (next-vendored postcss@8.4.31, cycle 2256 잔여 baseline)로 복귀
+- 판정: high 해소 완료. 잔여 2 moderate는 next 메이저 업그레이드 필요로 기존 baseline 유지
+- 차기: rotation 정합성 cycle 5486 (직전 5474 covered). 코드·문서 freeze check 예정. 차기 보안 census(5496)에서 baseline "2 moderate + brace-expansion fixed" 기준 재확인
+
 ### cycle 5482 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
 - 조사: 스펙·체인지 전체 validate 통과, baseline 14 유지. 잔여 8건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544)은 계수 완료된 디자인 트랙 변경
