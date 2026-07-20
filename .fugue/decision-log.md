@@ -12734,6 +12734,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3933 — design/tokens 603rd round (Discovery, 델타 동형 커버 판정)
+
+- 순번: tokens 603번째 라운드. c3925(602nd, 델타 0건 표면 불변 폐기) 이후 라운드.
+- census: 직전 tokens census 커버(7bcfb4c9) 이후 origin/main 헤드 e6f734b8까지 apps/web 델타 2파일 — 전부 c3929 #5040(PinsGrid noscript 폴백) 자기 변경, DESIGN.md·AGENTS.md 무변. 추가 마크업 토큰 전수(py-8·px-6 py-3·bg-surface·border-border·rounded-full·text-sm·text-muted→text-primary·transition-colors)는 tokens census 기커버 FeedContainer:226-233 바이트 동일 복제, radius full(버튼/칩) 규정 정합. page.tsx 델타는 스타일 토큰 0건.
+- 판정: 델타 토큰이 커버 표면 동형 → covered, 후보 0건. census 포인터 e6f734b8 갱신(c3931 responsive 동형 판정).
+- 차기: cycle 3935 발견 모드(rotation: aesthetic 680th round).
+
 ## cycle 3931 — design/responsive 678th round (Discovery, 델타 동형 커버 판정)
 
 - 순번: responsive 678번째 라운드. c3923(677th, 델타 0건 표면 불변 폐기) 이후 라운드.
