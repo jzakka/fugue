@@ -16,6 +16,18 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5522 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (루프 커밋 제외)
+- 조사: 신규 0건. 잔여 1건(e2cb3a80, 2026-07-03 #3115)은 baseline 커밋으로 기존 census에서 계수 완료
+- 판정: 직전 정합성 census(5510) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5524 (직전 5512 covered). 코드·빌드 freeze check 예정
+
+### cycle 5520 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31), high 0건. dep 파일 마지막 커밋 a52bb76e (5496 확립 baseline 동일)
+- 판정: 직전 보안 census(5508) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 5522 (직전 5510 covered). 코드·문서 freeze check 예정
+
 ### cycle 5518 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
 - 조사: 잔여 8건 전부 기존 census 계수 완료분(디자인 트랙 apps/web 전용). validate 전 항목 통과, 스펙-구현 갭 신규 신호 없음
