@@ -13832,6 +13832,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4115 — design/aesthetic 710th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- 순번: rotation상 aesthetic 710번째 라운드. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 70c3779c 이후 origin/main(3465f144)까지 스타일 표면 diff 0건(루프 상태 chore만). 단 aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1 — IndexedDB(클라이언트 구조화 저장 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 2 — crypto.randomUUID(클라이언트 식별자 생성 채널): 생성 0건, pure vacuous. 검증 uuidRegex 3곳 동일 idiom은 별개 표면. baseline 기록.
+- 프로브 3 — performance.mark/measure(사용자 정의 성능 계측 채널): 사용 0건, pure vacuous. baseline 기록.
+- 판별: Intl.DateTimeFormat/RelativeTimeFormat 후보는 L1905 날짜/시간 표기 채널 baseline이 광범위 커버하여 제외.
+- 기록: anti-patterns.md에 baseline 3건 추가(L2038-2040).
+- 포인터: aesthetic 70c3779c → 3465f144 전진.
+- 차기: cycle 4117, 발견 모드(rotation: responsive 709th round).
+
 ## cycle 4113 — design/tokens 633rd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation상 tokens 633번째 라운드. backlog pending 0건 → 발견 모드.
