@@ -14877,6 +14877,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4265 — design/aesthetic 735th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0건 → 발견 모드, rotation상 aesthetic 735th round.
+- 센서스: aesthetic 포인터 8855ceee..origin/main(ebd0f9b4) 구간 스타일 표면 diff 0건(loop-state chore뿐)이나, aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1(배열 타입 표기): `T[]` 38건 vs `Array<T>` 0건 — 단일 idiom 수렴. clean baseline. (L650·L1569 히트는 system/states 축 우연 일치 확인)
+- 프로브 2(옵셔널 프로퍼티 표기): `?:` 57건 수렴, 프로퍼티 `| undefined` 0건(Record 값 타입 1건은 문맥 결정적) — 단일 idiom 수렴. clean baseline.
+- 프로브 3(모듈 상수 명명): UPPER_SNAKE 24건 vs camelCase 리터럴 상수 0건 — 단일 idiom 수렴. clean baseline.
+- 기록: anti-patterns.md에 baseline 3건 추가(2112 → 2115 라인).
+- 포인터: aesthetic 8855ceee → ebd0f9b4 전진.
+- 차기: cycle 4267, 발견 모드(rotation: responsive 734th round).
+
 ## cycle 4263 — design/tokens 658th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation상 tokens 658th round.
