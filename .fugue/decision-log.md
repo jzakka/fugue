@@ -13154,6 +13154,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4001 — design/aesthetic 691st round (Discovery, fresh 축 3건 프로브 — rowspan-colspan·http-equiv·ruby 마크업 baseline 3건)
+
+- 순번: aesthetic 691번째 라운드. c3995(690th, rel관계·form-action·th-scope baseline 3건) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(3b963af8, c3995) 이후 origin/main 헤드 d8b441c9까지 스타일 표면 델타 0건(구간 커밋 전부 상태 파일 chore #5144-#5150). aesthetic 라운드는 델타 무관 fresh 축 3건 프로브 필수(c3781).
+- fresh 축 프로브 3건: (1) HTML `rowspan`/`colspan` 셀 병합 속성 — L951/955 aria-rowspan/colspan 은 ARIA 상태 축, 마크업 병합 채널 미커버(c3891); `<table>`/`<td>`/`<th>` 전수 0건 → pure vacuous. (2) `<meta http-equiv>` 프래그마 채널 — L380 시간 제한 축 내 refresh 언급뿐, X-UA/메타-CSP 미등장; httpEquiv 전수 0건 → pure vacuous. (3) `<ruby>`/`<rt>`/`<rp>` 루비 주석 마크업 채널 — L666/940/946 은 루비 CSS 토큰 축, 마크업 저작 채널 미커버(c3891); 전수 0건·lang="ko" 단일 언어 → pure vacuous.
+- 판정: 3축 모두 모집단 0, 결함 클래스 미성립 → 후보 0건, baseline 3건 기록(anti-patterns.md L1981-1983, 1983줄). 포인터 d8b441c9 갱신.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4003, 690th round(responsive).
+
 ## cycle 3999 — design/tokens 614th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 614번째 라운드. c3993(613th, 표면 불변 폐기) 이후 라운드.
