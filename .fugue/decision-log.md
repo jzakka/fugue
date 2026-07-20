@@ -12656,6 +12656,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3927 — design/aesthetic 679th round (Discovery, fresh 축 3건 — 후보 1건 등재·baseline 2건)
+
+- 순번: aesthetic 679번째 라운드. c3921(678th, colgroup/optgroup/wbr baseline) 이후 라운드. 델타: aesthetic census 커버(f680f8c3) 이후 헤드 c53bddef까지 0건(8커밋 상태 파일 chore) — c3781 관례상 fresh 축 3건 프로브.
+- fresh 축 3건: noscript(스크립트 비활성 폴백 채널 — L580 @media scripting 미디어쿼리 축과 별개, c3891 선례)·pre(사전 서식 블록 — L289 whitespace 토큰 축과 별개)·code(인라인 코드 표기 — samp/kbd/var 전례 동형). pre·code 는 src 0건+모집단 0 pure vacuous → anti-patterns L1946-1947 baseline. bdo/bdi 는 L370 토큰 축이 요소를 채널 정의에 포함해 커버 판정(보수 선택).
+- **후보 등재 1건**: noscript 는 vacuous 아님 — IntersectionObserver 무한스크롤 표면 전수 2곳 중 FeedContainer:224만 noscript '다음 페이지' 폴백 보유, PinsGrid(creators/[id]) 부재+서버 searchParams 미지원. img-onerror-degrade 부분 적용 정렬 선례 동형으로 backlog `design-20260720-pinsgrid-noscript-pagination-fallback` (i2/c3/e3/r2 score 1.0, pending) 등재.
+- 차기: cycle 3929 처리 모드(top-1: pinsgrid-noscript-pagination-fallback).
+
 ## cycle 3925 — design/tokens 602nd round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 602번째 라운드. c3919(601st, 델타 0건 표면 불변 폐기) 이후 라운드.

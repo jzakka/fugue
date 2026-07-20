@@ -3690,3 +3690,20 @@ items:
     status: done
     pr: 4907
     note: "cycle 3849 처리. AddToBoardButton:194 성공 피드백 보드명 인용부호 직선→곡선따옴표(“ ”) 단일 지점 교체. board 스펙 ADDED(성공 안내 보드명 인용 표기 = 가시 카피 인용 표기) 동기화. 실 브라우저 CDP QA 통과: 성공 피드백 '“보드명” 보드에 추가했습니다' 곡선 렌더·직선따옴표 부재, 409 중복·실패 카피 무변경(fetch 500 강제), 검색 헤딩·EmptyState 곡선따옴표 회귀 없음(오염 없는 쿼리 재검증 포함), 콘솔 에러 0. tsc 0·vitest 47 pass."
+  - id: "design-20260720-pinsgrid-noscript-pagination-fallback"
+    title: "무한스크롤 noscript 페이지네이션 폴백 부분 적용 — FeedContainer 보유, 동형 IntersectionObserver 표면 PinsGrid 미보유"
+    area: aesthetic
+    evidence:
+      files:
+        - "apps/web/src/components/feed/FeedContainer.tsx:224-235"
+        - "apps/web/src/components/profile/PinsGrid.tsx:91"
+        - "apps/web/src/app/creators/[id]/page.tsx:77"
+      cite: "IntersectionObserver 무한스크롤 표면 전수 2곳 중 FeedContainer:224만 <noscript> '다음 페이지' 링크 폴백 보유(offset URLSearchParams:177-180, 서버 app/page.tsx:65 offset searchParam 지원). PinsGrid(creators/[id])는 폴백 부재 + 서버 페이지 searchParams 미지원 — JS 비활성 시 프로필 핀 초기 배치 이후 접근 불가. DESIGN.md·AGENTS.md noscript 규정 0매치이나 동일 아키타입(관찰자 무한스크롤) 실갈림은 일관성 정렬 대상(img-onerror-degrade 부분 적용 정렬 선례 동형). PinsGrid 필터(media_type)는 클라이언트 상태 전용이므로 noscript 링크는 무필터 뷰 offset만 지원(보수 원칙 d)."
+      repro: "JS 비활성 상태에서 /creators/[id] 접속 → 초기 서버 렌더 핀 이후 페이지네이션 수단 없음. 피드(/)는 동일 조건에서 '다음 페이지' 링크 제공."
+    qa_plan: "dev 서버 CDP: (1) /creators/[id]?offset=N 서버 렌더가 다음 배치 핀 표시. (2) CDP Emulation.setScriptExecutionDisabled 로 JS 비활성 후 /creators/[id] 하단 '다음 페이지' 링크 렌더·href 정합 확인. (3) JS 활성 시 noscript 블록 비가시·무한스크롤/필터 회귀 없음(피드 noscript 회귀 대조 포함). (4) 콘솔 에러 0."
+    impact: 2
+    confidence: 3
+    effort: 3
+    risk: 2
+    score: 1.0
+    status: pending
