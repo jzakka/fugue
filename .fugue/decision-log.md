@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5486 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (루프 커밋 제외)
+- 조사: 신규 0건. 잔여 1건(e2cb3a80, 2026-07-03 #3115)은 baseline 커밋으로 기존 census에서 계수 완료
+- 판정: 직전 정합성 census(5474) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5488 (직전 5476 covered). 코드·빌드 freeze check 예정
+
 ### cycle 5484 — 보안: 신규 high 취약점(brace-expansion DoS) 발견 → npm audit fix로 해소
 - 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
 - 조사: 3 vulnerabilities (2 moderate, 1 high)로 baseline 이탈. 신규 high = brace-expansion <1.1.16 DoS (GHSA-3jxr-9vmj-r5cp, advisory 신규 게시). dep 파일 커밋은 5389b72e 불변이므로 advisory DB 갱신 기인
