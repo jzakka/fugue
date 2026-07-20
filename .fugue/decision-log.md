@@ -13634,6 +13634,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4081 — design/responsive 703rd round (Discovery, 표면 불변 폐기)
+
+- 순번: responsive 라운드 703번째.
+- 센서스: 포인터 7f6fc8aa..origin/main(4bc91a40) 구간 스타일 표면(apps/web/src, tailwind.config.ts, globals.css, DESIGN.md) delta 0건 — loop-state chore 커밋만 존재.
+- 판정: c3781 관례에 따라 재프로브 없이 표면 불변 폐기.
+- 포인터: responsive 센서스 포인터 7f6fc8aa → 4bc91a40 전진.
+- 차기: cycle 4083, 발견 모드(rotation: tokens 628th round).
+
 ## cycle 4079 — design/aesthetic 704th round (Discovery, fresh 축 프로브 3건 — 이탈경고·커스텀우클릭·동적탭제목 baseline)
 
 - 순번: aesthetic 라운드 704번째. 센서스 delta 0건(포인터 4847208f..d649463c, chore만 존재)이나 c3781 규칙에 따라 fresh 축 프로브 의무 수행.
