@@ -14030,6 +14030,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4145 — design/aesthetic 715th round (Discovery, fresh 축 프로브 3건)
+
+- **순번**: backlog-design pending 0 → 발견 모드. rotation: aesthetic 715th round.
+- **센서스**: aesthetic 포인터 4e2bf86b..origin/main(a671469d) 스타일 표면 diff 0건(루프 상태 chore만). aesthetic 라운드는 c3781 관례에 따라 delta와 무관하게 fresh 축 프로브 수행.
+- **프로브 1 — Error cause 체이닝**: `{ cause` / `.cause` 프로덕션 0건("cause" 커버리지 히트 L340·L1267은 시스템 트랙 베이스라인의 우연 부분문자열). 에러 원인 체이닝 채널 모집단 0 — pure vacuous. 결함 클래스 미성립.
+- **프로브 2 — 비파괴 배열 변형**: `toSorted`/`toReversed`/`toSpliced` 0건, 인접 idiom `.sort(` 도 0건 — 클라이언트 정렬 수요 자체 부재. pure vacuous.
+- **프로브 3 — Intl.PluralRules/ListFormat**: 0건. L1890 NumberFormat 축·L1905 날짜/시간 축과 별개 채널(c3891 판례). pure vacuous.
+- **기록**: anti-patterns.md L2053-2055에 3건 baseline 추가(총 2055행).
+- **포인터**: aesthetic 4e2bf86b → a671469d 전진.
+- **차기**: cycle 4147, 발견 모드(rotation: responsive 714th round).
+
 ## cycle 4143 — design/tokens 638th round (Discovery, 표면 불변 폐기)
 
 - **순번**: pending 0 → 발견 모드, rotation상 tokens 638th round.
