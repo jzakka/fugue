@@ -13448,6 +13448,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4049 — design/aesthetic 699th round (Discovery, fresh 축 프로브 3건 — 모듈로딩힌트·문서리퍼러정책·투기적로딩규칙 baseline)
+
+- 순번: c4047(tokens 622nd) 이후 rotation에 따라 aesthetic 699th round.
+- 센서스: 포인터 4645798b..cfb40e71 구간 스타일 표면 델타 0건 (chore 머지만 존재) — aesthetic 라운드는 c3781 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브: ① 모듈 로딩 힌트 채널(modulepreload·importmap — prefetch L1967과 별개 ES 모듈 그래프 축, c3891) 사용 0건 pure vacuous (Next.js 프레임워크 관리). ② 문서 레벨 리퍼러 정책 채널(meta referrer — per-element referrerpolicy L1932와 별개 문서 전역 축, c3891) metadata 표면 7곳 중 사용 0건 pure vacuous. ③ 투기적 로딩 규칙 채널(speculationrules — rel 힌트 L1967과 별개 규칙 기반 투기 실행 축, c3891) 사용 0건 pure vacuous.
+- 기록: anti-patterns.md L2005-2007 baseline 3건 추가. backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 4645798b → cfb40e71 갱신.
+- 차기: cycle 4051, 발견 모드(rotation: responsive 698th round).
+
 ## cycle 4047 — design/tokens 622nd round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: c4045(responsive 697th) 이후 rotation에 따라 tokens 622nd round.
