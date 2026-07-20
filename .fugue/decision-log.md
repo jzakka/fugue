@@ -16,6 +16,18 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5496 — 보안: 의존성 표면 freeze check → 신규 baseline 확립 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 2 moderate severity vulnerabilities, high 0건 — 5484 fix(brace-expansion) 반영 확인. dep 파일 마지막 커밋 a52bb76e (5484 머지)로 신규 baseline 확립
+- 판정: 5484 조치 이후 표면 안정 → covered. 이후 보안 census 기준: dep 커밋 a52bb76e + 2 moderate (next-vendored postcss@8.4.31)
+- 차기: rotation 정합성 cycle 5498 (직전 5486 covered). 코드·문서 freeze check 예정
+
+### cycle 5494 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
+- 조사: 스펙·체인지 전체 validate 통과, baseline 14 유지. 잔여 8건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544)은 계수 완료된 디자인 트랙 변경
+- 판정: 직전 OpenSpec갭 census(5482) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 5496 (직전 5484 fix 완료). npm audit + dep 파일 freeze check 예정 — 신규 baseline: high 0건, 2 moderate, dep 파일 마지막 커밋은 5484 머지 커밋
+
 ### cycle 5492 — 봇: 봇·스펙 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (루프 커밋 제외)
 - 조사: 신규 0건. 잔여 8건(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544)은 계수 완료된 디자인 트랙 변경이며 bot 코드 비접촉
