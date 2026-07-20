@@ -3706,4 +3706,6 @@ items:
     effort: 3
     risk: 2
     score: 1.0
-    status: pending
+    status: done
+    pr: 5040
+    note: "cycle 3929 처리 — creators/[id] offset searchParam 신설 + PinsGrid initialOffset·FeedContainer:224-235 동형 noscript '다음 페이지' 블록. CDP QA 4항목 통과."
