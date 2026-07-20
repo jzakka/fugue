@@ -12434,6 +12434,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3897 — design/aesthetic 674th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 674번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3891, 13642113) 이후 헤드 9c34c066까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(8커밋 전부 상태 파일 chore). c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: crossorigin 매치는 `crossOriginIsolated` 메모리 API(L1596) 오탐, ping 매치는 Go `db.Ping`(L182)·`animate-ping`(L517)·ping-pong 서술(L1372) 오탐, referrerpolicy 0매치 — 3축 fresh 판정 (c3891 예고 후보 소진).
+- fresh 축 3건 판정:
+  - (1) CORS 자격 채널 `crossorigin` 속성: src 전수 0건, 외부 리소스는 폰트 CDN 스타일시트 3곳(layout.tsx:17-28)·표시 전용 이미지뿐 — canvas 판독/무결성 검증 동기 부재, 모집단 0. pure vacuous 폐기.
+  - (2) 리퍼러 정책 채널 `referrerpolicy` 속성: src 전수 0건, 외부 이탈 2곳(pins/[id]:222-223·PinCard:114) 모두 rel=noreferrer 로 억제 균일 — 요소 단위 세분화 동기 부재, 모집단 0. pure vacuous 폐기.
+  - (3) 링크 감사 채널 `ping` 속성: src 전수 0건, 클릭 트래킹/감사 표면 전무 — 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: crossorigin/referrer/ping 실질 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(CORS 자격 채널·리퍼러 정책 채널·링크 감사 채널). 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3899 발견 모드(rotation: responsive 673rd round).
+
 ## cycle 3895 — design/tokens 597th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 597번째 라운드. c3889(596th, 델타 0건 표면 불변 폐기) 이후 라운드.
