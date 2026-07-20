@@ -13526,6 +13526,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4061 — design/aesthetic 701st round (Discovery, fresh 축 프로브 3건 — 연락URL스킴·햅틱피드백·OS앱뱃지 baseline)
+
+- 순번: c4059(tokens 624th) 이후 rotation에 따라 aesthetic 701st round.
+- 센서스: 포인터 86d8f10a..14eb28d3 구간 스타일 표면 델타 0건 (chore 머지만 존재) — aesthetic 라운드는 c3781 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브: ① 연락 URL 스킴 채널(mailto:/tel: — address 요소 L1923과 별개 링크 스킴 축, c3891) 사용 0건 pure vacuous. ② 햅틱 피드백 채널(navigator.vibrate — CSS 주파수 L1067·사인 함수 L1736과 무관) 사용 0건 pure vacuous. ③ OS 앱 뱃지 채널(setAppBadge/clearAppBadge — OpenType annotation L1662와 별개 OS 아이콘 뱃지 축, c3891) 사용 0건 pure vacuous.
+- 기록: anti-patterns.md L2011-2013 baseline 3건 추가. backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 86d8f10a → 14eb28d3 갱신.
+- 차기: cycle 4063, 발견 모드(rotation: responsive 700th round).
+
 ## cycle 4059 — design/tokens 624th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: c4057(responsive 699th) 이후 rotation에 따라 tokens 624th round.
