@@ -12320,6 +12320,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3867 — design/aesthetic 669th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+관찰: pending 0 → 발견 모드, rotation aesthetic(669th). 직전 aesthetic census(c3861, 02acd029) 이후 origin/main 헤드 bfe52f6d까지 apps/web·DESIGN.md·AGENTS.md 델타 0건이나 aesthetic 관례(c3781)에 따라 fresh 축 3건 탐침. 기커버 사전 확인: dialog(16매치)·쓰기 방향/unicode-bidi(L370)·word-break(13)·hyphens(33)·time/details/ruby/meter/progress 전부 기존 baseline → 제외, `<bdi>` 는 L370 unicode-bidi 토큰 축과 차원 중첩 우려로 보류. fresh 3축: (1) **저작물 표제 인용 채널 `<cite>`** — 전수 0건, 작품 표제 표기(pins/[id]:59/:137·PinCard)는 plain div/heading + font-semibold 균일 저작·italic 표제 관례 0 — 요소 채널 divergence 모집단 0 pure vacuous 폐기. (2) **시스템 출력 표기 채널 `<samp>`** — 전수 0건, 프로그램 출력 샘플 표기 모집단 0(font-mono 는 태그 칩·파일 메타 목적, 에러 메시지는 사용자 카피 문형) — pure vacuous 폐기. (3) **기계-판독 값 병기 채널 `<data>`** — 전수 0건, 가시 수치 기계값 병기 저작 0(value={} 11곳은 폼 input 제어 차원) — 모집단 0 pure vacuous 폐기. DESIGN.md·AGENTS.md 전부 침묵(cite/samp/data/표제/시스템 출력/기계 판독 0매치).
+결정/변경: 후보 0건. 폐기 3축 anti-patterns baseline 등재(저작물 표제 인용 채널·시스템 출력 표기 채널·기계-판독 값 병기 채널). 코드 무변경(상태 파일 2종만).
+차기: cycle 3869 발견 모드(rotation: responsive 668th round).
+
 ## cycle 3865 — design/tokens 592nd round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 592번째 라운드. c3859(591st, 델타 0건 표면 불변 폐기) 이후 라운드.
