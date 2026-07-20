@@ -14588,6 +14588,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4223 — design/aesthetic 728th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 728th round. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 5bc2e114..origin/main(73f3f24c) 스타일 표면 diff 0건 — 루프 상태 chore 커밋만 존재. aesthetic 라운드는 c3781 관례상 delta 무관 fresh 축 프로브 3건 필수.
+- 프로브 1(수치 난수 생성): `Math.random`·`getRandomValues`·클라이언트 `randomUUID` 모두 0건 — 순수 vacuous 모집단 0. L730 히트는 CSS random() tokens baseline 우연(별개 축).
+- 프로브 2(명시적 불리언 변환): `Boolean(` 0건, `!!` 6건 6표면(타입가드 filter 2건 + aria-invalid 4건) — `!!` 단일 idiom 수렴. L89/509 히트는 폼 states 항목 우연.
+- 프로브 3(프로미스 거부 생성): `Promise.reject(` 0건, executor reject 콜백 3건 3표면 + async throw 수렴 — 문맥 결정적 분담. L2089-2091 소비 baseline과 별개 채널(c3891).
+- 기록: anti-patterns.md 2091→2094행, baseline 3건 append.
+- 포인터: aesthetic 5bc2e114 → 73f3f24c 전진.
+- 차기: cycle 4225, 발견 모드(rotation: responsive 727th round).
+
 ## cycle 4221 — design/tokens 651st round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 651st round.
