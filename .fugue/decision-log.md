@@ -13910,6 +13910,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4127 — design/aesthetic 712th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- **순번**: pending 0 → 발견 모드, rotation상 aesthetic 712th round.
+- **센서스**: 포인터 205c7de5 이후 origin/main(86261872)까지 스타일 표면 diff 0건(루프 chore·design-loop 기록만). aesthetic이므로 c3781 관례에 따라 fresh 축 프로브 3건 수행.
+- **프로브 1 — WeakRef/FinalizationRegistry**: 약참조 메모리 관리 채널. WeakRef·FinalizationRegistry·WeakMap·WeakSet 0건 → 모집단 0, pure vacuous.
+- **프로브 2 — Proxy/Reflect**: 런타임 메타프로그래밍 채널. new Proxy·Reflect.* 0건 → 모집단 0, pure vacuous.
+- **프로브 3 — TextEncoder/TextDecoder**: 텍스트↔바이너리 인코딩 채널. TextEncoder·TextDecoder·btoa·atob 프로덕션 0건(ArrayBuffer는 테스트 헬퍼 1건뿐) → 모집단 0, pure vacuous.
+- **기록**: anti-patterns.md L2044-2046 baseline 3건 추가.
+- **포인터**: aesthetic 205c7de5 → 86261872 전진.
+- **차기**: cycle 4129, 발견 모드(rotation: responsive 711th round).
+
 ## cycle 4125 — design/tokens 635th round (Discovery, 표면 불변 폐기)
 
 - **순번**: pending 0 → 발견 모드, rotation상 tokens 635th round.
