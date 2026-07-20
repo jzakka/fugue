@@ -13436,6 +13436,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4043 — design/aesthetic 698th round (Discovery, fresh 축 프로브 3건 — pattern정규식·accept-charset·textarea크기속성 baseline)
+
+- 순번: c4041(tokens 621st) 이후 rotation에 따라 aesthetic 698th round.
+- 센서스: 포인터 e373c0d3..4645798b 구간 스타일 표면 델타 0건 (chore 머지만 존재) — aesthetic 라운드는 c3781 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브: ① 텍스트 정규식 제약 채널(`pattern` 속성 — 수치 제약 L1995와 별개 텍스트 패턴 축) 사용 0건 pure vacuous. ② 폼 제출 인코딩 지정 채널(`accept-charset` — enctype L1937과 별개 문자 인코딩 축) 사용 0건 pure vacuous. ③ textarea 고유 크기 속성 채널(`rows`/`cols` — CSS resize L400·field-sizing L409와 별개 HTML 저작 채널, c3891) 표면 1곳(PinCreateForm:486 rows={3}·폭 CSS 위임) 모집단 1 divergence 불가.
+- 기록: anti-patterns.md L2002-2004 baseline 3건 추가. backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 e373c0d3 → 4645798b 갱신.
+- 차기: cycle 4045, 발견 모드(rotation: responsive 697th round).
+
 ## cycle 4041 — design/tokens 621st round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: c4039(responsive 696th) 이후 rotation에 따라 tokens 621st round.
