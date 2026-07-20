@@ -14444,6 +14444,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4205 — design/aesthetic 725th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 725th round.
+- 센서스: aesthetic 포인터 352ff7b2..origin/main(86bcfb89) 스타일 표면 diff 0건 — 루프 상태 chore 커밋만 존재. aesthetic 라운드는 delta 0이어도 fresh 축 프로브 3건 필수(c3781 관례).
+- 프로브 1 (배열 정량 판별): `.some(` 프로덕션 1표면(proxy.ts:13)·`.every(` 0건 — 단일 idiom 수렴, clean baseline.
+- 프로브 2 (배열 타입 판별): Array.isArray 0건 — 모집단 0, 순수 vacuous, clean baseline.
+- 프로브 3 (수치 라운딩): Math.floor 2건 2파일(초→분 추출)·Math.round 3건 2파일(진행률·MB 환산)·ceil/trunc 0건 — 용도별 수렴, clean baseline.
+- 제외 판정: Array.isArray 히트 @64/102는 봇 트랙 goja 서술, Math.random @730·concat @1426·Math.round @406/1709는 CSS 함수, @372/906/1354는 states 축 ARIA 서술 우연 일치(c3891 관례상 미커버 확인). localStorage는 L2019 탭 동기화 채널 인접으로 보수 제외.
+- 기록: anti-patterns.md 2082 → 2085줄 (baseline 3건 추가).
+- 포인터: aesthetic 352ff7b2 → 86bcfb89 전진.
+- 차기: cycle 4207, 발견 모드(rotation: responsive 724th round).
+
 ## cycle 4203 — design/tokens 648th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 648th round.
