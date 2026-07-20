@@ -13232,6 +13232,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4013 — design/aesthetic 693rd round (Discovery, fresh 축 3건 프로브 — PiP제어·accept필터·webkitdirectory baseline 3건)
+
+- 순번: aesthetic 693번째 라운드. c4007(692nd, canvas·MathML·fencedframe baseline 3건) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(71a8cef5, c4007) 이후 origin/main 헤드 9a56f031까지 스타일 표면 델타 0건(구간 커밋 전부 상태 파일 chore). aesthetic 라운드는 델타 무관 fresh 축 3건 프로브 필수(c3781).
+- fresh 축 프로브 3건: (1) PiP 진입 제어 저작 채널(disablePictureInPicture/autoPictureInPicture) — L424 CSS 의사클래스·L1964 원격재생·L1958 controlslist 축과 별개(c3891); video 3표면 전수 미저작 → coherent absence. (2) 파일 입력 타입 필터 채널(accept) — L1936 capture·L1939 multiple 축과 별개(c3891); file input 전수 1건(PinCreateForm.tsx:447)·명시 MIME 목록 단일 관례 → divergence 0. (3) 파일 입력 폴더 선택 채널(webkitdirectory) — 전체 미등장; 전수 0건 → pure vacuous.
+- 판정: 3축 모두 결함 클래스 미성립 → 후보 0건, baseline 3건 기록(anti-patterns.md L1987-1989, 1989줄). 포인터 9a56f031 갱신.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4015, 692nd round(responsive).
+
 ## cycle 4011 — design/tokens 616th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 616번째 라운드. c4005(615th, 표면 불변 폐기) 이후 라운드.
