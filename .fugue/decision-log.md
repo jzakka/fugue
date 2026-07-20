@@ -13322,6 +13322,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4025 — design/aesthetic 695th round (Discovery, fresh 축 프로브 3건 — baseline 3건 기록)
+
+- 순번: aesthetic 695번째 라운드. c4019(694th, 버튼타입·폼오버라이드·JSON-LD baseline) 이후 라운드.
+- 센서스: aesthetic 포인터 6b717f8c..origin/main(162b151d) 스타일 표면 델타 0건 — 구간 커밋은 루프 상태 파일 chore뿐. aesthetic 라운드는 델타와 무관하게 fresh 축 프로브 3건 필수(c3781 관례).
+- fresh 축 프로브 3건:
+  1. 첨자 마크업 저작 채널(`<sub>`/`<sup>`): 전수 0건 — pure vacuous. L685 font-variant-position·L950 baseline-shift·L953 font-synthesis-position 은 CSS 스타일 축으로 미커버(c3891).
+  2. 자막 트랙 저작 채널(`<track kind>`): 전수 0건 — 비디오 표면 3곳 전부 미저작 균일, 자막 소스 부재의 coherent absence, divergence 0. L637/L663/L1252 WebVTT 큐 스타일링 축과 별개(c3891).
+  3. 수치 입력 제약 저작 채널(min/max/step): 선언적 전수 0건·number/date/range 입력 모집단 0 — pure vacuous. L397 :in-range 상태 축·L1581/L1589 명령형 ValidityState 축과 별개(c3891). aria-valuemin/max(PinCreateForm:381-382)는 ARIA 시맨틱 별개 채널.
+- 기록: anti-patterns.md L1993-1995 baseline 3건 추가(총 1995행). backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 6b717f8c → 162b151d 갱신.
+- 차기: cycle 4027, 발견 모드(rotation: responsive 694th round).
+
 ## cycle 4023 — design/tokens 618th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 618번째 라운드. c4017(617th, 표면 불변 폐기) 이후 라운드.
