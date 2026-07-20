@@ -12386,6 +12386,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3891 — design/aesthetic 673rd round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 673번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3885, c0950f0c) 이후 헤드 13642113까지 apps/web·DESIGN.md·AGENTS.md 델타 0건. c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: accesskey(L567)·autofocus(초기 포커스 L158)·theme-color(L1454)·maxlength(L110)·title 툴팁(L548)·hidden 속성(L777) 전용 baseline 매치 → 제외. download 매치는 봇 시스템 축 오탐, `<template>` 은 :host baseline 증거 언급뿐, `<base>` 매치는 CSS 상대 색·봇 URL resolve 오탐 — 3축 fresh 판정. crossorigin/referrerpolicy/ping 도 fresh 가능하나 3축은 download/template/base 로 선정.
+- fresh 축 3건 판정:
+  - (1) 앵커 다운로드 채널 `download` 속성: src 전수 0건, 파일 저장/내보내기 표면 전무(미디어는 재생·표시 전용, 링크는 전부 내비게이션) — 모집단 0. pure vacuous 폐기.
+  - (2) 콘텐츠 템플릿 채널 `<template>`: src 전수 0건, 반복/조건 마크업 저작은 전부 JSX 렌더 균일 — DOM 템플릿 복제 표면 전무, 모집단 0. pure vacuous 폐기.
+  - (3) 문서 기준 URL 채널 `<base>`: src 전수 0건, 내부 링크 루트-상대(`href="/..."`) 균일·외부 리소스 절대 URL(layout.tsx:19/:23/:27) — 기준 재정의 동기 부재, 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: download/template/base 실질 0매치(AGENTS.md L65 "미디어 다운로드" 는 봇 백엔드 서술로 무관) — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(앵커 다운로드 채널·콘텐츠 템플릿 채널·문서 기준 URL 채널). 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3893 발견 모드(rotation: responsive 672nd round).
+
 ## cycle 3889 — design/tokens 596th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 596번째 라운드. c3883(595th, 델타 0건 표면 불변 폐기) 이후 라운드.
