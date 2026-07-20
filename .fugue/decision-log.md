@@ -14841,6 +14841,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4259 — design/aesthetic 734th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0건 → 발견 모드, rotation상 aesthetic 734th round.
+- 센서스: aesthetic 포인터 013c6712..origin/main(8855ceee) 구간 스타일 표면 diff 0건(loop-state chore뿐)이나, aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1(interface vs type 별칭): union·함수형 type 강제(문맥 결정적) + 오브젝트 셰이프 interface 24건 주류 수렴 + 라우트 Props 관례 4건 분담, 컴포넌트 props type 이탈 1건(EmptyState) — 모집단 미달. clean baseline.
+- 프로브 2(타입 전용 임포트): 전수 32건 전원 문 단위 `import type`, inline `{ type X }` 0건 — 단일 idiom 수렴. clean baseline.
+- 프로브 3(non-null 단언 `!`): 8건 2파일 전원 JSX 조건 가드 하 참조 동일 용도 수렴. clean baseline. ("non-null" 기존 히트 5건은 Go·SQL nullability system 축 우연 일치 확인 — c3891 관례)
+- 기록: anti-patterns.md에 baseline 3건 추가(2109 → 2112 라인).
+- 포인터: aesthetic 013c6712 → 8855ceee 전진.
+- 차기: cycle 4261, 발견 모드(rotation: responsive 733rd round).
+
 ## cycle 4257 — design/tokens 657th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation상 tokens 657th round.
