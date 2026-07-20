@@ -13340,6 +13340,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4031 — design/aesthetic 696th round (Discovery, fresh 축 프로브 3건 — baseline 3건 기록)
+
+- 순번: aesthetic 696번째 라운드. c4025(695th, 첨자마크업·자막트랙·수치제약 baseline) 이후 라운드.
+- 센서스: aesthetic 포인터 162b151d..origin/main(93b48220) 스타일 표면 델타 0건 — 구간 커밋은 루프 상태 파일 chore뿐. aesthetic 라운드는 델타와 무관하게 fresh 축 프로브 3건 필수(c3781 관례).
+- fresh 축 프로브 3건:
+  1. 미디어 프리로드 힌트 저작 채널(preload): 4표면 전수 명시 — metadata ×3(감상/미리보기 role) vs auto ×1(VideoTrimModal 트리밍 스크럽 기능 필요) — role 기반 기능적 이분, divergence 0. L1257/L1753/L1888 축과 별개(c3891).
+  2. 재생 거동 저작 채널(autoplay·loop·muted 번들): autoplay/loop 전수 0건 coherent absence, muted 는 트림 모달 1건 기능 필요 + off-DOM 명령형 1건 — 기능적 이분. L415 상태 스타일링·L1496 명령형 축과 별개(c3891).
+  3. 미디어 소스 지정 저작 채널(직접 src vs source 자식): 서버렌더 정적 2곳 source 자식 vs blob 동적 미리보기 2곳 직접 src — 기능적 이분, role 내 divergence 0. type 폴백 전수 0건. L141/L1420/L1432 축과 별개(c3891).
+- 기록: anti-patterns.md L1996-1998 baseline 3건 추가(총 1998행). backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 162b151d → 93b48220 갱신.
+- 차기: cycle 4033, 발견 모드(rotation: responsive 695th round).
+
 ## cycle 4029 — design/tokens 619th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 619번째 라운드. c4023(618th, 표면 불변 폐기) 이후 라운드.
