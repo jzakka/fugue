@@ -13772,6 +13772,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4103 — design/aesthetic 708th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- 순번: rotation상 aesthetic 708번째 라운드. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 5daaf312 이후 origin/main(08a760aa)까지 스타일 표면 diff 0건(루프 상태 chore만). 단 aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1 — window.print(명령형 인쇄 트리거 채널, @page 스타일 축과 별개): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 2 — requestAnimationFrame(JS 프레임 스케줄링 채널): 사용 0건, pure vacuous. baseline 기록.
+- 프로브 3 — AbortController(요청 취소 채널): 모집단 4파일 — abortRef 경합 취소 idiom 3곳 동일(PinCreateForm·FeedContainer·SearchBar) + auth.ts 타임아웃 중단 별개 목적 — 목적별 단일 idiom, divergence 0. baseline 기록.
+- 기록: anti-patterns.md에 baseline 3건 추가(L2032-2034).
+- 포인터: aesthetic 5daaf312 → 08a760aa 전진.
+- 차기: cycle 4105, 발견 모드(rotation: responsive 707th round).
+
 ## cycle 4101 — design/tokens 631st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation상 tokens 631번째 라운드. backlog pending 0건 → 발견 모드.
