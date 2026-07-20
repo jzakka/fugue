@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5498 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (루프 커밋 제외)
+- 조사: 신규 0건. 잔여 1건(e2cb3a80, 2026-07-03 #3115)은 baseline 커밋으로 기존 census에서 계수 완료
+- 판정: 직전 정합성 census(5486) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5500 (직전 5488 covered). 코드·빌드 freeze check 예정
+
 ### cycle 5496 — 보안: 의존성 표면 freeze check → 신규 baseline 확립 (covered)
 - 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
 - 조사: 2 moderate severity vulnerabilities, high 0건 — 5484 fix(brace-expansion) 반영 확인. dep 파일 마지막 커밋 a52bb76e (5484 머지)로 신규 baseline 확립
