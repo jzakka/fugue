@@ -13100,6 +13100,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3991 — design/responsive 688th round (Discovery, 표면 폐기 — 반응형 표면 델타 0건·표면 불변)
+
+- 순번: responsive 688번째 라운드. c3985(687th, 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive 커버 포인터(51fa0dd8, c3985) 이후 origin/main 헤드 f07e6413까지 apps/web/src·tailwind config·globals.css·DESIGN.md 반응형 표면 델타 0건 — 구간 커밋 전부 design/시스템 트랙 상태 파일 chore(#5125-#5136).
+- 판정: 반응형 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3985 동형, c3781 델타-0 관례). 후보 0건, 신규 baseline 미기록. 포인터 f07e6413 갱신.
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 3993, 613th round(tokens).
+
 ## cycle 3989 — design/aesthetic 689th round (Discovery, fresh 축 3건 프로브 — 전원 결함 미성립, baseline 3건)
 
 - 순번: aesthetic 689번째 라운드. c3983(688th, shadowrootmode·nomodule·iframe-allow baseline) 이후 라운드.
