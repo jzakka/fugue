@@ -13604,6 +13604,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4073 — design/aesthetic 703rd round (Discovery, fresh 축 프로브 3건 — 위치기반·음성낭독·탭간동기화 baseline)
+
+- 순번: aesthetic 라운드 703번째. 센서스 delta 0건(포인터 9c95c525..4847208f, chore만 존재)이나 c3781 규칙에 따라 fresh 축 프로브 의무 수행.
+- 프로브 ①: 위치 기반 저작 채널(Geolocation API) — geolocation·getCurrentPosition·watchPosition 0건. 모집단 0, pure vacuous.
+- 프로브 ②: 음성 낭독 저작 채널(SpeechSynthesis) — speechSynthesis·SpeechSynthesisUtterance 0건. 모집단 0, pure vacuous. aria-live 고지 축과 별개(c3891).
+- 프로브 ③: 탭 간 UI 상태 동기화 채널(BroadcastChannel) — BroadcastChannel 0건·storage 이벤트 리스너 0건. 모집단 0, pure vacuous.
+- 기록: anti-patterns.md L2017-2019 baseline 3건 추가(총 2019행).
+- 포인터: aesthetic 센서스 포인터 9c95c525 → 4847208f 전진.
+- 차기: cycle 4075, 발견 모드(rotation: responsive 702nd round).
+
 ## cycle 4071 — design/tokens 626th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 라운드 626번째.
