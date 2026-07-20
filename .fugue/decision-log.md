@@ -12794,6 +12794,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3941 — design/aesthetic 681st round (Discovery, fresh 축 3건 프로브 — 전건 vacuous 폐기)
+
+- 순번: aesthetic 681번째 라운드. c3935(680th, s·u·translate baseline) 이후 라운드.
+- census 델타: 직전 aesthetic 포인터(66e75a43, c3935) 이후 헤드 4838bd0d까지 apps/web·DESIGN.md 델타 0건 — 전 커밋 상태 파일 chore(#5050-#5060). 포인터 4838bd0d 갱신.
+- fresh 축 3건 프로브(델타-0에도 aesthetic 라운드 필수, c3781): (1) `<bdi>/<bdo>` 양방향 격리 저작 채널 — L370 tokens 축 언급은 전용 채널 미커버(c3891 선례), src 전수 0건·단일언어 ko 암묵 LTR(L447 동형) → pure vacuous. (2) `<br>` 강제 개행 저작 채널 — src 전수 0건, 전 카피 레이아웃 개행 균일 → pure vacuous. (3) `&nbsp;`/U+00A0 불파 공백 저작 채널 — 문자 레벨 0건, 단어 붙임 8곳 전부 whitespace-nowrap CSS 균일 → vacuous·divergence 0.
+- 판정: 후보 0건(전건 confidence 요건 미달·모집단 0), anti-patterns L1951-1953 baseline 3건 기록. 사전 커버 확인: kbd·samp·var·address·hgroup·menu·figure·time·data·search·map/area·base·download·title·popover·contenteditable·draggable·inert·theme-color·autocomplete·progress·strong/em/b/i·ol/list 계열 전부 기존 baseline 확인, thead/tbody/tfoot 은 표 메커니즘 전수-0 vacuous(L725·L902·L1708)에 포섭.
+- 차기: cycle 3943 발견 모드(rotation: responsive 680th round).
+
 ## cycle 3939 — design/tokens 604th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 604번째 라운드. c3933(603rd, 델타 동형 커버 판정) 이후 라운드.
