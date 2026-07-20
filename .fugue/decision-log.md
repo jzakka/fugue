@@ -14775,6 +14775,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4247 — design/aesthetic 732nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0건 → 발견 모드, rotation상 aesthetic 732nd round.
+- 센서스: aesthetic 포인터 a1fe1f50..origin/main(c396e4a1) 구간 스타일 표면 diff 0건(loop-state chore뿐)이나, aesthetic 라운드는 c3781 관례에 따라 fresh 축 프로브 3건 필수.
+- 프로브 1(객체 구조 분해): 경로 params `const { id } = await params` 6건 vs searchParams `params.x` 프로퍼티 접근 — 필수/옵션 키 성격이 결정하는 문맥 결정적 분담. clean baseline.
+- 프로브 2(satisfies): 전수 0건 — 모집단 0, 순수 vacuous. clean baseline.
+- 프로브 3(instanceof): 8건 전원 catch `err instanceof Error` 내로잉 — 단일 idiom 수렴. clean baseline. (L2084 배열 판별·L1611 CSSOM은 별개 축/우연 히트 판정, `??`는 L2066 논리 할당·`||` 폴백 인접으로 보수적 제외 — c3891 관례)
+- 기록: anti-patterns.md에 baseline 3건 추가(2103 → 2106 라인).
+- 포인터: aesthetic a1fe1f50 → c396e4a1 전진.
+- 차기: cycle 4249, 발견 모드(rotation: responsive 731st round).
+
 ## cycle 4245 — design/tokens 655th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation상 tokens 655th round.
