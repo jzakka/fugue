@@ -14619,6 +14619,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4229 — design/aesthetic 729th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 729th round. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 73f3f24c..origin/main(43dfd7d0) 스타일 표면 diff 0건 — chore 및 의존성 수정만 존재. aesthetic 라운드는 c3781 관례상 delta 무관 fresh 축 프로브 3건 필수.
+- 프로브 1(이터러블→배열 변환): `Array.from({length})` 6건 6표면 range 생성 전용, 실이터러블 변환은 spread 수렴 — 용도별 분담 수렴. L271 봇 우연·L2069 별개 축 명시.
+- 프로브 2(수동 URL 인코딩): `encodeURIComponent` 2건 2표면 동일 idiom, decode/escape 0건, 다중 파라미터는 URLSearchParams(@2037) 분담 — 용도별 분담 수렴.
+- 프로브 3(명령형 순회 문): for...of 3건(비배열 이터러블)·인덱스 for 2건·forEach 1건 고립 — 모집단 미달, 결함 클래스 미성립. L2047 소비 축 별개 명시.
+- 기록: anti-patterns.md 2094→2097행, baseline 3건 append.
+- 포인터: aesthetic 73f3f24c → 43dfd7d0 전진.
+- 차기: cycle 4231, 발견 모드(rotation: responsive 728th round).
+
 ## cycle 4227 — design/tokens 652nd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 652nd round. backlog pending 0건 → 발견 모드.
