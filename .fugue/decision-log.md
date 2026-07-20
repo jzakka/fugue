@@ -12350,6 +12350,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3879 — design/aesthetic 671st round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 671번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3873, 32037f5f) 이후 헤드 4601e883까지 apps/web·DESIGN.md·AGENTS.md 델타 0건. c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: meter/progress/ins/del/caption/table/::selection/caret-color/accent-color/::marker/list-style/column-count/text-indent/initial-letter/shape-outside 전부 기존 baseline 매치 → 제외. figcaption 은 :has() baseline(L674) 예시 언급뿐, address 는 italic 토큰 baseline(L174) 예시뿐, datalist 는 WebKit 의사요소 baseline(L1075) 축뿐 — 3축 모두 fresh 판정. optgroup 은 `<select>` 0건(c3873)과 중첩되어 보류.
+- fresh 축 3건 판정:
+  - (1) 피규어 캡션 채널 `<figure>/<figcaption>`: src 전수 0건, caption 어휘 0건. 미디어+설명 병치는 전부 div 컨테이너+형제 텍스트 균일(PinCard:47 img+하단 title 등) — 모집단 0. pure vacuous 폐기.
+  - (2) 연락처 채널 `<address>`: src 전수 0건, mailto 0건, 연락처/contact 표면 전무 — 모집단 0. pure vacuous 폐기.
+  - (3) 제안 목록 채널 `<datalist>`: src 전수 0건, `list=` 0건, 제안/자동완성 UI 저작 0건(suggested_tags 는 api.ts:64 타입 필드만·UI 미소비, autoComplete attr 2곳은 브라우저 autofill 힌트 별개 차원) — 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: figure/figcaption/address/datalist/캡션/연락처/자동완성/제안 목록 전부 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(피규어 캡션 채널·연락처 채널·제안 목록 채널). 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3881 발견 모드(rotation: responsive 670th round).
+
 ## cycle 3877 — design/tokens 594th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 594번째 라운드. c3871(593rd, 델타 0건 표면 불변 폐기) 이후 라운드.
