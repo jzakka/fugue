@@ -12482,6 +12482,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3903 — design/aesthetic 675th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 675번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3897, 9c34c066) 이후 헤드 41cd7bec까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(11커밋 전부 상태 파일 chore). c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: inert(18)·popover(37)·enterkeyhint(13)·inputmode(12)·spellcheck(13)·contenteditable(16)·draggable(6)·autocapitalize(5)·elementtiming(L1532 Element Timing 전용)·exportparts(L1413 전용)·slot(L595 :has-slotted·L641 ::part 전용)·imagesrcset(L1753 전용) → 제외. capture 매치는 goroutine 캡처(L1134)·moveBefore(L1497)·이벤트 표기(L1786) 오탐, nonce·integrity 0매치 — 3축 fresh 판정.
+- fresh 축 3건 판정:
+  - (1) CSP 논스 채널 `nonce` 속성: src 전수 0건, CSP 헤더 구성 자체 부재(next.config.ts 침묵) — 논스가 결합할 정책 표면 전무, 모집단 0. pure vacuous 폐기.
+  - (2) 하위 리소스 무결성 채널 `integrity` 속성(SRI): src 전수 0건, 외부 리소스는 폰트 CDN 스타일시트 3곳뿐이며 그중 2곳(Google Fonts·Fontshare)은 UA 별 동적 응답으로 해시 고정 구조적 불가 — 균일 채택 성립 불가, 모집단 0. pure vacuous 폐기.
+  - (3) 파일 입력 미디어 캡처 채널 `capture` 속성: file-input capture 0건, 파일 입력은 PinCreateForm:447-448 단일 표면 — 분기 불가(단일 사이트 격리), 모집단 0. pure vacuous 폐기. src capture 매치는 setPointerCapture(VideoTrimModal:117/:127) 오탐.
+- DESIGN.md·AGENTS.md: nonce/integrity/capture/CSP/무결성 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(CSP 논스 채널·하위 리소스 무결성 채널·파일 입력 미디어 캡처 채널). known-fresh 이월 후보: formenctype·dirname. 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3905 발견 모드(rotation: responsive 674th round).
+
 ## cycle 3901 — design/tokens 598th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 598번째 라운드. c3895(597th, 델타 0건 표면 불변 폐기) 이후 라운드.
