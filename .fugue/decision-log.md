@@ -12638,6 +12638,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3921 — design/aesthetic 678th round (Discovery, fresh 축 3건 vacuous 폐기·baseline 등재)
+
+- 순번: aesthetic 678번째 라운드. c3915(677th, dfn/ins·del/var baseline) 이후 라운드. 델타: 직전 aesthetic census 커버(d0665c10) 이후 origin/main 헤드 f680f8c3까지 apps/web·DESIGN.md·AGENTS.md 델타 0건(12커밋 전부 상태 파일 chore) — 단 aesthetic 라운드는 c3781 관례상 fresh 축 3건 프로브 수행.
+- fresh 축 3건: colgroup(표 열 그룹 — 이월 후보; L989 :nth-col 언급은 states 축 증거일 뿐 전용 축 미커버, c3891 선례)·optgroup(셀렉트 옵션 그룹)·wbr(줄바꿈 기회 표기). 셋 다 src 전수 0건 + 호스트 요소(table/col/select) 0건 — 모집단 0 pure vacuous. wbr는 CSS truncate/line-clamp(24건) 관례와의 정합도 확인. DESIGN.md·AGENTS.md 전 축 0매치 규범 침묵. anti-patterns L1943-1945 baseline 등재.
+- 판정: 후보 0건. hgroup은 L1920 전용 baseline 기존 커버로 제외.
+- 차기: cycle 3923 발견 모드(rotation: responsive 677th round).
+
 ## cycle 3919 — design/tokens 601st round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 601번째 라운드. c3913(600th, 델타 0건 표면 불변 폐기) 이후 라운드.
