@@ -12902,6 +12902,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3959 — design/aesthetic 684th round (Discovery, fresh 축 3건 프로브 — 전건 폐기·기능적 이분 1건)
+
+- 순번: aesthetic 684번째 라운드. c3953(683rd, hidden·controlslist·microdata baseline) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(a6d87f56, c3953) 이후 origin/main 헤드 96c3c231까지 apps/web·DESIGN.md 델타 0건 — 구간 커밋 전부 design/시스템 트랙 상태 파일 chore(#5078-#5086). 포인터 96c3c231 갱신.
+- fresh 축 3건 프로브(c3781 관례 — 델타 0이어도 aesthetic 라운드는 미기록 채널 3건 필수):
+  - ① 인라인 재생 저작 채널(`playsinline`): video 표면 4곳 중 2곳 저작(VideoTrimModal:223·VideoThumbnailPicker:22)·2곳 미저작(pins/[id]:71·PinCreateForm:403) — divergence 존재하나 기능적 이분 coherent(스크럽/썸네일 추출은 인라인 필수, controls 플레이어는 UA 기본 표준). DESIGN.md L83/85 카드 비주얼만 규정·인라인 재생 미SHALL → loop 규칙 line 9 취향, 후보 불성립. L688 매체 기능 축은 전용 채널 미커버(c3891 선례).
+  - ② 인라인 문서 임베드 저작 채널(`<iframe srcdoc>`): iframe·srcdoc grep 전수 0건 — 이중 공허(base context iframe 부재), 모집단 0 pure vacuous. L1926 임베드 3형제 축의 iframe 언급은 타 축 증거로 전용 채널 미커버(c3891 선례).
+  - ③ 렌더 차단 제어 저작 채널(`blocking="render"`): src 매치 1건은 주석 "non-blocking"뿐·JSX 저작 0건 — Next.js 프레임워크 관리로 앱 저작 채널 모집단 0 pure vacuous.
+- 판정: 후보 0건. 3축 baseline을 anti-patterns L1960-1962에 기록. 사전 커버 확인: `<q>`/quotes(L413·L992)·sub/sup CSS 축(L685·L950·L953)·object/embed(L1926)·accesskey(L341 타 축)·output(L1914)·abbr(L1911) 기존 baseline과 비중복 확인 후 선별.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3961, 683rd round(responsive).
+
 ## cycle 3957 — design/tokens 607th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 607번째 라운드. c3951(606th, 표면 불변 폐기) 이후 라운드.
