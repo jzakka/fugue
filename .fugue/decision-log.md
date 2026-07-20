@@ -14324,6 +14324,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4187 — design/aesthetic 722nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 722nd round.
+- 센서스: aesthetic 포인터 40c3169b..origin/main(2c5c12bd) 구간 스타일 표면 diff 0건(chore만). aesthetic 라운드는 c3781 관례상 delta 무관 fresh 축 프로브 3건 필수.
+- 프로브 1 (문자열 치환): `replaceAll`·`.replace(` 0건 — 순수 vacuous. L2063 정규식 축은 매칭/추출 채널로 별개.
+- 프로브 2 (문자열 포함/경계 판별): `startsWith` 19건 4파일·`.includes(` 5건 4파일 용도별 단일 idiom 수렴, `indexOf` 비교·`endsWith` 0건 — divergence 0. L1783 indexOf는 UA 스니핑 responsive 축 우연 언급.
+- 프로브 3 (유니코드 정규화): `normalize(`·`codePointAt` 0건, `charCodeAt` 1표면(PinCard.tsx:21 시드 해시) — 모집단 1 divergence 0. L2046 TextEncoder 바이트 변환 축과 별개.
+- 제외 판정: URI 인코딩(encodeURIComponent 계열)은 L2037 쿼리 파라미터 조작 축 인접 보수적 제외(c3891 관례). 문자열 .at·localeCompare는 L2061 상대 인덱싱·Intl 축 인접 제외.
+- 기록: anti-patterns.md L2074-2076 baseline 3건 추가(총 2076행). 신규 백로그 없음.
+- 포인터: aesthetic 40c3169b → 2c5c12bd 전진.
+- 차기: cycle 4189, 발견 모드(rotation: responsive 721st round).
+
 ## cycle 4185 — design/tokens 645th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 645th round.
