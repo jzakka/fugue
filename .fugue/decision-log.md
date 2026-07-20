@@ -13862,6 +13862,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4121 — design/aesthetic 711th round (Discovery, fresh 축 프로브 3건 baseline)
+
+- **순번**: pending 0 → 발견 모드, rotation상 aesthetic 711th round.
+- **센서스**: 포인터 3465f144 이후 origin/main(205c7de5)까지 스타일 표면 diff 0건(루프 chore·design-loop 기록만). aesthetic이므로 c3781 관례에 따라 fresh 축 프로브 3건 수행.
+- **프로브 1 — document.execCommand**: 레거시 명령형 편집·복사 커맨드 채널(L1900 clipboard/share 공유-어포던스 축과 별개, c3891). execCommand 0건 + contentEditable 0건 → 편집 표면 부재, pure vacuous.
+- **프로브 2 — structuredClone**: 구조적 딥클론 채널. structuredClone 0건 + JSON.parse(JSON.stringify()) 대체 idiom 0건 → 딥클론 수요 부재, pure vacuous.
+- **프로브 3 — queueMicrotask**: 명시적 마이크로태스크 스케줄링 채널(setTimeout 매크로태스크 축과 별개, c3891). queueMicrotask 0건 + Promise.resolve().then 0건 → pure vacuous.
+- **기록**: anti-patterns.md L2041-2043 baseline 3건 추가.
+- **포인터**: aesthetic 3465f144 → 205c7de5 전진.
+- **차기**: cycle 4123, 발견 모드(rotation: responsive 710th round).
+
 ## cycle 4119 — design/tokens 634th round (Discovery, 표면 불변 폐기)
 
 - **순번**: pending 0 → 발견 모드, rotation상 tokens 634th round.
