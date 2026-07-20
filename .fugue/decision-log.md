@@ -14709,6 +14709,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4241 — design/aesthetic 731st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 731st round. backlog pending 0건 → 발견 모드.
+- 센서스: aesthetic 포인터 26367bc5..origin/main(a1fe1f50) 스타일 표면 diff 0건 — chore 커밋만 존재. aesthetic 라운드는 c3781 관례상 delta 무관 fresh 축 프로브 3건 필수.
+- 프로브 1(React 메모이제이션): useCallback 9파일 단일 훅 수렴, useMemo·React.memo 0건 — 단일 idiom 수렴.
+- 프로브 2(함수 컴포넌트 정의 표기): function 선언 38건·화살표 const 컴포넌트 0건 — 단일 idiom 수렴. 기존 화살표 히트는 커서·SVG 화살촉 우연.
+- 프로브 3(as const 타입 불변 표기): 1건 1표면(SearchClient.tsx:24), Object.freeze·readonly 0건 — 모집단 1 갈림 부재. L2050 별개 축 명시.
+- 기록: anti-patterns.md 2100→2103행, baseline 3건 append.
+- 포인터: aesthetic 26367bc5 → a1fe1f50 전진.
+- 차기: cycle 4243, 발견 모드(rotation: responsive 730th round).
+
 ## cycle 4239 — design/tokens 654th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 654th round. backlog pending 0건 → 발견 모드.
