@@ -13388,6 +13388,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4037 — design/aesthetic 697th round (Discovery, fresh 축 프로브 3건 — baseline 3건 기록)
+
+- 순번: aesthetic 697번째 라운드. c4031(696th, 프리로드·재생거동·소스지정 baseline) 이후 라운드.
+- 센서스: aesthetic 포인터 93b48220..origin/main(e373c0d3) 스타일 표면 델타 0건 — 구간 커밋은 루프 상태 파일 chore뿐. aesthetic 라운드는 델타와 무관하게 fresh 축 프로브 3건 필수(c3781 관례).
+- fresh 축 프로브 3건:
+  1. 노스크립트 폴백 저작 채널(`<noscript>`): JS 의존 무한스크롤 표면 전수 2곳(PinsGrid:170·FeedContainer:224) 모두 hasMore + "다음 페이지" 오프셋 링크 동일 idiom — divergence 0 전수 균일. L580 @media (scripting) CSS 축과 별개(c3891).
+  2. 대체 표현 발견 채널(rel="alternate"): 전수 0건 — 피드 부재 pure vacuous. L1954/L1967/L1975/L1978 타 rel 축과 별개(c3891).
+  3. 정규 URL 저작 채널(rel="canonical"·metadata alternates): 전수 0건 — pure vacuous. L823/L826/L842/L1192 canonical 언급은 봇 시스템 축(c3891).
+- 기록: anti-patterns.md L1999-2001 baseline 3건 추가(총 2001행). backlog 채택 0건.
+- 포인터: aesthetic 센서스 포인터 93b48220 → e373c0d3 갱신.
+- 차기: cycle 4039, 발견 모드(rotation: responsive 696th round).
+
 ## cycle 4035 — design/tokens 620th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 620번째 라운드. c4029(619th, 표면 불변 폐기) 이후 라운드.
