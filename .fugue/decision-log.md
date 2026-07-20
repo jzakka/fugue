@@ -13016,6 +13016,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3977 — design/aesthetic 687th round (Discovery, fresh 축 3건 프로브 — 전원 vacuous, baseline 3건)
+
+- 순번: aesthetic 687번째 라운드. c3971(686th, ol순서·prefetch·minlength baseline) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(44215cc0, c3971) 이후 origin/main 헤드 8b6d3c06까지 표면 델타 0건(구간 커밋 전부 상태 파일 chore #5110-#5113). aesthetic 라운드 규칙(c3781)에 따라 델타 무관 fresh 축 3건 프로브 수행.
+- fresh 축 프로브 3건:
+  - `<param>` 오브젝트 매개변수 채널: src grep 0건·호스트 `<object>` 0건(L1926 임베드 트리오 축은 호스트 채택 차원, 전용 축 미커버 — c3891) — 모집단 0 pure vacuous. deprecated 요소로 부재가 표준 정합.
+  - `<meta name="generator">` 생성 도구 표기 채널: src grep 0건, metadata export 존재하나 generator 필드 저작 0건 — 모집단 0 pure vacuous. DESIGN.md 미규정.
+  - `<thead>/<tbody>/<tfoot>`·`<caption>` 표 행 그룹 섹션 채널: `<table` 포함 전수 0건(tokens L725·states L902·responsive L1708·colgroup L1943은 각각 타 차원 축, 행 그룹 전용 축 미커버 — c3891) — 모집단 0 pure vacuous, colgroup L1943 판정과 정합.
+- 판정: 3축 전원 vacuous → 후보 0건. anti-patterns.md L1969-1971 baseline 3건 기록(파일 1971행). 포인터 8b6d3c06 갱신.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3979, 686th round(responsive).
+
 ## cycle 3975 — design/tokens 610th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 610번째 라운드. c3969(609th, 표면 불변 폐기) 이후 라운드.
