@@ -12374,6 +12374,20 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3885 — design/aesthetic 672nd round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 672번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3879, 4601e883) 이후 헤드 c0950f0c까지 apps/web·DESIGN.md·AGENTS.md 델타 0건. c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: `<picture>`(L141·L754 responsive 축)·`<track>`(::cue/:past/:future 축 중첩)·`<ruby>`(ruby-position/align/merge/overhang 토큰 축 4건 중첩)·spellcheck/enterkeyhint/popover/inert/inputmode(고카운트 기커버) → 제외. `<search>` 매치는 `<SearchClient>` 부분 문자열 오탐, `<template>` 은 :host baseline 증거 언급뿐 — fresh 판정 가능하나 3축은 search/object·embed/map·area 로 선정.
+- fresh 축 3건 판정:
+  - (1) 검색 랜드마크 채널 `<search>`: src 전수 0건, `type="search"` 0건. 검색 저작 표면은 SearchBar:142 단 1곳(div role="search"+input) — 단일 사이트 격리 + 모집단 0. pure vacuous 폐기.
+  - (2) 외부 콘텐츠 임베딩 채널 `<object>/<embed>`: 전수 0건, iframe 도 0건 — 외부 문서 임베드 표면 전무, 미디어는 native video/audio 4곳(pins/[id]:63/:71·PinCreateForm:403·VideoTrimModal:217) 균일 — 모집단 0. pure vacuous 폐기.
+  - (3) 이미지 맵 채널 `<map>/<area>/useMap`: 전수 0건, 이미지 클릭은 전부 Link/button 래핑 균일·영역 분할 표면 전무 — 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: embed/iframe/object/usemap/`<search>` 전부 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(검색 랜드마크 채널·외부 콘텐츠 임베딩 채널·이미지 맵 채널). 코드 무변경 — 상태 파일 2종만.
+- 비고: 잔여 백그라운드 push 재시도 1건이 SSH 접속 실패로 종료됐으나(포트 22 순단) 본 세션 push 는 전부 ls-remote 검증 완료 — 영향 없음.
+- 차기: cycle 3887 발견 모드(rotation: responsive 671st round).
+
 ## cycle 3883 — design/tokens 595th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 595번째 라운드. c3877(594th, 델타 0건 표면 불변 폐기) 이후 라운드.
