@@ -12680,6 +12680,12 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3929 — design 처리 (pinsgrid-noscript-pagination-fallback, PR #5040)
+
+- 변경: creators/[id]/page.tsx searchParams(offset) 해석 신설(app/page.tsx:68 동형)→fetchPins offset 전달→PinsGrid initialOffset 하향; PinsGrid.tsx initialOffset prop(offsetRef=initialOffset+initialPins.length, FeedContainer:42 동형)+FeedContainer:224-235 동형 noscript '다음 페이지' 블록(`?offset=N`만 — 필터는 클라이언트 상태 전용). OpenSpec `pinsgrid-noscript-pagination-fallback` 아카이브(profile 델타 ADDED: 스크립트 비활성 페이지네이션 수단).
+- QA(headless Chrome CDP, dev+API+DB 실기동, 핀 28개 크리에이터): ?offset=20 서버렌더 8핀, JS비활성 링크 href `?offset=20` 정합·피드 noscript 표기 완전 동일·offset=20 이동 시 has_more=false 링크 미표시, JS활성 noscript 비가시+무한스크롤 20→28+피드 회귀 없음, 콘솔 에러 0. lint 0/tsc 0/vitest 47.
+- 차기: pending=0 → cycle 3931 발견 모드(rotation: responsive 678th round).
+
 ## cycle 3927 — design/aesthetic 679th round (Discovery, fresh 축 3건 — 후보 1건 등재·baseline 2건)
 
 - 순번: aesthetic 679번째 라운드. c3921(678th, colgroup/optgroup/wbr baseline) 이후 라운드. 델타: aesthetic census 커버(f680f8c3) 이후 헤드 c53bddef까지 0건(8커밋 상태 파일 chore) — c3781 관례상 fresh 축 3건 프로브.
