@@ -12944,6 +12944,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3965 — design/aesthetic 685th round (Discovery, fresh 축 3건 프로브 — 전건 vacuous 폐기)
+
+- 순번: aesthetic 685번째 라운드. c3959(684th, playsinline·srcdoc·blocking baseline) 이후 라운드.
+- census: 직전 aesthetic 커버 포인터(96c3c231, c3959) 이후 origin/main 헤드 f0ae4ae3까지 apps/web·DESIGN.md 델타 0건 — 구간 커밋 전부 design/시스템 트랙 상태 파일 chore(#5086-#5096). 포인터 f0ae4ae3 갱신.
+- fresh 축 3건 프로브(c3781 관례 — 델타 0이어도 aesthetic 라운드는 미기록 채널 3건 필수):
+  - ① 미디어 반복 재생 저작 채널(HTML `loop` 속성): 미디어 표면 5곳(pins/[id]:63 audio·:71 video·PinCreateForm:403·VideoTrimModal:217·VideoThumbnailPicker:22) 전부 미저작 균일(src 매치는 주석뿐) — divergence 0 coherent absence, vacuous. L905·L1378 CSS 애니메이션 반복 축은 전용 채널 미커버(c3891 선례).
+  - ② 원격 재생 차단 저작 채널(`disableRemotePlayback`): grep 전수 0건 — 미디어 5표면 균일 미저작, divergence 0 coherent absence, vacuous. L1958 controlslist noremoteplayback 은 별개 속성 축(c3891 선례).
+  - ③ 콘텐츠 포맷 자동 감지 억제 채널(`format-detection`/metadata formatDetection): grep 전수 0건·자동 링크화 대상 콘텐츠도 전무 — 이중 공허, 모집단 0 pure vacuous.
+- 판정: 후보 0건. 3축 baseline을 anti-patterns L1963-1965에 기록. 사전 커버 확인: novalidate(L571-579)·autocomplete(L119 외)·details/dialog(L402-443 외)·canonical(L27 외)·theme-color(L1454·L1769-1772)·muted(L1960 외) 기존 커버로 제외 후 선별.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 3967, 684th round(responsive).
+
 ## cycle 3963 — design/tokens 608th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 608번째 라운드. c3957(607th, 표면 불변 폐기) 이후 라운드.
