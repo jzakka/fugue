@@ -19,17 +19,19 @@ export default function PinsGrid({
   creatorId,
   initialPins,
   initialHasMore,
+  initialOffset = 0,
 }: {
   creatorId: string;
   initialPins: Pin[];
   initialHasMore: boolean;
+  initialOffset?: number;
 }) {
   const [pins, setPins] = useState(initialPins);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeType, setActiveType] = useState("");
-  const offsetRef = useRef(initialPins.length);
+  const offsetRef = useRef(initialOffset + initialPins.length);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const reload = useCallback(
@@ -98,6 +100,9 @@ export default function PinsGrid({
     return () => observer.disconnect();
   }, [loadMore, loading, error]);
 
+  const noscriptParams = new URLSearchParams();
+  noscriptParams.set("offset", String(offsetRef.current));
+
   return (
     <div>
       {/* Media type filter tabs */}
@@ -162,6 +167,18 @@ export default function PinsGrid({
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       )}
+      <noscript>
+        {hasMore && (
+          <div className="flex justify-center py-8">
+            <a
+              href={`?${noscriptParams.toString()}`}
+              className="px-6 py-3 bg-surface border border-border rounded-full text-sm text-text-muted hover:text-text-primary focus-visible:text-text-primary transition-colors"
+            >
+              다음 페이지
+            </a>
+          </div>
+        )}
+      </noscript>
     </div>
   );
 }

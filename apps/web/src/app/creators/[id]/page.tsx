@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ offset?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,8 +31,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-export default async function CreatorProfilePage({ params }: Props) {
+export default async function CreatorProfilePage({
+  params,
+  searchParams,
+}: Props) {
   const { id } = await params;
+  const sp = await searchParams;
+  const offset = sp.offset ? parseInt(sp.offset, 10) || 0 : 0;
 
   // Validate UUID format
   const uuidRegex =
@@ -53,7 +59,7 @@ export default async function CreatorProfilePage({ params }: Props) {
   };
   try {
     pinsData = await fetchPins(
-      { creator_id: id, limit: 20 },
+      { creator_id: id, limit: 20, offset },
       { serverSide: true }
     );
   } catch {
@@ -78,6 +84,7 @@ export default async function CreatorProfilePage({ params }: Props) {
             creatorId={id}
             initialPins={pinsData.pins}
             initialHasMore={pinsData.has_more}
+            initialOffset={offset}
           />
         </div>
       </main>
