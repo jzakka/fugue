@@ -13646,6 +13646,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4085 — design/aesthetic 705th round (Discovery, fresh 축 프로브 3건 — 블롭미리보기·오프라인표시·텍스트분절 baseline)
+
+- 순번: aesthetic 라운드 705번째. 센서스 delta 0건(포인터 d649463c..696e9811, chore만 존재)이나 c3781 규칙에 따라 fresh 축 프로브 의무 수행.
+- 프로브 ①: 블롭 URL 미리보기 채널(createObjectURL) — 모집단 5곳(4파일) 전부 단일 blob idiom·revoke 페어링 일관, FileReader 0건. divergence 0(비-vacuous 실모집단 검증).
+- 프로브 ②: 오프라인 상태 표시 채널(navigator.onLine) — 0건. 모집단 0, pure vacuous.
+- 프로브 ③: 텍스트 분절 채널(Intl.Segmenter) — 0건. 모집단 0, pure vacuous. CSS 말줄임 축과 별개(c3891).
+- 기록: anti-patterns.md L2023-2025 baseline 3건 추가(총 2025행).
+- 포인터: aesthetic 센서스 포인터 d649463c → 696e9811 전진.
+- 차기: cycle 4087, 발견 모드(rotation: responsive 704th round).
+
 ## cycle 4083 — design/tokens 628th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 라운드 628번째.
