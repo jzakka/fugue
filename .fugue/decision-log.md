@@ -12548,6 +12548,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3911 — design/responsive 675th round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
+
+- 순번: responsive 675번째 라운드. c3905(674th, 델타 0건 표면 불변 폐기) 이후 라운드.
+- census: 직전 responsive census 커버(2e86fe8f) 이후 origin/main 헤드 3e87a61c까지 apps/web·DESIGN.md·AGENTS.md 델타 0건 — 11커밋 전부 design/시스템 트랙 상태 파일 chore(c3907 #4996·c3909 #5001 포함).
+- 판정: responsive 표면 변화 없음 → 기존 전수 census 유효. 재프로브 없이 표면 불변으로 폐기(c3905 동형, c3781 델타-0 관례). 후보 0건, 신규 baseline 미기록.
+- 차기: cycle 3913 발견 모드(rotation: tokens 600th round).
+
 ## cycle 3909 — design/aesthetic 676th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
 
 - 순번: aesthetic 676번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
