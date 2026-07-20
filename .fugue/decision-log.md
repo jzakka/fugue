@@ -13622,6 +13622,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4079 — design/aesthetic 704th round (Discovery, fresh 축 프로브 3건 — 이탈경고·커스텀우클릭·동적탭제목 baseline)
+
+- 순번: aesthetic 라운드 704번째. 센서스 delta 0건(포인터 4847208f..d649463c, chore만 존재)이나 c3781 규칙에 따라 fresh 축 프로브 의무 수행.
+- 프로브 ①: 이탈 경고 채널(beforeunload) — 0건, 폼 표면 존재하나 전 표면 일관 무저작. coherent absence, divergence 0.
+- 프로브 ②: 커스텀 우클릭 메뉴 채널(contextmenu/onContextMenu) — 0건. 모집단 0, pure vacuous. menu 시맨틱 축(L1921)과 별개(c3891).
+- 프로브 ③: 동적 탭 제목 채널(document.title 변이) — 0건, metadata 선언 채널 전면 위임. coherent absence. 선언적 title 축과 별개(c3891).
+- 기록: anti-patterns.md L2020-2022 baseline 3건 추가(총 2022행).
+- 포인터: aesthetic 센서스 포인터 4847208f → d649463c 전진.
+- 차기: cycle 4081, 발견 모드(rotation: responsive 703rd round).
+
 ## cycle 4077 — design/tokens 627th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 라운드 627번째.
