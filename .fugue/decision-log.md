@@ -12830,6 +12830,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3947 — design/aesthetic 682nd round (Discovery, fresh 축 3건 프로브 — 전건 vacuous 폐기)
+
+- 순번: aesthetic 682번째 라운드. c3941(681st, bdi·br·nbsp baseline) 이후 라운드.
+- census 델타: 직전 aesthetic 포인터(4838bd0d, c3941) 이후 헤드 ca96dfdc까지 apps/web·DESIGN.md 델타 0건 — 전 커밋 상태 파일 chore(#5061-#5068). 포인터 ca96dfdc 갱신.
+- fresh 축 3건 프로브(델타-0에도 aesthetic 라운드 필수, c3781): (1) `hreflang` 링크 대상 언어 힌트 채널 — L439 states 축 내 census 언급은 전용 채널 미커버(c3891), src 전수 0건·단일언어 ko → pure vacuous. (2) `<meta name="robots">` 크롤러 지시 채널 — src·public 0건·Metadata robots 필드 부재 → pure vacuous. (3) `<textarea wrap>` 제출 개행 채널 — 유일 textarea 1곳 wrap 미지정(기본 soft), 모집단 1 균일 → vacuous.
+- 판정: 후보 0건, anti-patterns L1954-1956 baseline 3건 기록. 사전 커버 확인: crossorigin(L1931)·referrerpolicy(L1932)·ping(L1933)·nonce(L1934)·integrity(L1935)·capture(L1936)·enctype(L1937)·dirname/dir(L1938)·multiple(L1939)·target/rel(L1877·L1909)·fetchpriority/decoding(L91)·elementtiming(L1532)·emoji(L716)·preconnect(L217)·tabindex(L524)·autofocus(L158)·maxlength(L743축)·textarea rows/resize(L400·L409) 기존 baseline 확인.
+- 차기: cycle 3949 발견 모드(rotation: responsive 681st round).
+
 ## cycle 3945 — design/tokens 605th round (Discovery, 표면 폐기 — 스타일 표면 델타 0건·표면 불변)
 
 - 순번: tokens 605번째 라운드. c3939(604th, 표면 불변 폐기) 이후 라운드.
