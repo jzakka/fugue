@@ -12338,6 +12338,19 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 3873 — design/aesthetic 670th round (Discovery, 표면 폐기 — fresh 축 3건 pure vacuous, baseline 3건 등재)
+
+- 순번: aesthetic 670번째 라운드. pending 0 → 발견 모드, rotation aesthetic.
+- census: 직전 aesthetic census(c3867, bfe52f6d) 이후 헤드 32037f5f까지 apps/web·DESIGN.md·AGENTS.md 델타 0건. c3781 관례로 fresh 축 3건 탐침.
+- 기커버 사전 확인: fieldset 10·fetchpriority 5·decoding 6·draggable 6·contenteditable 16·밑줄 36 등 기존 baseline 매치 → 제외. `<u>`/`<wbr>`는 밑줄·word-break 축과 중첩되어 보류, `<bdi>`는 L370 unicode-bidi 축 중첩 보류.
+- fresh 축 3건 판정:
+  - (1) 시맨틱 강조 채널 `<strong>/<em>/<b>/<i>`: src 전수 0건. 문장 내 부분 강조 저작은 VideoTrimModal:230 span(text-accent font-semibold) 단 1곳(NavBar:22는 브랜드 표제 채널로 별개) — 단일 사이트 격리 + 요소 채널 divergence 모집단 0. pure vacuous 폐기.
+  - (2) 헤딩 그룹 채널 `<hgroup>`: src 전수 0건. h1/h2 13곳(page.tsx:87 sr-only, pins/[id]:136/:252, PinCreateForm:320, search/page.tsx:74, SearchClient:232/:304/:318/:359, boards/[id]:56, login:44, VideoTrimModal:207) 전부 단독 헤딩, 부제 쌍 표면 전무 — 모집단 0. pure vacuous 폐기.
+  - (3) 명령 목록 채널 `<menu>`: src 전수 0건, `<ul>` tsx 전수 0건, 액션 묶음 전부 div flex 균일 — 모집단 0. pure vacuous 폐기.
+- DESIGN.md·AGENTS.md: hgroup/menu/strong/em/부제/subtitle/강조 표기/명령 목록/헤딩 그룹 전부 0매치 — 규범 침묵.
+- 결정: 후보 0건. anti-patterns baseline 3건 등재(시맨틱 강조 채널·헤딩 그룹 채널·명령 목록 채널). 코드 무변경 — 상태 파일 2종만.
+- 차기: cycle 3875 발견 모드(rotation: responsive 669th round).
+
 ## cycle 3871 — design/tokens 593rd round (Discovery, 표면 폐기 — 델타 0건·표면 불변)
 
 - 순번: tokens 593번째 라운드. c3865(592nd, 델타 0건 표면 불변 폐기) 이후 라운드.
