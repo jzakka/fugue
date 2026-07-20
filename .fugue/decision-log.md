@@ -14186,6 +14186,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4163 — design/aesthetic 718th round (Discovery, fresh 축 프로브 3건)
+
+- **순번**: backlog-design pending 0 → 발견 모드. rotation: aesthetic 718th round.
+- **센서스**: aesthetic 포인터 36090520..origin/main(27e59e32) 스타일 표면 diff 0건(루프 상태 chore만). aesthetic 라운드는 c3781 관례에 따라 delta와 무관하게 fresh 축 프로브 수행.
+- **프로브 1 — reportError 전역 에러 보고**: reportError·window.onerror·error 리스너 0건, console.error 는 pins/[id]/page.tsx:109 국소 로깅 1표면뿐 — 전역 보고 채널 모집단 0, pure vacuous. requestIdleCallback(L1465 기커버)·AbortSignal.timeout(L2034 요청 취소 축 인접)은 후보에서 제외.
+- **프로브 2 — 정규식 이터레이션**: matchAll 0건, 인접 .match(·.exec(·new RegExp 0건 — 정규식 수요 자체 부재, pure vacuous.
+- **프로브 3 — 고해상도 타이밍**: performance.now 0건, 인접 Date.now 0건 — 경과 시간 측정 수요 부재, pure vacuous.
+- **기록**: anti-patterns.md L2062-2064에 3건 baseline 추가(총 2064행).
+- **포인터**: aesthetic 36090520 → 27e59e32 전진.
+- **차기**: cycle 4165, 발견 모드(rotation: responsive 717th round).
+
 ## cycle 4161 — design/tokens 641st round (Discovery, 표면 불변 폐기)
 
 - **순번**: backlog-design pending 0 → 발견 모드. rotation: tokens 641st round.
