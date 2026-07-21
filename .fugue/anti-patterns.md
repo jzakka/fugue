@@ -2182,3 +2182,6 @@
 - [baseline] 환경변수 접근 축 — process.env 접근은 lib 계층 한정(lib/api.ts·lib/auth.ts·app/api/auth/refresh/route.ts), 컴포넌트 직접 접근 0건. 서버 측 `API_URL || "http://localhost:8080"` 3건 vs 클라이언트 측 `NEXT_PUBLIC_API_URL || ""` 12건(lib/api.ts 한정, same-origin 상대 경로 폴백). 용도별 분담, 결함 클래스 미성립 (cycle 4403)
 - [baseline] 입력 제어/비제어 축 — defaultValue/defaultChecked 0건; 폼 컨트롤 12표면 중 텍스트 계열 11건 전수 `value`+`onChange` setState 제어 컴포넌트 단일 idiom, 유일 비제어는 file input(PinCreateForm.tsx:445, 브라우저 제약상 ref 접근). 문맥 결정적 분담, 결함 클래스 미성립 (cycle 4403)
 - [baseline] raw HTML 주입 축 — dangerouslySetInnerHTML 0건; 텍스트 렌더 전수 JSX 이스케이프 경유. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4403)
+- [baseline] 전역 상태 공유 축 — createContext/useContext 0건; 상태 공유는 전수 props 전달·URL searchParams 경유, React Context 채널 부재. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4409)
+- [baseline] 폼 검증 타이밍 축 — onBlur 검증 0건; 검증은 전수 제출 시점 handleSubmit 내 판정(PinCreateForm.tsx:259 `if (!title.trim())` 등)이며 aria-invalid 는 제출 실패 error 상태와 결합(`!!error && !field.trim()` — ProfileEditForm.tsx:79·PinCreateForm.tsx:477·BoardActions.tsx:81). 제출 시점 검증 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4409)
+- [baseline] 데이터 페치 저작 위치 축 — 컴포넌트 raw fetch 3건 한정(app/api/auth/refresh/route.ts:13 서버 라우트 프록시·LoginButtons.tsx:49·LogoutButton.tsx:14 — 전수 same-origin `/api/auth/*` 내부 라우트 호출), 백엔드 데이터 API 는 전수 lib/api 래퍼 경유. 용도별 분담, 결함 클래스 미성립 (cycle 4409)

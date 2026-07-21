@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4409 — design/aesthetic 759th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 759th round, pending 0건으로 발견 모드 진입.
+- 센서스: 11640110..9fcf8d72 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5684–#5686)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (전역 상태 공유 축): createContext/useContext 0건, 상태 공유 전수 props·URL searchParams 경유. 순수 vacuous 모집단, 결함 클래스 미성립.
+- 프로브 2 (폼 검증 타이밍 축): onBlur 검증 0건, 전수 제출 시점 handleSubmit 판정(PinCreateForm.tsx:259 등) + aria-invalid 는 제출 실패 error 상태 결합(ProfileEditForm.tsx:79·PinCreateForm.tsx:477·BoardActions.tsx:81). 단일 idiom 수렴, 결함 클래스 미성립.
+- 프로브 3 (데이터 페치 저작 위치 축): 컴포넌트 raw fetch 3건 한정(route.ts:13·LoginButtons.tsx:49·LogoutButton.tsx:14 — 전수 same-origin `/api/auth/*`), 백엔드 데이터 API 전수 lib/api 래퍼. 용도별 분담, 결함 클래스 미성립.
+- 기각 후보: Context 인접(L2021 contextmenu·L1659 Contextual Swash·L1437 EditContext) sed 검증 무관 확인, fetch 인접(L1005/1007 백엔드 도메인) 무관 확인, 포커스 인접(L524 tabIndex·L1501 focus 옵션) 확인으로 3축 개방. 모듈 export 표기(L2100)·addEventListener(12건)·Date.now(L2064/2134) 기커버 인접 기각.
+- 기록: anti-patterns.md 2184→2187행 (baseline 3건 추가).
+- 포인터: aesthetic 11640110 → 9fcf8d72 전진.
+- 차기: cycle 4411, 발견 모드(rotation: responsive 758th round).
+
 ## cycle 4407 — design/tokens 682nd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 682nd round, pending 0건으로 발견 모드 진입.
