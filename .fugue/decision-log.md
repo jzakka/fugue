@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4373 — design/aesthetic 753rd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 753rd round.
+- 센서스: 2525cb3b..origin/main(15d20b32) 구간 style-surface diff 0건, 로그는 loop-state chore(#5666–#5668)뿐 — aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 강제 수행.
+- 프로브 1 (async return await): `return await` 0건; async 프로미스 반환은 bare return 단일 idiom(api.ts `return res.json()` 16건 등) 수렴 → baseline.
+- 프로브 2 (JSX 다중행 return 괄호 래핑): `return (` 59건/37파일 전수 래핑, 괄호 없는 단일행 JSX return 0건 → 단일 idiom 수렴 baseline. L2126 히트는 cleanup 채널로 무관 확인.
+- 프로브 3 (명시적 숫자 변환): Number()/단항 +/parseFloat 모두 0건 — L2059 parseInt *파싱* 채널과 구분되는 *변환* 채널은 순수 vacuous 모집단 0건 → baseline.
+- 기각 후보: toFixed(L1890/2060 등 커버), Intl(L1890/2025/2055 커버), throw/프로미스 거부(L2094 커버), 제자리 배열 변형(L2073 커버).
+- 기록: anti-patterns.md 2166→2169행 (baseline 3건 추가).
+- 포인터: aesthetic 2525cb3b → 15d20b32 전진.
+- 차기: cycle 4375, 발견 모드(rotation: responsive 752nd round).
+
 ## cycle 4371 — design/tokens 676th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 676th round, pending 0건으로 발견 모드 진입.
