@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4403 — design/aesthetic 758th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 758th round, pending 0건으로 발견 모드 진입.
+- 센서스: 0dc4cc07..11640110 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5681–#5683)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (환경변수 접근 축): process.env 접근 lib 계층 한정(lib/api.ts·lib/auth.ts·app/api/auth/refresh/route.ts), 컴포넌트 직접 접근 0건. 서버 `API_URL || localhost:8080` 3건 vs 클라 `NEXT_PUBLIC_API_URL || ""` 12건(lib/api.ts 한정). 용도별 분담, 결함 클래스 미성립.
+- 프로브 2 (입력 제어/비제어 축): defaultValue/defaultChecked 0건, 폼 컨트롤 12표면 중 텍스트 계열 11건 전수 value+onChange 제어 단일 idiom, 유일 비제어 file input(PinCreateForm.tsx:445 브라우저 제약). 문맥 결정적 분담, 결함 클래스 미성립.
+- 프로브 3 (raw HTML 주입 축): dangerouslySetInnerHTML 0건, 텍스트 렌더 전수 JSX 이스케이프 경유. 순수 vacuous 모집단, 결함 클래스 미성립.
+- 기각 후보: 환경변수 인접(L41/381/1148/1364 백엔드·보안, L1741 CSS env()) sed 검증 후 무관 확인, defaultValue 인접(L105 pristine 게이팅·L1549 form reset) 무관 확인, dangerouslySetInnerHTML 인접(L173 테마 스크립트·L353 리스트 마커·L784 보안 헤더) 무관 확인으로 3축 개방. localStorage(L2019)·sessionStorage(L2038)·clipboard(L1900/2041)·typeof window(L2057/2129) 기커버 인접 기각.
+- 기록: anti-patterns.md 2181→2184행 (baseline 3건 추가).
+- 포인터: aesthetic 0dc4cc07 → 11640110 전진.
+- 차기: cycle 4405, 발견 모드(rotation: responsive 757th round).
+
 ## cycle 4401 — design/tokens 681st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 681st round, pending 0건으로 발견 모드 진입.
