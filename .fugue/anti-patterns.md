@@ -2185,3 +2185,6 @@
 - [baseline] 전역 상태 공유 축 — createContext/useContext 0건; 상태 공유는 전수 props 전달·URL searchParams 경유, React Context 채널 부재. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4409)
 - [baseline] 폼 검증 타이밍 축 — onBlur 검증 0건; 검증은 전수 제출 시점 handleSubmit 내 판정(PinCreateForm.tsx:259 `if (!title.trim())` 등)이며 aria-invalid 는 제출 실패 error 상태와 결합(`!!error && !field.trim()` — ProfileEditForm.tsx:79·PinCreateForm.tsx:477·BoardActions.tsx:81). 제출 시점 검증 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4409)
 - [baseline] 데이터 페치 저작 위치 축 — 컴포넌트 raw fetch 3건 한정(app/api/auth/refresh/route.ts:13 서버 라우트 프록시·LoginButtons.tsx:49·LogoutButton.tsx:14 — 전수 same-origin `/api/auth/*` 내부 라우트 호출), 백엔드 데이터 API 는 전수 lib/api 래퍼 경유. 용도별 분담, 결함 클래스 미성립 (cycle 4409)
+- [baseline] 라우트 에러 경계 파일 축 — error.tsx/global-error.tsx/not-found.tsx 0건(라우트 규약 파일은 creators/[id]/loading.tsx 1표면뿐); 에러 표시는 전수 컴포넌트 내 error 상태 + role="alert" 저작(FeedContainer 등). 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4415)
+- [baseline] 스키마 검증 라이브러리 축 — zod/yup/joi/valibot/ajv 의존성 0건(package.json); 입력 검증은 전수 수동 판정(제출 시점 trim 검사, 시점 축 L2186과 별개의 메커니즘 축). 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4415)
+- [baseline] 컴포넌트 파일 명명 축 — 컴포넌트 파일 전수 PascalCase.tsx(테스트는 동명 .test.tsx 병치), 소문자 파일은 Next.js 라우트 규약(page/layout/loading)과 lib 유틸 모듈 한정. 용도별 분담, 결함 클래스 미성립 (cycle 4415)
