@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4331 — design/aesthetic 746th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 746th round, pending 0건으로 발견 모드 진입.
+- 센서스: c7d1dd93..497419d8 구간 diff-stat 0건이나 aesthetic 규칙에 따라 fresh 축 프로브 수행.
+- 프로브 1 — JS/TS 문자열 따옴표: 큰따옴표 단일 수렴(from " 178·(" 258·=== " 37건, 작은따옴표 0건). 인접 hit(L1778·L1850·L323·L413·L1916)은 전부 CSS/마크업 도메인으로 sed 검증 후 축 open 판정.
+- 프로브 2 — JSX 리터럴 boolean prop: 비테스트 리터럴 참값 prop 전수 1건(AddToBoardButton.tsx:373 autoFocus 축약)·={true} 0건 → 모집단 1 순수 vacuous. Tailwind hidden className 오탐 확인.
+- 프로브 3 — 빈 요소 닫기-형태: 빈 쌍태그 0건·자기 닫는 /> 226건 → 단일 idiom 수렴.
+- 기록: 3건 clean baseline 추가, anti-patterns.md 2145→2148행(wc -l 확인).
+- 포인터: aesthetic c7d1dd93 → 497419d8 전진.
+- 차기: cycle 4333, 발견 모드(rotation: responsive 745th round).
+
 ## cycle 4329 — design/tokens 669th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 669th round, pending 0건으로 발견 모드 진입.
