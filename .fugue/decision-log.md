@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4355 — design/aesthetic 750th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 750th round, pending 0건으로 발견 모드 진입.
+- 센서스: f650fcef..55e2f8ac 구간 diff-stat 0건(로그는 루프 상태 체어뿐)이나 aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 수행.
+- 프로브 1(선택적 파라미터): 기본값 파라미터 `= default` 0건 전수, 옵셔널 `?:`만 사용(api.ts `params?:`/`options?:` 멀티라인 시그니처 다수 + SearchBar.tsx:110 `q?: string`) — 단일 idiom 수렴, clean baseline.
+- 프로브 2(타입 조합): interface `extends` 1건(api.ts:41 CreatorPrivate extends CreatorPublic)·인터섹션 `&` 0건 — 모집단 1, 단일 idiom, clean baseline. anti-patterns.md extends 히트 11건은 전부 CSS @counter-style/@property 도메인으로 sed 검증(본 채널 미커버 확인).
+- 프로브 3(숫자 리터럴 구분자): `_` 구분자 0건, 5자리 이상 리터럴 모집단 0, 4자리 5건(1024·1500·1199·3000·2000) 전부 무구분 도메인 상수 — 단일 idiom 수렴, clean baseline.
+- 기각 후보: `??` vs `\|\|` 폴백(L2066 커버)·옵셔널 체이닝(L2121 커버)·객체 병합(L2090 커버)·삼항 조건(L2106/2117/2138 커버)은 기존 baseline 존재로 기각.
+- 기록: anti-patterns.md 2157→2160행(baseline 3건 append).
+- 포인터: aesthetic f650fcef → 55e2f8ac 전진.
+- 차기: cycle 4357, 발견 모드(rotation: responsive 749th round).
+
 ## cycle 4353 — design/tokens 673rd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 673rd round, pending 0건으로 발견 모드 진입.
