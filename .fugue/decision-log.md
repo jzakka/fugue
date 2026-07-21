@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5650 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
+- 조사: 잔여 8건 전부 기존 census 계수 완료분(디자인 트랙 apps/web 전용). validate 전 항목 통과, 스펙-구현 갭 신규 신호 없음
+- 판정: 직전 OpenSpec갭 census(5638) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 5652 (직전 5640 covered). npm audit + dep 파일 freeze check 예정
+
 ### cycle 5648 — 봇: 봇·스펙 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (루프 커밋 제외)
 - 조사: 8건 전부 기존 census 계수 완료분(507daab4=4162, 95fea1d9=4340, 5bb5d317=4376, a4a07374·cb52ec72·22c39f2b=4436, b2979a65=4496, 6a6846b7=4544). 모두 apps/web 전용 디자인 트랙 변경, bot 코드 비접촉
