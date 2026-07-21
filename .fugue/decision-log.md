@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4311 — design/tokens 666th round (Discovery, 표면 불변 폐기)
+
+- 순번: rotation tokens 666th round. backlog pending 0 → 발견 모드.
+- 센서스: 2d136710..origin/main(70b22397) 스타일 표면(apps/web/src·tailwind.config.ts·globals.css·DESIGN.md) diff-stat 0건, 로그는 design-loop/loop-state chore뿐.
+- 판정: c3781 관례에 따라 재프로브 없이 표면 불변 폐기.
+- 기록: 코드·문서 변경 없음, 포인터만 전진.
+- 포인터: tokens 2d136710 → 70b22397 전진.
+- 차기: cycle 4313, 발견 모드 (rotation: aesthetic 743rd round).
+
 ## cycle 4309 — design/responsive 741st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation responsive 741st round. backlog pending 0 → 발견 모드.
