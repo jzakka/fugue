@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4427 — design/aesthetic 762nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 762nd round, pending 0건으로 발견 모드 진입.
+- 센서스: 0038342d..1b5a10e5 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5693–#5695)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (코드 분할 지연 로딩 축): next/dynamic·React.lazy 0건, Suspense 4블록 2파일은 전수 useSearchParams 클라이언트 컴포넌트 CSR bailout 경계 한정. 순수 vacuous + 용도별 분담, 결함 클래스 미성립.
+- 프로브 2 (메타데이터 저작 채널 축): 정적 `export const metadata` 3건(고정 제목 페이지) vs `generateMetadata` 4건(데이터 의존 동적 페이지) — 문맥 결정적 분담, 결함 클래스 미성립.
+- 프로브 3 (라우트 핸들러 응답 생성 채널 축): NextResponse 단일 채널(route.ts new NextResponse 패스스루+json 에러, proxy.ts next/redirect), Response.json·new Response 0건. 단일 idiom + 용도별 분담, 결함 클래스 미성립.
+- 기각 후보: Suspense(L1513 Navigation API 무관)·generateMetadata(L68 WCAG title 고유성 기각 항목, L2145/2153 예시 언급뿐) sed 검증으로 축 개방. 포커스 관리(다수)·아이콘 소싱(L538 등)·날짜 포맷(L1884/1890)·조건부 className 조립(L1865)·폼 레이블 연결(L223/286/2180)·props 전개(L2178)·프로미스 소비(L2091)·널 안전 접근(L2112/2121)·순회 문(L2097)·정규식(L2063)·포함 판별(L2075)·catch 바인딩(L2139)·switch 분기(L2118)·폰트 로딩(L1390/1876) 기커버 기각.
+- 기록: anti-patterns.md 2193→2196행 (baseline 3건 추가).
+- 포인터: aesthetic 0038342d → 1b5a10e5 전진.
+- 차기: cycle 4429, 발견 모드(rotation: responsive 761st round).
+
 ## cycle 4425 — design/tokens 685th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 685th round, pending 0건으로 발견 모드 진입.
