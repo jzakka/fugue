@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4325 — design/aesthetic 745th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 745th round. backlog pending 0 → 발견 모드.
+- 센서스: cee1e138..origin/main(c7d1dd93) 스타일 표면 diff-stat 0건, 로그는 design-loop chore뿐. aesthetic 라운드 규칙에 따라 delta 무관 fresh 축 프로브 3건 수행.
+- 프로브 1 (콘솔 로깅 레벨 채널): 커버리지 — L2062 는 전역 에러 보고 축으로 레벨-선택 축 미커버(sed 검증). 코드베이스 — 비테스트 console.* 전수 1건(pins/[id]/page.tsx:109 error), warn·log·debug 0건 → 모집단 1로 divergence 성립 불가, clean baseline.
+- 프로브 2 (모듈 임포트 경로 채널): 커버리지 — L399 WCAG 우연 히트, 언급 전무. 코드베이스 — @/ alias 87건 전원 교차 디렉터리, 상대 20건 전원 동일 디렉터리 ./, ../ 0건 → 디렉터리 경계 기준 용도별 분담 일관, clean baseline.
+- 프로브 3 (모듈 레벨 헬퍼 저작 형태 채널): 커버리지 — L2102 컴포넌트 정의·L2133 핸들러 위치 축과 별개(sed 검증). 코드베이스 — 소문자 헬퍼 function 선언 51건, 화살표 const 헬퍼 0건 → 단일 idiom 수렴, clean baseline.
+- 기록: anti-patterns.md 2142→2145행 (baseline 3건 append).
+- 포인터: aesthetic cee1e138 → c7d1dd93 전진.
+- 차기: cycle 4327, 발견 모드 (rotation: responsive 744th round).
+
 ## cycle 4323 — design/tokens 668th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 668th round. backlog pending 0 → 발견 모드.
