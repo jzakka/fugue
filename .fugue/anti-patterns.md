@@ -2176,3 +2176,6 @@
 - [baseline] 커스텀 훅 추출 축 — `function use[A-Z]`/`const use* =` 선언 0건, hooks 디렉토리·use*.ts 파일 부재. 반복 로직(IntersectionObserver 무한스크롤·AbortController 취소·포커스 트랩)은 전수 컴포넌트 내 useEffect/useCallback 저작 단일 idiom 수렴. 결함 클래스 미성립 (cycle 4391)
 - [baseline] 다중 상태 관리 형태 축 — useReducer 0건; useState 15파일, 최다 표면 PinCreateForm.tsx 10건도 개별 useState 다중 선언으로 수렴(리듀서 병합 대안 미사용). 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4391)
 - [baseline] props 전개 포워딩 축 — `{...props}` 1건(HideOnErrorImage.tsx:9 — DOM img 래퍼 passthrough)만 전개, 도메인 컴포넌트는 전수 명시 props 나열(`...rest` 구조분해 0건). 용도별 분담(요소 래퍼 passthrough vs 도메인 명시 계약), 결함 클래스 미성립 (cycle 4391)
+- [baseline] 모달 마운트 위치 축 — createPortal/ReactDOM 0건; 오버레이 모달(VideoTrimModal·AddToBoardButton `fixed inset-0` 2표면)은 전수 트리거 컴포넌트 서브트리 인라인 렌더 단일 idiom. 결함 클래스 미성립 (cycle 4397)
+- [baseline] 접근성 연결 id 생성 축 — useId 0건; label htmlFor·aria 연결 id는 전수 kebab-case 리터럴(pin-title·profile-nickname·board-name-error·main 등) 단일 idiom, 해당 컴포넌트 전원 페이지당 단일 렌더로 충돌 모집단 부재. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4397)
+- [baseline] 전환 우선순위 상태 갱신 축 — useTransition 1표면(SearchClient.tsx:62/107 — URL 동기화 저우선 갱신 한정), 그 외 상태 갱신 전수 일반 setState, useDeferredValue 0건. 문맥 결정적 분담(라우터 URL 반영에만 transition), 결함 클래스 미성립 (cycle 4397)
