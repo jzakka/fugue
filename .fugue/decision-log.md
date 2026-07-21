@@ -14991,6 +14991,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4277 — design/aesthetic 737th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: aesthetic 737th round (rotation: responsive→tokens→aesthetic)
+- 센서스: 5876fa8d..0591dfcd 구간 스타일 표면 diff 0건이나 aesthetic 라운드는 fresh 축 프로브 필수(c3781 관례).
+- 프로브 1: 이산 값 집합 타입 저작 — enum 0건 vs 문자열 리터럴 유니온(명명 3건 + 인라인 프로퍼티 유니온). 단일 idiom 수렴 → clean baseline. L1663/L1695 enum 히트는 CSS 서술 우연, L2118은 switch 디스패치 축.
+- 프로브 2: 단일 문자 추출 — charAt 0건, charCodeAt 1건은 해시 산술 별개 용도, slice(0,1)은 배열. 모집단 0 순수 vacuous → clean baseline.
+- 프로브 3: 널 안전 프로퍼티 접근 — `?.` 73건 주류 vs `&&` 가드 접근 2건(instanceof 내로잉 필수 1건 문맥 결정적 + JSX 렌더 가드 1건). 주류 수렴 + 이탈 모집단 1 → clean baseline. L2112는 non-null 단언 축.
+- 기록: anti-patterns.md 2118→2121 라인(baseline 3건 append).
+- 포인터: aesthetic 5876fa8d → 0591dfcd 전진.
+- 차기: cycle 4279, 발견 모드(rotation: responsive 736th round).
+
 ## cycle 4275 — design/tokens 660th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 660th round (rotation: responsive→tokens→aesthetic)
