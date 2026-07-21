@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4415 — design/aesthetic 760th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 760th round, pending 0건으로 발견 모드 진입.
+- 센서스: 9fcf8d72..46216286 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5687–#5689)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (라우트 에러 경계 파일 축): error.tsx/global-error.tsx/not-found.tsx 0건(규약 파일은 creators/[id]/loading.tsx 1표면뿐), 에러 표시 전수 컴포넌트 내 error 상태+role="alert" 저작. 단일 idiom 수렴, 결함 클래스 미성립.
+- 프로브 2 (스키마 검증 라이브러리 축): zod/yup/joi/valibot/ajv 의존성 0건, 검증 전수 수동 판정(시점 축 L2186과 별개 메커니즘 축). 순수 vacuous 모집단, 결함 클래스 미성립.
+- 프로브 3 (컴포넌트 파일 명명 축): 컴포넌트 전수 PascalCase.tsx(테스트 동명 .test.tsx 병치), 소문자는 Next.js 라우트 규약·lib 유틸 한정. 용도별 분담, 결함 클래스 미성립.
+- 기각 후보: not-found 인접(L121 백엔드 ErrNoRows)·PascalCase 인접(L825 JSON 키·L1219 CSS :state()·L1928 download 속성)·metadata 인접(L68 WCAG title) sed 검증 무관 확인으로 3축 개방. next/link 페이지 이동 채널(L1877)·import 경로 채널(L2144)·헬퍼 저작 형태(L2145)·반환 타입 표기(L2153)·배럴 파일(L2163)·interface/type 별칭(L2110/2159/2165) 기커버 인접 기각.
+- 기록: anti-patterns.md 2187→2190행 (baseline 3건 추가).
+- 포인터: aesthetic 9fcf8d72 → 46216286 전진.
+- 차기: cycle 4417, 발견 모드(rotation: responsive 759th round).
+
 ## cycle 4413 — design/tokens 683rd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 683rd round, pending 0건으로 발견 모드 진입.
