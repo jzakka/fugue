@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4367 — design/aesthetic 752nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 752nd round, pending 0건으로 발견 모드 진입.
+- 센서스: b1cfd45e..2525cb3b 구간 diff-stat 0건(로그는 루프 상태 체어뿐)이나 aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 수행.
+- 프로브 1(불리언 명명 접두): 진행 상태 무접두 진행형(loading 8건 등)·존재 판정 has*(hasMore 4건+SearchBar 파생 4건)·표시 여부 show* 용도별 분담, is* 3건 중 경계 대립 1쌍(SearchBar.tsx:39 open vs AddToBoardButton.tsx:24 isOpen) — 결함 클래스 미성립, clean baseline(3쌍 이상 시 재평가).
+- 프로브 2(제네릭 타입 파라미터 명명): 자체 제네릭 선언 0건 전수(사용은 라이브러리 타입 인자 소비뿐) — 모집단 0 pure vacuous, clean baseline. "제네릭" 기존 히트 L1081/1766/1778은 CSS 폰트 도메인 sed 확인.
+- 프로브 3(인터페이스 I-접두): interface 24건 전수 I-접두 0건, 도메인 명사+역할 접미 무접두 수렴 — 단일 idiom, clean baseline.
+- 기각 후보: 날짜 생성(L2134)·조건부 스프레드(L2132)·URLSearchParams(L2037/2096)·ID 생성(L2092)은 기존 baseline 커버로 기각.
+- 기록: anti-patterns.md 2163→2166행(baseline 3건 append).
+- 포인터: aesthetic b1cfd45e → 2525cb3b 전진.
+- 차기: cycle 4369, 발견 모드(rotation: responsive 751st round).
+
 ## cycle 4365 — design/tokens 675th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 675th round, pending 0건으로 발견 모드 진입.
