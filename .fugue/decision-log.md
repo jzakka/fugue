@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4421 — design/aesthetic 761st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 761st round, pending 0건으로 발견 모드 진입.
+- 센서스: 46216286..0038342d 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5690–#5692)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (클라이언트 경계 지시자 축): "use client" 23파일 전수 상호작용 컴포넌트 파일 최상단 한정, 서버 표면(page/layout/loading/route/lib) 0건. 단일 idiom 수렴, 결함 클래스 미성립.
+- 프로브 2 (서버 뮤테이션 채널 축): "use server" 0건·form action 함수 바인딩 0건, 뮤테이션 전수 클라이언트 lib/api 래퍼 fetch 경유. 순수 vacuous 모집단, 결함 클래스 미성립.
+- 프로브 3 (라우트 렌더/캐시 전략 축): `export const dynamic = "force-dynamic"` 6건 데이터 페이지 전수 균일, revalidate/fetchCache 0건, fetch cache 옵션 lib/auth.ts no-store 2건 인증 한정. 단일 idiom + 용도별 분담, 결함 클래스 미성립.
+- 기각 후보: 서버 액션 인접(L1979 HTML form action 채널)·no-store 인접(L744 백엔드 Cache-Control 헤더) sed 검증 무관 확인으로 축 개방. 이벤트 타입 표기(L2150)·children 타입(L2140)·URLSearchParams(L2037/2096)·쿠키/redirect(인증 도메인 다수) 기커버·타도메인 인접 기각.
+- 기록: anti-patterns.md 2190→2193행 (baseline 3건 추가).
+- 포인터: aesthetic 46216286 → 0038342d 전진.
+- 차기: cycle 4423, 발견 모드(rotation: responsive 760th round).
+
 ## cycle 4419 — design/tokens 684th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 684th round, pending 0건으로 발견 모드 진입.
