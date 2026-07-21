@@ -15051,6 +15051,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4289 — design/aesthetic 739th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 739th round.
+- 센서스: fef85285..bcd4c1f9 구간 스타일 표면 diff 0건(구간 로그는 loop-state chore 전부) — 단, aesthetic 라운드 관례(c3781)에 따라 fresh 축 프로브 3건 수행. 사이클 중 origin/main 이 e744dd4a→bcd4c1f9 로 전진하여 head 재확인 후 신규 head 기준으로 진행(c4285 관례).
+- 프로브 1 (setState 업데이터 형태): 함수형 업데이터 11건 전부 이전 상태 파생(누적 append 8·토글 1·Set 파생 1), 직접값 220건은 독립 값 대입 — 문맥 결정적 분담, clean baseline.
+- 프로브 2 (useEffect cleanup 반환 형태): 인라인 화살표 반환 14건+ 전수, 명명 함수 반환 0건 — 단일 idiom 수렴, clean baseline.
+- 프로브 3 (fetch 응답 본문 소비): res.json() 25건+ 단일 수렴, res.text() 1건은 프록시 raw 패스스루 용도 분담, .then 체인은 LoginButtons 단일 파일 국소 — clean baseline.
+- 제외 판정: URL/URLSearchParams 조립 채널은 L2037 기존 baseline 커버로 후보 제외.
+- 기록: anti-patterns.md 2124→2127 라인, baseline 3건 추가.
+- 포인터: aesthetic 센서스 포인터 fef85285 → bcd4c1f9.
+- 차기: cycle 4291, 발견 모드(rotation: responsive 738th round).
+
 ## cycle 4287 — design/tokens 662nd round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 662nd round (rotation: responsive→tokens→aesthetic)
