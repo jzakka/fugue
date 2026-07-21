@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4313 — design/aesthetic 743rd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 743rd round. backlog pending 0 → 발견 모드.
+- 센서스: 776e18e9..origin/main(17c60f07) 스타일 표면 diff-stat 0건, 로그는 design-loop chore뿐. aesthetic 라운드 규칙에 따라 delta 무관 fresh 축 프로브 3건 수행.
+- 프로브 1 (배열 얕은 복사 채널): 커버리지 — L2088 병합·L2095 변환·range 축과 별개(sed 전문 검증). 코드베이스 — 무인자 .slice() 0건, spread 전수는 Set 변환(L2095 관할)·append 병합(L2088 관할)뿐, 순수 클론 표면 0곳 → 순수 vacuous, clean baseline.
+- 프로브 2 (부재값 표현 채널): 커버리지 — L2114 타입 표기·L2124 지연 초기화와 별개 값-선택 축. 코드베이스 — useState null 초기값 18건·useRef(null) 13건 vs undefined 초기값·할당 0건, undefined 는 파라미터 생략 신호 전용(SearchClient.tsx:156) → null 단일 idiom 수렴+용도 분담, clean baseline.
+- 프로브 3 (catch 파라미터 바인딩 채널): 커버리지 — L2106 내로잉·L2091 소비·L2129 가드와 별개. 코드베이스 — 무바인딩 catch{} 32건(에러값 미사용), 명명 9건 전원 catch (err)(값 사용 문맥), e·error 0건 → 문맥 결정적 분담+이름 단일 수렴, clean baseline.
+- 기록: anti-patterns.md 2136→2139행 (baseline 3건 append).
+- 포인터: aesthetic 776e18e9 → 17c60f07 전진.
+- 차기: cycle 4315, 발견 모드 (rotation: responsive 742nd round).
+
 ## cycle 4311 — design/tokens 666th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 666th round. backlog pending 0 → 발견 모드.
