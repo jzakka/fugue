@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4361 — design/aesthetic 751st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 751st round, pending 0건으로 발견 모드 진입.
+- 센서스: 55e2f8ac..b1cfd45e 구간 diff-stat 0건(로그는 루프 상태 체어뿐)이나 aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 수행.
+- 프로브 1(객체 리터럴 키 인용): 불필요 인용 0건 전수, 인용은 문법 강제 `"Content-Type"` 6건(api.ts)뿐·수치 키도 무인용(MasonryGrid.tsx:8) — 단일 idiom 수렴, clean baseline. L1798은 masonry 수치 BP 키 한정으로 본 채널 미커버 sed 확인.
+- 프로브 2(단문 if 중괄호): 무중괄호 한 줄 가드 118건 주류 vs 중괄호 단문 블록 17건(긴 조건·중첩 콜백 문맥 분담), 경계 대립 1쌍(BoardGrid.tsx:8-10 vs TagFilter.tsx:41) — 결함 클래스 미성립, clean baseline(3쌍 이상 시 재평가).
+- 프로브 3(모듈 재수출): `export * from`·값 재수출 0건, 타입 한정 재수출 1건(lib/media/index.ts:62), index.ts는 facade·소비자 진입점 단일 경로 — 모집단 1 단일 idiom, clean baseline.
+- 기각 후보: export 표기(L2100)·상수 명명(L2115)·핸들러 저작 위치(L2133)·.at()(L2061)·switch 분기(L2118)·enum(L2119)·포함 판별(L2075)·불리언 변환(L2093)·catch 바인딩(L2139)은 기존 baseline 커버로 기각.
+- 기록: anti-patterns.md 2160→2163행(baseline 3건 append).
+- 포인터: aesthetic 55e2f8ac → b1cfd45e 전진.
+- 차기: cycle 4363, 발견 모드(rotation: responsive 750th round).
+
 ## cycle 4359 — design/tokens 674th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 674th round, pending 0건으로 발견 모드 진입.
