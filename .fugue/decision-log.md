@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4307 — design/aesthetic 742nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 742nd round. backlog pending 0 → 발견 모드.
+- 센서스: e5aa582b..origin/main(9b81393e) 스타일 표면 diff-stat 0건, 로그는 loop-state chore뿐. aesthetic 라운드 규칙에 따라 delta 무관 fresh 축 프로브 3건 수행.
+- 프로브 1 (날짜 직렬화 채널): 커버리지 — toISOString 0건, L1905는 렌더 표기 축만 커버(직렬화 미언급 sed 검증). 코드베이스 — toISOString·Date.now()·getTime() 0건, new Date( 1건(SearchClient.tsx:344, 렌더용). 직렬화 표면 모집단 0 → 순수 vacuous, clean baseline.
+- 프로브 2 (타이머 저작 idiom 채널): 커버리지 — setTimeout 히트 6건(L139 UX 정책·L380 WCAG·L1324 CSS interest-delay·L1832 CSS 단위·L2034 취소·L2043 마이크로태스크) 전부 별개 축 sed 검증, clearTimeout 0건. 코드베이스 — 디바운스 2곳(PinCreateForm.tsx:57/214-220·SearchBar.tsx:46/96/105) debounceRef useRef 보관+가드 clearTimeout+재할당 동일 idiom, 단발 이펙트 1곳(AddToBoardButton.tsx:174-175) 지역 const+cleanup, 서버 유틸 1곳(auth.ts:25/38) 지역 const+clearTimeout → 문맥 결정적 분담, clean baseline.
+- 프로브 3 (함수 시그니처 인자-형태 채널): 커버리지 — "옵션 객체"·"다중 인자" 0건, "위치 인자" 히트 L1767/L1803은 CSS 그라디언트 축. 코드베이스 — 선택적/다필드 페이로드=객체 인자(fetchPins·fetchSearch·createBoard·updateMe·fetchFeed), 필수 식별자·스칼라 쌍=위치 인자(addPinToBoard·removePinFromBoard·recordInteraction·handleTrimConfirm·handleSelectBoard), 혼합=식별자 위치+페이로드 객체(updateBoard) → 인자 역할별 분담 일관, divergence 0, clean baseline.
+- 기록: anti-patterns.md 2133→2136행 (baseline 3건 append).
+- 포인터: aesthetic e5aa582b → 9b81393e 전진.
+- 차기: cycle 4309, 발견 모드 (rotation: responsive 741st round).
+
 ## cycle 4305 — design/tokens 665th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 665th round.
