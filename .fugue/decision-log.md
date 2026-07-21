@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4445 — design/aesthetic 765th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 765th round, pending 0건으로 발견 모드 진입.
+- 센서스: 317042ef..277f2a4a 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5702–#5704)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (ref 전달 채널 축): forwardRef·useImperativeHandle·컴포넌트 ref prop 관통 0건, ref 표면 전수 native DOM 직결 단일 idiom — 관통 수요 부재, 결함 클래스 미성립. 컴포넌트 간 ref 전달 유입 시 재평가 조건 명기.
+- 프로브 2 (React 19 폼 상태 훅 채널 축): useActionState·useFormStatus·useOptimistic 0건, 수동 setState pending 플래그 18건 13파일 전수 단일 idiom — L99 전략 축·L2201 제출 핸들러 축·L2192 지시어 축과 별개의 저작 채널, 결함 클래스 미성립.
+- 프로브 3 (이펙트 타이밍 채널 축): useLayoutEffect·flushSync 0건, 이펙트 내 레이아웃 측정 수요 부재(측정 1건은 VideoTrimModal.tsx:106 드래그 핸들러 내) — useEffect 단일 채널 수렴, 결함 클래스 미성립.
+- 기각 후보: localeCompare 정렬 콜레이션(L2054가 .sort( 모집단 0 기록, 인접 보수 기각)·export default/named(L2100)·커스텀 훅 추출(L2176)·ErrorBoundary(L2188 에러 표시 채널)·React.FC(L2102 정의 표기)·상대시간 표기(L1905)·클립보드(L1900)·문서 제목(L2022/2031)·visibilitychange(L1453/1588)·beforeunload(L2020)·requestAnimationFrame(L2033) 기커버 기각.
+- 기록: anti-patterns.md 2202→2205행 (baseline 3건 추가).
+- 포인터: aesthetic 317042ef → 277f2a4a 전진.
+
 ## cycle 4443 — design/tokens 688th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation tokens 688th round.
