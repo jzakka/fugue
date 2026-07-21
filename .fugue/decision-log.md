@@ -15111,6 +15111,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4301 — design/aesthetic 741st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 741st round.
+- 센서스: 4b38786a..e5aa582b 구간 스타일 표면 diff 0건(구간 로그는 loop-state chore 전부) — aesthetic 라운드 관례(c3781)에 따라 fresh 축 프로브 3건 수행.
+- 프로브 1 (TS 타입 단언 표기): as T 14건+ 전수(DOM 타겟 좁히기 주류·`[] as T[]` 4건), angle-bracket 0건 — 단일 idiom 수렴, clean baseline.
+- 프로브 2 (조건부 스프레드): `...( ` 0건, 조건부 필드는 undefined 대입으로 처리 — 모집단 0 순수 vacuous, clean baseline.
+- 프로브 3 (JSX 핸들러 저작 위치): 인라인 화살표 62건은 단일 식 위임·추출 참조 28건은 다단계 로직/함수 prop 전달 — 문맥 결정적 분담, clean baseline.
+- 제외 판정: satisfies(L2105)·프로미스 소비(L2091)·상수 명명(L2115)·as const(L2103) 커버로 후보 제외. L2105의 "as 단언" 언급은 재평가 조건 언급만으로 미커버 판정(L2112 선례).
+- 기록: anti-patterns.md 2130→2133 라인, baseline 3건 추가.
+- 포인터: aesthetic 센서스 포인터 4b38786a → e5aa582b.
+- 차기: cycle 4303, 발견 모드(rotation: responsive 740th round).
+
 ## cycle 4299 — design/tokens 664th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 664th round.
