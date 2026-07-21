@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4385 — design/aesthetic 755th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 755th round.
+- 센서스: 2c0247b1..origin/main(3738149d) 구간 style-surface diff 0건, 로그는 loop-state chore(#5673–#5674)뿐 — aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 강제 수행.
+- 프로브 1 (문자열 공허 판정): `.trim()` falsy 주류 vs sentinel `=== ""` 2건 vs 문자열 length 판정 0건 — 용도별 분담 → baseline. L2130 배열 채널과 구분 명시.
+- 프로브 2 (배열 필터 타입 좁히기): 타입 술어 `id is string` 2건(좁히기 필요) vs filter(Boolean) 8건(불필요 문맥), as 캐스트 우회 0건 — 문맥 결정적 분담 → baseline.
+- 프로브 3 (API 파라미터 전달 형태): 선택적 질의는 옵션 객체·필수 식별자 1-2개는 위치 인자, 3+ 위치 인자 0건 — 용도별 분담 → baseline.
+- 기각 후보: useState 초기값(L2124 커버), 핸들러 저작 위치(L2133 커버), 상수 명명(L2115 커버), 조건부 렌더(L2117 커버), 동등 비교(L2155 커버), setTimeout/debounce(L2135 커버), Object.entries(L2071/2097 커버); "매직" 히트 L1721-1751은 CSS 도메인·"빈 문자열" 히트는 보안 도메인으로 무관 확인.
+- 기록: anti-patterns.md 2172→2175행 (baseline 3건 추가).
+- 포인터: aesthetic 2c0247b1 → 3738149d 전진.
+- 차기: cycle 4387, 발견 모드(rotation: responsive 754th round).
+
 ## cycle 4383 — design/tokens 678th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 678th round, pending 0건으로 발견 모드 진입.
