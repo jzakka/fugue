@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4397 — design/aesthetic 757th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 757th round, pending 0건으로 발견 모드 진입.
+- 센서스: dac29394..0dc4cc07 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5678–#5680)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (모달 마운트 위치 축): createPortal/ReactDOM 0건. 오버레이 모달(VideoTrimModal·AddToBoardButton `fixed inset-0` 2표면)은 전수 트리거 컴포넌트 서브트리 인라인 렌더 단일 idiom. 결함 클래스 미성립.
+- 프로브 2 (접근성 연결 id 생성 축): useId 0건. label htmlFor·aria 연결 id는 전수 kebab-case 리터럴(pin-title·profile-nickname·board-name-error·main 등) 단일 idiom, 해당 컴포넌트 전원 페이지당 단일 렌더로 충돌 모집단 부재. 단일 idiom 수렴, 결함 클래스 미성립.
+- 프로브 3 (전환 우선순위 상태 갱신 축): useTransition 1표면(SearchClient.tsx:62/107 — URL 동기화 저우선 갱신 한정), 그 외 상태 갱신 전수 일반 setState, useDeferredValue 0건. 문맥 결정적 분담, 결함 클래스 미성립.
+- 기각 후보: 포털(L1312 aria-owns 무관 확인)·Navigation API(L1513 무관 확인)·에러 바운더리(L2062 reportError 무관 확인) 인접 커버리지 sed 검증 후 축 개방, 스크롤 잠금(L1854/1867 기커버) 인접 기각.
+- 기록: anti-patterns.md 2178→2181행 (baseline 3건 추가).
+- 포인터: aesthetic dac29394 → 0dc4cc07 전진.
+- 차기: cycle 4399, 발견 모드(rotation: responsive 756th round).
+
 ## cycle 4395 — design/tokens 680th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 680th round, pending 0건으로 발견 모드 진입.
