@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4319 — design/aesthetic 744th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 744th round. backlog pending 0 → 발견 모드.
+- 센서스: 9b5cca02..origin/main(26cbc079) 스타일 표면 diff-stat 0건, 로그는 design-loop chore뿐. aesthetic 라운드 규칙에 따라 delta 무관 fresh 축 프로브 3건 수행.
+- 프로브 1 (children prop 타입 표기 채널): 커버리지 — PropsWithChildren·ReactNode 언급 전무, L2110·L2114 별개 축. 코드베이스 — PropsWithChildren 0건, children 선언 3곳 전원 명시 프로퍼티 표기(layout.tsx:12·EmptyState.tsx:6·MasonryGrid.tsx:13), 한정자 형태 2:1 소분기는 모집단 미달 → 명시 채널 단일 수렴, clean baseline.
+- 프로브 2 (키보드 키 판정 채널): 커버리지 — L76 포커스 트랩·L341 WCAG 단축키는 정책 축, 판정-소스 축 미커버. 코드베이스 — e.key 11건 6파일 전원 논리 키 판정, e.code·keyCode 0건(tsx e.code 2히트는 encodeURIComponent 오탐 검증) → 단일 idiom 수렴, clean baseline.
+- 프로브 3 (JSX Fragment 표기 채널): 커버리지 — L711/L1705 는 CSS fragmentation 우연 히트. 코드베이스 — 단축 <> 14파일, Fragment import·명시 표기 0건, keyed Fragment 표면 부재 → 단일 idiom 수렴, clean baseline.
+- 기록: anti-patterns.md 2139→2142행 (baseline 3건 append).
+- 포인터: aesthetic 9b5cca02 → 26cbc079 전진.
+- 차기: cycle 4321, 발견 모드 (rotation: responsive 743rd round).
+
 ## cycle 4317 — design/tokens 667th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 667th round. backlog pending 0 → 발견 모드.
