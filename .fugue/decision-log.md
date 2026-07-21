@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5652 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: 2 moderate severity vulnerabilities (next-vendored postcss@8.4.31), high 0건. dep 파일 마지막 커밋 a52bb76e (5496 확립 baseline 동일)
+- 판정: 직전 보안 census(5640) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 5654 (직전 5642 covered). 코드·문서 표면 freeze check 예정
+
 ### cycle 5650 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
 - 조사: 잔여 8건 전부 기존 census 계수 완료분(디자인 트랙 apps/web 전용). validate 전 항목 통과, 스펙-구현 갭 신규 신호 없음
