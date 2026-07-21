@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4389 — design/tokens 679th round (Discovery, 표면 불변 폐기)
+
+- 순번: rotation tokens 679th round, pending 0건으로 발견 모드 진입.
+- 센서스: d4fd560d..93c8c9b9 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(c4387 responsive·c4385 aesthetic·c4383 tokens)뿐.
+- 판정: 스타일 표면 불변 → c3781 관례에 따라 재프로브 없이 폐기.
+- 기록: 폐기 판정만 기록, anti-patterns.md 변경 없음(2175행 유지).
+- 포인터: tokens d4fd560d → 93c8c9b9 전진.
+- 차기: cycle 4391, 발견 모드(rotation: aesthetic 756th round).
+
 ## cycle 4387 — design/responsive 754th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation responsive 754th round, pending 0건으로 발견 모드 진입.
