@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4457 — design/aesthetic 767th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 767th round, pending 0건으로 발견 모드 진입.
+- 센서스: 8a9572a5..666d8959 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5708–#5710)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (404 트리거 채널 축): notFound() 6건 3파일([id] 상세 전수, invalid uuid+페치 404 2사이트씩) 균일 단일 idiom — L2188 파일 축과 별개의 명령형 트리거 채널, 결함 클래스 미성립.
+- 프로브 2 (서버 리다이렉트 채널 축): 서버 컴포넌트 4건 3파일 전수 next/navigation redirect(), 엣지는 proxy.ts NextResponse.redirect(L2196 기커버) — 문맥 결정적 분담, 결함 클래스 미성립.
+- 프로브 3 (요청 컨텍스트 접근 채널 축): cookies() 2건 전수 lib/auth.ts 헬퍼 캡슐화·직접 접근 0건·headers() 0건 — 단일 idiom 수렴, 결함 클래스 미성립.
+- 기각 후보: URLSearchParams(L2037/2096)·router.push(L2031 등)·scroll:false(L1877)·revalidate(L2193)·poster(L1888/1996)·audio(L1257 등)·srcSet/sizes(L754/1753/1756)·redirect 기존 히트(L827 SQL·L1734 CSS rect·L2196 라우트 핸들러) sed 검증 무관/기커버 확인.
+- 기록: anti-patterns.md 2208→2211행 (baseline 3건 추가).
+- 포인터: aesthetic 8a9572a5 → 666d8959 전진.
+
 ## cycle 4455 — design/tokens 690th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation tokens 690th round.
