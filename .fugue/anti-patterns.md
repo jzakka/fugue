@@ -2167,3 +2167,6 @@
 - [baseline] async return await 축 — `return await` 0건; async 함수의 프로미스 반환은 bare return 단일 idiom(api.ts `return res.json()` 16건 등)으로 수렴. try/catch 내 반환 지연이 필요한 표면 부재. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4373)
 - [baseline] JSX 다중행 return 괄호 래핑 축 — `return (` 59건/37파일 전수 괄호 래핑, 괄호 없는 단일행 `return <JSX>` 0건(guard `return null` 5건은 비JSX). 단일 idiom 수렴, 결함 클래스 미성립. L2126 "return (" 히트는 useEffect cleanup 채널로 본 축과 무관 (cycle 4373)
 - [baseline] 명시적 숫자 변환 축 — `Number(x)` 0건(Number.parseInt/isNaN 정적 메서드 제외), 단항 `+x` 0건, parseFloat 0건. L2059는 parseInt 문자열 *파싱* 채널만 커버하며 *변환* 채널은 순수 vacuous 모집단 0건, 결함 클래스 미성립 (cycle 4373)
+- [baseline] effect 비동기 실행 idiom 축 — async IIFE `})();` 0건; useEffect 비동기는 재사용 필요 시 useCallback 명명 async(loadMore/reloadPins 등 6건) vs 마운트 1회성 조회 시 `.then` 체인(LoginButtons.tsx:48-51·PinCreateForm.tsx:78·VideoThumbnailPicker.tsx:94)의 문맥 결정적 분담. 결함 클래스 미성립 (cycle 4379)
+- [baseline] 옵셔널 호출 `?.()` 축 — L2121 프로퍼티 접근 체이닝과 구분되는 *호출* 채널: ref 옵셔널 메서드 호출(abort/focus/click/blur 11건)+옵셔널 콜백 직접 호출 `onProgress?.()`(lib/media 7건) 전수 `?.()` 단일 idiom, `if (cb) cb()` 가드 형태 0건. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4379)
+- [baseline] eslint 억제 주석 축 — 전수 9건 `// eslint-disable-next-line <rule>` rule-명시 next-line 형태(react-hooks/exhaustive-deps 7·set-state-in-effect 2), 파일 단위 blanket `/* eslint-disable */` 0건·rule 미명시 0건. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4379)

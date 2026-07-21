@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4379 — design/aesthetic 754th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 754th round.
+- 센서스: 188feb0b..origin/main(ffffb172) 구간 style-surface diff 0건, 로그는 loop-state chore(#5670–#5671)뿐 — aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 강제 수행.
+- 프로브 1 (effect 비동기 실행 idiom): async IIFE 0건; 재사용 시 useCallback 명명 async(6건) vs 마운트 1회성 `.then` 체인(3건)의 문맥 결정적 분담 → baseline.
+- 프로브 2 (옵셔널 호출 `?.()`): ref 메서드 호출 11건+콜백 직접 호출 onProgress?.() 7건 전수 `?.()` 단일 idiom, `if (cb) cb()` 0건 → baseline. L2121 프로퍼티 접근 채널과 구분 명시.
+- 프로브 3 (eslint 억제 주석): 전수 9건 rule-명시 next-line 형태, blanket/rule 미명시 0건 → 단일 idiom 수렴 baseline.
+- 기각 후보: 템플릿 리터럴(L2096/2109 커버), 컴포넌트 정의 표기(L2102 커버), Array.from(L2069/2095 커버), import type(L2111/2140 커버), 구조 분해(L2104/2154 커버), 리스트 key 소스(L2123 커버), 반환 타입 표기(L2153 커버).
+- 기록: anti-patterns.md 2169→2172행 (baseline 3건 추가).
+- 포인터: aesthetic 188feb0b → ffffb172 전진.
+- 차기: cycle 4381, 발견 모드(rotation: responsive 753rd round).
+
 ## cycle 4377 — design/tokens 677th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 677th round, pending 0건으로 발견 모드 진입.
