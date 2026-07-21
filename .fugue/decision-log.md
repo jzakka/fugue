@@ -14943,6 +14943,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4271 — design/aesthetic 736th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: aesthetic 736th round (rotation: responsive→tokens→aesthetic)
+- 센서스: ebd0f9b4..5876fa8d 구간 스타일 표면 diff 0건이나 aesthetic 라운드는 fresh 축 프로브 필수(c3781 관례).
+- 프로브 1: 로컬 이벤트 핸들러 함수 네이밍 접두 — handle* 33건 주류 vs on* 5건 전원 VideoTrimModal.tsx 1파일 포인터 제스처 클러스터(onPointerDown/Move/Up prop 미러링). 단일 파일 국소 이탈 → clean baseline. L1786(DOM 등록 채널)은 별개 축.
+- 프로브 2: JSX 조건부 렌더링 채널 — `&&` 렌더 74건(무-대안) vs 삼항 24건(양분기 주류), `: null` 대안 삼항은 PinsGrid.tsx:158 1건. 용도별 분담 + 중첩 채널 모집단 1 → clean baseline. L1865(className 조립 삼항)는 별개 축.
+- 프로브 3: 다분기 값 디스패치 — switch 2건(media_type 순수 값→값 매핑) vs else-if 체인(술어·경계·다단 산술 로직). 문맥 결정적 분담 → clean baseline. L1367(HTML switch 속성)은 별개 축, 그 외 switch 히트 전부 system 영역.
+- 기록: anti-patterns.md 2115→2118 라인(baseline 3건 append).
+- 포인터: aesthetic ebd0f9b4 → 5876fa8d 전진.
+- 차기: cycle 4273, 발견 모드(rotation: responsive 735th round).
+
 ## cycle 4269 — design/tokens 659th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 659th round (rotation: responsive→tokens→aesthetic)
