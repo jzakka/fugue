@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4343 — design/aesthetic 748th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 748th round, pending 0건으로 발견 모드 진입.
+- 센서스: 8ebbe890..902bdea2 구간 diff-stat 0건이나 aesthetic 규칙에 따라 fresh 축 프로브 수행.
+- 프로브 1 — TS 타입/인터페이스 멤버 종결자: 세미콜론 119건·콤마 0건 → 단일 idiom 수렴. 구분자 hits(L1802+·L2078·L2087)는 CSS/문자열 축으로 sed 검증 후 open 판정.
+- 프로브 2 — 함수 반환 타입 표기: 명시 27건 vs 무표기 13건 → 용도별 분담(컴포넌트·void·shape 매퍼·라우트 핸들러는 추론, 값 유틸·프레임워크 계약은 명시).
+- 프로브 3 — 컴포넌트 props 수취 형태: 시그니처 구조 분해 35건·props 파라미터 0건 → 단일 idiom 수렴. L2104 는 라우트 params 축으로 검증 후 open 판정.
+- 기록: 3건 clean baseline 추가, anti-patterns.md 2151→2154행(wc -l 확인).
+- 포인터: aesthetic 8ebbe890 → 902bdea2 전진.
+- 차기: cycle 4345, 발견 모드(rotation: responsive 747th round).
+
 ## cycle 4341 — design/tokens 671st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 671st round, pending 0건으로 발견 모드 진입.
