@@ -2191,3 +2191,6 @@
 - [baseline] 클라이언트 경계 지시자 축 — "use client" 23파일 전수 상호작용 컴포넌트·라우트 클라이언트 서브컴포넌트 파일 최상단 한정, 서버 표면(page.tsx/layout.tsx/loading.tsx/route.ts/lib) 0건. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4421)
 - [baseline] 서버 뮤테이션 채널 축 — "use server" 서버 액션 0건, form action 함수 바인딩 0건; 뮤테이션 전수 클라이언트 lib/api 래퍼 fetch 경유. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4421)
 - [baseline] 라우트 렌더/캐시 전략 축 — `export const dynamic = "force-dynamic"` 6건 데이터 페이지 전수 균일(page.tsx 6표면), revalidate/fetchCache 0건, fetch cache 옵션은 lib/auth.ts `cache: "no-store"` 2건 인증 요청 한정. 단일 idiom + 용도별 분담, 결함 클래스 미성립 (cycle 4421)
+- [baseline] 코드 분할 지연 로딩 축 — next/dynamic·React.lazy 0건, `<Suspense>` 4블록 2파일(app/page.tsx:80/83/88·search/page.tsx:63)은 전수 useSearchParams 클라이언트 컴포넌트(FieldFilter·TagFilter·FeedContainer·SearchClient)의 CSR bailout 경계 용도 한정 — 지연 로딩 채널 수요 부재. 순수 vacuous + 용도별 분담, 결함 클래스 미성립 (cycle 4427)
+- [baseline] 메타데이터 저작 채널 축 — 정적 `export const metadata` 3건(layout.tsx:4 루트·pin/new:7·mypage:8 고정 제목), `generateMetadata` 4건(pins/[id]:19·search:19·boards/[id]:15·creators/[id]:15 데이터 의존 제목) — 정적/동적 페이지 성격에 따른 문맥 결정적 분담. 결함 클래스 미성립 (cycle 4427)
+- [baseline] 라우트 핸들러 응답 생성 채널 축 — NextResponse 단일 채널(route.ts:21 `new NextResponse` 바디 패스스루·:31 `NextResponse.json` 에러, proxy.ts:19/27/30 next()/redirect()), `Response.json`·`new Response(` 0건. 단일 idiom + 용도별 분담, 결함 클래스 미성립 (cycle 4427)
