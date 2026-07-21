@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4439 — design/aesthetic 764th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 764th round, pending 0건으로 발견 모드 진입.
+- 센서스: 4ff4fe70..317042ef 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5699–#5701)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (이벤트 전파/기본동작 제어 채널 축): stopPropagation 5건 전수 중첩-상호작용 격리 한정, preventDefault 16건 제출 억제/키보드/드래그/중첩 링크 용도별 분담, blanket 0건 — 결함 클래스 미성립.
+- 프로브 2 (React 폼 제출 핸들링 채널 축): 전용 페이지 폼 2건 `<form onSubmit>` 균일 vs 인라인 경량 편집 Enter keydown+onClick 균일 — 문맥 결정적 분담, 결함 클래스 미성립.
+- 프로브 3 (IME 컴포지션 가드 채널 축): isComposing·onComposition* 0건, Enter keydown 3파일 전수 무가드 단일 idiom — 채널-일관성 결함 미성립, 한글 조합 Enter 이중 발화 이슈 관찰 시 기능 결함 재평가 조건 명기.
+- 기각 후보: preventDefault 히트(L293/336/571/1505 타 도메인)·onSubmit 히트(L552 enterKeyHint·L1525 requestSubmit·L1549 reset·L1979 HTML action·L2003 accept-charset) sed 검증 무관 확인으로 축 개방. maxLength(L82 등)·버튼 type(L1990)·fieldset(L165 등)·time/datetime(L462 등)·시맨틱 리스트(L353 등)·포인터 다운이벤트(L311)·경로 제스처(L329)·콘솔 로깅 레벨(L2143)·전역 에러 보고(L2062) 기커버 기각.
+- 기록: anti-patterns.md 2199→2202행 (baseline 3건 추가).
+- 포인터: aesthetic 4ff4fe70 → 317042ef 전진.
+- 차기: cycle 4441, 발견 모드(rotation: responsive 763rd round).
+
 ## cycle 4437 — design/tokens 687th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 687th round, pending 0건으로 발견 모드 진입.
