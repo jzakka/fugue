@@ -2188,3 +2188,6 @@
 - [baseline] 라우트 에러 경계 파일 축 — error.tsx/global-error.tsx/not-found.tsx 0건(라우트 규약 파일은 creators/[id]/loading.tsx 1표면뿐); 에러 표시는 전수 컴포넌트 내 error 상태 + role="alert" 저작(FeedContainer 등). 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4415)
 - [baseline] 스키마 검증 라이브러리 축 — zod/yup/joi/valibot/ajv 의존성 0건(package.json); 입력 검증은 전수 수동 판정(제출 시점 trim 검사, 시점 축 L2186과 별개의 메커니즘 축). 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4415)
 - [baseline] 컴포넌트 파일 명명 축 — 컴포넌트 파일 전수 PascalCase.tsx(테스트는 동명 .test.tsx 병치), 소문자 파일은 Next.js 라우트 규약(page/layout/loading)과 lib 유틸 모듈 한정. 용도별 분담, 결함 클래스 미성립 (cycle 4415)
+- [baseline] 클라이언트 경계 지시자 축 — "use client" 23파일 전수 상호작용 컴포넌트·라우트 클라이언트 서브컴포넌트 파일 최상단 한정, 서버 표면(page.tsx/layout.tsx/loading.tsx/route.ts/lib) 0건. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4421)
+- [baseline] 서버 뮤테이션 채널 축 — "use server" 서버 액션 0건, form action 함수 바인딩 0건; 뮤테이션 전수 클라이언트 lib/api 래퍼 fetch 경유. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4421)
+- [baseline] 라우트 렌더/캐시 전략 축 — `export const dynamic = "force-dynamic"` 6건 데이터 페이지 전수 균일(page.tsx 6표면), revalidate/fetchCache 0건, fetch cache 옵션은 lib/auth.ts `cache: "no-store"` 2건 인증 요청 한정. 단일 idiom + 용도별 분담, 결함 클래스 미성립 (cycle 4421)
