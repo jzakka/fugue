@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4433 — design/aesthetic 763rd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 763rd round, pending 0건으로 발견 모드 진입.
+- 센서스: 1b5a10e5..4ff4fe70 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5696–#5698)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (URL 인스턴스 조립 채널 축): `new URL(` 4건 전수 파싱/검증/파생 용도(유효성·hostname·redirect 해석), 요청 경로 조립은 api.ts 템플릿 리터럴 균일 — 용도별 분담, 결함 클래스 미성립.
+- 프로브 2 (업로드 요청 본문 저작 채널 축): FormData 저작 1건+소비 1건 파일 업로드 단일 표면 한정, JSON/base64 대체 0건 — 단일 idiom, 결함 클래스 미성립.
+- 프로브 3 (fetch JSON 요청 본문 직렬화 채널 축): `body: JSON.stringify` 6건 비파일 뮤테이션 전수 균일, 수동 직렬화 0건 — 단일 idiom + FormData 분담, 결함 클래스 미성립.
+- 기각 후보: FormData(L1937 HTML enctype 속성 축)·요청 본문(L771/831/1052 [system] Go 디코드 축)·URL((L1930 base 요소 축) sed 검증 무관 확인으로 축 개방. confirm 채널(L256 인접 보수 기각)·난수(L2092)·setState 업데이터(L2125)·return null(L2168)·불리언 prop(L2147)·타입 단언(L2131)·eslint 억제(L2172)·부재값(L2138)·제네릭 명명(L2165)·배열 변환(L2095)·프로퍼티 축약(L2151)·res.ok(L2122)·응답 소비(L2127)·거부 생성(L2094)·딥클론(L2042)·외부 링크 rel(L1909) 기커버 기각.
+- 기록: anti-patterns.md 2196→2199행 (baseline 3건 추가).
+- 포인터: aesthetic 1b5a10e5 → 4ff4fe70 전진.
+- 차기: cycle 4435, 발견 모드(rotation: responsive 762nd round).
+
 ## cycle 4431 — design/tokens 686th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 686th round, pending 0건으로 발견 모드 진입.
