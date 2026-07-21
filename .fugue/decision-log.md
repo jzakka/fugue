@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4337 — design/aesthetic 747th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 747th round, pending 0건으로 발견 모드 진입.
+- 센서스: 497419d8..8ebbe890 구간 diff-stat 0건이나 aesthetic 규칙에 따라 fresh 축 프로브 수행.
+- 프로브 1 — JSX 문자열 속성값 중괄호: `={"` 0건 vs 직접 문자열 속성 775건 → 단일 idiom 수렴. L1295 는 CSS 네임스페이스 선택자 축으로 sed 검증 후 open 판정.
+- 프로브 2 — React 이벤트 타입 애노테이션: React.-한정 10건 vs bare 임포트 0건 → 단일 idiom 수렴.
+- 프로브 3 — 객체 프로퍼티 축약: 동명 중복 명시 0건·축약 사용 존재(api.ts:206/358)·명시형은 키-변수명 불일치 문맥만 → 단일 idiom 수렴. ugrep·BSD grep 역참조 미지원으로 perl 프로브 사용.
+- 기각 후보: 배열 타입 표기(L2113)·Promise 소비(L2091)·타입 단언(L2131)·문자열 조립(L2109) 기커버 확인으로 제외.
+- 기록: 3건 clean baseline 추가, anti-patterns.md 2148→2151행(wc -l 확인).
+- 포인터: aesthetic 497419d8 → 8ebbe890 전진.
+- 차기: cycle 4339, 발견 모드(rotation: responsive 746th round).
+
 ## cycle 4335 — design/tokens 670th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 670th round, pending 0건으로 발견 모드 진입.
