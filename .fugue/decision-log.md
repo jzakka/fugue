@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4391 — design/aesthetic 756th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 756th round.
+- 센서스: 3738149d..origin/main(dac29394) 구간 style-surface diff 0건, 로그는 loop-state chore(#5676–#5677)뿐 — aesthetic 라운드 규칙에 따라 fresh 축 프로브 3건 강제 수행.
+- 프로브 1 (커스텀 훅 추출): use* 선언·hooks 디렉토리·use*.ts 전무, 반복 로직은 컴포넌트 내 useEffect/useCallback 저작 수렴 → 단일 idiom baseline.
+- 프로브 2 (다중 상태 관리 형태): useReducer 0건, 최다 PinCreateForm 10 useState도 개별 선언 수렴 → 단일 idiom baseline.
+- 프로브 3 (props 전개 포워딩): `{...props}` 1건(HideOnErrorImage img 래퍼 passthrough), 도메인 컴포넌트 전수 명시 나열 → 용도별 분담 baseline.
+- 기각 후보: 메모이제이션(L2101 커버), 라우터/히스토리 내비게이션(L2031 커버), 키 판정 소스(L2141 커버), AbortController(L2034/2128 커버), Promise.allSettled(L2051 커버).
+- 기록: anti-patterns.md 2175→2178행 (baseline 3건 추가).
+- 포인터: aesthetic 3738149d → dac29394 전진.
+- 차기: cycle 4393, 발견 모드(rotation: responsive 755th round).
+
 ## cycle 4389 — design/tokens 679th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 679th round, pending 0건으로 발견 모드 진입.
