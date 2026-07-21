@@ -15021,6 +15021,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4283 — design/aesthetic 738th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: aesthetic 738th round (rotation: responsive→tokens→aesthetic)
+- 센서스: 0591dfcd..fef85285 구간 스타일 표면 diff 0건이나 aesthetic 라운드는 fresh 축 프로브 필수(c3781 관례).
+- 프로브 1: fetch 응답 성공 판정 — `!res.ok` 23건 단일 idiom, status 비교는 `!== 204` 보조 조건 3건(문맥 결정적) → clean baseline.
+- 프로브 2: 리스트 렌더 key 소스 — 엔티티 배열 전수 `key={*.id}`, `key={i}` 7건 전원 스켈레톤·웨이브폼·격자 등 정체성 없는 정적/파생 배열. 용도별 분담 → clean baseline.
+- 프로브 3: useState 초기값 저작 — 직접 값 50건 vs 지연 초기화 1건(SearchClient.tsx:88 파생 계산). 용도별 분담 + 모집단 1 → clean baseline. L1307~L1405/L1549/L1880 히트는 별개 축 검증.
+- 기록: anti-patterns.md 2121→2124 라인(baseline 3건 append).
+- 포인터: aesthetic 0591dfcd → fef85285 전진.
+- 차기: cycle 4285, 발견 모드(rotation: responsive 737th round).
+
 ## cycle 4281 — design/tokens 661st round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 661st round (rotation: responsive→tokens→aesthetic)
