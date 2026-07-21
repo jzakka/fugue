@@ -15081,6 +15081,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4295 — design/aesthetic 740th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: pending 0 → 발견 모드, rotation aesthetic 740th round.
+- 센서스: bcd4c1f9..4b38786a 구간 스타일 표면 diff 0건(구간 로그는 loop-state chore 전부) — aesthetic 라운드 관례(c3781)에 따라 fresh 축 프로브 3건 수행.
+- 프로브 1 (DOM ref 획득 채널): useRef 28건·ref 속성 24건 전수 객체 ref, 콜백 ref 0건 — 단일 idiom 수렴, clean baseline.
+- 프로브 2 (웹 스토리지 접근 가드): SearchBar 모듈 읽기만 typeof window+try/catch, mount 후 접근은 무가드 — SSR 도달 가능성·파싱 위험이 결정하는 문맥 결정적 분담, clean baseline.
+- 프로브 3 (배열 빈 판정): 빈 판정 18건 전수 length === 0·비지 않음 20건+ 전수 length > 0, 축약형 0건 — 극성별 단일 idiom 수렴, clean baseline.
+- 제외 판정: 불리언 변환(L2093)·문자열 조립(L2109)·rAF(L2033)·export 표기(L2100)·?? vs || 폴백(L2066 모집단 실측 포함) 커버로 후보 제외.
+- 기록: anti-patterns.md 2127→2130 라인, baseline 3건 추가.
+- 포인터: aesthetic 센서스 포인터 bcd4c1f9 → 4b38786a.
+- 차기: cycle 4297, 발견 모드(rotation: responsive 739th round).
+
 ## cycle 4293 — design/tokens 663rd round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0 → 발견 모드, rotation tokens 663rd round.
