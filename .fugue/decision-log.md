@@ -15141,6 +15141,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4451 — design/aesthetic 766th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 766th round, pending 0건으로 발견 모드 진입.
+- 센서스: 277f2a4a..8a9572a5 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5705–#5707)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (하이드레이션 불일치 억제 채널 축): suppressHydrationWarning 0건 + 비결정 렌더 값(Date.now/Math.random/new Date) 0건 — 유발 표면 부재, 모집단 0 pure vacuous, 결함 클래스 미성립. 비결정 렌더 값 유입 시 재평가 조건 명기.
+- 프로브 2 (외부 스토어 구독 채널 축): useSyncExternalStore 0건, 외부 구독 전수 5건은 렌더 스냅숏 파생 없는 UI 이벤트 리스너 useEffect 단일 idiom — 스토어-스냅숏 수요 모집단 0, 결함 클래스 미성립.
+- 프로브 3 (구성 리터럴 추출 채널 축): 페이지 크기 20 — 클라이언트 페이지네이션 4표면 중 3곳 PAGE_SIZE 추출·LoadMorePins.tsx:23 1곳 인라인 이탈, 서버 5표면 전수 인라인. divergence 성립하나 사용자 체감 영향 0으로 design 백로그 임팩트 요건 미달 — 후보 미등재, divergence 사실 명기 baseline.
+- 기각 후보: Promise.allSettled(L2051)·Object.assign(L2090)·globalThis/window 가드(L2057)·스토리지 접근 가드(L2129)·상수 명명(L2115)·핸들러 네이밍(L2116)·keyCode(L2141)·논리 프로퍼티/margin-inline(L764 등)·:has()(L402 등)·tabular-nums(L179 등)·will-change(L97 등) sed 검증 기커버 기각.
+- 기록: anti-patterns.md 2205→2208행 (baseline 3건 추가).
+- 포인터: aesthetic 277f2a4a → 8a9572a5 전진.
+
 ## cycle 4449 — design/tokens 689th round (Discovery, 표면 불변 폐기)
 
 - 순번: pending 0건 → 발견 모드, rotation tokens 689th round.
