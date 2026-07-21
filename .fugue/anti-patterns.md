@@ -2179,3 +2179,6 @@
 - [baseline] 모달 마운트 위치 축 — createPortal/ReactDOM 0건; 오버레이 모달(VideoTrimModal·AddToBoardButton `fixed inset-0` 2표면)은 전수 트리거 컴포넌트 서브트리 인라인 렌더 단일 idiom. 결함 클래스 미성립 (cycle 4397)
 - [baseline] 접근성 연결 id 생성 축 — useId 0건; label htmlFor·aria 연결 id는 전수 kebab-case 리터럴(pin-title·profile-nickname·board-name-error·main 등) 단일 idiom, 해당 컴포넌트 전원 페이지당 단일 렌더로 충돌 모집단 부재. 단일 idiom 수렴, 결함 클래스 미성립 (cycle 4397)
 - [baseline] 전환 우선순위 상태 갱신 축 — useTransition 1표면(SearchClient.tsx:62/107 — URL 동기화 저우선 갱신 한정), 그 외 상태 갱신 전수 일반 setState, useDeferredValue 0건. 문맥 결정적 분담(라우터 URL 반영에만 transition), 결함 클래스 미성립 (cycle 4397)
+- [baseline] 환경변수 접근 축 — process.env 접근은 lib 계층 한정(lib/api.ts·lib/auth.ts·app/api/auth/refresh/route.ts), 컴포넌트 직접 접근 0건. 서버 측 `API_URL || "http://localhost:8080"` 3건 vs 클라이언트 측 `NEXT_PUBLIC_API_URL || ""` 12건(lib/api.ts 한정, same-origin 상대 경로 폴백). 용도별 분담, 결함 클래스 미성립 (cycle 4403)
+- [baseline] 입력 제어/비제어 축 — defaultValue/defaultChecked 0건; 폼 컨트롤 12표면 중 텍스트 계열 11건 전수 `value`+`onChange` setState 제어 컴포넌트 단일 idiom, 유일 비제어는 file input(PinCreateForm.tsx:445, 브라우저 제약상 ref 접근). 문맥 결정적 분담, 결함 클래스 미성립 (cycle 4403)
+- [baseline] raw HTML 주입 축 — dangerouslySetInnerHTML 0건; 텍스트 렌더 전수 JSX 이스케이프 경유. 순수 vacuous 모집단, 결함 클래스 미성립 (cycle 4403)
