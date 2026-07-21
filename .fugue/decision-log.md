@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4349 — design/aesthetic 749th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 749th round, pending 0건으로 발견 모드 진입.
+- 센서스: 902bdea2..f650fcef 구간 diff-stat 0건이나 aesthetic 규칙에 따라 fresh 축 프로브 수행.
+- 프로브 1 — 동등 비교 엄격성: `==` 0건·`===` 73·`!==` 12건, `!=` 2건은 전부 `!= null` 관용구(PinCreateForm.tsx:274/422) → 문맥 결정적 분담.
+- 프로브 2 — 화살표 단일 파라미터 괄호: bare 0건·괄호 56건 → 단일 idiom 수렴. type-predicate " string => " 오탐 확인·기록.
+- 프로브 3 — map 콜백 반환 형태: JSX 암묵 반환 31건·값 표현 6건·블록 4건(전부 사전 문장 필요 문맥) → 문맥 결정적 분담.
+- 기각 후보: useEffect cleanup 반환(L2126)·배열 병합 spread/concat(L2088) 기커버 확인으로 제외.
+- 기록: 3건 clean baseline 추가, anti-patterns.md 2154→2157행(wc -l 확인).
+- 포인터: aesthetic 902bdea2 → f650fcef 전진.
+- 차기: cycle 4351, 발견 모드(rotation: responsive 748th round).
+
 ## cycle 4347 — design/tokens 672nd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 672nd round, pending 0건으로 발견 모드 진입.
