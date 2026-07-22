@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4511 — design/aesthetic 776th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 776th round.
+- 센서스: aesthetic 포인터 fbc51527..f4ff6dc1 diff-stat 0건(스타일 표면 불변). 구간 로그는 루프 체어 3건(#5735–#5737)뿐. aesthetic 라운드 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 판정: ① 서드파티 스크립트 로딩 축 — next/script·인라인 <script> 0건, 순수 vacuous(외부 스크립트 부재 정합, L1390 next/font와 별개). ② 클라이언트 라우트 파라미터 구독 축 — useParams·useSelectedLayoutSegment 0건, 서버 params prop 단일 채널 3표면 수렴 정합(L2215 popstate 구독과 별개). ③ 속성 제거 연산자 축 — delete 저작 0건, 순수 vacuous(스프레드·명시 구성 형태 불변 정합). 기각 후보: startTransition(L2181 전환 우선순위 축 인접 보수 기각), revalidatePath/Tag·unstable_cache(L2193 라우트 캐시 전략 축 인접 보수 기각), permanentRedirect(L2210 redirect 기커버 인접).
+- 기록: anti-patterns.md 2235→2238행(baseline 3건 append).
+- 포인터: aesthetic fbc51527 → f4ff6dc1 전진.
+- 차기: cycle 4513, 발견 모드(rotation: responsive 775th round).
+
 ## cycle 4509 — design/tokens 699th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 699th round, pending 0건으로 발견 모드 진입.
