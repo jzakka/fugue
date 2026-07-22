@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4469 — design/aesthetic 769th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 769th round, pending 0건으로 발견 모드 진입.
+- 센서스: ca6b76f7..b7a51d3b 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5714–#5716)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (popstate 구독 축): 리스너 0건 전수(모집단 0, 순수 vacuous) — L2031 히스토리 조작 채널과 구분되는 반응 구독 채널, 내비게이션 상태는 useSearchParams 선언적 구독 위임으로 coherent absence, 결함 클래스 미성립.
+- 프로브 2 (전환·애니메이션 종료 이벤트 축): transitionend/animationend 0건 전수(모집단 0) — 장식적 애니메이션뿐이라 JS 완료 훅 부재 정합, L762 fill-mode(CSS 저작)·L2033 rAF와 별개 채널, 결함 클래스 미성립.
+- 프로브 3 (주기 타이머 축): setInterval 0건 전수(모집단 0), 지연은 setTimeout 단발 4파일 일관 — L380 a11y 시간 제한 정책·L2034 요청 취소와 별개의 주기 반복 저작 채널, 결함 클래스 미성립.
+- 기각 후보: fetchpriority(L91 소문자 기커버)·referrerpolicy(L1932 소문자 기커버)·MutationObserver(L2030)·online/offline(L2024)·템플릿 리터럴(L2096)·forEach(L2097)·Promise.all(L2051)·switch(L2118)·구조 분해(L2104/2154)·encodeURIComponent(L2096/2141)·padStart(L2060)·parseInt(L2059/2169)·pagehide/pageshow(L1605)·CustomEvent(L2035)·queueMicrotask(L2043) sed 검증 기커버 확인 — camelCase grep 누락 교훈으로 -i 재검 도입.
+- 기록: anti-patterns.md 2214→2217행 (baseline 3건 추가).
+- 포인터: aesthetic ca6b76f7 → b7a51d3b 전진.
+- 차기: cycle 4471, responsive 768th round (포인터 77c0dad7).
+
 ## cycle 4467 — design/tokens 692nd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 692nd round, pending 0건으로 발견 모드 진입.
