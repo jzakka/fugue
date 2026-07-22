@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5678 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (루프 커밋 제외)
+- 조사: 신규 0건. 잔여 1건(e2cb3a80, 2026-07-03 #3115)은 baseline 커밋으로 기존 census에서 계수 완료. 5676 보안 수정은 apps/web 전용으로 이 축 비접촉
+- 판정: 직전 정합성 census(5666) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5680 (직전 5668 covered). apps/api·Makefile·workflows freeze check 예정
+
 ### cycle 5676 — 보안: audit DB 갱신으로 high 2건 검출 → next 패치 + sharp override로 해소 (fixed)
 - 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
 - 조사: dep 커밋 a52bb76e 불변이나 audit DB 갱신으로 3건(1 moderate, 2 high) 검출 — next@16.2.10 advisory 9건, sharp@0.34.5 libvips CVE-2026-33327/33328/35590/35591 (GHSA-f88m-g3jw-g9cj)
