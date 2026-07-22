@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4523 — design/aesthetic 778th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 778th round.
+- 센서스: aesthetic 포인터 6976297f..1f613e01 diff-stat 0건(스타일 표면 불변). 구간 로그는 루프 체어 3건(#5741–#5743)뿐. aesthetic 라운드 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 판정: ① 로캘 감지 축 — navigator.language 0건, 순수 vacuous(한국어 단일 로캘 정합, L1890·L1905·L2055 표기 축들과 별개 감지 채널). ② DOM 조상 탐색·위임 질의 축 — closest/matches 0건, 순수 vacuous(React 합성 이벤트 직접 바인딩 정합, L1615 좌표 히트테스트와 별개). ③ data-* 속성 상태 저장 축 — dataset·data-* 저작 0건, 순수 vacuous(React state/props 단일 채널 정합). 기각 후보: insertAdjacentHTML(L2184 raw HTML 주입 축 인접 보수 기각), localeCompare(L2054·L2088 정렬 축 인접 보수 기각), toDataURL(L1984 canvas 직렬화 축 기커버 인접), performance.mark(L2040 기커버).
+- 기록: anti-patterns.md 2241→2244행(baseline 3건 append).
+- 포인터: aesthetic 6976297f → 1f613e01 전진.
+- 차기: cycle 4525, 발견 모드(rotation: responsive 777th round).
+
 ## cycle 4521 — design/tokens 701st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 701st round, pending 0건으로 발견 모드 진입.
