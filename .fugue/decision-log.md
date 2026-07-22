@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4493 — design/aesthetic 773rd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0건 → 발견 모드, rotation aesthetic 773rd round.
+- 센서스: aesthetic 포인터 439cc350..772a6c09 구간 스타일 표면 diff-stat 0건, 로그는 루프 상태 체어 3건(#5726–#5728)뿐. aesthetic 라운드 관례에 따라 델타 무관 fresh 축 프로브 3건 수행.
+- 판정: ① 전체 로드 내비게이션 축(location.href/assign) — 전수 2건(LoginButtons:62 assign·LogoutButton:16 href=) 모두 인증 경계 전체 리로드 필수 용도, 기능 동치 표기 차이·모집단 2건으로 규범 미성립(모집단 증가 시 재평가 조건 부기), L2031 History API 조작 축과 별개 채널로 sed 검증. ② render prop 합성 축 — 저작 0건 순수 vacuous, L2140 PropsWithChildren 정적 children 축과 구분. ③ React 요소 조작 API 축(cloneElement/Children./isValidElement) — 저작 0건 순수 vacuous. 기각 후보: sendBeacon(L2029)·scrollRestoration(L1880)·document.title(L2022/2031)·performance.now(L2064)·Portal(L2179)·flushSync(L2205)·useSyncExternalStore(L2207)·에러 바운더리(L2062/2188) 기존 커버로 기각.
+- 기록: anti-patterns.md 2226→2229행 baseline 3건 append.
+- 포인터: aesthetic 439cc350 → 772a6c09 전진.
+- 차기: cycle 4495, 발견 모드(rotation: responsive 772nd round).
+
 ## cycle 4491 — design/tokens 696th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 696th round, pending 0건으로 발견 모드 진입.
