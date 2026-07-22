@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4481 — design/aesthetic 771st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0건 → 발견 모드, rotation aesthetic 771st round.
+- 센서스: aesthetic 포인터 16e955c7..aa1a881a 구간 스타일 표면 diff-stat 0건, 로그는 루프 상태 체어 3건(#5720–#5722)뿐. aesthetic 라운드 관례에 따라 델타 무관 fresh 축 프로브 3건 수행.
+- 판정: ① 타입 조회 연산자 축(keyof) — 저작 0건 순수 vacuous, 명시 선언 타입 체계로 부재 정합. ② 구조 파생 유틸리티 타입 축(Omit/Pick/Exclude/Extract) — 비테스트 0건 순수 vacuous, Partial 1건은 테스트 팩토리(L2107 부수 언급) 한정. ③ TS 불변 프로퍼티 모디파이어 축(readonly/ReadonlyArray) — 저작 0건 순수 vacuous, L359 readOnly 폼 속성·L886 aria-readonly와 별개 채널로 sed 검증. 기각 후보: `for (const` 순회 문 축은 L2097 순회 문 선택 baseline이 이미 커버(-i 재검·sed 확인)하여 기각.
+- 기록: anti-patterns.md 2220→2223행 baseline 3건 append.
+- 포인터: aesthetic 16e955c7 → aa1a881a 전진.
+- 차기: cycle 4483, 발견 모드(rotation: responsive 770th round).
+
 ## cycle 4479 — design/tokens 694th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 694th round, pending 0건으로 발견 모드 진입.
