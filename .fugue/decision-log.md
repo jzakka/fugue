@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4463 — design/aesthetic 768th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 768th round, pending 0건으로 발견 모드 진입.
+- 센서스: 666d8959..ca6b76f7 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5711–#5713)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (타입 술어 내로잉 축): `(id): id is string` 2건 전수(page.tsx:42·FeedContainer.tsx:55) 동일 형태 단일 idiom, as 캐스트 대체 0건 — L2110/2112/2131과 별개의 내로잉 저작 채널, 결함 클래스 미성립.
+- 프로브 2 (붙여넣기 처리 축): onPaste·paste 리스너 0건 전수(모집단 0, 순수 vacuous), 네이티브 위임 — L2200 preventDefault 용도 분류에 paste 항목 없음 확인, 결함 클래스 미성립.
+- 프로브 3 (폴백 연산자 선택 축): `??` 25건+(부재만 거르는 문맥) vs `||` 30건+(falsy 제거 필요 문맥: searchParams null→""·parseInt NaN 폴백) — 문맥 결정적 분담·오용 0건, L2138/2158과 별개의 연산자 채널, 결함 클래스 미성립.
+- 기각 후보: AbortController(L2034/2128/2176)·IntersectionObserver(L1765 등)·noscript(L1999/2037)·debounce(L2135)·satisfies(L2105)·as const(L2103)·non-null(L2112)·Record<(L2114)·폼 속성(autoFocus L2147·maxLength L1914·htmlFor L2180·inputMode L532-571)·instanceof Error(L2139)·IIFE(L2170) sed 검증 기커버 확인.
+- 기록: anti-patterns.md 2211→2214행 (baseline 3건 추가).
+- 포인터: aesthetic 666d8959 → ca6b76f7 전진.
+- 차기: cycle 4465, responsive 767th round (포인터 b709bf70).
+
 ## cycle 4461 — design/tokens 691st round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 691st round, pending 0건으로 발견 모드 진입.
