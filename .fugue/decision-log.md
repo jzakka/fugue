@@ -15141,6 +15141,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4475 — design/aesthetic 770th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: rotation aesthetic 770th round, pending 0건으로 발견 모드 진입.
+- 센서스: b7a51d3b..16e955c7 구간 diff-stat 0건, 로그는 루프 상태 체어 3건(#5717–#5719)뿐 — aesthetic 라운드는 델타 무관 프로브 3건 강제.
+- 프로브 1 (키보드 모디파이어 조합 축): shiftKey 2건 전수 동일 포커스 트랩 Shift+Tab idiom·metaKey/ctrlKey/altKey 0건(클릭 모디파이어는 네이티브 앵커 위임) — L2141 keyCode·L2202 isComposing과 별개 채널, 결함 클래스 미성립.
+- 프로브 2 (wheel 이벤트 구독 축): onWheel·WheelEvent 0건 전수(모집단 0) — 스크롤은 네이티브+IntersectionObserver 위임, L329 제스처 a11y 정책과 무관한 휠 입력 저작 채널, 결함 클래스 미성립.
+- 프로브 3 (키 반복 억제 축): KeyboardEvent.repeat 0건 전수(모집단 0) — keydown 6파일은 ESC/Tab/화살표로 반복 무해 문맥, L2078 String.repeat와 무관, 결함 클래스 미성립.
+- 기각 후보: hashchange(L2028 해시 앵커 채널 인접 보수 기각)·pointerdown(L1777-1786)·dblclick(L2027)·contextmenu(L2021)·selectionchange(L1449)·tabIndex(a11y 다수)·novalidate(L571-579)·버튼 type(L1990)·lang/RTL/translate/theme-color/favicon(문서 메타 전부 기커버) sed 검증 확인.
+- 기록: anti-patterns.md 2217→2220행 (baseline 3건 추가).
+- 포인터: aesthetic b7a51d3b → 16e955c7 전진.
+- 차기: cycle 4477, responsive 769th round (포인터 d3bb72aa).
+
 ## cycle 4473 — design/tokens 693rd round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 693rd round, pending 0건으로 발견 모드 진입.
