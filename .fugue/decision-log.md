@@ -15171,6 +15171,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4529 — design/aesthetic 779th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 779th round.
+- 센서스: aesthetic 포인터 1f613e01..75ee6a19 diff-stat 0건(스타일 표면 불변). 구간 로그는 루프 체어 7건(#5635·#5744–#5749)뿐. aesthetic 라운드 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 판정: ① P2P 실시간 전송 축 — RTCPeerConnection·RTCDataChannel 0건, 순수 vacuous(실시간 협업·통화 기능 부재 정합, L2230 서버 푸시·L2239 녹화 축과 별개). ② 스트림 소비·변환 축 — ReadableStream·TransformStream·CompressionStream·pipeThrough 0건, coherent absence(fetch 전량 res.json() 일괄 소비 수렴, L2240 MSE·L2233 for await와 별개). ③ 자격 증명 관리 축 — navigator.credentials·WebAuthn/passkey 0건, 순수 vacuous(OAuth 소셜 로그인 단일 채널 정합). 기각 후보: SpeechRecognition(L2018 speechSynthesis TTS 인접 보수 기각), showOpenFilePicker(L2023 파일 미리보기 인접 보수 기각), Proxy(L2045 Reflect 인접 보수 기각), getUserMedia(L2239 캡처 계열 인접).
+- 기록: anti-patterns.md 2244→2247행(baseline 3건 append).
+- 포인터: aesthetic 1f613e01 → 75ee6a19 전진.
+- 차기: cycle 4531, 발견 모드(rotation: responsive 778th round, 포인터 5f9880cc).
+
 ## cycle 4527 — design/tokens 702nd round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 702nd round.
