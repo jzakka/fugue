@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4487 — design/aesthetic 772nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0건 → 발견 모드, rotation aesthetic 772nd round.
+- 센서스: aesthetic 포인터 aa1a881a..439cc350 구간 스타일 표면 diff-stat 0건, 로그는 루프 상태 체어 3건(#5723–#5725)뿐. aesthetic 라운드 관례에 따라 델타 무관 fresh 축 프로브 3건 수행.
+- 판정: ① 조건부 타입 추론 파생 축(Awaited/NonNullable/infer) — Awaited<ReturnType<typeof fetchPins>>["pins"] 동일 표현식 2건(mypage:26·creators/[id]:57) 단일 idiom 수렴, NonNullable·infer 0건. ② 이중 타입 단언 축(as unknown as) — 저작 0건 순수 vacuous, L2131 단일 as T 단언 축과 별개 에스컬레이션 채널. ③ 조건 반복문 축(while/do-while) — 저작 0건 순수 vacuous, L2097 순회 문·L2099 레이블 문과 별개 채널로 sed 검증. 기각 후보: React.memo(L2101 메모이제이션 축)·export default vs named(L2100)·next/dynamic·React.lazy(L2194 코드 분할 축)·TS enum(L2119 이산 값 집합 축) 기존 커버로 기각.
+- 기록: anti-patterns.md 2223→2226행 baseline 3건 append.
+- 포인터: aesthetic aa1a881a → 439cc350 전진.
+- 차기: cycle 4489, 발견 모드(rotation: responsive 771st round).
+
 ## cycle 4485 — design/tokens 695th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 695th round, pending 0건으로 발견 모드 진입.
