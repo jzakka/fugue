@@ -15141,6 +15141,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4499 — design/aesthetic 774th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 774th round.
+- 센서스: aesthetic 포인터 772a6c09..86f547e6 diff-stat 0건(스타일 표면 불변). 구간 로그는 루프 체어 3건(#5729–#5731)뿐. aesthetic 라운드 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 판정: ① 서버 실시간 푸시 구독 축 — WebSocket/EventSource 0건, 모집단 0 순수 vacuous(요청-응답 모델 충족). ② SSG 사전 렌더 파라미터 축 — generateStaticParams 0건, 모집단 0 순수 vacuous(force-dynamic 6건 균일과 정합). ③ 라우트 조직 컨벤션 축 — (group)·@slot·(.)·template.tsx find 전수 0건, 순수 vacuous(평탄한 단일 세그먼트 구조 충족). 기각 후보: MessageChannel(L2070 공유 메모리 병렬성 인접 보수 기각), Cache API caches.(L2048 SW 오프라인 캐싱 인접 보수 기각).
+- 기록: anti-patterns.md 2229→2232행(baseline 3건 append).
+- 포인터: aesthetic 772a6c09 → 86f547e6 전진.
+- 차기: cycle 4501, 발견 모드(rotation: responsive 773rd round).
+
 ## cycle 4497 — design/tokens 697th round (Discovery, 표면 불변 폐기)
 
 - 순번: rotation tokens 697th round, pending 0건으로 발견 모드 진입.
