@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5676 — 보안: audit DB 갱신으로 high 2건 검출 → next 패치 + sharp override로 해소 (fixed)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: dep 커밋 a52bb76e 불변이나 audit DB 갱신으로 3건(1 moderate, 2 high) 검출 — next@16.2.10 advisory 9건, sharp@0.34.5 libvips CVE-2026-33327/33328/35590/35591 (GHSA-f88m-g3jw-g9cj)
+- 수정: next 16.2.10→16.2.11 패치 업그레이드(advisory 9건 해소) + overrides sharp>=0.35.0(0.35.3 설치, high 2건 해소). 잔여 2 moderate는 next-vendored postcss@8.4.31로 기존 baseline과 동일 수준 — 신규 보안 baseline: next@16.2.11 + sharp override
+- 차기: rotation 정합성 cycle 5678 (직전 5666 covered). 코드·문서 표면 freeze check 예정
+
 ### cycle 5674 — OpenSpec갭: 스펙 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (14 passed, 0 failed) + git log 22747864..origin/main -- openspec/ (신규 0건)
 - 조사: 잔여 8건 전부 기존 census 계수 완료분(디자인 트랙 apps/web 전용). validate 전 항목 통과, 스펙-구현 갭 신규 신호 없음
