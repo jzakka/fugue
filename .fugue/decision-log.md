@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5734 — OpenSpec갭: validate + 경로 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 커밋 제외)
+- 조사: validate "Totals: 14 passed, 0 failed (14 items)" 정상, openspec/ 비-loop 커밋 8건 — 기판정 완료 커밋과 동일
+- 판정: 직전 OpenSpec갭 census(5722) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 5736 (직전 5724 covered). dep 표면 freeze check 예정
+
 ### cycle 5732 — 봇: 봇·스펙 경로 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop 커밋 제외)
 - 조사: 8건 — 전수 기판정 완료 커밋(507daab4·95fea1d9·5bb5d317·a4a07374·cb52ec72·22c39f2b·b2979a65·6a6846b7, 모두 apps/web 전용 디자인 트랙)과 동일
