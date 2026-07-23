@@ -15573,6 +15573,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4577 — design/aesthetic 787th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 787th round.
+- 센서스: aesthetic 포인터 fd202bfb..ce5f38b4 — 스타일 표면 diff-stat 0건, 구간 로그 루프 체어뿐. aesthetic 라운드 관례에 따라 fresh 축 프로브 3건 수행.
+- 프로브: (1) 클라이언트 코덱 접근 WebCodecs(VideoDecoder/ImageDecoder 등) 0건 — 네이티브 요소·서버 ffprobe 위임 수렴, 녹화 축(L2239)과 별개 채널 순수 vacuous, 클라이언트 트랜스코딩 도입 시 재평가. (2) 템플릿 복제 채널 template/cloneNode/importNode 0건 — React 선언 렌더 단일 수렴(L2258 자식 조작 축과 별개 복제 채널) coherent absence, 서드파티 DOM 복제 요구 도입 시 재평가. (3) 자동화 환경 판독 navigator.webdriver 0건 — 봇 대응 서버·크롤러 측 위임 coherent absence, 클라이언트 봇 분기 UI 도입 시 재평가.
+- 기각 후보: pushState/popstate(L2031/2215), adoptedStyleSheets/CSSStyleSheet(L1394/1446), userAgentData(L1472/1783), CSS.escape(L1478), Network Information(L1448 계열), DOMParser(L2250), MediaRecorder(L2239), WebGL/WebGPU(L1447), CSS.highlights(L645), startViewTransition(L658 계열), ResizeObserver(L1436 계열), Intl.DisplayNames(Intl 표기 축 인접), getDisplayMedia(미디어 캡처 계열 인접).
+- 기록: anti-patterns.md 2268→2271행 @2269-2271 baseline 3건.
+- 포인터: aesthetic fd202bfb→ce5f38b4 전진.
+- 차기: cycle 4579, 발견 모드(rotation: responsive 786th round), 포인터 44f64a18.
+
 ## cycle 4575 — design/tokens 710th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 710th round.
