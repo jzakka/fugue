@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5990 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop 제외 계수)
+- 조사: 비-loop 잔여 e2cb3a80 (AGENTS.md bot 명령 예시 교정) 1건 — baseline과 동일, apps/api 코드 비접촉
+- 판정: 직전 정합성 census(5978) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5992 (직전 5980 covered). apps/api rev-list freeze check 예정
+
 ### cycle 5988 — 보안: postcss high 취약점 신규 등장 → override 추가 (FIXED)
 - 축: git log -1 dep 파일 + npm audit — baseline("2 moderate") 이탈 감지
 - 발견: npm audit "1 moderate, 1 high" — next-vendored postcss 8.4.31 XSS/파일읽기 취약점(GHSA-qx2v-qp2m-jg93, GHSA-6g55-p6wh-862q) 신규. npm audit fix --force는 next@9.3.3 다운그레이드(breaking) → 거부
