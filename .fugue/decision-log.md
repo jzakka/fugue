@@ -16,6 +16,13 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5988 — 보안: postcss high 취약점 신규 등장 → override 추가 (FIXED)
+- 축: git log -1 dep 파일 + npm audit — baseline("2 moderate") 이탈 감지
+- 발견: npm audit "1 moderate, 1 high" — next-vendored postcss 8.4.31 XSS/파일읽기 취약점(GHSA-qx2v-qp2m-jg93, GHSA-6g55-p6wh-862q) 신규. npm audit fix --force는 next@9.3.3 다운그레이드(breaking) → 거부
+- 조치: apps/web/package.json overrides에 "postcss": ">=8.5.12" 추가 → npm install 후 postcss 8.5.22 해소, npm audit "found 0 vulnerabilities". next build 성공(6 route 정상) 검증
+- 판정: 실제 수정 수행(FIXED). 신 baseline = npm audit 0건, dep 커밋은 본 PR
+- 차기: rotation 정합성 cycle 5990 (직전 5978 covered). 보안 baseline 갱신 "found 0 vulnerabilities"로 이후 freeze check
+
 ### cycle 5986 — OpenSpec갭: validate + 경로 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 제외 계수)
 - 조사: validate "14 passed, 0 failed (14 items)" + 비-loop 커밋 8건(디자인 트랙 전용, spec 비접촉) — baseline과 동일
