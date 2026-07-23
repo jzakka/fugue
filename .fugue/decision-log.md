@@ -16041,6 +16041,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4637 — design/aesthetic 797th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 797th round.
+- 센서스: aesthetic 포인터 ec91e4e5..68fcad53 — 스타일 표면 diff-stat 0건(구간 커밋은 루프 체어뿐)이나, aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브 ①: TreeWalker·NodeIterator DOM 트리 순회 그룹 — apps/web/src 전수 0건. React 선언적 렌더·querySelector 국소 조회 수렴. pure vacuous baseline @2299.
+- 프로브 ②: navigator.language(s) 브라우저 언어 선호 감지 — 전수 0건. 한국어 단일 로케일 수렴. coherent absence baseline @2300 (Intl.Locale@2298과 별개 navigator 감지 축).
+- 프로브 ③: document.referrer 유입 참조 감지 — 전수 0건. 유입 분석·리퍼러 분기 표면 부재. pure vacuous baseline @2301 (sendBeacon L2029+ 전송 축과 별개 판독 축).
+- 기각 후보: createImageBitmap(1563+)·devicePixelRatio(1460+)·pageshow/bfcache(1585+)·DOMParser(2250)·CSS.escape(1478)·XPath/document.evaluate(2263)·importNode(2270)·window.print(2032/2260) 기커버, insertAdjacentHTML(innerHTML 축 가족 2184·2250·2285 인접)·dataTransfer(dragstart 559+ 인접) 인접 리스크로 제외.
+- 기록: anti-patterns.md 2298→2301행 (3건 append).
+- 포인터: aesthetic ec91e4e5 → 68fcad53 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4639, 796th round(responsive), 포인터 bce5a8aa.
+
 ## cycle 4635 — design/tokens 720th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 720th round.
