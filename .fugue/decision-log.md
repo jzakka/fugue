@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5870 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop 제외)
+- 조사: 잔여 비-loop 커밋 e2cb3a80(AGENTS.md bot 명령 예시 수정) 1건 — baseline과 동일, 신규 변동 없음
+- 판정: 직전 정합성 census(5858) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5872 (직전 5860 covered). apps/api 표면 freeze check 예정
+
 ### cycle 5868 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
 - 축: git log -1 origin/main -- apps/web/package*.json apps/api/go.mod go.sum + npm audit
 - 조사: dep 최종 커밋 1dc1f6da(5676 fixed baseline) 유지 + npm audit "2 moderate"(next-vendored postcss, high 0건) — 신규 변동 없음
