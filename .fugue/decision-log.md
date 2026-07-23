@@ -15519,6 +15519,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4571 — design/aesthetic 786th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 786th round.
+- 센서스: aesthetic 포인터 82233a15..fd202bfb — 스타일 표면 diff-stat 0건, 구간 로그 루프 체어뿐. aesthetic 라운드 관례에 따라 fresh 축 프로브 3건 수행.
+- 프로브: (1) 파일 시스템 접근 API showOpenFilePicker/FileSystemHandle 0건 — input[type=file] 표준 채널 단일 수렴(L1936/1939/1988/1989 는 동일 채널 속성 축) coherent absence, 로컬 파일 편집·재저장 요구 도입 시 재평가. (2) 비디오 프레임 동기 콜백 requestVideoFrameCallback 0건 — 비디오 표면 존재하나 프레임 동기 저작 부재, rAF 축(L2033)과 별개 채널 순수 vacuous, 프레임 동기 자막·실시간 썸네일 도입 시 재평가. (3) 프라이버시 신호 판독 doNotTrack/globalPrivacyControl 0건 — 분석·추적 전송 0건(L2029 정합)으로 소비처 부재 순수 vacuous, 애널리틱스 도입 시 재평가.
+- 기각 후보: RTCPeerConnection/WebRTC(L2245), WebSocket·EventSource(L2230/2245), geolocation(L2017), CustomEvent/dispatchEvent(L2035), clipboard(L1900/2041), for await(L2233), fetch keepalive(L2029 sendBeacon 이탈 전송 인접), 데코레이터·#private(클래스 저작 부재 인접), isWellFormed(L2076 유니코드 처리 인접), mediaDevices(getUserMedia L281 계열 커버).
+- 기록: anti-patterns.md 2265→2268행 @2266-2268 baseline 3건.
+- 포인터: aesthetic 82233a15→fd202bfb 전진.
+- 차기: cycle 4573, 발견 모드(rotation: responsive 785th round), 포인터 4a832d6a.
+
 ## cycle 4569 — design/tokens 709th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 709th round.
