@@ -16,6 +16,18 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5976 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
+- 축: git log -1 -- apps/web/package*.json apps/api/go.mod apps/api/go.sum + npm audit
+- 조사: dep 최종 커밋 1dc1f6da (#5750, next 16.2.11 + sharp override) + npm audit "2 moderate"(next-vendored postcss, high 0건) — baseline과 동일
+- 판정: 직전 보안 census(5964) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 5978 (직전 5966 covered). 코드·문서 표면 freeze check 예정
+
+### cycle 5974 — OpenSpec갭: validate + 경로 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 제외 계수)
+- 조사: validate "14 passed, 0 failed (14 items)" + 비-loop 커밋 8건(디자인 트랙 전용, spec 비접촉) — baseline과 동일
+- 판정: 직전 OpenSpec갭 census(5962) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 5976 (직전 5964 covered). dep 표면 + npm audit freeze check 예정
+
 ### cycle 5972 — 봇: bot 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop 제외 계수)
 - 조사: 비-loop 커밋 8건(507daab4…6a6846b7, 전부 디자인 트랙 apps/web 전용) — baseline과 동일, bot 코드 비접촉
