@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5912 — 봇: bot 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop 제외 계수)
+- 조사: 비-loop 커밋 8건(507daab4·95fea1d9·5bb5d317·a4a07374·cb52ec72·22c39f2b·b2979a65·6a6846b7, 전부 apps/web 전용 디자인 트랙) — baseline과 동일, bot 코드 비접촉
+- 판정: 직전 봇 census(5900) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 5914 (직전 5902 covered). openspec validate + 경로 표면 freeze check 예정
+
 ### cycle 5910 — 동시성: apps/api 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: baseline 이후 apps/api 커밋 0건 — 2250 race detector pass·frontier FOR UPDATE SKIP LOCKED·seed 단일 트랜잭션 원자성 census 앵커 그대로 유효
