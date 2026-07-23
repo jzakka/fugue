@@ -16071,6 +16071,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4655 — design/aesthetic 800th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 800th round.
+- 센서스: aesthetic 포인터 42284765..b239a8ac — 스타일 표면 diff-stat 0건, 구간 커밋은 루프 체어뿐. aesthetic 라운드이므로 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브 1: RegExp.escape 정규식 이스케이프 — RegExp.escape·escapeRegExp·new RegExp 0건, 검색이 서버 질의 수렴·동적 정규식 구성 부재 → pure vacuous baseline(@2308). L2063 매칭 축·L1478 CSS.escape 축과 별개 병기.
+- 프로브 2: Math.sumPrecise 정밀 합산 — sumPrecise·.reduce( 0건, 수치 집계가 서버 수렴 → pure vacuous baseline(@2309). L2079 정밀도 비교·L2085 라운딩 축과 별개 병기.
+- 프로브 3: document.currentScript 스크립트 자기 참조 — currentScript·document.scripts 0건, Next 번들러·ESM import 수렴 → pure vacuous baseline(@2310).
+- 기각 처리: Float16Array·Float32Array·TypedArray 그룹은 미사용 예비 0-hit 축으로 잔존(@2307 Uint8Array 코덱 축과 구분되는 수치 배열 채널).
+- 기록: anti-patterns.md 2307→2310행(+3). backlog 등록 없음.
+- 포인터: aesthetic 42284765 → b239a8ac 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4657, 799th round(responsive), 포인터 8aedc760.
+
 ## cycle 4653 — design/tokens 723rd round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 723rd round.
