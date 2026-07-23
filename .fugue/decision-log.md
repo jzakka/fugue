@@ -15885,6 +15885,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4619 — design/aesthetic 794th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 794th round.
+- 센서스: aesthetic 포인터 ff79ba97..95695ac7 — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: ① Intl.DisplayNames 0건 — 언어/지역 코드 노출 표면 부재·한국어 단일 수렴, L2289·L1890·L2025 Intl 축들과 별개, coherent absence @2290. ② enumerateDevices·setSinkId·selectAudioOutput(MediaDevices 장치 선택 그룹) 0건 — 장치 선택 UI 부재·기본 장치 단일 수렴, @2277 스트림 생성 축과 별개, coherent absence @2291. ③ queryLocalFonts(Local Font Access) 0건 — 폰트 선택기 부재·DESIGN.md 웹폰트 스택 단일 수렴, L1455 웹폰트 로딩 축과 별개, coherent absence @2292.
+- 기각 후보: getDisplayMedia(@2277 캡처 계열 인접), requestVideoFrameCallback(L2267 기커버), mediaCapabilities(L1492 기커버), shadowrootmode(L1972 기커버).
+- 기록: anti-patterns.md 2289→2292행, backlog 등재 없음.
+- 포인터: aesthetic ff79ba97 → 95695ac7 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4621, 793rd round(responsive), 포인터 70786ddb.
+
 ## cycle 4617 — design/tokens 717th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 717th round.
