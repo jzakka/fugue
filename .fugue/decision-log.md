@@ -15663,6 +15663,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4589 — design/aesthetic 789th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 789th round.
+- 센서스: aesthetic 포인터 4232e4b3..0c3a767c — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: (1) 프로미스 시작 래핑 Promise.try 0건 — async 함수 직접 저작 수렴, L2089-2094 소비·거부 생성과 별개 시작 채널, pure vacuous @2275. (2) 음성 입력 인식 SpeechRecognition 0건 — L2018 SpeechSynthesis 출력 축과 별개 입력 채널, 키보드 텍스트 수렴 coherent absence @2276. (3) 미디어 스트림 생성 captureStream(·ImageCapture) 0건 — L2239 녹화 소비·L2269 코덱 축과 별개 생성 측, pure vacuous @2277.
+- 기각 후보: ImageCapture 단독 축 — getUserMedia 카메라 계열(L281/702/719/728) 인접 사진 캡처 파생, captureStream baseline @2277에 병기로 흡수. SharedWorker — L2036 워커 오프로딩 채널 baseline 포섭으로 제외.
+- 기록: anti-patterns.md 2274→2277행. 결함 클래스 미발견, backlog 등록 없음.
+- 포인터: aesthetic 4232e4b3 → 0c3a767c 전진.
+- 차기: cycle 4591, 발견 모드(rotation: responsive 788th round), 포인터 6f053af8.
+
 ## cycle 4587 — design/tokens 712th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 712th round.
