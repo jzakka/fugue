@@ -15327,6 +15327,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4547 — design/aesthetic 782nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 782nd round.
+- 센서스: aesthetic 포인터 ac2d3258..bc86fad5 — 스타일 표면 diff-stat 0건, 구간 로그 루프 체어뿐. aesthetic 라운드 관례에 따라 fresh 축 프로브 3건 수행.
+- 프로브: (1) 포트 기반 메시지 채널 MessageChannel/MessagePort 0건 — 워커·iframe 채널 부재 순수 vacuous, 워커 오프로딩 도입 시 재평가. (2) 우선순위 작업 스케줄링 scheduler.postTask/TaskController 0건 — React 스케줄러 전면 위임 정합 순수 vacuous, 수동 청킹·저우선 프리페치 도입 시 재평가. (3) 이터레이터 헬퍼 지연 체이닝 Iterator.from/.take/.drop/.toArray 0건 — 배열 map/filter 즉시 평가 단일 idiom 수렴 coherent absence, 대용량 지연 처리 요구 시 재평가.
+- 기각 후보: trustedTypes(L2184 주입 싱크 인접), Promise.withResolvers(L2094 프로미스 생성 측 채널 인접), Intl.DurationFormat(L2055·L1905 표기 축 인접).
+- 기록: anti-patterns.md 2253→2256행 (baseline 3건 @2254-2256).
+- 포인터: aesthetic ac2d3258 → bc86fad5 전진.
+- 차기: cycle 4549, 발견 모드(rotation: responsive 781st round), 포인터 5896ff8b.
+
 ## cycle 4545 — design/tokens 705th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 705th round.
