@@ -15633,6 +15633,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4583 — design/aesthetic 788th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 788th round.
+- 센서스: aesthetic 포인터 ce5f38b4..4232e4b3 — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: (1) 악기 입력 채널 Web MIDI(requestMIDIAccess/MIDIInput) 0건 — 큐레이션·감상 위임 coherent absence @2272. (2) 비동기 이터러블 집약 Array.fromAsync 0건 — for await 0건(L2233) 정합 pure vacuous @2273. (3) 탭 간 자원 잠금 조정 Web Locks(navigator.locks) 0건 — IndexedDB 부재(L2038) 정합 coherent absence @2274.
+- 기각 후보: Promise.try — 0건이나 L2089-2094 프로미스 소비·거부 생성 baseline 인접 별개 축, 이번 라운드 3건 충족으로 보류.
+- 기록: anti-patterns.md 2271→2274행. 결함 클래스 미발견, backlog 등록 없음.
+- 포인터: aesthetic ce5f38b4 → 4232e4b3 전진.
+- 차기: cycle 4585, 발견 모드(rotation: responsive 787th round), 포인터 b9935c5f.
+
 ## cycle 4581 — design/tokens 711th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 711th round.
