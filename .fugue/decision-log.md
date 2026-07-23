@@ -16059,6 +16059,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4643 — design/aesthetic 798th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 798th round.
+- 센서스: aesthetic 포인터 68fcad53..60230ff6 — 스타일 표면 diff-stat 0건(구간 커밋은 루프 체어뿐)이나, aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브 ①: navigator.scheduling.isInputPending 입력 대기 감지 — apps/web/src 전수 0건. 장시간 메인스레드 작업 부재. pure vacuous baseline @2302 (postTask@2255와 별개 감지 축).
+- 프로브 ②: EME requestMediaKeySystemAccess·MediaKeys DRM 보호 재생 — 전수 0건. 공개 URL 직접 재생 수렴. coherent absence baseline @2303 (MediaSource@2240·WebCodecs@2269와 별개 보호 축).
+- 프로브 ③: Shape Detection 그룹 BarcodeDetector·FaceDetector·TextDetector — 전수 0건. 이미지 분석은 서버 크롤러 추출 수렴. coherent absence baseline @2304 (그룹 병기 선례).
+- 기각 후보: playbackRate(1451+)·requestFullscreen(402+)·showPicker(1485+)·showModal(402+)·inert(111+)·popover(107+)·checkValidity(1445+)·fetchpriority(91+)·reportError(2062)·webdriver(2271)·styleSheets(1394+)·doNotTrack/globalPrivacyControl(2268)·getAutoplayPolicy(1496+)·MediaSource(2240)·speechSynthesis(2018)·getGamepads(2026) 기커버, canShare(navigator.share 1900 인접) 인접 리스크로 제외.
+- 기록: anti-patterns.md 2301→2304행 (3건 append).
+- 포인터: aesthetic 68fcad53 → 60230ff6 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4645, 797th round(responsive), 포인터 b1b04456.
+
 ## cycle 4641 — design/tokens 721st round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 721st round.
