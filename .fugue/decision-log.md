@@ -15201,6 +15201,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4535 — design/aesthetic 780th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 780th round.
+- 센서스: aesthetic 포인터 75ee6a19..c22e10c7 diff-stat 0건(스타일 표면 불변). 구간 로그는 루프 체어 8건 + 보안 패치 1건(#5750 의존성 표면)뿐. aesthetic 라운드 관례에 따라 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 판정: ① URL 패턴 매칭 축 — URLPattern 0건, 순수 vacuous(App Router 파일 기반 라우팅 단일 채널 정합, L2197 new URL 파싱·조립과 별개). ② 에러 원인 체이닝 축 — Error.cause 저작 0건, 순수 vacuous(base new Error(메시지) 단일 idiom L2235 정합, 체이닝 채널 부재). ③ 문자열→DOM 파싱 축 — DOMParser·parseFromString 0건, coherent absence(구조화 JSON 공급 정합, L2184 raw HTML 주입(쓰기)과 별개 읽기 채널). 기각 후보: Array.fromAsync(L2233 for await 소비 인접 보수 기각), innerText(textContent L64·L832·L1614 인접 보수 기각), Symbol.dispose/using(도입 전 문법 보수 기각), document.write(레거시 채널, L2184 인접 보수 기각).
+- 기록: anti-patterns.md 2247→2250행(baseline 3건 append).
+- 포인터: aesthetic 75ee6a19 → c22e10c7 전진.
+- 차기: cycle 4537, 발견 모드(rotation: responsive 779th round, 포인터 006974dd).
+
 ## cycle 4533 — design/tokens 703rd round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 703rd round.
