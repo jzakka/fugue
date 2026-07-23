@@ -16059,6 +16059,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4649 — design/aesthetic 799th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 799th round.
+- 센서스: aesthetic 포인터 60230ff6..42284765 — 스타일 표면 diff-stat 0건, 구간 커밋은 루프 체어뿐. aesthetic 라운드이므로 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브 1: navigator.pdfViewerEnabled PDF 내장 뷰어 감지 — 프로덕션 0건(validation.test.ts 의 application/pdf 는 거부 검증용), 미디어 타입 5종 한정으로 PDF 표시 표면 부재 → coherent absence baseline(@2305).
+- 프로브 2: String.prototype.isWellFormed·toWellFormed 서로게이트 정합 검사 — 0건, React 렌더·JSON 왕복 수렴·서로게이트 절단 표면 부재 → pure vacuous baseline(@2306). L2076 normalize·L2074 치환 축과 별개 병기.
+- 프로브 3: Uint8Array.fromBase64·toBase64·fromHex 배열 base64 코덱 — 0건, FormData 업로드·URL 참조 수렴 → pure vacuous baseline(@2307). L2046 TextEncoder·btoa 축과 별개 병기.
+- 기각 처리: WebUSB·WebHID 는 @2279 주변기기 그룹, getDisplayMedia 는 @2277 스트림 생성 축 인접으로 기각. sumPrecise·Float16Array·RegExp.escape·currentScript 는 미사용 예비 0-hit 축으로 잔존.
+- 기록: anti-patterns.md 2304→2307행(+3). backlog 등록 없음.
+- 포인터: aesthetic 60230ff6 → 42284765 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4651, 798th round(responsive), 포인터 089a0c45.
+
 ## cycle 4647 — design/tokens 722nd round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 722nd round.
