@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5800 — 에러처리: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api Makefile .github/workflows
+- 조사: 0건. census 앵커(HTTP 핸들러 에러 매핑, bot retry/backoff, ffprobe 실패 처리) 이후 신규 변동 없음
+- 판정: 직전 에러처리 census(5788) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 5802 (직전 5790 covered). 코드 표면 freeze check 예정
+
 ### cycle 5798 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop 커밋 제외)
 - 조사: 잔여 1건 e2cb3a80(AGENTS.md 봇 커맨드 예시 정정, 기판정 완료)만 존재 — 신규 변동 없음
