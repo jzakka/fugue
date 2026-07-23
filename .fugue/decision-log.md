@@ -15711,6 +15711,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4595 — design/aesthetic 790th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 790th round.
+- 센서스: aesthetic 포인터 0c3a767c..fda21a7d — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: (1) 연락처 선택 Contact Picker(navigator.contacts) 0건 — 팔로우·큐레이션 관계 수렴, coherent absence @2278. (2) 주변기기 연결 Web Serial/USB/HID/Bluetooth/NFC 0건 — 하드웨어 직접 통신 요구 부재, pure vacuous @2279. (3) 2차 화면 표시 Presentation API(PresentationRequest) 0건 — L1958 controlslist 속성 축과 별개, 단일 화면 감상 수렴 coherent absence @2280.
+- 기각 후보: OTPCredential — L2247 navigator.credentials 채널 API 표면 포섭 인접으로 제외.
+- 기록: anti-patterns.md 2277→2280행. 결함 클래스 미발견, backlog 등록 없음.
+- 포인터: aesthetic 0c3a767c → fda21a7d 전진.
+- 차기: cycle 4597, 발견 모드(rotation: responsive 789th round), 포인터 5180b58b.
+
 ## cycle 4593 — design/tokens 713th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 713th round.
