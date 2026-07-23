@@ -2296,3 +2296,6 @@
 - [aesthetic][c4631] Promise.withResolvers 외부 해소 deferred 패턴 — apps/web/src 전수 0건. 비동기 흐름은 async/await·상태 콜백 단일 수렴, 외부 resolve 핸들 표면 부재. pure vacuous baseline (Promise.try@2275와 별개 정적 헬퍼 축). 재평가 조건: 모달 확인 대기 등 사용자 응답을 Promise로 브리지하는 표면 등장 시.
 - [aesthetic][c4631] ArrayBuffer.transfer/transferToFixedLength 버퍼 소유권 이전 — 전수 0건. 바이너리 버퍼 조작 표면 부재, 파일 업로드는 FormData·fetch 단일 수렴. pure vacuous baseline (SharedArrayBuffer L2070 공유 메모리 축과 별개). 재평가 조건: 클라이언트 사이드 미디어 가공(리사이즈·트랜스코드) 도입 시.
 - [aesthetic][c4631] Intl.Locale 로케일 객체 조작 — 전수 0건. 한국어 단일 로케일 수렴으로 로케일 파싱·협상 표면 부재. coherent absence baseline (Intl.DisplayNames@2290·Intl.Collator@2293과 별개 축, 동일 단일 로케일 근거). 재평가 조건: 다국어 지원 도입 시.
+- [aesthetic][c4637] TreeWalker·NodeIterator DOM 트리 순회 그룹 — apps/web/src 전수 0건(createTreeWalker·createNodeIterator 포함). DOM 접근은 React 선언적 렌더·querySelector 국소 조회 단일 수렴, 명령형 트리 순회 표면 부재. pure vacuous baseline (@2279·@2291 그룹 병기 선례). 재평가 조건: 리치 텍스트 편집기·문서 구조 분석 표면 도입 시.
+- [aesthetic][c4637] navigator.language(s) 브라우저 언어 선호 감지 — 전수 0건. 한국어 단일 로케일 수렴으로 언어 협상·감지 표면 부재. coherent absence baseline (Intl.Locale@2298 로케일 객체 조작 축과 별개 navigator 감지 축, 동일 단일 로케일 근거). 재평가 조건: 다국어 지원 도입 시.
+- [aesthetic][c4637] document.referrer 유입 참조 감지 — 전수 0건. 유입 분석·리퍼러 기반 분기 표면 부재, 탐색 상태는 Next 라우터 단일 수렴. pure vacuous baseline (sendBeacon L2029+ 분석 전송 축과 별개 판독 축). 재평가 조건: 유입 경로 분석·외부 링크 신뢰 분기 도입 시.
