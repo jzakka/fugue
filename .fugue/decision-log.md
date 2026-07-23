@@ -15813,6 +15813,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4607 — design/aesthetic 792nd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 792nd round.
+- 센서스: aesthetic 포인터 941bb474..fbb48ba6 — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: ① navigator.keyboard(getLayoutMap/keyboard.lock) 0건 — 전체화면 몰입·키오스크 표면 부재, 단축키 keydown 단일 수렴, coherent absence @2284. ② trustedTypes(Trusted Types) 0건 — React JSX 이스케이프 단일 수렴, 위험 싱크 저작 부재, pure vacuous @2285. ③ setHTML/Sanitizer 0건 — 정책 강제(@2285)와 별개의 정화 변환 축, 외부 마크업 삽입 표면 부재, pure vacuous @2286.
+- 기각 후보: CompressionStream(L2246 스트림 파이프라인 포섭), Intl.Segmenter(L2025 기커버), CSS.highlights(L645 외 기커버), getScreenDetails(L1444 외 기커버).
+- 기록: anti-patterns.md 2283→2286행, backlog 등재 없음.
+- 포인터: aesthetic 941bb474 → fbb48ba6 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4609, 791st round(responsive), 포인터 e4479a55.
+
 ## cycle 4605 — design/tokens 715th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 715th round.
