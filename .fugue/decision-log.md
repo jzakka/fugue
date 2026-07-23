@@ -16,6 +16,18 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5712 — 보안: dep 표면 freeze check → 표면 불변 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: dep 커밋 1dc1f6da(#5750, next 16.2.11 + sharp>=0.35.0 override) 불변, audit "2 moderate severity vulnerabilities" (next-vendored postcss@8.4.31, high 0건) — baseline 일치
+- 판정: 직전 보안 census(5700) 이후 dep 표면·audit 결과 안정 → covered
+- 차기: rotation 정합성 cycle 5714 (직전 5702 covered). 코드·문서 표면 freeze check 예정
+
+### cycle 5710 — OpenSpec갭: validate + 경로 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 커밋 제외)
+- 조사: validate "Totals: 14 passed, 0 failed (14 items)" 정상, openspec/ 비-loop 커밋 8건 — 기판정 완료 커밋과 동일
+- 판정: 직전 OpenSpec갭 census(5698) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 5712 (직전 5700 covered). dep 표면 freeze check 예정
+
 ### cycle 5708 — 봇: 봇·스펙 경로 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop 커밋 제외)
 - 조사: 8건 — 전수 기판정 완료 커밋(507daab4·95fea1d9·5bb5d317·a4a07374·cb52ec72·22c39f2b·b2979a65·6a6846b7, 모두 apps/web 전용 디자인 트랙)과 동일
