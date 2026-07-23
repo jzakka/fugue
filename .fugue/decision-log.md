@@ -15927,6 +15927,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4625 — design/aesthetic 795th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 795th round.
+- 센서스: aesthetic 포인터 95695ac7..4a2ce7dd — 스타일 표면 diff-stat 0건(구간 커밋은 루프 체어뿐)이나, aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브 ①: Intl.Collator·localeCompare 로케일 정렬 — apps/web/src 전수 0건. 정렬은 서버 ORDER BY 단일 수렴, 클라이언트 로케일 정렬 표면 부재. pure vacuous baseline @2293.
+- 프로브 ②: XMLHttpRequest 레거시 전송 — 전수 0건. fetch 단일 수렴 정합 확인. pure vacuous baseline @2294.
+- 프로브 ③: Temporal 차세대 시간 연산 — 전수 0건(L1270 히트는 [system] 엔트리 내 무관 영단어로 sed 확인). Date 단일 수렴 정합. pure vacuous baseline @2295.
+- 기각 후보: Intl.NumberFormat(L1890)·sendBeacon(L2029+)·Text Fragments(L645+)·WebAssembly(L2052)·clipboard(L1900/2041) 기커버, CacheStorage(SW 파생)·designMode(L2041 인접)·Digital Goods(결제 인접)·cookieEnabled(L2265 인접) 인접 리스크로 제외.
+- 기록: anti-patterns.md 2292→2295행 (3건 append).
+- 포인터: aesthetic 95695ac7 → 4a2ce7dd 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4627, 794th round(responsive), 포인터 097bcf0a.
+
 ## cycle 4623 — design/tokens 718th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 718th round.
