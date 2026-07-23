@@ -15423,6 +15423,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4559 — design/aesthetic 784th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 784th round.
+- 센서스: aesthetic 포인터 f1d8e49c..886d79e5 — 스타일 표면 diff-stat 0건, 구간 로그 루프 체어뿐. aesthetic 라운드 관례에 따라 fresh 축 프로브 3건 수행.
+- 프로브: (1) 인쇄 생명주기 관측 beforeprint/afterprint 0건 — 인쇄 기능 표면 부재(L2032 정합) 순수 vacuous, 인쇄 전용 레이아웃 도입 시 재평가. (2) 보조 포인터 버튼 auxclick 0건 — 미들클릭 새 탭 네이티브 앵커 위임(L2218 원칙 정합) coherent absence, 커스텀 미들클릭 제스처 도입 시 재평가. (3) 시간대 계산 getTimezoneOffset/timeZone 명시 0건 — SearchClient toLocaleDateString 단일 표면 로컬 시간대 암묵 위임 수렴 coherent absence, 다국 시간대 요구 도입 시 재평가.
+- 기각 후보: getModifierState(L2218 모디파이어 조합 인접), stopImmediatePropagation/composedPath(L2200 전파 제어 인접), 리스너 옵션 passive/once/signal(L1786 등록 채널 옵션 명시 커버), a[download](L1928 커버), iframe sandbox(L271/L1255 커버), Intl.RelativeTimeFormat(L1905 상대시간 명시), formatToParts(표기 축 파츠 변형 인접).
+- 기록: anti-patterns.md 2259→2262행 (baseline 3건 @2260-2262).
+- 포인터: aesthetic f1d8e49c → 886d79e5 전진.
+- 차기: cycle 4561, 발견 모드(rotation: responsive 783rd round), 포인터 09876f78.
+
 ## cycle 4557 — design/tokens 707th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 707th round.
