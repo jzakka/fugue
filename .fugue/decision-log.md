@@ -15465,6 +15465,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4565 — design/aesthetic 785th round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 785th round.
+- 센서스: aesthetic 포인터 886d79e5..82233a15 — 스타일 표면 diff-stat 0건, 구간 로그 루프 체어뿐. aesthetic 라운드 관례에 따라 fresh 축 프로브 3건 수행.
+- 프로브: (1) XPath 질의 document.evaluate/XPathResult 0건 — querySelector 계열·React ref 단일 수렴 coherent absence, 클라이언트 문서 스크래핑 요구 도입 시 재평가. (2) 명시적 리소스 관리 using/Symbol.dispose 0건 — useEffect cleanup·disconnect·abort 수동 idiom 수렴 순수 vacuous, TS 리소스 핸들 저작 도입 시 재평가. (3) 클라이언트 쿠키 직접 접근 document.cookie·CookieStore API 0건(lib/auth.ts cookieStore 는 next/headers 변수명 우연, L2211 서버 채널) — httpOnly 서버 쿠키 위임 coherent absence, 클라이언트 전용 쿠키 상태 요구 도입 시 재평가.
+- 기각 후보: sendBeacon(L2029), CompressionStream(L2246), URLPattern(L2248), navigator.storage/StorageManager(L1512), Intl.Segmenter(L2025), SpeechSynthesis(L2018), Error.cause(L2249/2257), customElements·attachShadow(웹컴포넌트 다수 커버), CSS Typed OM·attributeStyleMap(다수), hardwareConcurrency·deviceMemory(디바이스 힌트 다수), IndexedDB(L2038/2129), Sanitizer(trustedTypes L2184 XSS 축 인접).
+- 기록: anti-patterns.md 2262→2265행 @2263-2265 baseline 3건.
+- 포인터: aesthetic 886d79e5→82233a15 전진.
+- 차기: cycle 4567, 발견 모드(rotation: responsive 784th round), 포인터 87cb2936.
+
 ## cycle 4563 — design/tokens 708th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 708th round.
