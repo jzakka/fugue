@@ -16,6 +16,18 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5690 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop 커밋 제외)
+- 조사: 잔여 1건 e2cb3a80(AGENTS.md 봇 커맨드 예시 정정, 기판정 완료)만 존재 — 신규 변동 없음
+- 판정: 직전 정합성 census(5678) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 5692 (직전 5680 covered). 코드 표면 freeze check 예정
+
+### cycle 5688 — 보안: 신규 baseline(5676 fixed) 첫 판정 → 표면 불변 (covered)
+- 축: (cd apps/web && npm audit) + git log -1 origin/main -- apps/web/package*.json apps/api/go.mod apps/api/go.sum
+- 조사: dep 커밋 1dc1f6da(#5750, next 16.2.11 + sharp>=0.35.0 override) 불변, audit "2 moderate severity vulnerabilities" (next-vendored postcss@8.4.31, high 0건) — 신규 baseline과 일치
+- 판정: 5676 수정 이후 dep 표면·audit 결과 모두 안정 → covered
+- 차기: rotation 정합성 cycle 5690 (직전 5678 covered). 코드·문서 표면 freeze check 예정
+
 ### cycle 5686 — OpenSpec갭: validate + 경로 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 커밋 제외)
 - 조사: validate "Totals: 14 passed, 0 failed (14 items)" 정상, openspec/ 비-loop 커밋 8건 — 기판정 완료 커밋과 동일
