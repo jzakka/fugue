@@ -15759,6 +15759,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4601 — design/aesthetic 791st round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 791st round.
+- 센서스: aesthetic 포인터 fda21a7d..941bb474 — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: (1) 임베드 저장 접근 요청 Storage Access API(requestStorageAccess) 0건 — 1st-party 렌더 단일 수렴·임베드 표면 부재, L2265 쿠키 축과 별개, coherent absence @2281. (2) 브라우저 보고 관측 ReportingObserver 0건 — 클라이언트 계측 파이프라인 부재(L2029·L2268 정합), pure vacuous @2282. (3) HTTP/3 전송 WebTransport 0건 — L2230 서버 푸시·L2245 P2P 축과 별개 제3 전송 채널, fetch 단일 수렴 pure vacuous @2283.
+- 기각 후보: URL.canParse — L2197 new URL 파싱 채널 서브 메서드 인접으로 제외. BackgroundFetch — L2048 ServiceWorker 채널 파생으로 제외.
+- 기록: anti-patterns.md 2280→2283행. 결함 클래스 미발견, backlog 등록 없음.
+- 포인터: aesthetic fda21a7d → 941bb474 전진.
+- 차기: cycle 4603, 발견 모드(rotation: responsive 790th round), 포인터 2a403790.
+
 ## cycle 4599 — design/tokens 714th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 714th round.
