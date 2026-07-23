@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 5840 — 봇: 봇 코드·openspec 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api/internal/bot apps/api/cmd/bot openspec/ (loop 커밋 제외)
+- 조사: 8건 — 기판정 완료된 디자인 트랙 apps/web 전용 커밋(507daab4·95fea1d9·5bb5d317·a4a07374·cb52ec72·22c39f2b·b2979a65·6a6846b7)만 존재, 봇 코드 비접촉 — 신규 변동 없음
+- 판정: 직전 봇 census(5828) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 5842 (직전 5830 covered). openspec validate + 경로 표면 freeze check 예정
+
 ### cycle 5838 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 0건. census 앵커(2250 race detector pass, frontier FOR UPDATE SKIP LOCKED, seed 단일 트랜잭션 원자성) 이후 신규 변동 없음
