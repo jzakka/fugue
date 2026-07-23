@@ -15861,6 +15861,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4613 — design/aesthetic 793rd round (Discovery, fresh 축 프로브 3건)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 793rd round.
+- 센서스: aesthetic 포인터 fbb48ba6..ff79ba97 — 스타일 표면 diff-stat 0건(루프 체어뿐)이나 aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브: ① browsingTopics·sharedStorage·attributionsrc(Privacy Sandbox 광고 신호 그룹) 0건 — 광고·전환 추적 표면 부재, L1986 fencedframe 격리 임베드 축과 별개, coherent absence @2287. ② launchQueue/Launch Handler 0건 — manifest 핸들러 선언 부재·URL 라우팅 단일 수렴, L1544 설치 축과 별개, coherent absence @2288. ③ Intl.DurationFormat 0건 — 기간 표기 수동 mm:ss 단일 수렴, L1890·L2055 Intl 축들과 별개, pure vacuous @2289.
+- 기각 후보: AudioWorklet(AudioContext L1496·L2241 파생 인접), fencedframe(L1986 기커버), OffscreenCanvas(L1463 기커버), navigator.gpu(L1447 기커버).
+- 기록: anti-patterns.md 2286→2289행, backlog 등재 없음.
+- 포인터: aesthetic fbb48ba6 → ff79ba97 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4615, 792nd round(responsive), 포인터 d8ae9e9b.
+
 ## cycle 4611 — design/tokens 716th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 716th round.
