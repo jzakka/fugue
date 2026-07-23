@@ -15975,6 +15975,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4631 — design/aesthetic 796th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 796th round.
+- 센서스: aesthetic 포인터 4a2ce7dd..ec91e4e5 — 스타일 표면 diff-stat 0건(구간 커밋은 루프 체어뿐)이나, aesthetic 라운드 규약상 fresh 축 프로브 3건 필수 수행.
+- 프로브 ①: Promise.withResolvers 외부 해소 deferred 패턴 — apps/web/src 전수 0건. async/await·상태 콜백 단일 수렴. pure vacuous baseline @2296 (Promise.try@2275와 별개 축).
+- 프로브 ②: ArrayBuffer.transfer 버퍼 소유권 이전 — 전수 0건. 바이너리 조작 표면 부재, FormData·fetch 수렴. pure vacuous baseline @2297 (SharedArrayBuffer L2070과 별개).
+- 프로브 ③: Intl.Locale 로케일 객체 조작 — 전수 0건. 한국어 단일 로케일 수렴. coherent absence baseline @2298 (Intl.DisplayNames@2290·Collator@2293과 별개 축).
+- 기각 후보: EyeDropper(2016)·structuredClone(2042)·BroadcastChannel(2019+)·PerformanceObserver(1500+)·WeakRef/FinalizationRegistry(2044)·URLPattern(2248)·postTask(2255)·AbortSignal(2259)·Symbol.dispose(2264)·toSorted(2054)·groupBy(2058) 기커버, attributeStyleMap·getAnimations·CloseWatcher·EditContext·PressureObserver 다수 기커버로 제외.
+- 기록: anti-patterns.md 2295→2298행 (3건 append).
+- 포인터: aesthetic 4a2ce7dd → ec91e4e5 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4633, 795th round(responsive), 포인터 bc9f95ea.
+
 ## cycle 4629 — design/tokens 719th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 719th round.
