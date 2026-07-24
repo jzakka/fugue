@@ -16355,6 +16355,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4697 — design/aesthetic 807th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: aesthetic 807th round. origin/main=0d911231, loop-design.md blob 4a2723de 불변, backlog pending=0 → 발견 모드.
+- 센서스: anti-patterns.md 2328줄 포화. CSS/JS/Web-platform 계열 배치 커버리지 grep ~14회(typography·layout·animation·scroll·ARIA·Intl·form·media 등) 재확인, 0-매칭 축 3건 발굴.
+- 프로브1 (Observable API): `Observable`/`EventTarget.when()` 선언형 반응 이벤트 스트림. registry 0, source 0. 이벤트 처리 표면 존재하나 React 합성 이벤트/addEventListener 명령형으로 수렴 → coherent absence(Observable 미명시 대체 idiom, confidence<3).
+- 프로브2 (`<model>` 요소): glTF/USDZ 3D 자산 임베드. registry 0, source 0. 큐레이션 대상이 음악/일러스트/영상/글/코드 한정, 3D 미디어 타입 부재 → pure vacuous.
+- 프로브3 (preservesPitch): `HTMLMediaElement.preservesPitch` 가변속 재생 음정 보존. registry 0, source 0. audio/video 표면 존재하나(pins/[id] native `controls` 기본 1x) 커스텀 배속 UI 부재 → coherent absence(배속 저작 미도입, confidence<3).
+- 기각처리: 3건 모두 aesthetic 후보 미승격, 프로덕션 코드 무수정.
+- 기록: anti-patterns.md L2329-2331 baseline 3건 append (Observable·`<model>`·preservesPitch).
+- 포인터: aesthetic 라운드는 fresh-축 발굴 방식(센서스 포인터 미사용).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4699, 806th round(responsive).
+
 ## cycle 4695 — design/tokens 730th round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 730th round. origin/main=20191642, loop-design.md blob 4a2723de 불변, backlog pending=0 → 발견 모드.
