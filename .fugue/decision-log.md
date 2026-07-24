@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6328 — 에러처리: apps/api 표면 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 계수 0건 — baseline과 동일. 에러 반환·핸들러 표면 앵커(22747864) 유효
+- 판정: 직전 에러처리 census(6316) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6330 (직전 6318 covered). bot rev-list census 예정
 ### cycle 6326 — 정합성: apps/api non-loop 잔차 census → 표면 불변 (covered)
 - 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
 - 조사: 계수 0건 — baseline과 동일. 코드·문서 표면 정합 앵커(e2cb3a80) 유효
