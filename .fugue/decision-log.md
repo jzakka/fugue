@@ -16420,6 +16420,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4709 — design/aesthetic 809th round (Discovery, fresh 축 3건 baseline)
+- 순번: aesthetic 809번째 라운드, 발견 모드. anti-patterns.md 2334줄 포화 상태에서 배치 커버리지 grep 7세트(A~G, 축 200여 개)로 미커버 fresh 축 3건 확정.
+- 프로브1: 복합 위젯 로빙 탭인덱스(roving tabindex, ArrowLeft/Right 방향키 포커스 로빙) — coherent absence. apps/web/src에 `role="tablist"/"toolbar"/"menu"/"radiogroup"/"listbox"` 0건·방향키 로빙 핸들러 0건; 필터 칩(FieldFilter/TagFilter)은 aria-pressed 독립 토글 버튼으로 각자 Tab 스톱 → composite widget 표면 부재, 순차 Tab 접근 대체로 수렴. aria-activedescendant(=5) 가상 포커스 축과 구별.
+- 프로브2: 수동 줄바꿈 기회 힌트(`<wbr>`·`&shy;`·zero-width space) — coherent absence. 전수 grep 0건; 긴 텍스트(제목·닉네임·URL) 오버플로는 전부 `break-words`·`truncate` 선언형 CSS 로 수렴, 저작자 삽입 개행 지점 표면 부재.
+- 프로브3: 모바일 탭 하이라이트 커스터마이즈(`-webkit-tap-highlight-color`) — coherent absence. src·globals.css 전수 0건(유일 터치 선언은 VideoTrimModal `touch-none` 제스처 트랙, 축 무관); 탭 대상(버튼·링크·칩) 다수이나 브라우저 기본 탭 피드백으로 수렴.
+- 기각처리: 3건 모두 confidence<3 coherent absence → 후보 미등록, anti-patterns.md L2335-2337 baseline 3건 기록.
+- 기록: anti-patterns.md 2334→2337줄. subsumed 제외 예: shadow-tree(::part/::slotted), columns pseudo(::column), drop cap(initial-letter), @scroll-timeline(scroll-timeline), print stylesheet(@media print).
+- 포인터: aesthetic 라운드는 style-surface 포인터 미사용(fresh-축 프로빙 방식).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4711, 808th round(responsive).
+
 ## cycle 4707 — design/tokens 732nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 732번째 라운드, 발견 모드.
 - 센서스: style surface(apps/web/src, tailwind.config.ts, globals.css, DESIGN.md) diff-stat을 직전 tokens 포인터 33915de7 대비 산출 → 변경 0건.
