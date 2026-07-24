@@ -16625,6 +16625,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4745 — design/aesthetic 815th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 815번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로브: anti-patterns.md(2344행) 대비 미탐색 계열 배치 grep 4회 ~150축 — (1) 타이포(text-wrap/hyphens/word-break/tab-size/font-variant-numeric/::marker/accent-color/caret-color/color-scheme 등), (2) 레이아웃·효과·인터랙션(backdrop-filter/clip-path/aspect-ratio/scroll-behavior/touch-action/@container/:has/subgrid/margin-inline/dvh 등), (3) 의사요소·앳룰·프린트(scrollbar-gutter/outline-offset/view-transition-name/anchor-name/@scope/@layer/::backdrop/::placeholder/::file-selector-button 등), (4) 폰트메트릭·text-box(text-box-trim/leading-trim/ascent-override/font-palette/hyphenate-character/overflow-clip-margin 등).
+- 결과: exact-string 0-match는 전부 계열 baseline 또는 baselined 프로퍼티의 값 파생 — `-webkit-tap-highlight`(ap=0)은 「탭 하이라이트」ap=4로 기baselined, `overflow-anchor`(ap=1)은 스크롤앵커링 tokens baseline(c1857), `white-space: break-spaces`·`overflow-wrap: anywhere`(ap=0)은 각각 white-space-collapse5·overflow-wrap14 프로퍼티의 값. 순수 vacuous fresh 축 0건.
+- 폐기: c4727(~320축)+c4733(~90축)+c4739(~120축)+c4745(~150축) 누적 전 도메인 프로브 결과 aesthetic false-positive 공간 포화. rigor-over-quota로 값 파생·계열 인접은 미채택 — fresh 축 0건이 정직한 산출. DESIGN.md 위반 미발견 → 백로그·anti-patterns 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4747, 814th round(responsive). style-surface 센서스 대상 포인터 145e10da(c4741 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4743 — design/tokens 738th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 738번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 cb9867f8(c4737 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 0e91de22 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
