@@ -16892,6 +16892,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4931 — design/aesthetic 846th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 846번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 typography/@font-face descriptor/@counter-style descriptor/text-decoration/math 축 ~44종 batch 프로빙(command grep -icF) — hyphenate-limit-chars/text-wrap-mode/ascent-override/additive-symbols/text-underline-position/math-depth/white-space-collapsing/each-line 등 신규/디스크립터 포함. 0-match 2건: white-space-collapsing, each-line.
+- 기각: white-space-collapsing은 white-space-collapse(baseline 5)의 폐기된 draft alias, apps/web/src 사용 0 → 기각. each-line은 프로퍼티 아닌 값 키워드(text-indent baseline 23/hanging-punctuation 15 계열의 값 파생), 사용 0 → rigor-over-quota로 기각. 순수 vacuous fresh 축 0건.
+- 폐기: 채택할 신규 축 없음 → 표면 포화 폐기(0 baseline). typography/디스크립터/math 축까지 포화 지속 확인.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4933, 845th round(responsive). style-surface 센서스 대상 직전 responsive 포인터 cc52d982(c4927 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4929 — design/tokens 769th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 769번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 d929b61d(c4923 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 40fb3333 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
