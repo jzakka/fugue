@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6336 — 보안: apps/web 의존성 audit census → 표면 불변 (covered)
+- 축: cd apps/web && npm audit
+- 조사: found 0 vulnerabilities — baseline과 동일. postcss/sharp override 앵커(c3f5ef87) 유효
+- 판정: 직전 보안 census(6324) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6338 (직전 6326 covered). rev-list census 예정
 ### cycle 6334 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
