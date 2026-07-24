@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6278 — 정합성: 코드·문서 census → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
+- 조사: 계수 0건 — baseline과 동일. sqlc·스키마·핸들러 문서 정합 잔차 앵커 유효
+- 판정: 직전 정합성 census(6266) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6280 (직전 6268 covered). 에러 래핑·핸들러 census 예정
+
 ### cycle 6276 — 보안: 의존성 census → 표면 불변 (covered)
 - 축: npm audit (apps/web) + postcss override 앵커
 - 조사: found 0 vulnerabilities — baseline c3f5ef87과 동일. postcss>=8.5.12·sharp>=0.35.0 override 유효
