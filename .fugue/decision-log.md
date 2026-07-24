@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6160 — 에러처리: 핸들링 경로 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal
+- 조사: 계수 0건 — baseline과 동일. 에러 핸들링 경로·에러 래핑 census 앵커 유효
+- 판정: 직전 에러처리 census(6148) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6162 (직전 6150 covered). goroutine·락 경로 census 예정
 ### cycle 6158 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count e2cb3a80..origin/main -- apps/api (비테스트, non-loop 잔차)
 - 조사: 계수 0건 — non-loop 잔차 baseline과 동일. 코드·문서 정합성 census 앵커 유효
