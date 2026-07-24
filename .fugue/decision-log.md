@@ -16886,6 +16886,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4925 — design/aesthetic 845th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 845번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 font/paged-media/anchor-positioning/toggle/counter 축 ~44종 batch 프로빙(command grep -icF) — font-palette/position-try/anchor-size/inset-area/toggle-root/bookmark-level/content-increment 등 신규/실험 포함. 0-match 2건: content-increment, bookmark-level.
+- 기각: content-increment는 비표준(존재하지 않는 프로퍼티, content 계열 baseline 192·counter-increment 11의 파생 오표기), apps/web/src 사용 0 → 기각. bookmark-level은 paged-media 인쇄용 프로퍼티로 이미 baseline된 bookmark 계열(baseline 3)의 sub-property 파생, apps/web/src 사용 0 → rigor-over-quota로 기각. 순수 vacuous fresh 축 0건.
+- 폐기: 채택할 신규 축 없음 → 표면 포화 폐기(0 baseline). font/paged-media/anchor-positioning 축까지 포화 지속 확인.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4927, 844th round(responsive). style-surface 센서스 대상 직전 responsive 포인터 55d18625(c4921 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4923 — design/tokens 768th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 768번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 9daf427e(c4917 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main d929b61d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
