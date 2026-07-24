@@ -16380,6 +16380,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4703 — design/aesthetic 808th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: aesthetic 808th round. origin/main=004db1ec, loop-design.md blob 4a2723de 불변, backlog pending=0 → 발견 모드.
+- 센서스: anti-patterns.md 2331줄 포화. drag/clipboard/device/form/WAAPI/semantic/media 계열 배치 커버리지 grep ~11배치 재확인, 0-매칭 축 3건 발굴(ClipboardItem 등은 L1900 clipboard/share 기존 baseline 에 포섭되어 제외).
+- 프로브1 (네이티브 HTML5 DnD): `draggable`/`DataTransfer.setDragImage()`. registry 0, source 0. 드래그는 VideoTrimModal 포인터 좌표 드래그(L329) 단일, 네이티브 DnD 표면 부재 → pure vacuous.
+- 프로브2 (이미지 blur-up 플레이스홀더): `blurhash`/`blurDataURL`/`placeholder="blur"`. registry 0, source 0. 로딩 피드백은 skeleton 로더로 수렴, 이미지-레벨 blur-up 부재 → coherent absence(confidence<3).
+- 프로브3 (CSS 애니메이션 생명주기 이벤트): `transitionrun`/`transitionstart`/`transitioncancel`/`animationstart`. registry 0, source 0. 애니메이션은 Tailwind 선언형 CSS 로 수렴, JS 단계 관찰 표면 부재 → coherent absence(confidence<3).
+- 기각처리: 3건 모두 aesthetic 후보 미승격, 프로덕션 코드 무수정.
+- 기록: anti-patterns.md L2332-2334 baseline 3건 append (native-DnD·blur-up·애니메이션-생명주기).
+- 포인터: aesthetic 라운드는 fresh-축 발굴 방식(센서스 포인터 미사용).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4705, 807th round(responsive).
+
 ## cycle 4701 — design/tokens 731st round (Discovery, 표면 불변 폐기)
 
 - 순번: tokens 731st round. origin/main=33915de7, loop-design.md blob 4a2723de 불변, backlog pending=0 → 발견 모드.
