@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6246 — 동시성: consumer·락 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 계수 0건 — code freeze baseline과 동일. URLScheduler consumer 동시성·락 경로 앵커 유효
+- 판정: 직전 동시성 census(6234) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6248 (직전 6236 covered). Pioneer/Harvester census 예정
+
 ### cycle 6244 — 에러처리: 래핑·핸들러 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 계수 0건 — code freeze baseline과 동일. 에러 래핑·핸들러 응답·재시도 경로 앵커 유효
