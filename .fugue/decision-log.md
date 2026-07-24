@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6326 — 정합성: apps/api non-loop 잔차 census → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
+- 조사: 계수 0건 — baseline과 동일. 코드·문서 표면 정합 앵커(e2cb3a80) 유효
+- 판정: 직전 정합성 census(6314) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6328 (직전 6316 covered). rev-list census 예정
 ### cycle 6324 — 보안: apps/web 의존성 audit census → 표면 불변 (covered)
 - 축: cd apps/web && npm audit
 - 조사: found 0 vulnerabilities — baseline과 동일. postcss/sharp override 앵커(c3f5ef87) 유효
