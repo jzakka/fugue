@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6126 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 계수 0건 — baseline과 동일. URLScheduler consumer·goroutine worker pool·redis lock·DB tx 격리 census 앵커 유효
+- 판정: 직전 동시성 census(6114) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6128 (직전 6116 covered). apps/api/internal/bot freeze check 예정
 ### cycle 6124 — 에러처리: 코드 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 계수 0건 — baseline과 동일. HTTP 핸들러 에러 매핑·bot retry/backoff·ffprobe 실패 처리 census 앵커 유효
