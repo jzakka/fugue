@@ -16,6 +16,26 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6142 — OpenSpec갭: validate 표면 freeze check → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (repo root)
+- 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 11종·change 3종 census 앵커 유효
+- 판정: 직전 OpenSpec census(6130) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 6144 (직전 6132 covered). npm audit + postcss override 앵커 census 예정
+### cycle 6140 — 봇: 크롤러 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 계수 0건 — baseline과 동일. Pioneer/Harvester consumer·bot_scripts 조회·node graph census 앵커 유효
+- 판정: 직전 봇 census(6128) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 6142 (직전 6130 covered). openspec validate + 경로 census 예정
+### cycle 6138 — 동시성: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 계수 0건 — baseline과 동일. URLScheduler consumer·goroutine worker pool·redis lock·DB tx 격리 census 앵커 유효
+- 판정: 직전 동시성 census(6126) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6140 (직전 6128 covered). apps/api/internal/bot freeze check 예정
+### cycle 6136 — 에러처리: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 계수 0건 — baseline과 동일. HTTP 핸들러 에러 매핑·bot retry/backoff·ffprobe 실패 처리 census 앵커 유효
+- 판정: 직전 에러처리 census(6124) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6138 (직전 6126 covered). apps/api rev-list freeze check 예정
 ### cycle 6134 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api docs AGENTS.md (loop 제외 계수)
 - 조사: 비-loop 잔여 e2cb3a80(AGENTS.md 예시 교정) 1건뿐 — baseline과 동일, apps/api 코드 비접촉
