@@ -16976,6 +16976,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4997 — design/aesthetic 857th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 857번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh CSS 축 46개 배치 프로빙(command grep -icF). 0-match 후보 4건: spatial-navigation-contain, spatial-navigation-action, pointer-timeline, widows-policy.
+- 기각: spatial-navigation-contain/-action = 미구현·폐기된 CSS Spatial Navigation 드래프트 속성(계열 baseline 0, 어느 엔진도 미구현) → obsolete/dropped-draft 기각. pointer-timeline = timeline 계열(baseline 22)의 비표준 조작 파생(Scroll-driven Animations 스펙에 부재), src 0건 → 기각. widows-policy = widows 계열(baseline 12)의 비표준 파생(실존 속성 아님), src 0건 → 기각. 순수 vacuous fresh 축 0건(rigor-over-quota).
+- 폐기: 신규 축 0건 → 표면 포화 폐기(0 baseline 추가). anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4999, 857th round(responsive). style-surface 센서스 대상 직전 responsive 포인터 5c076660(c4993 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4995 — design/tokens 780th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 780번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 4b014ee1(c4989 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main e2987b91 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
