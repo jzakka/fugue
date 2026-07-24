@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6060 — 보안: dep 표면 + npm audit freeze check → 표면 불변 (covered)
+- 축: git rev-list --count c3f5ef87..origin/main -- package.json/lock go.mod/sum + cd apps/web && npm audit
+- 조사: dep 계수 0건, npm audit "found 0 vulnerabilities" — baseline(c3f5ef87, postcss override) 동일
+- 판정: 직전 보안 census(6048) 이후 dep 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6062 (직전 6050 covered). 코드·문서 표면 freeze check 예정
 ### cycle 6058 — OpenSpec갭: validate + 경로 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes + git rev-list 22747864..origin/main -- openspec/changes (loop 제외 판정)
 - 조사: validate "14 passed, 0 failed (14 items)" — baseline 동일. rev-list 19건은 loop/디자인 트랙 전용(spec 계약 비접촉)
