@@ -16162,6 +16162,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4667 — design/aesthetic 802nd round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 802nd round.
+- 센서스: aesthetic 포인터 e5b4d6eb..99da01f9 — 스타일 표면 diff-stat 0건, 구간 커밋은 루프 체어뿐(병렬 보안 c6000·OpenSpec c5998 covered 및 c4665 폐기). aesthetic 라운드이므로 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브 1: Intl.DateTimeFormat·formatRange 로케일 날짜/구간 포맷 인스턴스 — 0건, 날짜가 toLocaleDateString 단건·상대 시각 수렴 → pure vacuous baseline(@2314). L1884·L1890·L2289 축과 별개 병기.
+- 프로브 2: notation:compact·signDisplay·formatToParts 고급 수치 표기 — 0건, 수치가 기본 그룹핑 수렴 → pure vacuous baseline(@2315). L1890 NumberFormat 기본 축과 별개 병기.
+- 프로브 3: roundingMode·roundingPriority·numberingSystem Intl 반올림/기수법 설정 — 0건, 반올림이 Math.round·toFixed 수렴 → pure vacuous baseline(@2316). L1890·notation 표기 축과 별개 병기.
+- 기각 처리: Intl.ListFormat 은 @2055/2289 커버, Intl.Segmenter 는 @2025 커버. formatToParts 는 프로브 2에 병합.
+- 기록: anti-patterns.md 2313→2316행(+3). backlog 등록 없음.
+- 포인터: aesthetic e5b4d6eb → 99da01f9 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4669, 801st round(responsive), 포인터 a52a1f15.
+
 ## cycle 4665 — design/tokens 725th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 725th round.
