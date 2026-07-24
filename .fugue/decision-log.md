@@ -17041,6 +17041,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5063 — design/aesthetic 868th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 868번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~90축, color/background/border-image/flex/overflow/aural/svg 계열). 0-match 후보 6건: overflow-clip-margin-block, play-during, richness, pitch-range, nav-fallback, enable-background.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) overflow-clip-margin-block = overflow-clip-margin(baseline 9) 논리-방향 longhand 파생. (2) play-during/richness/pitch-range = 폐기된 CSS2 aural/speech 속성, 시각 범위 밖(out of visual scope). (3) nav-fallback = 폐기된 CSS Spatial Navigation 초안(nav- 계열 baseline 5). (4) enable-background = 폐기·제거된 SVG filter 속성.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5065, 868th round(responsive). style-surface 센서스 대상 포인터 bd4bc5bd(c5059 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5061 — design/tokens 791st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 791번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 ffccf15e(c5055 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 01dd26a3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
