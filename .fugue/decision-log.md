@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6244 — 에러처리: 래핑·핸들러 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 계수 0건 — code freeze baseline과 동일. 에러 래핑·핸들러 응답·재시도 경로 앵커 유효
+- 판정: 직전 에러처리 census(6232) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6246 (직전 6234 covered). consumer 동시성·락 census 예정
+
 ### cycle 6242 — 정합성: 코드·문서 census → 표면 불변 (covered)
 - 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
 - 조사: 계수 0건 — baseline과 동일. sqlc·스키마·핸들러 문서 정합 잔차 앵커 유효
