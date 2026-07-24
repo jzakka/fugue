@@ -16565,6 +16565,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4727 — design/aesthetic 812th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 812번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로브: anti-patterns.md(2343행) 대비 7개 배치 커버리지 grep으로 ~320개 CSS/HTML/Web-플랫폼 저작 축을 스캔. 0-match 후보를 전수 소스-프로브(apps/web/src)로 검증.
+- 결과: 모든 exact-string 0-match가 대체 표기·한글 표기로 계열 baseline 존재하거나(box-reflect→반사8, target-current→:target29, -webkit-fill-available→stretch25, ime-mode→IME239, tap-highlight-color→tap-highlight4, @scroll-state→snapped139, custom-highlight→::highlight7, hue-interpolation→color-interpolation12, disclosure-closed→disclosure19, -webkit-line-clamp→line-clamp26), 3+건 baseline된 계열의 over-carving 영역(aural Speech: rest-before/speak-header/voice-duration는 pause-before·voice-family·speak 인접; anchor/@property/position-try/@scope 전부 포화). textTracks(c4721) 반려 기준상 인접 파생은 폐기.
+- 폐기: 811 라운드 누적으로 aesthetic false-positive 공간이 완전 포화. 정직한 산출은 rigor-over-quota 원칙에 따라 fresh 축 0건. 백로그 추가 없음(DESIGN.md 위반 미발견), anti-patterns 추가 없음(반려까지 간 후보 없음).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4729, 811th round(responsive).
+
 ## cycle 4725 — design/tokens 735th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 735번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 d38f8185(c4719 기록) 대비 산출 → 변경 0건. origin/main a371d691 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
