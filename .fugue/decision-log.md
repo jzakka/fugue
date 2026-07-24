@@ -16270,6 +16270,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4685 — design/aesthetic 805th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 805th round. aesthetic 은 델타 무관 fresh-axis 프로브 필수.
+- 센서스: anti-patterns.md 2322행 포화. 후보 축 14배치 일괄 coverage grep(≈400 term) 수행 — CSS(앵커포지셔닝·미디어피처·타이포·마스크/필터·env)·JS 언어(Temporal·Set메서드·Iterator·groupBy)·Web API(디바이스·미디어·내비게이션·CSSOM)·ARIA/시맨틱 전부 dedicated baseline 확인.
+- 프로브1: `dir="auto"` HTML 자동 기준방향 속성 — src `dir=`·unicode-bidi·`<bdi`·`:dir(` 0건. 사용자 텍스트 표시 표면 존재하나 LTR 단일 방향 수렴 → coherent absence(RTL 미규정, confidence<3). anti-patterns L2323 baseline.
+- 프로브2: `<input capture>` 미디어 캡처 소스 힌트 — src `capture` 0건. 파일 입력(PinCreateForm:447 `type=file`+`accept=` MIME 필터) 존재하나 카메라 직캡처 힌트 부재 → coherent absence(모바일 즉석촬영 미규정). anti-patterns L2324 baseline.
+- 프로브3: `blocking="render"` HTML 렌더 블로킹 속성 — src HTML `blocking`·next/script·수동 link/script 0건(유일 매칭은 JS 주석). `<head>`/리소스 로딩 Next.js 전담 → pure vacuous. anti-patterns L2325 baseline.
+- 기각처리: 3건 모두 false-positive 후보(coherent absence 2·pure vacuous 1)로 baseline 등록, 백로그 append 없음.
+- 기록: anti-patterns.md +3행(2322→2325). decision-log 본 엔트리.
+- 포인터: aesthetic 라운드는 fresh-axis 프로브 기반, census 포인터 미사용.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4687, 804th round(responsive).
+
 ## cycle 4683 — design/tokens 728th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 728th round.
