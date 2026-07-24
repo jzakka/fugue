@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6306 — 동시성: bot consumer 표면 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 계수 0건 — baseline과 동일. URLScheduler consumer·goroutine 경합 표면 앵커(22747864) 유효
+- 판정: 직전 동시성 census(6294) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6308 (직전 6296 covered). bot 크롤러 census 예정
 ### cycle 6304 — 에러처리: apps/api 표면 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 계수 0건 — baseline과 동일. 에러 반환·핸들러 표면 앵커(22747864) 유효
