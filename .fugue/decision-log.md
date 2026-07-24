@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6198 — 동시성: goroutine·락 경로 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot apps/api/internal/scheduler
+- 조사: 계수 0건 — baseline과 동일. consumer goroutine·rate limiter 락·멱등 경로 census 앵커 유효
+- 판정: 직전 동시성 census(6186) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6200 (직전 6188 covered). Pioneer/Harvester·bot_scripts census 예정
 ### cycle 6196 — 에러처리: 핸들링 경로 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal
 - 조사: 계수 0건 — baseline과 동일. 에러 핸들링 경로·에러 래핑 census 앵커 유효
