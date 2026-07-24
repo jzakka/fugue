@@ -16204,6 +16204,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4673 — design/aesthetic 803rd round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 803rd round.
+- 센서스: aesthetic 포인터 99da01f9..894bfea5 — 스타일 표면 diff-stat 0건, 구간 커밋은 루프 체어뿐. aesthetic 라운드이므로 델타 무관 fresh 축 프로브 3건 수행.
+- 프로브1: `Intl.RelativeTimeFormat`(상대 시각 포맷) — AP 0매치. 코드 프로브 결과 날짜 표시 표면 존재(SearchClient.tsx:344 toLocaleDateString)하나 절대 날짜가 의도된 선택, 상대 표기는 DESIGN.md 미강제 대안 → coherent absence, confidence<3.
+- 프로브2: `pagereveal`/`pageswap`(교차 문서 View Transition 생명주기) — AP 0매치. startViewTransition 포함 0건, Next App Router SPA 라우팅 모델에서 구조적 미발화 → pure vacuous.
+- 프로브3: `pointerrawupdate`/`getCoalescedEvents`(고빈도 포인터 입력) — AP 0매치. 포인터 입력 표면 존재(VideoTrimModal onPointerDown/Move/Up)하나 슬라이더 드래그엔 표준 pointermove 로 충분, 서브프레임 정밀도 불요 → coherent absence.
+- 기각처리: 3축 모두 결함 클래스 없음, backlog 등록 없음.
+- 기록: anti-patterns.md L2317-2319 baseline 3건 추가(2316→2319행). backlog 변경 없음.
+- 포인터: aesthetic 99da01f9 → 894bfea5 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4675, 802nd round(responsive).
+
 ## cycle 4671 — design/tokens 726th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 726th round.
