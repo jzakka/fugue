@@ -17026,6 +17026,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5045 — design/aesthetic 865th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 865번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~85축, transform/offset/mask/border/column/masonry/flex 계열). 0-match 후보 8건: -webkit-mask, border-boundary, border-limit, border-clip, border-clip-top, masonry-auto-flow, masonry-slack, item-cross, flex-flow.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) -webkit-mask = mask 계열 vendor-prefix alias. (2) border-boundary/border-limit/border-clip/border-clip-top = 폐기·실험 CSS Borders/Round Display 초안 속성(abandoned draft). (3) masonry-auto-flow/masonry-slack = 유동 masonry 초안(계열 baseline 208)의 property-longhand 파생. (4) item-cross = 비표준/조작 명칭(item-flow 초안 대체안). flex-flow = flex-direction(34)+flex-wrap(12) baselined 계열의 shorthand 파생.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5047, 865th round(responsive). style-surface 센서스 대상 포인터 f8c1f5e5(c5041 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5043 — design/tokens 788th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 788번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 658818fa(c5037 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 16527695 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
