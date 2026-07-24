@@ -16120,6 +16120,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4661 — design/aesthetic 801st round (Discovery, fresh 축 3건 baseline)
+
+- 순번: backlog pending 0 → 발견 모드. rotation aesthetic 801st round.
+- 센서스: aesthetic 포인터 a4e60ff3..c3f5ef87 — 스타일 표면 diff-stat 0건(c5988 postcss override 는 package.json 계층으로 style glob 외), 구간 커밋은 루프 체어뿐. aesthetic 라운드이므로 델타와 무관하게 fresh 축 프로브 3건 수행.
+- 프로브 1: getRootNode·isConnected 노드 연결성 조회 — 0건, 마운트 판정이 React 라이프사이클로 수렴 → pure vacuous baseline(@2311). L2243 셀렉터 매칭·L595 attachShadow 축과 별개 병기.
+- 프로브 2: setHTMLUnsafe·parseHTMLUnsafe·getHTML 비정화 HTML 직렬화 — 0건, HTML 이 JSX 선언적 렌더 수렴 → pure vacuous baseline(@2312). L2286 Sanitizer·L2184/2250/2285 innerHTML 축과 별개 병기.
+- 프로브 3: Float16Array·getFloat16 반정밀 수치 배열 — 0건, 미디어가 서버 처리·URL 참조 수렴 → pure vacuous baseline(@2313). L2307 Uint8Array 코덱 축과 별개 병기.
+- 기각 처리: Iterator.range·getAttributeNames 는 미사용 예비 0-hit 축으로 잔존. Set 대수는 @2252 커버 확인.
+- 기록: anti-patterns.md 2310→2313행(+3). backlog 등록 없음.
+- 포인터: aesthetic a4e60ff3 → c3f5ef87 전진.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4663, 800th round(responsive), 포인터 4bf08227.
+
 ## cycle 4659 — design/tokens 724th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 724th round.
