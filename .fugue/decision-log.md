@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6144 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count c3f5ef87..origin/main -- apps/web/package.json + npm audit
+- 조사: 계수 0건 — package.json baseline과 동일. npm audit found 0 vulnerabilities. postcss override 앵커 유효
+- 판정: 직전 보안 census(6132) 이후 의존성 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6146 (직전 6134 covered). 코드·문서 표면 census 예정
 ### cycle 6142 — OpenSpec갭: validate 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 11종·change 3종 census 앵커 유효
