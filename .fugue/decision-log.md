@@ -16898,6 +16898,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4937 — design/aesthetic 847th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 847번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 scroll-snap/overflow/flex/grid/paged 축 ~44종 batch 프로빙(command grep -icF). 0-match 5건: scroll-snap-coordinate, scroll-snap-points-x, scroll-snap-destination, block-overflow, flex-flow.
+- 기각: scroll-snap-coordinate/points-x/destination는 구 Scroll Snap Points 스펙의 폐기된 프로퍼티(현대 scroll-snap 계열 baseline 33의 legacy alias), 사용 0 → 기각. block-overflow는 실험적 overflow(101)/text-overflow(6) 계열 sub-property 파생, 사용 0 → 기각. flex-flow는 flex-direction(34)+flex-wrap(12) shorthand 파생, 사용 0 → rigor-over-quota 기각. 순수 vacuous fresh 축 0건.
+- 폐기: 채택할 신규 축 없음 → 표면 포화 폐기(0 baseline). scroll-snap/overflow/flex 축까지 포화 지속 확인.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4939, 846th round(responsive). style-surface 센서스 대상 직전 responsive 포인터 017a3888(c4933 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4935 — design/tokens 770th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 770번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 40fb3333(c4929 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 23e7ba47 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
