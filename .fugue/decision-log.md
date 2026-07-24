@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6122 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git log 22747864..origin/main -- apps/api docs AGENTS.md (loop 제외 계수)
+- 조사: 비-loop 잔여 e2cb3a80(AGENTS.md 예시 교정) 1건뿐 — baseline과 동일, apps/api 코드 비접촉
+- 판정: 직전 정합성 census(6110) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6124 (직전 6112 covered). apps/api rev-list freeze check 예정
 ### cycle 6120 — 보안: dep 표면 + npm audit freeze check → 표면 불변 (covered)
 - 축: git rev-list --count c3f5ef87..origin/main -- package.json/lock go.mod/sum + cd apps/web && npm audit
 - 조사: dep 계수 0건, npm audit "found 0 vulnerabilities" — baseline(c3f5ef87, postcss override) 동일
