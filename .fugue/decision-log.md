@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6248 — 봇: 크롤러 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 계수 0건 — baseline과 동일. Pioneer/Harvester consumer·bot_scripts 조회·node graph census 앵커 유효
+- 판정: 직전 봇 census(6236) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 6250 (직전 6238 covered). openspec validate census 예정
+
 ### cycle 6246 — 동시성: consumer·락 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
 - 조사: 계수 0건 — code freeze baseline과 동일. URLScheduler consumer 동시성·락 경로 앵커 유효
