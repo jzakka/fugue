@@ -16605,6 +16605,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4739 — design/aesthetic 814th round (Discovery, fresh 축 1건 baseline)
+- 순번: aesthetic 814번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로브: anti-patterns.md(2343행) 대비 미탐색 계열 배치 grep — @font-face 메트릭 오버라이드, subgrid/masonry, 상대색 구문, text-indent 값, SMIL, SVG 필터 프리미티브/마스크, textPath/foreignObject 등 ~120축 스캔.
+- 결과: 대다수 0-match가 계열 baseline(SVG 필터23·feColorMatrix15·masonry208·font-display42·textPath3·마스크9) 또는 baselined 프로퍼티의 값(each-line→text-indent23, grid-auto-flow:dense, vertical-align:super→vertical-align10). 유일 fresh 축 = **SMIL 선언적 SVG 애니메이션**(`<animate>`/`<animateTransform>`/`<animateMotion>` + begin/dur/repeatCount): anti-patterns 전건 0(「SVG 애니메이션」1건은 buffered-rendering 베이스라인 내 부수 언급), 소스 `<svg>`17건 존재하나 SMIL 사용 0(pure vacuous). CSS @keyframes·WAAPI .animate()(getAnimations14)·animation-timeline15·offset-path와 별개 마크업-내 선언적 애니메이션 차원.
+- 반영: anti-patterns.md L2344에 SMIL baseline 1건 append(cycle 4739 baseline). rigor-over-quota로 2·3번째 후보는 전부 계열/값 파생이라 미채택 — 정직한 산출 1건. 백로그 추가 없음(DESIGN.md 위반 미발견).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4741, 813th round(responsive). style-surface 센서스 대상 포인터 5cb14731(c4735 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4737 — design/tokens 737th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 737번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5cb71039(c4731 기록) 대비 산출 → 변경 0건. origin/main cb9867f8 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
