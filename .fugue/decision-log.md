@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6000 — 보안: 의존성 표면 freeze check → 신 baseline 불변 (covered)
+- 축: git log -1 -- apps/web/package*.json apps/api/go.mod apps/api/go.sum + npm audit
+- 조사: dep 최종 커밋 c3f5ef87 (#5972, cycle 5988 postcss override) + npm audit "found 0 vulnerabilities" — cycle 5988 갱신한 신 baseline과 동일
+- 판정: 직전 보안 census(5988 FIXED) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6002 (직전 5990 covered). 코드·문서 표면 freeze check 예정
+
 ### cycle 5998 — OpenSpec갭: validate + 경로 표면 freeze check → 표면 불변 (covered)
 - 축: openspec validate --specs --changes + git log 22747864..origin/main -- openspec/ (loop 제외 계수)
 - 조사: validate "14 passed, 0 failed (14 items)" + 비-loop 커밋 8건(디자인 트랙 전용, spec 비접촉) — baseline과 동일
