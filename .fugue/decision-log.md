@@ -16505,6 +16505,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4721 — design/aesthetic 811th round (Discovery, fresh 축 3건 baseline)
+- 순번: aesthetic 811th round. 백로그 pending=0 → 발견 모드. anti-patterns.md 2340줄 심층 포화. 배치 커버리지 grep A~K(신규 CSS 함수·color·carousel/anchor/view-transition 클러스터·scroll·cursor·mask·SVG·form/scrollbar shadow pseudo·media-feature·명령형 Web API) 약 600축 전수 실행, 대부분 ≥1 히트. 0-match 후보를 source-probe + 인접 baseline 대조로 검증해 fresh 3축 확정.
+- 프로브1: 스크롤 마커 그룹 컨테이너 `scroll-target-group`(none/auto). src 0건(pure vacuous) — 캐러셀/스크롤-마커 UI 자체 부재. ::scroll-marker(7)·::scroll-marker-group(4)·::scroll-button(5) 은 마커/버튼 *렌더링* 의사요소 축이고, 이건 마커들을 하나의 포커스 그룹으로 바인딩하는 *컨테이너 선언* 프로퍼티로 별개 per-property 차원(carousel 클러스터 중 유일 미기록 멤버).
+- 프로브2: 미디어 기본 음소거 `HTMLMediaElement.defaultMuted`. src 0건(coherent absence) — audio/video 재생 표면은 존재하나 기본 음소거 정책 미저작·네이티브 controls 위임. 라이브 현재 음소거 `.muted`(VideoThumbnailPicker:21 썸네일 무음 추출용 현재-음소거)·:muted(1265)·defaultPlaybackRate(2339 c4715)와 별개 per-property 기본 음소거 차원(defaultPlaybackRate/playbackRate 분할과 동형).
+- 프로브3: 미디어 근사 탐색 `HTMLMediaElement.fastSeek(time)`. src 0건(coherent absence) — 재생 전부 네이티브 controls·VideoTrimModal 조차 정밀 currentTime 사용, 근사-탐색 프리뷰 표면 부재. 정밀 `.currentTime`·:seeking(1261)·TimeRanges buffered/seekable/played(2340 c4715)와 별개 per-method 근사-탐색 차원.
+- 기각처리: 이미 baseline 확인해 제외 — `<track>` 자막 트랙 저작 채널(L1994 c3891, textTracks/addTextTrack 명령형은 과카빙 판단)·::cue 큐 스타일(1252)·image-set/-webkit-image-set(18 동일 feature 프리픽스)·@nest(deprecated·bare & 119)·ime-mode(removed)·word-break: keep-all(keep-all 1)·line-break: anywhere(line-break 21 per-value). present 확인해 제외 — videoWidth/videoHeight(VideoThumbnailPicker:32-33 canvas 치수)·-webkit-box-orient(Tailwind line-clamp-2 SearchClient:393/PinCard:157 경유 사실상 present)·cursor-grab/grabbing(VideoTrimModal:255). 3축 전부 DESIGN.md silent·모집단 0(pure vacuous 1·coherent absence 2)·loop rule line 9 미명시 취향 → 이슈 아님.
+- 기록: anti-patterns.md 말미 3줄 append(cycle 4721 baseline). 2340→2343줄.
+- 차기: rotation responsive cycle 4723(직전 4717 responsive 809th). style-surface 센서스 대상 포인터 21cab9f9(c4717 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4719 — design/tokens 734th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 734번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 c838ca18(c4713 기록) 대비 산출 → 변경 0건. origin/main d38f8185 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
