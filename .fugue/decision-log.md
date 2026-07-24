@@ -16715,6 +16715,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4787 — design/aesthetic 822nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 822번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: fresh 축 후보를 mask/blend/individual-transform/font-variant/writing-mode/scrollbar(약 40종)로 배치 조회. 0-match 후보 1건(translate:) 발견.
+- 기각: translate:은 이미 baseline된 individual-transform 계열(rotate:=2, scale:=5)의 형제 축. rigor-over-quota로 기각. apps/web/src 사용 0. 나머지 39종 전부 계열 baseline(최소 2매칭).
+- 판정: 순수 vacuous fresh 축 0건 → 표면 포화 폐기(0 baseline). anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4789, 821st round(responsive). style-surface 센서스 대상 포인터 4c4afdfc(c4783 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4785 — design/tokens 745th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 745번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 cf8f70fb(c4779 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main e7a6ab99 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
