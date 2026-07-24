@@ -16320,6 +16320,18 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4691 — design/aesthetic 806th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: aesthetic 806th round. origin/main=9d29bf49, loop-design.md blob 4a2723de 불변, backlog pending=0 → 발견 모드.
+- 센서스: anti-patterns.md 2325줄 포화. CSS/JS/Web-platform 계열 배치 커버리지 grep ~12회 재확인, 0-매칭/부수-only 축 3건 발굴.
+- 프로브1 (Permissions API): `navigator.permissions.query` 권한 상태 조회 채널. registry 유일 매칭 L351(WCAG 모션 부수언급), source 0. 알림/위치/카메라 권한 게이트 기능 전무 → 조회 대상 population 부재. pure vacuous.
+- 프로브2 (WebOTP): `autocomplete="one-time-code"`/`OTPCredential` SMS 코드 자동입력 채널. registry 0, source 0. 소셜 OAuth 단일, SMS 인증 폼 부재. pure vacuous.
+- 프로브3 (FedCM): `navigator.credentials.get({identity})`/`IdentityCredential` 브라우저 중재 연합 로그인. registry 0(L2247 WebAuthn 과 별개), source 0. /login 소셜 OAuth+proxy.ts 리다이렉트 표면은 존재하나 전통 OAuth 로 수렴 → coherent absence(FedCM 미명시 대체 enhancement, confidence<3).
+- 기각처리: 3건 모두 aesthetic 후보 미승격, 프로덕션 코드 무수정.
+- 기록: anti-patterns.md L2326-2328 baseline 3건 append (permissions·WebOTP·FedCM).
+- 포인터: aesthetic 라운드는 fresh-축 발굴 방식(센서스 포인터 미사용).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 4693, 805th round(responsive).
+
 ## cycle 4689 — design/tokens 729th round (Discovery, 표면 불변 폐기)
 
 - 순번: backlog pending 0 → 발견 모드. rotation tokens 729th round.
