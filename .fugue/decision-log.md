@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6016 — 에러처리: 코드 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api Makefile .github/workflows
+- 조사: 계수 0건 — baseline과 동일. HTTP 핸들러 에러 매핑·bot retry/backoff·ffprobe 실패 처리 census 앵커 유효
+- 판정: 직전 에러처리 census(6004) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6018 (직전 6006 covered). apps/api rev-list freeze check 예정
+
 ### cycle 6014 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
 - 축: git log 22747864..origin/main -- apps/api docs/ AGENTS.md README.md Makefile (loop 제외 계수)
 - 조사: 비-loop 잔여 e2cb3a80 (AGENTS.md bot 명령 예시 교정) 1건 — baseline과 동일, apps/api 코드 비접촉
