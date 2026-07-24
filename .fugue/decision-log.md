@@ -16485,6 +16485,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 4715 — design/aesthetic 810th round (Discovery, fresh 축 3건 baseline)
+
+- 순번: aesthetic 810th round. 백로그 pending=0 → 발견 모드. anti-patterns.md 2337줄 심층 포화 상태에서 배치 커버리지 grep A~N(타이포/OpenType·color-function·CSS-math·at-rule·highlight/carousel pseudo·semantic HTML·form/aria·transform/print-color·media 속성) 전수 실행, 0-match 후보를 source-probe + content-grep 로 검증해 이미 baseline 되지 않은 fresh 축 3건 확정.
+- 프로브1: 텍스트 선택 방향 `selectionDirection`/`setSelectionRange` direction 인자/`Selection.direction`. src `selectionDirection`/`setSelectionRange`/`getSelection`/`.selectionStart` 0건(pure vacuous) — 입력은 React 제어 value/onChange 관리·명령형 선택-방향 host 부재. Selection API 브로드 census(2823)·폼 전체 선택 .select(3015)·::selection 외형(19)·user-select 선택성(9)과 별개 per-imperative-API 선택-방향 차원(선례 2823/3015 per-property 분할).
+- 프로브2: 미디어 기본 재생 속도 `HTMLMediaElement.defaultPlaybackRate`. src `defaultPlaybackRate`/`playbackRate` 0건 — audio/video 재생 표면은 존재(pins/[id] `<audio controls>`·`<video controls poster>`·VideoTrimModal)하나 브라우저 기본 1x 수렴(coherent absence). 음정 보존 preservesPitch(2331 c4697)·WAAPI Animation.playbackRate(1451/1620·미디어 아닌 애니메이션 객체)와 별개 per-property 미디어 기본 배속 차원.
+- 프로브3: 미디어 시간 범위 `.buffered`/`.seekable`/`.played`(`TimeRanges`). src 0건 — 재생 표면 전부 네이티브 `controls` 위임(기본 진행 바가 버퍼/시커블 내부 렌더)·JS TimeRanges 커스텀 진행 UI 부재(coherent absence). :muted(1265)·:buffering(2495)·:seeking(2503) 재생 상태 의사클래스와 별개 명령형 시간-범위 조회 차원.
+- 기각처리: 후보군 중 이미 baseline 확인해 제외 — `<ol reversed>`/`start`/`type`(L1966 c3971)·text-decoration-style decoration-wavy(L794 c1755)·Selection range/anchor(L1449/L1545)·autofocus(present PinCreateForm/AddToBoardButton + AP=9)·:muted 의사클래스(L1265)·mediaSession(2)·requestVideoFrameCallback(1)·`<abbr>`/`<time>`/`<search>` 등 semantic HTML(전부 ≥1). 3축 전부 DESIGN.md silent·모집단 0(pure vacuous 1건·coherent absence 2건)·loop rule line 9 미명시 취향 → 이슈 아님.
+- 기록: anti-patterns.md 말미 3줄 append(cycle 4715 baseline). 2337→2340줄.
+- 차기: rotation responsive cycle 4717(직전 4711 tokens/responsive 808th). style-surface 센서스 대상 포인터 2d74e2d8(c4711 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 4713 — design/tokens 733rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 733번째 라운드, 발견 모드.
 - 센서스: style surface(apps/web/src, globals.css, DESIGN.md) diff-stat을 직전 tokens 포인터 23dc2ae9 대비 산출 → 변경 0건.
