@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6158 — 정합성: 코드·문서 표면 freeze check → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api (비테스트, non-loop 잔차)
+- 조사: 계수 0건 — non-loop 잔차 baseline과 동일. 코드·문서 정합성 census 앵커 유효
+- 판정: 직전 정합성 census(6146) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6160 (직전 6148 covered). 에러 핸들링 경로 census 예정
 ### cycle 6156 — 보안: 의존성 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count c3f5ef87..origin/main -- apps/web/package.json + npm audit
 - 조사: 계수 0건 — package.json baseline과 동일. npm audit found 0 vulnerabilities. postcss override 앵커 유효
