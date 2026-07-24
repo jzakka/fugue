@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6286 — OpenSpec갭: validate census → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (repo root)
+- 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec/ratelimit·spec/scheduler 등 전 항목 유효
+- 판정: 직전 OpenSpec census(6274) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 6288 (직전 6276 covered). npm audit + postcss override 앵커 census 예정
+
 ### cycle 6284 — 봇: 크롤러 표면 freeze check → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
 - 조사: 계수 0건 — baseline과 동일. Pioneer/Harvester consumer·bot_scripts 조회·node graph census 앵커 유효
