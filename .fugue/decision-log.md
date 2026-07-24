@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6228 — 보안: 의존성 census → 표면 불변 (covered)
+- 축: npm audit (apps/web) + postcss override 앵커
+- 조사: found 0 vulnerabilities — baseline c3f5ef87과 동일. postcss>=8.5.12·sharp>=0.35.0 override 유효
+- 판정: 직전 보안 census(6216) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6230 (직전 6218 covered). 비-loop 잔차 e2cb3a80 census 예정
+
 ### cycle 6226 — OpenSpec갭: validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec/ratelimit·spec/scheduler 등 전 항목 유효
