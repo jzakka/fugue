@@ -17101,6 +17101,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5099 — design/aesthetic 874th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 874번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~36축, regions/paged-media/text-justify/line-clamp/font-metric/SVG-paint/@property descriptor 계열). 0-match 후보: text-justify-trim, line-clamp-block, page-break-inside, stack-down.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) text-justify-trim = text-justify(baseline 7)의 fabricated 파생, 실존 속성 아님. (2) line-clamp-block = line-clamp(baseline 26)의 fabricated 파생. (3) page-break-inside = break-inside(baseline 10)로 대체된 CSS2.1 페이지드미디어 레거시 별칭(page-break 계열 baseline 5). (4) stack-down = 비표준 fabricated 속성명.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5101, 874th round(responsive). style-surface 센서스 대상 포인터 431b1cda(c5095 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5097 — design/tokens 797th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 797번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 40ecec39(c5091 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main cd353f16 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
