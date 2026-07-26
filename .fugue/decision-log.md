@@ -17116,6 +17116,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5117 — design/aesthetic 877th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 877번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, counter/list-marker/containment/toggle/caret-appearance/highlight-pseudo/block-step/baseline/track-alignment/fragmentation 계열). 0-match 후보 16건: list-style-image-position, checked-appearance, caret-width, user-select-all, pointer-timeline, accent-height-adjust, selection-color, aspect-ratio-fit, overflow-clip-box, scroll-snap-stop-always, snap-align-block, flex-track, place-tracks, distribute-spacing, gap-decoration, margin-break.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) list-style-image-position/checked-appearance/caret-width/selection-color/aspect-ratio-fit/flex-track = 각각 list-style(31)/appearance(15)/caret(31)/selection(27)/aspect-ratio(34)/flex-(78) 계열의 fabricated 파생, 실존 속성 아님. (2) user-select-all/scroll-snap-stop-always = user-select(11)/scroll-snap-stop(8)의 값 키워드 파생. (3) snap-align-block = scroll-snap-align(snap-align 계열 15)의 fabricated 논리 방향 파생. (4) pointer-timeline = 미구현 실험 제안(timeline 계열 baseline 22). (5) accent-height-adjust = SVG 1.1 폰트 디스크립터 파생, 시각 범위 밖(c5087 accent-height 기각 선례). (6) overflow-clip-box/margin-break = -moz 전용 비표준·Fragmentation 4 미구현 dormant 드래프트(overflow-clip 9, margin- 25). (7) place-tracks = justify-tracks/align-tracks(각 baseline 1) 단축 파생, masonry 제안과 함께 폐기. (8) distribute-spacing/gap-decoration = Box Alignment 값 키워드·Gap Decorations 모듈명이며 속성명 아님(spacing 126, gap-rule 1).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5119, 877th round(responsive). style-surface 센서스 대상 포인터 2dc9f154(c5113 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5115 — design/tokens 800th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 800번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 ad4289c1(c5109 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 1e826ed3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
