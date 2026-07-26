@@ -17106,6 +17106,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5105 — design/aesthetic 875th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 875번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, corner-shape/text-box/text-spacing/item-flow/masonry/gap-rule/multicol-L2 계열). 0-match 후보: border-shape, text-edge, letter-spacing-trim, item-direction/item-wrap/item-slack/item-cross, masonry-fill/masonry-slack/masonry-track, grid-flow-masonry, gap-rule-color/style/width, column-height, column-wrap.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) border-shape = CSS Borders L4 미구현 dormant 드래프트(border- 계열 baseline 171). (2) text-edge = text-box-edge(baseline 5)/line-fit-edge(baseline 2)로 개명된 구 별칭. (3) letter-spacing-trim = text-spacing-trim(baseline 6)의 fabricated 파생(letter-spacing 계열 baseline 33). (4) item-direction/wrap/slack/cross = item-flow 단축(baseline 1)의 longhand 파생(item- 계열 baseline 4). (5) masonry-fill/slack/track = item-flow로 대체된 Grid L3 masonry 드래프트 sub-property(masonry 계열 baseline 208). (6) grid-flow-masonry = grid-template-rows의 masonry 값 키워드 파생, 실존 속성 아님. (7) gap-rule-color/style/width = gap-rule(baseline 1) 계열 longhand 파생(row-rule-color/column-rule-break/rule-paint-order 이미 baseline). (8) column-height/column-wrap = Multicol L2 미구현 드래프트 sub-property(column- 계열 baseline 35).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5107, 875th round(responsive). style-surface 센서스 대상 포인터 177b6df3(c5101 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5103 — design/tokens 798th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 798번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 cd353f16(c5097 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 838fec74 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
