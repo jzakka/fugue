@@ -17106,6 +17106,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5111 — design/aesthetic 876th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 876번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, anchor-positioning/popover-overlay/view-transition/animation-trigger/color-HDR/shadow-filter-mask/border-L4 계열). 0-match 후보 21건: scroll-initial-target, anchor-default, popover-hide-delay, popover-show-delay, overlay-auto, hdr-headroom, text-shadow-order, box-shadow-position, backdrop-color, filter-order, mix-blend-layer, isolation-mode, paint-order-shape, mask-composite-mode, mask-luminance, clip-shape, border-clip, border-limit, background-position-block, shadow-spread, outline-position.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) scroll-initial-target = 이미 baseline된 scroll-target-group 계열의 형제 longhand(scroll- 계열 baseline 92). (2) anchor-default = position-anchor로 개명된 구 별칭(anchor- 계열 baseline 16). (3) popover-show/hide-delay = Open UI 미채택 제안, 표준 속성 아님(popover 계열 baseline 37). (4) overlay-auto = overlay(baseline 38)의 값 키워드 파생. (5) hdr-headroom = dynamic-range-limit(계열 baseline 16)의 fabricated 대체명. (6) text-shadow-order/box-shadow-position/shadow-spread = shadow 계열 baseline 152의 fabricated 파생(spread는 box-shadow 값 구성요소). (7) backdrop-color/filter-order/mix-blend-layer/isolation-mode/paint-order-shape/mask-composite-mode/mask-luminance/clip-shape = 각각 backdrop-filter(33)/isolation(12)/paint-order(11)/mask-(34)/clip(68) 계열의 fabricated 또는 값 키워드 파생. (8) border-clip/border-limit/outline-position/background-position-block = Borders L4·UI L4·Backgrounds L4 미구현 dormant 드래프트(outline 26, background-position 28 계열).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5113, 876th round(responsive). style-surface 센서스 대상 포인터 61f6802d(c5107 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5109 — design/tokens 799th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 799번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 838fec74(c5103 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main ad4289c1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
