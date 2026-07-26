@@ -17121,6 +17121,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5123 — design/aesthetic 878th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 878번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, image-object/border-mask-image/ruby/text-decoration/transform-3D/offset-path/containment-container/env-zoom 계열). 0-match 후보 18건: object-position-block, shape-image-source, background-blend-layer, border-image-transform, text-underline-mode, text-underline-width, text-decoration-trim, text-orientation-mode, rotate-3d, perspective-origin-z, transform-style-flat, backface-visibility-hidden, offset-rotate-auto, motion-offset, will-change-contents, contain-layout-paint, container-type-scroll, container-name-scope.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) shape-image-source/background-blend-layer/border-image-transform/text-decoration-trim/text-orientation-mode/perspective-origin-z/container-name-scope = 각각 shape-image(5)/background-blend(14)/border-image(19)/text-decoration(33)/text-orientation(27)/perspective(29)/container-name(9) 계열의 fabricated 파생. (2) transform-style-flat/backface-visibility-hidden/offset-rotate-auto/will-change-contents/contain-layout-paint/container-type-scroll = transform-style(7)/backface(11)/offset-rotate(9)/will-change(20)/contain(184)/container-type(22)의 값 키워드·값 조합 파생. (3) rotate-3d = rotate3d() 변환 함수이며 속성 아님(rotate 계열 70). (4) motion-offset = offset-distance로 개명된 구 별칭(motion- 계열 6). (5) object-position-block = Backgrounds L4 미구현 논리 방향 longhand(object-position 계열 11). (6) text-underline-mode/text-underline-width = Text Decoration 4 미구현 dormant 드래프트(text-underline 계열 16).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5125, 878th round(responsive). style-surface 센서스 대상 포인터 fd057e2b(c5119 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5121 — design/tokens 801st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 801번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 1e826ed3(c5115 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 3df99346 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
