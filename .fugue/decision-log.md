@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6360 — 보안: brace-expansion DoS 취약점 편차 감지 → override 5.0.8 fix
+- 축: cd apps/web && npm audit
+- 조사: baseline "found 0 vulnerabilities"에서 편차 발생 → 9건 high (brace-expansion <=5.0.7 DoS/OOM, GHSA-mh99-v99m-4gvg). eslint 툴체인(minimatch→config-array→eslint / eslint-config-next) 전역 캐스케이드. 설치본 1.1.16 + 5.0.7, patched는 5.0.8(2026-07-23)만 존재
+- 판정: 실제 편차 → fix 수행. package.json overrides에 "brace-expansion": ">=5.0.8" 추가. 단 최초 blanket 승격이 CI lint 실패 유발(minimatch@3.1.5는 be를 callable 함수로 require하나 be@5 CJS는 named export {expand}로 변경 → "expand is not a function"). minimatch@3 chain(eslint@9 config-array/eslintrc/plugins)이 be@5와 근본 비호환이라 "minimatch": "^10.0.3" override 병행 추가(named import 사용, be@5 호환). npm install 후 npm audit "found 0 vulnerabilities" + npm run lint 0 errors 확인
+- 차기: 보안 baseline 앵커를 본 커밋으로 갱신. rotation 정합성 cycle 6362 예정 (e2cb3a80 non-loop residual census)
 ### cycle 6358 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
