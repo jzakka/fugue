@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6362 — 정합성: non-loop residual census → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
+- 조사: 0건 — apps/api 코드·문서 표면에 loop 외 유입 없음. e2cb3a80 residual 앵커 유효
+- 판정: 직전 정합성 census(6350) 이후 표면 불변 → covered
+- 차기: 보안 baseline 앵커를 57382965(cycle 6360 fix merge)로 갱신 완료. rotation 에러처리 cycle 6364 예정 (22747864..origin/main -- apps/api census)
 ### cycle 6360 — 보안: brace-expansion DoS 취약점 편차 감지 → override 5.0.8 fix
 - 축: cd apps/web && npm audit
 - 조사: baseline "found 0 vulnerabilities"에서 편차 발생 → 9건 high (brace-expansion <=5.0.7 DoS/OOM, GHSA-mh99-v99m-4gvg). eslint 툴체인(minimatch→config-array→eslint / eslint-config-next) 전역 캐스케이드. 설치본 1.1.16 + 5.0.7, patched는 5.0.8(2026-07-23)만 존재
