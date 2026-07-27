@@ -17473,6 +17473,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5429 — design/aesthetic 929th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 929번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Overflow L4·Multicol·프래그멘테이션 계열, 배치2 = CSS Images L4·Backgrounds/Border Images 계열. 0-match 후보 23건. (기존 커버: columns=38, background-origin=13, column-gap=18, image-set=18, column-count=13, cross-fade=12, background-blend-mode=10, border-image-source=9, border-image-slice=9, border-image-repeat=9, border-image-width=9, break-after=8, border-image-outset=8, object-view-box=7, image-resolution=6, column-span=6, overflow-inline=3, block-ellipsis=3, max-lines=2, column-fill=2, region-fragment=1, flow-into=1, flow-from=1, background-position-x=1, background-position-y=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 벤더 독점 레거시 3 — overflow-clip-box·overflow-clip-box-block·overflow-clip-box-inline(-moz- 전용 비표준, 표준 overflow-clip-margin=9 보유); (2) 폐기 구버전 별칭 1 — page-break-inside(CSS2 레거시, break-inside=10으로 대체); (3) 커버된 계열 롱핸드 파생 2 — background-position-inline·background-position-block(background-position-x=1·background-position-y=1 계열, 논리 롱핸드 부재); (4) CSS 함수·값 문법 성분 3 — element-reference(element() 함수 참조 개념), conic-gradient-angle(conic-gradient() 인자), gradient-interpolation(그라디언트 보간 값 문법); (5) 조작된 명칭 14 — fragmentation-strategy·fragment-policy·continue-fragment·box-fragment(continue=22·break-after=8 계열 보유), column-height·column-wrap(column-width=10·column-fill=2 보유), overflow-behavior·scroll-overflow(overscroll-behavior-x=3·overflow-block=13 보유), background-image-source(background-image 계열 롱핸드 부재), border-image-transform(border-image-* 5축 보유), image-fit(object-fit=30 보유), image-region(폐기된 -moz-image-region 유사 조작), sprite-source·background-tint(대응 표준 부재).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5431, 929th round(responsive). style-surface 센서스 대상 포인터 b57c386c(c5425 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5427 — design/tokens 852nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 852번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f1607605(c5421 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 364c4785 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
