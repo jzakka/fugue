@@ -17731,6 +17731,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5621 — design/aesthetic 961st round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 961번째 라운드, 발견 모드. 백로그 pending=0. origin/main d7c4d71f (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = UA UI·PWA 표면·윈도우 컨트롤 계열, 배치2 = 렌더링·성능 힌트 계열. 0-match 후보 39건. (기존 커버 일부: picture-in-picture=12, font-smoothing=11, layout-shift=5, window-controls-overlay=5, theme-color=4, mask-icon=2, render-blocking=2, status-bar-style=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 브라우저 구현 개념 용어 14 — layout-thrash, repaint-cost, composite-layer, gpu-acceleration, layer-promotion, raster-scale, tiling-strategy, reflow-trigger, style-recalc, frame-budget, jank-threshold, subpixel-rendering, hinting-mode, gamma-correction; (2) 브라우저 UI 개념 용어 6 — browser-chrome, address-bar, context-menu, toolbar-height, native-control, platform-appearance; (3) 웹 앱 매니페스트 멤버 명칭 5 — display-override, manifest-display, splash-screen, app-shell, install-prompt; (4) 값 키워드 파생 5 — standalone-mode·fullscreen-mode·presentation-mode(display-mode=13 값), content-visibility-hidden(content-visibility=19 값), system-ui-font(system-ui 폰트 키워드); (5) 의사요소 기반 3 — scrollbar-arrow, resizer-corner, selection-handle; (6) Web API 명칭 2 — offscreen-canvas, paint-timing; (7) 벤더 독점 레거시 1 — text-antialiasing(font-smoothing=11 보유); (8) 조작된 명칭 3 — dither-pattern, color-banding, render-priority.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5623, 961st round(responsive). style-surface 센서스 대상 포인터 85a0c439(c5617 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5619 — design/tokens 884th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 884번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 150215a0(c5613 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main f4e15541 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
