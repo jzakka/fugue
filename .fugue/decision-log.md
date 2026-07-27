@@ -17156,6 +17156,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5159 — design/aesthetic 884th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 884번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, CSS Tables(border-collapse/caption/empty-cells), generated content·counter, cascade(all/revert-layer), writing-mode·bidi, box alignment 축약, gap 계열). 0-match 후보 20건: content-visibility-auto, border-collapse-separate, table-baseline, caption-align, empty-cells-hide, quotes-auto, counter-increment-reversed, all-revert, writing-mode-sideways, combine-upright-digits, justify-items-legacy, place-items-baseline, row-gap-normal, flex-basis-content, flex-wrap-reverse-block, cell-spacing, border-spacing-block, table-column-width, text-combine-mode, direction-auto.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) content-visibility-auto/border-collapse-separate/empty-cells-hide/quotes-auto/all-revert/writing-mode-sideways/justify-items-legacy/place-items-baseline/row-gap-normal/flex-basis-content/direction-auto = content-visibility(19)/border-collapse(7)/empty-cells(6)/quotes(12)/all(1225)/writing-mode(36)/justify-items(7)/place-items(10)/row-gap(1)/flex-basis(21)/direction(80)의 값 키워드 파생. (2) table-baseline/caption-align/cell-spacing/border-spacing-block/table-column-width/text-combine-mode/combine-upright-digits/flex-wrap-reverse-block = 각각 table-layout(7)/caption-side(5)/border-spacing(9)/text-combine-upright(15)/flex-wrap 계열의 fabricated 파생 또는 HTML 표현 속성(cellspacing) 오인, 실존 CSS 속성 아님. (3) counter-increment-reversed = counter-reset의 reversed() 함수를 속성으로 오인(counter-increment 11, counter-reset 13).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5161, 884th round(responsive). style-surface 센서스 대상 포인터 25515e2f(c5155 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5157 — design/tokens 807th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 807번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 83bd082f(c5151 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main fe819ce3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
