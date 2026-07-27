@@ -17725,6 +17725,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5615 — design/aesthetic 960th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 960번째 라운드, 발견 모드. 백로그 pending=0. origin/main 658fe3b6 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 색 함수·컬러 스페이스 채널 계열, 배치2 = 그라디언트·이미지 생성 함수·합성 계열. 0-match 후보 39건. (기존 커버 일부: linear-gradient=34, conic-gradient=18, currentcolor=12, porter-duff=7, radial-gradient=6, repeating-gradient=6, system-color=3, named-color=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) CSS 함수명·함수 문법 구성요소 12 — color-function(color()), oklch-lightness·oklab-chroma·lab-lightness·lch-chroma·hwb-whiteness(색 함수 채널 인자), image-function(image()), element-function(element()), cross-fade-percentage(cross-fade=12 인자), filter-function(필터 값 문법 타입), gradient-line·gradient-angle(그라디언트 함수 문법); (2) 값 문법·값 컴포넌트 파생 7 — color-stop·gradient-stop(색 정지점 문법), hue-interpolation·gradient-interpolation(보간 방식 값), blend-mode-value(mix-blend-mode=18 값), paint-order-value(paint-order=11 값), opacity-percentage(opacity=90 값); (3) 명세 개념 용어 7 — alpha-channel, alpha-compositing, compositing-operator, stacking-context, knockout-group, isolate-group(isolation=12 보유), backdrop-root(backdrop-filter=18 보유); (4) 색 표기법 분류 명칭 4 — hex-color·rgb-legacy·hsl-legacy·color-keyword(named-color=1·system-color=3 이미 기재); (5) Houdini API 1 — paint-worklet; (6) 조작된 명칭 8 — transparent-black, image-smoothing(image-rendering=23 보유), checkerboard-pattern, pattern-fill, texture-repeat, noise-overlay, layer-blending(background-blend=14 보유), group-opacity(opacity=90 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5617, 960th round(responsive). style-surface 센서스 대상 포인터 07e0e9ff(c5611 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5613 — design/tokens 883rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 883번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6206a590(c5607 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 150215a0 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
