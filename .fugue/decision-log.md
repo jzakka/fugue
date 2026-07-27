@@ -17497,6 +17497,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5447 — design/aesthetic 932nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 932번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Text Decoration L4·Inline Layout L3 밑줄/에지 계열, 배치2 = CSS Containment L3·env() 환경 변수·미디어 기능 계열. 0-match 후보 28건. (기존 커버: text-shadow=25, text-decoration-skip=16, underline-offset=14, device-posture=12, text-decoration-style=10, text-decoration-line=9, text-underline-offset=9, text-decoration-thickness=8, inverted-colors=6, text-emphasis-style=5, alignment-baseline=5, text-decoration-skip-spaces=5, text-decoration-skip-box=4, half-leading=3, text-decoration-skip-self=3, initial-letter-wrap=2, line-fit-edge=2, keyboard-inset-top=2, horizontal-viewport-segments=2, text-decoration-skip-inset=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 별칭 1 — text-decoration-width(text-decoration-thickness=8로 개명); (2) env() 환경 변수·함수 문법 6 — titlebar-area-width·titlebar-area-height(titlebar-area-x=3 계열), keyboard-inset-left·keyboard-inset-width(keyboard-inset-top=2·keyboard-inset-height=1 계열), env-safe-area·env-fallback(safe-area-inset=15 보유) — 속성이 아닌 env() 변수·인자; (3) 미디어 기능 명칭 4 — preferred-color-scheme, monochrome-depth, update-frequency, scripting-support(@media 기능 변형, 속성 아님); (4) 명세 개념 용어 5 — style-containment, layout-containment, paint-containment, size-containment, containment-context(contain=184 값 키워드의 개념 명칭); (5) 조작된 명칭 12 — text-edge-adjust·inline-box-edge·text-box-adjust(text-box-edge=5·line-fit-edge=2 보유), overline-position·strikethrough-position(text-underline-position=12 보유), inline-align·vertical-position(vertical-align=10 보유), contain-intrinsic-contain·content-contain·contain-scope(contain-intrinsic-size=6 보유), container-style·container-scope(container-type=22·container-name=9 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5449, 932nd round(responsive). style-surface 센서스 대상 포인터 bf0fcc86(c5443 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5445 — design/tokens 855th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 855번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 52f73c94(c5439 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 797e0a02 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
