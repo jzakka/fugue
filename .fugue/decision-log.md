@@ -17689,6 +17689,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5591 — design/aesthetic 956th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 956번째 라운드, 발견 모드. 백로그 pending=0. (§0 시점 origin/main 51c09b56 → 브랜치 기준 6f5d0ded로 이동, 프로빙 후 재fetch로 반영.)
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 트랜스폼·3D·컨테인먼트 계열, 배치2 = 길이 단위·논리 속성 계열. 0-match 후보 33건. (기존 커버 일부: contain=184, font-size=45, perspective=29, inline-size=24, container-type=22, block-size=15, backface-visibility=10, transform-origin=9, zoom=7, transform-style=7, contain-intrinsic-size=6, perspective-origin=5, preserve-3d=5, rotate-x=4, translate-x=3, dynamic-viewport=3, inset-inline-start=3, margin-trim=2, padding-block-start=2, scale-x=1, inset-block-end=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 스펙 삭제 속성 1 — rotation-point(CSS Transforms 초기 초안에서 삭제); (2) CSS 함수명·값 문법 타입 4 — skew-angle(skew() 인자), transform-perspective(perspective() 함수), matrix-transform(matrix() 함수), transform-function(값 문법 타입); (3) 값 키워드 파생 5 — flat-transform(transform-style: flat 값), layout-containment·paint-containment·style-containment·size-containment(contain=184의 layout/paint/style/size 값); (4) CSS 단위 분류 명칭 12 — svh-unit·lvh-unit·dvh-unit·cqw-unit·cap-unit·rlh-unit·rex-unit·ic-unit·ch-unit·relative-length·font-relative-length·viewport-percentage; (5) 명세 개념 용어 4 — container-query-length·container-relative-length(container-type=22 보유), small-viewport·large-viewport(dynamic-viewport=3 보유); (6) 조작된 명칭 7 — perspective-depth(perspective=29 보유), origin-offset(transform-origin=9 보유), zoom-factor(zoom=7 보유), viewport-scale, root-font-size(font-size=45 보유), logical-height·logical-width(block-size=15·inline-size=24 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5593, 956th round(responsive). style-surface 센서스 대상 포인터 ddd97213(c5587 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5589 — design/tokens 879th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 879번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 da9f675a(c5583 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 75f6f86e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
