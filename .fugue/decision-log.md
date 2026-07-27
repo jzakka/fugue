@@ -17365,6 +17365,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5345 — design/aesthetic 915th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 915번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 다단·2009 구판 flexbox·그리드 갭 별칭 계열, 배치2 = IE 레이아웃 그리드·텍스트 장식 구판·interest/코너 논리 계열. 0-match 후보 36건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 별칭 — word-wrap(overflow-wrap=14로 개명), grid-column-gap·grid-row-gap(column-gap/row-gap로 개명, gap=163 보유), block-overflow(block-ellipsis=3로 개명), region-overflow(region-fragment=1로 개명); (2) 벤더 독점 레거시 — box-align·box-pack·box-flex·box-lines·box-ordinal-group·box-direction(2009 -webkit-box- 구판 flexbox), layout-grid·layout-grid-mode·layout-flow·text-kashida·text-kashida-space(-ms- 전용), ime-mode(폐지); (3) 폐기 모듈·초안 — marquee-speed(CSS Marquee 폐기), grid-layer(IE 그리드 초안), text-line-through(구 CSS3 초안), ruby-span(CSS Ruby 초안 삭제), scroll-snap-area(Snap Points L1 삭제); (4) 값 키워드 파생 — text-overflow-ellipsis(text-overflow=6), columns-balance(column-fill=2의 balance); (5) 조작된 명칭 — column-gap-decoration, column-rule-shorthand, fragmentation-strategy, text-underline-mode(text-underline=16), text-blink, line-clamp-fade(line-clamp=26), interest-show-delay·interest-hide-delay(실제는 -start/-end, interest-delay=1 보유), corner-shape-inline-start(corner-shape=9, 논리형은 corner-start-start-shape), baseline-shift-source(baseline-shift=7/baseline-source=3), shape-subtract(shape-outside=18/shape-inside=10), scroll-input-target.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5347, 915th round(responsive). style-surface 센서스 대상 포인터 323c6469(c5341 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5343 — design/tokens 838th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 838번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 26d4177c(c5337 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 020f91bd 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
