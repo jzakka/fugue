@@ -17449,6 +17449,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5411 — design/aesthetic 926th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 926번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Masking L1 마스크/마스크 보더·필터 효과·SVG 단위 속성 계열, 배치2 = CSS Fonts L4/L5 font-variant 계열·@font-face 메트릭 오버라이드·@font-palette-values 디스크립터 계열. 0-match 후보 14건. (기존 커버: font-variant-numeric=21, backdrop-filter=18, font-variant-alternates=14, font-variant-caps=11, mask-image=11, font-variant-ligatures=10, font-variation-settings=9, font-stretch=9, descent-override=8, font-variant-position=8, mask-composite=8, unicode-range=8, color-interpolation-filters=7, line-gap-override=7, mask-clip=7, mask-mode=7, mask-size=7, ascent-override=6, base-palette=6, font-variant-emoji=6, mask-origin=6, mask-position=6, override-colors=6, mask-repeat=5, flood-opacity=4, mask-border-source=4, font-variant-east-asian=3, mask-border-repeat=3, mask-border-slice=3, font-width=2, mask-border-mode=2, mask-border-outset=2, mask-border-width=2, font-named-instance=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) SVG 속성 camelCase 원형 4 — primitive-units·filter-units·mask-units·clip-units(SVG primitiveUnits/filterUnits/maskUnits/clipPathUnits 요소 속성, CSS 속성 아님, SVG camelCase 기각 선례); (2) 값 문법 타입·함수명 2 — clip-source(clip-path=23의 값 문법 타입), filter-function(filter=188의 값 함수 타입); (3) 값 키워드 파생 1 — mask-luminance(mask-mode=7의 luminance 값 파생); (4) 디스크립터 조작 명칭 2 — font-face-src·font-style-range(@font-face 실제 디스크립터는 src·font-style, c5357 src-descriptor 기각 선례); (5) 조작된 명칭 5 — font-variant-color·font-variant-glyph(font-variant-* 계열에 부재), font-metrics-override(ascent-override=6·descent-override=8·line-gap-override=7 보유), superscript-position(font-variant-position=8 보유), font-feature-order(font-feature-settings=25 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5413, 926th round(responsive). style-surface 센서스 대상 포인터 b2021dd2(c5407 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5409 — design/tokens 849th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 849번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 0f7ff42c(c5403 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 27ac141c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
