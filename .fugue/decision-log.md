@@ -17257,6 +17257,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5255 — design/aesthetic 900th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 900번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 밑줄 skip 계열·정렬(justify-self/place-content)·CSS Gap Decorations·아웃라인/그림자 세부 축, 배치2 = 스크롤 스냅 구형 초안·분할(fragmentation)·페이지 매체·내재 크기/object 계열. 0-match 후보 24건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 — ruby-overhang-auto·dominant-baseline-auto·text-wrap-mode-balance·image-resolution-from-image. (2) 구형/개명 별칭 — page-break-before/page-break-inside(break-before=8·break-inside=10), snap-target(scroll-snap-align=15), gap-rule-color/style/width(정식명 row-rule-color=1·column-rule-break=1·rule-paint-order=1로 이미 커버). (3) 폐기 모듈 — inline-box-align(CSS Inline Layout 제거), snap-height(CSS Snap Size 폐기), accent-height(SVG 1.1 폰트 디스크립터, 삭제된 SVG font). (4) 벤더 전용 레거시 — overflow-clip-box(-moz-). (5) 시각 범위 밖 — bookmark-state(CSS GCPM PDF 북마크, c5225 관례). (6) 조작된 명칭 — text-emphasis-order·box-shadow-position·text-shadow-blur·ideographic-alignment·scroll-input-boundary·fragmentation-strategy·element-content·aspect-ratio-fit·object-overflow.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5257, 900th round(responsive). style-surface 센서스 대상 포인터 4e744d63(c5251 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5253 — design/tokens 823rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 823번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 4d80174f(c5247 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 49f0fc9c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
