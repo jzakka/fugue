@@ -17509,6 +17509,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5459 — design/aesthetic 934th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 934번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Backgrounds/Borders L3·L4 롱핸드·테두리 클립 계열, 배치2 = CSS Logical Properties L1·Writing Modes L4 흐름 상대 계열. 0-match 후보 33건. (기존 커버: background-position=28, border-image=19, padding-inline=9, padding-block=8, margin-block=6, margin-block-start=5, inset-inline=5, flow-relative=4, corner-top-left-shape=3, background-color=2, box-border=2, padding-block-start=2, border-block-start-width=1, margin-inline-end=1, border-start-end-radius=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 커버된 계열 롱핸드 파생 7 — border-block-end-style, border-inline-color, border-block-color, border-inline-width, border-block-style, border-top-style, border-bottom-color(실존 롱핸드이나 border-width=19·border-color=11·border-style=6 계열 커버 완료, c5417 flex-flow 선례); (2) 미구현 초안 모듈(CSS Borders L4) 6 — border-limit, border-clip, border-clip-top, border-boundary, border-shape, border-block-start-radius(c5387 선례); (3) 비표준 벤더 롱핸드 2 — background-repeat-x·background-repeat-y(Blink/WebKit 전용, background-repeat=15 보유); (4) 값 키워드 파생 6 — text-orientation-upright(text-orientation=27), writing-mode-vertical(writing-mode=36), float-inline-start·clear-inline-end(float/clear 논리 키워드), resize-block(resize=53), margin-trim-block(margin-trim); (5) 명세 개념 용어 6 — logical-height, logical-width, physical-mapping, logical-shorthand, writing-system, block-flow(속성 아님, c5435·c5447·c5453 선례); (6) 조작된 명칭 6 — border-radius-top·border-bevel(border-*-radius 롱핸드 보유), background-image-transform(background-image 계열 부재), caption-side-block(caption-side=5 보유), overflow-inline-start(overflow-inline=3 보유), inset-area-span(inset-area=2·position-area=13 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5461, 934th round(responsive). style-surface 센서스 대상 포인터 50a825ba(c5455 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5457 — design/tokens 857th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 857번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 7b96c70d(c5451 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 7fe1842f 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
