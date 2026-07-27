@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6384 — 보안: npm audit census → 표면 불변 (covered)
+- 축: cd apps/web && npm audit
+- 조사: found 0 vulnerabilities — 57382965(6360 fix) 보안 앵커 유효. 신규 advisory 유입 없음
+- 판정: 직전 보안 census(6372) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6386 예정 (e2cb3a80 non-loop residual census)
 ### cycle 6382 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
