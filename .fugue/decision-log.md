@@ -17281,6 +17281,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5279 — design/aesthetic 904th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 904번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS3 Text/Fonts 폐기 초안·IE 동아시아 조판 레거시, 배치2 = IE -ms-grid 레거시·CSS Borders 4 초안·그림자 구성요소 및 디자인 시스템 용어. 0-match 후보 41건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 — ruby-align-center(ruby-align=7). (2) 구형/개명 별칭 — text-combine-horizontal(text-combine-upright=15), font-emphasize/-style/-position(text-emphasis-style=5·-position=11), text-line-through·text-overline·text-underline-mode(text-decoration-line=9), punctuation-trim(hanging-punctuation=15), text-autospacing(text-autospace=5), text-height(text-box-edge=5·line-height=36), grid-columns·grid-cell-stacking·grid-layer(-ms-grid 레거시, grid-template-columns=16). (3) 폐기 초안 — line-increment(CSS Line Grid), text-replace·text-outline·font-effect(CSS3 Text/Fonts 삭제), border-fit·border-length·border-part·border-clip(CSS Borders 4 미구현). (4) IE/Mozilla 전용 레거시 — ime-align·text-kashida·text-kashida-space·layout-flow·layout-grid-mode·text-blink-mode. (5) 값 구성요소를 속성으로 오인 — shadow-inset·blur-radius·spread-radius·shadow-spread·drop-shadow-color·glow-color(box-shadow=60·filter=188), corner-radius(corner-shape=9 계열). (6) CSS 아닌 디자인 시스템/유틸리티 용어 — surface-tint·elevation-shadow·depth-shadow·material-elevation·ring-width. (7) 조작된 명칭 — content-box-height.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5281, 904th round(responsive). style-surface 센서스 대상 포인터 302a8d28(c5275 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5277 — design/tokens 827th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 827번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 08e7133a(c5271 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main f949ef83 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
