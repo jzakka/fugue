@@ -17161,6 +17161,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5171 — design/aesthetic 886th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 886번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, font-variant-* 롱핸드, font-synthesis·font-palette, MathML(math-style/depth/shift), 색 함수(color-mix/color-contrast/device-cmyk/light-dark), WebKit 레거시 계열). 0-match 후보 16건: line-height-normal, font-variant-width, font-variant-emoji-text, font-feature-order, font-palette-override, font-optical-sizing-auto, font-size-adjust-two-value, math-script-level, math-shift-compact, color-mix-oklch, color-contrast-target, device-gray, light-dark-fallback, text-size-adjust-none, line-height-trim, font-variant-ruby.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) line-height-normal/font-variant-emoji-text/font-optical-sizing-auto/math-shift-compact/text-size-adjust-none/font-variant-ruby = line-height(36)/font-variant-emoji(6)/font-optical-sizing(12)/math-shift(5)/text-size-adjust(10)/font-variant-east-asian(3)의 값 키워드 파생. (2) font-variant-width/font-feature-order/font-size-adjust-two-value/color-contrast-target/line-height-trim = font-variant-(44)/font-feature-settings(25)/font-size-adjust(9)/color-contrast(5)/leading-trim(5) 계열의 fabricated 파생, 실존 속성 아님. (3) font-palette-override = @font-palette-values의 override-colors 디스크립터 오인(font-palette 22). (4) color-mix-oklch/device-gray/light-dark-fallback = color-mix()·device-cmyk()·light-dark() 색 함수 인자를 속성으로 오인(color-mix 22, device-cmyk 17, light-dark 10). (5) math-script-level = MathML의 scriptlevel 속성을 CSS 속성명으로 오인, CSS 대응은 math-depth(math- 10).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5173, 886th round(responsive). style-surface 센서스 대상 포인터 b4014ed5(c5167 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5169 — design/tokens 809th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 809번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 886990cf(c5163 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 022e6dce 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
