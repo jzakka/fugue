@@ -17467,6 +17467,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5423 — design/aesthetic 928th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 928번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS UI L4 폼/캐럿/아웃라인·읽기 순서 계열, 배치2 = CSS Transforms L2 3D 변환·원근·변환 함수 인자 계열. 0-match 후보 24건. (기존 커버: field-sizing=21, backface-visibility=10, view-box=10, transform-origin=9, transform-style=7, interactivity=6, outline-offset=6, outline-style=6, perspective-origin=5, pointer-events-none=5, preserve-3d=5, anchor-position=4, reading-flow=4, rotate-x=4, rotate3d=3, scrollbar-gutter=3, transform-box=3, translate3d=3, appearance-base=2, matrix3d=2, scale3d=2, input-security=1, nav-index=1, reading-order=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 벤더 독점 레거시 3 — ime-mode(-ms-/Gecko 전용, 스펙 삭제), outline-radius-topleft(-moz- 전용, c5357 outline-radius 기각 선례), perspective-origin-x(-webkit- 전용 롱핸드, perspective-origin=5 보유); (2) SVG 폐기 속성 1 — accent-height(SVG 1.1 폰트 요소 속성, SVG2에서 폐기); (3) 값 문법 타입·함수 인자·값 키워드 파생 3 — transform-list(transform 값 목록 문법 타입), skew-angle(skew() 인자), box-shadow-inset(box-shadow=60의 inset 키워드 파생, c5357 box-shadow-spread 기각 선례); (4) 개명 전 별칭 1 — form-sizing(field-sizing=21로 개명); (5) 조작된 명칭 16 — widget-appearance(appearance-base=2 보유), cursor-image(cursor=40 보유), caret-width·caret-offset(caret-color=25·caret-shape=4·caret-animation=4 보유), resize-direction(resize=53 보유), outline-inset(outline-offset=6 보유), input-format(input-security=1 보유), origin-x·transform-origin-z(transform-origin=9 롱핸드 부재), zoom-origin·transform-perspective·transform-behavior·transform-attribute·perspective-depth(perspective=5 계열 부재), backface-culling(backface-visibility=10 보유), motion-rotation-point(c5387 motion-rotation 기각 선례, offset-rotate=9 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5425, 928th round(responsive). style-surface 센서스 대상 포인터 e1474f26(c5419 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5421 — design/tokens 851st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 851번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 4df38293(c5415 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main f1607605 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
