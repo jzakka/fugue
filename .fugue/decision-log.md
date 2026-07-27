@@ -17231,6 +17231,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5227 — design/responsive 895th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 895번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 92a85838(c5221 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main fc0d49f2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main fc0d49f2 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5229, 819th round(tokens). style-surface 센서스 대상 포인터 f7614785(c5223 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5225 — design/aesthetic 895th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 895번째 라운드, 발견 모드. 백로그 pending=0.
 - 프로빙: anti-patterns.md 대비 fresh 축 3배치 프로빙(~72축, 그리드 배치 롱핸드·스크롤 마커/타깃·item-flow 계열(배치1), @font-face/@property/@counter-style 디스크립터·2009 박스 레이아웃 레거시·구 스크롤 스냅(배치2), 페이지드 미디어 북마크·CSS Speech·Text/Text-Decoration 드래프트(배치3)). 0-match 후보 24건: scroll-initial-target, scroll-start-target, masonry-auto-flow, item-slack, item-direction, item-cross, box-align, text-wrap-mode-nowrap, item-wrap, box-pack, box-flex-group, box-lines, scroll-snap-coordinate, scroll-snap-destination, ime-mode, bookmark-level, bookmark-label, bookmark-state, rest-before, line-padding, text-decoration-trim, copy-into, region-break, slider-orientation.
