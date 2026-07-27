@@ -17359,6 +17359,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5339 — design/aesthetic 914th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 914번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 색상 보간·이미지 해상도·블렌드/필터·내재 크기 계열, 배치2 = 폼 컨트롤 외형·인라인 박스 정렬·폰트 디스크립터 오버라이드 계열. 0-match 후보 26건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) CSS 함수 인자명 — image-set-type(image-set()의 type()), color-mix-method(color-mix()의 보간 방식); (2) 벤더 독점 레거시 — interpolation-mode(-ms- 전용); (3) 폐기·미구현 초안 — input-format(구 CSS3 Basic UI), snap-height(구 Line Grid, line-snap=1 보유), inline-box-align(CSS Inline 3 삭제); (4) 이미 커버된 계열의 롱핸드 — text-align-all(text-align=22, text-align-last=4 보유); (5) 값 키워드 파생 — justify-content-safe·safe-align(safe 키워드); (6) HTML 속성 — spell-check, text-input-mode(inputmode); (7) CSS 속성 아닌 개념·센서 API — backdrop-root, ambient-light; (8) 조작된 명칭 — gradient-interpolation(color-interpolation=12 보유), filter-effect(filter=188), hdr-mode, luminance-source, element-shadow(box-shadow=60), select-appearance·checkbox-appearance·switch-appearance·form-sizing(appearance=15, field-sizing=21 보유), ruby-annotate(ruby-position=20 보유), text-box-anchor(text-box-trim=9 보유), subscript-size·superscript-size(c5321 subscript-position/superscript-position 기각 선례).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5341, 914th round(responsive). style-surface 센서스 대상 포인터 301f9668(c5335 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5337 — design/tokens 837th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 837번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5ad9d5c4(c5331 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 26d4177c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
