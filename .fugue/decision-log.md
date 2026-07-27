@@ -17419,6 +17419,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5387 — design/aesthetic 922nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 922번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Borders L4 테두리 클립/제한·box-shadow 롱핸드·코너 형태 계열, 배치2 = Shapes L2·구 Motion Path·IE 스크롤바 색·함수 인자 계열. 0-match 후보 30건. (기존 커버: blend-mode=20, border-width=19, shape-outside=18, background-clip=16, background-attachment=13, border-color=11, shape-inside=10, corner-shape=9 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 미구현 초안 롱핸드 12 — CSS Borders L4(border-shape·border-clip·border-clip-top/-right/-bottom/-left·border-limit·border-boundary), CSS Backgrounds L4 box-shadow 롱핸드(box-shadow-color·box-shadow-offset·box-shadow-blur·box-shadow-position, c5357 box-shadow-spread 기각 선례); (2) 개명 전 별칭 2 — motion-offset·motion-rotation(구 Motion Path 초안, offset-distance=7·offset-rotate=9로 개명, motion-path=2 기존 커버); (3) 벤더 독점 레거시 3 — scrollbar-track-color·scrollbar-arrow-color·scrollbar-highlight-color(IE 전용, c5333 scrollbar-3dlight-color 기각 선례, scrollbar-color=6 보유); (4) CSS 함수 인자·환경변수 3 — ray-size·ray-contain(ray() 인자 문법), env-safe-area(env() 변수, safe-area-inset=15 보유); (5) 조작된 명칭 10 — corner-block-start-shape·corner-inline-end-shape(corner-shape=9·corner-start-start-shape=4 보유, 해당 논리 조합 부재), background-tint, shape-subtract·shape-outside-margin(shape-outside=18·shape-margin=6 보유), scrollbar-thumb-color(IE 계열에도 부재), isolation-mode(isolation=12), filter-margin, offset-path-fallback, page-size(@page 디스크립터는 size, page=299 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5389, 922nd round(responsive). style-surface 센서스 대상 포인터 e6ed38df(c5383 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5385 — design/tokens 845th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 845번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6aae3cd0(c5379 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 326cd859 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
