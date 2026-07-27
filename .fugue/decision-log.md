@@ -17545,6 +17545,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5489 — design/aesthetic 939th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 939번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Containment L2·L3 렌더링 성능 계열, 배치2 = CSS Counter Styles L3·Lists L3 마커 계열. 0-match 후보 46건. (기존 커버: render-blocking=2, details-marker=2 — 배치 내 유일 기존 커버 축.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 5 — contain-layout·contain-paint·contain-style·contain-size(contain=184 값), will-change-contents(will-change=20 값); (2) 개명 전 별칭 1 — render-subtree(→ content-visibility=19); (3) Houdini worklet 명칭 2 — paint-worklet, layout-worklet(c5405 선례); (4) Web API·HTML 속성 명칭 4 — display-lock, priority-hint, fetch-priority, decoding-async(CSS 속성 아님); (5) 브라우저 구현 개념 용어 7 — compositing-layer, layer-promotion, gpu-acceleration, repaint-region, invalidation-scope, style-recalc, reflow-boundary; (6) at-rule 디스크립터 8 — counter-style-system·counter-symbols·counter-negative·counter-prefix·counter-suffix·counter-range·counter-pad·counter-fallback(@counter-style 디스크립터, additive-symbols=8·speak-as=10 보유); (7) CSS 함수명 1 — symbols-function; (8) 의사요소 기반 조작 2 — disclosure-marker, summary-marker(details-marker=2 보유); (9) 명세 개념 용어 5 — marker-box, list-item-marker, list-nesting, nested-counter, counter-name-scope; (10) 조작된 명칭 11 — containment-priority, skip-contents, lazy-render, offscreen-render, list-style-shorthand, ordered-list-start, unordered-marker, list-marker-color, list-marker-size, list-indent, list-gutter(list-style-type=10·list-style-position=7·list-style-image=6·marker-side=2 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5491, 939th round(responsive). style-surface 센서스 대상 포인터 0042a854(c5485 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5487 — design/tokens 862nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 862번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 2ec34f79(c5481 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main cd536501 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
