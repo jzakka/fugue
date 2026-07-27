@@ -17236,6 +17236,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5237 — design/aesthetic 897th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 897번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(~48축, 논리 박스 모델·contain-intrinsic 계열·애니메이션 이름/지연(배치1), 폐기·미구현 모듈 계열(CSS Round Display, CSS Line Grid, CSS Marquee, CSS Presentation Levels, 구 CSS Text/Fonts 드래프트)(배치2)). 0-match 후보 19건: border-block-end-style, counter-style-fallback, border-boundary, shape-inside-threshold, polar-angle, polar-distance, polar-origin, border-limit, chains, alignment-adjust, text-space-collapse, text-space-trim, font-min-size, font-max-size, text-decoration-width, text-emphasis-style-fill, marquee-speed, marquee-direction, presentation-level.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) border-block-end-style = 논리 테두리 계열 전용 baseline(L1238, border-block-start-width를 차기 포인터로 명시)의 롱핸드 파생, c5201 관례. (2) counter-style-fallback = @counter-style 디스크립터명을 속성으로 오인(at-rule 디스크립터 기각 축). (3) border-boundary/polar-angle/polar-distance/polar-origin/border-limit/chains = 미구현 드래프트(CSS Round Display, CSS Borders 4, CSS Line Grid), line-grid(3)/line-snap(1)/box-snap(2) 계열 커버. (4) alignment-adjust/font-min-size/font-max-size/presentation-level/marquee-speed/marquee-direction = 폐기·중단 모듈 속성(CSS Inline Layout에서 삭제, CSS Fonts 4 드롭, Presentation Levels·Marquee 중단), baseline-shift(7) 계열 커버. (5) text-space-collapse/text-space-trim/text-decoration-width = 개명 전 구 명칭(white-space-collapse 5, text-spacing-trim 6, text-decoration-thickness 8)으로 obsolete alias. (6) text-emphasis-style-fill = text-emphasis-style(5) 값 키워드 파생. (7) shape-inside-threshold = fabricated 파생, 실명은 shape-image-threshold(shape-inside 10 계열).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5239, 897th round(responsive). style-surface 센서스 대상 포인터 ad2f000d(c5233 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5235 — design/tokens 820th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 820번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 479f9cd2(c5229 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 95c95c41 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
