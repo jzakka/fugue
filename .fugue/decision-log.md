@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6578 — 정합성: 코드·문서 non-loop residual census → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
+- 조사: 0건 — e2cb3a80 이후 apps/api 비-loop 변경 없음. 코드·문서 정합 앵커 유효
+- 판정: 직전 정합성 census(6566) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6580 예정 (22747864 apps/api census)
+
 ### cycle 6576 — 보안: 의존성 취약점 census → 표면 불변 (covered)
 - 축: cd apps/web && npm audit
 - 조사: found 0 vulnerabilities — 보안 baseline 앵커(57382965) 유효. brace-expansion/minimatch override 정합 유지
