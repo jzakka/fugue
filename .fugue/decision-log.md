@@ -17353,6 +17353,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5333 — design/aesthetic 913th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 913번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤바·스크롤 스냅 구판·타임라인/트랜지션/애니메이션 계열, 배치2 = 세로쓰기·하이프네이션·루비·앵커 위치 폴백·팝오버/폼 계열. 0-match 후보 11건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 벤더 독점 레거시 — scrollbar-3dlight-color(IE 전용, scrollbar-color=6 보유); (2) 폐기된 구판 스펙 — scroll-snap-coordinate·scroll-snap-destination(Scroll Snap Points L1 삭제, scroll-snap-align=15로 대체); (3) 미구현 초안 및 그 롱핸드 — pointer-timeline·pointer-timeline-axis·pointer-timeline-name(스크롤 구동 애니메이션 확장 제안, view-timeline=13/scroll-timeline=13 계열 대응), slider-orientation(CSS Forms 1 미구현); (4) at-rule 디스크립터 이름 — counter-style-fallback(@counter-style의 fallback 디스크립터); (5) 값 키워드 파생 — text-transform-full-width(text-transform의 full-width 값); (6) 조작된 명칭 — popover-hide-delay·popover-show-delay(popover는 HTML 속성, 동명 CSS 속성 부재).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5335, 913th round(responsive). style-surface 센서스 대상 포인터 a092062d(c5329 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5331 — design/tokens 836th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 836번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 069d6268(c5325 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 5ad9d5c4 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
