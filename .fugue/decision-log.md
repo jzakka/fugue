@@ -17305,6 +17305,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5297 — design/aesthetic 907th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 907번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤/뷰 타임라인 계열·앵커/팝오버·뷰 트랜지션·페이지 분할 계열, 배치2 = CSS Text 4 wrap 계열·CSS2 aural media 및 CSS Speech 계열. 0-match 후보 16건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 시각 범위 밖 음성 매체 — mark-before·mark-after·phonemes·speech-rate·speak-numeral·speak-punctuation·play-during·richness·pitch-range (CSS2 aural media 및 CSS Speech, 시각 렌더링과 무관); (2) 개명 전 폐기 별칭 — page-transition-tag(view-transition-name=7로 개명), text-edge(text-box-edge=5로 개명); (3) 조작된 명칭 — overlay-position(overlay=38 계열 오인), popover-hide-delay·popover-show-delay(팝오버 지연은 interest-delay=1 계열이며 해당 명칭 부재), navigation-behavior, inline-size-adjust(font-size-adjust=9 패턴 오적용).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5299, 907th round(responsive). style-surface 센서스 대상 포인터 4a4fabbc(c5293 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5295 — design/tokens 830th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 830번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5ef3b58f(c5289 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 483479bc 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
