@@ -17677,6 +17677,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5583 — design/tokens 878th round (Discovery, 표면 불변 폐기)
+- 순번: tokens 878번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 dd1ba8cf(c5577 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main da9f675a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 디자인 토큰 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main da9f675a (차기 tokens 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = aesthetic → cycle 5585, 955th round(aesthetic). anti-patterns.md 대비 fresh 축 프로빙, 0-match를 계열 baseline/값 파생과 대조해 순수 vacuous 축만 채택(rigor-over-quota).
+
 ## cycle 5581 — design/responsive 954th round (Discovery, 표면 불변 폐기)
 - 순번: responsive 954번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 dedc468f(c5575 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 087587c2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
