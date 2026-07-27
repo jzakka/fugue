@@ -17623,6 +17623,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5549 — design/aesthetic 949th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 949번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 폰트 합성·가변 폰트 축 계열, 배치2 = 뷰 트랜지션·폼 컨트롤 파트 계열. 0-match 후보 41건. (기존 커버 일부: details-content=7, font-synthesis-position=5, font-synthesis-style=4, font-synthesis-small-caps=4, font-synthesis-weight=3, font-variant-east-asian=3, weight-axis=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 커버 계열 롱핸드 파생 1 — font-variant-ruby(font-variant-numeric=21·-alternates=14·-caps=11 계열); (2) 값 문법 타입 2 — font-family-name, generic-family; (3) 값 키워드 파생 3 — system-ui-family, font-style-oblique, oblique-angle; (4) 명세 개념 용어 6 — font-fallback, font-matching, font-metric-override(ascent-override=6·descent-override=8·line-gap-override=7 그룹 지칭), variable-font, axis-registry, snapshot-containing-block; (5) at-rule 디스크립터 명칭 3 — font-face-src·src-descriptor(@font-face src), view-transition-types(@view-transition types); (6) OpenType 가변 축 태그 명칭 5 — width-axis, slant-axis, optical-size-axis, italic-axis, grade-axis(font-variation-settings=9 보유); (7) 개명 전 별칭 2 — document-transition·shared-element-transition(→ View Transitions, view-transition-name=7 보유); (8) 의사요소 기반 조작 5 — form-control-style, progress-bar-style, meter-style, range-thumb-style, checkbox-style(slider-track=4·slider-fill=4·select-arrow=4 보유); (9) 조작된 명칭 14 — view-transition-old-class, view-transition-new-class, transition-group-name, nav-transition, page-transition, transition-outcome, capture-mode, morph-transition, crossfade-duration, exit-transition, entry-transition, popover-transition, dialog-transition, field-appearance.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5551, 949th round(responsive). style-surface 센서스 대상 포인터 fdc37e55(c5545 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5547 — design/tokens 872th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 872번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 edf4a223(c5541 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 0dda59c8 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
