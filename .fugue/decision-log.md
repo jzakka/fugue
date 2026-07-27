@@ -17156,6 +17156,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5165 — design/aesthetic 885th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 885번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, background-*/mask-* 페인팅 롱핸드, border-radius 논리 코너, overscroll·scroll-snap·scroll-marker, word-break·overflow-wrap·hanging-punctuation 계열). 0-match 후보 14건: background-attachment-local, background-clip-text, mask-mode-alpha, border-radius-corner, overscroll-behavior-contain, scroll-behavior-instant, scroll-padding-corner, scroll-start-target, word-break-auto-phrase, overflow-wrap-anywhere, hanging-punctuation-force, text-space-collapse, text-wrap-avoid, line-break-strict.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) background-attachment-local/background-clip-text/mask-mode-alpha/overscroll-behavior-contain/scroll-behavior-instant/word-break-auto-phrase/overflow-wrap-anywhere/hanging-punctuation-force/line-break-strict = background-attachment(13)/background-clip(16)/mask-mode(7)/overscroll-behavior(13)/scroll-behavior(23)/word-break(13)/overflow-wrap(14)/hanging-punctuation(15)/line-break(21)의 값 키워드 파생. (2) border-radius-corner/scroll-padding-corner/text-wrap-avoid = border-radius(65)/scroll-padding(27)/text-wrap(24) 계열의 fabricated 파생, 실존 속성 아님. (3) scroll-start-target/text-space-collapse = 각각 scroll-target-group(1), white-space-collapse(5)로 개명된 구식 별칭.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5167, 885th round(responsive). style-surface 센서스 대상 포인터 f89a01f9(c5161 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5163 — design/tokens 808th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 808번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 fe819ce3(c5157 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 886990cf 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
