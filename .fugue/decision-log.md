@@ -17515,6 +17515,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5465 — design/aesthetic 935th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 935번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = CSS Scroll Snap·Overflow L5 스크롤 마커/스냅 계열, 배치2 = CSS Text L4·Inline Layout 줄바꿈·정렬 계열. 0-match 후보 37건. (기존 커버: scroll-marker=8, text-wrap-mode=5, scroll-start-block=1, scroll-start-inline=1, text-group-align=1, wrap-inside=1, wrap-after=1, wrap-before=1, wrap-flow=1, wrap-through=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전·후 별칭 4 — scroll-start-target, scroll-snap-margin·scroll-snap-padding(→ scroll-margin=20·scroll-padding=27), scroll-initial-target(scroll-start=1 계열의 현행 개명); (2) 폐기 구버전 명세(2015 Scroll Snap L1) 4 — scroll-snap-coordinate, scroll-snap-destination, scroll-snap-points-x, scroll-snap-points-y(c5399 선례); (3) 벤더 독점 레거시 4 — scroll-chaining·scroll-rails·scroll-limit-x-max(-ms- 전용), scrollbar-arrow-color(IE, scrollbar-color=6 보유); (4) 스펙 삭제 속성 3 — scroll-timeline-attachment(c5441 timeline-attachment 선례), scroll-start-x, scroll-start-y; (5) 명세 개념 용어 8 — snap-area, snap-target, scroll-anchoring, scroll-adjustment, scrollport, inline-baseline, first-baseline, last-baseline(속성 아님, c5435·c5447·c5453·c5459 선례); (6) 값 키워드 파생 1 — inline-sizing-normal(inline-sizing=3); (7) 조작된 명칭 13 — scroll-marker-contain, text-wrap-word(text-wrap-mode=5·text-wrap-style=3 보유), max-lines-policy(max-lines=2), fill-line-gap, chunk-size, line-padding, text-align-all-lines(text-align=22), bullet-style·bullet-size·marker-pattern(list-style-type=10·marker-side=2 보유), content-align·content-justify(align-content=6·justify-content=18 보유), item-cross-align(align-items=8).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5467, 935th round(responsive). style-surface 센서스 대상 포인터 735288dd(c5461 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5463 — design/tokens 858th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 858번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 7fe1842f(c5457 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 0ade2d21 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
