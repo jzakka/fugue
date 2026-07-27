@@ -17527,6 +17527,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5477 — design/aesthetic 937th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 937번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(46축). 배치1 = CSS Transforms L2 3D 변환 계열, 배치2 = CSS Paged Media L3·GCPM L3·Page Floats L3 계열. 0-match 후보 40건. (기존 커버: translate-y=20, translate-z=5, rotate-y=4, translate-x=3, scale-z=2, scale-x=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 벤더 독점 레거시 롱핸드 5 — transform-origin-x·-y·-z, perspective-origin-x·-y(-webkit-/-ms- 전용, transform-origin=9·perspective-origin=5 보유); (2) transform 함수명·값 성분 5 — rotate-z, scale-y, skew-angle, transform-function-list, transform-list(rotate=70·scale=166 계열 커버, c5453 함수 인자 선례); (3) 명세 개념 용어 6 — backface-culling(backface-visibility=10 보유), three-dimensional-context, perspective-depth, camera-position, vanishing-point, depth-order(속성 아님); (4) 시각 범위 밖(페이지드 미디어·GCPM) 15 — print-page-size, page-margin-box, page-area, bleed-box, trim-box, crop-marks, cross-marks, marks-crop, registration-mark, page-selector, page-progression, page-group, page-number-format, running-header, running-footer(page=299 보유, 인쇄 전용); (5) 폐기 구버전 별칭 1 — page-break-avoid(→ break-inside=10 값 키워드); (6) 미구현 초안 모듈(CSS Page Floats L3) 3 — float-defer, float-reference, float-offset(c5369 선례); (7) 조작된 명칭 5 — z-translate, flat-transform, footnote-area·footnote-rule(footnote-display=1·footnote-policy=1 보유), column-float.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5479, 937th round(responsive). style-surface 센서스 대상 포인터 a5f4650b(c5473 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5475 — design/tokens 860th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 860번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 db487a2c(c5469 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 1d132fc1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
