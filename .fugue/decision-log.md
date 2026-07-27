@@ -17611,6 +17611,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5537 — design/aesthetic 947th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 947번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 텍스트 장식·CJK 조판 계열, 배치2 = 셰이프·보더 L4·컨테인먼트 계열. 0-match 후보 38건. (기존 커버 일부: text-combine-upright=15, text-emphasis-position=11, shape-inside=10, text-decoration-line=9, character-variant=9, text-decoration-thickness=8, font-language-override=4, shape-padding=4, box-snap=2, rounded-corner=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 10 — text-transform-full-width·text-transform-full-size-kana(text-transform=22 값), upright-orientation(text-orientation=27 값), mask-luminance·alpha-mask(mask-type=9 값), paint-containment·layout-containment·style-containment·size-containment·inline-size-containment(contain=184 값); (2) 개명 전 별칭 1 — text-decoration-width(→ text-decoration-thickness=8 개명); (3) 스펙 삭제·레거시 속성 1 — ime-mode(CSS Basic UI L4에서 삭제); (4) 미구현 초안 모듈 4 — border-limit·border-clip·border-clip-top·border-boundary(CSS Borders L4, c5387/c5459/c5507 선례); (5) 명세 개념 용어 5 — east-asian-width, ideographic-alignment, backdrop-root, stacking-context, scroll-containment; (6) 커버 계열 파생 2 — corner-shape-block·corner-radius(corner-shape=9·corner-top-left-shape=3·border-start-start-radius=2 보유); (7) 의사요소 기반 조작 1 — backdrop-color(::backdrop 의사요소, backdrop-filter=18 보유); (8) 조작된 명칭 14 — text-underline-mode, text-underline-offset-mode, text-underline-mode-auto, text-decoration-trim, text-decoration-inline, text-emphasis-mode, text-spacing-mode, text-justify-trim, text-orientation-mode, ruby-fallback, kanji-align, shape-subtract, clip-shape, chunk-shape.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5539, 947th round(responsive). style-surface 센서스 대상 포인터 810f66b2(c5533 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5535 — design/tokens 870th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 870번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 840bc9c1(c5529 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 6886188e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
