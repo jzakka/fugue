@@ -17141,6 +17141,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5147 — design/aesthetic 882nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 882번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~50축, image-rendering/object-view-box, shape·initial-letter, fragmentation(break/orphans/widows/column-fill), text-emphasis·ruby, baseline·vertical-align, @counter-style 디스크립터 계열). 0-match 후보 13건: inline-size-anchor, text-emphasis-overhang, initial-letter-offset, image-fit, image-quality, break-column-avoid, orphans-limit, widow-control, column-fill-auto, vertical-align-block, text-shadow-blend, emphasis-mark, system-additive-symbols.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) inline-size-anchor/text-emphasis-overhang/initial-letter-offset/image-fit/image-quality/orphans-limit/widow-control/text-shadow-blend = 각각 inline-size(24)/text-emphasis(17)/initial-letter(13)/image-(73)/orphans(12)+widows(12)/text-shadow(25) 계열의 fabricated 파생, 실존 속성 아님. (2) break-column-avoid/column-fill-auto/vertical-align-block = break-inside의 avoid-column, column-fill의 auto, vertical-align의 논리 방향 값 키워드 파생(break- 28, column-fill 2, vertical-align 10). (3) emphasis-mark = text-emphasis-style의 구식 별칭 오인. (4) system-additive-symbols = @counter-style의 system·additive-symbols 두 디스크립터를 붙인 조합 오인(system 482, additive-symbols 8), 속성 아님.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5149, 882nd round(responsive). style-surface 센서스 대상 포인터 a5c88867(c5143 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5145 — design/tokens 805th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 805번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 2fa9d939(c5139 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main a6b270ad 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
