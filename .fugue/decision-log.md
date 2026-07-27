@@ -17443,6 +17443,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5407 — design/responsive 925th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 925번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 b8f2c513(c5401 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main b2021dd2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main b2021dd2 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5409, 849th round(tokens). style-surface 센서스 대상 포인터 0f7ff42c(c5403 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5405 — design/aesthetic 925th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 925번째 라운드, 발견 모드. 백로그 pending=0.
 - 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 생성 콘텐츠·@counter-style 디스크립터·마커·텍스트 정렬/하이픈 계열, 배치2 = CSS Animations L2·트랜지션·이징 함수·animation-trigger 계열. 0-match 후보 18건. (기존 커버: text-orientation=27, hanging-punctuation=15, text-anchor=12, transition-property=12, speak-as=10, hyphenate-character=10, transition-delay=9, additive-symbols=8, hyphenate-limit-chars=8, transition-duration=8, animation-fill-mode=7, animation-iteration-count=7, text-justify=7, transition-timing-function=7, animation-direction=6, animation-composition=5, animation-play-state=5, transition-behavior=5, animation-timing-function=4, text-align-last=4, string-set=3, hyphenate-limit-lines=3, glyph-orientation-vertical=2, easing-function=1, footnote-display=1, footnote-policy=1, animation-trigger-behavior=1, animation-trigger-timeline=1, animation-trigger-exit-range=1 등.)
