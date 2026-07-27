@@ -17171,6 +17171,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5177 — design/aesthetic 887th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 887번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 배치 프로빙(~48축, filter/opacity/visibility, display 값 문법, generated content·string-set, GCPM bookmark·footnote, text-justify·text-decoration 롱핸드, text-wrap 값 계열). 0-match 후보 24건: display-outside, display-internal, display-legacy, bookmark-label, bookmark-state, widows-limit, filter-blur, backdrop-filter-scope, opacity-mask, visibility-collapse, display-flow-root, content-alt, string-set-scope, footnote-align, text-justify-distribute, decoration-thickness-from-font, emphasis-color-currentcolor, display-box-none, content-replaced, counter-style-fallback, text-wrap-pretty, text-wrap-balance, link-decoration, visited-color.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) display-outside/display-internal/display-legacy = CSS Display의 &lt;display-outside&gt; 류 값 문법 타입명을 속성으로 오인(display 151), 속성 아님 — 신규 기각 축. (2) visibility-collapse/display-flow-root/display-box-none/text-justify-distribute/emphasis-color-currentcolor/text-wrap-pretty/text-wrap-balance/decoration-thickness-from-font = visibility(63)/display(151)/text-justify(7)/text-emphasis-color(5)/text-wrap(24)/text-decoration-thickness(8)의 값 키워드 파생. (3) bookmark-label/bookmark-state = GCPM 미구현 dormant 드래프트(bookmark 3). (4) counter-style-fallback = @counter-style의 fallback 디스크립터 오인(fallback 146). (5) widows-limit/filter-blur/backdrop-filter-scope/opacity-mask/content-alt/string-set-scope/footnote-align/content-replaced/link-decoration/visited-color = widows(12)/filter(188)/backdrop-filter(18)/opacity(90)/content(192)/string-set(3)/footnote(4) 계열의 fabricated 파생, 실존 속성 아님.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5179, 887th round(responsive). style-surface 센서스 대상 포인터 cd993089(c5173 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5175 — design/tokens 810th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 810번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 022e6dce(c5169 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main c6f5b518 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
