@@ -17587,6 +17587,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5519 — design/aesthetic 944th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 944번째 라운드, 발견 모드. 백로그 pending=0. (§0 시점 origin/main a80e265e → 브랜치 기준 b8b2a6b0으로 이동, 프로빙 후 재fetch로 반영.)
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 컨테이너 쿼리·뷰포트 세그먼트·미디어 기능 계열, 배치2 = 줄바꿈·수식·폰트 변형 계열. 0-match 후보 19건. (기존 커버 일부: font-synthesis=26, viewport-segment=17, prefers-contrast=14, overflow-wrap=14, display-mode=13, prefers-reduced-data=12, font-variant-caps=11, font-variant-ligatures=10, text-decoration-style=10, container-name=9, prefers-reduced-transparency=8, white-space-trim=8, font-variant-position=8, text-justify=7, inverted-colors=6, math-shift=5, text-emphasis-color=5, text-emphasis-style=5, text-align-last=4, math-depth=4, dynamic-viewport=3, math-style=3, text-decoration-color=3, style-query=2, container-progress=1, absolute-size=1, relative-size=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 3 — text-wrap-balance·text-wrap-pretty(text-wrap-style=3의 balance/pretty 키워드), line-height-normal(normal 키워드); (2) 개명 전 별칭 2 — word-wrap(→ overflow-wrap=14), math-script-level(→ math-depth=4); (3) CSS 단위·값 문법 명칭 4 — container-query-length(&lt;container-query-length&gt; 타입), container-units, cqw-unit, cqi-unit(cqw/cqi 컨테이너 상대 단위); (4) @media 기능명 3 — scripting-support(scripting), update-frequency(update), overflow-inline-media(overflow-inline=13 보유); (5) at-rule 쿼리 문법 명칭 1 — custom-property-query(style() 커스텀 속성 쿼리, style-query=2 보유); (6) 뷰포트 단위 계열 값 명칭 2 — large-viewport·small-viewport(lv*/sv* 단위, dynamic-viewport=3 보유); (7) 조작된 명칭 4 — inline-size-container·block-size-container(container-type=22 값 키워드 기반), font-size-relative(relative-size=1 보유), font-variant-emoji-unicode(font-variant-emoji=6 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5521, 944th round(responsive). style-surface 센서스 대상 포인터 e74288e3(c5515 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5517 — design/tokens 867th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 867번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 3e068a4e(c5511 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 36aed29e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
