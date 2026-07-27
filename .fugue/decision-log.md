@@ -17335,6 +17335,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5321 — design/aesthetic 911th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 911번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 논리 박스 계열·컨테이너 쿼리·텍스트 장식 위치 계열, 배치2 = @page/GCPM 페이지 매체 계열·CSS Content 3 초안·CSS Speech 계열. 0-match 후보 22건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 시각 범위 밖 — bookmark-label·bookmark-level(GCPM PDF 북마크, c5255 bookmark-state 선례), rest-before(CSS Speech); (2) 폐기·미구현 초안 — copy-into·content-replace·link-parameters(GCPM/CSS Content 3), line-padding(CSS Text 4 미구현); (3) 개명 전 폐기 별칭 — page-break-after(break-after=8로 개명, c5255에서 page-break-before/inside 기각 선례); (4) at-rule 디스크립터·구문 이름 — page-size(@page size 디스크립터, size=290), page-margin-box(@page 여백 at-rule 개념), container-style-query(style-query=2 구문); (5) CSS 값 문법 타입명 — page-name(&lt;page-name&gt;, page=299); (6) 이미 커버된 계열의 논리 롱핸드 — border-block-end-style·border-inline-width (border-block-start-width=1, L1238 border-inline-start/end 보유); (7) 조작된 명칭 — containment-context, superscript-position·subscript-position, text-decoration-trim, overline-position, speak-header-cell, cue-media, aural-mode.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5323, 911th round(responsive). style-surface 센서스 대상 포인터 07e25b19(c5317 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5319 — design/tokens 834th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 834번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 19178b9d(c5313 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 8bbdfb37 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
