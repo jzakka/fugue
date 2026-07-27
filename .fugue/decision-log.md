@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6398 — 정합성: non-loop residual census → 표면 불변 (covered)
+- 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
+- 조사: 0건 — apps/api 코드·문서 표면에 loop 외 유입 없음. e2cb3a80 residual 앵커 유효
+- 판정: 직전 정합성 census(6386) 이후 표면 불변 → covered
+- 차기: rotation 에러처리 cycle 6400 예정 (22747864..origin/main -- apps/api census)
 ### cycle 6396 — 보안: npm audit census → 표면 불변 (covered)
 - 축: cd apps/web && npm audit
 - 조사: found 0 vulnerabilities — 57382965(6360 fix) 보안 앵커 유효. 신규 advisory 유입 없음
