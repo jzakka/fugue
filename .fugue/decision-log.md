@@ -17743,6 +17743,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5627 — design/aesthetic 962nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 962번째 라운드, 발견 모드. 백로그 pending=0. origin/main 0f2f81f1 (프로빙 시작 시점 e5ca0c99 → 재fetch에서 드리프트 확인, 최신 기준 재적용).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 하이라이트·선택·편집 표면 계열, 배치2 = 캐스케이드·스코프·셰도우 표면 계열. 0-match 후보 40건. (기존 커버 일부: grammar-error=8, target-current=5, writingsuggestions=4, virtualkeyboardpolicy=3, search-text=2, autocorrect=2, input-security=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 캐스케이드·스코프 명세 개념 용어 12 — cascade-layer, layer-order, layer-name, import-layer, layer-statement, scope-start, scope-end, scope-proximity, cascade-origin, important-order, style-isolation, style-scope; (2) 셀렉터 문법 개념 용어 5 — nesting-selector, relative-selector, is-forgiving, has-scope, specificity-adjust; (3) Shadow DOM·HTML 속성 명칭 7 — shadow-part, part-name, slot-assignment, declarative-shadow, scoped-style, editable-region, contenteditable-plaintext (exportparts=2 보유); (4) Web API 명칭 4 — custom-highlight, selection-api, edit-context, range-highlight; (5) 의사요소·의사클래스 기반 7 — highlight-name, highlight-priority, highlight-overlay, highlight-inherit, highlight-pseudo, selection-background, target-nth(target-current=5 보유); (6) 명세 제거된 속성 1 — ime-mode; (7) 값 키워드 파생 1 — revert-rule(revert-layer=2 보유); (8) 조작된 명칭 3 — text-edit-caret, composition-underline, spellcheck-mode.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5629, 962nd round(responsive). style-surface 센서스 대상 포인터 b7081492(c5623 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5625 — design/tokens 885th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 885번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f4e15541(c5619 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main b50cc52d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
