@@ -17371,6 +17371,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5351 — design/aesthetic 916th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 916번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 마스크/보더 이미지·배경 위치 longhand·SVG 단위 속성 계열, 배치2 = 구 CSS3 Line Layout·폰트 강조 구판·문장부호 트림 계열. 0-match 후보 29건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) SVG 표현 속성(CSS 속성 아님) — clip-path-units·filter-units·primitive-units(clipPathUnits/filterUnits/primitiveUnits); (2) 비표준 벤더 롱핸드 — background-repeat-x·background-repeat-y(Blink 전용, background-repeat=15 보유); (3) 폐기 초안 — alignment-adjust(alignment-baseline=5 보유), drop-initial-size·drop-initial-value·drop-initial-before-align(구 Line Layout, initial-letter=13로 대체), text-height·text-altitude·text-depth(구 Line Layout), font-effect(구 CSS3 Fonts), scroll-snap-type-x·scroll-snap-type-y(Snap Points L1 삭제); (4) 개명 전 별칭 — font-emphasize·font-emphasize-style(text-emphasis-style=5로 개명), punctuation-trim(text-spacing-trim=6으로 개명); (5) 값 키워드 파생 — clip-rule-inherit(clip-rule=6), mask-luminance(mask-type=9의 luminance), hanging-baseline(dominant-baseline=14의 hanging); (6) 조작된 명칭 — background-position-block·background-position-inline(논리형 부재, background-position-x/y=1 보유), transform-origin-inline(c5291 transform-origin-z 기각 선례), mask-dasharray(stroke-dasharray=10), inline-progression, glyph-position, text-justify-trim-inner(c5291 text-justify-trim 기각 선례), text-spacing-collapse(text-spacing=13/white-space-collapse=5 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5353, 916th round(responsive). style-surface 센서스 대상 포인터 e7a91bad(c5347 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5349 — design/tokens 839th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 839번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 020f91bd(c5343 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 94e6c59c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
