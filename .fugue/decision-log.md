@@ -17395,6 +17395,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5369 — design/aesthetic 919th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 919번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤 구동 애니메이션 타임라인·앵커 포지셔닝·오프셋 경로 계열, 배치2 = 폰트 합성/광학 크기·텍스트 줄바꿈·페이지 플로트 계열. 0-match 후보 8건. (대부분 이미 커버: anchor-name=14, font-kerning=13, position-anchor=13, position-area=13, font-optical-sizing=12, position-visibility=11, anchor-size=10, timeline-scope=9, anchor-scope=9, font-size-adjust=9 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 폐기 초안 — anchor-default(구 앵커 포지셔닝 초안, position-anchor=13으로 대체); (2) CSS 함수 값 문법 타입 — anchor-side(anchor() 함수의 인자 문법, anchor-size=10 보유); (3) 미구현 초안 모듈 — float-reference·float-defer·float-offset(CSS Page Floats L3, 브라우저 구현 0); (4) 조작된 명칭 — timeline-trigger(animation-trigger=2·timeline-scope=9 보유, 동명 속성 부재), scroll-anchor(스크롤 앵커링 속성명은 overflow-anchor=1), clear-side(표준 속성은 clear, Page Floats 계열 조작).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5371, 919th round(responsive). style-surface 센서스 대상 포인터 bcc072b7(c5365 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5367 — design/tokens 842nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 842번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 2c8caa85(c5361 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 84a028e9 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
