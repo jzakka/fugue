@@ -17707,6 +17707,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5603 — design/aesthetic 958th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 958번째 라운드, 발견 모드. 백로그 pending=0. origin/main 3dbde43b (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 편집·선택·입력 상호작용 계열, 배치2 = 커스텀 속성·캐스케이드·스코프 계열. 0-match 후보 30건. (기존 커버 일부: caret-color=25, enterkeyhint=13, inputmode=12, user-modify=9, initial-value=7, autocapitalize=5, caret-animation=4, tap-highlight-color=4, host-context=4, custom-property=3, touch-callout=3, user-input=2, user-drag=2, app-region=2, revert-layer=2, exportparts=2, drag-region=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 명세 개념 용어 14 — editing-host(편집 호스트), cascade-layer·layer-order·cascade-origin(캐스케이드 개념, revert-layer=2 보유), specificity-adjustment·important-flag, inline-style·presentation-hint·style-attribute(스타일 출처 개념), scope-start·scope-end·scope-limit(@scope 프렐류드), nesting-selector·relative-selector(선택자 문법); (2) 의사요소·의사클래스 기반 6 — selection-background·selection-color(::selection), focus-within-ring(:focus-within), shadow-part·part-name(::part()), slotted-content(::slotted); (3) @property 서술자 명칭 3 — registered-property·property-syntax·inherits-flag(custom-property=3 보유); (4) 벤더 독점 레거시 2 — user-focus(-moz), text-select(비표준, user-select=11 보유); (5) HTML 속성 명칭 2 — contenteditable-mode·spellcheck-mode; (6) Web API 명칭 1 — pointer-capture(Pointer Events); (7) SVG 프레젠테이션 속성 1 — accent-height; (8) 조작된 명칭 1 — caret-width(caret-color=25·caret-animation=4 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5605, 958th round(responsive). style-surface 센서스 대상 포인터 93b1ba24(c5599 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5601 — design/tokens 881st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 881번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 aa535b8c(c5595 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 900b6018 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
