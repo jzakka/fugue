@@ -17671,6 +17671,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5579 — design/aesthetic 954th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 954번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(46축). 배치1 = 보더·코너·그림자 계열, 배치2 = 배경·마스크·백드롭 계열. 0-match 후보 23건. (기존 커버 일부: backdrop-blur=33, drop-shadow=32, background-image=17, background-repeat=15, background-origin=13, background-attachment=13, mask-image=11, inset-shadow=9, mask-origin=6, mask-position=6, outline-color=5, outline-width=5, mask-border-source=4, corner-top-left-shape=3, border-top-left-radius=2, ring-offset=2, mask-border-mode=2, mask-border-outset=2, background-color=2, border-bottom-right-radius=1, corner-end-end-shape=1, border-block-start-width=1, shadow-color=1. 계열 baseline: box-shadow=60, elevation=36, backdrop-filter=18, mix-blend-mode=18, image-set=18, isolation=12, color-interpolation=12, cross-fade=12, paint-order=11, outline-offset=6, border-style=6.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 커버 계열 논리 롱핸드 파생 1 — border-inline-end-style(border-style=6·border-block-start-width=1 보유); (2) 미구현 초안 모듈(CSS Borders L4) 4 — border-clip·border-clip-top·border-limit·border-boundary(c5387/c5459/c5507/c5537 선례); (3) 미구현 초안 모듈(Filter Effects L2) 1 — filter-margin; (4) 값 컴포넌트 파생 3 — spread-radius·blur-radius·box-shadow-position(box-shadow=60 값 구성요소); (5) 명세 개념 용어 4 — backdrop-root, paint-source(paint-order=11 보유), image-fallback, gradient-interpolation(color-interpolation=12 보유); (6) 조작된 명칭 10 — outline-inset(outline-offset=6 보유), inner-shadow(inset-shadow=9 보유), ring-width(ring-offset=2 보유), elevation-shadow(elevation=36 보유), background-tbd, backdrop-color(backdrop-filter=18·backdrop-blur=33 보유), backdrop-filter-margin, blend-container(mix-blend-mode=18·isolation=12 보유), background-layer, background-gradient(image-set=18·cross-fade=12 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5581, 954th round(responsive). style-surface 센서스 대상 포인터 dedc468f(c5575 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5577 — design/tokens 877th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 877번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6eb13a4d(c5571 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main dd1ba8cf 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
