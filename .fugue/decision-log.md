@@ -17605,6 +17605,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5531 — design/aesthetic 946th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 946번째 라운드, 발견 모드. 백로그 pending=0. (§0 시점 origin/main ce02ad8d → 브랜치 기준 dfd7fac3으로 이동, 프로빙 후 재fetch로 반영.)
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤 스냅·스크롤 타임라인·내비게이션 순서 계열, 배치2 = 하이픈·줄바꿈 제어·프래그멘테이션 계열. 0-match 후보 17건. (기존 커버 일부: hyphenate-character=10, overflow-clip-margin=9, hyphenate-limit-chars=8, scrollbar-color=6, text-spacing-trim=6, interactivity=6, reading-flow=4, hyphenate-limit-zone=4, scrollbar-gutter=3, hyphenate-limit-lines=3, block-ellipsis=3, line-grid=3, string-set=3, hyphenate-limit-last=2, word-space-transform=2, max-lines=2, scroll-start=1, reading-order=1, overflow-anchor=1, nav-up/nav-down/nav-left/nav-right/nav-index=1, text-group-align=1, wrap-inside/wrap-after/wrap-before/wrap-flow/wrap-through=1, line-snap=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 커버 계열 논리 롱핸드 파생 2 — overflow-clip-margin-block·overflow-clip-margin-inline(overflow-clip-margin=9 롱핸드); (2) 개명 전 별칭 4 — scroll-start-target·scroll-initial-target(scroll-start=1 계열 개명 쌍), reading-order-items(→ reading-flow=4 개명), block-overflow(→ block-ellipsis=3 개명); (3) 구버전 명세·스펙 삭제 속성 4 — scroll-snap-coordinate·scroll-snap-destination·scroll-snap-points-x(Scroll Snap L1 2015 삭제판; scroll-snap-align=15·scroll-snap-type=13 보유), scroll-timeline-attachment(스크롤 구동 애니메이션에서 삭제, timeline-scope=9 보유); (4) 값 키워드 파생 1 — continue-fragment(continue=22의 fragments 값); (5) 미구현 초안 모듈 속성 1 — line-padding(CSS Line Grid 초안; line-grid=3·line-snap=1 보유); (6) HTML 속성 명칭 1 — inert-attribute(HTML inert 속성, CSS 대응은 interactivity=6); (7) 조작된 명칭 4 — timeline-trigger, scroll-state-container(@container scroll-state() 쿼리 문법 기반), carousel-snap(scroll-marker=8·scroll-button=6 보유), chunk-align.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5533, 946th round(responsive). style-surface 센서스 대상 포인터 18c99747(c5527 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5529 — design/tokens 869th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 869번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 a8e578d3(c5523 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 840bc9c1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
