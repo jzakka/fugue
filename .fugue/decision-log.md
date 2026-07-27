@@ -17281,6 +17281,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5273 — design/aesthetic 903rd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 903번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = IE 스크롤바 색 계열·하이라이트 의사요소 색·@font-face/@property 디스크립터·컨테이너 스타일 쿼리, 배치2 = 논리 border/margin 롱핸드·Houdini 워크릿·view-transition 의사요소·@scope 구문. 0-match 후보 32건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) IE 레거시(scrollbar-color=6로 대체, c5243 관례) — scrollbar-base-color·-face-color·-highlight-color·-darkshadow-color. (2) 값 키워드 파생 — writing-mode-vertical(=36)·object-fit-cover(=30). (3) 하이라이트 의사요소명(c5189 관례) — spelling-error-color·grammar-error-color·target-text-color·search-text-color·selection-color. (4) at-rule 디스크립터(c5237 관례) — font-face-src·property-syntax·property-inherits(initial-value=7 계열). (5) at-rule/쿼리 구문명 — container-style-query(style-query=2)·scope-start. (6) 논리 롱핸드 파생(c5201 관례) — border-inline-end-color(L1238)·margin-trim-block(L705). (7) 미구현 초안(계열 커버) — backdrop-root(backdrop-filter=18). (8) Houdini/Web API 명칭(c5153 관례) — paint-worklet·layout-worklet·houdini-paint·custom-highlight-priority. (9) 조작된 명칭 — text-underline-color·caret-width·overline-position·strikethrough-position·text-emphasis-shorthand·aspect-ratio-block·clip-path-margin·isolation-mode·nesting-selector.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5275, 903rd round(responsive). style-surface 센서스 대상 포인터 fc689771(c5269 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5271 — design/tokens 826th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 826번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 63c8208c(c5265 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 08e7133a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
