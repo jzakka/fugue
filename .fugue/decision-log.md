@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6486 — 동시성: bot 서브트리 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 0건 — code freeze 앵커 22747864 이후 bot 서브트리 변경 없음. worker/스케줄러 동시성 경로 불변
+- 판정: 직전 동시성 census(6474) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6488 예정 (22747864 bot 서브트리 census)
+
 ### cycle 6484 — 에러처리: apps/api 전역 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 0건 — code freeze 앵커 22747864 이후 apps/api 변경 없음. 에러 반환·래핑 경로 불변
