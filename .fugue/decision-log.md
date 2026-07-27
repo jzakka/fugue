@@ -17617,6 +17617,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5543 — design/aesthetic 948th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 948번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 애니메이션 트리거·모션 패스·트랜스폼 계열, 배치2 = @counter-style 디스크립터·생성 콘텐츠 계열. 0-match 후보 28건. (기존 커버 일부: counter-style=29, counter-reset=13, offset-distance=7, offset-anchor=6, offset-position=6, translate-z=5, animation-timing-function=4, animation-duration=4, animation-delay=4, animation-name=3, transform-box=3, animation-trigger=2, motion-path=2, target-counter=2, animation-trigger-timeline/behavior/range/exit-range=1, footnote-display=1, footnote-policy=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 별칭 4 — animation-delay-start·animation-delay-end(→ animation-range-start=3·animation-range-end=2 개명), motion-offset·motion-rotation(Motion Path L1 구명칭 → offset-distance=7·offset-rotate=9); (2) CSS 함수명 6 — ray-function(offset-path=23의 ray()), rotate-3d·matrix-transform·skew-transform(transform 함수), string-function·leader-function(GCPM string()·leader()); (3) at-rule 디스크립터 명칭 8 — system·negative·prefix·suffix·range·pad·fallback·symbols-descriptor(@counter-style 디스크립터; counter-style=29·additive-symbols=8·speak-as=10 보유); (4) 페이지 미디어(GCPM) 범위 외 4 — bookmark-label, bookmark-level, bookmark-state, running-element; (5) 명세 개념 용어 1 — list-item-counter; (6) 조작된 명칭 5 — perspective-transform(perspective-origin=5·transform-style=7 보유), marker-content(marker-side=2 보유), quotes-property, content-alt-text, alt-descriptor.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5545, 948th round(responsive). style-surface 센서스 대상 포인터 105b78c6(c5539 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5541 — design/tokens 871th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 871번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6886188e(c5535 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main edf4a223 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
