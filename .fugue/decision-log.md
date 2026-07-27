@@ -17389,6 +17389,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5363 — design/aesthetic 918th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 918번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 뷰 트랜지션·컨테이너 이름·그리드 배치/트랙 계열, 배치2 = SVG 페인트·렌더링 힌트·색 프로파일 계열. 0-match 후보 6건. (대부분 이미 커버: column-gap=18, place-content=11, place-items=10, container-name=9, view-transition-name=7, grid-auto-flow=7, color-scheme=27, forced-colors=20, text-rendering=20, isolation=12, lighting-color=12 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 별칭 — container-query-name(초기 Container Queries 초안, container-name=9로 개명), masonry-auto-flow(구 Masonry 초안, masonry-direction=1/item-flow=1로 대체); (2) 미구현·삭제 초안 — masonry-slack(구 Grid L3 masonry 초안 삭제), solid-opacity(SVG 1.2 Tiny 전용, solid-color=1 보유); (3) at-rule 디스크립터·스펙 삭제 — rendering-intent(@color-profile 디스크립터, CSS Color 4에서 삭제, color-profile=5 보유); (4) 조작된 명칭 — view-transition-tree(view-transition-group=5·view-transition-class=2 보유, 동명 속성 부재).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5365, 918th round(responsive). style-surface 센서스 대상 포인터 bc47b806(c5359 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5361 — design/tokens 841st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 841번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 8f8a874b(c5355 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 2c8caa85 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
