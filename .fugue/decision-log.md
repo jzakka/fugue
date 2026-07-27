@@ -17479,6 +17479,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5435 — design/aesthetic 930th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 930번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Positioned Layout L4 인셋·앵커 폴백·Cascade L5 레이어/스코프 계열, 배치2 = CSS Sizing L4 논리 사이즈·내재 크기·CSS Values 단위 계열. 0-match 후보 25건. (기존 커버: overlay=38, top-layer=22, position-try=17, position-try-order=11, position-try-fallbacks=10, initial-value=7, intrinsic-size=6, contain-intrinsic-block-size=4, contain-intrinsic-inline-size=4, inset-block-start=3, inset-inline-start=3, dynamic-viewport=3, inset-inline-end=2, inset-area=2, revert-layer=2, max-block-size=2, min-inline-size=2, contain-intrinsic-width=2, contain-intrinsic-height=2, viewport-unit=2, inset-block-end=1, min-block-size=1, max-inline-size=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 별칭 2 — position-fallback·position-fallback-bounds(2023 초안 명칭, position-try-fallbacks=10·position-area=13으로 개명); (2) 명세 개념·분류 용어 6 — stacking-context, containing-block, cascade-layer, layer-order, percentage-basis, available-size(속성이 아닌 명세 개념, c5417 선례); (3) at-rule 프렐류드 문법 2 — scope-start·scope-limit(@scope from/to 프렐류드, 속성 아님); (4) 값 문법 단위 분류명 6 — container-query-unit, root-font-size, font-relative-length, line-height-unit, resolution-unit, angle-unit(CSS Values 단위 분류 명칭); (5) 값 키워드 파생 3 — aspect-ratio-auto(aspect-ratio=34의 auto 키워드), stretch-size·fit-content-size(sizing stretch/fit-content 키워드 파생); (6) 조작된 명칭 6 — sticky-offset(inset-block-start=3 계열 보유), z-order(z-index 구식 별칭 조작), popover-position(top-layer=22·position-try=17 보유), all-property(all 단축 속성 조작), sizing-mode·box-size(box-sizing=6 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5437, 930th round(responsive). style-surface 센서스 대상 포인터 6dea942e(c5431 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5433 — design/tokens 853rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 853번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 364c4785(c5427 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 7041219e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
