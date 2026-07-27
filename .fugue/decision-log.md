@@ -17581,6 +17581,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5513 — design/aesthetic 943rd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 943번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 3배치 프로빙(72축). 배치1 = 마스킹·필터 이펙트 계열, 배치2 = SVG 페인트·색 보간 계열, 배치3 = 폼 컨트롤 의사요소·하이라이트 계열. 0-match 후보 24건. (기존 커버 일부: placeholder-shown=18, color-interpolation=12, lighting-color=12, text-anchor=12, print-color-adjust=11, flood-color=11, stroke-linejoin=11, calendar-picker=11, forced-color-adjust=10, mask-type=9, shape-rendering=9, mask-composite=8, vector-effect=8, spelling-error=8, grammar-error=8, color-swatch=8, mask-mode=7, mask-size=7, mask-clip=7, stop-color=7, color-interpolation-filters=7, image-resolution=6, picker-icon=6, solid-color=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 문법 타입 3 — clip-source, clip-shape, filter-function-list(&lt;clip-source&gt;·&lt;basic-shape&gt;=5·&lt;filter-function-list&gt; 타입); (2) 값 키워드 파생 2 — luminance-mask·alpha-mask(mask-type=9·mask-mode=7의 luminance/alpha 키워드); (3) CSS 함수명·인자 성분 4 — drop-shadow-color·blur-radius(filter=188 함수 인자), element-function·paint-source(element() 함수·&lt;paint-source&gt; 타입); (4) 명세 개념 용어 4 — backdrop-root, filter-margin, custom-highlight, highlight-pseudo(highlight-order=2 보유); (5) 개명 전 별칭 1 — image-fit(→ object-fit=30); (6) 미구현 초안 속성 1 — solid-opacity(SVG 2 초안, solid-color=1 보유); (7) SVG 속성 명칭 2 — clip-path-units·mask-units(clipPathUnits·maskUnits 카멜케이스); (8) 의사요소 기반 조작 6 — selection-background, search-text-color, placeholder-color, checkmark-color, switch-thumb, switch-track; (9) 조작된 명칭 1 — accent-height-ratio(accent-height=1 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5515, 943rd round(responsive). style-surface 센서스 대상 포인터 cc7376d3(c5509 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5511 — design/tokens 866th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 866번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 0b343c84(c5505 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 3e068a4e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
