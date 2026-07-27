@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6414 — 동시성: bot 크롤러 freeze census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 0건 — URLScheduler consumer·goroutine 스케줄링 표면 변경 없음. 22747864 앵커 유효
+- 판정: 직전 동시성 census(6402) 이후 표면 불변 → covered
+- 차기: rotation 봇 cycle 6416 예정 (동일 bot 경로 census)
 ### cycle 6412 — 에러처리: apps/api 코드 freeze census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api
 - 조사: 0건 — apps/api 전역 코드 freeze 유지. 에러 반환·핸들러 표면 변경 없음, 22747864 앵커 유효
