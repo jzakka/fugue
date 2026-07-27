@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6372 — 보안: npm audit census → 표면 불변 (covered)
+- 축: cd apps/web && npm audit
+- 조사: found 0 vulnerabilities — cycle 6360 fix(brace-expansion >=5.0.8 + minimatch ^10.0.3 override) 이후 첫 census. 신규 advisory 유입 없음
+- 판정: 6360에서 복구한 무취약 상태 유지 → covered. 보안 baseline 앵커를 57382965(6360 merge)로 확정
+- 차기: rotation 정합성 cycle 6374 예정 (e2cb3a80 non-loop residual census)
 ### cycle 6370 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
