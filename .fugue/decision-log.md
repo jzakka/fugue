@@ -17317,6 +17317,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5309 — design/aesthetic 909th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 909번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 논리 모서리 반경·CSS Borders 4 초안·배경/마스크 계열, 배치2 = 그리드 배치·masonry item-flow 계열·플렉스 계열. 0-match 후보 17건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 미구현 휴면 초안 — border-boundary·border-limit·border-shape (CSS Borders 4, 브라우저 미구현); (2) 이미 커버된 계열의 롱핸드 파생 — item-direction·item-wrap·item-slack (item-flow=1 숏핸드의 롱핸드, item-pack=1 baseline 보유), corner-block-start-shape (corner-shape=9·corner-top-left-shape=3 계열의 논리 대응); (3) 개명 전 폐기 초안 — masonry-slack(c5261 기각 재확인)·masonry-auto-flow (item-flow 계열로 개명, masonry-direction=1 baseline); (4) 값 키워드 파생 — image-rendering-pixelated(image-rendering=23); (5) 조작된 명칭 — background-color-interpolation, clip-path-box(clip-path=23), item-tolerance·item-cross·item-track-size, gap-block·gap-inline (gap=163의 논리 롱핸드는 부재, 실제는 row-gap/column-gap).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5311, 909th round(responsive). style-surface 센서스 대상 포인터 fd220cc3(c5305 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5307 — design/tokens 832nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 832번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 09ad0c52(c5301 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 16fba8a1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
