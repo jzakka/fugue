@@ -17263,6 +17263,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5261 — design/aesthetic 901st round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 901번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 그리드/메이슨리 계열·앵커 포지셔닝 폴백·3D transform 세부 축, 배치2 = 색 보간·논리 border 롱핸드·IE/Edge 스크롤바 레거시·CSS Marquee/Speech 계열. 0-match 후보 32건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 값 키워드 파생 — scroll-snap-type-mandatory·offset-rotate-auto·contain-layout·contain-paint·text-box-trim-both. (2) 개명 전 초안 별칭(item-flow 계열로 대체, masonry-direction=1 커버) — masonry-track·masonry-slack·masonry-fill. (3) 값 문법 타입명(c5177 관례) — line-name-list·repeat-count·hue-interpolation-method. (4) 롱핸드 파생 — text-align-all(text-align=22 숏핸드), border-block-color·border-inline-style(L1238 논리 border baseline, c5201 관례). (5) 구형 별칭 — print-adjust(print-color-adjust=11), block-progression(writing-mode=36). (6) 폐기 모듈/레거시 — marquee-loop·marquee-style(CSS Marquee, c5237 관례), scrollbar-3dlight-color·scrollbar-shadow-color(IE, scrollbar-color=6로 대체), content-zoom-limit(-ms- 전용). (7) 시각 범위 밖 — speak-header·voice-duration·rest-after(CSS Speech). (8) 조작된 명칭 — item-tolerance·anchor-size-fallback·transform-perspective·matrix-origin·color-mix-interpolation·color-contrast-target·filter-margin·outline-inline-offset.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5263, 901st round(responsive). style-surface 센서스 대상 포인터 16172b28(c5257 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5259 — design/tokens 824th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 824번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 49f0fc9c(c5253 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 4da450d4 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
