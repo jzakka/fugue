@@ -17701,6 +17701,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5597 — design/aesthetic 957th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 957번째 라운드, 발견 모드. 백로그 pending=0. (§0 시점 origin/main 25614ff3 → 브랜치 기준 c9bd37ee로 이동, 프로빙 후 재fetch로 반영.)
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 이미지·미디어·대체 요소 계열, 배치2 = 음성 발화·페이지 미디어 계열. 0-match 후보 30건. (기존 커버 일부: voice-family=9, object-view-box=7, intrinsic-size=6, contain-intrinsic-block-size=4, contain-intrinsic-inline-size=4, voice-rate=3, voice-pitch=3, page-orientation=3, contain-intrinsic-width=2, contain-intrinsic-height=2, voice-volume=1, pause-before=1, pause-after=1, cue-before=1, cue-after=1, footnote-call=1, content-list=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 범위 외 CSS Speech 5 — speak-numeral·speak-punctuation·rest-before·rest-after·play-during(청각 렌더링, 시각 표면 아님; voice-family=9 계열 이미 기재); (2) 범위 외 Paged Media·GCPM 8 — page-bleed·page-marks(@page 서술자), page-margin-box(마진 박스 개념), running-element(GCPM 개념 용어), bookmark-level·bookmark-label·bookmark-state(PDF 북마크 전용), copy-into(GCPM 삭제 속성); (3) HTML 속성·Web API 명칭 7 — srcset-density(srcset 밀도 기술자), picture-source(picture/source 요소), poster-image(video poster 속성), lazy-loading(loading 속성), decoding-async(decoding 속성), fetch-priority(fetchpriority 속성), playback-rate(HTMLMediaElement API); (4) 명세 개념 용어 4 — replaced-element(대체 요소 개념), natural-size(내재 크기 개념, intrinsic-size=6 보유), media-fragment(Media Fragments URI 명세), skip-contents(content-visibility 콘텐츠 스킵 개념); (5) 축 파생 1 — object-position-x(object-position=11의 축 파생); (6) 조작된 명칭 5 — image-fit·video-fit(object-fit=30 보유), aspect-fill(aspect-ratio=34 보유), image-crop(object-view-box=7 보유), object-overflow.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5599, 957th round(responsive). style-surface 센서스 대상 포인터 94ec0738(c5593 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5595 — design/tokens 880th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 880번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 75f6f86e(c5589 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main aa535b8c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
