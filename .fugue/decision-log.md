@@ -17671,6 +17671,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5581 — design/responsive 954th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 954번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 dedc468f(c5575 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 087587c2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 087587c2 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5583, 878th round(tokens). style-surface 센서스 대상 포인터 dd1ba8cf(c5577 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5579 — design/aesthetic 954th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 954번째 라운드, 발견 모드. 백로그 pending=0.
 - 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(46축). 배치1 = 보더·코너·그림자 계열, 배치2 = 배경·마스크·백드롭 계열. 0-match 후보 23건. (기존 커버 일부: backdrop-blur=33, drop-shadow=32, background-image=17, background-repeat=15, background-origin=13, background-attachment=13, mask-image=11, inset-shadow=9, mask-origin=6, mask-position=6, outline-color=5, outline-width=5, mask-border-source=4, corner-top-left-shape=3, border-top-left-radius=2, ring-offset=2, mask-border-mode=2, mask-border-outset=2, background-color=2, border-bottom-right-radius=1, corner-end-end-shape=1, border-block-start-width=1, shadow-color=1. 계열 baseline: box-shadow=60, elevation=36, backdrop-filter=18, mix-blend-mode=18, image-set=18, isolation=12, color-interpolation=12, cross-fade=12, paint-order=11, outline-offset=6, border-style=6.)
