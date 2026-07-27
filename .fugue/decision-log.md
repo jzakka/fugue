@@ -17521,6 +17521,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5471 — design/aesthetic 936th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 936번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS Spatial Navigation·UI 포커스/입력 계열, 배치2 = CSS Ruby·Text L4 CJK·Fonts L4 합성 계열. 0-match 후보 26건. (기존 커버: font-smooth=11, text-size-adjust=10, aria-role=8, font-synthesis-position=5, focus-ring=5, font-language-override=4, font-synthesis-style=4, font-synthesis-small-caps=4, voice-rate=3, voice-pitch=3, full-size-kana=2, bidi-override=2, nav-up/nav-down/nav-left/nav-right=1, focusgroup=1, tate-chu-yoko=1, pause-before/pause-after/cue-before/cue-after=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 시각 범위 밖(CSS2 aural·CSS Speech) 5 — speak-header, speak-numeral, speak-punctuation, rest-before, rest-after(voice-rate=3 계열 선례); (2) 벤더 독점 레거시 2 — ime-mode(Firefox/IE 전용 폐기), input-method-editor(-ms- 전용); (3) HTML 속성·Web API 명칭 2 — tabindex-auto, accessibility-role(CSS 속성 아님); (4) 명세 개념·분류 용어 6 — spatial-navigation(nav-up/-down/-left/-right=1 계열 커버), directional-focus, ideographic-alignment, vertical-text-layout, kinsoku-shori, east-asian-width(Unicode 속성명, font-variant-east-asian=3 보유); (5) 개명 전 별칭 1 — text-combine-horizontal(→ text-combine-upright=15); (6) 조작된 명칭 10 — ruby-collapse·ruby-line-height(ruby-position=20·ruby-align=7·ruby-merge=5 보유), text-emphasis-order(text-emphasis-position=11 보유), han-punctuation-collapse(text-spacing-trim=6 보유), jis-encoding, font-variant-ruby, font-min-size·font-max-size(font-size-adjust=9 보유), font-emoji-presentation(font-variant-emoji=6 보유), glyph-fill-color.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5473, 936th round(responsive). style-surface 센서스 대상 포인터 3aba733a(c5467 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5469 — design/tokens 859th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 859번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 0ade2d21(c5463 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main db487a2c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
