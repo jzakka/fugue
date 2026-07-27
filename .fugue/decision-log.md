@@ -17539,6 +17539,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5483 — design/aesthetic 938th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 938번째 라운드, 발견 모드. 백로그 pending=0. (§0 시점 origin/main ddea49f5 → 브랜치 기준 ac992e1b로 이동, 프로빙 후 재fetch로 반영.)
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = CSS UI L4·HTML 인보커/폼 컨트롤 계열, 배치2 = CSS Color L4·L5 색 공간 계열. 0-match 후보 32건. (기존 커버: color-rendering=10, commandfor=8, details-content=7, range-thumb=7, srgb-linear=6, color-profile=5, progress-bar=5, popovertargetaction=4, xyz-d50=4, meter-optimum=3, interest-target=2, selectedcontent=2, appearance-auto=2, field-sizing-content=2, xyz-d65=2, icc-color=1 등.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) HTML 속성·ARIA/Web API 명칭 4 — popover-target, invoker-command, dialog-modal, widget-role(commandfor=8·popovertargetaction=4 보유, CSS 속성 아님); (2) 개명 전 별칭 1 — anchor-default(→ position-anchor=13); (3) SVG 1.1 폐기 폰트 속성 1 — accent-height; (4) 조작된 명칭 8 — form-control-style, native-appearance, control-size, button-style, checkbox-style, radio-style, select-style, switch-thumb(appearance=15·field-sizing=21·range-thumb=7 보유); (5) at-rule 디스크립터 1 — rendering-intent(@color-profile 디스크립터, color-profile=5 보유); (6) 색 함수 성분·값 문법 타입 8 — colorspace-name, color-function-space, hue-rotate-angle, oklch-chroma, lab-lightness, lch-hue, hwb-whiteness, hwb-blackness(c5453 함수 인자 선례); (7) 값 키워드 파생 5 — saturation-blend·luminosity-blend(mix-blend-mode=18 값), display-p3-gamut·rec2020-gamut·prophoto-space(color-gamut=21 값); (8) 명세 개념 용어 4 — gamut-mapping, perceptual-rendering, color-depth, bit-depth(속성 아님).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5485, 938th round(responsive). style-surface 센서스 대상 포인터 324732a6(c5479 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5481 — design/tokens 861st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 861번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 1d132fc1(c5475 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 2ec34f79 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
