@@ -17221,6 +17221,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5221 — design/responsive 894th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 894번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 a8b077ef(c5215 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 92a85838 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 92a85838 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5223, 818th round(tokens). style-surface 센서스 대상 포인터 cdac15d7(c5217 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5219 — design/aesthetic 894th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 894번째 라운드, 발견 모드. 백로그 pending=0.
 - 프로빙: anti-patterns.md 대비 fresh 축 3배치 프로빙(~72축). 배치1 = 스크롤 연동 애니메이션/분할 조판(animation-timeline·scroll-timeline-* 2종·view-timeline-* 3종·timeline-scope·animation-range-* 2종·field-sizing·interactivity·overlay·break-before/after/inside·orphans·widows·box-decoration-break·counter-reset/increment/set·quotes·empty-cells·caption-side) 계열. 배치2 = 마스크 롱핸드/표 조판/밑줄 장식(mask-image·mode·repeat·position·size·clip·origin·type·mask-border-mode/slice·filter·opacity·visibility·border-collapse·border-spacing·table-layout·vertical-align·line-clamp·ruby-overhang·text-decoration-thickness/skip-ink/line/style·text-underline-offset) 계열. 배치3 = SVG 페인트 서버·필터 원시값·스크롤 오프셋(stroke-width/opacity·fill-opacity·stop-color/opacity·flood-color/opacity·lighting-color·marker-start/mid/end·color-interpolation-filters·buffered-rendering·image-resolution·page-orientation·scroll-behavior·scroll-margin-block·scroll-padding-inline·overscroll-behavior-x·pointer-events·caret-shape·input-security·user-modify·text-security) 계열.
