@@ -17641,6 +17641,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5561 — design/aesthetic 951th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 951번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(46축). 배치1 = 프래그멘테이션·멀티칼럼 규칙 계열, 배치2 = 사용자 선호·기기 폼팩터 미디어 계열. 0-match 후보 19건. (기존 커버 일부: prefers-reduced-motion=76, prefers-color-scheme=17, safe-area-inset=15, break-inside=10, break-after=8, column-rule=8, titlebar-area=8, keyboard-inset=8, any-pointer=7, column-span=6, any-hover=4, nav-controls=4, environment-blending=3, column-fill=2, viewport-fit=2, rule-color=2, region-fragment=1, flow-into=1, flow-from=1, column-progression=1, screen-spanning=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 구버전 명세 별칭 3 — page-break-before·page-break-after·page-break-inside(CSS2 레거시 → break-before=8·break-after=8·break-inside=10로 대체); (2) 폐기 모듈(CSS Regions) 1 — region-break(region-fragment=1·flow-into=1·flow-from=1 보유); (3) 미구현 초안 모듈(CSS Round Display L1) 1 — display-shape(c5399 선례); (4) 값 키워드 파생 2 — forced-colors-active(forced-colors=20 값), overlay-scrollbar(overflow: overlay 레거시 값, scrollbar-width=8 보유); (5) 명세 개념 용어 3 — fragment-policy, user-preference-media, hinge-angle(viewport-segment=17·device-posture=12 보유); (6) HTML 속성 명칭 1 — video-controls(HTML controls 속성); (7) 조작된 명칭 8 — box-break, column-height(column-width=10·column-count=13 보유), multicol-gap(column-gap=18 보유), hover-media(any-hover=4 보유), horizontal-tiling, vertical-tiling, detached-display, foldable-posture(device-posture=12 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5563, 951th round(responsive). style-surface 센서스 대상 포인터 c6c5f2c4(c5557 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5559 — design/tokens 874th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 874번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 d9628e1b(c5553 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 50f9d8bc 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
