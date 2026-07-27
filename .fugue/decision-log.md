@@ -16,6 +16,11 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6392 — 봇: Pioneer/Harvester 표면 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 0건 — Pioneer 크롤 그래프·Harvester script 파이프라인 표면 변경 없음. 22747864 앵커 유효
+- 판정: 직전 봇 census(6380) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 6394 예정 (openspec validate --specs --changes census)
 ### cycle 6390 — 동시성: bot 크롤러 freeze census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
 - 조사: 0건 — URLScheduler consumer·goroutine 스케줄링 표면 변경 없음. 22747864 앵커 유효
