@@ -17231,6 +17231,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5231 — design/aesthetic 896th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 896번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 3배치 프로빙(~72축, 코너 형상·논리 반경·플렉스 정렬·스크롤 버튼/마커(배치1), 배경/테두리/폰트 롱핸드와 숏핸드(배치2), 벤더 레거시 장식·앵커/모션 패스·폰트 축(배치3)). 0-match 후보 12건: flex-flow, scroll-button-position, text-box-shorthand, white-space-shorthand, clip-path-box, text-shadow-color, cursor-image, perspective-origin-x, rotate-3d, text-emphasis-skip-ink, text-justify-trim, font-size-adjust-from-font.
+- 기각(rigor-over-quota, 소스 사용 전부 0): (1) flex-flow = flex-wrap(12)/flex-basis(21)/flex-grow(2)/flex-shrink(3)로 이미 커버된 계열의 숏핸드 파생. (2) perspective-origin-x = perspective-origin(5)의 벤더 레거시 하위 축, 표준 속성 아님. (3) rotate-3d = rotate3d() 트랜스폼 함수명을 속성으로 오인(c5195 관례), rotate(70)/scale-3d(2) 계열 커버. (4) font-size-adjust-from-font = font-size-adjust(9)의 from-font 값 키워드 파생. (5) clip-path-box/text-shadow-color/cursor-image = 각각 clip-path(23)/text-shadow(25)/cursor(40) 값 구성요소를 속성으로 오인. (6) scroll-button-position = ::scroll-button() 의사 요소를 속성으로 오인(c5189 관례), scroll-button(6)/scroll-marker(8) 계열 커버. (7) text-box-shorthand/white-space-shorthand/text-emphasis-skip-ink/text-justify-trim = fabricated 파생, 실존 속성 아님(실명은 text-box, white-space, text-emphasis-skip 3, text-justify 7/text-spacing-trim 6).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5233, 896th round(responsive). style-surface 센서스 대상 포인터 fc0d49f2(c5227 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5229 — design/tokens 819th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 819번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f7614785(c5223 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 479f9cd2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
