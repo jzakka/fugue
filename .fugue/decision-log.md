@@ -17311,6 +17311,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5303 — design/aesthetic 908th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 908번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 카운터/리스트 마커·표 조판·인라인 정렬 및 줄바꿈 계열, 배치2 = 스크롤 스냅 개명 계열·IE 스크롤바 레거시·WebKit 사용자 상호작용 및 텍스트 렌더링 레거시. 0-match 후보 8건.
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 개명 전 폐기 별칭 — scroll-snap-margin(scroll-margin=20으로 개명), scroll-snap-padding(scroll-padding=27로 개명), scroll-boundary-behavior(overscroll-behavior=13으로 개명); (2) 값 키워드 파생 — text-overflow-ellipsis(text-overflow=6), scroll-behavior-instant(scroll-behavior=23); (3) IE 벤더 독점 레거시 — scrollbar-arrow-color; (4) CSS 값 문법 타입명 — content-position (박스 정렬 &lt;content-position&gt; 값 타입, 속성 아님); (5) 폐기된 CSS2 초안 — marker-offset (CSS2.1에서 제거, marker-side=2가 후속 계열).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5305, 908th round(responsive). style-surface 센서스 대상 포인터 eb8110a0(c5299 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5301 — design/tokens 831st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 831번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 483479bc(c5295 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 09ad0c52 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
