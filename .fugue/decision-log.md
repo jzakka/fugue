@@ -17216,6 +17216,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5213 — design/aesthetic 893rd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 893번째 라운드, 발견 모드. 백로그 pending=0.
+- 프로빙: anti-patterns.md 대비 fresh 축 3배치 프로빙(~72축). 배치1 = 폰트 세부 조판(font-variant-* 7종·font-feature-settings·font-variation-settings·font-optical-sizing·font-synthesis-* 3종·font-kerning·font-stretch·font-size-adjust·font-palette·font-language-override) 및 강조/세로쓰기(text-emphasis-* 3종·text-orientation·text-combine-upright·unicode-bidi) 계열. 배치2 = 줄바꿈/자간/정렬(writing-mode·direction·white-space-collapse·text-wrap-style/mode·word-break·line-break·overflow-wrap·hanging-punctuation·text-indent·text-align-last·text-justify·letter-spacing·word-spacing·text-rendering·text-spacing-trim·initial-letter(-align)·line-height-step·math-style·math-depth·text-autospace·ruby-position·text-group-align) 계열. 배치3 = 뷰 트랜지션/앵커 포지셔닝/합성/SVG 페인트(view-transition-* 3종·anchor-name·position-anchor·position-visibility·position-try-* 2종·backdrop-filter·mix-blend-mode·will-change·content-visibility·image-rendering·image-orientation·paint-order·vector-effect·stroke-* 2종·fill-rule·shape-rendering·text-anchor·dominant-baseline·alignment-baseline·clip-rule) 계열.
+- 결과: 0-match 후보 0건. 72축 전부 기존 baseline 보유(최소 text-group-align 1 ~ 최대 direction 80), 기각 심사 대상 자체가 발생하지 않음.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5215, 893rd round(responsive). style-surface 센서스 대상 포인터 ce4b44b3(c5209 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5211 — design/tokens 816th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 816번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e525648b(c5205 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main c1ee0e58 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
