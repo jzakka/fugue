@@ -17575,6 +17575,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5509 — design/responsive 942nd round (Discovery, 표면 불변 폐기)
+- 순번: responsive 942번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 2c69d017(c5503 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main cc7376d3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main cc7376d3 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5511, 866th round(tokens). style-surface 센서스 대상 포인터 0b343c84(c5505 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5507 — design/aesthetic 942nd round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 942번째 라운드, 발견 모드. 백로그 pending=0.
 - 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 테두리 이미지·아웃라인·모서리 형상 계열, 배치2 = 가변 폰트 축·@font-face 디스크립터 계열. 0-match 후보 20건. (기존 커버 일부: font-display=42, font-optical-sizing=12, border-image-source=9, border-image-slice=9, border-image-width=9, border-image-repeat=9, corner-shape=9, font-variation-settings=9, font-stretch=9, border-image-outset=8, unicode-range=8, descent-override=8, stroke-align=7, line-gap-override=7, outline-offset=6, outline-style=6, box-decoration-break=6, ascent-override=6, outline-width=5, outline-color=5, stroke-dashoffset=5, font-tech=4, corner-bottom-right-shape=3, border-start-start-radius=2, font-width=2, font-format=2, border-end-start-radius=1, font-named-instance=1.)
