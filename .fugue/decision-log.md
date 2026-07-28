@@ -17917,6 +17917,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5765 — design/aesthetic 985th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 985번째 라운드, 발견 모드. 백로그 pending=0. origin/main 5e67f917 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 셀렉터·캐스케이드 표면 계열, 배치2 = 컨테인먼트·스티키 상태 표면 계열. 0-match 후보 36건. (기존 커버 12건: first-letter=9, scroll-state=9, first-line=7, only-child=7, nth-of-type=6, overscroll-contain=5, nth-last-of-type=4, contain-intrinsic-block-size=4, contain-intrinsic-inline-size=4, contain-intrinsic-width=2, contain-intrinsic-height=2, only-of-type=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 셀렉터 문법 개념 용어 9 — nesting-selector/parent-selector/is-selector/where-selector/not-selector/has-selector/selection-pseudo/target-pseudo/root-pseudo는 셀렉터 명칭에 -selector·-pseudo 접미사를 붙인 문법 개념 용어; (2) contain 값 키워드 파생 6 — contain-layout/contain-paint/contain-style/contain-size/contain-strict/contain-content는 커버된 contain=184의 값 키워드; (3) 캐스케이드 개념 용어 4 — specificity-zero/cascade-layer/layer-order/important-declaration; (4) 컨테인먼트 명세 개념 용어 4 — paint-containment/layout-containment/size-containment/style-containment; (5) 전역 값 키워드 개념 용어 3 — revert-value/unset-value/all-property(커버된 revert-layer=2); (6) 값 키워드 파생 3 — sticky-position(position 값 sticky), stuck-state(커버된 scroll-state=9의 stuck), snap-stopped(커버된 scroll-snap-stop=8); (7) content-visibility 값 키워드 파생 2 — content-visibility-auto/content-visibility-hidden(커버된 content-visibility=19); (8) @scope 프렐류드 명칭 2 — scope-start/scope-end; (9) 레이아웃 명세 개념 용어 2 — stacking-context/containing-block; (10) 폐지 초안 속성 1 — render-subtree는 content-visibility=19의 폐지 전신 초안 속성.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5767, 985th round(responsive). style-surface 센서스 대상 포인터 132da4da(c5761 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5763 — design/tokens 908th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 908번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 84cb469d(c5757 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main e311ab29 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
