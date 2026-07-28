@@ -18133,6 +18133,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5927 — design/aesthetic 1012th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1012번째 라운드, 발견 모드. 백로그 pending=0. origin/main 8d2f4cd4.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 보더/그림자/테이블 계열(text-shadow 25, border-image-slice 9, border-image-repeat 9, border-image-width 9, corner-shape 9, inset-shadow 9, divide-y 9, border-spacing 9 등), 배치B = 포인터/카운터/페이지드 미디어 계열(resize 53, cursor 40, caret-color 25, increment 18, pointer-events 14, counter-reset 13, quotes 12, user-select 11 등).
+- 0-match: 7건 — box-shadow-color, shadow-spread, accent-height, content-increment, bookmark-label, page-break-inside, widows-control.
+- 판정: 7건 전량 기각. box-shadow-color·shadow-spread = box-shadow 60 / shadow-color 1 / spread 9 위의 **합성 파생**. accent-height = accent 217(accent-color 26, accent- 접두 67) + height 116 합성 파생. content-increment = content 192 + increment 18(counter-increment 11) 합성 파생. bookmark-label = bookmark 3 + label 59 합성 파생. page-break-inside = page-break 5 + break-inside 10 합성 파생. widows-control = widows 12 + control 77 접미사 파생. 7축 모두 소스 사용도 0건(apps/web/src, DESIGN.md)이라 표면 근거 없음 → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5929, 1012th round(responsive). 직전 responsive 포인터 3cdf7406 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5925 — design/tokens 935th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 935번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 9c3eeac4(c5919 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 1f81176c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
