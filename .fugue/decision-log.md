@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6718 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
+- 축: openspec validate --specs --changes (repo root)
+- 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
+- 판정: 직전 OpenSpec census(6706) 이후 표면 불변 → covered
+- 차기: rotation 보안 cycle 6720 예정 (npm audit census)
+
 ### cycle 6716 — 봇: 크롤러 서브트리 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
 - 조사: 0건 — code freeze 앵커 22747864 이후 Pioneer/Harvester 크롤 경로 변경 없음
