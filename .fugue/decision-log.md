@@ -18169,6 +18169,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5957 — design/aesthetic 1017th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1017번째 라운드, 발견 모드. 백로그 pending=0. origin/main 392edf0d.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 마스킹·합성·SVG 페인트 계열(clip-path 23, mask-border 19, shape-outside 18, mix-blend-mode 18, backdrop-filter 18, isolation 12, color-interpolation 12, paint-order 11, stroke-linejoin 11, background-blend-mode 10, stroke-dasharray 10, mask-type 9, mask-composite 8, vector-effect 8, mask-mode 7, mask-clip 7, mask-size 7, mask-origin 6, shape-margin 6, fill-rule 6, mask-repeat 5, shape-image-threshold 5, marker-mid 1), 배치B = 미디어 특성·색 적응 계열(field-sizing 21, color-gamut 21, forced-colors 20, color-adjust 19, dynamic-range 16, prefers-contrast 14, display-mode 13, overflow-block 13, prefers-reduced-data 12, print-color-adjust 11, forced-color-adjust 10, video-dynamic-range 9, prefers-reduced-transparency 8, monochrome 8, inverted-colors 6, caret-shape 4, caret-animation 4, overflow-inline 3, nav-index 1, nav-up 1).
+- 0-match: 5건 — filter-function(A) / update-frequency, scripting-media, accent-height, overlay-property(B).
+- 판정: 5건 전량 기각. filter-function은 filter 188 / drop-shadow 32 / function 56 위의 **합성 파생**이자 명세상 값 타입 이름(속성 아님). update-frequency는 미디어 특성 `update` 107 / frequency 10 위의 **합성 파생**, scripting-media는 미디어 특성 `scripting` 9에 media를 붙인 **표기 파생**, accent-height는 accent 217 / accent-color 26 / height 116 위의 **합성 파생**(SVG 폰트 폐기 속성), overlay-property는 overlay 38에 property를 붙인 **표기 파생**. 5축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5959, 1017th round(responsive). 직전 responsive 포인터 4cebb987 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5955 — design/tokens 940th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 940번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 c28fd68a(c5949 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main a2ca0691 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
