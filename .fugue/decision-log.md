@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6628 — 에러처리: apps/api 전역 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api
+- 조사: 0건 — code freeze 앵커 22747864 이후 apps/api 변경 없음. 에러 반환·래핑 경로 불변
+- 판정: 직전 에러처리 census(6616) 이후 표면 불변 → covered
+- 차기: rotation 동시성 cycle 6630 예정 (22747864 bot 서브트리 census)
+
 ### cycle 6626 — 정합성: 코드·문서 non-loop residual census → 표면 불변 (covered)
 - 축: git rev-list --count e2cb3a80..origin/main -- apps/api ':(exclude).fugue'
 - 조사: 0건 — e2cb3a80 이후 apps/api 비-loop 변경 없음. 코드·문서 정합 앵커 유효
