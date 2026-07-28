@@ -18157,6 +18157,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5945 — design/aesthetic 1015th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1015번째 라운드, 발견 모드. 백로그 pending=0. origin/main e2f71ac6.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 애니메이션 타이밍/앵커 포지셔닝 계열(anchor-size 10, try-fallbacks 10, transition-delay 9, ease-in-out 9, transition-duration 8, cubic-bezier 7, animation-iteration-count 7, starting-style 7 등), 배치B = 구조·상태 의사클래스 계열(autofill 24, placeholder-shown 18, indeterminate 15, nth-child 13, in-range 11, out-of-range 11, only-child 7, user-valid 6 등).
+- 0-match: 21건 — (A) steps-easing, linear-easing, spring-easing, keyframes-percent, display-transition, height-auto-transition, try-tactics, popover-target / (B) empty-selector, not-selector, has-selector, is-selector, where-selector, target-selector, root-selector, read-only-selector, required-selector, optional-selector, checked-selector, default-selector, valid-selector.
+- 판정: 21건 전량 기각. (A) 8축은 easing 51 / steps 4 / linear 86 / keyframes 80 / percent 23 / transition 153 / height 116 / calc-size 4 / try- 26(position-try 17, try-fallbacks 10, flip-block 3) / popover 37 / target 81 위의 **합성 파생**. spring-easing은 spring 0이나 easing 계열(cubic-bezier 7, ease-in-out 9, bounce 7, elastic 1)이 이미 커버된 상태의 **개념 용어**이지 CSS 식별자가 아님. (B) 13축은 대응 의사클래스가 전부 커버(`:has` 32, `:root` 45, `:target` 29, `:checked` 25, `:not` 23, `:read-only` 19, `:is` 12, `:empty` 11, `:required` 11, `:valid` 11, `:optional` 9, `:default` 8, `:where` 7)된 상태에서 selector 62를 접미로 붙인 **표기 파생**. 21축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5947, 1015th round(responsive). 직전 responsive 포인터 07a0bc7e 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5943 — design/tokens 938th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 938번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e5906497(c5937 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 0ebd83db 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
