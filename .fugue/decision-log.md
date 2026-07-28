@@ -17755,6 +17755,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5639 — design/aesthetic 964th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 964번째 라운드, 발견 모드. 백로그 pending=0. origin/main 6e24ffbf (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 디스클로저 마커·폼 검증 상태 표면 계열, 배치2 = 이미지 로딩 힌트·스크롤 앵커링 표면 계열. 0-match 후보 37건. (기존 커버 일부: user-invalid=15, in-range=11, out-of-range=11, fetchpriority=6, user-valid=6, largest-contentful=4, details-marker=2, marker-side=2, first-paint=2, overflow-anchor=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 의사요소·의사클래스 기반 6 — disclosure-marker, summary-marker, list-marker(marker-side=2 보유), validity-state, invalid-state, checked-state(user-invalid=15 보유); (2) HTML 속성·리소스 힌트 명칭 10 — loading-lazy, image-lazy, lazy-boundary, srcset-descriptor, sizes-attribute, decoding-hint, image-decoding, preload-hint, prefetch-hint, priority-hint (fetchpriority=6 보유); (3) 조작된 명칭 9 — tree-indent, indent-guide, expand-icon, collapse-icon, required-marker, optional-marker, error-message-style, submit-invalid, aspect-hint; (4) 렌더링·성능 지표 개념 용어 5 — layout-stability, paint-holding, cumulative-shift, content-decode, render-hint (first-paint=2, largest-contentful=4 보유); (5) 스크롤 앵커링 개념 용어 3 — scroll-anchoring, anchor-adjustment, scroll-restoration (overflow-anchor=1 보유); (6) 값·계열 파생 2 — placeholder-color(placeholder-shown=18 보유), autofill-background; (7) HTML 폼 API 개념 용어 2 — form-validity, constraint-validation.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5641, 964th round(responsive). style-surface 센서스 대상 포인터 d39a2500(c5635 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5637 — design/tokens 887th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 887번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f1332211(c5631 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main fdb8b349 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
