@@ -17827,6 +17827,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5699 — design/aesthetic 974th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 974번째 라운드, 발견 모드. 백로그 pending=0. origin/main d78f3c93 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 테이블 레이아웃·스티키 배치 표면 계열, 배치2 = 그림자·깊이 표현 표면 계열. 0-match 후보 41건. (기존 커버 7건: outline-offset=6, border-separate=2, ring-offset=2, ring-color=2, shadow-color=1, ring-inset=1, neumorphism=1. 상위 계열 box-shadow=60, elevation=36, drop-shadow=32 보유.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) box-shadow 값 성분 파생 7 — shadow-spread, shadow-blur, shadow-offset-x, shadow-offset-y, shadow-inset, box-shadow-inset, hard-shadow (box-shadow=60, shadow-color=1 보유); (2) position 값 키워드·스티키 배치 개념 용어 6 — sticky-header, sticky-column, table-sticky, position-sticky, sticky-offset, thead-sticky; (3) 테이블 구조·요소 명칭 5 — header-cell, table-caption, colgroup-width, row-header, tfoot-position (caption-side=5, table-layout=7, border-collapse=7 보유); (4) 테이블 스타일 관례 명칭 5 — table-striped, zebra-striping, row-hover, table-density, table-responsive; (5) 테이블 계열·값 파생 4 — table-border, cell-padding, table-scroll, table-overflow (border-spacing=9, overflow-x=15 보유); (6) 그림자 조명 개념 용어 4 — umbra-shadow, penumbra-shadow, ambient-shadow, layered-shadow (elevation=36 보유); (7) 깊이·고도 개념 용어 3 — elevation-level, depth-level, shadow-token; (8) 포커스·발광 표현 개념 용어 2 — focus-shadow, glow-effect (focus-ring=5 보유); (9) 테이블 인터랙션 개념 용어 2 — column-freeze, cell-alignment; (10) 유틸리티 클래스 관례 명칭 1 — ring-width (ring-offset=2, ring-color=2 보유); (11) HTML 속성 명칭 1 — scope-attribute; (12) 필터 함수 명칭 파생 1 — drop-shadow-filter (drop-shadow=32 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5701, 974th round(responsive). style-surface 센서스 대상 포인터 9d3f23f2(c5695 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5697 — design/tokens 897th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 897번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5a413ce4(c5691 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main ce115d7a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
