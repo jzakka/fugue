@@ -18235,6 +18235,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6007 — design/responsive 1025th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1025번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 e13ef959(c6001 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 734ef3e6 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 734ef3e6 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6009, 949th round(tokens). 직전 tokens 포인터 7bb79c4f 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6005 — design/aesthetic 1025th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1025번째 라운드, 발견 모드. 백로그 pending=0. origin/main 71f0ddc3.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 필터·마스크·블렌드 계열(mask-border 19, backdrop-filter 18, mix-blend-mode 18, shape-outside 18, mask-type 9, mask-composite 8, mask-mode 7, mask-clip 7, mask-origin 6, shape-margin 6, shape-image-threshold 5, color-dodge 2, color-burn 2, hard-light 2, soft-light 2, plus-lighter 1), 배치B = SVG paint·stroke·baseline 계열(image-rendering 23, text-rendering 20, dominant-baseline 14, stroke-linecap 11, stroke-linejoin 11, paint-order 11, flood-color 11, stroke-dasharray 10, shape-rendering 9, vector-effect 8, baseline-shift 7, stop-color 7, stroke-miterlimit 6, fill-rule 6, clip-rule 6, stroke-dashoffset 5, alignment-baseline 5, fill-opacity 4, stroke-opacity 4, marker-start 4, marker-end 4, stop-opacity 3, glyph-orientation 2, marker-mid 1 — 배치B 전 축 매칭).
