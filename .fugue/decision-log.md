@@ -17809,6 +17809,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5687 — design/aesthetic 972nd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 972번째 라운드, 발견 모드. 백로그 pending=0. origin/main 77381ac1 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 값 계산 함수·커스텀 속성 표면 계열, 배치2 = 3D 트랜스폼·좌표계 표면 계열. 0-match 후보 32건. (기존 커버 일부: sibling-index=11, sibling-count=8, translate-z=5, calc-size=4, rotate-x=4, rotate-y=4, custom-property=3, translate3d=3, rotate3d=3, transform-box=3, scale3d=2, matrix3d=2, container-progress=1, media-progress=1, skew-x=1, skew-y=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) CSS 함수 명칭 16 — clamp-function, min-function, max-function, round-function, mod-function, rem-function, abs-function, sign-function, pow-function, sqrt-function, hypot-function, attr-function, if-function, random-function, progress-function, toggle-function (sibling-index=11, sibling-count=8, calc-size=4 보유); (2) transform 함수·값 파생 6 — skew-transform, transform-function, rotate-z, z-translate, matrix-transform, translate-percentage (rotate-x=4, rotate-y=4, translate-z=5, matrix3d=2 보유); (3) 3D 렌더링 개념 용어 5 — camera-perspective, vanishing-point, depth-sorting, flat-transform, rendering-context (perspective=29, transform-style=7, preserve-3d=5, backface-visibility=10 보유); (4) 명세 개념·분류 용어 3 — individual-transform, transform-list, transform-shorthand (transform-box=3 보유); (5) 값 문법 개념 용어 2 — var-fallback, calc-expression (custom-property=3, calc-size=4 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5689, 972nd round(responsive). style-surface 센서스 대상 포인터 829b2a7a(c5683 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5685 — design/tokens 895th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 895번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 4e758ab3(c5679 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 773e1968 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
