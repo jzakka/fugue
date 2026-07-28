@@ -18025,6 +18025,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5843 — design/aesthetic 998th round (Discovery, 9축 폐기)
+- 순번: aesthetic 998번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 7d389fbf.
+- 프로브 1 (폰트 디스크립터·가변 폰트 표면 계열, 24축): covered 16 — font-display=42, font-synthesis=26, font-feature-settings=25, font-palette=22, font-kerning=13, font-optical-sizing=12, font-variation-settings=9, font-size-adjust=9, font-stretch=9, unicode-range=8, descent-override=8, line-gap-override=7, ascent-override=6, font-variant-emoji=6, font-language-override=4, font-named-instance=1. 0-match 8축.
+- 프로브 2 (텍스트 장식·강조 표면 계열, 24축): covered 23 — text-orientation=27, ruby-position=20, text-decoration-skip-ink=16, text-combine-upright=15, hanging-punctuation=15, initial-letter=13, text-underline-position=12, text-emphasis-position=11, text-underline-offset=9, text-box-trim=9, text-decoration-thickness=8, ruby-align=7, text-spacing-trim=6, text-emphasis-style=5, text-emphasis-color=5, text-autospace=5, initial-letter-align=5, text-box-edge=5, leading-trim=5, ruby-overhang=4, text-wrap-style=3, line-fit-edge=2, text-group-align=1. 0-match 1축.
+- 계열 baseline 확인: anti-patterns.md 내 writing-mode=36, format=31, supports=27, @font-face=25, size-adjust=18, tech=10, descriptor=10, variable font=5, wght=4, opsz=4, wdth=2, slnt=2, src:=2 — 9개 0-match 축이 모두 이들 baseline의 하위 표기.
+- 폐기 9축 (rigor-over-quota): @font-face 디스크립터 명칭 접미사 파생 2(size-adjust-descriptor, src-descriptor) / src 함수 표기 파생 2(tech-format, supports-format) / 가변 폰트 등록 축 태그 파생 4(variable-axis-wght·wdth·slnt·opsz) / 속성-값 결합 명칭 1(writing-mode-vertical). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: size-adjust·src:·tech(·format(·wdth·slnt·opsz·writing-mode·vertical-rl·vertical-lr·font-variation-settings 전부 apps/web/src·DESIGN.md 사용 0건. wght 1건은 layout.tsx:19 Google Fonts URL 쿼리(`family=Geist+Mono:wght@100..900`)로 CSS 가변 축 선언 아님 → CSS 측 표면 미도입.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 7d389fbf로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5845, 998th round(responsive). style-surface 센서스 대상 포인터 7067bb2f(c5839 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5841 — design/tokens 921th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 921번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 118d464c(c5835 기록) 대비 산출 → 변경 0건(numstat 출력 공집합, added=0 deleted=0). origin/main 19ada4ce 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
