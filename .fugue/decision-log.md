@@ -18199,6 +18199,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5981 — design/aesthetic 1021th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1021번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7330dcbf.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 테이블·리스트·카운터 계열(counter-style 29, counter-reset 13, counter-increment 11, vertical-align 10, list-style-type 10, border-spacing 9, counter-set 8, border-collapse 7, table-layout 7, list-style-position 7, empty-cells 6, list-style-image 6, caption-side 5), 배치B = 입력 상호작용·텍스트 조판 계열(hyphens 33, letter-spacing 33, text-orientation 27, text-indent 23, text-transform 22, tab-size 19, word-spacing 19, pointer-events 14, overflow-wrap 14, word-break 13, user-select 11, touch-action 10, hyphenate-character 10, hyphenate-limit-chars 8, unicode-bidi 8, text-justify 7, outline-color 5, text-align-last 4, field-sizing-content 2).
+- 0-match: 16건 — float-property, clear-property, display-table, display-contents, display-flow-root, symbols-function, marker-pseudo, quotes-property, content-property, alt-property, counters-function(A) / cursor-property, caret-color-value, resize-property, appearance-property, accent-property(B).
+- 판정: 16건 전량 기각. float-property·clear-property·quotes-property·content-property·alt-property·cursor-property·resize-property·appearance-property·accent-property 9축은 float 40 / clear 14 / quotes 12 / content 192 / alt 54 / cursor 40 / resize 53 / appearance 15 / accent 217에 property 122를 붙인 **표기 파생**, caret-color-value는 caret-color 25에 value 233을 붙인 **표기 파생**. display-table·display-contents·display-flow-root는 display 151 / table 89 / contents 2 / flow 142 / root 68 위의 **값 파생**(display 속성-값 결합 표기). symbols-function·counters-function은 symbols 13 / counters 18 / function 56 위의 **합성 파생**, marker-pseudo는 marker 45 / pseudo 37 위의 **합성 파생**. 16축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5983, 1021th round(responsive). 직전 responsive 포인터 bd2d2704 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5979 — design/tokens 944th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 944번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6fa956bf(c5973 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 7c476c61 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
