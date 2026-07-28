@@ -17845,6 +17845,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5711 — design/aesthetic 976th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 976번째 라운드, 발견 모드. 백로그 pending=0. origin/main 93ed5517 (프로빙 시점 9608d56c에서 재fetch 결과 드리프트 확인, 최신 팁 기준으로 브랜치 생성).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 논리 속성·흐름 상대 방향 표면 계열, 배치2 = 컨테이너 쿼리 단위·조건 표면 계열. 0-match 후보 33건. 배치1은 24축 중 15축이 이미 커버되어 포화 신호가 강함. (기존 커버 15건: block-start=19, inline-start=16, block-end=15, inline-end=12, padding-inline=9, margin-inline=8, padding-block=8, margin-block=6, inset-inline=5, inset-block=4, flow-relative=4, border-start-start-radius=2, border-inline=1, border-block=1, border-end-end-radius=1. 상위 계열 container-type=22, container-name=9, style-query=2, container-progress=1 보유.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 컨테이너 개념·문법 용어 11 — container-condition, size-container, inline-size-container, container-context, query-container, container-relative, style-container, container-selector, container-nesting, container-fallback, container-shorthand (container-type=22, container-name=9, style-query=2 보유); (2) 컨테이너 쿼리 단위 분류 명칭 9 — container-query-unit, cqw-unit, cqh-unit, cqi-unit, cqb-unit, cqmin-unit, cqmax-unit, container-progress-unit, container-unit (container-progress=1 보유); (3) 스크롤 상태 쿼리 초안 개념 용어 4 — scroll-state-query, container-scroll-state, stuck-state, snapped-state; (4) 논리 속성 개념·분류 용어 3 — logical-property, physical-property, logical-inset (flow-relative=4 보유); (5) 논리 값 키워드 파생 3 — text-align-start, float-inline-start, clear-inline-end (inline-start=16, inline-end=12, text-align-last=4 보유); (6) HTML 속성·의사클래스 명칭 2 — dir-attribute, dir-pseudo; (7) 국제화 동작 개념 용어 1 — rtl-mirroring.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5713, 976th round(responsive). style-surface 센서스 대상 포인터 c432441b(c5707 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5709 — design/tokens 899th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 899번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f5ceb2d4(c5703 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 3263115a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
