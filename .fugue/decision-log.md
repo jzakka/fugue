@@ -18337,6 +18337,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6059 — design/aesthetic 1034th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1034번째 라운드, 발견 모드. 백로그 pending=0. origin/main eaea0dbd.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = SVG·필터·블렌드 계열(text-rendering 20, backdrop-filter 18, mix-blend-mode 18, dominant-baseline 14, lighting-color 12, feturbulence 12, color-interpolation 12, stroke-linejoin 11, paint-order 11, flood-color 11, stroke-dasharray 10, mask-type 9, shape-rendering 9, vector-effect 8, mask-composite 8, stop-color 7, mask-mode 7, fill-rule 6, clip-rule 6, fedropshadow 6, shape-margin 6, shape-image-threshold 5), 배치B = 앵커 포지셔닝·스크롤·카운터·리스트 계열(line-clamp 26, ruby-position 20, position-try 17, hanging-punctuation 15, anchor-name 14, position-anchor 13, position-area 13, counter-reset 13, initial-letter 13, text-combine-upright 15, position-visibility 11, counter-increment 11, anchor-size 10, scroll-marker 8, counter-set 8, list-style-position 7, ruby-align 7, scroll-button 6, box-decoration-break 6, string-set 3, marker-side 2, scroll-target-group 1).
+- 0-match: 4건 — isolation-isolate, filter-drop-shadow(A) / symbols-function, quotes-property(B).
+- 판정: 4건 전량 기각. isolation-isolate는 isolation 12 위에 값 isolate 15가 이미 커버된 **값 파생**, filter-drop-shadow는 filter 188 / drop-shadow 32 **값 파생**, symbols-function은 symbols 13(및 symbol 18) 위에 function 56 접미를 얹은 **표기 파생**, quotes-property는 quotes 12 위에 property 122 접미를 얹은 **표기 파생**. 4축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6061, 1034th round(responsive). 직전 responsive 포인터 b09ae19b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6057 — design/tokens 957th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 957번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 8c2f34fd(c6051 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 44c2f260 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
