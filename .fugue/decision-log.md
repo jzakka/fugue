@@ -18061,6 +18061,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5869 — design/responsive 1002th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1002번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 ccc9b6b5(c5863 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 4150a9cc 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 4150a9cc (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5871, 926th round(tokens). style-surface 센서스 대상 포인터 342cfd15(c5865 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5867 — design/aesthetic 1002th round (Discovery, 4축 폐기)
 - 순번: aesthetic 1002번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 63d3d175.
 - 프로브 1 (색 함수·색 공간 표면 계열, 24축): covered 23 — color-scheme=27, lch(=21, color-gamut=21, color-mix(=20, oklch(=17, lab(=12, color-interpolation=12, rec2020=12, currentcolor=12, display-p3=11, light-dark(=10, oklab(=7, hwb(=7, color-interpolation-filters=7, srgb-linear=6, color-contrast(=5, device-cmyk(=5, a98-rgb=5, @color-profile=4, xyz-d50=4, relative color=4, prophoto-rgb=3, xyz-d65=2. 0-match 1축(from srgb).
