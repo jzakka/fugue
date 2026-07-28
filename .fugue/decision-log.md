@@ -18043,6 +18043,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5855 — design/aesthetic 1000th round (Discovery, 0-match 0축)
+- 순번: aesthetic 1000번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 50f576e5.
+- 프로브 1 (폼 컨트롤·UI 위젯 표면 계열, 24축): covered 24 — accent-color=26, caret-color=25, ::selection=22, field-sizing=21, will-change=20, ::placeholder=17, appearance=15, ::backdrop=15, pointer-events=14, ::-webkit-scrollbar=11, user-select=11, ::file-selector-button=10, ::target-text=10, touch-action=10, user-modify=9, scrollbar-width=8, ::spelling-error=8, ::grammar-error=8, scrollbar-color=6, ::details-content=6, ::highlight(=6, caret-shape=4, scrollbar-gutter=3, input-security=1. 0-match 0축.
+- 프로브 2 (앵커 포지셔닝·팝오버/top-layer 표면 계열, 24축): covered 24 — overlay=38, popover=37, :popover-open=22, top-layer=22, anchor(=18, position-try=17, anchor-name=14, position-anchor=13, position-area=13, position-try-order=11, position-visibility=11, anchor-size(=10, position-try-fallbacks=10, anchor-scope=9, @starting-style=7, transition-behavior=5, allow-discrete=4, flip-block=3, self-start=3, inset-area=2, span-all=2, try-tactic=1, flip-inline=1, flip-start=1. 0-match 0축.
+- 판정: 48축 전부 covered, 0-match 0축 → 계열 baseline 대조 단계 자체가 불필요. 순수 vacuous 축 0건 → 신규 후보 없음(rigor-over-quota). 소스 검증도 후보 부재로 생략.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 50f576e5로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5857, 1000th round(responsive). style-surface 센서스 대상 포인터 16783c05(c5851 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5853 — design/tokens 923th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 923번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5ea2c6a2(c5847 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 896597e3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
