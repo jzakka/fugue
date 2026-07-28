@@ -17797,6 +17797,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5675 — design/aesthetic 970th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 970번째 라운드, 발견 모드. 백로그 pending=0. origin/main 6d70a5af (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = @font-face 서술자·폰트 로딩 표면 계열, 배치2 = 생성 콘텐츠·@counter-style 서술자 표면 계열. 0-match 후보 38건. (기존 커버 일부: speak-as=10, additive-symbols=8, line-gap-override=7, ascent-override=6, font-tech=4, string-set=3, font-format=2, generated-content=2, target-counter=2, font-named-instance=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) @counter-style 서술자 명칭 8 — counter-style-system, symbols-function, negative-descriptor, pad-descriptor, range-descriptor, fallback-descriptor, prefix-descriptor, suffix-descriptor (additive-symbols=8, speak-as=10 보유); (2) @font-face 서술자 명칭 파생 6 — src-descriptor, font-weight-range, font-stretch-range, font-style-range, font-face-descriptor, font-metrics-override (ascent-override=6, line-gap-override=7, descent-override=8, size-adjust=18 보유); (3) 폰트 포맷·리소스 개념 용어 6 — local-font, woff2-format, variable-font-axis, font-fallback-chain, unicode-subset, font-subset (unicode-range=8, font-tech=4, font-format=2 보유); (4) 의사요소 기반 4 — before-content, after-content, marker-content, content-string (generated-content=2 보유); (5) Web API 명칭 3 — font-loading-api, fontface-set, font-preload; (6) 카운터 개념 용어 3 — counter-scope, list-item-counter, nested-counter (counter-reset=13, counter-set=8, target-counter=2 보유); (7) 값·계열 파생 3 — superscript-position·subscript-position(font-variant-position=8 보유), content-visibility-auto(content-visibility=19 보유); (8) 접근성 대체 텍스트 개념 용어 2 — content-alt, alt-text; (9) 폰트 분류 명칭 2 — generic-family, system-ui-font; (10) 범위 외 GCPM 함수 명칭 1 — leader-function.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5677, 970th round(responsive). style-surface 센서스 대상 포인터 1f8ceb50(c5671 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5673 — design/tokens 893rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 893번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 60b2fc3c(c5667 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main e5344da2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
