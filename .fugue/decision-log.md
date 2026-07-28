@@ -18163,6 +18163,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5951 — design/aesthetic 1016th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1016번째 라운드, 발견 모드. 백로그 pending=0. origin/main 0d9e9fc1.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 스크롤 구동 애니메이션·스크롤 표면 계열(scroll-padding 27, scroll-behavior 23, scroll-driven 22, line-break 21, scroll-margin 20, animation-timeline 16, snap-align 15, scroll-timeline 13, view-timeline 13, overscroll-behavior 13, snap-type 13, animation-range 12, timeline-scope 9, scroll-state 9, overflow-clip-margin 9, scroll-snap-stop 8, scrollbar-width 8, scrollbar-color 6, text-wrap-mode 5, white-space-collapse 5, scrollbar-gutter 3, text-wrap-style 3, overflow-anchor 1), 배치B = 폰트·텍스트 조판 계열(font-synthesis 26, font-feature-settings 25, font-palette 22, ruby-position 20, text-emphasis 17, text-decoration-skip-ink 16, hanging-punctuation 15, font-kerning 13, initial-letter 13, font-optical-sizing 12, font-variation-settings 9, font-size-adjust 9, font-stretch 9, text-underline-offset 9, text-box-trim 9, text-decoration-thickness 8, ruby-align 7, text-spacing-trim 6, font-variant-emoji 6, text-box-edge 5, leading-trim 5, text-autospace 5, word-space-transform 2).
+- 0-match: 2건 — container-scroll-state(A), ime-mode(B).
+- 판정: 2건 전량 기각. container-scroll-state는 container 147 / container-type 22 / container-name 9 / container-query 6 / scroll-state 9 위에 두 커버 토큰을 이어 붙인 **합성 파생**. ime-mode는 대응 개념인 inputmode 12가 이미 커버된 상태의 표기 변형(비표준·폐기된 속성)으로 **표기 파생**. 두 축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5953, 1016th round(responsive). 직전 responsive 포인터 71081994 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5949 — design/tokens 939th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 939번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 0ebd83db(c5943 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main c28fd68a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
