@@ -17911,6 +17911,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5759 — design/aesthetic 984th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 984번째 라운드, 발견 모드. 백로그 pending=0. origin/main 25947013 (프로빙 시점 d51f3fde에서 재fetch 결과 드리프트 확인, 최신 팁 기준으로 브랜치 생성).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 인라인 레이아웃·베이스라인 표면 계열, 배치2 = 팝오버·다이얼로그 인보커 표면 계열. 0-match 후보 33건. (기존 커버 15건: commandfor=8, baseline-shift=7, initial-letter-align=5, leading-trim=5, ruby-merge=5, text-align-last=4, ruby-overhang=4, popovertargetaction=4, baseline-source=3, half-leading=3, closedby=3, initial-letter-wrap=2, line-fit-edge=2, interest-target=2, beforetoggle=2.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 조작된 명칭 8 — baseline-set/inline-align/text-under-position/dialog-backdrop/dialog-modal/dialog-close/inert-attribute/select-fallback; (2) HTML 인보커·팝오버 API 명칭 7 — popover-target/command-for/invoker-command/popover-invoker/close-watcher/toggle-event/hidden-until-found은 커버된 commandfor=8·popovertargetaction=4·beforetoggle=2와 동일 HTML 속성·이벤트 표면; (3) 베이스라인 값 키워드 파생 5 — alphabetic-baseline/central-baseline/ideographic-baseline/mathematical-baseline/hanging-baseline은 커버된 dominant-baseline=14·alignment-baseline=5의 값 키워드; (4) 팝오버 상태 값 키워드 파생 3 — popover-auto/popover-manual/popover-hint(커버된 popover-open=22); (5) 정렬 값 문법 키워드 파생 2 — first-baseline/last-baseline은 align-items=8·align-self=5의 first/last baseline 값 문법; (6) 미구현·제거 초안 속성 2 — text-align-all(CSS Text L4 미구현), inline-box-align(구 Inline Layout 초안 제거); (7) 폼 컨트롤 값 조합·개념 용어 2 — appearance-base-select(appearance=15·base-select=6 값 조합), picker-options; (8) 폐지 별칭 명칭 1 — text-edge는 line-fit-edge=2·text-box-edge=5의 구 명칭; (9) 값 키워드 결합 파생 1 — text-align-justify-all; (10) 렌더링 차단 개념 용어 1 — blocking-render; (11) 앵커 폴백 개념 용어 1 — anchor-fallback(커버된 position-try-fallbacks=10).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5761, 984th round(responsive). style-surface 센서스 대상 포인터 cff8bbe1(c5755 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5757 — design/tokens 907th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 907번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 7e04d237(c5751 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 84cb469d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
