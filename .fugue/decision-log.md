@@ -18079,6 +18079,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5885 — design/aesthetic 1005th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1005번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7a0479c8.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = view-transition/애니메이션 타임라인/CSS 값 함수 계열(random() 22, content-visibility 19, navigation 18, sibling-index 11, attr() 10, if() 10, toggle() 10 등), 배치B = highlight pseudo/멀티컬럼·gap rule 계열(continue 22, target-text 10, spelling-error 8, grammar-error 8, scroll-marker 8, details-content 7 등).
+- 0-match 6축: view-transition-tree, highlight-inherit, column-scrollbar, column-height, gap-rule-paint-order, column-wrap.
+- 판정: 6축 모두 계열 baseline 보유로 파생 기각(rigor-over-quota). view-transition-tree ← view-transition 13 접미사 파생. highlight-inherit ← highlight 36 접미사 파생. column-scrollbar ← scrollbar 33 + column-count 13 합성 파생. column-height ← column-count 13 계열 파생. gap-rule-paint-order ← paint-order 11 + column-rule 8 합성 파생. column-wrap ← flex-wrap 12 표기 파생. 순수 vacuous 축 0건.
+- 소스 대조: 6축 모두 `apps/web/src`+`DESIGN.md`에서 사용 0건으로, 미도입 표면이라 후보 성립 불가 재확인. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5887, 1005th round(responsive). 직전 responsive 포인터 518288f1 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5883 — design/tokens 928th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 928번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 deeaddf7(c5877 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 43c1cfec 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
