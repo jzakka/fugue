@@ -17989,6 +17989,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5813 — design/aesthetic 993th round (Discovery, 28축 폐기)
+- 순번: aesthetic 993번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main ed67dba3.
+- 프로브 1 (스크롤바 스타일링 표면 계열, 24축): covered 8 — scrollbar-width=8, scrollbar-color=6, scrollbar-thumb=5, scrollbar-track=5, scrollbar-corner=5, scrollbar-track-piece=5, scroll-marker-group=5, scrollbar-gutter=3. 0-match 16축.
+- 프로브 2 (상호작용 미디어·환경 질의 표면 계열, 24축): covered 12 — color-gamut=21, dynamic-range=16, display-mode=13, device-posture=12, prefers-reduced-data=12, video-dynamic-range=9, prefers-reduced-transparency=8, inverted-colors=6, nav-controls=4, environment-blending=3, vertical-viewport-segments=3, horizontal-viewport-segments=2. 0-match 12축.
+- 폐기 28축 (rigor-over-quota, 0-match를 계열 baseline/값 파생과 대조): 값 키워드 파생 4(scrollbar-thin·scrollbar-none ← scrollbar-width, scrollbar-stable·gutter-both-edges ← scrollbar-gutter) / IE 레거시 벤더 속성 명칭 7(scrollbar-face·scrollbar-shadow·scrollbar-arrow·scrollbar-highlight·scrollbar-3dlight·scrollbar-darkshadow·scrollbar-base-color) / 벤더 의사요소 명칭 1(resizer-pseudo ← scrollbar-track-piece 계열) / 구현·방향 개념 용어 4(overlay-scrollbar·classic-scrollbar·scrollbar-vertical·scrollbar-horizontal) / 미디어 특성 명칭 접미사 파생 8(scan-feature·resolution-feature·monochrome-feature·overflow-block-media·overflow-inline-media·pointer-media·grid-media·aspect-ratio-media·width-media 중 계열 baseline 중복분) / 미지원·비활성 질의 개념 4(scripting-enabled·update-frequency·any-input 등). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: 28축 전부 apps/web/src·DESIGN.md 사용 0건(resolution 1건은 page.tsx:19 슬러그 해석 주석으로 CSS 미디어 특성 아님). 표면 미도입 확인.
+- 드리프트: 프로빙 시점 ed67dba3 → 기록 시점 origin/main 5f5edc5a. 두 프로브 모두 anti-patterns.md 기준 판정이라 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5815, 993th round(responsive). style-surface 센서스 대상 포인터 dacd5474(c5809 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5811 — design/tokens 916th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 916번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 dc0dc48b(c5805 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 6b8077f0 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
