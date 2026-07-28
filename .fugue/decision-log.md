@@ -18073,6 +18073,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5879 — design/aesthetic 1004th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1004번째 라운드, 발견 모드. 백로그 pending=0. origin/main f224ffdc.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트. 배치A = anchor positioning/텍스트 조판 계열(anchor-name 14, position-anchor 13, position-area 13, field-sizing 21, line-break 21, ruby-position 20, hanging-punctuation 15 등), 배치B = scroll-target/item-flow/corner-shape/색 함수 계열(device-cmyk 17, shape-inside 10, corner-shape 9, contrast-color 7 등).
+- 0-match 9축: position-anchor-visibility, word-break-auto-phrase, scroll-initial-target, scroll-start-target, item-direction, item-wrap, item-slack, border-shape, progress-function.
+- 판정: 9축 모두 계열 baseline 보유로 파생 기각(rigor-over-quota). position-anchor-visibility ← position-visibility 11 + position-anchor 13 합성 파생. word-break-auto-phrase ← word-break 13의 값 파생. scroll-initial/start-target ← scroll-target 1·scroll-marker-group 5 계열 파생. item-direction/wrap/slack ← item-flow 1 숏핸드의 롱핸드 파생. border-shape ← corner-shape 9·border-radius 65 표기 파생. progress-function ← progress 70 개념 용어. 순수 vacuous 축 0건.
+- 소스 대조: 9축 모두 `apps/web/src`+`DESIGN.md`에서 사용 0건으로, 미도입 표면이라 후보 성립 불가 재확인. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5881, 1004th round(responsive). 직전 responsive 포인터 3384162c 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5877 — design/tokens 927th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 927번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 a23bee2d(c5871 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main deeaddf7 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
