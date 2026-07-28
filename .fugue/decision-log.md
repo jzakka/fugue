@@ -18175,6 +18175,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5965 — design/responsive 1018th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1018번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 e8aa6cf2(c5959 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main a7ed341b 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main a7ed341b (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5967, 942th round(tokens). 직전 tokens 포인터 bdbc8b9b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5963 — design/aesthetic 1018th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1018번째 라운드, 발견 모드. 백로그 pending=0. origin/main 53ffae9f.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 그리드/플렉스 배치 계열(flex-basis 21, column-gap 18, flex-wrap 12, place-content 11, place-items 10, grid-auto-flow 7, justify-self 6, align-self 5, subgrid 4, grid-template-areas 4, place-self 4, grid-auto-rows 2, grid-auto-columns 2, row-gap 1, grid-row-end 1, grid-column-start 1, justify-tracks 1, align-tracks 1, item-flow 1, item-pack 1), 배치B = 인터랙션 속성·앵커 포지셔닝 계열(enterkeyhint 13, position-area 13, position-anchor 13, position-visibility 11, anchor-scope 9, commandfor 8, interesttarget 8, scroll-marker 8, interactivity 6, scroll-button 6, autocapitalize 5, reading-flow 4, closedby 3, virtualkeyboardpolicy 3, reading-order 1, writing-suggestions 1, scroll-target-group 1).
