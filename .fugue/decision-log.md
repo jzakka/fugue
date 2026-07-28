@@ -17929,6 +17929,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5773 — design/responsive 986th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 986번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 e4f8d632(c5767 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 9e9a720c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 9e9a720c (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5775, 910th round(tokens). style-surface 센서스 대상 포인터 cdee8951(c5769 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5771 — design/aesthetic 986th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 986번째 라운드, 발견 모드. 백로그 pending=0. origin/main 17714b98 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
 - 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤 스냅·캐러셀 표면 계열, 배치2 = 텍스트 크기·하이픈·아웃라인 잔여 표면 계열. 0-match 후보 28건. 배치2는 24축 중 16축이 이미 커버되어 포화 신호가 강함. (기존 커버 20건: text-size-adjust=10, hyphenate-limit-chars=8, scroll-button=6, outline-style=6, corner-top-right-shape=5, interpolate-size=4, scrollsnapchange=4, hyphenate-limit-zone=4, math-style=3, overflow-inline=3, hyphenate-limit-lines=3, corner-bottom-left-shape=3, intrinsic-sizing=3, scroll-target-group=1, snapport=1, nav-up=1, nav-down=1, nav-left=1, nav-right=1, calc-mix=1.)
