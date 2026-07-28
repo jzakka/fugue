@@ -18001,6 +18001,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5825 — design/aesthetic 995th round (Discovery, 26축 폐기)
+- 순번: aesthetic 995번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main b45faa87.
+- 프로브 1 (CSS 필터·합성 표면 계열, 24축): covered 11 — backdrop-filter=18, mix-blend-mode=18, mask-image=11, background-blend-mode=10, mask-type=9, mask-composite=8, mask-mode=7, mask-clip=7, mask-size=7, mask-origin=6, mask-repeat=5. 0-match 13축.
+- 프로브 2 (CSS 도형·오프셋 표면 계열, 24축): covered 11 — offset-path=23, shape-outside=18, offset-rotate=9, shape-rendering=9, corner-shape=9, offset-distance=7, shape-margin=6, offset-anchor=6, offset-position=6, shape-image-threshold=5, superellipse=2. 0-match 13축.
+- 계열 baseline 확인: anti-patterns.md 내 filter=188, offset=131, shape=69, backdrop=51, clip-path=23, corner=23, isolation=12 — 26개 0-match 축이 모두 이들 baseline의 하위 표기임을 확인.
+- 폐기 26축 (rigor-over-quota): filter 함수 값 접두 파생 10(filter-drop-shadow·saturate·hue-rotate·sepia·invert·contrast·brightness·grayscale·blur·opacity) / 속성-값 결합 명칭 1(isolation-isolate) / 속성-개념 결합 명칭 2(clip-path-shape, backdrop-root) / 함수 표기 파생 3(ray-function, path-function, shape-function) / 기본 도형 함수 명칭 접미사 파생 6(inset-shape·circle-shape·ellipse-shape·polygon-shape·xywh-shape·rect-shape) / corner-shape 값 키워드 파생 4(border-shape, squircle-corner, scoop-corner, notch-corner). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: 26축 전부 apps/web/src·DESIGN.md 실사용 0건. grayscale 1건은 globals.css:74 `-moz-osx-font-smoothing: grayscale`(폰트 스무딩 값, filter 함수 아님), rect( 5건은 Next.js `redirect(` 호출로 CSS 기본 도형 아님.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 b45faa87로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5827, 995th round(responsive). style-surface 센서스 대상 포인터 5f68968a(c5821 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5823 — design/tokens 918th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 918번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 4e79603d(c5817 기록) 대비 산출 → 변경 0건(numstat 출력 공집합, added=0 deleted=0). origin/main 5df95919 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
