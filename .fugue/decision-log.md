@@ -17803,6 +17803,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5681 — design/aesthetic 971st round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 971번째 라운드, 발견 모드. 백로그 pending=0. origin/main 2851f3bf (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤바·오버플로 제어 표면 계열, 배치2 = 위젯 상태 의사클래스·셀렉터 표면 계열. 0-match 후보 31건. (기존 커버 일부: overflow-hidden=14, overflow-clip=9, scroll-snap-stop=8, target-within=7, nth-last-child=7, local-link=6, last-of-type=6, scrollbar-button=5, scrollbar-corner=5, overflow-auto=5, first-of-type=5, overscroll-none=4, any-link=4, scrollbar-gutter=3, overflow-visible=3, overflow-scroll=2, scroll-start=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 의사클래스 + "-state" 접미 조작 명칭 12 — checked-state, indeterminate-state, default-state, optional-state, required-state, read-only-state, read-write-state, disabled-state, enabled-state, active-state, visited-state, link-state (any-link=4, local-link=6 보유); (2) 셀렉터 문법 개념 용어 5 — scope-selector, defined-selector, has-selector, nth-child-of, only-child-style (nth-last-child=7, first-of-type=5, last-of-type=6 보유); (3) 스크롤 물리·동작 개념 용어 5 — scroll-boundary, scroll-chaining, rubber-band, snap-port, snap-area (overscroll-behavior=13, scroll-snap-type=13, scroll-snap-align=15 보유); (4) 벤더 독점 의사요소 기반 3 — scrollbar-arrow, resizer-pseudo, scrollbar-shadow (scrollbar-button=5, scrollbar-corner=5, scrollbar-thumb=5 보유); (5) 계열·어순 파생 3 — scroll-start-target(scroll-start=1 계열 파생), scroll-initial-target(조작된 변형), clip-overflow(overflow-clip=9 어순 뒤집기); (6) Web API 명칭 2 — scroll-into-view, popover-invoker; (7) 조작된 명칭 1 — scroll-thumb-radius (scrollbar-thumb=5 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5683, 971st round(responsive). style-surface 센서스 대상 포인터 e79ddf3b(c5677 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5679 — design/tokens 894th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 894번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e5344da2(c5673 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 4e758ab3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
