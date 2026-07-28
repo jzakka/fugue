@@ -17821,6 +17821,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5693 — design/aesthetic 973rd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 973번째 라운드, 발견 모드. 백로그 pending=0. origin/main 2b6b1e31 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 이미지 로딩·반응형 이미지 표면 계열, 배치2 = 커서 상호작용 표면 계열. 0-match 후보 40건. (기존 커버 8건: cursor-not-allowed=10, cursor-grab=7, cursor-grabbing=6, art-direction=6, referrerpolicy=2, image-loading=2, responsive-image=1, cursor-progress=1. 상위 계열 cursor=40, fetchpriority=6 보유.)
+- 기각(rigor-over-quota, 소스 사용 합계 1 — broken-image가 SearchBar.tsx:288 주석 문구 1건일 뿐 스타일 축 사용 아님, 나머지 39건 0): (1) cursor 값 키워드 파생 15 — cursor-zoom-in, cursor-zoom-out, cursor-crosshair, cursor-col-resize, cursor-row-resize, cursor-nesw-resize, cursor-nwse-resize, cursor-context-menu, cursor-cell, cursor-alias, cursor-copy, cursor-no-drop, cursor-all-scroll, cursor-vertical-text, cursor-auto (cursor=40, cursor-not-allowed=10 보유); (2) HTML 속성 명칭·표기 파생 7 — loading-lazy, decoding-async, srcset-attribute, sizes-attribute, image-crossorigin, srcset-density, fetch-priority (referrerpolicy=2, fetchpriority=6 보유); (3) 이미지 로딩 개념 용어 5 — image-decoding, lazy-loading, eager-loading, preload-image, image-lazyload (image-loading=2, responsive-image=1 보유); (4) 커서 리소스·개념 용어 5 — cursor-image, custom-cursor, hotspot-coordinate, cursor-fallback, pointer-cursor; (5) 이미지 플레이스홀더·폴백 개념 용어 4 — placeholder-blur, low-quality-placeholder, image-fallback, broken-image; (6) HTML 요소·구조 명칭 2 — picture-element, source-media (art-direction=6 보유); (7) 접근성 대체 텍스트 개념 용어 1 — alt-text; (8) 조작된 명칭 1 — content-box-image.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5695, 973rd round(responsive). style-surface 센서스 대상 포인터 8cf77eaf(c5689 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5691 — design/tokens 896th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 896번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 773e1968(c5685 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 5a413ce4 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
