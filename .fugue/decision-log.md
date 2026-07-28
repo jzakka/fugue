@@ -18067,6 +18067,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5873 — design/aesthetic 1003th round (Discovery, 2축 폐기)
+- 순번: aesthetic 1003번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 9b1705c7.
+- 프로브 1 (스크롤 스냅·오버스크롤·스크롤 마커 표면 계열, 24축): covered 22 — scroll-padding=27, scroll-behavior=23, scroll-margin=20, scroll-snap-align=15, scroll-snap-type=13, overscroll-behavior=13, scrollIntoView=12, scroll-snap-stop=8, mandatory=8, ::scroll-marker=8, scroll-padding-top=7, scroll-margin-block=6, ::scroll-button=6, overscroll-behavior-block=5, ::scroll-marker-group=5, scroll-marker-group=5, overscroll-behavior-x=3, overscroll-behavior-y=2, overscroll-behavior-inline=2, proximity=2, scroll-target-group=1, scroll-start=1. 0-match 2축(scroll-initial-target, scroll-snap-coordinate).
+- 프로브 2 (SVG 표현 속성·필터 프리미티브 표면 계열, 24축): covered 24 — image-rendering=23, text-rendering=20, dominant-baseline=14, stroke-width=13, stroke-linecap=11, stroke-linejoin=11, paint-order=11, feGaussianBlur=11, stroke-dasharray=10, shape-rendering=9, vector-effect=8, baseline-shift=7, stop-color=7, stroke-miterlimit=6, fill-rule=6, clip-rule=6, feDropShadow=6, stroke-dashoffset=5, alignment-baseline=5, fill-opacity=4, stroke-opacity=4, marker-start=4, marker-end=4, marker-mid=1. 0-match 0축.
+- 계열 baseline 확인: anti-patterns.md 내 snap=234, target=81, scroll-snap=33, initial=33, deprecated=26, scroll-target=1, scroll-start=1, coordinate=1 — 2개 0-match 축이 모두 이들 baseline의 하위 표기.
+- 폐기 2축 (rigor-over-quota): 스크롤 타깃 속성 접두어 파생 1(scroll-initial-target — scroll-target-group·scroll-start·initial·target 이 각각 covered) / 폐기된 CSS Scroll Snap Level 1 명칭 1(scroll-snap-coordinate — 표준은 scroll-snap-align/type 으로 대체되었고 scroll-snap·snap·deprecated baseline 으로 covered). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: scroll-snap·overscroll-behavior·scroll-behavior·scroll-padding·scroll-margin·scroll-marker·stroke-dasharray·stroke-linecap·vector-effect·paint-order·dominant-baseline·image-rendering·text-rendering·feGaussianBlur·stop-color 전부 apps/web/src·DESIGN.md 사용 0건(source-usage-total=0).
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 9b1705c7로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5875, 1003th round(responsive). style-surface 센서스 대상 포인터 4150a9cc(c5869 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5871 — design/tokens 926th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 926번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 342cfd15(c5865 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main a23bee2d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
