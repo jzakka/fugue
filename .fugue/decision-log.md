@@ -18259,6 +18259,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6019 — design/responsive 1027th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1027번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 54e9f653(c6013 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main d71d771a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main d71d771a (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6021, 951th round(tokens). 직전 tokens 포인터 0c1938a6 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6017 — design/aesthetic 1027th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1027번째 라운드, 발견 모드. 백로그 pending=0. origin/main 0346d0d3.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 미디어 피처·사용자 선호 계열(prefers-reduced-motion 76, forced-colors 20, prefers-color-scheme 17, prefers-contrast 14, overflow-block 13, display-mode 13, prefers-reduced-data 12, device-posture 12, prefers-reduced-transparency 8, any-pointer 7, inverted-colors 6, any-hover 4, nav-controls 4, video-color-gamut 4, overflow-inline 3, environment-blending 3, vertical-viewport-segments 3, horizontal-viewport-segments 2), 배치B = 타이밍 함수·애니메이션 서브프로퍼티 계열(offset-path 23, animation-timeline 16, transition-property 12, transition-delay 9, ease-in-out 9, transition-duration 8, cubic-bezier 7, animation-fill-mode 7, animation-iteration-count 7, transition-timing-function 7, offset-distance 7, animation-direction 6, offset-anchor 6, animation-play-state 5, animation-timing-function 4, animation-delay 4, jump-start 1, jump-end 1, jump-none 1, jump-both 1, step-start 1, step-end 1).
