@@ -18175,6 +18175,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5963 — design/aesthetic 1018th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1018번째 라운드, 발견 모드. 백로그 pending=0. origin/main 53ffae9f.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 그리드/플렉스 배치 계열(flex-basis 21, column-gap 18, flex-wrap 12, place-content 11, place-items 10, grid-auto-flow 7, justify-self 6, align-self 5, subgrid 4, grid-template-areas 4, place-self 4, grid-auto-rows 2, grid-auto-columns 2, row-gap 1, grid-row-end 1, grid-column-start 1, justify-tracks 1, align-tracks 1, item-flow 1, item-pack 1), 배치B = 인터랙션 속성·앵커 포지셔닝 계열(enterkeyhint 13, position-area 13, position-anchor 13, position-visibility 11, anchor-scope 9, commandfor 8, interesttarget 8, scroll-marker 8, interactivity 6, scroll-button 6, autocapitalize 5, reading-flow 4, closedby 3, virtualkeyboardpolicy 3, reading-order 1, writing-suggestions 1, scroll-target-group 1).
+- 0-match: 11건 — masonry-auto-flow, item-slack, order-property, gap-property(A) / spell-check, popover-hint, command-for, invoketarget, dialog-closedby, column-height, column-wrap(B).
+- 판정: 11건 전량 기각. masonry-auto-flow는 masonry 208 / grid-auto-flow 7 위의 **합성 파생**, item-slack은 slack 0이나 동일 제안군 형제인 item-flow 1 / item-pack 1과 masonry 208이 이미 커버된 **계열 파생**, order-property·gap-property는 order 336 / gap 163에 property 122를 붙인 **표기 파생**. spell-check는 spellcheck 13의 하이픈 **표기 파생**, popover-hint는 popover 37 / hint 24 위의 **합성 파생**, command-for는 commandfor 8의 하이픈 **표기 파생**, invoketarget은 commandfor 8 / invoke 10 / invoker 8이 커버된 구(舊)명칭 **표기 파생**, dialog-closedby는 dialog 56 / closedby 3 위의 **합성 파생**, column-height·column-wrap은 column 105 / columns 38 / height 116 / wrap 90 위의 **합성 파생**. 11축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5965, 1018th round(responsive). 직전 responsive 포인터 e8aa6cf2 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5961 — design/tokens 941th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 941번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 a2ca0691(c5955 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main bdbc8b9b 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
