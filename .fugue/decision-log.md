@@ -17779,6 +17779,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5657 — design/aesthetic 967th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 967번째 라운드, 발견 모드. 백로그 pending=0. origin/main 6699e6d8 → 프로빙 후 재fetch에서 e6cbbf1b로 드리프트, 최신 기준으로 브랜치 생성.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(47축). 배치1 = 드래그·포인터 입력 표면 계열, 배치2 = 다이얼로그·팝오버 오버레이 표면 계열. 0-match 후보 38건. (기존 커버 일부: popover-open=22, any-hover=4, hover-capability=3, touch-pan=2, pan-x=2, pan-y=2, light-dismiss=2, pointer-coarse=1, pointer-fine=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) HTML 드래그 앤 드롭 API 명칭 6 — draggable-style, drag-image, drop-zone, drag-over, drag-handle, swipe-direction (touch-action=10 보유); (2) HTML 속성·값 파생 6 — popover-target, popover-hint, popover-manual, popover-auto, dialog-closedby, autofocus-dialog (popover-open=22 보유); (3) 제스처·스크롤 물리 개념 용어 5 — pinch-zoom, gesture-scale, stylus-input, inertial-scroll, momentum-scroll (touch-action=10, overscroll-behavior=13 보유); (4) UI 패턴 개념 용어 5 — toast-region, tooltip-arrow, scrim-color, overlay-scrim, modal-scroll-lock (overlay=38, top-layer=22 보유); (5) Web API 명칭 4 — pointer-capture, close-watcher, invoker-command, command-for; (6) 의사요소·의사클래스 기반 4 — dialog-backdrop, modal-backdrop, backdrop-pseudo, dialog-open (backdrop-filter=18 보유); (7) 값 키워드 파생 3 — dragging-cursor, grab-cursor, grabbing-cursor (cursor=40 보유); (8) @media 기능 값 파생 2 — hover-hover, hover-none (any-hover=4, hover-capability=3 보유); (9) 동작 개념 용어 2 — dismiss-behavior, focus-restore (light-dismiss=2, focus-visible=84 보유); (10) HTML 전역 속성 파생 1 — inert-style.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5659, 967th round(responsive). style-surface 센서스 대상 포인터 2a12dd1e(c5653 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5655 — design/tokens 890th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 890번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 8c4de12a(c5649 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main ebcaafff 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
