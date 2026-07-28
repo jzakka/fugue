@@ -18037,6 +18037,17 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5849 — design/aesthetic 999th round (Discovery, 5축 폐기)
+- 순번: aesthetic 999번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main d4a7f1c9.
+- 프로브 1 (카운터·리스트 마커·컨테인먼트 표면 계열, 24축): covered 24 — @counter-style=28, ::marker=25, counter(=20, element(=20, content-visibility=19, counter-reset=13, counter-increment=11, list-style-type=10, speak-as=10, counters(=9, counter-set=8, additive-symbols=8, list-style-position=7, symbols(=7, list-style-image=6, leader(=6, contain-intrinsic-size=6, contain-intrinsic-block-size=4, contain-intrinsic-inline-size=4, string-set=3, target-counter=2, list-item=2, marker-side=2, running(=1. 0-match 0축.
+- 프로브 2 (인쇄 페이지 박스·분할 표면 계열, 24축): covered 19 — @page=25, color-adjust=19, orphans=12, widows=12, print-color-adjust=11, forced-color-adjust=10, bleed=10, break-inside=10, break-before=8, break-after=8, box-decoration-break=6, column-span=6, columns:=6, @top-center=5, page-orientation=3, column-fill=2, marks:=1, @bottom-center=1, page:left=1. 0-match 5축.
+- 계열 baseline 확인: anti-patterns.md 내 print=51, break-=28, @page=25, :first=20, alias=19, page:=16, legacy=14, blank=12, page-break=5, :right=5, :left=4 — 5개 0-match 축이 모두 이들 baseline의 하위 표기.
+- 폐기 5축 (rigor-over-quota): 레거시 별칭 접미사 파생 3(page-break-before·page-break-after·page-break-inside — 표준 break-before/after/inside와 baseline page-break가 이미 covered) / 선택자 공백 제거 표기 파생 2(page:first·page:right — anti-patterns 본문은 `@page :first` 공백 표기로 covered, page:left도 covered). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: page-break·@page·orphans·widows·break-before/after/inside·print-color-adjust·forced-color-adjust·box-decoration-break·column-span·column-fill 전부 apps/web/src·DESIGN.md 사용 0건(source-usage-total=0) → 인쇄 페이지 박스 표면 미도입.
+- 절차 교정: 프로브 집계 시 `grep -ricF … | awk -F: '{s+=$1}'`가 -r의 파일명 접두사를 필드1로 잡아 전 축 0으로 오집계됨을 sanity check(font-display 기대 42 vs 관측 0)로 검출, `grep -icF`(단일 파일, 접두사 없음)로 재집계해 확정. 이후 사이클도 단일 파일 프로브는 -r 없이 -icF 사용.
+- 드리프트: 프로빙 시점 d4a7f1c9 → 기록 시점 origin/main 2b020360. 프로브 판정은 .fugue/anti-patterns.md 기준이라 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5851, 999th round(responsive). style-surface 센서스 대상 포인터 0d0e9bac(c5845 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5847 — design/tokens 922th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 922번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 7d389fbf(c5841 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 5ea2c6a2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
