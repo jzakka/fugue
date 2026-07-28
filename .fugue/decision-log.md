@@ -18199,6 +18199,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5983 — design/responsive 1021th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1021번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 bd2d2704(c5977 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main d6e889a8 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main d6e889a8 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5985, 945th round(tokens). 직전 tokens 포인터 7c476c61 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5981 — design/aesthetic 1021th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1021번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7330dcbf.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 테이블·리스트·카운터 계열(counter-style 29, counter-reset 13, counter-increment 11, vertical-align 10, list-style-type 10, border-spacing 9, counter-set 8, border-collapse 7, table-layout 7, list-style-position 7, empty-cells 6, list-style-image 6, caption-side 5), 배치B = 입력 상호작용·텍스트 조판 계열(hyphens 33, letter-spacing 33, text-orientation 27, text-indent 23, text-transform 22, tab-size 19, word-spacing 19, pointer-events 14, overflow-wrap 14, word-break 13, user-select 11, touch-action 10, hyphenate-character 10, hyphenate-limit-chars 8, unicode-bidi 8, text-justify 7, outline-color 5, text-align-last 4, field-sizing-content 2).
