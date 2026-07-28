@@ -18283,6 +18283,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6031 — design/responsive 1029th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1029번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 b6cc2ab7(c6025 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 8724d870 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 8724d870 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6033, 953th round(tokens). 직전 tokens 포인터 5c675e77 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6029 — design/aesthetic 1029th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1029번째 라운드, 발견 모드. 백로그 pending=0. origin/main 672692c1.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 스크롤·타임라인 계열(scroll-driven 22, scroll-snap-align 15, scroll-snap-type 13, overflow-clip-margin 9, timeline-scope 9, scroll-snap-stop 8, scrollbar-width 8, scroll-padding-inline 7, scroll-padding-block 6, scroll-margin-block 6, scroll-margin-inline 6, scrollbar-color 6, overscroll-behavior-block 5, scroll-timeline-name 4, view-timeline-name 4, view-timeline-axis 4, view-timeline-inset 4, scroll-timeline-axis 3, scrollbar-gutter 3, animation-range-start 3, animation-range-end 2, overscroll-behavior-inline 2, overflow-anchor 1), 배치B = 마스크·클립·필터 계열(mask-border 19, shape-outside 18, mix-blend-mode 18, color-interpolation 12, mask-image 11, mask-composite 8, mask-mode 7, mask-clip 7, mask-size 7, mask-position 6, mask-origin 6, shape-margin 6, mask-repeat 5, shape-image-threshold 5).
