@@ -18109,6 +18109,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5909 — design/aesthetic 1009th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1009번째 라운드, 발견 모드. 백로그 pending=0. origin/main 968cde0a.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 리스트 마커/카운터/페이지 미디어 계열(@counter-style 28, @page 25, counter-reset 13, quotes 12, orphans 12, widows 12, counter-increment 11 등), 배치B = 마스크/SVG 렌더링 계열(clip-path 23, image-rendering 23, text-rendering 20, mask-border 19, color-interpolation 12, mask-image 11, stroke-linejoin 11, paint-order 11 등).
+- 0-match 5축: content-alt-text, bookmark-label, float-defer, float-reference, d-property.
+- 판정: 5축 모두 계열 baseline 보유 또는 미도입 표면으로 기각(rigor-over-quota). content-alt-text ← `content:` 17 계열 파생(CSS content 대체 텍스트 구문). bookmark-label ← bookmark 3 접미사 파생. float-defer/float-reference ← float 40 접미사 파생. d-property ← property 122 개념 용어. 순수 vacuous 축 0건.
+- 소스 대조: 5축 모두 `apps/web/src`+`DESIGN.md`에서 사용 0건. 참고로 HTML `alt=` 속성은 소스 18건 존재하나 이는 CSS content-alt-text와 별개 표면이라 축 근거로 쓰지 않음. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5911, 1009th round(responsive). 직전 responsive 포인터 882934ac 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5907 — design/tokens 932th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 932번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f11e46c2(c5901 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main f0f1a9fb 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
