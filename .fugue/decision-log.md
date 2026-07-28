@@ -17971,6 +17971,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5803 — design/responsive 991th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 991번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 1ebcf7d4(c5797 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main b013a5f4 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main b013a5f4 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5805, 915th round(tokens). style-surface 센서스 대상 포인터 d46a7a9f(c5799 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5801 — design/aesthetic 991th round (Discovery, 표면 포화 폐기, 0 baseline)
 - 순번: aesthetic 991번째 라운드, 발견 모드. 백로그 pending=0. origin/main a0d55c0b (프로빙 시점 b2fa57be에서 재fetch 결과 드리프트 확인, 최신 팁 기준으로 브랜치 생성).
 - 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 논리 인셋·여백·테두리 반경 표면 계열, 배치2 = 앵커 위치 지정 표면 계열. 0-match 후보 10건 — 배치1은 24/24 전부 커버(0-match 0건). (기존 커버 38건: position-try=17, position-anchor=13, position-area=13, position-visibility=11, anchor-size=10, padding-inline=9, anchor-scope=9, margin-inline=8, padding-block=8, margin-block=6, inset-inline=5, margin-inline-start=5, margin-block-start=5, inset-block=4, flip-block=3, most-width=3, most-height=3, inset-inline-start=3, inset-block-start=3, margin-block-end=3, padding-inline-start=3, anchor-center=2, inset-area=2, border-start-start-radius=2, padding-block-start=2, padding-block-end=2, inset-inline-end=2, try-tactic=1, flip-inline=1, flip-start=1, inset-block-end=1, margin-inline-end=1, padding-inline-end=1, border-inline=1, border-block=1, border-start-end-radius=1, border-end-start-radius=1, border-end-end-radius=1.)
