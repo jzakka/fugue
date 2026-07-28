@@ -17875,6 +17875,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5735 — design/aesthetic 980th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 980번째 라운드, 발견 모드. 백로그 pending=0. origin/main df190d16 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 애니메이션 재생·상태 제어 표면 계열, 배치2 = 폼·미디어 상태 의사클래스 표면 계열. 0-match 후보 12건. (기존 커버 36건 — 배치2는 24축 중 23축이 이미 covered로 포화 신호가 매우 강함: modal=221, empty=77, disabled=72, checked=57, read-only=46, muted=44, optional=36, fullscreen=30, enabled=25, defined=25, autofill=24, required=24, paused=23, playing=20, seeking=18, buffering=18, indeterminate=15, read-write=14, stalled=13, volume-locked=10, last-child=8, has-slotted=7, first-child=4. 배치1 커버 13건: keyframes=80, iteration-count=9, ease-in-out=9, animation-fill-mode=7, animation-iteration-count=7, play-state=7, cubic-bezier=7, animation-direction=6, animation-play-state=5, animation-duration=4, animation-delay=4, animation-name=3, alternate-reverse=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) steps() 함수 인자 키워드 파생 4 — steps-jump-start, steps-jump-end, steps-jump-none, steps-jump-both (cubic-bezier=7, ease-in-out=9 보유); (2) @keyframes 문법 개념 용어 3 — keyframe-selector, from-keyframe, to-keyframe (keyframes=80 보유); (3) animation-fill-mode 값 키워드 파생 2 — fill-forwards, fill-backwards (animation-fill-mode=7 보유); (4) animation-iteration-count 값 키워드 파생 1 — infinite-iteration (iteration-count=9 보유); (5) 이징 함수 명칭 파생 1 — linear-easing (ease-in-out=9, cubic-bezier=7 보유); (6) 셀렉터 문법 개념 용어 1 — nth-child-of (nth-last-child=7, last-child=8, first-child=4 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5737, 980th round(responsive). style-surface 센서스 대상 포인터 a26572c8(c5731 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5733 — design/tokens 903rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 903번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 20618adb(c5727 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 6c6b1a1a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
