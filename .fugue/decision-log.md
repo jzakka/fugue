@@ -17923,6 +17923,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5771 — design/aesthetic 986th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 986번째 라운드, 발견 모드. 백로그 pending=0. origin/main 17714b98 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 스크롤 스냅·캐러셀 표면 계열, 배치2 = 텍스트 크기·하이픈·아웃라인 잔여 표면 계열. 0-match 후보 28건. 배치2는 24축 중 16축이 이미 커버되어 포화 신호가 강함. (기존 커버 20건: text-size-adjust=10, hyphenate-limit-chars=8, scroll-button=6, outline-style=6, corner-top-right-shape=5, interpolate-size=4, scrollsnapchange=4, hyphenate-limit-zone=4, math-style=3, overflow-inline=3, hyphenate-limit-lines=3, corner-bottom-left-shape=3, intrinsic-sizing=3, scroll-target-group=1, snapport=1, nav-up=1, nav-down=1, nav-left=1, nav-right=1, calc-mix=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 스크롤 스냅 명세 개념 용어 4 — scroll-container/scroll-port/snap-position/snap-area; (2) scroll-snap-type 값 키워드 파생 3 — scroll-snap-none/scroll-snap-mandatory/scroll-snap-proximity(커버된 scroll-snap-type=13); (3) scroll-snap-align 값 키워드 파생 3 — snap-align-center/snap-align-start/snap-align-end(커버된 scroll-snap-align=15); (4) 조작된 명칭 3 — scroll-marker-active/carousel-pseudo/column-scroll; (5) 조작된 명칭(크기 계열) 3 — font-size-fluid/clamp-typography/auto-height-transition; (6) scroll-snap-type 축 키워드 파생 2 — scroll-snap-inline/scroll-snap-block; (7) 스냅 이벤트 명칭 2 — snap-changing/snap-changed는 커버된 scrollsnapchange=4와 동일 이벤트 표면; (8) 초안 개명 속성 2 — scroll-start-target/scroll-initial-target은 커버된 scroll-target-group=1과 동일 CSS Overflow L5 초안 계열의 개명 이력 축; (9) 크기 보간 개념 용어 2 — size-interpolation/keyword-size(커버된 interpolate-size=4); (10) 값 키워드 파생 2 — text-size-adjust-none(커버된 text-size-adjust=10), line-height-normal(line-height 값 normal); (11) 스크롤 앵커링 개념 용어 1 — scroll-anchor(커버된 overflow-anchor=1); (12) 미구현 초안 속성 1 — border-boundary(CSS Borders L4).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5773, 986th round(responsive). style-surface 센서스 대상 포인터 e4f8d632(c5767 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5769 — design/tokens 909th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 909번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e311ab29(c5763 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main cdee8951 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
