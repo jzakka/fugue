@@ -17869,6 +17869,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5729 — design/aesthetic 979th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 979번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7e3570af (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 마스킹·클리핑 표면 계열, 배치2 = 스크롤 주도 애니메이션 타임라인 표면 계열. 0-match 후보 18건. (기존 커버 30건: scroll-driven=22, scroll-timeline=13, view-box=10, timeline-scope=9, mask-size=7, mask-clip=7, mask-mode=7, mask-position=6, mask-origin=6, clip-rule=6, fill-rule=6, mask-repeat=5, view-progress=5, animation-composition=5, mask-border-source=4, view-timeline-name=4, view-timeline-axis=4, view-timeline-inset=4, scroll-timeline-name=4, scroll-progress=4, mask-border-slice=3, mask-border-repeat=3, stroke-box=3, scroll-timeline-axis=3, animation-range-start=3, mask-border-width=2, mask-border-outset=2, mask-border-mode=2, animation-range-end=2, named-timeline=2.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 애니메이션 범위 값 키워드 파생 4 — entry-crossing, exit-crossing, cover-range, contain-progress (animation-range=12, animation-range-start=3, animation-range-end=2 보유); (2) 마스크 모드 값 키워드 파생 3 — luminance-mask, alpha-mask, match-source (mask-mode=7 보유); (3) 클리핑 박스 값 키워드 결합 파생 3 — border-box-clip, padding-box-clip, content-box-clip (mask-clip=7, background-clip=16 보유); (4) 스크롤 함수 인자 키워드 파생 2 — nearest-scroller, root-scroller (scroll-timeline=13 보유); (5) 명세 제거 초안 속성 2 — deferred-timeline, timeline-attachment; (6) 타임라인 명세 개념·분류 용어 2 — progress-timeline, anonymous-timeline (named-timeline=2, timeline-scope=9 보유); (7) 값 문법 타입 명칭 1 — mask-reference; (8) 조작된 명칭 1 — clip-source.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5731, 979th round(responsive). style-surface 센서스 대상 포인터 df3462c4(c5725 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5727 — design/tokens 902nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 902번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 bf9fab4e(c5721 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 20618adb 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
