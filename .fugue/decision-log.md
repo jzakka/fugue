@@ -17899,6 +17899,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5753 — design/aesthetic 983rd round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 983번째 라운드, 발견 모드. 백로그 pending=0. origin/main 95e25a50 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 그리드 트랙·갭 표면 계열, 배치2 = 이미지·배경 위치·셰이프 표면 계열. 0-match 후보 27건. (기존 커버 21건: grid-row=9, border-image-source=9, border-image-slice=9, border-image-width=9, border-image-repeat=9, border-image-outset=8, justify-items=7, grid-flow=6, minmax=6, image-resolution=6, shape-margin=6, shape-image-threshold=5, place-self=4, grid-column=3, span-all=2, row-span=2, justify-tracks=1, align-tracks=1, background-position-x=1, background-position-y=1, object-scale-down=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 배경 값 키워드 파생 6 — background-tile/background-cover/background-contain/background-fixed/background-local/background-scroll는 커버된 background-repeat=15·background-size=24·background-attachment=13의 값 키워드; (2) 그리드 트랙 문법 개념 용어 5 — track-size/track-list/implicit-track/explicit-track/repeat-count; (3) 조작된 명칭 5 — subgrid-inherit/gutter-size/grid-auto-height/image-crop/image-fit(각각 subgrid=4·column-gap=18·grid-auto-rows=2·object-fit=30의 비표준 대체 표기); (4) 그리드 값 키워드 파생 2 — dense-packing(grid-flow=6의 dense), column-span-all(column-span=6의 all); (5) 폐지 별칭 명칭 2 — grid-row-gap/grid-column-gap은 row-gap=1·column-gap=18의 레거시 별칭; (6) 미구현 초안 모듈(CSS Grid L3 masonry) 2 — masonry-auto-flow/masonry-slack; (7) HTML 이미지 속성 명칭 2 — image-decoding/image-lazyload는 HTML decoding·loading 속성으로 CSS 표면 밖; (8) 테두리 이미지 값 키워드 파생 1 — border-image-fill(border-image=19); (9) 단축 속성 개념 용어 1 — background-shorthand; (10) 이미지 폴백 개념 용어 1 — image-fallback.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5755, 983rd round(responsive). style-surface 센서스 대상 포인터 c158fe20(c5749 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5751 — design/tokens 906th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 906번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 7cb5726e(c5745 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 7e04d237 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
