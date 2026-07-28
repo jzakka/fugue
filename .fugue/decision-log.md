@@ -18037,6 +18037,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5851 — design/responsive 999th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 999번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 0d0e9bac(c5845 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 16783c05 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 16783c05 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5853, 923th round(tokens). style-surface 센서스 대상 포인터 5ea2c6a2(c5847 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5849 — design/aesthetic 999th round (Discovery, 5축 폐기)
 - 순번: aesthetic 999번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main d4a7f1c9.
 - 프로브 1 (카운터·리스트 마커·컨테인먼트 표면 계열, 24축): covered 24 — @counter-style=28, ::marker=25, counter(=20, element(=20, content-visibility=19, counter-reset=13, counter-increment=11, list-style-type=10, speak-as=10, counters(=9, counter-set=8, additive-symbols=8, list-style-position=7, symbols(=7, list-style-image=6, leader(=6, contain-intrinsic-size=6, contain-intrinsic-block-size=4, contain-intrinsic-inline-size=4, string-set=3, target-counter=2, list-item=2, marker-side=2, running(=1. 0-match 0축.
