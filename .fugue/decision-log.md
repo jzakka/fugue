@@ -17863,6 +17863,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5723 — design/aesthetic 978th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 978번째 라운드, 발견 모드. 백로그 pending=0. origin/main 907dbdaf (프로빙 시점 fe08f79c에서 재fetch 결과 드리프트 확인, 최신 팁 기준으로 브랜치 생성).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 텍스트 줄바꿈·공백 처리 표면 계열, 배치2 = 뷰 트랜지션 표면 계열. 0-match 후보 20건. (기존 커버 28건 — 배치1은 24축 중 20축이 이미 covered로 포화 신호가 강함: text-wrap=24, nowrap=17, break-word=10, line-height-step=6, text-spacing-trim=6, white-space-collapse=5, text-wrap-mode=5, text-autospace=5, text-wrap-style=3, pre-wrap=2, wrap-balance=1, wrap-pretty=1, preserve-spaces=1, preserve-breaks=1, break-spaces=1, pre-line=1, text-group-align=1, wrap-inside=1, wrap-before=1, wrap-after=1. 배치2 커버 8건: active-view-transition=11, view-transition-name=7, view-transition-group=5, transition-type=5, view-transition-old=4, image-pair=3, view-transition-class=2, view-transition-new=2.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 뷰 트랜지션 의사요소·트리 개념 용어 4 — view-transition-tree, transition-pseudo, old-image, new-image (view-transition-old=4, view-transition-new=2, image-pair=3 보유); (2) 뷰 트랜지션 캡처·스냅샷 개념 용어 4 — snapshot-root, snapshot-containing-block, capture-mode, group-children; (3) Web API·이벤트 명칭 4 — start-view-transition, navigation-api, page-reveal, page-swap; (4) 텍스트 줄바꿈 값 키워드 파생 3 — wrap-stable(text-wrap-style=3 보유), wrap-anywhere(overflow-wrap=14 보유), collapse-spaces(white-space-collapse=5 보유); (5) 내비게이션 유형 명세 개념 용어 2 — cross-document, same-document (transition-type=5, active-view-transition=11 보유); (6) 조작된 명칭 2 — morph-animation, root-transition; (7) 폐지 별칭 명칭 1 — word-wrap (overflow-wrap=14의 레거시 별칭).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5725, 978th round(responsive). style-surface 센서스 대상 포인터 4e067fdc(c5719 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5721 — design/tokens 901st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 901번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 9fd1ae52(c5715 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main bf9fab4e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
