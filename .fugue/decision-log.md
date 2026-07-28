@@ -17797,6 +17797,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5669 — design/aesthetic 969th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 969번째 라운드, 발견 모드. 백로그 pending=0. origin/main ba535f90 → 프로빙 후 재fetch에서 2b0ab7d2로 드리프트, 최신 기준으로 브랜치 생성.
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 양방향 텍스트·동아시아 조판 표면 계열, 배치2 = 미디어 쿼리 범위·환경 조건 표면 계열. 0-match 후보 22건. (기존 커버 일부: dynamic-range=16, video-dynamic-range=9, text-spacing-trim=6, color-index=6, inter-character=6, text-autospace=5, ruby-merge=5, text-wrap-mode=5, device-aspect-ratio=5, text-align-last=4, ruby-overhang=4, nav-controls=4, device-width=4, text-wrap-style=3, overflow-inline=3, environment-blending=3, vertical-viewport-segments=3, min-resolution=3, bidi-override=2, isolate-override=2, word-space-transform=2, inter-word=2, max-resolution=2, device-height=2, horizontal-viewport-segments=2, text-group-align=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 미디어 쿼리 범위 문법 개념 용어 5 — width-range, height-range, aspect-ratio-range, resolution-range, media-range-syntax (min-resolution=3, max-resolution=2 보유); (2) @media 기능 명칭 파생 4 — update-frequency, scripting-support, monochrome-depth, scan-media (monochrome=8, color-index=6 보유); (3) 조판 정렬 개념 용어 4 — ideographic-alignment, kashida-justify, distribute-justify, hanging-indent (text-justify=7, hanging-punctuation=15, text-indent=23 보유); (4) unicode-bidi 값 키워드 파생 3 — bidi-isolate, plaintext-bidi, embed-bidi (unicode-bidi=8, bidi-override=2, isolate-override=2 보유); (5) 명세 미채택·미구현 모듈 3 — east-asian-width(text-spacing-trim=6, font-variant-east-asian=3 보유), line-padding(CSS Line Grid 미구현 모듈), drop-cap(initial-letter=13 보유); (6) 조작된 명칭 2 — grid-media, detached-window; (7) 값·계열 파생 1 — first-line-indent (text-indent=23 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5671, 969th round(responsive). style-surface 센서스 대상 포인터 53c3b144(c5665 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5667 — design/tokens 892nd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 892번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6e3ce51f(c5661 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 60b2fc3c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
