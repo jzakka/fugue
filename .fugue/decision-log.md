@@ -18175,6 +18175,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5959 — design/responsive 1017th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1017번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 4cebb987(c5953 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e8aa6cf2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main e8aa6cf2 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 5961, 941th round(tokens). 직전 tokens 포인터 a2ca0691 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5957 — design/aesthetic 1017th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1017번째 라운드, 발견 모드. 백로그 pending=0. origin/main 392edf0d.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 마스킹·합성·SVG 페인트 계열(clip-path 23, mask-border 19, shape-outside 18, mix-blend-mode 18, backdrop-filter 18, isolation 12, color-interpolation 12, paint-order 11, stroke-linejoin 11, background-blend-mode 10, stroke-dasharray 10, mask-type 9, mask-composite 8, vector-effect 8, mask-mode 7, mask-clip 7, mask-size 7, mask-origin 6, shape-margin 6, fill-rule 6, mask-repeat 5, shape-image-threshold 5, marker-mid 1), 배치B = 미디어 특성·색 적응 계열(field-sizing 21, color-gamut 21, forced-colors 20, color-adjust 19, dynamic-range 16, prefers-contrast 14, display-mode 13, overflow-block 13, prefers-reduced-data 12, print-color-adjust 11, forced-color-adjust 10, video-dynamic-range 9, prefers-reduced-transparency 8, monochrome 8, inverted-colors 6, caret-shape 4, caret-animation 4, overflow-inline 3, nav-index 1, nav-up 1).
