@@ -18049,6 +18049,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5861 — design/aesthetic 1001th round (Discovery, 0-match 0축)
+- 순번: aesthetic 1001번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 24ab081d.
+- 프로브 1 (애니메이션 타임라인·스크롤 구동 애니메이션 표면 계열, 24축): covered 24 — @keyframes=56, animation-timeline=16, scroll-timeline=13, view-timeline=13, animation-range=12, timeline-scope=9, view(=8, animation-fill-mode=7, animation-iteration-count=7, scroll(=6, animation-direction=6, animation-composition=5, animation-play-state=5, scroll-timeline-name=4, view-timeline-name=4, view-timeline-axis=4, view-timeline-inset=4, animation-delay=4, animation-duration=4, animation-timing-function=4, steps(=4, scroll-timeline-axis=3, animation-range-start=3, animation-range-end=2. 0-match 0축.
+- 프로브 2 (그리드 배치·정렬 표면 계열, 24축): covered 24 — masonry=208, repeat(=18, grid-template-columns=16, place-content=11, place-items=10, auto-fill=9, grid-auto-flow=7, justify-items=7, dense=7, grid-template-rows=6, justify-self=6, align-content=6, minmax(=5, grid-template-areas=4, fit-content(=4, place-self=4, subgrid=4, grid-auto-rows=2, grid-auto-columns=2, auto-fit=2, grid-row-start=1, grid-row-end=1, grid-column-start=1, grid-column-end=1. 0-match 0축.
+- 판정: 48축 전부 covered, 0-match 0축 → 계열 baseline 대조 단계 불필요. 순수 vacuous 축 0건 → 신규 후보 없음(rigor-over-quota). 소스 검증도 후보 부재로 생략.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 24ab081d로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5863, 1001th round(responsive). style-surface 센서스 대상 포인터 3b849e16(c5857 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5859 — design/tokens 924th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 924번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 896597e3(c5853 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 13eba63e 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
