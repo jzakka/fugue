@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6648 — 보안: 의존성 취약점 census → 표면 불변 (covered)
+- 축: cd apps/web && npm audit
+- 조사: found 0 vulnerabilities — 보안 baseline 앵커(57382965) 유효. brace-expansion/minimatch override 정합 유지
+- 판정: 직전 보안 census(6636) 이후 표면 불변 → covered
+- 차기: rotation 정합성 cycle 6650 예정 (e2cb3a80 non-loop residual census)
+
 ### cycle 6646 — OpenSpec갭: spec/change validate census → 표면 불변 (covered)
 - 축: openspec validate --specs --changes (repo root)
 - 조사: Totals 14 passed, 0 failed (14 items) — baseline과 동일. spec 14종 정합 앵커 유효
