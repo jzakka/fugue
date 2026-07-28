@@ -17785,6 +17785,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5663 — design/aesthetic 968th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 968번째 라운드, 발견 모드. 백로그 pending=0. origin/main c0d9b989 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 뷰 트랜지션·애니메이션 상태 표면 계열, 배치2 = SVG 페인트·아이콘 렌더링 표면 계열. 0-match 후보 8건뿐으로 48축 중 40축이 이미 커버 — 이번 세션 최강 포화 신호. (기존 커버 일부: stroke-linecap=11, color-rendering=10, stroke-dasharray=10, timeline-scope=9, shape-rendering=9, vector-effect=8, animation-fill-mode=7, animation-iteration-count=7, starting-style=7, view-transition-name=7, mask-mode=7, mask-clip=7, clip-rule=6, fill-rule=6, stroke-miterlimit=6, mask-origin=6, animation-direction=6, animation-composition=5, animation-play-state=5, transition-behavior=5, view-transition-group=5, stroke-dashoffset=5, mask-repeat=5, interpolate-size=4, easing-function=1, buffered-rendering=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 이징 함수 명칭 파생 3 — steps-easing, linear-easing, cubic-bezier-easing (easing-function=1, transition-duration=8 보유); (2) SVG 문서 구조·요소 명칭 3 — svg-sprite, symbol-reference, use-element (CSS 속성이 아닌 SVG 마크업 개념); (3) 값·계열 파생 2 — icon-stroke(stroke-linecap=11, stroke-width=13 보유), currentcolor-icon(currentcolor=12 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5665, 968th round(responsive). style-surface 센서스 대상 포인터 ee8f26a6(c5659 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5661 — design/tokens 891st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 891번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 ebcaafff(c5655 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 6e3ce51f 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
