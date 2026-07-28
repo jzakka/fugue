@@ -18055,6 +18055,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5867 — design/aesthetic 1002th round (Discovery, 4축 폐기)
+- 순번: aesthetic 1002번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 63d3d175.
+- 프로브 1 (색 함수·색 공간 표면 계열, 24축): covered 23 — color-scheme=27, lch(=21, color-gamut=21, color-mix(=20, oklch(=17, lab(=12, color-interpolation=12, rec2020=12, currentcolor=12, display-p3=11, light-dark(=10, oklab(=7, hwb(=7, color-interpolation-filters=7, srgb-linear=6, color-contrast(=5, device-cmyk(=5, a98-rgb=5, @color-profile=4, xyz-d50=4, relative color=4, prophoto-rgb=3, xyz-d65=2. 0-match 1축(from srgb).
+- 프로브 2 (뷰 트랜지션·블렌드 표면 계열, 24축): covered 21 — mix-blend-mode=18, backdrop-filter=18, isolation=12, background-blend-mode=10, startViewTransition=9, view-transition-name=7, ::view-transition=7, exclusion=6, ::view-transition-group=5, ::view-transition-old=4, @view-transition=4, luminosity=3, saturation=3, ::view-transition-image-pair=3, ::view-transition-new=2, view-transition-class=2, color-burn=2, color-dodge=2, hard-light=2, soft-light=2, plus-lighter=1. 0-match 3축(cross-document, same-document, ::view-transition-root).
+- 계열 baseline 확인: anti-patterns.md 내 SPA=339, document=102, root=68, srgb=50, :root=45, from =33, calc(=31, MPA=29, navigation=18, pseudo-element=12, relative color=4, @view-transition=4 — 4개 0-match 축이 모두 이들 baseline의 하위 표기.
+- 폐기 4축 (rigor-over-quota): 상대 색 구문 토큰 조합 1(from srgb — relative color·srgb·from 이 각각 covered) / 뷰 트랜지션 내비게이션 유형 명칭 2(cross-document·same-document — @view-transition·navigation·document·SPA/MPA baseline으로 covered) / 뷰 트랜지션 의사요소 접미사 파생 1(::view-transition-root — ::view-transition 계열 6표기와 root/:root baseline으로 covered). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: view-transition·startViewTransition·color-mix(·oklch(·oklab(·lch(·lab(·hwb(·light-dark(·display-p3·mix-blend-mode·backdrop-filter·background-blend-mode·isolation 전부 apps/web/src·DESIGN.md 사용 0건. color-scheme 2건은 globals.css:9(`color-scheme: dark`)·:29(`color-scheme: light`)로 이미 도입된 표면이며 0-match 축과 무관.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 63d3d175로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5869, 1002th round(responsive). style-surface 센서스 대상 포인터 ccc9b6b5(c5863 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5865 — design/tokens 925th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 925번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 13eba63e(c5859 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 342cfd15 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
