@@ -18193,6 +18193,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5975 — design/aesthetic 1020th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1020번째 라운드, 발견 모드. 백로그 pending=0. origin/main ec09bccb.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 접근성 속성·포커스 계열(reduced-motion 91, focus-visible 84, aria-expanded 31, focus-within 29, aria-pressed 23, aria-busy 18, aria-current 18, tabindex 18, aria-selected 16, aria-live 14, aria-labelledby 14, aria-hidden 14, sr-only 14, aria-controls 13, aria-describedby 11, aria-disabled 9, skip-link 9, aria-haspopup 8, live-region 1, visually-hidden 1, accessible-name 1), 배치B = 이미지 표현·로딩 계열(aspect-ratio 34, object-fit 30, image-rendering 23, srcset 21, skeleton-shimmer 19, image-set 18, image-orientation 13, object-position 11, object-view-box 7, fetchpriority 6, crossorigin 2, referrerpolicy 2, blurhash 1, lqip 1).
+- 0-match: 13건 — role-presentation, landmark-region, screen-reader(A) / sizes-attribute, picture-element, loading-lazy, decoding-async, poster-attribute, preload-attribute, placeholder-image, shimmer-gradient, content-fade, progressive-jpeg(B).
+- 판정: 13건 전량 기각. role-presentation은 role 154 / presentation 4 위의 **합성 파생**(role 속성의 값), landmark-region은 landmark 3 / region 14 위의 **합성 파생**, screen-reader는 reader 46 / sr-only 14가 커버된 **개념 용어**(CSS·DOM 식별자가 아닌 보조기술 총칭). sizes-attribute·poster-attribute·preload-attribute는 sizes 13 / poster 7 / preload 7에 attribute 46을 붙인 **표기 파생**, picture-element는 picture 21 / element 147 위의 **표기 파생**, loading-lazy·decoding-async는 loading 39 / lazy 17 / decoding 6 / async 20 위의 **값 파생**(속성-값 결합 표기), placeholder-image는 placeholder 77 / image 240, shimmer-gradient는 shimmer 119 / skeleton-shimmer 19 / gradient 82, content-fade는 content 192 / fade 25, progressive-jpeg는 progressive 5 / jpeg 6 위의 **합성 파생**. 13축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5977, 1020th round(responsive). 직전 responsive 포인터 a2c6b989 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5973 — design/tokens 943th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 943번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 d351cd33(c5967 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 6fa956bf 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
