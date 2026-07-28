@@ -17971,6 +17971,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5801 — design/aesthetic 991th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 991번째 라운드, 발견 모드. 백로그 pending=0. origin/main a0d55c0b (프로빙 시점 b2fa57be에서 재fetch 결과 드리프트 확인, 최신 팁 기준으로 브랜치 생성).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 논리 인셋·여백·테두리 반경 표면 계열, 배치2 = 앵커 위치 지정 표면 계열. 0-match 후보 10건 — 배치1은 24/24 전부 커버(0-match 0건). (기존 커버 38건: position-try=17, position-anchor=13, position-area=13, position-visibility=11, anchor-size=10, padding-inline=9, anchor-scope=9, margin-inline=8, padding-block=8, margin-block=6, inset-inline=5, margin-inline-start=5, margin-block-start=5, inset-block=4, flip-block=3, most-width=3, most-height=3, inset-inline-start=3, inset-block-start=3, margin-block-end=3, padding-inline-start=3, anchor-center=2, inset-area=2, border-start-start-radius=2, padding-block-start=2, padding-block-end=2, inset-inline-end=2, try-tactic=1, flip-inline=1, flip-start=1, inset-block-end=1, margin-inline-end=1, padding-inline-end=1, border-inline=1, border-block=1, border-start-end-radius=1, border-end-start-radius=1, border-end-end-radius=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) position-area 값 키워드 파생 3 — span-x-start/span-y-start/self-start-position(커버 position-area=13, inset-area=2); (2) anchor() 함수 문법 개념 용어 2 — anchor-function/anchor-side; (3) 폐지 별칭 명칭 2 — anchor-default(커버 position-anchor=13의 구명칭)/position-try-options(커버 position-try=17 계열의 개명 전 명칭); (4) 앵커 명세 개념 용어 2 — anchor-element/implicit-anchor(커버 anchor-scope=9); (5) 조작된 명칭 1 — allow-anything.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변. 48축 중 38축 커버, 배치1 완전 포화.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5803, 991th round(responsive). style-surface 센서스 대상 포인터 1ebcf7d4(c5797 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5799 — design/tokens 914th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 914번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 3a63405f(c5793 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main d46a7a9f 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
