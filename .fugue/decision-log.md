@@ -17881,6 +17881,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5741 — design/aesthetic 981st round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 981번째 라운드, 발견 모드. 백로그 pending=0. origin/main 21652743 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 색 공간·색 함수 표면 계열, 배치2 = 필터 함수·SVG 필터 표면 계열. 0-match 후보 23건. (기존 커버 25건: oklch=34, hue-rotate=15, feColorMatrix=15, rec2020=12, feTurbulence=12, oklab=11, display-p3=11, feGaussianBlur=11, feDisplacementMap=11, contrast-color=7, srgb-linear=6, a98-rgb=5, relative-color=5, color-profile=5, svg-filter=5, xyz-d50=4, backdrop-brightness=4, backdrop-saturate=4, prophoto-rgb=3, backdrop-contrast=3, backdrop-grayscale=3, backdrop-invert=3, backdrop-sepia=3, backdrop-hue-rotate=3, xyz-d65=2.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 필터 함수 명칭 파생 8 — blur-filter, brightness-filter, contrast-filter, grayscale-filter, invert-filter, saturate-filter, sepia-filter, opacity-filter (filter=188, drop-shadow=32, hue-rotate=15 보유); (2) 색상 보간 방식 키워드 파생 5 — hue-interpolation, shorter-hue, longer-hue, increasing-hue, decreasing-hue (color-mix=22, color-interpolation=12 보유); (3) 색 표기법 함수 명칭 파생 3 — hwb-color, lch-color, lab-color (oklch=34, oklab=11 보유); (4) 필터 문법 개념 용어 3 — filter-function, filter-url, filter-shorthand (filter=188 보유); (5) 색 함수 문법 개념 용어 3 — color-function, color-space, alpha-channel; (6) 상대 색 문법 키워드 파생 1 — from-color (relative-color=5 보유).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5743, 981st round(responsive). style-surface 센서스 대상 포인터 0bed01cb(c5737 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5739 — design/tokens 904th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 904번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6c6b1a1a(c5733 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main a0a7b0c2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
