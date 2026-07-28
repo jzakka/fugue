@@ -18397,6 +18397,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6091 — design/responsive 1039th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1039번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 16be7868(c6085 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 59337949 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 59337949 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6093, 963th round(tokens). 직전 tokens 포인터 6c65e3be 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6089 — design/aesthetic 1039th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1039번째 라운드, 발견 모드. 백로그 pending=0. origin/main 006d950e.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 애니메이션·트랜지션·이징 계열(will-change 20, animation-range 12, ease-in-out 9, transition-delay 9, animation-fill-mode 7, animation-iteration-count 7, transition-timing-function 7, cubic-bezier 7, view-transition-name 7, starting-style 7, animation-direction 6, animation-play-state 5, animation-composition 5, transition-behavior 5, view-transition-group 5, animation-delay 4, allow-discrete 4, transition-discrete 1), 배치B = 폰트 기술·타이포 계열(tabular-nums 29, font-synthesis 26, font-feature-settings 25, font-palette 22, font-variant-numeric 21, text-rendering 20, font-kerning 13, font-optical-sizing 12, font-variant-caps 11, font-smooth 11, font-variant-ligatures 10, font-variation-settings 9, font-stretch 9, text-box-trim 9, unicode-range 8, ascent-override 6, leading-trim 5, oldstyle-nums 2, slashed-zero 2).
