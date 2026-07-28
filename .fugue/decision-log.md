@@ -17833,6 +17833,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5705 — design/aesthetic 975th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 975번째 라운드, 발견 모드. 백로그 pending=0. origin/main 66b80cf1 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 다이얼로그·디스클로저 표면 계열, 배치2 = 그리드 트랙 사이징·자동 배치 표면 계열. 0-match 후보 33건. (기존 커버 15건: auto-fill=9, aria-modal=8, details-content=7, line-name=5, backdrop-opacity=2, grid-auto-rows=2, grid-auto-columns=2, auto-fit=2, grid-area=2, show-modal=1, grid-row-start=1, grid-row-end=1, grid-column-start=1, grid-column-end=1, grid-gap=1. 상위 계열 grid-template=20, backdrop-filter=18, grid-auto-flow=7, subgrid=4, details-marker=2 보유.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) dialog 요소·API 명칭 파생 7 — modal-dialog, dialog-open, dialog-close, native-dialog, dialog-position, dialog-scroll, dialog-element (aria-modal=8, show-modal=1 보유); (2) 그리드 트랙 명세 개념 용어 6 — implicit-track, explicit-track, track-sizing, dense-packing, intrinsic-track, subgrid-line (grid-auto-flow=7, subgrid=4 보유); (3) ::backdrop 의사요소 기반 4 — dialog-backdrop, backdrop-pseudo, backdrop-color, modal-backdrop (backdrop-opacity=2, backdrop-filter=18 보유); (4) details/summary 요소·상태 명칭 4 — summary-marker, details-open, summary-display, disclosure-triangle (details-content=7, details-marker=2 보유); (5) 디스클로저 UI 패턴 개념 용어 4 — disclosure-widget, accordion-panel, collapse-height, expand-transition; (6) 그리드 함수 명칭 파생 3 — minmax-function, fit-content-track, repeat-function; (7) 그리드 라인·키워드 개념 용어 2 — span-keyword, named-grid-line (line-name=5 보유); (8) HTML 속성 명칭 1 — inert-attribute; (9) 단위 분류 명칭 1 — fr-unit; (10) 명세 미채택 모듈 1 — masonry-track (CSS Grid L3 masonry, c5669 계열).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5707, 975th round(responsive). style-surface 센서스 대상 포인터 5d5d876a(c5701 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5703 — design/tokens 898th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 898번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 ce115d7a(c5697 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main f5ceb2d4 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
