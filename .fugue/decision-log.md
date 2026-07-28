@@ -17935,6 +17935,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5777 — design/aesthetic 987th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 987번째 라운드, 발견 모드. 백로그 pending=0. origin/main 348d2bc9 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 쓰기 방향·bidi·루비 표면 계열, 배치2 = 생성 콘텐츠·리스트 마커 표면 계열. 0-match 후보 34건. (기존 커버 14건: additive-symbols=8, horizontal-tb=6, vertical-rl=6, text-emphasis-style=5, text-emphasis-color=5, text-emphasis-skip=3, vertical-lr=3, string-set=3, bidi-override=2, isolate-override=2, generated-content=2, mixed-orientation=1, lower-roman=1, decimal-leading-zero=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) 루비 구조·박스 개념 용어 5 — ruby-base/ruby-text/ruby-annotation/ruby-span/ruby-base-container는 커버된 ruby-position=20·ruby-align=7·ruby-merge=5·ruby-overhang=4의 내부 박스 개념; (2) 의사요소 문법 개념 용어 4 — marker-pseudo/before-pseudo/after-pseudo/list-marker; (3) list-style-type 값 키워드 파생 4 — cjk-decimal/upper-alpha/disclosure-open/disclosure-closed(커버된 list-style-type=10·lower-roman=1·decimal-leading-zero=1); (4) writing-mode·text-orientation 값 키워드 파생 3 — sideways-rl/sideways-lr/upright-orientation(커버된 writing-mode=36·text-orientation=27·vertical-rl=6·horizontal-tb=6); (5) CSS 함수 명칭 파생 3 — counters-function/symbols-function/element-function; (6) content 속성 개념 용어 3 — content-alt/content-replace/alt-text-content; (7) ::marker 값·배치 개념 용어 3 — marker-color/inside-marker/outside-marker(커버된 marker-side=2·list-style-position=7); (8) HTML 속성 명칭 2 — lang-attribute/dir-attribute; (9) unicode-bidi 값 키워드 파생 1 — plaintext-bidi(커버된 unicode-bidi=8); (10) 폐지 별칭 명칭 1 — text-combine-horizontal은 커버된 text-combine-upright=15의 구 명칭; (11) 명세 제거 속성 1 — ime-mode(CSS UI 제거); (12) 문자 분류 개념 용어 1 — east-asian-width; (13) 논리 속성 개념 용어 1 — logical-height(커버된 block-size=15); (14) 카운터 개념 용어 1 — list-item-counter; (15) 단축 속성 개념 용어 1 — list-style-shorthand.
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5779, 987th round(responsive). style-surface 센서스 대상 포인터 9e9a720c(c5773 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5775 — design/tokens 910th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 910번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 cdee8951(c5769 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 327062dd 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
