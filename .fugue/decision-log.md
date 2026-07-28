@@ -17953,6 +17953,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5789 — design/aesthetic 989th round (Discovery, 표면 포화 폐기, 0 baseline)
+- 순번: aesthetic 989번째 라운드, 발견 모드. 백로그 pending=0. origin/main dca420a2 (프로빙 후 재fetch에서도 동일, 드리프트 없음).
+- 프로빙: anti-patterns.md 대비 fresh 축 2배치 프로빙(48축). 배치1 = 테이블 레이아웃 표면 계열, 배치2 = 포인터·커서 상호작용 표면 계열. 0-match 후보 27건. (기존 커버 21건: vertical-align=10, not-allowed=10, border-spacing=9, table-layout=7, border-collapse=7, any-pointer=7, cursor-grab=7, empty-cells=6, cursor-grabbing=6, ew-resize=6, caption-side=5, table-fixed=5, colspan=4, rowspan=4, colgroup=4, any-hover=4, table-auto=2, table-cell=2, inline-table=1, pointer-coarse=1, pointer-fine=1.)
+- 기각(rigor-over-quota, 소스 사용 합계 0): (1) display 값 키워드 파생 7 — table-caption/table-row/table-column/table-header-group/table-footer-group/table-row-group/table-column-group(커버 table-cell=2, inline-table=1); (2) cursor 접두사 결합 파생 6 — cursor-zoom-in/cursor-zoom-out/cursor-alias/cursor-copy/cursor-cell/cursor-crosshair(커버 cursor-grab=7 계열); (3) resize 커서 값 키워드 파생 5 — col-resize/row-resize/nwse-resize/nesw-resize/ns-resize(커버 ew-resize=6); (4) cursor 값 키워드 파생 3 — context-menu/all-scroll/vertical-text(커버 not-allowed=10); (5) HTML 표 표현 속성 명칭 2 — cell-padding/cell-spacing; (6) @media hover 특성 값 키워드 파생 2 — hover-hover/hover-none(커버 any-hover=4); (7) border-collapse 값 키워드 파생 1 — border-collapse-separate; (8) table-layout 값 개념 용어 1 — fixed-layout(커버 table-fixed=5).
+- 폐기: 순수 vacuous 축 0건 → 표면 포화 폐기, baseline 추가 없음. anti-patterns.md 불변.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5791, 989th round(responsive). style-surface 센서스 대상 포인터 063a7f16(c5785 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5787 — design/tokens 912th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 912번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 26e9e487(c5781 기록) 대비 산출 → 변경 0건(numstat added=0 deleted=0). origin/main 3e566c86 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
