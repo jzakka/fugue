@@ -18145,6 +18145,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5939 — design/aesthetic 1014th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1014번째 라운드, 발견 모드. 백로그 pending=0. origin/main b33f87d9.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 배경/색상 함수 계열(opacity 90, oklch 34, background-size 24, color-mix 22, conic-gradient 18, background-image 17, device-cmyk 17, background-clip 16 등), 배치B = 컨테이너 쿼리/미디어 기능 계열(prefers-reduced-motion 76, dvh 25, svh 21, forced-colors 20, cqi 18, prefers-color-scheme 17, prefers-contrast 14, display-mode 13 등).
+- 0-match: 12건 — gradient-interpolation, color-function, hue-interpolation, gradient-stop, scroll-state-query, media-hover, media-pointer, orientation-query, resolution-query, update-frequency, scripting-query, overflow-query.
+- 판정: 12건 전량 기각(합성 파생). 배경/색상군 4축은 gradient 82 / interpolation 15 / function 56 / hue 51 / stop 35 위의 합성. 쿼리·미디어군 8축은 query 74 / scroll-state 9 / media 389 / hover 284 / pointer 126 / orientation 91 / resolution 26 / update 107 / frequency 10 / scripting 9 / overflow 101 위의 합성이며, `-query` 접미 형태는 실제 CSS 식별자가 아닌 표기 변형이기도 함. 12축 모두 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5941, 1014th round(responsive). 직전 responsive 포인터 342c0fc6 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5937 — design/tokens 937th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 937번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 960535c6(c5931 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e5906497 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
