@@ -18223,6 +18223,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6001 — design/responsive 1024th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1024번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 1c15b831(c5995 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e13ef959 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main e13ef959 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6003, 948th round(tokens). 직전 tokens 포인터 2ce7a64d 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5999 — design/aesthetic 1024th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1024번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7ea5b8f7.
 - 프로빙: fresh 72축 3배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 2배치(48축) 수확이 3건뿐이라 rigor 유지를 위해 배치C 24축을 추가 집행. 배치A = 스크롤·입력·줄바꿈 계열(scroll-padding 27, line-break 21, scroll-margin 20, will-change 20, ruby-position 20, tab-size 19, scroll-snap-align 15, pointer-events 14, overflow-wrap 14, overscroll-behavior 13, word-break 13, user-select 11, touch-action 10, text-size-adjust 10, hyphenate-character 10, overflow-clip-margin 9, scroll-snap-stop 8, hyphenate-limit-chars 8, ruby-align 7, contain-intrinsic-size 6, text-spacing-trim 6, caret-animation 4, text-wrap-style 3, overflow-anchor 1 — 전 축 매칭). 배치B = 폰트 서술자·variant 계열(font-display 42, font-synthesis 26, font-feature-settings 25, font-palette 22, font-variant-numeric 21, font-variant-alternates 14, font-kerning 13, font-optical-sizing 12, font-variant-caps 11, font-variant-ligatures 10, font-variation-settings 9, font-stretch 9, font-size-adjust 9, font-variant-position 8, unicode-range 8, descent-override 8, line-gap-override 7, font-variant-emoji 6, ascent-override 6, font-language-override 4, font-variant-east-asian 3). 배치C = 앵커 포지셔닝·view transition 계열(field-sizing 21, position-try 17, anchor-name 14, position-anchor 13, position-area 13, view-timeline 13, scroll-timeline 13, animation-range 12, position-visibility 11, anchor-size 10, timeline-scope 9, view-transition-name 7, starting-style 7, view-transition-group 5, transition-behavior 5, animation-composition 5, interpolate-size 4, calc-size 4, appearance-none 4, allow-discrete 4, view-transition-class 2).
