@@ -18097,6 +18097,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5897 — design/aesthetic 1007th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1007번째 라운드, 발견 모드. 백로그 pending=0. origin/main 08f1c594.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 그리드 배치/컨테이너 쿼리 계열(masonry 208, aspect-ratio 34, container-type 22, column-gap 18, cqi 18, place-content 11, place-items 10 등), 배치B = 미디어 피처/사용자 선호 계열(prefers-reduced-motion 76, forced-colors 20, prefers-contrast 14, display-mode 13, overflow-block 13, device-posture 12, prefers-reduced-data 12 등).
+- 0-match 3축: style-container-query, update-frequency, user-preference-media.
+- 판정: 3축 모두 계열 baseline 보유로 파생 기각(rigor-over-quota). style-container-query ← container-query 6 · container-type 22 합성 파생. update-frequency ← update 107 접미사 파생. user-preference-media ← user-preference 1 · prefers- 87 합성 파생. 순수 vacuous 축 0건.
+- 소스 대조: 3축 모두 `apps/web/src`+`DESIGN.md`에서 사용 0건으로, 미도입 표면이라 후보 성립 불가 재확인. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5899, 1007th round(responsive). 직전 responsive 포인터 e8f05f0f 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5895 — design/tokens 930th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 930번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 a78aab6b(c5889 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 292de66a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
