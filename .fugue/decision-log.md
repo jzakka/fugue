@@ -18013,6 +18013,16 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5831 — design/aesthetic 996th round (Discovery, 31축 폐기)
+- 순번: aesthetic 996번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main 8e2f8bb7.
+- 프로브 1 (페이지 미디어·인쇄 표면 계열, 24축): covered 10 — orphans=12, widows=12, break-inside=10, break-before=8, break-after=8, page-orientation=3, string-set=3, target-counter=2, footnote-display=1, footnote-policy=1. 0-match 14축.
+- 프로브 2 (CSS 카운터·생성 콘텐츠 표면 계열, 24축): covered 7 — counter-reset=13, counter-increment=11, list-style-type=10, speak-as=10, counter-set=8, list-style-position=7, list-style-image=6. 0-match 17축.
+- 계열 baseline 확인: anti-patterns.md 내 system=482, page=299, content=192, counter=79, attr=71, marker=45, counter-style=29, @page=25, ::before=23, ::after=20, quotes=12, descriptor=10, page-break=5, footnote=4 — 31개 0-match 축이 모두 이들 baseline의 하위 표기임을 확인.
+- 폐기 31축 (rigor-over-quota): 레거시 별칭 3(page-break-before·after·inside ← break-before·after·inside) / @page 구성요소·개념 명칭 6(page-margin-box, marks-crop, bleed-area, page-size-rule, named-page, page-selector) / @page 의사클래스 명칭 접미사 파생 4(first·left·right·blank-page-pseudo) / paged-media 개념 용어 1(running-element) / 속성 명칭 접미사 파생 2(content-property, quotes-property) / 의사요소 명칭 접미사 파생 3(marker-pseudo, before-pseudo, after-pseudo) / 함수 표기 파생 3(attr-function, counters-function, symbols-function) / at-rule 명칭 파생 1(counter-style-rule) / @counter-style system 값 키워드 파생 6(cyclic·numeric·alphabetic·additive·fixed·extends-system) / 디스크립터 명칭 파생 2(pad-descriptor, negative-descriptor). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: page-break·@page·marks·bleed·running(·content:·quotes·::marker·::before·::after·attr(·counters(·symbols(·@counter-style·speak-as·pad:·negative: 전부 apps/web/src·DESIGN.md 사용 0건(source-usage-total=0). 인쇄/생성 콘텐츠 표면 자체가 미도입.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 8e2f8bb7로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5833, 996th round(responsive). style-surface 센서스 대상 포인터 06320ff5(c5827 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5829 — design/tokens 919th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 919번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 5df95919(c5823 기록) 대비 산출 → 변경 0건(numstat 출력 공집합, added=0 deleted=0). origin/main 7b63ed99 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
