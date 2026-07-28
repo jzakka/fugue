@@ -17995,6 +17995,15 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 5819 — design/aesthetic 994th round (Discovery, 8축 폐기)
+- 순번: aesthetic 994번째 라운드, 발견 모드. 백로그 pending=0. 프로빙 시점 origin/main b3a39d1a.
+- 프로브 1 (CSS 앵커 포지셔닝 표면 계열, 24축): covered 20 — position-try=17, anchor-name=14, position-anchor=13, position-area=13, position-try-order=11, position-visibility=11, position-try-fallbacks=10, anchor-size=10, anchor-scope=9, flip-block=3, most-width=3, most-height=3, anchor-center=2, inset-area=2, span-all=2, try-tactic=1, flip-inline=1, flip-start=1, self-block=1, self-inline=1. 0-match 4축.
+- 프로브 2 (폼 컨트롤 스타일링 표면 계열, 24축): covered 20 — color-scheme=27, accent-color=26, caret-color=25, field-sizing=21, print-color-adjust=11, user-select=11, spin-button=11, forced-color-adjust=10, touch-action=10, user-modify=9, outline-offset=6, base-select=6, picker-icon=6, pointer-events-none=5, appearance-none=4, caret-shape=4, text-security=4, select-arrow=4, webkit-appearance=2, input-security=1. 0-match 4축.
+- 폐기 8축 (rigor-over-quota, 0-match를 계열 baseline/값 파생과 대조): 레거시 명세 명칭 파생 3(anchor-default ← position-anchor, position-fallback ← position-try, anchors-valid ← position-visibility) / 함수 표기 파생 1(anchor-fn ← anchor-name·anchor-size) / 벤더 접두사 명칭 파생 1(moz-appearance ← webkit-appearance·appearance-none) / 의사요소 명칭 파생 1(checkbox-pseudo ← picker-icon·select-arrow) / 개념 용어 2(resize-control, cursor-fallback). 순수 vacuous 축 0건 → 신규 후보 없음.
+- 소스 검증: 8축 전부 apps/web/src·DESIGN.md 사용 0건. 단 계열 baseline은 실사용 중(cursor 56건 = cursor-pointer 49·cursor-not-allowed 2·cursor-ew-resize 2·cursor-grab/grabbing 각 1 등, resize 3건)이라 후보가 기존 baseline 파생임이 재확인됨.
+- 드리프트: 프로빙 시점과 기록 시점 origin/main 모두 b3a39d1a로 동일. 재프로브 불요.
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 5821, 994th round(responsive). style-surface 센서스 대상 포인터 bc832108(c5815 기록) 대비 diff-stat, 0이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 5817 — design/tokens 917th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 917번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 6b8077f0(c5811 기록) 대비 산출 → 변경 0건(numstat 출력 공집합, added=0 deleted=0). origin/main 4e79603d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
