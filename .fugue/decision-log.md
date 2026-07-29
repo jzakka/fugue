@@ -18979,6 +18979,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6395 — design/aesthetic 1090th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1090번째 라운드, 발견 모드. 백로그 pending=0. origin/main 145301dd.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 초가 이엉(대처링) 지붕 시공 계열, 배치B = 수레바퀴 제작(휠라이팅) 계열. 두 배치 모두 nonzero 축 없음. 계열 충돌 사전 점검 결과 두 배치 모두 과거 소진 계열과 겹치지 않아 교체 없이 진행했다.
+- 0-match: 48건(전 축) — thatching-yealm-tier, reed-course-row, …, thatch-lifespan-gauge(A) / wainwright-felloe-arc, spoke-tenon-grid, …, drag-shoe-cue(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **초가 이엉 지붕 시공 표면 자체가 부재**(thatch 0 / yealm 0 / ligger 0 / leggett 0 / sedge 0 / barge-board 0 / finial 0 / scallop 0 / crook 0 / eaves 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 지붕 시공 관리 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **수레바퀴 제작 표면 자체가 부재**(wainwright 0 / wheelwright 0 / felloe 0 / strake 0 / linchpin 0 / bruzz 0 / tyring 0 / nave-hub 0 / cant-tilt 0 / livery 0)하여 표면 부재 기각. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6397, 1090th round(responsive). 직전 responsive 포인터 4f595aa8 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6393 — design/tokens 1013th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1013번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 15c527e8(c6387 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main b2eb35e0 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
