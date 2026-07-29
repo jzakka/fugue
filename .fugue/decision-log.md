@@ -19381,6 +19381,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6595 — design/responsive 1123rd round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1123번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 4b496f98(c6589 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 953b2bb2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 회복: Step 0 fetch try=1이 `cannot lock ref 'refs/remotes/origin/main'`(외부 push와 경합)으로 실패했으나 상시 3회 재시도 루프가 try=2에서 복구했다(자체 회복 원칙 §2 환경/실행 복구).
+- 포인터: 갱신 → origin/main 953b2bb2 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6597, 1047th round(tokens). 직전 tokens 포인터 e34d3c27 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6593 — design/aesthetic 1123rd round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1123번째 라운드, 발견 모드. 백로그 pending=0. origin/main 86c57c2d.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 네온사인 제작(유리관 벤딩·가스 충전) 계열, 배치B = TBM 실드 터널 굴진 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 coat(c6581 claycoat·nurikoat)·gap(기소비)·hold(기소비)·drop(c6575 frictiondrop)·read(기소비)를 line·dist·draw·pool·mix로, 배치B는 wear(c6569)·seal(배치A electrodeseal)·slurry(c6581 waterslurry)·count(c6581 coatcount)·crack(c6581 quenchcrack)를 rim·brush·bentonite·trip·bow로 교체했다. 네온사인 제작은 유리 공예·블로잉(기소비)·간판 아닌 조명 계열과, TBM 실드 굴진은 광산·시추(기소비)·하수관로 준설(c6563)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
