@@ -19177,6 +19177,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6499 — design/responsive 1107th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1107번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 42c4a7a1(c6493 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 6e39aa9c 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 6e39aa9c (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6501, 1031st round(tokens). 직전 tokens 포인터 4ea3fa4c 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6497 — design/aesthetic 1107th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1107번째 라운드, 발견 모드. 백로그 pending=0. origin/main 38ee6ae4.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 궁시(활·화살) 제작 계열, 배치B = 우주 발사체 발사 운용 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 taper(c6473)·cure(c6485)·camber(c6473)·clearance(c6479)·serving(동음이의 1)을 recurve·set·curvature·turbulence·fit으로, 배치B는 retract(c6479)·release(c6485)·latch(c6485)·acoustic(c6479)·swing(c6485)·threshold(c6485)를 swingaway·pyro·plume·rollback·shutdown으로 교체했다. 궁시 제작은 현악기 제작 및 밧줄 제작·삭구(기소비)와, 발사 운용은 천문 관측 및 항공기 정비(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
