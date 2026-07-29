@@ -18955,6 +18955,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6383 — design/aesthetic 1088th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1088번째 라운드, 발견 모드. 백로그 pending=0. origin/main 96dc1536.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 장제(편자 제작·편자 장착) 계열, 배치B = 현악기 제작(루시어) 계열. 두 배치 모두 nonzero 축 없음. (배치A는 과거 소진한 승마·마장마술 계열과 말이라는 대상만 겹칠 뿐 금속 가공 공정 계열로 별개라 교체 없이 진행했다.)
+- 0-match: 48건(전 축) — farrier-shoe-tier, hoof-trim-line, …, pull-off-pincer-cue(A) / luthier-brace-grid, soundboard-arch-curve, …, cleat-crack-patch(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **장제 공정 표면 자체가 부재**(farrier 0 / hoof 0 / clinch 0 / anvil 0 / rasp 0 / pritchel 0 / laminitis 0 / caulk 0 / pincer 0 / keg 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 말굽 장제 관리 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **현악기 제작 표면 자체가 부재**(luthier 0 / soundboard 0 / purfling 0 / fretboard 0 / kerfing 0 / bassbar 0 / soundpost 0 / volute 0 / intonation 0 / varnish 0 / dovetail 0)하여 표면 부재 기각. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6385, 1088th round(responsive). 직전 responsive 포인터 47ccdd32 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6381 — design/tokens 1011th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1011번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 241e3f8b(c6375 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 381cabd8 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
