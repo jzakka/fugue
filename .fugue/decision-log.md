@@ -18943,6 +18943,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6377 — design/aesthetic 1087th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1087번째 라운드, 발견 모드. 백로그 pending=0. origin/main 23ddd3e3.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 통 제작(쿠퍼리지)·오크통 조립 계열, 배치B = 보석 연마(래피더리)·패싯 가공 계열. 두 배치 모두 nonzero 축 없음. (배치B 초안에 c6353에서 소진한 매사냥 계열 1축이 섞여 있어 순수 래피더리 계열 agate-band-row로 교체 후 재프로브했다.)
+- 0-match: 48건(전 축) — cooperage-stave-row, barrel-hoop-band, …, stave-jointer-arc(A) / agate-band-row, lapidary-facet-grid, …, intarsia-inlay-grid(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **통 제작·오크통 조립 표면 자체가 부재**(cooperage 0 / stave 0 / croze 0 / bilge 0 / howel 0 / ullage 0 / adze 0 / cask 0 / bung 0 / windlass 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 통 제작 공정 관리 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **보석 연마·패싯 가공 표면 자체가 부재**(lapidary 0 / cabochon 0 / culet 0 / pavilion 0 / bruting 0 / druzy 0 / pleochroic 0 / dichroic 0 / intarsia 0 / cerium 0 / carat 0 / facet 0 / girdle 0 / preform 0)하여 표면 부재 기각. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6379, 1087th round(responsive). 직전 responsive 포인터 459c9b22 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6375 — design/tokens 1010th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1010번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 943ca093(c6369 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 241e3f8b 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
