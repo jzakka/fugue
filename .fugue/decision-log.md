@@ -18703,6 +18703,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6257 — design/aesthetic 1067th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1067번째 라운드, 발견 모드. 백로그 pending=0. origin/main 581bd662.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 의료·진료 기록 계열, 배치B = 자동차·차량 정비 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — patient-chart-header, appointment-slot-cell, …, medical-history-accordion(A) / odometer-reading-field, vin-lookup-input, …, garage-list-tile(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **의료·진료 기록 표면 자체가 부재**(patient 0 / prescription 0 / diagnosis 0 / vitals 0 / allergy 0 / immunization 0 / pharmacy 0 / clinic 0 / doctor 0 / telehealth 0 / triage 0 / discharge 0 / copay 0 / medical 0 / symptom 0 / dosage 0 / medication 0 / appointment 0 / referral 0 / consent 0 / insurance 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 진료 기능이 없다)하여 c6113의 **표면 부재 기각**. 동음이의 확인: bmi 18은 `handleSubmit`·`type="submit"`의 부분 문자열이지 체질량지수가 아니고, reading 1은 localStorage 접근 주석 문구다. 배치B도 **차량 정비 표면 자체가 부재**(odometer 0 / fuel 0 / engine 0 / towing 0 / recall 0 / dealer 0 / warranty 0 / mechanic 0 / emissions 0 / roadside 0 / vehicle 0 / garage 0 / charging 0 / mileage 0)하여 표면 부재 기각. 동음이의 확인: vin 15는 `saving`·`setSaving` 저장 상태 플래그, trim 54는 `String.trim()` 입력값 공백 제거, tire 1은 `entire range` 주석, spec 4는 `aspect-square`·`aspect-video` Tailwind 종횡비 유틸리티이지 차량 제원이 아니다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6259, 1067th round(responsive). 직전 responsive 포인터 d9c4810b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6255 — design/tokens 990th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 990번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 434979a8(c6249 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main c2ecc5ea 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
