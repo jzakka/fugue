@@ -18685,6 +18685,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6245 — design/aesthetic 1065th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1065번째 라운드, 발견 모드. 백로그 pending=0. origin/main edcdd9f5.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 부동산·숙소 리스팅 계열, 배치B = 헬스·피트니스 트래킹 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — listing-photo-carousel, price-per-night-line, …, tour-request-form(A) / workout-set-row, rep-counter-stepper, …, sync-wearable-button(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **부동산·숙소 리스팅 표면 자체가 부재**(listing 0 / amenity 0 / floorplan 0 / hoa 0 / mortgage 0 / lease 0 / deposit 0 / neighborhood 0 / footage 0 / commute 0 / realtor 0 / property 0 / tour 0 / agent 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 매물 중개 기능이 없다)하여 c6113의 **표면 부재 기각**. square 2 꼬리항만 얇게 걸린다. 동음이의 확인: rent 117은 `currentColor`·`e.currentTarget`·`ref.current`의 부분 문자열이지 임대가 아니다. 배치B도 **헬스·피트니스 트래킹 표면 자체가 부재**(workout 0 / exercise 0 / muscle 0 / calorie 0 / wearable 0 / rpe 0 / superset 0 / deload 0 / warmup 0 / routine 0 / barbell 0 / fitness 0 / gym 0 / reps 0)하여 표면 부재 기각. 동음이의 확인: rest 3은 `Pinterest`·`nearest` 부분 문자열, sets 2는 `static assets`·`sets up` 부분 문자열, zone 1은 UploadForm `dropzone` 안내 텍스트, record 5는 `recordInteraction` 분석 이벤트 기록 함수로 전부 운동 도메인이 아니다. goal / sleep / water / weight / tempo / plate / streak 등 나머지 꼬리항은 baseline 0이라 근거가 중첩된다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6247, 1065th round(responsive). 직전 responsive 포인터 10edb955 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6243 — design/tokens 988th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 988번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f5d21c72(c6237 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main c7fd87aa 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
