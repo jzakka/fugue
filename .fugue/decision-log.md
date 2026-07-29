@@ -18787,6 +18787,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6293 — design/aesthetic 1073th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1073번째 라운드, 발견 모드. 백로그 pending=0. origin/main 97766cc6.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 항만·해운 선적 계열, 배치B = 양조·발효 공정 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — berth-assignment-row, vessel-arrival-tile, …, wharf-gate-status(A) / mash-temp-curve, wort-gravity-reading, …, tasting-note-card(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **항만·해운 선적 표면 자체가 부재**(berth 0 / vessel 0 / manifest 0 / quay 0 / lading 0 / customs 0 / bunker 0 / voyage 0 / demurrage 0 / stowage 0 / reefer 0 / anchorage 0 / gantry 0 / pilotage 0 / wharf 0 / tug 0 / cargo 0 / maritime 0 / nautical 0 / harbor 0 / freight 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 선박 입출항·화물 적재 기능이 없다)하여 c6113의 **표면 부재 기각**. 동음이의 확인: container 7은 전량 React `containerRef` DOM 참조와 테스트 `render()`의 `{ container }` 반환값, WAI-ARIA 다이얼로그 포커스 컨테이너이지 해운 컨테이너가 아니다. 배치B도 **양조·발효 공정 표면 자체가 부재**(mash 0 / wort 0 / fermenter 0 / yeast 0 / lauter 0 / krausen 0 / sparge 0 / attenuation 0 / diacetyl 0 / keg 0 / malt 0 / brewing 0 / brew 0 / hop 0 / cask 0 / barrel 0 / carbonation 0 / bottling 0 / cellar 0 / gravity 0 / tasting 0)하여 표면 부재 기각. 동음이의 확인: racking 16은 전량 Tailwind `tracking-tight` 자간 유틸리티의 부분 문자열이지 발효 후 이송 공정이 아니다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6295, 1073th round(responsive). 직전 responsive 포인터 83641c38 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6291 — design/tokens 996th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 996번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 510dc457(c6285 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 72c50116 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
