@@ -16,6 +16,12 @@
 - 시간순 누적. 위가 최신.
 
 ## 항목
+### cycle 6872 — 봇: 크롤러 서브트리 census → 표면 불변 (covered)
+- 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
+- 조사: 0건 — code freeze 앵커 22747864 이후 Pioneer/Harvester 크롤 경로 변경 없음
+- 판정: 직전 봇 census(6860) 이후 표면 불변 → covered
+- 차기: rotation OpenSpec갭 cycle 6874 예정 (openspec validate census)
+
 ### cycle 6870 — 동시성: bot 서브트리 census → 표면 불변 (covered)
 - 축: git rev-list --count 22747864..origin/main -- apps/api/internal/bot
 - 조사: 0건 — code freeze 앵커 22747864 이후 bot 서브트리 변경 없음. worker/스케줄러 동시성 경로 불변
