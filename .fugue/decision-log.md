@@ -19339,6 +19339,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6575 — design/aesthetic 1120th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1120번째 라운드, 발견 모드. 백로그 pending=0. origin/main e7b18760.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 철도 차량 검수(대차·제동) 계열, 배치B = 회화 보존·복원 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 wear(c6569 flightwear·linerwear)·preload(c6557)·dose(c6569)·relief(기소비)·gap(기소비)·sets(동음이의 2)를 thinlimit·bolttension·deliverytiming·safetyvalvelift·sillalign·wheeltread로, 배치B는 shift(c6509)·window(동음이의 17)·racking(동음이의 16)·buildup(기소비)·resinbleed(c6563)·map(동음이의 42)을 yellowcast·removalmargin·cornerskew·layerstack·adhesivestrike·overpaintreveal로 교체했다. 철도 차량 검수는 트램·노면전차 운행(기소비)·항공기 정비 MRO(기소비)와, 회화 보존·복원은 연극 특수분장(기소비)·도배·표구(기소비)·스테인드글라스 납선(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — bogieframe-weldfatigue-tier, …, couplerhead-buffimpact-grade(A) / craquelure-cupliftrisk-tier, …, cleaningswab-residuefilm-grade(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 철도 차량 검수 표면 자체가 부재(bogieframe 0 / brakeshoe 0 / wheeltread 0 / tractionlink 0 / couplerhead 0 / pantoslide 0 / sandpipe 0 / airreservoir 0 / doorleaf 0 / axlebox 0), 배치B 회화 보존·복원 표면도 부재(craquelure 0 / consolidant 0 / varnishlayer 0 / inpaintfill 0 / lininglinen 0 / stretcherbar 0 / cleaningswab 0 / uvexam 0 / gessoground 0 / retouchglaze 0)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6577, 1120th round(responsive). 직전 responsive 포인터 b2e71133 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6573 — design/tokens 1043rd round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1043번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e55bcd48(c6567 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 5a1108e2 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
