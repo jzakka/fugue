@@ -19237,6 +19237,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6529 — design/responsive 1112th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1112번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 a06755ef(c6523 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 1e35f1af 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 1e35f1af (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6531, 1036th round(tokens). 직전 tokens 포인터 3e8e257d 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6527 — design/aesthetic 1112th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1112번째 라운드, 발견 모드. 백로그 pending=0. origin/main b00477c5.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 풍력 터빈 블레이드 정비 계열, 배치B = 양잠·누에 사육 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 edge(기소비)·pitch(기소비)·bolt/torque(c6521)·tether(c6509)·stiffness(c6503)·align(c6485)·brakehand(c6521)를 studring·plycount·yawdrive·fallarrest·bondline·flatness·brakepad로, 배치B는 duration(c6515)·length(c6509)·ratio(기소비)·residual(기소비)·moisture(c6515)·ph(c6515)·slot(동음이의 3)·join(동음이의 21)을 progression·shellweight·leftover·turgor·viscosity·mountage·threadcount로 교체했다. 풍력 터빈 정비는 태양광 발전소 시공(c6491) 및 원자력 발전소 운전(기소비)과, 양잠은 양봉 및 자수·직조·재봉(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
