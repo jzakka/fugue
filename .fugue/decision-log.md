@@ -19273,6 +19273,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6541 — design/responsive 1114th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1114번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 26904eb9(c6535 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main dabae49b 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main dabae49b (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6543, 1038th round(tokens). 직전 tokens 포인터 0d12f762 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6539 — design/aesthetic 1114th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1114번째 라운드, 발견 모드. 백로그 pending=0. origin/main d5d5513c.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 육가공·샤퀴테리(소시지 제조) 계열, 배치B = 안경 렌즈 가공 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 ratio(기소비)·fineness(c6527)·soak(기소비)·burst(c6515)·point(동음이의 63)·shrink(c6521)·pitch(기소비)·gap(기소비)·load(c6509)·length(c6509)·seal(기소비)·purge(c6509)를 fatdistrib·mincegauge·caliber·rupturelimit·yieldcurve·phenolpickup·portionsize·linkstrength·drippage로, 배치B는 thickness(기소비)·layer(c6509)·stack(기소비)·uniformity(c6527)·hue(c6515)·adhesion(기소비)·shift(c6509)·tension(c6509)·offset(기소비)을 centerthick·crazing·peelcheck·slippage·closureclip·pdmark로 교체했다. 육가공은 치즈 제조·숙성(기소비)·제빵 생지(기소비)·양조·발효(기소비)와, 안경 렌즈 가공은 보석 연마(기소비)·유리 공예·블로잉(기소비)·스테인드글라스 납선(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
