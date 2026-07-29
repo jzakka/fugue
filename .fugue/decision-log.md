@@ -19039,6 +19039,14 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6429 — design/tokens 1019th round (Discovery, 표면 불변 폐기)
+- 순번: tokens 1019번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 aa015aee(c6423 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e7dd0e01 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 토큰 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 자체 회복: 직전 c6427 머지 후 detach fetch try=1이 `cannot lock ref 'refs/remotes/origin/main'`(외부 커밋 동시 반영)로 실패했으나 §2 재시도 루프 try=2에서 성공, 수동 개입 없이 진행했다.
+- 포인터: 갱신 → origin/main e7dd0e01 (차기 tokens 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = aesthetic → cycle 6431, 1096th round(aesthetic). fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 프로브, 0-match 축은 계열 baseline·소스 사용 확인 후 판정(c6041·c6083·c6113·c6143 관례).
+
 ## cycle 6427 — design/responsive 1095th round (Discovery, 표면 불변 폐기)
 - 순번: responsive 1095번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 0380afa3(c6421 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 9d744482 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
