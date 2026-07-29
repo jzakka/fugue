@@ -18841,6 +18841,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6323 — design/aesthetic 1078th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1078번째 라운드, 발견 모드. 백로그 pending=0. origin/main 69c11f4a.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 제지·펄프 공정 계열, 배치B = 향수 조향 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — pulper-vat-row, digester-batch-chip, …, fiber-furnish-card(A) / perfumer-organ-shelf, top-note-chip, …, nose-panel-review(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **제지·펄프 공정 표면 자체가 부재**(pulper 0 / digester 0 / bleaching 0 / refiner 0 / headbox 0 / deckle 0 / calender 0 / grammage 0 / watermark 0 / caliper 0 등 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 제지 공정 관리 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **향수 조향 표면 자체가 부재**(perfum 0 / sillage 0 / accord 0 / tincture 0 / distillation 0 / olfactory 0 / scent 0 등)하여 표면 부재 기각. 동음이의 확인: broke 2는 전량 외부 이미지 로드 실패 주석의 `broken-image`·`broken image`이지 제지 공정의 파지(broke)가 아니고, oud 3은 전량 외부 플랫폼명 `SoundCloud`의 부분 문자열이지 향료 oud가 아니다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6325, 1078th round(responsive). 직전 responsive 포인터 8101bf51 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6321 — design/tokens 1001st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1001번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 249783ed(c6315 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 2380fba9 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
