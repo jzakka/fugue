@@ -18883,6 +18883,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6341 — design/aesthetic 1081st round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1081번째 라운드, 발견 모드. 백로그 pending=0. origin/main be5a056c.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 제철·용광로 조업 계열, 배치B = 볼링·레인 운영 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — blast-furnace-stack, tuyere-injection-dot, …, mill-scale-tone(A) / bowling-lane-strip, pin-deck-grid, …, bumper-guard-rail(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **제철·용광로 조업 표면 자체가 부재**(furnace 0 / tuyere 0 / slag 0 / taphole 0 / tundish 0 / refractory 0 / billet 0 / sinter 0 / desulfur 0 / basicity 0 / smelt 0 / ladle 0 / coke 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 제철소 조업 관리 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **볼링·레인 운영 표면 자체가 부재**(bowling 0 / pinsetter 0 / gutter 0 / bowler 0 / scoresheet 0 / handicap 0 / turkey 0 / strike 0 / lane 0). 배치B의 nonzero baseline은 전량 동음이의였다 — spare=20은 전건 `transparent`(border-t-transparent, hover:-transparent 등) 부분문자열이라 볼링 스페어 처리와 무관, pin=243은 Fugue 큐레이션 핀, split=5는 `Array.split`, hook=9는 react-hooks ESLint 지시문, target=26은 링크 target 속성으로 모두 볼링 도메인과 무관. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6343, 1081st round(responsive). 직전 responsive 포인터 05a79a16 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6339 — design/tokens 1004th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1004번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 32418cc3(c6333 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main b4225a12 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
