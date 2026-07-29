@@ -18775,6 +18775,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6287 — design/aesthetic 1072th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1072번째 라운드, 발견 모드. 백로그 pending=0. origin/main b8266438.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 방송 편성·송출 계열, 배치B = 실험실·시료 분석 계열. 두 배치 모두 nonzero 축 없음.
+- 0-match: 48건(전 축) — broadcast-slot-row, programming-grid-cell, …, station-ident-mark(A) / specimen-barcode-row, assay-plate-well, …, hazard-pictogram-tile(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A는 **방송 편성·송출 표면 자체가 부재**(broadcast 0 / rundown 0 / teleprompter 0 / simulcast 0 / bumper 0 / affiliate 0 / transmission 0 / callsign 0 / blackout 0 / rerun 0 / primetime 0 / epg 0 / syndication 0 / uplink 0 / tally 0 / on-air 0 / station 0 / programming 0 / commercial 0 / satellite 0 / studio 0 / ratings 0 소스 사용 각 0건 — Fugue는 창작물 큐레이션 피드일 뿐 방송 편성표·송출 제어 기능이 없다)하여 c6113의 **표면 부재 기각**. 배치B도 **실험실·시료 분석 표면 자체가 부재**(specimen 0 / assay 0 / titration 0 / reagent 0 / centrifuge 0 / chromatogram 0 / pipette 0 / incubation 0 / calibration 0 / contamination 0 / dilution 0 / cuvette 0 / autoclave 0 / molarity 0 / cleanroom 0 / aliquot 0 / microscope 0 / spectrometer 0 / fume 0 / pictogram 0 / laborator 0 / hazard 0)하여 표면 부재 기각. 동음이의 확인: buffer 2는 파일 업로드 경로의 `new ArrayBuffer` / `new File([buffer], name, { type })` 바이너리 버퍼이지 완충 용액이 아니며, cue·gel·plate·sample·bench·well은 소스 사용 각 0건이었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6289, 1072th round(responsive). 직전 responsive 포인터 645feb39 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6285 — design/tokens 995th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 995번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 96e9a275(c6279 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 510dc457 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
