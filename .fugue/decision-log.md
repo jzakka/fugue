@@ -20149,6 +20149,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6937 — design/responsive 1180th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1180번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 59b94254(c6931 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main f1a78f56 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main f1a78f56 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6939, 1104th round(tokens). 직전 tokens 포인터 0269a7fb 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6935 — design/aesthetic 1180th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1180번째 라운드, 발견 모드. 백로그 pending=0. origin/main 0515ae54.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 전통 기와 이기 번와 시공(흙 바탕 밀착·기와 겹침 단위·용마루 마감) 계열, 배치B = 중앙공급실 수술기구 재처리(초음파 세척·기구 포장·증기 멸균 검증) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 gauge(기소비 c6887)·lime(기소비 c6917 limeclarifysettle)·winter·salt(직전 c6923 takeoutwintercool·기소비 c6911)·sag(직전 c6923 deflectionsagwatch)·load(기소비 c6911 hopperloadtonne)를 coursewalkstep·torchingunderdaub·frostbloomwash·bowbattenreplace·deadmassrafter로, 배치B는 enzyme(직전 c6929 bateenzymesoften)·flush(직전 c6929 nitrogenflushbag)·rinse(기소비 c6911 sanitizelinerinse)·seal·pouch(기소비 c6893·c6911)·load(기소비 c6911)를 detergentprespray·lumenbrushbore·deionfinalspray·traypeelwrapclose·parametricrelease로 교체했고, 배치A의 wind 동음이의(18)·comb 동음이의(1)·colour 중복(직전 c6923)을 slipdownstormlift·birdstopclose·kilntonevary로, 배치B의 vacuum·test·quality·shelf·traceability 기소비를 airremovalpulse·bowiedicktrial·saturatedsteampure·eventrelatedexpiry·kitidentifylink로 조정했다. 전통 기와 이기는 초가 이엉(기소비)·슬레이트 지붕 시공(기소비)·벽돌 소성(기소비)·건식 석축(기소비)·도배·표구(기소비)와, 중앙공급실 기구 재처리는 수산 통조림 레토르트(기소비)·치과 기공(기소비)·실험실 시료 분석(기소비)·수영장 수질 설비(기소비)·의류 드라이클리닝(기소비 c6893)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
