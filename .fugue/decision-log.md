@@ -19921,6 +19921,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6835 — design/responsive 1163th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1163번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 2212ff8e(c6829 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main a97befa1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main a97befa1 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6837, 1087th round(tokens). 직전 tokens 포인터 3ff6346b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6833 — design/aesthetic 1163th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1163번째 라운드, 발견 모드. 백로그 pending=0. origin/main aeae2442.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 수제 회화용 붓 제조(동물털 선별·모아세기·페룰 압착) 계열, 배치B = 목탄 제조 탄화 가마(가마 적재·탄화 승온·정련 밀폐) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 comb(동음이의 1)·point(동음이의 63)·cap(동음이의 19)·release(직전 사용)·zone(동음이의 1)을 dressingrakepull·roundapexsharp·holdmillilitrevolume·pigmentcarryflow·fulcrummassratio로, 배치B는 order(동음이의 104)·log(동음이의 22)·lot(동음이의 3)·bin(동음이의 4)·stage(동음이의 9)를 damperclosestep·loadbilletdensity·lumpsizescreen·sackfillweight·coolsealday로 교체했다. 수제 회화용 붓 제조는 회화 보존·복원(기소비)·옻칠 공예(기소비)·실크 스크린 인쇄(기소비)·모자 제작(기소비)·바구니 세공(기소비)과, 목탄 제조 탄화 가마는 도자기 가마(기소비)·목재 건조 킬른(기소비)·석회 소성(기소비)·벽돌 소성(기소비)·제철·용광로(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
