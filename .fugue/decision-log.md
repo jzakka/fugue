@@ -19993,6 +19993,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6871 — design/responsive 1169th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1169번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 a15929a0(c6865 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main d79ca3dc 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main d79ca3dc (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6873, 1093rd round(tokens). 직전 tokens 포인터 f8b0a307 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6869 — design/aesthetic 1169th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1169번째 라운드, 발견 모드. 백로그 pending=0. origin/main f89dc11e.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 하수 슬러지 혐기성 소화·바이오가스(중온 소화 체류·VFA/알칼리도 균형·황화수소 탈황) 계열, 배치B = 당구 큐 제작(메이플 스플라이스 적층·테이퍼 가공·팁 퍽 경도) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 gravity(직전 c6863 startgravityfeed 사용)·buffer(동음이의 2)·share(동음이의 1)·map(동음이의 42)·order(동음이의 104)를 sludgethickenbelt·balancesourrisk·reducedestructfraction·impellerblendsweep·stirroundplan으로, 배치B는 pin(동음이의 243)·point(동음이의 63)·rod(동음이의 1)·racking(동음이의 16)·ferrule(기소비 c6833 ferrulecrimpjaw)을 collarsleevescrew·pivotplaceassess·stiffbendresist·hangvertfree·collarspacerthin으로 교체했다. 혐기성 소화는 하수관로 준설(기소비)·정수 처리(기소비)·수영장 수질 설비(기소비)·상수도 누수 탐사(기소비)·양조·발효(기소비)와, 당구 큐 제작은 우드터닝(기소비)·현악기 제작(기소비)·서핑보드 셰이핑(기소비)·야구 글러브 제작(기소비)·골프 클럽 피팅(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
