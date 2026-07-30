@@ -20179,6 +20179,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6949 — design/responsive 1182th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1182번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 e3acc55a(c6943 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main da897bc3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main da897bc3 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6951, 1106th round(tokens). 직전 tokens 포인터 dcd03ba6 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6947 — design/aesthetic 1182th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1182번째 라운드, 발견 모드. 백로그 pending=0. origin/main 34836e73.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 테니스 라켓 스트링잉(그로밋 점검·스트링 경로·인장 교정·매듭 마감) 계열, 배치B = 정형외과 보조기·의지 제작(음형 채취·양형 수정·열가소 성형·정렬 조정) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 pattern(직전 c6941)·skip 동음이의(3)·tension/pull/stretch/draw/compare(기소비 c6929)·gauge(기소비 c6887)·reading 동음이의(1)를 stringroutechart·mainsequencetrace·tautdialcalibrate·precreepsettle·steadytugmode·coregutmimic·dynamicstiffnessmeter로, 배치B는 shape(기소비 c6929)·wrap(기소비 c6929)·plaster(직전 c6935)·relief/trial/check/weight/tolerance(직전 c6941)·trim 동음이의(54)를 negativeimpressiontake·positivemodelpour·prominencepadbuild·borderlinescribe·diagnosticsockettryon·contactsurfacecomfort로 교체했고, 배치A의 slip/open/hole/bore/over/finish/double 기소비를 gripperbitesecure·awlwidenport·crossweavealternate·parnellknotcinch로, 배치B의 vacuum/heat/motion 기소비와 pin 동음이의(243)·zone 동음이의(1)·load(기소비 c6911)를 suctionformseatdown·thermoplasticovensoak·pistoningtravelreduce·linershuttlelockcouple로 조정했다. 테니스 라켓 스트링잉은 야구 글러브 제작(기소비)·당구 큐 제작(기소비)·자전거 휠 빌딩(기소비)·밧줄 제작·삭구(기소비)·골프 클럽 피팅(기소비)과, 정형외과 보조기·의지 제작은 인공관절 임플란트 연마(기소비)·치과 기공(기소비)·제화(기소비)·안경 렌즈 가공(기소비)·진공 성형 열가소 시트(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
