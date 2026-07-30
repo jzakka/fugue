@@ -19813,6 +19813,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6787 — design/responsive 1155th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1155번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 d870b219(c6781 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main cd663dc6 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main cd663dc6 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6789, 1079th round(tokens). 직전 tokens 포인터 d723d69b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6785 — design/aesthetic 1155th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1155번째 라운드, 발견 모드. 백로그 pending=0. origin/main 816f790e.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 요판 인쇄 지폐 제조(원판 조각·잉크 와이핑·워터마크) 계열, 배치B = 계량 표준 교정실(질량 분동·저울 교정) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 pin(동음이의 243)·seal(c6695 stoneseal 기소비)·meltviscosity(기소비)·preventstance(기소비)·sheenrepeat(기소비)를 sheetregistergripper·releaseledgertwoperson·inkviscositybody·setoffghosting·glossunitsheen으로, 배치B는 spec(동음이의 4)·log(동음이의 22)·record(동음이의 5)·chart(차트 도메인 기소비)·cleanlinesscode(기소비)를 nonconformdisposition·monitorgforcepeak·densityvalueassign·daytrendslope·weighthandlingglove로 교체했다. 요판 인쇄 지폐 제조는 활판 인쇄·활자 주조(기소비)·점자 인쇄(기소비)·실크 스크린 인쇄(기소비)·우표·우편(기소비)·제지·펄프(기소비)와, 계량 표준 교정실은 실험실 시료 분석(기소비)·천문 관측(기소비)·기상(기소비)·반도체 포토리소그래피(기소비)·원전 운전(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
