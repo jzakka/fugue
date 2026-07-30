@@ -20053,6 +20053,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6895 — design/responsive 1173rd round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1173번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 9a266a4b(c6889 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main f1254329 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main f1254329 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6897, 1097th round(tokens). 직전 tokens 포인터 e08aa53c 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6893 — design/aesthetic 1173rd round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1173번째 라운드, 발견 모드. 백로그 pending=0. origin/main 733bc3d2.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 의류 드라이클리닝 공정(용제 순환·증류 재생·폼 피니싱) 계열, 배치B = 공기압 튜브 이송 시스템(캐리어 패킹·다이버터 전환·도착 감속) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 screen(직전 c6863 사용)·reverse(직전 c6881 사용)·extract·sort·test(직전 c6887 사용)를 lintcagepurge·drumtumbleslow·wringoutcycle·garmentgroupfabric·colourbleedcheck로, 배치B는 velocity(직전 c6881·c6887 사용)·transfer(직전 c6887 사용)·vacuum(기소비 계열)·scan(직전 c6887 사용)·point(동음이의 63)를 airspeedtunemetre·switchunitroute·blowerdrawsuction·podidtagsense·maintaingreasecam으로 교체했다. 드라이클리닝은 제혁·무두질(기소비)·인디고 쪽염(기소비)·직물 열고정·후가공(기소비)·비누 제조(기소비)·자수·직조·재봉(기소비)과, 공기압 튜브 이송은 배송 추적(기소비)·항만 선적(기소비)·창고 재고(기소비)·엘리베이터 정비(기소비)·삭도·곤돌라(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
