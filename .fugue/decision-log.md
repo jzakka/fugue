@@ -19759,6 +19759,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6763 — design/responsive 1151th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1151번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 e887567c(c6757 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 9f3cf473 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 9f3cf473 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6765, 1075th round(tokens). 직전 tokens 포인터 36d7f7d3 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6761 — design/aesthetic 1151th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1151번째 라운드, 발견 모드. 백로그 pending=0. origin/main a6c8297b.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 볼 베어링 제조(레이스 연삭·볼 선별) 계열, 배치B = 커튼월 유리 파사드 시공(유니타이즈 패널 설치·압력 등화) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 grind(c6755 plategrindmicron 기소비)·fill(fillvolume 기소비)·seal(c6695 stoneseal 기소비)·bleed(bleedout 기소비)·lot(동음이의 3)을 raceabrade·greasequantum·shieldcrimp·lubricantseparation·steelbatchidentity로, 배치B는 shim(동음이의 11)·slot(동음이의 3)·primer(c6755 primertack 기소비)·heat(ironheat 기소비)·strip(c6755 stripewidth 기소비)을 anchorbracketpack·weepopening·jointwipe·glasssoakscreen·thermalbreakinsert로 교체했다. 볼 베어링 제조는 유압 실린더 재생(기소비)·자전거 휠 빌딩(기소비)·시계 제작(기소비)·엘리베이터 정비(기소비)와, 커튼월 유리 파사드 시공은 스테인드글라스(기소비)·유리 블로잉(기소비)·거울 은도금(기소비)·무대 리깅(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
