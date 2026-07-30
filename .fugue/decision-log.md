@@ -19795,6 +19795,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6779 — design/aesthetic 1154th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1154번째 라운드, 발견 모드. 백로그 pending=0. origin/main 4cdc3178.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 진공 동결건조 식품 제조(예비동결·승화건조·탈착건조) 계열, 배치B = 열교환기 튜브 검사·화학세정(에디커런트 탐상·산세정) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 flux(fluxskim 기소비)·point(동음이의 63)·pressurebar(기소비)·seal(c6695 stoneseal 기소비)·temperatureceiling(기소비)를 sublimationfront·eutecticmelt·setpascalband·stopperbridge·meltonsetcelsius로, 배치B는 index(동음이의 4)·fill(fillvolume 기소비)·resistanceunit(기소비)·dischargecleanout(기소비)·trim(동음이의 54)을 archiveframeserial·probefillfactor·resistancehourft·wasteneutralisedischarge·baffleerosionscallop으로 교체했다. 진공 동결건조 식품 제조는 제빙 공장(기소비)·액상유 가공(기소비)·초콜릿 제조(기소비)·목재 건조 킬른(기소비)·제빵 생지(기소비)와, 열교환기 튜브 검사·화학세정은 원전 운전(기소비)·정유(기소비)·송유관 피깅(기소비)·수영장 수질 설비(기소비)·오비탈 배관 용접(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — shelffreezerate-ratecelsiusminute-tier, …, sterileairbreak-breakfilterguard-tier(A) / tubeeddycurrent-currentphaseangle-tier, …, wasteneutralisedischarge-dischargephvalue-tier(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 진공 동결건조 표면 자체가 부재(shelffreezerate 0 / eutecticmelt 0 / sublimationfront 0 …), 배치B 열교환기 튜브 검사 표면도 부재(tubeeddycurrent 0 / wallthinningpercent 0 / probefillfactor 0 …)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6781, 1154th round(responsive). 직전 responsive 포인터 51271fb9 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6777 — design/tokens 1077th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1077번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 65094e83(c6771 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 64ac8683 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
