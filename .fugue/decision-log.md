@@ -20161,6 +20161,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6943 — design/responsive 1181th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1181번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 f1a78f56(c6937 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e3acc55a 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main e3acc55a (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6945, 1105th round(tokens). 직전 tokens 포인터 3800dfdc 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6941 — design/aesthetic 1181th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1181번째 라운드, 발견 모드. 백로그 pending=0. origin/main e2b50f37.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 검역 훈증 방제(밀폐 피복·약제 투여·가스 농도 감시·통기 배출) 계열, 배치B = 홀로그램 위조방지 라벨 제조(원판 노광·전주 복제·엠보싱 전사) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 heat/coil(직전 c6929)·cylinder(기소비 c6905)·stage 동음이의(9)·seed 동음이의(7)·grain(직전 c6935 계열 단어)을 volatiliserplatewarm·canisterdecantvalve·egginstarlethal·respirebarrierkernel·penetratebulkstack로, 배치B는 split 동음이의(5)·angle/expose/release/peel(직전 c6935)·batch(직전 c6929)를 laserbeaminterfere·objectbeamincline·fringepatternwrite·partingcoatstrip·runserialiseprint로 교체했고, 배치B의 shim 동음이의(11)·window 동음이의(5→17)·gauge 기소비(c6887)·hue/colour 기소비(직전 c6929·c6923)·step/tile/roll 기소비(직전 c6935)를 embossnipwarmpress·demetalliseareaetch·diffractionvividjudge·rainbowspectrumshift·recombinegridmachine으로 조정했다. 검역 훈증 방제는 곡물 사일로(기소비)·곤충 사육(기소비)·하수관로 준설(기소비)·정수 처리(기소비)·수영장 수질 설비(기소비)와, 홀로그램 라벨 제조는 요판 인쇄 지폐 제조(기소비)·반도체 포토리소그래피(기소비)·실크 스크린 인쇄(기소비)·네온사인(기소비)·전기 도금(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
