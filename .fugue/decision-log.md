@@ -19507,6 +19507,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6647 — design/aesthetic 1132nd round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1132번째 라운드, 발견 모드. 백로그 pending=0. origin/main c1f7d5a5.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 엘리베이터(승강기) 설치·정비 계열, 배치B = 알루미늄 압출(익스트루전) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 grip(c6629 gripalign)·sweep(c6641 lowersweep)·protrude(c6629 protrudefibre)·level(c6623 saglevel)·align(c6629 gripalign)을 terminationsocket·retractstroke·nosebump·floodpool·trueoffset으로, 배치B는 profile(c6635 profiletall)·weld(c6629 weldcarriage)·depth(c6629 flaredepth)·angle(c6629 grindangle)·dwell(c6625 dripdwell)을 cavitydeflect·reliefland·shaveslice·holdcurve·graspsecure로 교체했다. 엘리베이터 설치·정비는 롤러코스터 정비(기소비)·삭도·곤돌라 리프트 운영(기소비)·타워크레인 설치·해체(기소비)와, 알루미늄 압출은 제철·용광로(기소비)·분체도장 라인(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — hoistrope-strandwear-tier, …, shaftplumb-bracketpitch-scale(A) / billetpreheat-tempgradient-tier, …, presstonnage-holdcurve-grade(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 엘리베이터 설치·정비 표면 자체가 부재(hoistrope 0 / sheavegroove 0 / landingsill 0 / doorvane 0 / governorjaw 0 / travelcable 0 / overspeedtrip 0 / pitladder 0 / carsling 0 / shaftplumb 0), 배치B 알루미늄 압출 표면도 부재(billetpreheat 0 / extrudedie 0 / pullerclamp 0 / quenchtable 0 / agingoven 0 / stretchpull 0 / dieband 0 / ramspeed 0 / scalpshave 0 / presstonnage 0)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6649, 1132nd round(responsive). 직전 responsive 포인터 f6f35738 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6645 — design/tokens 1055th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1055번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 f487af68(c6639 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 86a49794 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
