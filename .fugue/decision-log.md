@@ -19633,6 +19633,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6707 — design/aesthetic 1142th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1142번째 라운드, 발견 모드. 백로그 pending=0. origin/main 999d2b32.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 브라이어 담배 파이프 제작 계열, 배치B = 진공관(전자관) 제조 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 stain(c6689 weepstain)·hole(c6689 holeconcentric)·tunnel(c6683 annealtunnel)·press(c6671 pressplaten)·gloss(c6701 filmglossy)를 anilinebath·smokedraw·shankpassage·buffwheel·carnaubadwell로, 배치B는 wire(c6671 coilwire)·flash(c6683 flashedge)·seal(c6695 stoneseal)·test(c6689 playtest)·degree(c6689 dampdegree)를 gridhelix·gettermirror·exhausttube·emissioncurve·torrfloor로 교체했다. 브라이어 파이프 제작은 시가 제조(기소비)·볼펜 제조(기소비)·목조 소형선 건조(기소비)와, 진공관 제조는 네온사인 제작(기소비)·유리병 제조(기소비)·PCB 조립(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — briarblock-burlheft-tier, …, smokedraw-filtervariant-tier(A) / cathodecoat-carbonatespray-tier, …, emissioncurve-testerscale-tier(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 파이프 제작 표면 자체가 부재(briarblock 0 / bowlturn 0 / shankpassage 0 / vulcanitestem 0 / tenonspigot 0 / rimchamfer 0 / anilinebath 0 / buffwheel 0 / smokedraw 0 / grainfigure 0), 배치B 진공관 제조 표면도 부재(cathodecoat 0 / gridhelix 0 / anodecan 0 / micaspacer 0 / gettermirror 0 / exhausttube 0 / pumpdown 0 / basingcement 0 / heaterfilament 0 / emissioncurve 0)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6709, 1142th round(responsive). 직전 responsive 포인터 84f8889b 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6705 — design/tokens 1065th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1065번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 af282309(c6699 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 2eed8f0b 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
