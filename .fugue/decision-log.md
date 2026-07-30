@@ -20107,6 +20107,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6921 — design/tokens 1101th round (Discovery, 표면 불변 폐기)
+- 순번: tokens 1101번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 12cae1e9(c6915 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 57e65aa3 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 토큰 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 57e65aa3 (차기 tokens 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = aesthetic → cycle 6923, 1178th round(aesthetic). fresh 48축 2배치 프로빙, 기소비 계열/단어 회피 후 `.fugue/anti-patterns.md` 대비 카운트.
+
 ## cycle 6919 — design/responsive 1177th round (Discovery, 표면 불변 폐기)
 - 순번: responsive 1177번째 라운드, 발견 모드. 백로그 pending=0.
 - 회복: Step 0 fetch try=1이 `cannot lock ref 'refs/remotes/origin/main'`(외부 커밋과 경합)으로 실패 → §1 git 상태 복구에 따라 재시도, try=2 성공. 이후 단계 정상.
