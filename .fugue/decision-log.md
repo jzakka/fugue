@@ -19573,6 +19573,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6679 — design/responsive 1137th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1137번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 a564d2f7(c6673 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main d538194d 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main d538194d (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6681, 1061th round(tokens). 직전 tokens 포인터 b58e2a93 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6677 — design/aesthetic 1137th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1137번째 라운드, 발견 모드. 백로그 pending=0. origin/main bb8e10de.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 성냥 제조 계열, 배치B = 오르골(뮤직박스) 제작 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 grain(c6671 grainstreak)·depth(c6671 pressdepth)·bite(c6671 clampbite/crossbite)·dome(c6659 domeroundness)·colour(c6641 colourtone)를 fibrestraight·waxrise·abradegrit·headgirth·tintdeep으로, 배치B는 play(c6665 wobbleplay)·drift(c6665 syncdrift)·scuff(c6659 chafescuff)·leak(c6641 ballastleak)·mute(동음이의 61)를 backlashslack·beatwander·toothbruise·buzzrattle·quelltouch로 교체했다. 성냥 제조는 불꽃놀이 화공품 제조(기소비)·양초 제작(기소비)·연필 제조(기소비)와, 오르골 제작은 시계 제작(기소비)·파이프 오르간 제작(기소비)·현악기 제작(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
