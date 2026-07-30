@@ -20029,6 +20029,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6883 — design/responsive 1171st round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1171번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 576a4b3d(c6877 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main e44b6c39 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main e44b6c39 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6885, 1095th round(tokens). 직전 tokens 포인터 76c6c148 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6881 — design/aesthetic 1171st round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1171번째 라운드, 발견 모드. 백로그 pending=0. origin/main 6c665120.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 카펫 터프팅 제조(터프팅 게이지·프라이머리 백 직조·라텍스 프리코트) 계열, 배치B = 도로 터널 환기·제연(제트팬 추력·임계 유속·가시도 소산) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 hook(동음이의 9)·pattern(기사용)·split(동음이의 5)·trim(동음이의 54)·join(동음이의 21)을 knifebladeclose·graphicjackcontrol·pilefacevary·tuftdensityounce·seambondhotmelt로, 배치B는 zone(동음이의 1)·read(동음이의 1)·stage(동음이의 9)·pressure(직전 c6869 membranepressurelow 사용)·fan(직전 c6875 fancoilfrost 사용)을 luxtransitfade·anemometerpairtrust·motorkickdelay·frictiondropcalc·jetthrustnewton으로 교체했다. 카펫 터프팅은 자수·직조·재봉(기소비)·직물 열고정·후가공(기소비)·면사 방적(기소비)·목재 마루(파케트) 시공(기소비)·매트리스 제조(기소비)와, 터널 환기·제연은 TBM 실드 터널(기소비)·방음 스튜디오 시공(기소비)·엘리베이터 정비(기소비)·철도 신호·연동장치(기소비)·소방 장비(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
