@@ -20401,6 +20401,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6979 — design/responsive 1187th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1187번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 f1f5a295(c6973 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main f36dfd93 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main f36dfd93 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6981, 1111th round(tokens). 직전 tokens 포인터 102c4f55 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6977 — design/aesthetic 1187th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1187번째 라운드, 발견 모드. 백로그 pending=0. origin/main bdfa2abc.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 놀이터 충격흡수 바닥재 시공(임계 낙하 높이·쇼크패드·습식 타설·EPDM 그래뉼) 계열, 배치B = 한약재 법제(포제)(초·자·주증·초탄) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 zone 동음이의(1)·index 동음이의(4)·test/measure/count(기소비 c6941·c6959)·set/spread/gauge(기소비 c6959·c6965)·mix/blend/bind(직전 c6965·c6959)·pour/smooth/flat/finish(기소비 c6947·c6953·c6971)·fill/edge/fade/pull(기소비 c6959·c6971)을 usefallmarginwide·impactattenuatevalue·shockpadthickdepth·epdmgranulecombine·sbrbaselayerlay·wetpourtrowelplane·rubbermulchloosebed·sandpitborderkerb·uvchalkweather·tearstrengthrating으로, 배치B는 wash/rinse(기소비 c6935)·clear/purge/removal(기소비 c6941·c6959)·dry(직전 c6959·c6971)·soak/steep(기소비 c6947·c6959)·spray/vent(기소비 c6935)·ferment(직전 c6959)·reduce/step/assay/proof/level/size(기소비 c6959·c6965·c6971)를 rootsoilbrushoff·ambientairstand·winesteamdouse·steamninerepeat·yeastcakeraise·toxicitylowerrite·potencytitrescore·decoctpiecebulk으로 교체했고, 배치 간 cure 단어 중복을 피해 B의 ambientaircure를 ambientairstand로 조정했다. 놀이터 충격흡수 바닥재 시공은 아스팔트 포장(기소비)·노면표시 도색(기소비)·목재 마루(파케트) 시공(기소비)·타이어 재생(기소비)·카펫 터프팅(기소비)과, 한약재 법제는 녹차 제다(기소비)·향수 조향(기소비)·육가공·샤퀴테리(기소비)·초콜릿 제조(기소비)·천연 염색(기소비 c6959)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
