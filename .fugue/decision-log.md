@@ -19549,6 +19549,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6667 — design/responsive 1135th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1135번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 0c1e9705(c6661 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 039336dc 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 039336dc (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6669, 1059th round(tokens). 직전 tokens 포인터 d0a4bfa3 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6665 — design/aesthetic 1135th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1135번째 라운드, 발견 모드. 백로그 pending=0. origin/main f0ba47fc.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 곤충 사육·사료화(밀웜·동애등에) 계열, 배치B = 부채(선자) 제작 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 pack(c6641 corepack)·count(c6653 samplecount)·residue(c6653 residuecrust)·yield(c6653 panelyield)·moisture(c6659 moistureburden)를 crowdstress·tiernumber·leftovercake·eggoutput·endwater로, 배치B는 fold(c6635 squarefold)·lock(c6641 lockbar)·drip(c6625 dripdwell)·coat(c6653 linercoat)·bead(c6659 beadring)를 pleatcrease·endcapfasten·poolededge·filmgloss·headsnub으로 교체했다. 곤충 사육·사료화는 양잠·누에 사육(기소비)·양봉(기소비)·수경재배·양액 관리(기소비)와, 부채(선자) 제작은 우산·양산 제작(기소비)·연(kite) 제작(기소비)·모자 제작(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
