@@ -19669,6 +19669,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6719 — design/aesthetic 1144th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1144번째 라운드, 발견 모드. 백로그 pending=0. origin/main c3182f0c.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 만년필 닙 조정·수리 계열, 배치B = 인디고 쪽염(천연 발효 염색) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 ball(c6683 tungstenball)·align(c6671 meshalign)·response(c6689 responselag)·spot(c6683 thinspot)·polish(c6695 polishslab)를 tippingpellet·tinepair·springiness·sweetarea·micromesh로, 배치B는 vat(c6683 vatlevel)·bath(c6707 anilinebath)·air(c6683 airpuff)·rub(c6677 frictionrub)·shade(c6683 shadecast)를 indigoferment·reductionstate·oxidationgreening·crockfastness·duskiness로 교체했다. 만년필 닙 조정·수리는 볼펜 제조(기소비)·보석 연마(기소비)·활판 인쇄·활자 주조(기소비)와, 인디고 쪽염은 제혁·무두질(기소비)·면사 방적(기소비)·전기 도금(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — nibslit-cleftregular-tier, …, sweetarea-rotationlatitude-tier(A) / indigoferment-brothvigour-tier, …, mordantfix-agentrepertoire-tier(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 닙 조정 표면 자체가 부재(nibslit 0 / … / domeexcess 0), 배치B 쪽염 표면도 부재(indigoferment 0 / … / clothdegum 0)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6721, 1144th round(responsive). 직전 responsive 포인터 215edbb3 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6717 — design/tokens 1067th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1067번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 a34bcb94(c6711 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main fbf42395 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
