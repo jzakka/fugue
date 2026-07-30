@@ -19975,6 +19975,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6863 — design/aesthetic 1168th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1168번째 라운드, 발견 모드. 백로그 pending=0. origin/main 7e75d335.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 광섬유 프리폼 인선탑(수트 증착·인선 장력·코팅 UV 경화) 계열, 배치B = 계란 선별 포장(투광 검사·중량 등급·난각 강도) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 screen(직전 c6857 screenprintink 사용)·coat(직전 c6857 graffitiovercoat 사용)·cap(동음이의 19)·zone(동음이의 1)·wind(동음이의 18)을 defectflagreel·resincupmeniscus·haulwheelspeed·graphiteheaterhot·spooltakeuptorque로, 배치B는 lot(동음이의 3)·index(동음이의 4)·spot(기대체 이력)·pulp(기소비 conepulpform)·ink(배치A 사용)를 flockcodetrace·yolkdomeheight·doubleyolkfind·cartontraypocket·datejetlegible로 교체했다. 광섬유 프리폼 인선은 광케이블 융착(기소비)·반도체 포토리소그래피(기소비)·유리 블로잉(기소비)·진공관 제조(기소비)·유리병 제조(기소비)와, 계란 선별 포장은 곤충 사육(기소비)·양잠(기소비)·곡물 사일로(기소비)·골판지 상자(기소비)·액상유 가공(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — preformsootdeposit-depositlayerbuild-tier, …, cleaveanglecheck-checkdegreetilt-tier(A) / eggcandlelight-lightbloodmark-tier, …, shelllossshrink-shrinkpercentday-tier(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 인선탑 표면 자체가 부재(preformsootdeposit 0 / corecladratio 0 / fibretensiongram 0 …), 배치B 계란 선별 표면도 부재(eggcandlelight 0 / weightgradeclass 0 / albumenheightunit 0 …)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6865, 1168th round(responsive). 직전 responsive 포인터 21ef4d81 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6861 — design/tokens 1091st round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1091번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 e114349c(c6855 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 2e0ebfa1 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
