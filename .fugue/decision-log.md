@@ -19717,6 +19717,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6743 — design/aesthetic 1148th round (Discovery, 0 신규 후보)
+- 순번: aesthetic 1148번째 라운드, 발견 모드. 백로그 pending=0. origin/main 70829aff.
+- 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 거울 은도금(미러 실버링·백킹) 계열, 배치B = 송유관 피깅(파이프라인 내부 청소·검사) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 wash(c6713 washoutrinse)·varnish(c6701 varnishdip)·coat(c6707 cathodecoat)·rack(동음이의 16)·film(filmglossy 기소비)을 panescour·borderlacquer·copperbacking·tiltdrain·backingpaintbody로, 배치B는 brush(c6731 brushcrown)·seal(c6695 stoneseal)·tracking(동음이의 16)·pull(pullthrough 기소비)·jam(jamdensity 기소비)을 discwiper·bypassorifice·pigsignalping·debrishaul·stucklodge로 교체했다. 거울 은도금은 전기 도금(기소비)·유리 블로잉(기소비)·스테인드글라스(기소비)·안경 렌즈 가공(기소비)과, 송유관 피깅은 오비탈 배관 용접(기소비)·하수관로 준설(기소비)·정유(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
+- 0-match: 48건(전 축) — panescour-grithousekeeping-tier, …, mirrorreflectance-mirrorqualitycompendium-tier(A) / piglauncher-barrelfitment-tier, …, debrishaul-disposalroutedirectory-tier(B).
+- 판정: 0-match 48건에 대해 c6041·c6083·c6113·c6143 관례대로 전량 계열 baseline과 소스 사용을 개별 확인했다. 결과 48건 전량 기각. 배치A 은도금 표면 자체가 부재(panescour 0 / … / mirrorreflectance 0), 배치B 피깅 표면도 부재(piglauncher 0 / … / stucklodge 0)하여 c6113의 **표면 부재 기각**. 두 배치 모두 계열 baseline이 전량 0이라 동음이의 분해 대상이 없었다. 48축 전량 소스 사용 0건(apps/web/src, DESIGN.md) → 순수 vacuous 축 0건, 신규 후보 0건(rigor-over-quota 유지).
+- 차기: pending=0 → 발견 모드. area = responsive → cycle 6745, 1148th round(responsive). 직전 responsive 포인터 05cc8d92 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6741 — design/tokens 1071th round (Discovery, 표면 불변 폐기)
 - 순번: tokens 1071번째 라운드, 발견 모드. 백로그 pending=0.
 - 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 tokens 포인터 751b247a(c6735 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 26a09d84 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
