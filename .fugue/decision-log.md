@@ -19855,6 +19855,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6805 — design/responsive 1158th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1158번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 6e14630a(c6799 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main fb95b7c5 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main fb95b7c5 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6807, 1082th round(tokens). 직전 tokens 포인터 8e16b925 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6803 — design/aesthetic 1158th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1158번째 라운드, 발견 모드. 백로그 pending=0. origin/main 8aba22b6.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 석고보드 제조 라인(소석고 배합·발포 슬러리·판 경화·건조) 계열, 배치B = 진공 성형 열가소 시트(시트 예열·플러그 어시스트·금형 진공) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 trim(동음이의 54)·pin(동음이의 243)·moistureresidual(기소비)·platewearrunlength(기소비)·widthstretchpull(기소비)를 knifecutlength·mixeragitatorgap·wetendmoisture·formingplatepress·edgeprofileform으로, 배치B는 trim(동음이의 54)·index(동음이의 4)·sag(배치A 중복 회피)·wallthinningpercent(기소비)·surfaceroughnessweight(기소비)를 cutfixturepath·webhauladvancepitch·droopsheetsensor·wallthickdistribute·surfacetexturereplicate로 교체했다. 석고보드 제조는 벽돌 소성(기소비)·석회 소성(기소비)·제지·펄프(기소비)·콘크리트 배처 플랜트(기소비)·건식 석축(기소비)과, 진공 성형 열가소 시트는 다이 캐스팅(기소비)·알루미늄 압출(기소비)·유리병 제조(기소비)·분체도장 라인(기소비)·안경 렌즈 가공(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
