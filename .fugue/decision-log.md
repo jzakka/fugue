@@ -20419,6 +20419,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6985 — design/responsive 1188th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1188번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 f36dfd93(c6979 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 24e141a6 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 24e141a6 (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6987, 1112th round(tokens). 직전 tokens 포인터 ef9993e5 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6983 — design/aesthetic 1188th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1188번째 라운드, 발견 모드. 백로그 pending=0. origin/main b3b288bc.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 전통 장(醬) 담그기(메주 성형·염도·항아리 관리·숙성 분리) 계열, 배치B = 하천 어도(fish ladder) 시공·유량 관리(풀-웨어·데닐 배플·유인 유량·이동 계측) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 soft/mould/separate/clamp(직전 c6965·c6977)·warm/hang/spray(기소비 c6935·c6941)·salt/steam/cure/top-coat(직전 c6977)·shade/grade/egg/charcoal(기소비 c6953·c6959·c6965)·set/bind/lay/pick/titre를 soybeanboiltender·mejubrickshape·strawwraptruss·ondolroomripen·sundeckexpose·brinestrengthdegree·emberlumpdrop·jujubetopplace·raincoverfasten·fortydaydivide·agingjardim·surfacecrustdress·filmskimtool·savourytaste로, 배치B는 pass/step/drop/fall/height(직전 c6971·c6977)·slot 동음이의(3)·rest 동음이의(3)·rack 동음이의(16)·stage 동음이의(9)·gauge/level/mark/count/tally/clear/removal(기소비 c6959·c6965·c6977)·hold/keep/plan/rule·track 동음이의(16)를 fishwayalign·poolweirtier·narrowgapbaffle·denilbaffletilt·pausepoolvolume·headdifferencelimit·leaparcreach·eelclimbbristle·lampreypausebox·debrisbarsweep·waterdepthpost·fishtally 대신 migrantvideoeye·telemetryfollowrelease·lowflowdroughtcase로 교체했다. 전통 장 담그기는 양조·발효(기소비)·두부 제조(기소비)·치즈 숙성(기소비)·한약재 법제(기소비 c6977)·염전·제염(기소비)과, 하천 어도는 낚시·어업(기소비)·수경재배(기소비)·정수 처리(기소비)·하수관로 준설(기소비)·상수도 누수 탐사(기소비)와 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
