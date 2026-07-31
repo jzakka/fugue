@@ -52,7 +52,7 @@ func decodeBodyCapError(t *testing.T, rec *httptest.ResponseRecorder) string {
 // TestCreate_BodyTooLarge verifies http.MaxBytesReader pre-empts the JSON
 // decoder before any large body is buffered. Handler is reachable with a
 // nil database because the body cap rejects before the decoder completes
-// — db.New(h.database) is never invoked.
+// — no query method on the handler's querier is ever invoked.
 func TestCreate_BodyTooLarge(t *testing.T) {
 	h := boards.NewHandler(nil)
 	req, n := newCappedRequest(t, http.MethodPost, "/api/boards", `{"name":"`, `"}`)

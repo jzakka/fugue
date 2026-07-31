@@ -103,12 +103,32 @@ type BoardDetailResponse struct {
 // Handler
 // ---------------------------------------------------------------------------
 
+// boardsQuerier is the minimal query surface the boards handlers need.
+// *db.Queries satisfies it; tests inject a mock.
+type boardsQuerier interface {
+	CreateBoard(ctx context.Context, arg db.CreateBoardParams) (db.Board, error)
+	GetBoard(ctx context.Context, id uuid.UUID) (db.Board, error)
+	UpdateBoard(ctx context.Context, arg db.UpdateBoardParams) (db.Board, error)
+	DeleteBoard(ctx context.Context, arg db.DeleteBoardParams) (int64, error)
+	ListBoardsByCreator(ctx context.Context, creatorID uuid.UUID) ([]db.Board, error)
+	ListPublicBoardsByCreator(ctx context.Context, creatorID uuid.UUID) ([]db.Board, error)
+	ListPublicBoardsByPin(ctx context.Context, pinID uuid.UUID) ([]db.ListPublicBoardsByPinRow, error)
+	CountBoardPins(ctx context.Context, boardID uuid.UUID) (int64, error)
+	ListBoardPinImages(ctx context.Context, boardID uuid.UUID) ([]string, error)
+	ListBoardPins(ctx context.Context, arg db.ListBoardPinsParams) ([]db.ListBoardPinsRow, error)
+	GetTagsForPins(ctx context.Context, pinIDs []uuid.UUID) ([]db.GetTagsForPinsRow, error)
+	AddPinToBoard(ctx context.Context, arg db.AddPinToBoardParams) (int64, error)
+	RemovePinFromBoard(ctx context.Context, arg db.RemovePinFromBoardParams) (int64, error)
+	GetPin(ctx context.Context, id uuid.UUID) (db.Pin, error)
+	CreateInteraction(ctx context.Context, arg db.CreateInteractionParams) error
+}
+
 type Handler struct {
-	database *sql.DB
+	q boardsQuerier
 }
 
 func NewHandler(database *sql.DB) *Handler {
-	return &Handler{database: database}
+	return &Handler{q: db.New(database)}
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +184,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		description = sql.NullString{String: *req.Description, Valid: true}
 	}
 
-	q := db.New(h.database)
+	q := h.q
 	board, err := q.CreateBoard(r.Context(), db.CreateBoardParams{
 		CreatorID:   creatorID,
 		Name:        name,
@@ -191,7 +211,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 	board, err := q.GetBoard(r.Context(), boardID)
 	if err == sql.ErrNoRows {
 		writeError(w, http.StatusNotFound, "보드를 찾을 수 없습니다")
@@ -292,7 +312,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 
 	// Fetch current board to merge partial updates
 	current, err := q.GetBoard(r.Context(), boardID)
@@ -401,7 +421,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 	rowsAffected, err := q.DeleteBoard(r.Context(), db.DeleteBoardParams{
 		ID:        boardID,
 		CreatorID: creatorID,
@@ -437,7 +457,7 @@ func (h *Handler) ListByCreator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 
 	// If the authenticated user is the owner, show all boards; otherwise public only
 	callerID, authenticated := auth.CreatorIDFromContext(r.Context())
@@ -495,7 +515,7 @@ func (h *Handler) ListByPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 	rows, err := q.ListPublicBoardsByPin(r.Context(), pinID)
 	if err != nil {
 		log.Printf("boards.ListByPin: DB error: %v", err)
@@ -557,7 +577,7 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 
 	// Verify board ownership
 	board, err := q.GetBoard(r.Context(), boardID)
@@ -572,6 +592,18 @@ func (h *Handler) AddPin(w http.ResponseWriter, r *http.Request) {
 	}
 	if board.CreatorID != creatorID {
 		writeError(w, http.StatusNotFound, "보드를 찾을 수 없습니다")
+		return
+	}
+
+	// Pre-check pin existence so a dangling pin_id maps to 404 instead of
+	// surfacing the board_pins FK violation as a 500.
+	if _, err := q.GetPin(r.Context(), workID); err != nil {
+		if err == sql.ErrNoRows {
+			writeError(w, http.StatusNotFound, "핀을 찾을 수 없습니다")
+			return
+		}
+		log.Printf("boards.AddPin: get pin error: %v", err)
+		writeError(w, http.StatusInternalServerError, "핀을 추가할 수 없습니다")
 		return
 	}
 
@@ -619,7 +651,7 @@ func (h *Handler) RemovePin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.New(h.database)
+	q := h.q
 
 	// Verify board ownership
 	board, err := q.GetBoard(r.Context(), boardID)
@@ -700,7 +732,7 @@ func toBoardPinResponse(row db.ListBoardPinsRow) PinResponse {
 	}
 }
 
-func hydratePinTags(ctx context.Context, q *db.Queries, pins []PinResponse) {
+func hydratePinTags(ctx context.Context, q boardsQuerier, pins []PinResponse) {
 	if len(pins) == 0 {
 		return
 	}

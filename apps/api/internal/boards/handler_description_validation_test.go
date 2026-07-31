@@ -17,10 +17,10 @@ import (
 // These tests verify the ADDED Requirement "보드 description 입력은
 // boards.description 컬럼 cap에 맞춰 사전 길이 검증된다" of the change
 // `fix-boards-handler-description-input-length-validation`. The Create
-// handler runs the length validation BEFORE constructing the sqlc querier
-// (db.New(h.database)), so a Handler built with a nil *sql.DB can be
-// driven end-to-end for the reject path: when the validation fires, the
-// 400 response is produced without touching the DB.
+// handler runs the length validation BEFORE issuing any query, so a
+// Handler built with a nil *sql.DB can be driven end-to-end for the
+// reject path: when the validation fires, the 400 response is produced
+// without touching the DB.
 //
 // Update path coverage is intentionally omitted at the unit-test layer
 // because Update reads the current board via GetBoard BEFORE the
@@ -100,8 +100,8 @@ func TestCreate_RejectsDescriptionOverRuneCapMultibyte(t *testing.T) {
 }
 
 func TestCreate_AcceptsDescriptionAtRuneCap(t *testing.T) {
-	// description 500 rune은 검증을 통과해 db.New(h.database).CreateBoard
-	// 호출로 진행한다. h.database가 nil이라 이 호출은 panic 한다 — 그
+	// description 500 rune은 검증을 통과해 CreateBoard 쿼리 호출로
+	// 진행한다. nil *sql.DB 기반 querier라 이 호출은 panic 한다 — 그
 	// panic이 발생하는 것 자체가 "검증이 description 길이로 reject 하지
 	// 않았다"는 증거다. 정상 입력(cap 이하)이 reject 되지 않음을 확인하는
 	// 회귀 방지 케이스.
