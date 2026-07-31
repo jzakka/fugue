@@ -20437,6 +20437,13 @@
 - QA(browse headless, dev+API+DB 실기동): /creators/[id] 활성 칩 computed bg rgb(232,232,232)·color rgb(12,12,12) 반전 확인, 클릭 시 aria-pressed 토글+필터링 렌더+콘솔 에러 0, hover border rgb(136,136,136)=text-muted, 회귀 대조 — 피드 FieldFilter 반전 유지·TagFilter accent-subtle+mono 미변형. lint 0/tsc 0/vitest 47.
 - 차기: pending=0 → 발견 모드. area = responsive → cycle 3679, 641st round(responsive).
 
+## cycle 6991 — design/responsive 1189th round (Discovery, 표면 불변 폐기)
+- 순번: responsive 1189번째 라운드, 발견 모드. 백로그 pending=0.
+- 센서스: style surface(apps/web/src, DESIGN.md) diff-stat을 직전 responsive 포인터 24e141a6(c6985 기록) 대비 산출 → numstat 출력 자체가 공집합(변경 0건). origin/main 080755ea 시점. (tailwind.config.ts는 Tailwind v4 CSS 설정으로 파일 부재, 글롭 제외.)
+- 폐기: 반응형 표면이 포인터 이후 불변이므로 재프로브 없이 표면 불변 폐기(c3781 관례). 신규 후보 없음.
+- 포인터: 갱신 → origin/main 080755ea (차기 responsive 센서스 기준).
+- 차기: pending=0 → 발견 모드. area = tokens → cycle 6993, 1113th round(tokens). 직전 tokens 포인터 27c98516 대비 style surface 센서스, 불변이면 표면 불변 폐기(c3781 관례).
+
 ## cycle 6989 — design/aesthetic 1189th round (Discovery, 0 신규 후보)
 - 순번: aesthetic 1189번째 라운드, 발견 모드. 백로그 pending=0. origin/main 03a7fa56.
 - 프로빙: fresh 48축 2배치를 `.fugue/anti-patterns.md` 대비 대소문자 무시 카운트(grep -icF, 단일 파일이라 -r 미사용). 배치A = 자동 세차 터널 설비 운영(갠트리·클로스 미터·고압 랜스·에어나이프) 계열, 배치B = 박물관 전시 케이스 환경 관리(기밀 가스켓·실리카겔 컨디셔닝·조도 누적·무산소 봉입) 계열. 두 배치 모두 nonzero 축 없음. (직전 사이클들과의 단어 중복을 피해 배치A는 wash/rinse/spray/brush(기소비 c6935·c6977)·dry/foam/blow(기소비 c6953·c6947)·soak/spread/pull/sweep/jet/pass/flush(기소비 c6947·c6959·c6971·c6983)·align/tilt/angle/seal/polish/clear·slot 동음이의(3)·track 동음이의(16)·stage 동음이의(9)·scan/sense를 conveyorrollerdrag·tyreguidegroove·prewetarchbar·highpressurelancearc·wraparoundcurtaindrape·undercarriagesluice·triplelanestripe·protectantcoatbar·spotfreeresintank·airknifenozzleaim·fanpowerbank·matbeltentry·membertaggate로, 배치B는 humidity(직전 c6977)·buffer 동음이의(2)·hold/keep/level/cap(기소비)·test/trial/assay/screen/check(기소비 c6959·c6965·c6971)·cut/trim 동음이의(54)·window 동음이의(17)·pin 동음이의(243)·purge/fill/grade/rank/class/report/rest 동음이의(3)를 moisturebandsteady·silicagelconditionpack·luxdoseyear·offgasoddyprobe·mountbevelrim·cliplessmountstrap·anoxicnitrogenflood·dustingresstier·displayoffdutyspell·conditionnoteimage로 교체했고, 배치 간 photo 단어 중복을 피해 B의 conditionreportphoto를 conditionnoteimage로 조정했다. 자동 세차 터널은 의류 드라이클리닝(기소비)·분체도장 라인(기소비)·자동차 정비(기소비)·하수관로 준설(기소비)·놀이터 충격흡수 바닥재(기소비 c6977)와, 박물관 전시 케이스 환경 관리는 회화 보존·복원(기소비)·사과 CA 저장고(기소비)·필사본 금박 채식(기소비)·제본·장정(기소비)·진공 동결건조 식품(기소비)과 별개 직능으로 c6383 장제/승마 선례에 따라 채택했다.)
